@@ -29,11 +29,8 @@ import net.openid.conformance.openinsurance.testmodule.support.OpinConsentPermis
 		"\u2022 Expects the test to return a 204 - No Content\n" +
 		"\u2022 Calls the GET Consents with the 1st Consent ID created\n" +
 		"\u2022 Confirms that the Consent has been sent to a Rejected state",
-
-
-
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
-	configurationFields = {
+		profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
+		configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
 		"client.jwks",
@@ -54,7 +51,6 @@ public class OpinConsentApiTestModule extends AbstractClientCredentialsGrantFunc
 	protected void runTests() {
 
 		permissionsBuilder = new OpinConsentPermissionsBuilder(env,getId(),eventLog,testInfo,executionManager);
-		permissionsBuilder.addPermissionsGroup(PermissionsGroup.ALL).build();
 		String productType = env.getString("config", "consent.productType");
 		if (!Strings.isNullOrEmpty(productType) && productType.equals("business")) {
 			permissionsBuilder.removePermissionsGroups(PermissionsGroup.CUSTOMERS_PERSONAL);
@@ -62,11 +58,9 @@ public class OpinConsentApiTestModule extends AbstractClientCredentialsGrantFunc
 		if (!Strings.isNullOrEmpty(productType) && productType.equals("personal")) {
 			permissionsBuilder.removePermissionsGroups(PermissionsGroup.CUSTOMERS_BUSINESS);
 		}
-
+		permissionsBuilder.addPermissionsGroup(PermissionsGroup.ALL).build();
 
 		runInBlock("Validating create consent response", () -> {
-
-
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(AddConsentScope.class);
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
@@ -78,7 +72,6 @@ public class OpinConsentApiTestModule extends AbstractClientCredentialsGrantFunc
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.REVIEW);
 			callAndContinueOnFailure(CheckItemCountHasMin1.class);
 		});
-
 
 		runInBlock("Validating get consent response", () -> {
 			callAndStopOnFailure(ConsentIdExtractor.class);
@@ -99,6 +92,5 @@ public class OpinConsentApiTestModule extends AbstractClientCredentialsGrantFunc
 			callAndStopOnFailure(ConsentWasRejectedOrDeleted.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureConsentWasRejected.class, Condition.ConditionResult.WARNING);
 		});
-
 	}
 }
