@@ -51,6 +51,7 @@ public class OpinConsentApiTestModule extends AbstractClientCredentialsGrantFunc
 	protected void runTests() {
 
 		permissionsBuilder = new OpinConsentPermissionsBuilder(env,getId(),eventLog,testInfo,executionManager);
+		permissionsBuilder.addPermissionsGroup(PermissionsGroup.ALL);
 		String productType = env.getString("config", "consent.productType");
 		if (!Strings.isNullOrEmpty(productType) && productType.equals("business")) {
 			permissionsBuilder.removePermissionsGroups(PermissionsGroup.CUSTOMERS_PERSONAL);
@@ -58,7 +59,7 @@ public class OpinConsentApiTestModule extends AbstractClientCredentialsGrantFunc
 		if (!Strings.isNullOrEmpty(productType) && productType.equals("personal")) {
 			permissionsBuilder.removePermissionsGroups(PermissionsGroup.CUSTOMERS_BUSINESS);
 		}
-		permissionsBuilder.addPermissionsGroup(PermissionsGroup.ALL).build();
+		permissionsBuilder.build();
 
 		runInBlock("Validating create consent response", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
