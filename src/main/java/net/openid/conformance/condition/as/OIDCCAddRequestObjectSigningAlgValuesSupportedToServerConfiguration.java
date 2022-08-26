@@ -20,6 +20,7 @@ public class OIDCCAddRequestObjectSigningAlgValuesSupportedToServerConfiguration
 		signingAlgValuesSupported.add("RS256");
 		signingAlgValuesSupported.add("PS256");
 		signingAlgValuesSupported.add("ES256");
+		signingAlgValuesSupported.add("EdDSA");
 
 		server.add("request_object_signing_alg_values_supported", signingAlgValuesSupported);
 
