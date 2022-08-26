@@ -77,7 +77,6 @@ public class ResourcesApiTestModuleUnavailableV2 extends AbstractOBBrasilFunctio
 	@Override
 	protected void requestProtectedResource() {
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
-		preCallProtectedResource();
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 		callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class);
