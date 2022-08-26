@@ -50,9 +50,6 @@ public class ConsentsApiTestTransactionDateTimeV2 extends AbstractClientCredenti
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
-			env.putString("fromTransactionDate", "2022-08-03");
-			env.putString("toTransactionDate", "2022-08-04");
-			callAndContinueOnFailure(AddToAndFromTransactionDateParametersToConsentUrl.class);
 			callAndContinueOnFailure(CallConsentEndpointWithBearerTokenAnyHttpMethod.class);
 
 			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));
