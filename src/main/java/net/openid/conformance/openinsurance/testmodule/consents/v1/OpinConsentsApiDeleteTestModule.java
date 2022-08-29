@@ -12,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.Prepare
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v1.OpenBankingBrazilPreAuthorizationConsentApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
+import net.openid.conformance.openinsurance.testmodule.support.EnsureTokenResponseWas403;
 import net.openid.conformance.openinsurance.testmodule.support.OpinPreAuthorizationConsentApi;
 import net.openid.conformance.openinsurance.testmodule.support.PermissionsGroup;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -121,7 +122,7 @@ public class OpinConsentsApiDeleteTestModule extends AbstractFunctionalTestModul
 
 		eventLog.startBlock("Try calling protected resource after consent is deleted");
 		callAndStopOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas403.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseCodeWas401.class, Condition.ConditionResult.FAILURE);
 
 		eventLog.startBlock("Trying issuing a refresh token");
 		call(callTokenEndpointRefreshToken());
@@ -134,6 +135,7 @@ public class OpinConsentsApiDeleteTestModule extends AbstractFunctionalTestModul
 			condition(SignClientAuthenticationAssertion.class),
 			condition(AddClientAssertionToTokenEndpointRequest.class),
 			condition(CallTokenEndpointAndReturnFullResponse.class).onFail(Condition.ConditionResult.WARNING).dontStopOnFailure(),
+			condition(EnsureTokenResponseWas403.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure(),
 			condition(EnsureTokenResponseWasAFailure.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
 		);
 
