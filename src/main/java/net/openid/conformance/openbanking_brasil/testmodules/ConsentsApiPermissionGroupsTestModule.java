@@ -2,6 +2,7 @@ package net.openid.conformance.openbanking_brasil.testmodules;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallConsentEndpointWithBearerTokenAnyHttpMethod;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -14,7 +15,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 	testName = "consent-api-test-permission-groups",
 	displayName = "Validate that consent API accepts the consent groups",
 	summary = "Validates that consent API accepts the consent groups\n" +
-		"\u2022 Creates a series of consent requests with valid permissions group and expect for each of them a 201 to be returned by the server\n" +
+		"\u2022 Creates a series of consent requests with valid permissions group and expect for each of them a 201 to be returned by the server with matching permissions or, instead, a 422 error response because server does not support the sent group.\n" +
 		"\u2022 Validates consent API request for 'Personal Registration Data' permission group(s)\n" +
 		"\u2022 Validates consent API request for 'Personal Additional Information' permission group(s)\n" +
 		"\u2022 Validates consent API request for 'Business Registration Data' permission group(s)\n" +
@@ -97,8 +98,9 @@ public class ConsentsApiPermissionGroupsTestModule extends AbstractClientCredent
 			env.putString("consent_permissions", String.join(" ", permissions));
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
-			callAndStopOnFailure(IgnoreResponseError.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.SUCCESS);
+			callAndContinueOnFailure(CallConsentEndpointWithBearerTokenAnyHttpMethod.class, Condition.ConditionResult.SUCCESS);
+			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));
+			callAndContinueOnFailure(ResourceEndpointResponseFromFullResponse.class);
 
 			if (!env.getString("resource_endpoint_response").equals("{}")) {
 				passed = true;
