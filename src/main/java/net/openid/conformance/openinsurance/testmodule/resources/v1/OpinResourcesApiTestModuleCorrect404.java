@@ -21,7 +21,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 Expects a success 201 - Expects a success on Redirect as well \n" +
 		"\u2022 Calls GET Resources API \n" +
 		"\u2022 Expects a 404 response as neither customer personal nor customer business support the resources API",
-	profile = OBBProfile.OBB_PROFILE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
