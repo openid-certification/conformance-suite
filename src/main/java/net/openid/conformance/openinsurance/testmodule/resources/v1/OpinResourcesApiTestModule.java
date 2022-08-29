@@ -16,8 +16,6 @@ import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 
-//import net.openid.conformance.testmodule.PublishTestModule;
-
 @PublishTestModule(
 	testName = "opin-resources-api-test",
 	displayName = "Validate structure of all resources API resources",
