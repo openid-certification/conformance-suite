@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.resources;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.ConditionSequenceRepeater;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -11,8 +12,11 @@ import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFun
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.financing.AddScopesForFinancingsApi;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.UnavailableResourcesApiPollingTimeout;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
@@ -52,6 +56,7 @@ import java.util.Optional;
 })
 public class ResourcesApiTestModuleUnavailableV2 extends AbstractOBBrasilFunctionalTestModule {
 
+	private ClientAuthType clientAuthType;
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(BuildResourcesConfigResourceUrlFromConsentUrl.class);
@@ -71,6 +76,8 @@ public class ResourcesApiTestModuleUnavailableV2 extends AbstractOBBrasilFunctio
 
 		callAndStopOnFailure(PrepareAllResourceRelatedConsentsForHappyPathTest.class);
 		callAndStopOnFailure(PrepareUrlForResourcesCall.class);
+
+		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);
 	}
 
@@ -105,7 +112,15 @@ public class ResourcesApiTestModuleUnavailableV2 extends AbstractOBBrasilFunctio
 		});
 
 		callAndContinueOnFailure(ResourcesResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(SaveUnavailableResourceData.class);
+
+		ConditionSequenceRepeater sequenceRepeater = new ConditionSequenceRepeater(env, getId(), eventLog, testInfo, executionManager,
+			() -> sequenceOf(condition(SaveUnavailableResourceData.class).dontStopOnFailure().onFail(Condition.ConditionResult.INFO)))
+			.untilTrue("resource_found")
+			.times(10)
+			.trailingPause(60)
+			.refreshSequence(new GenerateRefreshAccessTokenSteps(clientAuthType), 3)
+			.onTimeout(sequenceOf(condition(UnavailableResourcesApiPollingTimeout.class),condition(ChuckWarning.class)));
+		sequenceRepeater.run();
 
 		runInBlock("Ensure we cannot see the given unavailable resource in its api list.", () -> {
 			callAndStopOnFailure(UpdateSavedResourceData.class);
