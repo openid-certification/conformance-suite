@@ -13,8 +13,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 
 @PublishTestModule(
-	testName = "opin-customer-business-api-wrong-permissions-test-v2",
-	displayName = "Ensures API resource cannot be called with wrong permissions V2",
+	testName = "opin-customer-business-api-wrong-permissions-test",
+	displayName = "Ensures API resource cannot be called with wrong permissions",
 	summary = "Ensures API resource cannot be called with wrong permissions - there will be two browser interactions with this test\n" +
 		"\u2022 Creates a Consent will the customer business permissions ((\"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\",”CUSTOMERS_BUSINESS_QUALIFICATION_READ”, \"CUSTOMERS_BUSINESS_ADITTIONALINFO_READ\", \"RESOURCES_READ\")\n" +
 		"\u2022 Expects a success 201 - Check all of the fields sent on the consent API is spec compliant \n" +
