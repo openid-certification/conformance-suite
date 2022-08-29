@@ -76,20 +76,20 @@ public class OpinCustomerPersonalWrongPermissionsTestModule extends AbstractPerm
 
 	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
-		runInBlock("Ensure we cannot call the  Customer Personal Qualification V2", () -> {
+		runInBlock("Ensure we cannot call the  Customer Personal Qualification", () -> {
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
-		runInBlock("Ensure we cannot call the Customer Personal Identifications V2", () -> {
+		runInBlock("Ensure we cannot call the Customer Personal Identifications", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalIdentifications.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
 		});
 
-		runInBlock("Ensure we cannot call the Customer Personal Financial-relations V2", () -> {
+		runInBlock("Ensure we cannot call the Customer Personal Complimentary Information", () -> {
 			callAndStopOnFailure(PrepareToGetPersonalComplementaryInfo.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
