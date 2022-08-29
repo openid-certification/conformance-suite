@@ -30,8 +30,8 @@ import java.util.Optional;
 		"\u2022 Expects a Success 201\n" +
 		"\u2022 Redirect the user to authorize the CONSENT - Redirect URI must contain all phase 2 scopes\n" +
 		"\u2022 Expect a Successful authorization with an authorization code created\n" +
-		"\u2022 Call the RESOURCES API with the authorized consent\n" +
-		"\u2022 Expect a 200 - Validate that AT LEAST one Resource has been returned and is on the state TEMPORARILY_UNAVAILABLE/UNAVAILABLE\n" +
+		"\u2022 POLL the GET RESOURCES API with the authorized consent for 10 minutes - Refresh Token to be called each 3 minutes\n" +
+		"\u2022 Continue pooling until AT LEAST one Resource returned and is on the state TEMPORARILY_UNAVAILABLE/UNAVAILABLE\n" +
 		"\u2022 Evaluate which Resource is on the TEMPORARILY_UNAVAILABLE/UNAVAILABLE state, fetch the resource id, create the base request URI for said resource\n" +
 		"\u2022 Call either the CONTRACTS or the ACCOUNTS list API for this Resource\n" +
 		"\u2022 Expect a 200 - Make sure the Server returns a 200 without that TEMPORARILY_UNAVAILABLE/UNAVAILABLE resource on it's list\n" +
