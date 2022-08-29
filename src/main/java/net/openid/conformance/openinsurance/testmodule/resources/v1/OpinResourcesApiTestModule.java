@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
 		"\u2022 Calls the GET resources API\n" +
 		"\u2022 Expects a 200",
-	profile = OBBProfile.OBB_PROFILE,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
