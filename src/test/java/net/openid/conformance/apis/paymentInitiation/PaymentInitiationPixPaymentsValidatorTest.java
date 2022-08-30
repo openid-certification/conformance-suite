@@ -95,4 +95,12 @@ public class PaymentInitiationPixPaymentsValidatorTest extends AbstractJsonRespo
 		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("transactionIdentification", condition.getApiName())));
 	}
 
+	@Test
+	@UseResurce("jsonResponses/paymentInitiation/pixByPayments/paymentInitiationConsentResponsePixBadEndToEndId.json")
+	public void validateStructureBadEndToEndId() {
+		PaymentInitiationPixPaymentsValidator condition = new PaymentInitiationPixPaymentsValidator();
+		ConditionError error = runAndFail(condition);
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("endToEndId", condition.getApiName())));
+	}
+
 }
