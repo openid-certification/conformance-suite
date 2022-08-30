@@ -23,10 +23,10 @@ public abstract class AbstractErrorMetaValidator extends AbstractJsonAssertingCo
 
 		if(!Strings.isNullOrEmpty(isMetaOnlyRequestDateTime) && isMetaOnlyRequestDateTime.equals("true")){
 			LinksAndMetaOnlyRequestDateTimeValidator linksAndMetaOnlyRequestDateTimeValidator = new LinksAndMetaOnlyRequestDateTimeValidator(this);
-			linksAndMetaOnlyRequestDateTimeValidator.assertMetaAndLinks(body);
+			linksAndMetaOnlyRequestDateTimeValidator.assertMeta(body.getAsJsonObject());
 		}else {
 			LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
-			linksAndMetaValidator.assertMetaAndLinks(body);
+			linksAndMetaValidator.assertMeta(body.getAsJsonObject());
 		}
 
 		assertField(body,
