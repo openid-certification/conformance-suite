@@ -2,12 +2,10 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.registrationData.v2.BusinessIdentificationValidatorV2;
 import net.openid.conformance.openbanking_brasil.registrationData.v2.BusinessQualificationResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.registrationData.v2.BusinessRelationsResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -86,16 +84,18 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOp
 		eventLog.endBlock();
 
 		// Call Business Identification 29 times
+		disableLogging();
 		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Business Identification Endpoint with consent_id_%d", i + 1, numberOfExecutions));
 		}
 
 		// Call Business Qualifications once with validation
+		runInLoggingBlock(() -> {
+			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 
-		callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
-
-		preCallProtectedResource(String.format("Calling Business Qualifications Endpoint with consent_id_%d", numberOfExecutions));
-		validateResponse("Validate Business Qualifications response", BusinessQualificationResponseValidatorV2.class);
+			preCallProtectedResource(String.format("Calling Business Qualifications Endpoint with consent_id_%d", numberOfExecutions));
+			validateResponse("Validate Business Qualifications response", BusinessQualificationResponseValidatorV2.class);
+		});
 
 		// Call Business Qualifications 29 times
 		for (int i = 1; i < 30; i++) {
@@ -104,11 +104,13 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOp
 
 
 		// Call Customer Business Financial Relations once with validation
+		runInLoggingBlock(() -> {
+			callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
 
-		callAndStopOnFailure(PrepareToGetBusinessFinancialRelations.class);
+			preCallProtectedResource(String.format("Calling Customer Business Financial Relations Endpoint with consent_id_%d", numberOfExecutions));
+			validateResponse("Validate Customer Business Financial Relations response", BusinessRelationsResponseValidatorV2.class);
 
-		preCallProtectedResource(String.format("Calling Customer Business Financial Relations Endpoint with consent_id_%d", numberOfExecutions));
-		validateResponse("Validate Customer Business Financial Relations response", BusinessRelationsResponseValidatorV2.class);
+		});
 
 		// Call Customer Business Financial Relations 29 times
 		for (int i = 1; i < 30; i++) {
@@ -122,11 +124,11 @@ public class CustomerBusinessApiOperationalLimitsTestModuleV2 extends AbstractOp
 			callAndStopOnFailure(validator);
 			callAndStopOnFailure(ValidateResponseMetaData.class);
 		});
-
 	}
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
+		enableLogging();
 		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareToGetBusinessIdentifications.class);
 			unmapClient();

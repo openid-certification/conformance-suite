@@ -2,14 +2,12 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.registrationData.v2.*;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalIdentificationResponseValidatorV2;
+import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalQualificationResponseValidatorV2;
+import net.openid.conformance.openbanking_brasil.registrationData.v2.PersonalRelationsResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 
@@ -76,18 +74,19 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOp
 		callAndStopOnFailure(ValidateResponseMetaData.class);
 
 		eventLog.endBlock();
-
+		disableLogging();
 		// Call Personal Identification 29 times
 		for (int i = 1; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Personal Identification Endpoint with consent_id_%d", i + 1, numberOfExecutions));
 		}
 
 		// Call Personal Qualifications once with validation
+		runInLoggingBlock(() -> {
+			callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
 
-		callAndStopOnFailure(PrepareToGetPersonalQualifications.class);
-
-		preCallProtectedResource(String.format("Calling Personal Qualifications Endpoint with consent_id_%d", numberOfExecutions));
-		validateResponse("Validate Personal Qualifications response", PersonalQualificationResponseValidatorV2.class);
+			preCallProtectedResource(String.format("Calling Personal Qualifications Endpoint with consent_id_%d", numberOfExecutions));
+			validateResponse("Validate Personal Qualifications response", PersonalQualificationResponseValidatorV2.class);
+		});
 
 		// Call Personal Qualifications 29 times
 		for (int i = 1; i < 30; i++) {
@@ -96,11 +95,12 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOp
 
 
 		// Call Customer Personal Financial Relations once with validation
+		runInLoggingBlock(() -> {
+			callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
 
-		callAndStopOnFailure(PrepareToGetPersonalFinancialRelationships.class);
-
-		preCallProtectedResource(String.format("Calling Customer Personal Financial Relations Endpoint with consent_id_%d", numberOfExecutions));
-		validateResponse("Validate Customer Personal Financial Relations response", PersonalRelationsResponseValidatorV2.class);
+			preCallProtectedResource(String.format("Calling Customer Personal Financial Relations Endpoint with consent_id_%d", numberOfExecutions));
+			validateResponse("Validate Customer Personal Financial Relations response", PersonalRelationsResponseValidatorV2.class);
+		});
 
 		// Call Customer Personal Financial Relations 29 times
 		for (int i = 1; i < 30; i++) {
@@ -114,11 +114,11 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOp
 			callAndStopOnFailure(validator);
 			callAndStopOnFailure(ValidateResponseMetaData.class);
 		});
-
 	}
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
+		enableLogging();
 		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareToGetPersonalIdentifications.class);
 			unmapClient();
@@ -130,5 +130,6 @@ public class CustomerPersonalApiOperationalLimitsTestModuleV2 extends AbstractOp
 		} else {
 			fireTestFinished();
 		}
+
 	}
 }

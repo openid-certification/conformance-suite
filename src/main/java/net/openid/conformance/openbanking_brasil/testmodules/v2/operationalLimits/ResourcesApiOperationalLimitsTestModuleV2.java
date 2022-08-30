@@ -1,20 +1,10 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
-import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "resources-api-operational-limits",
@@ -55,7 +45,6 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 
 	private int currentBatch = 1;
 	private static final int NUMBER_OF_EXECUTIONS = 450;
-	private ClientAuthType clientAuthType;
 
 	@Override
 	protected void configureClient() {
@@ -70,7 +59,6 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 		switchToSecondClient();
 		callAndStopOnFailure(AddResourcesScope.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
-		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);
 	}
 
@@ -80,7 +68,7 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 		for (int i = 0; i < NUMBER_OF_EXECUTIONS; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Resources Endpoint with consent_id_%d", i + 1, currentBatch));
 
-			if(i == 0) {
+			if (i == 0) {
 				validateResponse();
 			}
 			if (i % 100 == 0) {
@@ -91,11 +79,10 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 
 	}
 
-
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		expose("consent_id_" + currentBatch, env.getString("consent_id"));
-
+		enableLogging();
 		if (currentBatch == 3) {
 			fireTestFinished();
 		} else {
@@ -109,17 +96,16 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 			performAuthorizationFlow();
 			currentBatch++;
 		}
+
 	}
 
 	@Override
 	protected void validateResponse() {
-		callAndContinueOnFailure(EnsureResponseCodeWas200.class);
-		callAndContinueOnFailure(ValidateResponseMetaData.class);
-		callAndStopOnFailure(ResourcesResponseValidatorV2.class);
+		runInLoggingBlock(() -> {
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class);
+			callAndContinueOnFailure(ValidateResponseMetaData.class);
+			callAndStopOnFailure(ResourcesResponseValidatorV2.class);
+		});
 	}
 
-	private void refreshAccessToken() {
-		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
-		call(refreshAccessTokenSteps);
-	}
 }
