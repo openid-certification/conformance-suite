@@ -27,12 +27,12 @@ import java.util.Optional;
 		"\u2022 Redirect the user to authorize the CONSENT - Redirect URI must contain all phase 2 scopes\n" +
 		"\u2022 Expect a Successful authorization with an authorization code created\n" +
 		"\u2022 Call the RESOURCES API with the authorized consent\n" +
-		"\u2022 Expect a 200 - Validate that AT LEAST one Resource has been returned and is on the state TEMPORARY_UNAVAILABLE/UNAVAILABLE\n" +
-		"\u2022 Evaluate which Resource is on the TEMPORARY_UNAVAILABLE/UNAVAILABLE state, fetch the resource id, create the base request URI for said resource\n" +
+		"\u2022 Expect a 200 - Validate that AT LEAST one Resource has been returned and is on the state TEMPORARILY_UNAVAILABLE/UNAVAILABLE\n" +
+		"\u2022 Evaluate which Resource is on the TEMPORARILY_UNAVAILABLE/UNAVAILABLE state, fetch the resource id, create the base request URI for said resource\n" +
 		"\u2022 Call either the CONTRACTS or the ACCOUNTS list API for this Resource\n" +
-		"\u2022 Expect a 200 - Make sure the Server returns a 200 without that TEMPORARY_UNAVAILABLE/UNAVAILABLE resource on it's list\n" +
+		"\u2022 Expect a 200 - Make sure the Server returns a 200 without that TEMPORARILY_UNAVAILABLE/UNAVAILABLE resource on it's list\n" +
 		"\u2022 Depending on the unavailable resource, call one of the following APIs depending: (1) /contracts/{contractId}/warranties for credit operations, (2) /accounts/{creditCardAccountId}/bills for credit cards, or (3) /accounts/{accountId}/balances for accounts\n" +
-		"\u2022 Expect a 403 - Validate that the field response.errors.code is STATUS_RESOURCE_TEMPORARY_UNAVAILABLE/STATUS_RESOURCE_UNAVAILABLE\n" +
+		"\u2022 Expect a 403 - Validate that the field response.errors.code is STATUS_RESOURCE_TEMPORARILY_UNAVAILABLE/STATUS_RESOURCE_UNAVAILABLE\n" +
 		"\u2022 \n",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
@@ -77,7 +77,6 @@ public class ResourcesApiTestModuleUnavailableV2 extends AbstractOBBrasilFunctio
 	@Override
 	protected void requestProtectedResource() {
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
-		preCallProtectedResource();
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 		callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class);

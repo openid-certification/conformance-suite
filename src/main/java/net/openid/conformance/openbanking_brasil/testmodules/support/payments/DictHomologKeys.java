@@ -32,4 +32,5 @@ public class DictHomologKeys {
 	public static final String PROXY_PHONE_NUMBER_OWNER_NAME = "Joao Silva";
 	public static final String PROXY_PHONE_NUMBER_PERSON_TYPE = "PESSOA_NATURAL";
 	public static final String PROXY_PHONE_NUMBER_ACCOUNT_TYPE = "CACC";
+	public static final String PROXY_E2EID_ISPB = "00000000";
 }

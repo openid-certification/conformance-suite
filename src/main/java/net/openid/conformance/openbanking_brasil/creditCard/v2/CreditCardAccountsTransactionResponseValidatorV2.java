@@ -20,7 +20,6 @@ import java.util.Set;
 
 @ApiName("Credit Card Accounts Transaction V2")
 public class CreditCardAccountsTransactionResponseValidatorV2 extends AbstractJsonAssertingCondition {
-	private final LinksAndMetaOnlyRequestDateTimeValidator linksAndMetaValidator = new LinksAndMetaOnlyRequestDateTimeValidator(this);
 	private static final Set<String> ENUM_PAYMENT_TYPE = SetUtils.createSet("A_VISTA, A_PRAZO");
 	public static final Set<String> ENUM_CREDIT_DEBIT_TYPE = SetUtils.createSet("CREDITO, DEBITO");
 	private static final Set<String> ENUM_FEE_TYPE = SetUtils.createSet("ANUIDADE, SAQUE_CARTAO_BRASIL, SAQUE_CARTAO_EXTERIOR, AVALIACAO_EMERGENCIAL_CREDITO, EMISSAO_SEGUNDA_VIA, TARIFA_PAGAMENTO_CONTAS, SMS, OUTRA");
@@ -37,7 +36,7 @@ public class CreditCardAccountsTransactionResponseValidatorV2 extends AbstractJs
 				.setValidator(this::assertData)
 				.setMinItems(0)
 				.build());
-		linksAndMetaValidator.assertMetaAndLinks(body);
+
 		logFinalStatus();
 		return environment;
 	}
