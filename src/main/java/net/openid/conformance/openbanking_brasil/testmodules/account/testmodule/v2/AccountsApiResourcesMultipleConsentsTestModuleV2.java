@@ -16,6 +16,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
@@ -32,7 +33,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 			"\u2022 Call the ACCOUNTS API\n" +
 			"\u2022 Expect a 200 - Make sure the Server returns a 200 with an empty list on the object\n" +
 			"\u2022 Call the ACCOUNTS BALANCES API with the Account ID of the Account on AWAITING_AUTHORIZATION\n" +
-			"\u2022 Expect a 403 - Validate that the field response.errors.code is STATUS_RESOURCE_AWAITING_AUTHORIZATION\n" +
+			"\u2022 Expect a 403 - Validate that the field response.errors.code is status_RESOURCE_PENDING_AUTHORISATION\n" +
 			"\u2022 POLL the GET RESOURCES API for 5 minutes, one call every 30 seconds.\n" +
 			"\u2022 Continue Polling until the Account Resource returned is on the status AVAILABLE\n" +
 			"\u2022 Call the ACCOUNTS API\n" +
@@ -68,6 +69,16 @@ public class AccountsApiResourcesMultipleConsentsTestModuleV2 extends AbstractOB
 		callAndContinueOnFailure(EnsureJointAccountCpfOrCnpjIsPresent.class, Condition.ConditionResult.WARNING);
 		if (!env.getBoolean("continue_test")) {
 			fireTestFinished();
+
+			// Sometimes test is not finished in time and the next condition is called after the status
+			// is set to WAITING and before test is finished causing an exception. This will make sure that we have enough time to finish.
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new TestFailureException(getId(), "Could not finish test", e);
+			}
+
 		}
 	}
 
@@ -108,7 +119,7 @@ public class AccountsApiResourcesMultipleConsentsTestModuleV2 extends AbstractOB
 
 		runInBlock("Validate Accounts Balances response", () -> {
 			callAndStopOnFailure(ResourceErrorMetaValidator.class);
-			callAndStopOnFailure(EnsureErrorResponseCodeIsStatusResourceAwaitingAuthorization.class);
+			callAndStopOnFailure(EnsureErrorResponseCodeIsStatusResourcePendingAuthorisation.class);
 
 		});
 
