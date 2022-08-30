@@ -47,14 +47,14 @@ public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBras
 	}
 
 	protected void disableLogging() {
-		if(eventLog != ignoreSuccessLogger){
+		if(!eventLog.equals(ignoreSuccessLogger)){
 			eventLog.log(getName(), "Logging is reduced. Only errors and warnings will be displayed");
 			eventLog = ignoreSuccessLogger;
 		}
 	}
 
 	protected void enableLogging() {
-		if(eventLog != originalLogger){
+		if(!eventLog.equals(originalLogger)){
 			eventLog = originalLogger;
 			eventLog.log(getName(), "Full logging is enabled");
 		}
