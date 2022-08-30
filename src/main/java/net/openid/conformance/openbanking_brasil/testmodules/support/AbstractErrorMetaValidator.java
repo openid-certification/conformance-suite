@@ -19,15 +19,8 @@ public abstract class AbstractErrorMetaValidator extends AbstractJsonAssertingCo
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
 
-		String isMetaOnlyRequestDateTime = environment.getString("metaOnlyRequestDateTime");
 
-		if(!Strings.isNullOrEmpty(isMetaOnlyRequestDateTime) && isMetaOnlyRequestDateTime.equals("true")){
-			LinksAndMetaOnlyRequestDateTimeValidator linksAndMetaOnlyRequestDateTimeValidator = new LinksAndMetaOnlyRequestDateTimeValidator(this);
-			linksAndMetaOnlyRequestDateTimeValidator.assertMeta(body.getAsJsonObject());
-		}else {
-			LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
-			linksAndMetaValidator.assertMeta(body.getAsJsonObject());
-		}
+		assertMeta(findByPath(body, "meta").getAsJsonObject(), environment);
 
 		assertField(body,
 			new ObjectArrayField
@@ -38,6 +31,18 @@ public abstract class AbstractErrorMetaValidator extends AbstractJsonAssertingCo
 				.build());
 
 		return environment;
+	}
+
+	private void assertMeta(JsonObject meta, Environment environment) {
+		String isMetaOnlyRequestDateTime = environment.getString("metaOnlyRequestDateTime");
+
+		if(!Strings.isNullOrEmpty(isMetaOnlyRequestDateTime) && isMetaOnlyRequestDateTime.equals("true")){
+			LinksAndMetaOnlyRequestDateTimeValidator linksAndMetaOnlyRequestDateTimeValidator = new LinksAndMetaOnlyRequestDateTimeValidator(this);
+			linksAndMetaOnlyRequestDateTimeValidator.assertMeta(meta);
+		}else {
+			LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
+			linksAndMetaValidator.assertMeta(meta);
+		}
 	}
 
 	private void assertError(JsonObject error) {
