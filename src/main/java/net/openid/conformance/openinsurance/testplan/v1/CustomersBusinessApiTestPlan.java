@@ -1,9 +1,10 @@
-package net.openid.conformance.openinsurance.testplan;
+package net.openid.conformance.openinsurance.testplan.v1;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.openinsurance.testmodule.customers.v1.*;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class CustomersBusinessApiTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-
+					OpinCustomersBusinessDataApiTestModule.class
 				),
 				List.of(
 
