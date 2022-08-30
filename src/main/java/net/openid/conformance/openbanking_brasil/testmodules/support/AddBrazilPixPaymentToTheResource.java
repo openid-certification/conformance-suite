@@ -6,7 +6,14 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.DictHomologKeys;
 import net.openid.conformance.testmodule.Environment;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
+
+	static private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+
 	@Override
 	public Environment evaluate(Environment env) {
 		JsonObject consentData;
@@ -96,8 +103,13 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 		JsonObject data = new JsonObject();
 		JsonObject payment = new JsonObject();
 
+		LocalDateTime currentDateTime = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
+		String formattedCurrentDateTime = currentDateTime.format(formatter);
+
+		String endToEndId = String.format("E%s%sabcdef01234", DictHomologKeys.PROXY_E2EID_ISPB, formattedCurrentDateTime);
 
 		pixPayment.add("data", data);
+		data.addProperty("endToEndId", endToEndId);
 		data.add("payment", payment);
 		data.add("creditorAccount", creditorAccount);
 
