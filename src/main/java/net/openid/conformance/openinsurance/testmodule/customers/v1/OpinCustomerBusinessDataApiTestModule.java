@@ -20,11 +20,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Validates the structure of all business customer data API resources V1\n" +
 		"\u2022 Creates a Consent with the customer business permissions (\"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\",\"CUSTOMERS_BUSINESS_ADITTIONALINFO_READ\",\"RESOURCES_READ\")\n" +
 		"\u2022 Expects a success 201 - Check all of the fields sent on the consent API is spec compliant \n" +
-		"\u2022 Calls GET Personal Identifications Endpoint\n" +
+		"\u2022 Calls GET Business Identifications Endpoint\n" +
 		"\u2022 Expects a success 200 - Validate all Fields\n" +
-		"\u2022 Calls GET Personal Qualifications Endpoint\n" +
+		"\u2022 Calls GET Business Qualifications Endpoint\n" +
 		"\u2022 Expects a success 200 - Validate all Fields\n" +
-		"\u2022 Calls GET Personal Complimentary-Information Endpoint\n" +
+		"\u2022 Calls GET Business Complimentary-Information Endpoint\n" +
 		"\u2022 Expects a success 200 - Validate all Fields\n",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
 	configurationFields = {
