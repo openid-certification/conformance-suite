@@ -2,16 +2,10 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.v2.*;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
-import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -73,7 +67,6 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 
 	private int numberOfExecutions = 1;
 	private int numberOfIdsToFetch = 2;
-	private ClientAuthType clientAuthType;
 
 	@Override
 	protected void configureClient() {
@@ -94,6 +87,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
+		enableLogging();
 		expose("consent_id " + numberOfExecutions, env.getString("consent_id"));
 
 		if (numberOfExecutions == 1) {
@@ -121,15 +115,15 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 		});
 		if (numberOfExecutions == 1) {
 			String accountIdOne = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(0));
-			env.putString("accountId", accountIdOne);
+			env.putString(API_RESOURCE_ID, accountIdOne);
 			accountsOperationalLimitCalls();
 			String accountIdTwo = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(1));
-			env.putString("accountId", accountIdTwo);
+			env.putString(API_RESOURCE_ID, accountIdTwo);
 			accountsOperationalLimitCalls();
 			numberOfIdsToFetch--;
 		} else if (numberOfExecutions == 2) {
 			String accountIdOne = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(0));
-			env.putString("accountId", accountIdOne);
+			env.putString(API_RESOURCE_ID, accountIdOne);
 			accountsOperationalLimitCalls();
 		}
 
@@ -143,12 +137,14 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 		for (int i = 0; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching First Account", i + 1));
 			if (i == 0) {
-				runInBlock("Validate Account Response", () -> {
+				runInLoggingBlock(() -> runInBlock("Validate Account Response", () -> {
 					callAndContinueOnFailure(AccountIdentificationResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 					callAndStopOnFailure(ValidateResponseMetaData.class);
-				});
+				}));
+
 			}
 		}
+		enableLogging();
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
 
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
@@ -162,14 +158,14 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			preCallProtectedResource(String.format("[%d] Fetching transactions with booking date parameters", i + 1));
 
 			if (i == 0) {
-				runInBlock("Validate Account Transactions Response", () -> {
+				runInLoggingBlock(() -> runInBlock("Validate Account Transactions Response", () -> {
 					callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 					callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class);
 					callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
-				});
+				}));
 			}
 		}
-
+		enableLogging();
 		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 
 		for (int i = 0; i < 420; i++) {
@@ -177,6 +173,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			validateFields(i, "Validate Account Transactions Balances", AccountBalancesResponseValidatorV2.class);
 		}
 
+		enableLogging();
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionLimit.class);
 
 		for (int i = 0; i < 420; i++) {
@@ -184,6 +181,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			validateFields(i, "Validate accounts limits Balances", AccountLimitsValidatorV2.class);
 		}
 
+		enableLogging();
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionsCurrent.class);
 
 		for (int i = 0; i < 210; i++) {
@@ -191,6 +189,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			validateFields(i, "Validate Account Transactions current", AccountTransactionsCurrentValidatorV2.class);
 		}
 
+		enableLogging();
 		env.putString("fromBookingDateMaxLimited", currentDate.minusDays(6).format(FORMATTER));
 		env.putString("toBookingDateMaxLimited", currentDate.format(FORMATTER));
 
@@ -199,7 +198,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 		callAndContinueOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
 
 		refreshAccessToken();
-
+		enableLogging();
 		for (int i = 0; i < REQUIRED_NUMBER_OF_RECORDS; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching Accounts Transactions Current next link", i + 1));
 
@@ -220,21 +219,18 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			env.putString("protected_resource_url", env.getString("extracted_link"));
 
 			eventLog.endBlock();
+			disableLogging();
 		}
-
+		enableLogging();
 	}
 
 	private void validateFields(int i, String message, Class<? extends Condition> conditionClass) {
 		if (i == 0) {
-			runInBlock(message, () -> callAndStopOnFailure(conditionClass, Condition.ConditionResult.FAILURE));
+			runInLoggingBlock(() -> runInBlock(message, () -> callAndStopOnFailure(conditionClass, Condition.ConditionResult.FAILURE)));
 		}
 		if (i % 100 == 0) {
 			refreshAccessToken();
 		}
 	}
 
-	private void refreshAccessToken() {
-		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
-		call(refreshAccessTokenSteps);
-	}
 }

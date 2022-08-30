@@ -7,12 +7,12 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.Map;
 
-public class TestInstanceEventLogOnlyErrors extends TestInstanceEventLog {
+public class TestInstanceEventLogIgnoreSuccess extends TestInstanceEventLog {
 
 
 	private final TestInstanceEventLog testInstanceEventLog;
 
-	public TestInstanceEventLogOnlyErrors(TestInstanceEventLog testInstanceEventLog) {
+	public TestInstanceEventLogIgnoreSuccess(TestInstanceEventLog testInstanceEventLog) {
 		super(null, null, null);
 		this.testInstanceEventLog = testInstanceEventLog;
 	}
