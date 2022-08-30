@@ -15,7 +15,7 @@ import net.openid.conformance.openinsurance.validator.customers.v1.OpinCustomers
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "opin-customers-business-data-api-test-v1",
+	testName = "opin-customer-business-data-api-test",
 	displayName = "Validate structure of all business customer data API resources V1",
 	summary = "Validates the structure of all business customer data API resources V1\n" +
 		"\u2022 Creates a Consent with the customer business permissions (\"CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ\",\"CUSTOMERS_BUSINESS_ADITTIONALINFO_READ\",\"RESOURCES_READ\")\n" +
@@ -38,7 +38,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.brazilCpf"
 	}
 )
-public class OpinCustomersBusinessDataApiTestModule extends AbstractOBBrasilFunctionalTestModule {
+public class OpinCustomerBusinessDataApiTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	@Override
 	protected void configureClient(){
