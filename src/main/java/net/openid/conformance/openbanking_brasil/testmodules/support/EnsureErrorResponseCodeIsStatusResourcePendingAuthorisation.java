@@ -14,6 +14,9 @@ public class EnsureErrorResponseCodeIsStatusResourcePendingAuthorisation extends
 	public Environment evaluate(Environment env) {
 		JsonObject body = bodyFrom(env).getAsJsonObject();
 		JsonArray errors = findByPath(body, "$.errors").getAsJsonArray();
+		if (errors.isEmpty()) {
+			throw error("Error array cannot be empty", args("response", body));
+		}
 		JsonObject error = errors.get(0).getAsJsonObject();
 		assertField(error, new StringField
 			.Builder("code")
