@@ -28,7 +28,7 @@ public class UpdateSavedResourceData extends AbstractCondition {
 				idType = "accountId";
 				break;
 			case "CREDIT_CARD_ACCOUNT":
-				resourceApi = "credit-card-accounts";
+				resourceApi = "credit-cards-accounts";
 				resourceListEndpoint = "/accounts";
 				resourceEndpoint = "/bills";
 				idType = "creditCardAccountId";
