@@ -2,16 +2,12 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.advances.v2.*;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.advances.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -67,7 +63,6 @@ public class UnarrangedAccountsApiOperationalLimitsTestModuleV2 extends Abstract
 	private int numberOfIdsToFetch = 2;
 
 	private int numberOfExecutions = 1;
-	private ClientAuthType clientAuthType;
 
 
 	@Override
@@ -105,7 +100,7 @@ public class UnarrangedAccountsApiOperationalLimitsTestModuleV2 extends Abstract
 
 			env.putInteger("number_of_ids_to_fetch", numberOfIdsToFetch);
 			callAndStopOnFailure(FetchSpecifiedNumberOfExtractedApiIds.class);
-
+			disableLogging();
 			// Call Unarranged Accounts GET 29 times
 			for (int i = 1; i < 30; i++) {
 				preCallProtectedResource(String.format("[%d] Fetching Unarranged Accounts Contracts", i + 1));
@@ -114,42 +109,51 @@ public class UnarrangedAccountsApiOperationalLimitsTestModuleV2 extends Abstract
 		});
 
 		for (int i = 0; i < numberOfIdsToFetch; i++) {
-
+			int currentResourceId = i + 1;
 			// Call Unarranged Accounts specific contract once with validation
 
 			String unarrangedAccountsContractId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
-			env.putString("contractId", unarrangedAccountsContractId);
-			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContracts.class);
+			runInLoggingBlock(() -> {
+				env.putString(API_RESOURCE_ID, unarrangedAccountsContractId);
+				callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContracts.class);
 
-			preCallProtectedResource(String.format("Fetching Unarranged Accounts Contract using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Unarranged Accounts Contract Account response", AdvancesContractResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetching Unarranged Accounts Contract using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Unarranged Accounts Contract Account response", AdvancesContractResponseValidatorV2.class);
+
+			});
 
 			// Call Unarranged Accounts specific contract 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetching Unarranged Accounts Contract using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetching Unarranged Accounts Contract using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			// Call Unarranged Accounts warranties once with validation
-			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractGuarantees.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractGuarantees.class);
 
-			preCallProtectedResource(String.format("Fetch Unarranged Accounts Warranties using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Unarranged Accounts Warranties", AdvancesGuaranteesResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Unarranged Accounts Warranties using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Unarranged Accounts Warranties", AdvancesGuaranteesResponseValidatorV2.class);
+
+			});
 
 			// Call Unarranged Accounts warranties 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Warranties using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Warranties using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			// Call Unarranged Accounts Scheduled Instalments once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractInstallments.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractInstallments.class);
 
-			preCallProtectedResource(String.format("Fetch Unarranged Accounts Scheduled Instalments using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Unarranged Accounts Scheduled Instalments Response", AdvancesContractInstallmentsResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Unarranged Accounts Scheduled Instalments using resource_id_%d and and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Unarranged Accounts Scheduled Instalments Response", AdvancesContractInstallmentsResponseValidatorV2.class);
+
+			});
 
 			// Call Unarranged Accounts Scheduled Instalments 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			refreshAccessToken();
@@ -157,16 +161,19 @@ public class UnarrangedAccountsApiOperationalLimitsTestModuleV2 extends Abstract
 
 			// Call Unarranged Accounts Payments GET once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractPayments.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceContractPayments.class);
 
-			preCallProtectedResource(String.format("Fetch Unarranged Accounts Payments using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Unarranged Accounts Payments Response", AdvancesPaymentsResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Unarranged Accounts Payments using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Unarranged Accounts Payments Response", AdvancesPaymentsResponseValidatorV2.class);
+
+			});
 
 			// Call Unarranged Accounts Payments GET 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Payments using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Unarranged Accounts Payments using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
-
+			enableLogging();
 		}
 
 	}
@@ -174,6 +181,7 @@ public class UnarrangedAccountsApiOperationalLimitsTestModuleV2 extends Abstract
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
+		enableLogging();
 		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareUrlForFetchingCreditAdvanceRoot.class);
 			unmapClient();
@@ -199,11 +207,6 @@ public class UnarrangedAccountsApiOperationalLimitsTestModuleV2 extends Abstract
 			condition(validationClass),
 			condition(ValidateResponseMetaData.class)
 		);
-	}
-
-	private void refreshAccessToken() {
-		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
-		call(refreshAccessTokenSteps);
 	}
 
 }
