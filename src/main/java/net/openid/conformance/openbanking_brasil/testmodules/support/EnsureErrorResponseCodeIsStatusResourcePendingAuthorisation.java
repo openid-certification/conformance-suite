@@ -7,17 +7,20 @@ import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAsserti
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.field.StringField;
 
-public class EnsureErrorResponseCodeIsStatusResourceAwaitingAuthorization extends AbstractJsonAssertingCondition {
+public class EnsureErrorResponseCodeIsStatusResourcePendingAuthorisation extends AbstractJsonAssertingCondition {
 
 	@Override
 	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 		JsonObject body = bodyFrom(env).getAsJsonObject();
 		JsonArray errors = findByPath(body, "$.errors").getAsJsonArray();
+		if (errors.isEmpty()) {
+			throw error("Error array cannot be empty", args("response", body));
+		}
 		JsonObject error = errors.get(0).getAsJsonObject();
 		assertField(error, new StringField
 			.Builder("code")
-			.setPattern("STATUS_RESOURCE_AWAITING_AUTHORIZATION")
+			.setPattern("status_RESOURCE_PENDING_AUTHORISATION")
 			.build());
 		return env;
 	}

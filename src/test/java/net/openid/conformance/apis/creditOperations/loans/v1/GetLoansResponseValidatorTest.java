@@ -41,7 +41,7 @@ public class GetLoansResponseValidatorTest extends AbstractJsonResponseCondition
 	public void validateStructureWrongMaxLength() {
 		GetLoansResponseValidator condition = new GetLoansResponseValidator();
 		ConditionError error = runAndFail(condition);
-		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueIsMoreThanMaxLengthMessage("ipocCode", condition.getApiName())));
+		assertThat(error.getMessage(), containsString(ErrorMessagesUtils.createFieldValueNotMatchPatternMessage("ipocCode", condition.getApiName())));
 	}
 
 	@Test
