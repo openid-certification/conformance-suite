@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.testmodules.account.testmodule.v2;
+package net.openid.conformance.openinsurance.testmodule.patrimonial.v1;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
