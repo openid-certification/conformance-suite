@@ -43,12 +43,15 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 		"INCOMPATIBLE_DATE", "MISMATCH_AMOUNT", "OVER_LIMIT", "INVALID_CONSENT",
 		"DENIED_MULTIPLE_AUTHORISATIONS", "EXPIRED_MULTIPLE_AUTHORISATIONS", "EXPIRED_BILL");
 
+	private static String endToEndId;
+
 	@Override
-	@PreEnvironment(required = "resource_endpoint_response_full")
+	@PreEnvironment(required = "resource_endpoint_response_full", strings = "endToEndId")
 	public Environment evaluate(Environment environment) {
 		JsonObject body = environment.getObject("resource_endpoint_response_full");
 		log("Response being validate", body);
 		String jwtBody = OIDFJSON.getString(body.get("body"));
+		endToEndId = environment.getString("endToEndId");
 
 		// This is the body of the JWT
 		JsonObject newBody = new Gson().fromJson(new String(Base64.getUrlDecoder().decode(jwtBody.split("\\.")[1].getBytes())), JsonObject.class);
@@ -91,10 +94,9 @@ public class PaymentFetchPixPaymentsValidator extends AbstractJsonAssertingCondi
 		assertField(body,
 			new StringField
 				.Builder("endToEndId")
-				.setPattern("^([E])([0-9]{8})([0-9]{4})(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])(2[0-3]|[01][0-9])([0-5][0-9])([a-zA-Z0-9]{11})$")
+				.setPattern(endToEndId)
 				.setMinLength(32)
 				.setMaxLength(32)
-				.setOptional()
 				.build());
 
 		assertField(body, CommonFields.consentId());

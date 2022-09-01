@@ -41,9 +41,12 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 		"INCOMPATIBLE_DATE", "MISMATCH_AMOUNT", "OVER_LIMIT", "INVALID_CONSENT",
 		"DENIED_MULTIPLE_AUTHORISATIONS", "EXPIRED_MULTIPLE_AUTHORISATIONS", "EXPIRED_BILL");
 
+	private static String endToEndId;
+
 	@Override
 	@PreEnvironment(required = "consent_endpoint_response")
 	public Environment evaluate(Environment environment) {
+		endToEndId = environment.getString("endToEndId");
 		JsonObject body = environment.getObject("consent_endpoint_response");
 		assertHasField(body, ROOT_PATH);
 		assertField(body, new ObjectField.Builder(ROOT_PATH).setValidator(this::assertInnerFields).build());
@@ -64,10 +67,9 @@ public class PaymentInitiationPixPaymentsValidator extends AbstractJsonAsserting
 		assertField(body,
 			new StringField
 				.Builder("endToEndId")
-				.setPattern("^([E])([0-9]{8})([0-9]{4})(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])(2[0-3]|[01][0-9])([0-5][0-9])([a-zA-Z0-9]{11})$")
+				.setPattern(endToEndId)
 				.setMinLength(32)
 				.setMaxLength(32)
-				.setOptional()
 				.build());
 
 		assertField(body, CommonFields.consentId());
