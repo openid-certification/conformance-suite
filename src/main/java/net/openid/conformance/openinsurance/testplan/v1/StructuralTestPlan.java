@@ -11,7 +11,7 @@ import java.util.List;
 	testPlanName = "Insurance structural tests testplan",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
 	displayName = PlanNames.STRUCTURAL_TEST_PLAN,
-	summary = "Structural and logical tests for OpenInsurance Brasil-conformant consents API"
+	summary = "Structural tests for OpenInsurance Brasil - Phase 2 - Customer Data"
 )
 
 public class StructuralTestPlan implements TestPlan{
