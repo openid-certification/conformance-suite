@@ -14,7 +14,7 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 
 	@Override
 	@PreEnvironment(required = "server")
-	@PostEnvironment(required = {"token_endpoint_tls"}) // always required, others are added as found: authorization_endpoint_tls, userinfo_endpoint_tls, registration_endpoint_tls
+	//@PostEnvironment(required = {"token_endpoint_tls"}) // always required, others are added as found: authorization_endpoint_tls, userinfo_endpoint_tls, registration_endpoint_tls
 	public Environment evaluate(Environment env) {
 
 		try {
@@ -27,12 +27,11 @@ public class ExtractTLSTestValuesFromServerConfiguration extends AbstractConditi
 			}
 
 			String tokenEndpoint = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
-			if (Strings.isNullOrEmpty(tokenEndpoint)) {
-				throw error("Token endpoint not found");
+			JsonObject tokenEndpointTls = null;
+			if (!Strings.isNullOrEmpty(tokenEndpoint)) {
+				tokenEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(tokenEndpoint);
+				env.putObject("token_endpoint_tls", tokenEndpointTls);
 			}
-
-			JsonObject tokenEndpointTls = TLSTestValueExtractor.extractTlsFromUrl(tokenEndpoint);
-			env.putObject("token_endpoint_tls", tokenEndpointTls);
 
 			String userInfoEndpoint = env.getString("userinfo_endpoint") != null ? env.getString("userinfo_endpoint") : env.getString("server", "userinfo_endpoint");
 			JsonObject userInfoEndpointTls = null;

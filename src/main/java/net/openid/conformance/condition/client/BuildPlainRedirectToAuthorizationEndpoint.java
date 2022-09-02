@@ -50,8 +50,53 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 			}
 
 		}
+		// FIXME hack walt.id requires this
+		String claims = "{" +
+			"  \"vp_token\": {" +
+			"    \"presentation_definition\": {" +
+			"      \"format\": null," +
+			"      \"id\": \"1\"," +
+			"      \"input_descriptors\": [" +
+			"        {" +
+			"          \"constraints\": null," +
+			"          \"format\": null," +
+			"          \"group\": null," +
+			"          \"id\": \"1\"," +
+			"          \"name\": null," +
+			"          \"purpose\": null," +
+			"          \"schema\": {" +
+			"            \"uri\": \"https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0xb77f8516a965631b4f197ad54c65a9e2f9936ebfb76bae4906d33744dbcc60ba\"" +
+			"          }" +
+			"        }" +
+			"      ]," +
+			"      \"name\": null," +
+			"      \"purpose\": null," +
+			"      \"submission_requirements\": null" +
+			"    }" +
+			"  }" +
+			"}";
+		builder.queryParam("claims", claims);
 
 		String redirectTo = builder.toUriString();
+
+//		redirectTo = "https://wallet.walt.id/api/wallet/siopv2/initPresentation/?"+
+//			"response_type=id_token&" +
+//			"response_mode=form_post&" +
+//			"client_id=https%3A%2F%2Flocalhost.emobix.co.uk%3A8443%2Ftest%2Fa%2Foidf-siop%2Fcallback&" +
+//			"redirect_uri=https%3A%2F%2Flocalhost.emobix.co.uk%3A8443%2Ftest%2Fa%2Foidf-siop%2Fcallback&" +
+//			"scope=openid&" +
+//			"nonce=d6226617-5103-4721-a5a1-f31174bf8685&" +
+//			"claims=%7B%22vp_token%22+%3A+%7B%22presentation_definition%22+%3A+%7B%22format%22+%3A+null%2C+%22id%22+%3A+%221%22%2C+%22input_descriptors%22+%3A+%5B%7B%22constraints%22+%3A+null%2C+%22format%22+%3A+null%2C+%22group%22+%3A+null%2C+%22id%22+%3A+%221%22%2C+%22name%22+%3A+null%2C+%22purpose%22+%3A+null%2C+%22schema%22+%3A+%7B%22uri%22+%3A+%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0xb77f8516a965631b4f197ad54c65a9e2f9936ebfb76bae4906d33744dbcc60ba%22%7D%7D%5D%2C+%22name%22+%3A+null%2C+%22purpose%22+%3A+null%2C+%22submission_requirements%22+%3A+null%7D%7D%7D&" +
+//			"state=d6226617-5103-4721-a5a1-f31174bf8685";
+//		redirectTo = "https://wallet.walt.id/api/wallet/siopv2/initPresentation/?"+
+//			"response_type=id_token&" +
+//			"response_mode=form_post&" +
+//			"client_id=https%3A%2F%2Fverifier.walt.id%2Fverifier-api%2Fverify&" +
+//			"redirect_uri=https%3A%2F%2Fverifier.walt.id%2Fverifier-api%2Fverify&" +
+//			"scope=openid&" +
+//			"nonce=d6226617-5103-4721-a5a1-f31174bf8685&" +
+//			"claims=%7B%22vp_token%22+%3A+%7B%22presentation_definition%22+%3A+%7B%22format%22+%3A+null%2C+%22id%22+%3A+%221%22%2C+%22input_descriptors%22+%3A+%5B%7B%22constraints%22+%3A+null%2C+%22format%22+%3A+null%2C+%22group%22+%3A+null%2C+%22id%22+%3A+%221%22%2C+%22name%22+%3A+null%2C+%22purpose%22+%3A+null%2C+%22schema%22+%3A+%7B%22uri%22+%3A+%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0xb77f8516a965631b4f197ad54c65a9e2f9936ebfb76bae4906d33744dbcc60ba%22%7D%7D%5D%2C+%22name%22+%3A+null%2C+%22purpose%22+%3A+null%2C+%22submission_requirements%22+%3A+null%7D%7D%7D&" +
+//			"state=d6226617-5103-4721-a5a1-f31174bf8685";
 
 		logSuccess("Sending to authorization endpoint", args("redirect_to_authorization_endpoint", redirectTo, "auth_request", authorizationEndpointRequest));
 
