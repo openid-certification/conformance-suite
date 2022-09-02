@@ -6,7 +6,16 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.DictHomologKeys;
 import net.openid.conformance.testmodule.Environment;
 
+import java.security.SecureRandom;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
+
 public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
+
+	static private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+
 	@Override
 	public Environment evaluate(Environment env) {
 		JsonObject consentData;
@@ -96,8 +105,13 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 		JsonObject data = new JsonObject();
 		JsonObject payment = new JsonObject();
 
+		OffsetDateTime currentDateTime = OffsetDateTime.now(ZoneOffset.UTC);
+		String formattedCurrentDateTime = currentDateTime.format(formatter);
+		String randomString = randomAlphanumericString(11);
+		String endToEndId = String.format("E%s%s%s", DictHomologKeys.PROXY_E2EID_ISPB, formattedCurrentDateTime, randomString);
 
 		pixPayment.add("data", data);
+		data.addProperty("endToEndId", endToEndId);
 		data.add("payment", payment);
 		data.add("creditorAccount", creditorAccount);
 
@@ -121,5 +135,23 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 		env.putObject("resource", "brazilPixPayment", pixPayment);
 		logSuccess("Hardcoded brazilPixPayment object was added to the resource", pixPayment);
 		return env;
+	}
+
+	private String randomAlphanumericString(int length) {
+		final Random random = new SecureRandom();
+
+		final String upper      = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		final String lower      = "abcdefghijklmnopqrstuvwxyz";
+		final String digits     = "0123456789";
+		final char[] characters = (upper + lower + digits).toCharArray();
+		final int nCharacters   = characters.length;
+
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < length; i++) {
+			char nextCharacter = characters[random.nextInt(nCharacters)];
+			sb.append(nextCharacter);
+		}
+
+		return sb.toString();
 	}
 }

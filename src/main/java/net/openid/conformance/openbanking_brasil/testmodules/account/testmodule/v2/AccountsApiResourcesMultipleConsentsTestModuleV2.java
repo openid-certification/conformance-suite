@@ -112,7 +112,7 @@ public class AccountsApiResourcesMultipleConsentsTestModuleV2 extends AbstractOB
 			call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
 				.dontStopOnFailure()
 				.onFail(Condition.ConditionResult.WARNING));
-			callAndStopOnFailure(EnsureErrorResponseCodeIsStatusResourceAwaitingAuthorization.class);
+			callAndStopOnFailure(EnsureErrorResponseCodeIsStatusResourcePendingAuthorisation.class);
 
 		});
 
