@@ -43,8 +43,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.brazilCnpj",
+		"resource.brazilCpfBusiness",
+		"resource.brazilCnpjBusiness",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness"
 	}

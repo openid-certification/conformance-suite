@@ -137,27 +137,25 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 
 	private void assignOperationalLimitsTestCpfAndCnpj(Environment env, String productType, boolean isOperationalLimits) {
 		String messagePart = "";
-		String keyBusinessPostfix = "";
-		String keyPersonalPostfix = "";
+		String keyOperationalPart = "";
 
 		if (isOperationalLimits) {
 			messagePart = "Operational Limits";
-			keyBusinessPostfix = "OperationalBusiness";
-			keyPersonalPostfix = "OperationalPersonal";
+			keyOperationalPart = "Operational";
 		}
 
 		if (productType.equals("business")) {
 			log(String.format("Product type business was chosen, proceeding with %s Business CPF and Business CNPJ.", messagePart));
 
-			cpf = env.getString("config", "resource.brazilCpf" + keyBusinessPostfix);
-			cnpj = env.getString("config", "resource.brazilCnpj" + keyBusinessPostfix);
+			cpf = env.getString("config", String.format("resource.brazilCpf%sBusiness", keyOperationalPart));
+			cnpj = env.getString("config", String.format("resource.brazilCnpj%sBusiness", keyOperationalPart));
 
 			if (Strings.isNullOrEmpty(cnpj)) {
 				throw error(String.format("The %s CNPJ must be provided in the test configuration", messagePart));
 			}
 		} else {
 			log(String.format("Product type Personal was chosen, proceeding with %s Personal CPF.", messagePart));
-			cpf = env.getString("config", "resource.brazilCpf" + keyPersonalPostfix);
+			cpf = env.getString("config", String.format("resource.brazilCpf%sPersonal", keyOperationalPart));
 		}
 
 		if (Strings.isNullOrEmpty(cpf)) {
