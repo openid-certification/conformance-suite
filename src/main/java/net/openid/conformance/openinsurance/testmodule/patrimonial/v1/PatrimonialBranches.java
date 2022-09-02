@@ -19,4 +19,8 @@ public enum PatrimonialBranches {
 	PatrimonialBranches(String branchCode) {
 		this.branchCode = branchCode;
 	}
+
+	public String getBranchCode() {
+		return branchCode;
+	}
 }

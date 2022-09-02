@@ -1,6 +1,8 @@
 package net.openid.conformance.openinsurance.testmodule.patrimonial.v1;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
@@ -44,30 +46,40 @@ public class AbstractOpinPatrimonialBranchTestModule extends AbstractOBBrasilFun
 	@Override
 	protected void validateResponse() {
 		callAndContinueOnFailure(OpinInsurancePatrimonialListValidatorV1.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(PolicyIDSelector.class);
+		callAndStopOnFailure(PolicyIDAllSelector.class);
 
-		repeatSequence(() -> new PollForPatrimonialBranches());
-		callAndStopOnFailure(PrepareUrlForFetchingPatrimonialPolicyInfo.class);
-		preCallProtectedResource("Fetch Patrimonial Policy Info");
-		callAndContinueOnFailure(OpinInsurancePatrimonialPolicyInfoValidatorV1.class, Condition.ConditionResult.FAILURE);
+		fetchUntilBranchIsFound();
 
-		callAndStopOnFailure(PrepareUrlForFetchingPatrimonialPremium.class);
-		preCallProtectedResource("Fetch Patrimonial Premium");
-		callAndContinueOnFailure(OpinInsurancePatrimonialPremiumValidatorV1.class, Condition.ConditionResult.FAILURE);
-
-		callAndStopOnFailure(PrepareUrlForFetchingPatrimonialClaim.class);
-		preCallProtectedResource("Fetch Patrimonial Claim");
-		callAndContinueOnFailure(OpinInsurancePatrimonialClaimValidatorV1.class, Condition.ConditionResult.FAILURE);
-
-		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-
-		call(new ValidateSelfEndpoint());
-
+		if(!env.getBoolean("branch_found")) {
+			env.putString("warning_message", String.format("All policies ID were verified but none matched the branch %", branch.name()));
+			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
+		}
 	}
 
+	void fetchUntilBranchIsFound() {
+
+		JsonArray policies = JsonParser.parseString(env.getString("all_policies")).getAsJsonArray();
+
+		callAndContinueOnFailure(PrepareUrlForFetchingPatrimonialPolicyInfo.class);
+		call(exec().startBlock(String.format("Start looking for a policyID of type %s", branch.name())));
+
+		env.putBoolean("branch_found", false);
+		for(int i = 0; i < policies.size(); i++) {
+			if (env.getBoolean("branch_found")) {
+				break;
+			}
+			env.putString("policyId", policies.remove(i).toString());
+			preCallProtectedResource();
+			callAndContinueOnFailure(VerifyBranch.class, Condition.ConditionResult.INFO);
+
+			if (i % 10 == 0) {
+				call(exec().startBlock(String.format("[%i] PolicyID of type %s still not found, keep looking,", i, branch.name())));
+			}
+		}
+	}
 	void setBranch(PatrimonialBranches branch) {
 		this.branch = branch;
+		env.putString("branch", branch.getBranchCode());
 	}
 
 	PatrimonialBranches getBranch() {
