@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Call the “/personal/identifications\" endpoint - Expect 200 and validate response\n" +
 		      "Call the “/personal/qualifications\" endpoint - Expect 200 and validate response\n" +
 		      "Call the “/personal/complimentary-information\" endpoint - Expect 200 and validate response",
-	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE1,
+	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
 	configurationFields = {
 	"resource.resourceUrl",
 	"resource.mockPolicyId"
