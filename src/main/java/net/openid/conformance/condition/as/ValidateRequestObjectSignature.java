@@ -1,31 +1,34 @@
 package net.openid.conformance.condition.as;
 
-import java.security.Key;
-import java.text.ParseException;
-import java.util.Base64;
-import java.util.List;
-
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jose.jwk.AsymmetricJWK;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.SecretJWK;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.JWSKeySelector;
-import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.SignedJWT;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.security.KeyPair;
+import java.text.ParseException;
+import java.util.List;
 
 public class ValidateRequestObjectSignature extends AbstractCondition {
 
@@ -60,36 +63,56 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 
 			JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
-			JWSKeySelector<SecurityContext> selector = new JWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
-			//TODO signature verification should be changed to use kids
-			List<? extends Key> keys = selector.selectJWSKeys(jwt.getHeader(), context);
-			if(keys==null || keys.isEmpty()) {
+			AlternateJWSVerificationKeySelector<SecurityContext>  selector = new AlternateJWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
+
+			List<JWK> jwkKeys = selector.selectJWSJwks(jwt.getHeader(), context);
+			if(jwkKeys == null || jwkKeys.isEmpty()) {
 				throw error("Could not find any keys that can be used to verify this signature",
 					args("requestObject", requestObject, "clientJwks", clientJwks));
 			}
-			for (Key key : keys) {
-				JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
-				JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
+			JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
 
-				if (jwt.verify(verifier)) {
-					String alg = jwt.getHeader().getAlgorithm().getName();
-					env.putString("request_object_signing_alg", alg);
-					logSuccess("Request object signature validated using a key in the client's JWKS " +
-										"and using the client's registered request_object_signing_alg",
-									args("request_object_signing_alg", alg,
-											"jwk", key.toString(), "request_object", requestObject));
-					return env;
-				} else {
-					// failed to verify with this key, moving on
-					// not a failure yet as it might pass a different key
-					log("Failed to verify signature using key", args("key",key.toString(), "requestObject", requestObject));
+			for(JWK jwkKey : jwkKeys) {
+				JWSVerifier verifier = null;
+				try {
+					if (jwkKey instanceof OctetKeyPair) {
+						OctetKeyPair publicKey = OctetKeyPair.parse(jwkKey.toPublicJWK().toString());
+						if (Curve.Ed25519.equals(publicKey.getCurve())) {
+							verifier = new Ed25519Verifier(publicKey);
+						}  // else Unsupported Curve, throw exception?
+					} else if (jwkKey instanceof AsymmetricJWK) {
+						KeyPair keyPair = ((AsymmetricJWK) jwkKey).toKeyPair();
+						verifier = factory.createJWSVerifier(jwt.getHeader(), keyPair.getPublic());
+					} else if (jwkKey instanceof SecretJWK) {
+						verifier = factory.createJWSVerifier(jwt.getHeader(), ((SecretJWK) jwkKey).toSecretKey());
+					}
 				}
+				catch(JOSEException e) {
+
+				}
+				if(verifier != null) {
+					if (jwt.verify(verifier)) {
+						String alg = jwt.getHeader().getAlgorithm().getName();
+						env.putString("request_object_signing_alg", alg);
+						logSuccess("Request object signature validated using a key in the client's JWKS " +
+											"and using the client's registered request_object_signing_alg",
+										args("request_object_signing_alg", alg,
+												"jwk", jwkKey.toString(), "request_object", requestObject));
+						return env;
+					} else {
+						// failed to verify with this key, moving on
+						// not a failure yet as it might pass a different key
+						log("Failed to verify signature using key", args("key",jwkKey.toString(), "requestObject", requestObject));
+					}
+				}
+
+
 			}
 
 			// if we got here, it hasn't been verified by any key
 			throw error("Unable to verify request object signature based on client keys",
 				args("jwt_header", jwt.getHeader().toString(),
-					"keys", new GsonBuilder().setPrettyPrinting().create().toJson(keys),
+					"keys", new GsonBuilder().setPrettyPrinting().create().toJson(jwkKeys),
 					"clientJwks", clientJwks,
 					"requestObject", requestObject)
 				);

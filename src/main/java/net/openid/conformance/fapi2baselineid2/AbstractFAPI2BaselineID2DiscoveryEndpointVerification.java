@@ -3,20 +3,20 @@ package net.openid.conformance.fapi2baselineid2;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
-import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
-import net.openid.conformance.condition.client.CheckDpopSigningAlgValuesSupportedContainsPS256OrES256;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
-import net.openid.conformance.condition.client.FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
+import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointUserinfoSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.FAPI2CheckDpopSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -82,17 +82,17 @@ public abstract class AbstractFAPI2BaselineID2DiscoveryEndpointVerification exte
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 
 		if (isDpop) {
-			callAndContinueOnFailure(CheckDpopSigningAlgValuesSupportedContainsPS256OrES256.class, Condition.ConditionResult.FAILURE, "FAPI2-BASE-4.3.1-9");
+			callAndContinueOnFailure(FAPI2CheckDpopSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-BASE-4.3.1-9");
 		} else {
 			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-BASE-4.3.1-9", "RFC8705-3.3");
 		}
 
-		callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+		callAndContinueOnFailure(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-BASE-4.4");
 
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-14");
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+		callAndContinueOnFailure(FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-BASE-4.4");
 
-		call(condition(FAPICheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
+		call(condition(FAPI2CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
 			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.onSkip(Condition.ConditionResult.INFO)

@@ -1,0 +1,54 @@
+{
+    "alias": "oidf-fapi-rp-test",
+    "description": "FAPI RP test config for running against OP tests",
+    "server": {
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "OKP",
+                    "d": "JEk9oOYONmqY47yctvk6evthsZNnEu2CpXqdvU3kGDQ",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "5cRxI-p5IXPbtd3QZExFFgVf8spbymEQZ4vwzixc3QE",
+                    "x": "YT2su-2OHrVm_Cf0yheQFtr41ND3qGe3w_FUu3pm8sk",
+                    "alg": "EdDSA"
+                }
+            ]
+        }
+    },
+    "client": {
+        "client_id": "52480754053",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "OKP",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "dHg59YomyTbIDozWyGD-5zNMVRjBLbIWtdLor0vQ5xc",
+                    "x": "1NF31XUGltZmf4t4CyHdVSSovTY2A7sKAg0FWt6Gg5s",
+                    "alg": "EdDSA"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIDlTCCAn2gAwIBAgIJAKRJoaX7BlZbMA0GCSqGSIb3DQEBCwUAMGAxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBU\nZXN0IENsaWVudDEdMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwIBcNMTgw\nNTI1MjA1NzU0WhgPMjEwNjAxMDQyMDU3NTRaMGAxCzAJBgNVBAYTAlVTMRMwEQYD\nVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBUZXN0IENsaWVudDEd\nMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwggEiMA0GCSqGSIb3DQEBAQUA\nA4IBDwAwggEKAoIBAQDEWwl/Q+nuL8KXbObpVzww1VkHwLF4W9QxrPI1V0Uh6V9r\nxUjrfSbtWNEQVDwQmoW8M1XjnRnGvdNRd0m6gNEQLKsqRN2xIvPdR0IO+2b+y7WJ\n9XlwdqHAFSWQJtoHzBAmkRirRMJrQSW5sB/NIBmyVqUdTV/FghNjc+IiPF4X1kxw\nwOzm7y2zlHZUpiPQknwPbWNeyunj/XQRrqWPg+RXzAKIjbVprxGaT8CexKu6oEae\nd8BCTO0rJIOkmjXZMl+SDhXQn9GHKFh60UlJddxVngxhX63MAQ1GsO8HsjrLgO3q\n4LmTDVHkprLy/wgBRDfo0IHb3gWhbOuRGMLLMKKvAgMBAAGjUDBOMB0GA1UdDgQW\nBBRuwpA4lqWaOkwmPcTQR8CH0Iv3vjAfBgNVHSMEGDAWgBRuwpA4lqWaOkwmPcTQ\nR8CH0Iv3vjAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBiCmvQmmKq\nI/8sB312HTEFlvtpbYp429eNCGXWloOOqVQkJaBnvy9YUS/wCgusyKeMBgbgpV0s\n8bp/gEW2/MnlWW9+fbFuhzRRwvuV/7je1Avv9Y06RH8GKJYwk2j6qcO7Mn9kVhln\nlKxGdFxm/i0OBuZnUe/KDxKPjVEdUJbxAFfxdq4cUjfewMuoxsYruIDnLXjTBcj2\nPbJ6vcPzq/6TYwxRmnrXIAO6Nxe8ZNXn2x2+njwrUKW4WPQ7u3dyHlD+M3iTpm3T\nwSgg0FSYiBcXhWJLQCJVEb0kbKJ/PDmcvomusQWTL/0epS62azWG8PUUs4v9Xeae\nmAbHqPGh+5Bo\n-----END CERTIFICATE-----\n",
+        "redirect_uri": "{BASEURL}test/a/oidf-fapi-op-test/callback"
+    },
+    "client2": {
+        "client_id": "61732691006",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "OKP",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "jtAUMIDTLgaFlxh_-DoevlMn0DQZJNyQAi_34tcT1QI",
+                    "x": "03TY8u8MkPrgHQy5psgj9z5Q2f_cdtGXKJ7V-qYTBBM",
+                    "alg": "EdDSA"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIDhTCCAm2gAwIBAgIJAKAe4HusBvwoMA0GCSqGSIb3DQEBCwUAMFgxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX\naWRnaXRzIFB0eSBMdGQxETAPBgNVBAMMCGNsaWVudF8yMCAXDTE4MDcwMjE2MzUy\nOFoYDzIxMDYwMjExMTYzNTI4WjBYMQswCQYDVQQGEwJVUzETMBEGA1UECAwKU29t\nZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMREwDwYD\nVQQDDAhjbGllbnRfMjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANMy\n1QohUbUoyte8cYCCO1+vJ/GImvVkrb79HUTSzL3G46lDC0JYZGMpMvX9NncadCYL\nQV8fmofOouNs4AWJgf0skH5sAJcZMgj3GVqqLsx2iDye3cgqsCCzTf5gzhOVtpXg\nNoBMFckVGxI+dG9h06n71mH9dtGoD/BoWOB4FLae0Ec4olot5eROeJ3Z0J15aXPW\noQrn3J5Eoz0/c7D7+byb+XGjF/r+uJVrKqOLtnO69Ro99fowwVtVQAPHmxLQ9VvF\niLONwbOfELtBvX4MlxHDOuynDsDw/mHxkzMSxPXAd9QfIU05ySZ9eVR3UfNUeCk8\na63NSO8MZdfHFnUsEO8CAwEAAaNQME4wHQYDVR0OBBYEFFEdch1XYRpO5JXxPkBx\ndAoAt6IiMB8GA1UdIwQYMBaAFFEdch1XYRpO5JXxPkBxdAoAt6IiMAwGA1UdEwQF\nMAMBAf8wDQYJKoZIhvcNAQELBQADggEBABTTN0up/ndWCNamqrV8ik1XwUqPCAO7\nTYKmZrRilo3STxyp2aUiFf1uPSkU6WU4Eu0JoDKU46axIFzZO3Ckoq17JMde2OzE\nSlAF+hQyvg/3l+6mbBK/OuzOiC+yfU9roD6vmjsBlH0My1+CnqkZLr6YQSaCHffl\nb6zqA7+aLUEWjyVneD6jQ6CCFwCs6eDorY1eKFM7lCQ5OdJFBc2LOOXuSGRXLZDK\nF3X2SfKCld0VWIOknJk8drfrCc1ylWa7wIuXU/kTyX8Z68a8w1/6ZkGxN9tsHWVt\nSe6ggOD1AFI5OQ3c8lCUzgGeFl69hz2UduHOyWs1KXUhgSy7fViAP90=\n-----END CERTIFICATE-----\n"
+    }
+}

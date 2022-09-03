@@ -1,21 +1,18 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jose.jwk.OctetKeyPair;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
-
-import static java.time.temporal.ChronoUnit.DAYS;
 
 public abstract class AbstractValidateDpopProof extends AbstractCondition {
 
@@ -48,6 +45,11 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 			if(jwk.isPrivate()) {
 				throw error("DPoP Proof jwk contains private key information", args("jwk", jsonJwk.toString()));
 			}
+			if(jwk.getKeyType().equals(KeyType.OKP)) {
+				if(!Curve.Ed25519.equals(((OctetKeyPair)jwk).getCurve())) {
+					throw error("Unsupported curve for EdDSA alg", args("JWK", jsonJwk.toString(), "curve", ((OctetKeyPair)jwk).getCurve().getName()));
+				}
+			}
 		}
 		catch(ParseException e) {
 			throw error("Invalid DPoP Proof jwk", args("jwk", jsonJwk.toString()));
@@ -60,6 +62,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		JsonArray supportedAlgs = new JsonArray();
 		supportedAlgs.add("PS256");
 		supportedAlgs.add("ES256");
+		supportedAlgs.add("EdDSA");
 		if(!supportedAlgs.contains(alg)) {
 			throw error("Unsupported 'alg' claim in DPoP Proof header ", args("expected one of ", supportedAlgs.toString(), "actual", OIDFJSON.getString(alg)));
 		}

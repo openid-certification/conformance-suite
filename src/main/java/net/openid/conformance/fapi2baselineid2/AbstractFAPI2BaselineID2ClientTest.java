@@ -12,7 +12,6 @@ import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToSer
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddRequestObjectSigningAlgsPS256ES256ToServerConfiguration;
 import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfiguration;
@@ -56,7 +55,9 @@ import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
-import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
+import net.openid.conformance.condition.as.FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer;
+import net.openid.conformance.condition.as.FAPI2ValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
@@ -330,7 +331,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		callAndStopOnFailure(AddIdTokenSigningAlgsToServerConfiguration.class);
 
 		if (fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
-			callAndStopOnFailure(AddRequestObjectSigningAlgsPS256ES256ToServerConfiguration.class);
+			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
 		}
 
 		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
@@ -348,7 +349,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 		} else {
-			callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
+			callAndStopOnFailure(FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 		}
 
 		exposeEnvString("discoveryUrl");
@@ -1118,7 +1119,7 @@ public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestMod
 	 * Common checks applicable to both PAR endpoint and authorization requests
 	 */
 	protected void validateRequestObjectCommonChecks() {
-		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
+		callAndStopOnFailure(FAPI2ValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		if(fapiClientType== FAPIClientType.OIDC) {
 			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,

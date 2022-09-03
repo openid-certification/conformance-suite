@@ -3,21 +3,25 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jose.jwk.AsymmetricJWK;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.SecretJWK;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.JWSKeySelector;
-import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
 
-import java.security.Key;
+import java.security.KeyPair;
 import java.text.ParseException;
 import java.util.List;
 
@@ -67,18 +71,35 @@ public abstract class AbstractVerifyJwsSignature extends AbstractCondition {
 
 		JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
-		JWSKeySelector<SecurityContext> selector = new JWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
+		AlternateJWSVerificationKeySelector<SecurityContext> selector = new AlternateJWSVerificationKeySelector<>(jwt.getHeader().getAlgorithm(), jwkSource);
 
-		List<? extends Key> keys = selector.selectJWSKeys(jwt.getHeader(), context);
-		for (Key key : keys) {
-			JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
-			JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), key);
+		List<JWK> jwkKeys = selector.selectJWSJwks(jwt.getHeader(), context);
+		JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
 
-			if (jwt.verify(verifier)) {
-				return true;
-			} else {
-				// failed to verify with this key, moving on
-				// not a failure yet as it might pass a different key
+		for(JWK jwkKey : jwkKeys) {
+			JWSVerifier verifier = null;
+			try {
+				if (jwkKey instanceof OctetKeyPair) {
+					OctetKeyPair publicKey = OctetKeyPair.parse(jwkKey.toPublicJWK().toString());
+					if (Curve.Ed25519.equals(publicKey.getCurve())) {
+						verifier = new Ed25519Verifier(publicKey);
+					}  // else Unsupported Curve, throw exception?
+				} else if (jwkKey instanceof AsymmetricJWK) {
+					KeyPair keyPair = ((AsymmetricJWK) jwkKey).toKeyPair();
+					verifier = factory.createJWSVerifier(jwt.getHeader(), keyPair.getPublic());
+				} else if (jwkKey instanceof SecretJWK) {
+					verifier = factory.createJWSVerifier(jwt.getHeader(), ((SecretJWK) jwkKey).toSecretKey());
+				}
+			} catch (JOSEException | ParseException e) {
+
+			}
+			if (verifier != null) {
+				if (jwt.verify(verifier)) {
+					return true;
+				} else {
+					// failed to verify with this key, moving on
+					// not a failure yet as it might pass a different key
+				}
 			}
 		}
 		// if we got here, it hasn't been verified on any key

@@ -89,8 +89,7 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceResponse;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
+import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
@@ -145,8 +144,8 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
+import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
-import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
@@ -154,7 +153,6 @@ import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToToken
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.OpenBankingBrazilAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
@@ -165,7 +163,6 @@ import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -375,7 +372,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndContinueOnFailure(FAPIBrazilCheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-1");
 		} else {
-			callAndContinueOnFailure(FAPICheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+			callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 		}
 		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
 
@@ -654,7 +651,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "BrazilOB-6.1-1");
 			} else {
-				callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
+				callAndContinueOnFailure(FAPI2ValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 			}
 			skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
 				FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6.1-1");
