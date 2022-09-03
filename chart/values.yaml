@@ -51,5 +51,5 @@ mongodb:
     requests:
       cpu: 100m
   persistence:
-    size: 25Gi
+    size: 250Gi
     storageClass: premium-rwo
