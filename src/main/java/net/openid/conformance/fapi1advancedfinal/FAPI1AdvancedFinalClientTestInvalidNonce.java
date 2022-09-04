@@ -2,7 +2,6 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-invalid-nonce",

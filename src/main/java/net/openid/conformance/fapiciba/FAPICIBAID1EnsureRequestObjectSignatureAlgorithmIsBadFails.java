@@ -1,7 +1,6 @@
 package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
@@ -11,8 +10,8 @@ import net.openid.conformance.condition.client.AddRequestToBackchannelAuthentica
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEndpointRequest;
-import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
+import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(

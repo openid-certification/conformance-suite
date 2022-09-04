@@ -1,17 +1,5 @@
 package net.openid.conformance.security;
 
-import java.lang.reflect.Type;
-import java.util.Date;
-
-import org.bson.Document;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor;
-import org.mitre.openid.connect.client.service.RegisteredClientService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,6 +9,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import org.bson.Document;
+import org.mitre.oauth2.model.RegisteredClient;
+import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor;
+import org.mitre.openid.connect.client.service.RegisteredClientService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
+import java.lang.reflect.Type;
+import java.util.Date;
 
 public class MongoDBRegisteredClientService implements RegisteredClientService {
 

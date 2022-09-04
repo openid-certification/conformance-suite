@@ -1,12 +1,12 @@
 package net.openid.conformance.variant;
 
+import org.bson.Document;
+import org.springframework.core.convert.converter.Converter;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.bson.Document;
-import org.springframework.core.convert.converter.Converter;
 
 public class VariantConverters {
 

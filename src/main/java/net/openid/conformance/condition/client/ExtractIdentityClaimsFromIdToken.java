@@ -5,8 +5,6 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.List;
-
 public class ExtractIdentityClaimsFromIdToken extends AbstractValidateOpenIdStandardClaims {
 
 	@Override

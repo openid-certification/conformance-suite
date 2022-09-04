@@ -1,13 +1,12 @@
 package net.openid.conformance.condition.rs;
 
-import java.util.List;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.util.List;
 
 public class RequireOpenIDScope extends AbstractCondition {
 

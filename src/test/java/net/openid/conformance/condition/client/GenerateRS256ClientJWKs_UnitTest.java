@@ -1,9 +1,10 @@
 package net.openid.conformance.condition.client;
 
-import static org.junit.Assert.assertTrue;
-
-import java.text.ParseException;
-
+import com.google.gson.JsonObject;
+import com.nimbusds.jose.jwk.JWKSet;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,12 +12,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.gson.JsonObject;
-import com.nimbusds.jose.jwk.JWKSet;
+import java.text.ParseException;
 
-import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.logging.TestInstanceEventLog;
-import net.openid.conformance.testmodule.Environment;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GenerateRS256ClientJWKs_UnitTest {

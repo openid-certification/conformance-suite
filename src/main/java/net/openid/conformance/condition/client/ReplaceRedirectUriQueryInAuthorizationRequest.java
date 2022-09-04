@@ -1,13 +1,11 @@
 package net.openid.conformance.condition.client;
 
-import org.springframework.web.util.DefaultUriBuilderFactory;
-
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 public class ReplaceRedirectUriQueryInAuthorizationRequest extends AbstractCondition {
 

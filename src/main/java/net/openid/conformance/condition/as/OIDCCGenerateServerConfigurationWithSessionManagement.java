@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class OIDCCGenerateServerConfigurationWithSessionManagement extends OIDCCGenerateServerConfiguration {

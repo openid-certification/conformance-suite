@@ -2,11 +2,8 @@ package net.openid.conformance.condition.as.dynregistration;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-
-import java.util.Set;
 
 /**
  * if supporting tls_client_auth client authentication mechanism as defined in RFC8705 shall only accept

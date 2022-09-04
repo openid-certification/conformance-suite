@@ -1,11 +1,11 @@
 package net.openid.conformance.fapi2baselineid2;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.InvalidateDpopProofSignature;
 import net.openid.conformance.condition.client.AddQueryAndFragmentToDpopHtu;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
+import net.openid.conformance.condition.client.InvalidateDpopProofSignature;
 import net.openid.conformance.condition.client.RemoveHtuFromDpopProof;
 import net.openid.conformance.condition.client.RemoveIatFromDpopProof;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;

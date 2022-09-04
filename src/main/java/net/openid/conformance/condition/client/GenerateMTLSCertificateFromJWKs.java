@@ -1,5 +1,19 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
+import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.X509Extensions;
+import org.bouncycastle.x509.X509V3CertificateGenerator;
+
+import javax.security.auth.x500.X500Principal;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
@@ -14,23 +28,6 @@ import java.text.ParseException;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
-
-import javax.security.auth.x500.X500Principal;
-
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.X509Extensions;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
-
-import com.google.gson.JsonObject;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.testmodule.Environment;
 
 // BouncyCastle has deprecated X509V3CertificateGenerator in favor of org.bouncycastle.cert.X509v3CertificateBuilder
 @SuppressWarnings("deprecation")

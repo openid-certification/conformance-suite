@@ -28,7 +28,6 @@ import net.openid.conformance.fapi1advancedfinal.FAPI1AdvancedFinalClientTestVal
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantSelection;
 

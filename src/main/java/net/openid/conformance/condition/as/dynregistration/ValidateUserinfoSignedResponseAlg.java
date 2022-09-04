@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as.dynregistration;
 
-import com.nimbusds.jose.JWSAlgorithm;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWSUtil;

@@ -1,10 +1,7 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
-import net.openid.conformance.condition.as.RemoveAtHashFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPIProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 /**
  * 5.2.2-14 Scopes granted in the token endpoint response can now be omitted except in the case where the

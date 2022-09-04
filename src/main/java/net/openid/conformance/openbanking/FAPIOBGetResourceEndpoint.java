@@ -1,7 +1,6 @@
 package net.openid.conformance.openbanking;
 
 import com.google.common.base.Strings;
-
 import net.openid.conformance.testmodule.Environment;
 
 public final class FAPIOBGetResourceEndpoint {

@@ -5,8 +5,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.time.Instant;
-
 public class RemoveIatFromDpopProof extends AbstractCondition {
 
 	@Override

@@ -1,27 +1,25 @@
 package net.openid.conformance;
 
-import java.lang.reflect.Type;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
 import net.openid.conformance.serializers.SpringfoxApiListingJsonSerializer;
 import net.openid.conformance.serializers.SpringfoxJsonSerializer;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantSelectionJsonSerializer;
-
 import org.bson.Document;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 import springfox.documentation.service.ApiListing;
 import springfox.documentation.spring.web.json.Json;
+
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
 

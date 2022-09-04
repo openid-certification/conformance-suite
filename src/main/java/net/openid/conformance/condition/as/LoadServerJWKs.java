@@ -1,18 +1,17 @@
 package net.openid.conformance.condition.as;
 
-import java.text.ParseException;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWKSet;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
+
+import java.text.ParseException;
 
 public class LoadServerJWKs extends AbstractCondition {
 

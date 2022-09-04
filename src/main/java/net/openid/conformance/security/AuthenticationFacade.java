@@ -1,9 +1,8 @@
 package net.openid.conformance.security;
 
+import com.google.common.collect.ImmutableMap;
 import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.security.core.Authentication;
-
-import com.google.common.collect.ImmutableMap;
 
 public interface AuthenticationFacade {
 

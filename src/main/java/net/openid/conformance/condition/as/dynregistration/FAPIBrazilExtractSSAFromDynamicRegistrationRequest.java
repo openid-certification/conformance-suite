@@ -1,12 +1,9 @@
 package net.openid.conformance.condition.as.dynregistration;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 
 public class FAPIBrazilExtractSSAFromDynamicRegistrationRequest extends AbstractCondition {
 

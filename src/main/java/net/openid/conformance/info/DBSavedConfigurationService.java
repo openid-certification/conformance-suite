@@ -1,7 +1,9 @@
 package net.openid.conformance.info;
 
-import java.time.Instant;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.variant.VariantSelection;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -12,10 +14,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
+import java.time.Instant;
 
 @Service
 public class DBSavedConfigurationService implements SavedConfigurationService {

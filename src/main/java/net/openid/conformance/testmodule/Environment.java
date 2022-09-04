@@ -11,7 +11,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
-import javax.validation.UnexpectedTypeException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;

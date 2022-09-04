@@ -1,7 +1,6 @@
 package net.openid.conformance.sequence.as;
 
 import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToHS256;
-import net.openid.conformance.condition.as.dynregistration.SetClientIdTokenSignedResponseAlgToRS256;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class OIDCCRegisterClientWithIdTokenSignedResponseAlgHS256 extends AbstractConditionSequence {

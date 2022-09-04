@@ -1,18 +1,16 @@
 package net.openid.conformance.condition.client;
 
-import java.nio.charset.Charset;
-import java.util.List;
-
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
+import java.nio.charset.Charset;
+import java.util.List;
 
 public class ExtractImplicitHashToCallbackResponse extends AbstractCondition {
 

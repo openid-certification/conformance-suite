@@ -4,9 +4,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.time.Instant;
-import java.util.Date;
-
 public class ValidateDpopAccessToken extends AbstractCondition {
 
 	@Override

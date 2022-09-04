@@ -1,13 +1,10 @@
 package net.openid.conformance.condition.client;
 
-import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
-
-import com.google.common.base.Strings;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public class CreateBadRedirectUri extends AbstractCondition {
 

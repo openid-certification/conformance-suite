@@ -1,9 +1,6 @@
 package net.openid.conformance.info;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.google.common.collect.Lists;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.DBEventLog;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -17,7 +14,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @Service
 public class DBImageService implements ImageService {

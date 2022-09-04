@@ -1,9 +1,9 @@
 package net.openid.conformance.condition;
 
+import net.openid.conformance.testmodule.Environment;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import net.openid.conformance.testmodule.Environment;
 
 public abstract class AbstractEnsureMinimumEntropy extends AbstractCondition {
 

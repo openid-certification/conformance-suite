@@ -1,8 +1,8 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
-import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
+import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.VariantConfigurationFields;

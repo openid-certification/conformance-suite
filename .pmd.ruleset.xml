@@ -67,7 +67,6 @@
 		<exclude name="UnnecessaryLocalBeforeReturn"/>
 		<exclude name="PrematureDeclaration"/>
 		<exclude name="ShortMethodName"/>
-		<exclude name="UnnecessaryImport"/>
 		<exclude name="UnnecessaryAnnotationValueElement"/>
 		<exclude name="EmptyMethodInAbstractClassShouldBeAbstract"/>
 		<exclude name="FieldNamingConventions"/>

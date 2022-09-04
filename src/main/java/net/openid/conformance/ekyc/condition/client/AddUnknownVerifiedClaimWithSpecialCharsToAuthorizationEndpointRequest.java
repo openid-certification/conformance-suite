@@ -5,11 +5,8 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.util.RFC6749AppendixASyntaxUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-
-import java.util.UUID;
 
 
 public class AddUnknownVerifiedClaimWithSpecialCharsToAuthorizationEndpointRequest extends AbstractAddVerifiedClaimToAuthorizationEndpointRequest {

@@ -1,11 +1,10 @@
 package net.openid.conformance.condition.client;
 
+import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-
-import net.openid.conformance.testmodule.Environment;
 
 public class CallUserInfoEndpointWithBearerTokenInBody extends CallUserInfoEndpoint {
 

@@ -7,9 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * OIDCC 6.1 says:

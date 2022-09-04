@@ -1,6 +1,5 @@
 package net.openid.conformance.fapi2baselineid2;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.RemoveIssFromJarm;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;

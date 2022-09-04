@@ -4,7 +4,6 @@ package net.openid.conformance.fapi2baselineid2.brazil;
 import net.openid.conformance.fapi2baselineid2.FAPI2AdvancedID1ClientTestPlan;
 import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2BrazilClientDCRHappyPathTest;
 import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId;
-import net.openid.conformance.fapi2baselineid2.FAPI2BaselineID2ClientTestPlan;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;

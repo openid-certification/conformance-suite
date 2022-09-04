@@ -21,7 +21,6 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterCli
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateDefaultAcrValues;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenSignedResponseAlg;
-import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRequestObjectEncryption;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSSASignature;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSoftwareStatementIat;

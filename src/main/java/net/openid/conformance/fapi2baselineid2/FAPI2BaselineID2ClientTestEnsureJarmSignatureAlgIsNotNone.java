@@ -1,8 +1,6 @@
 package net.openid.conformance.fapi2baselineid2;
 
-import net.openid.conformance.condition.as.InvalidateJarmSignature;
 import net.openid.conformance.condition.as.SignJarmWithNullAlgorithm;
-import net.openid.conformance.condition.as.jarm.SignJARMResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;

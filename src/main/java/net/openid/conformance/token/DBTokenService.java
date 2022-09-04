@@ -1,10 +1,10 @@
 package net.openid.conformance.token;
 
-import java.security.SecureRandom;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.IndexOptions;
+import net.openid.conformance.security.AuthenticationFacade;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +14,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Base64Utils;
 
-import com.google.common.collect.Lists;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.IndexOptions;
-
-import net.openid.conformance.security.AuthenticationFacade;
+import java.security.SecureRandom;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @SuppressWarnings("rawtypes")

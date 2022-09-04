@@ -1,11 +1,8 @@
 package net.openid.conformance.openid.client.logout;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutEndpointResponseContainsCacheHeaders;
-import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutUriResponseStatusCodeIs200;
 import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutUriResponseStatusCodeIs400;
 import net.openid.conformance.condition.as.logout.OIDCCSignLogoutTokenWithAlgNone;
-import net.openid.conformance.condition.as.logout.OIDCCSignLogoutTokenWithWrongAlgorithm;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(

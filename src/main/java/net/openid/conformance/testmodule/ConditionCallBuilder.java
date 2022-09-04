@@ -1,14 +1,13 @@
 package net.openid.conformance.testmodule;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.Condition.ConditionResult;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.Condition.ConditionResult;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Utility class to collect the attributes related to a Condition call, such as which class

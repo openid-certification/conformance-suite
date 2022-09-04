@@ -1,9 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.Header;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -21,7 +19,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class SignDpopProof extends AbstractCondition {
 

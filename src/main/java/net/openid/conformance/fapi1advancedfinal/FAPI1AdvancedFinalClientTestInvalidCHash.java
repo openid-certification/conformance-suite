@@ -2,7 +2,6 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.as.AddInvalidCHashValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;
 

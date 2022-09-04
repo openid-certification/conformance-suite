@@ -1,8 +1,8 @@
 package net.openid.conformance.info;
 
-import java.util.List;
-
 import net.openid.conformance.variant.VariantSelection;
+
+import java.util.List;
 
 public class PublicPlan {
 

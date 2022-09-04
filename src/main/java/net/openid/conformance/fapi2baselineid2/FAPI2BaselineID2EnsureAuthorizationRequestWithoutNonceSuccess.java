@@ -1,15 +1,7 @@
 package net.openid.conformance.fapi2baselineid2;
 
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
-import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
-import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
-import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
-import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationResponse;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 

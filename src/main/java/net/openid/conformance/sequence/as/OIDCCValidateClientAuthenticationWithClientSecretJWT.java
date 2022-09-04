@@ -4,11 +4,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.EnsureClientAssertionSignatureAlgorithmMatchesRegistered;
 import net.openid.conformance.condition.as.EnsureClientAssertionTypeIsJwt;
 import net.openid.conformance.condition.as.ExtractClientAssertion;
-import net.openid.conformance.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
-import net.openid.conformance.condition.as.ValidateClientAssertionSignature;
 import net.openid.conformance.condition.as.ValidateClientAssertionSignatureWithHMACAlgorithm;
-import net.openid.conformance.condition.as.ValidateClientIdAndSecret;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class OIDCCValidateClientAuthenticationWithClientSecretJWT extends AbstractConditionSequence {

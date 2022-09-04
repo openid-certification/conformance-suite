@@ -1,12 +1,10 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpHeaders;
-
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.AbstractCondition;
 
 public class SetPermissiveAcceptHeaderForResourceEndpointRequest extends AbstractCondition {
 

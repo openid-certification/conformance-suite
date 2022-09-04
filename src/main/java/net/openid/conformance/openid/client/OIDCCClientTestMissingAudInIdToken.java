@@ -1,8 +1,6 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.RemoveAudFromIdToken;
-import net.openid.conformance.condition.as.RemoveIatFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(

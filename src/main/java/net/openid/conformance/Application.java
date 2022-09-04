@@ -1,16 +1,11 @@
 
 package net.openid.conformance;
 
-import java.security.Security;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.token.TokenService;
 import net.openid.conformance.ui.ServerInfoTemplate;
-import org.apache.catalina.connector.Connector;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import javax.annotation.PostConstruct;
+import java.security.Security;
 
 @SpringBootApplication
 public class Application {

@@ -1,6 +1,5 @@
 package net.openid.conformance.ekyc.condition.client;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;

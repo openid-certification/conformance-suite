@@ -1,8 +1,5 @@
 package net.openid.conformance.security;
 
-import javax.servlet.Filter;
-import javax.ws.rs.HttpMethod;
-
 import net.openid.conformance.token.ApiTokenService;
 import org.mitre.oauth2.introspectingfilter.IntrospectingTokenService;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
@@ -27,6 +24,9 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import javax.servlet.Filter;
+import javax.ws.rs.HttpMethod;
 
 @Configuration
 @Order(1)

@@ -1,14 +1,13 @@
 package net.openid.conformance.condition.rs;
 
-import java.net.InetAddress;
-
 import com.google.common.base.Strings;
 import com.google.common.net.InetAddresses;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.net.InetAddress;
 
 public class ExtractFapiIpAddressHeader extends AbstractCondition {
 

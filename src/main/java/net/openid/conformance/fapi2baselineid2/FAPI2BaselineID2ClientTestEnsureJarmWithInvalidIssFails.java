@@ -1,10 +1,7 @@
 package net.openid.conformance.fapi2baselineid2;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddInvalidIssValueToJarm;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;

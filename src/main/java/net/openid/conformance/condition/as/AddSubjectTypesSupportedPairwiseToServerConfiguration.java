@@ -5,10 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.IdmvpCheckClaimsSupported;
 import net.openid.conformance.testmodule.Environment;
-
-import java.util.List;
 
 public class AddSubjectTypesSupportedPairwiseToServerConfiguration extends AbstractCondition {
 

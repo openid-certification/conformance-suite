@@ -1,15 +1,8 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
-
-import java.time.Instant;
-import java.util.Date;
 
 public class ValidateRequestObjectIss extends AbstractCondition {
 

@@ -1,8 +1,8 @@
 package net.openid.conformance.openid.client;
 
+import net.openid.conformance.condition.as.InvalidateIdTokenSignature;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationIdTokenSigningAlgES256Only;
 import net.openid.conformance.condition.as.SetServerSigningAlgToES256;
-import net.openid.conformance.condition.as.InvalidateIdTokenSignature;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCRegisterClientWithIdTokenSignedResponseAlgES256;
 import net.openid.conformance.testmodule.PublishTestModule;

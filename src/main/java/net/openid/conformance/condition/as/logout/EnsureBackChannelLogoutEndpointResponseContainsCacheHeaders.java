@@ -1,9 +1,9 @@
 package net.openid.conformance.condition.as.logout;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.AbstractValidateResponseCacheHeaders;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.condition.AbstractValidateResponseCacheHeaders;
 
 public class EnsureBackChannelLogoutEndpointResponseContainsCacheHeaders extends AbstractValidateResponseCacheHeaders {
 

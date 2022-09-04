@@ -7,10 +7,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 public class ReorderGrantTypesInDynamicRegistrationRequest extends AbstractCondition {
 
 	protected JsonArray reverseJsonArray(JsonArray array) {

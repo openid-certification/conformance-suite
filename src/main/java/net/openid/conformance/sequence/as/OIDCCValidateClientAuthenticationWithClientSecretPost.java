@@ -1,7 +1,6 @@
 package net.openid.conformance.sequence.as;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.ExtractClientCredentialsFromBasicAuthorizationHeader;
 import net.openid.conformance.condition.as.ExtractClientCredentialsFromFormPost;
 import net.openid.conformance.condition.as.ValidateClientIdAndSecret;
 import net.openid.conformance.sequence.AbstractConditionSequence;

@@ -1,8 +1,8 @@
 package net.openid.conformance.runner;
 
-import java.util.Set;
-
 import net.openid.conformance.testmodule.TestModule;
+
+import java.util.Set;
 
 public interface TestRunnerSupport {
 

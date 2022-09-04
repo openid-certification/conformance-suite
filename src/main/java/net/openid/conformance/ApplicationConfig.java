@@ -1,16 +1,13 @@
 package net.openid.conformance;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import net.openid.conformance.ui.ServerInfoTemplate;
+import com.google.common.collect.Lists;
 import net.openid.conformance.logging.GsonArrayToBsonArrayConverter;
 import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
 import net.openid.conformance.logging.GsonPrimitiveToBsonValueConverter;
 import net.openid.conformance.runner.InMemoryTestRunnerSupport;
 import net.openid.conformance.runner.TestRunnerSupport;
 import net.openid.conformance.security.KeyManager;
+import net.openid.conformance.ui.ServerInfoTemplate;
 import net.openid.conformance.variant.VariantConverters;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +17,9 @@ import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Configuration
 public class ApplicationConfig {

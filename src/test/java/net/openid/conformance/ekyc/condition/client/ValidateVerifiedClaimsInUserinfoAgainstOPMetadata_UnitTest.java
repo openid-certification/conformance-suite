@@ -1,6 +1,5 @@
 package net.openid.conformance.ekyc.condition.client;
 
-import com.google.gson.JsonElement;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;

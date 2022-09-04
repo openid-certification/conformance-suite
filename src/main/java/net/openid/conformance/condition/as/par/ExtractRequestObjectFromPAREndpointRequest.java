@@ -5,8 +5,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.AbstractExtractRequestObject;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.UUID;
-
 public class ExtractRequestObjectFromPAREndpointRequest extends AbstractExtractRequestObject
 {
 

@@ -1,12 +1,11 @@
 package net.openid.conformance.condition.as;
 
-import java.util.UUID;
-
 import com.google.common.base.Strings;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.util.UUID;
 
 public class CreateFapiInteractionIdIfNeeded extends AbstractCondition {
 

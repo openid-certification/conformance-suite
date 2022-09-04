@@ -1,16 +1,10 @@
 package net.openid.conformance.condition.as;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-
-import java.time.Instant;
-import java.util.Date;
 // Due to historical reasons there is potential ambiguity regarding the
 //   appropriate audience value to use when employing JWT client assertion
 //   based authentication (defined in Section 2.2 of [RFC7523] with

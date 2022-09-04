@@ -1,13 +1,17 @@
 package net.openid.conformance.info;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonObject;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import net.openid.conformance.logging.DBEventLog;
 import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.testmodule.TestModule.Result;
+import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.VariantSelection;
 import org.bson.Document;
 import org.slf4j.Logger;
@@ -20,16 +24,10 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonObject;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.UpdateResult;
-
-import net.openid.conformance.testmodule.TestModule.Result;
-import net.openid.conformance.testmodule.TestModule.Status;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class DBTestInfoService implements TestInfoService {

@@ -1,8 +1,8 @@
 package net.openid.conformance.logging;
 
-import java.util.Map;
-
 import com.google.gson.JsonObject;
+
+import java.util.Map;
 
 public interface EventLog {
 
