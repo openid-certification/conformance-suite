@@ -7,6 +7,10 @@ public abstract class AbstractOIDCCClientTestExpectingNothingInvalidIdToken exte
 	protected abstract String getAuthorizationCodeGrantTypeErrorMessage();
 	protected abstract String getHandleUserinfoEndpointRequestErrorMessage();
 
+	protected boolean isInvalidSignature() {
+		return false;
+	}
+
 	@Override
 	protected Object handleAuthorizationEndpointRequest(String requestId)
 	{
@@ -33,6 +37,11 @@ public abstract class AbstractOIDCCClientTestExpectingNothingInvalidIdToken exte
 
 	@Override
 	protected Object handleUserinfoEndpointRequest(String requestId) {
+		if (isInvalidSignature()) {
+			if (!responseType.includesIdToken()) {
+				fireTestSkipped("The client continued and called the userinfo endpoint after receiving an id token with an invalid signature from the token endpoint. This is acceptable as clients are not required to validate the signatures on id tokens received over a TLS protected connection.");
+			}
+		}
 		throw new TestFailureException(getId(), getHandleUserinfoEndpointRequestErrorMessage());
 	}
 }
