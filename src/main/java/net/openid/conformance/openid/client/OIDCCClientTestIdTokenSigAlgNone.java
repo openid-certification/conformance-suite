@@ -1,7 +1,5 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.ClientDidNotContinueAfterReceivingUnsignedIdToken;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.SetServerSigningAlgToNone;
 import net.openid.conformance.condition.as.SignIdTokenWithAlgNone;
@@ -22,8 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	displayName = "OIDCC: Relying party test. Use code flow to retrieve an unsigned id_token",
 	summary = "The client can either accept the unsigned id_token obtained using code flow and send a userinfo request to " +
 		"complete the test or reject the unsigned id_token and stop without sending a userinfo request. " +
-		"If a userinfo request is not received then the test will transition into finished state after a timeout and " +
-		"test result will be set to WARNING." +
+		"If a userinfo request is not received then the test will transition into 'skipped'' state after a timeout." +
 		" Corresponds to rp-id_token-sig-none test in the old test suite.",
 	profile = "OIDCC",
 	configurationFields = {
@@ -68,8 +65,7 @@ public class OIDCCClientTestIdTokenSigAlgNone extends AbstractOIDCCClientTest {
 			Thread.sleep(waitTimeoutSeconds * 1000);
 			if (getStatus().equals(Status.WAITING)) {
 				setStatus(Status.RUNNING);
-				callAndContinueOnFailure(ClientDidNotContinueAfterReceivingUnsignedIdToken.class, Condition.ConditionResult.WARNING);
-				fireTestFinished();
+				fireTestSkipped("Client did not send a userinfo request after receiving an unsigned id_token. As clients are not required to support unsigned (alg: none) id_tokens this is okay.");
 			}
 			return "done";
 		});
