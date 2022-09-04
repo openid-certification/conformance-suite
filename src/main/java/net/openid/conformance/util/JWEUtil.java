@@ -1,32 +1,8 @@
 package net.openid.conformance.util;
 
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWEDecrypter;
-import com.nimbusds.jose.JWEEncrypter;
-import com.nimbusds.jose.KeyLengthException;
-import com.nimbusds.jose.crypto.AESDecrypter;
-import com.nimbusds.jose.crypto.AESEncrypter;
-import com.nimbusds.jose.crypto.DirectDecrypter;
-import com.nimbusds.jose.crypto.DirectEncrypter;
-import com.nimbusds.jose.crypto.ECDHDecrypter;
-import com.nimbusds.jose.crypto.ECDHEncrypter;
-import com.nimbusds.jose.crypto.RSADecrypter;
-import com.nimbusds.jose.crypto.RSAEncrypter;
-import com.nimbusds.jose.crypto.X25519Decrypter;
-import com.nimbusds.jose.crypto.X25519Encrypter;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKMatcher;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyType;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.OctetKeyPair;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.*;
+import com.nimbusds.jose.jwk.*;
 import com.nimbusds.jose.util.Base64URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,16 +73,9 @@ public class JWEUtil {
 		int targetLength = 16;
 		String digestAlgorithm = "SHA-256";
 
-		//regexes and logic from Filip's openid-client. "derivedKey(len) in client.js"
-		Matcher matcher = Pattern.compile("^A(\\d{3})(GCM)?KW$").matcher(algorithm);
-		String matchedNumber = null;
-		if (matcher.matches()) {
-			matchedNumber = matcher.group(1);
-		} else {
-			matcher = Pattern.compile("^A(\\d{3})(GCM|CBC-HS(\\d{3}))").matcher(algorithm);
-			if(matcher.matches()) {
-				matchedNumber = matcher.group(3);
-			}
+		String matchedNumber = getKeyLengthFromAlg(algorithm);
+		if (matchedNumber == null) {
+			throw new RuntimeException("Unable to parse key bit length from algorithm " + algorithm);
 		}
 
 		switch (matchedNumber) {
@@ -141,6 +110,21 @@ public class JWEUtil {
 		}
 
 		return keyBytes;
+	}
+
+	private static String getKeyLengthFromAlg(String algorithm) {
+		// Regexes and logic from Filip's openid-client, "secretForAlg(alg)" in client.js
+		Matcher matcher = Pattern.compile("^A(\\d{3})(?:GCM)?KW$").matcher(algorithm);
+		if (matcher.matches()) {
+			return matcher.group(1);
+		}
+
+		matcher = Pattern.compile("^A(\\d{3})(?:GCM|CBC-HS(\\d{3}))").matcher(algorithm);
+		if(matcher.matches()) {
+				return matcher.group(2) != null ? matcher.group(2) : matcher.group(1);
+		}
+
+		return null;
 	}
 
 	/**
