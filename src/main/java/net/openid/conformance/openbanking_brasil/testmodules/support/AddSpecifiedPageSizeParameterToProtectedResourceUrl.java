@@ -14,7 +14,11 @@ public class AddSpecifiedPageSizeParameterToProtectedResourceUrl extends Abstrac
 		String baseUrl = env.getString("protected_resource_url");
 		Integer requiredPageSize = env.getInteger("required_page_size");
 		if (requiredPageSize != null) {
-			String url = String.format("%s?page-size=%d", baseUrl, requiredPageSize);
+			String format = "%s?page-size=%d";
+			if(baseUrl.contains("?")){
+				format = "%s&page-size=%d";
+			}
+			String url = String.format(format, baseUrl, requiredPageSize);
 			env.putString("protected_resource_url", url);
 			logSuccess("Parameters were added to the resource URL", Map.of("URL", url));
 		}else {
