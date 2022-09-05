@@ -16,15 +16,17 @@ public class EnsureEndToEndIdIsEqual extends AbstractJsonAssertingCondition {
 	private static String endToEndId;
 
 	@Override
-	@PreEnvironment(required = "resource_endpoint_response_full", strings = "endToEndId")
+	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment environment) {
 		String requestEntity = environment.getString("resource_request_entity");
 		if (requestEntity != null) {
 			JsonObject requestBody = new Gson().fromJson(new String(Base64.getUrlDecoder().decode(requestEntity.split("\\.")[1].getBytes())), JsonObject.class);
 			JsonObject data = requestBody.getAsJsonObject("data");
 			endToEndId = OIDFJSON.getString(data.get("endToEndId"));
-		} else {
+		} else if (environment.getString("endToEndId") != null) {
 			endToEndId = environment.getString("endToEndId");
+		} else {
+			throw error("There is neither an endToEndId nor a resource_request_entity in the environment.");
 		}
 		log("endToEndId in request: " + endToEndId);
 
