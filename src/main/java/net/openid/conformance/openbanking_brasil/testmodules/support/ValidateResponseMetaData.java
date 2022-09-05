@@ -51,8 +51,8 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 		}
 
 		JsonElement dataElement = findByPath(apiResponse, "$.data");
-		int metaTotalRecords = 0;
-		int metaTotalPages = 0;
+		int metaTotalRecords = 1;
+		int metaTotalPages = 1;
 		if (JsonHelper.ifExists(apiResponse, "$.meta")) {
 			if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
 				metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
@@ -135,11 +135,9 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 		// Check if the record count in meta tallies with the actual data.
 		// i.e. if record count > 1, then we should find an array in the data element.
 
-		int arrayCount;
+		int arrayCount = 1; // We'll assume there is at least one data element.
 		if (dataElement.isJsonArray()) {
 			arrayCount = dataElement.getAsJsonArray().size();
-		} else {
-			throw error("Could not parse data array");
 		}
 
 
