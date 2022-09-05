@@ -1,7 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata;
 import net.openid.conformance.condition.client.CreateJwksUri;

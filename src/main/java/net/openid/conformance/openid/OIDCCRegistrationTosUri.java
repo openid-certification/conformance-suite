@@ -1,7 +1,6 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.client.AddTosUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateTosUri;
 import net.openid.conformance.condition.client.ExpectLoginPageWithTosLink;

@@ -3,13 +3,8 @@ package net.openid.conformance.condition.client;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.http.HttpMethod;
-
-import java.time.Instant;
 
 public class SetDpopHtmHtuForResourceEndpoint extends AbstractCondition {
 

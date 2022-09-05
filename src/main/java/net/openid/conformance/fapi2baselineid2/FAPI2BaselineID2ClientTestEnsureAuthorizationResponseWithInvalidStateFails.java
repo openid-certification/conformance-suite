@@ -1,11 +1,8 @@
 package net.openid.conformance.fapi2baselineid2;
 
-import net.openid.conformance.condition.as.AddInvalidAudValueToJarm;
 import net.openid.conformance.condition.as.AddInvalidStateToAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.FAPIResponseMode;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(

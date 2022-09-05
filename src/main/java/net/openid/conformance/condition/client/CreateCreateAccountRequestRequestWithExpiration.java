@@ -1,17 +1,16 @@
 package net.openid.conformance.condition.client;
 
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.time.ZoneId;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 public class CreateCreateAccountRequestRequestWithExpiration extends AbstractCondition {
 

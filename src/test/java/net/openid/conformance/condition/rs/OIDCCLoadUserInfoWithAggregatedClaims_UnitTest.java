@@ -12,7 +12,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.class)
 public class OIDCCLoadUserInfoWithAggregatedClaims_UnitTest {
 	@Spy

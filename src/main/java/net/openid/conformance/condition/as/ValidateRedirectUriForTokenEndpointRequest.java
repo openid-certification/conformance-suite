@@ -1,12 +1,9 @@
 package net.openid.conformance.condition.as;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
  * compares the redirect_uri in token request with authorization_endpoint_request_redirect_uri

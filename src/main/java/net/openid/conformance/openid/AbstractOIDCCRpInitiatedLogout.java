@@ -9,7 +9,6 @@ import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpoi
 import net.openid.conformance.condition.client.CreateEndSessionEndpointRequest;
 import net.openid.conformance.condition.client.CreatePostLogoutRedirectUri;
 import net.openid.conformance.condition.client.CreateRandomEndSessionState;
-import net.openid.conformance.condition.client.ExtractSessionStateFromAuthorizationResponse;
 
 public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServerTest {
 	protected boolean firstTime = true;

@@ -1,17 +1,16 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
-
-import com.google.common.base.Strings;
-
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.testmodule.Environment;
 
 public class CheckForDateHeaderInResourceResponse extends AbstractCondition {
 

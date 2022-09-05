@@ -2,7 +2,6 @@ package net.openid.conformance.condition.rs;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 

@@ -2,7 +2,6 @@ package net.openid.conformance.condition.as.dynregistration;
 
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.JWSUtil;
 
 public class EnsureRequestObjectSigningAlgIsRS256InClientMetadata extends AbstractClientValidationCondition {
 

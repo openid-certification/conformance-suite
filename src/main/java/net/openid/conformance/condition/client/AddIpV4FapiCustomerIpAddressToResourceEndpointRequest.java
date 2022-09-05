@@ -5,9 +5,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.http.client.utils.DateUtils;
-
-import java.util.Date;
 
 public class AddIpV4FapiCustomerIpAddressToResourceEndpointRequest extends AbstractCondition {
 

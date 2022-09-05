@@ -1,8 +1,8 @@
 package net.openid.conformance.testmodule;
 
-import java.util.function.Supplier;
-
 import net.openid.conformance.sequence.ConditionSequence;
+
+import java.util.function.Supplier;
 
 public class ConditionSequenceCallBuilder implements TestExecutionUnit {
 

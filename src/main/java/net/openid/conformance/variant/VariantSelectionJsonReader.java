@@ -1,10 +1,9 @@
 package net.openid.conformance.variant;
 
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.stereotype.Component;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.stereotype.Component;
 
 @Component
 public class VariantSelectionJsonReader implements Converter<String, VariantSelection> {

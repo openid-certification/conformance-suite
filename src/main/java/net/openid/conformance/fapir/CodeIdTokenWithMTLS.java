@@ -21,7 +21,6 @@ import net.openid.conformance.condition.client.CheckForDateHeaderInResourceRespo
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckForScopesInTokenResponse;
-import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
@@ -61,10 +60,6 @@ import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateIdToken;
-import net.openid.conformance.condition.client.ValidateIdTokenSignature;
-import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
-import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;

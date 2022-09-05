@@ -96,7 +96,6 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningA
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
-import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;

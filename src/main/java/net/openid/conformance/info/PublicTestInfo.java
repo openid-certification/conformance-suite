@@ -1,9 +1,9 @@
 package net.openid.conformance.info;
 
-import java.util.Map;
-
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.VariantSelection;
+
+import java.util.Map;
 
 public class PublicTestInfo {
 

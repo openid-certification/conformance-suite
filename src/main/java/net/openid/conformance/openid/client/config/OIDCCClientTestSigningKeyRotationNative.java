@@ -1,9 +1,7 @@
 package net.openid.conformance.openid.client.config;
 
-import net.openid.conformance.condition.as.ChangeIssuerInServerConfigurationToBeInvalid;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
 
 
 @PublishTestModule(

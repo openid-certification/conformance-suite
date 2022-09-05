@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.LogAccessTokenAlwaysRejectedToForceARefreshGrant;
 import net.openid.conformance.condition.as.RemoveIssuedAccessTokenFromEnvironment;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;

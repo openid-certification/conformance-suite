@@ -5,7 +5,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.springframework.util.StringUtils;
 
 public abstract class AbstractAddRequestedExpToAuthorizationEndpointRequest extends AbstractCondition {
 

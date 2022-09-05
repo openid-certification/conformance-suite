@@ -2,9 +2,11 @@ package net.openid.conformance.fapi2baselineid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
+import net.openid.conformance.condition.client.ExpectInvalidRequestUriErrorPage;
+import net.openid.conformance.condition.client.WaitForExpiry;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 //PAR-2.2.0 : If the verification is successful, the server MUST generate a request URI and return a
 // JSON response that contains request_uri and expires_in members at the top level with 201 Created

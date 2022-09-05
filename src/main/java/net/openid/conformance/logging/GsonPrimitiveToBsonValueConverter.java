@@ -1,5 +1,6 @@
 package net.openid.conformance.logging;
 
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.bson.BsonBoolean;
 import org.bson.BsonDouble;
@@ -8,8 +9,6 @@ import org.bson.BsonValue;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.stereotype.Component;
-
-import com.google.gson.JsonPrimitive;
 
 /**
  * Converts JsonPrimitives from GSON into BSON Values for Mongo.

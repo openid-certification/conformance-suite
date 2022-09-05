@@ -16,7 +16,6 @@ import net.openid.conformance.condition.client.CheckForDateHeaderInResourceRespo
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckForScopesInTokenResponse;
-import net.openid.conformance.condition.client.CheckForSubjectInIdToken;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
@@ -42,10 +41,6 @@ import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
-import net.openid.conformance.condition.client.ValidateIdToken;
-import net.openid.conformance.condition.client.ValidateIdTokenSignature;
-import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
-import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;

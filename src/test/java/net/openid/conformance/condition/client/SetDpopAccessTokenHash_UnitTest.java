@@ -1,25 +1,17 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.JWTUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.openqa.selenium.json.Json;
-
-import java.text.ParseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SetDpopAccessTokenHash_UnitTest {

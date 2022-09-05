@@ -6,8 +6,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.Arrays;
-
 public class OIDCCCheckDiscEndpointGrantTypesSupported extends AbstractCondition {
 
 	private static final String environmentVariable = "grant_types_supported";

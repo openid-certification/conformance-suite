@@ -1,18 +1,7 @@
 package net.openid.conformance.openid.client.logout;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.logout.CreateRPFrontChannelLogoutRequestUrl;
-import net.openid.conformance.condition.as.logout.EnsureClientHasFrontChannelLogoutUri;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import org.apache.commons.text.StringEscapeUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * The difference between this one and OIDCCClientTestFrontChannelLogoutRPInitiated is:

@@ -2,12 +2,9 @@ package net.openid.conformance.condition.as.dynregistration;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.util.RFC6749AppendixASyntaxUtils;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.text.RandomStringGenerator;
 
 public class OIDCCCreateClientSecretForDynamicClient extends AbstractCondition
 {

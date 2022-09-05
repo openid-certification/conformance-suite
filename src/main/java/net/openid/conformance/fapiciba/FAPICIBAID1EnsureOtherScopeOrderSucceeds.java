@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba;
 
-import net.openid.conformance.condition.client.AddBindingMessageToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.ReverseScopeOrderInAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 

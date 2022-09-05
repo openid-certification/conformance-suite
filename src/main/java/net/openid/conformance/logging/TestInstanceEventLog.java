@@ -1,15 +1,14 @@
 package net.openid.conformance.logging;
 
+import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.openid.conformance.testmodule.DataUtils;
+
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.testmodule.DataUtils;
 
 /**
  * A wrapper around an EventLog that supports blocks and remembers the test ID and Owner information

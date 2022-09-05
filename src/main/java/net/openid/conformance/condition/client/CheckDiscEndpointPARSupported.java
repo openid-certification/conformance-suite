@@ -1,15 +1,12 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonElement;
-import java.net.URI;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.MalformedInputException;
 
 //PAR-5.0 : If the authorization server has a pushed authorization request endpoint,
 //it SHOULD include the following OAuth/OpenID Provider Metadata parameter in discovery responses:

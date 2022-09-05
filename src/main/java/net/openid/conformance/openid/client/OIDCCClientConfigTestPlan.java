@@ -7,8 +7,6 @@ import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRota
 import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationNative;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.OIDCCClientAuthType;
-import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 
 import java.util.List;

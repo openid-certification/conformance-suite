@@ -3,8 +3,6 @@ package net.openid.conformance.sequence.as;
 import net.openid.conformance.condition.as.AddAuthorizationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddJARMResponseModeToServerConfiguration;
 import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
-import net.openid.conformance.condition.as.par.AddPushedAuthorizationRequestEndpointToServerConfig;
-import net.openid.conformance.condition.as.par.AddRequirePushedAuthorizationRequestsToServerConfig;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class AddJARMToServerConfiguration extends AbstractConditionSequence {

@@ -1,9 +1,9 @@
 package net.openid.conformance.condition.util;
 
+import com.google.gson.JsonObject;
+
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import com.google.gson.JsonObject;
 
 /**
  * Extracts the host and port of a given URL string (including the default port if none is

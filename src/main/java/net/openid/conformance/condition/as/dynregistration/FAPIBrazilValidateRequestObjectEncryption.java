@@ -4,8 +4,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.Set;
-
 public class FAPIBrazilValidateRequestObjectEncryption extends AbstractCondition {
 
 	@Override

@@ -8,11 +8,8 @@ import net.openid.conformance.openid.client.logout.OIDCCClientTestBackChannelLog
 import net.openid.conformance.openid.client.logout.OIDCCClientTestBackChannelLogoutWrongAud;
 import net.openid.conformance.openid.client.logout.OIDCCClientTestBackChannelLogoutWrongEvent;
 import net.openid.conformance.openid.client.logout.OIDCCClientTestBackChannelLogoutWrongIssuer;
-import net.openid.conformance.openid.client.logout.OIDCCClientTestFrontChannelLogoutRPInitiated;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 
 import java.util.List;

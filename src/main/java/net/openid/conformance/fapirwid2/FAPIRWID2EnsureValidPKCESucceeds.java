@@ -1,8 +1,8 @@
 package net.openid.conformance.fapirwid2;
 
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(

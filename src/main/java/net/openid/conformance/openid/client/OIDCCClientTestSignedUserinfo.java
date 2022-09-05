@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.client;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.SetUserinfoSignedResponseAlgToRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;

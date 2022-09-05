@@ -1,6 +1,5 @@
 package net.openid.conformance.info;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;

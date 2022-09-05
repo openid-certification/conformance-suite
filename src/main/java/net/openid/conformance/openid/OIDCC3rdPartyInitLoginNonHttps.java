@@ -1,12 +1,12 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.AddInitiateLoginUriAsNonHttpsToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata;
 import net.openid.conformance.condition.client.CreateInitiateLoginUri;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.VariantNotApplicable;

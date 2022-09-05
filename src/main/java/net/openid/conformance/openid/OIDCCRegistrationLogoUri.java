@@ -1,7 +1,6 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.client.AddLogoUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateLogoUri;
 import net.openid.conformance.condition.client.ExpectLoginPageWithLogo;

@@ -1,12 +1,11 @@
 package net.openid.conformance.condition.client;
 
-import java.util.UUID;
-
 import com.google.common.base.Strings;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.util.UUID;
 
 public class CheckForFAPIInteractionIdInResourceResponse extends AbstractCondition {
 

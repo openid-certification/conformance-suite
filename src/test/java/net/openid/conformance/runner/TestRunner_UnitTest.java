@@ -2,7 +2,11 @@ package net.openid.conformance.runner;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.testmodule.*;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.testmodule.TestInterruptedException;
+import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.testmodule.TestSkippedException;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

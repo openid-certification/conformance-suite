@@ -1,15 +1,17 @@
 package net.openid.conformance.logging;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import net.openid.conformance.info.ImageService;
+import net.openid.conformance.info.TestInfoService;
+import net.openid.conformance.runner.TestRunnerSupport;
 import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.testmodule.TestModule.Result;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +27,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-
-import net.openid.conformance.info.ImageService;
-import net.openid.conformance.info.TestInfoService;
-import net.openid.conformance.runner.TestRunnerSupport;
-import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.testmodule.TestModule.Result;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping(value = "/api")

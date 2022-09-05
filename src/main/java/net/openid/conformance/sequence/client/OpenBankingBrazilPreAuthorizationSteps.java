@@ -30,10 +30,10 @@ import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientSco
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCallPaymentConsentEndpointWithBearerToken;
 import net.openid.conformance.condition.client.FAPIBrazilConsentEndpointResponseValidatePermissions;
-import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreatePaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertificateSubject;
 import net.openid.conformance.condition.client.FAPIBrazilGetKeystoreJwksUri;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;

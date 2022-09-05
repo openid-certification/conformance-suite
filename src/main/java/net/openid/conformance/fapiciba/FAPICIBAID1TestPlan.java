@@ -4,7 +4,6 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
 
-import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
 @PublishTestPlan (

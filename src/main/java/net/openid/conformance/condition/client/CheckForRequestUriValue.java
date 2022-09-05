@@ -1,11 +1,12 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
-import java.net.URI;
-import java.net.URISyntaxException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * PAR-2.2.0: This class checks for validity of PAR response

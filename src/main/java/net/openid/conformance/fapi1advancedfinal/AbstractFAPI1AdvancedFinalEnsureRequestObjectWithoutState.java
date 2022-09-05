@@ -1,9 +1,9 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
@@ -16,7 +16,6 @@ import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAutho
 import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateCHash;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.VerifyNoSHash;
 import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationResponse;
 import net.openid.conformance.sequence.ConditionSequence;

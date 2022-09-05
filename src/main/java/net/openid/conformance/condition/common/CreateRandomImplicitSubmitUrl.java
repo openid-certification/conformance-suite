@@ -1,14 +1,11 @@
 package net.openid.conformance.condition.common;
 
-import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
-
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  * Creates a callback URL based on the base_url environment value

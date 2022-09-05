@@ -1,13 +1,13 @@
 package net.openid.conformance.openid.client;
 
+import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryIssuerMismatch;
+import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryJwksUriKeys;
+import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryOpenIDConfiguration;
 import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryWebfingerAcct;
 import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryWebfingerURL;
 import net.openid.conformance.openid.client.config.OIDCCClientTestDynamicRegistration;
 import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotation;
 import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationNative;
-import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryIssuerMismatch;
-import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryJwksUriKeys;
-import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryOpenIDConfiguration;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 

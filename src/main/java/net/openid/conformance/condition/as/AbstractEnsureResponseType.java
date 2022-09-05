@@ -1,11 +1,10 @@
 package net.openid.conformance.condition.as;
 
-import java.util.Set;
-
 import com.google.common.base.Strings;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+
+import java.util.Set;
 
 public abstract class AbstractEnsureResponseType extends AbstractCondition {
 

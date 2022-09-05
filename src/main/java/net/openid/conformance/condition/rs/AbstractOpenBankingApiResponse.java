@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.rs;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.AbstractCondition;
 
 public abstract class AbstractOpenBankingApiResponse extends AbstractCondition {

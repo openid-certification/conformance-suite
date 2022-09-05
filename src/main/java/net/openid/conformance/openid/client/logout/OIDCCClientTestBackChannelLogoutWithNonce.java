@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.client.logout;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.logout.AddInvalidAudValueToLogoutToken;
 import net.openid.conformance.condition.as.logout.AddNonceToLogoutToken;
 import net.openid.conformance.condition.as.logout.EnsureBackChannelLogoutUriResponseStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;

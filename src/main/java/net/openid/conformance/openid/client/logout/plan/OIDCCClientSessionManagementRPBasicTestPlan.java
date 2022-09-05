@@ -1,8 +1,5 @@
 package net.openid.conformance.openid.client.logout.plan;
 
-import net.openid.conformance.openid.client.logout.OIDCCClientTestRPInitLogout;
-import net.openid.conformance.openid.client.logout.OIDCCClientTestRPInitLogoutInvalidState;
-import net.openid.conformance.openid.client.logout.OIDCCClientTestRPInitLogoutNoState;
 import net.openid.conformance.openid.client.logout.OIDCCClientTestSessionManagement;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;

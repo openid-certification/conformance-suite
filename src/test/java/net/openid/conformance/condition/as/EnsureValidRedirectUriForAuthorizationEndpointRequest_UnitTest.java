@@ -2,7 +2,6 @@ package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -13,8 +12,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.junit.Assert.*;
 @RunWith(MockitoJUnitRunner.class)
 public class EnsureValidRedirectUriForAuthorizationEndpointRequest_UnitTest {
 	@Spy

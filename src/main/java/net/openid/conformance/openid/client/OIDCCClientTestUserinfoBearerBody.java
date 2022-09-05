@@ -1,7 +1,5 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
-import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.OIDCCExtractBearerAccessTokenFromBodyParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;

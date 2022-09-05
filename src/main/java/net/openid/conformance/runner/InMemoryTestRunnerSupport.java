@@ -1,5 +1,10 @@
 package net.openid.conformance.runner;
 
+import com.google.common.collect.ImmutableMap;
+import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.testmodule.TestModule;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -9,14 +14,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import net.openid.conformance.security.AuthenticationFacade;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.ImmutableMap;
-
-import net.openid.conformance.testmodule.TestModule;
-import net.openid.conformance.testmodule.TestModule.Status;
 
 public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 

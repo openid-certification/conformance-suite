@@ -4,7 +4,6 @@ import net.openid.conformance.condition.as.EnsureRequestObjectWasSignedWithRS256
 import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectSigningAlgIsRS256InClientMetadata;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRequestType;
-import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 

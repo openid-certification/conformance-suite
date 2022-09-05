@@ -1,7 +1,6 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.client.AddPolicyUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreatePolicyUri;
 import net.openid.conformance.condition.client.ExpectLoginPageWithPolicyLink;

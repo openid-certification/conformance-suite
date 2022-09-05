@@ -1,15 +1,14 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIncorrectNonceToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestDifferentNonceInsideAndOutsideErrorPage;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 

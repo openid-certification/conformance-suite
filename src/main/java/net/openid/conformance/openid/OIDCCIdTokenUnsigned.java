@@ -1,8 +1,8 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckIdTokenSignatureAlgorithm;
 import net.openid.conformance.condition.client.AddIdTokenSigningAlgNoneToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.CheckIdTokenSignatureAlgorithm;
 import net.openid.conformance.condition.client.OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;

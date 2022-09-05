@@ -3,8 +3,6 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.as.ChangeIdTokenEncryptedResponseAlgToRSA15;
 import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
-import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.client.OIDCCCheckScopesSupportedContainScopeTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIResponseMode;

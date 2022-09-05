@@ -8,7 +8,6 @@ import net.openid.conformance.condition.client.CheckNoClientIdFromClientConfigur
 import net.openid.conformance.condition.client.CheckNoClientIdFromDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
-import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClientExpectingFailure;
 
 public abstract class AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue extends AbstractFAPI1AdvancedFinalBrazilDCR {

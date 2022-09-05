@@ -1,6 +1,5 @@
 package net.openid.conformance.fapiciba;
 
-import net.openid.conformance.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CreateBackchannelAuthenticationEndpointRequest;

@@ -1,10 +1,10 @@
 package net.openid.conformance.condition.client;
 
-import java.util.UUID;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.util.UUID;
 
 public class CreateRandomFAPIInteractionId extends AbstractCondition {
 

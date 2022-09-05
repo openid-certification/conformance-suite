@@ -2,9 +2,6 @@ package net.openid.conformance.condition.as;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;

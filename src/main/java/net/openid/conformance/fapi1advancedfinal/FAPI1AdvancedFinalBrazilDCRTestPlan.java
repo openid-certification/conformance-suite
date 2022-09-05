@@ -2,7 +2,6 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;

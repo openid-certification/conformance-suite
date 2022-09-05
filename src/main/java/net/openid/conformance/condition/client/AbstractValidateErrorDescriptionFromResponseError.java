@@ -2,7 +2,6 @@ package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.regex.Pattern;

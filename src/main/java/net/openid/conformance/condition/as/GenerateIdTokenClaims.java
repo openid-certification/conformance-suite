@@ -1,14 +1,13 @@
 package net.openid.conformance.condition.as;
 
-import java.time.Instant;
-
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+
+import java.time.Instant;
 
 public class GenerateIdTokenClaims extends AbstractCondition {
 

@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.client;
 
 import net.openid.conformance.openid.AbstractFormPostTestPlan;
-import net.openid.conformance.openid.OIDCCBasicTestPlan;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 

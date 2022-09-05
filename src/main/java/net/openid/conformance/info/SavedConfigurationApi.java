@@ -1,5 +1,6 @@
 package net.openid.conformance.info;
 
+import com.google.gson.JsonObject;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -10,8 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import com.google.gson.JsonObject;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller

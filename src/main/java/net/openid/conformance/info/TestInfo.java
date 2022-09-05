@@ -1,19 +1,16 @@
 package net.openid.conformance.info;
 
-import java.time.Instant;
-import java.util.Map;
-
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
+import net.openid.conformance.testmodule.TestModule.Status;
+import net.openid.conformance.variant.VariantSelection;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
-import net.openid.conformance.testmodule.TestModule.Status;
-import net.openid.conformance.variant.VariantSelection;
+import java.time.Instant;
+import java.util.Map;
 
 @Document(collection = DBTestInfoService.COLLECTION)
 public class TestInfo {

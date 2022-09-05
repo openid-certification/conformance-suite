@@ -1,15 +1,11 @@
 package net.openid.conformance.openid.client.config;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.AddRandomSuffixToIssuerInServerConfiguration;
-import net.openid.conformance.condition.as.ChangeIssuerInServerConfigurationToBeInvalid;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 
 @PublishTestModule(

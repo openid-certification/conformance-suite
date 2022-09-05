@@ -1,9 +1,9 @@
 package net.openid.conformance.sequence;
 
-import java.util.List;
-
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.TestExecutionUnit;
+
+import java.util.List;
 
 public interface ConditionSequence extends TestExecutionUnit {
 

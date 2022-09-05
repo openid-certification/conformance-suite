@@ -1,10 +1,6 @@
 package net.openid.conformance.openid.client;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddInvalidAtHashValueToIdToken;
-import net.openid.conformance.condition.as.AddInvalidCHashValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;

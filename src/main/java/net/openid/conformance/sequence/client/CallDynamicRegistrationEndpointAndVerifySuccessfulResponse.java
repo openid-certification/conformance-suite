@@ -5,8 +5,8 @@ import net.openid.conformance.condition.client.CallDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckNoErrorFromDynamicRegistrationEndpoint;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.VerifyClientManagementCredentials;
 import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
+import net.openid.conformance.condition.client.VerifyClientManagementCredentials;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class CallDynamicRegistrationEndpointAndVerifySuccessfulResponse extends AbstractConditionSequence {

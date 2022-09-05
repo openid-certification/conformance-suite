@@ -9,7 +9,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**

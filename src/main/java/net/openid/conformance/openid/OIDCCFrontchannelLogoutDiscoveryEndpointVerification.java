@@ -2,12 +2,12 @@ package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.CheckDiscEndSessionEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
 import net.openid.conformance.condition.client.CheckDiscEndpointFrontchannelLogoutSessionSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointFrontchannelLogoutSupported;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;

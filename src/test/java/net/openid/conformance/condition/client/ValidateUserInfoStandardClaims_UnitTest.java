@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

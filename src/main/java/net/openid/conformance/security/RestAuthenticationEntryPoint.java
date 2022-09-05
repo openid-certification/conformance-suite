@@ -1,15 +1,13 @@
 package net.openid.conformance.security;
 
-import java.io.IOException;
+import com.google.gson.JsonObject;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-
-import com.google.gson.JsonObject;
+import java.io.IOException;
 
 /**
  * This class is to provide an alternate entry point into REST API request URLs.

@@ -10,8 +10,6 @@ import net.openid.conformance.util.JWAUtil;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CalculateAtHash extends AbstractCondition {
 

@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;

@@ -16,8 +16,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {

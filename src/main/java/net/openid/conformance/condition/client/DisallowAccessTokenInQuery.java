@@ -1,15 +1,13 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import com.google.gson.JsonObject;
-
-import net.openid.conformance.condition.PreEnvironment;
 
 public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 

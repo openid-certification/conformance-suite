@@ -1,9 +1,8 @@
 package net.openid.conformance.info;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.variant.VariantSelection;
 import org.bson.Document;
-
-import com.google.gson.JsonObject;
 
 public interface SavedConfigurationService {
 

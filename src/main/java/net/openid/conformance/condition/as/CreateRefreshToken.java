@@ -4,7 +4,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.util.RFC6749AppendixASyntaxUtils;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  * https://tools.ietf.org/html/rfc6749#appendix-A.17

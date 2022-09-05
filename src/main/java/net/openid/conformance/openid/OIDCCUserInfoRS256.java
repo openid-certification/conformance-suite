@@ -5,7 +5,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddUserinfoSignedResponseAlgRS256ToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoSigningAlgValuesSupportedContainsRS256;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureUserInfoDoesNotContainNonce;
 import net.openid.conformance.condition.client.ExtractSignedUserInfoFromUserInfoEndpointResponse;
 import net.openid.conformance.condition.client.ValidateSignedUserInfoResponseStandardJWTClaims;
