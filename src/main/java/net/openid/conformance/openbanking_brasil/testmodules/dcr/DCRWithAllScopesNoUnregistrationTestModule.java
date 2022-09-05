@@ -1,10 +1,11 @@
-package net.openid.conformance.openbanking_brasil.testmodules;
+package net.openid.conformance.openbanking_brasil.testmodules.dcr;
 
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractApiDcrTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPayments;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;

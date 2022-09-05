@@ -1,16 +1,15 @@
-package net.openid.conformance.openbanking_brasil.testmodules;
+package net.openid.conformance.openbanking_brasil.testmodules.dcr;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckScopesFromDynamicRegistrationEndpointContainsOpenidResources;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractDcmSubjectDnTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDCMSubjectDnTestClient1;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithAllDadosScopes;
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = ResourcesDcmSubjectDnTestModule.testName,

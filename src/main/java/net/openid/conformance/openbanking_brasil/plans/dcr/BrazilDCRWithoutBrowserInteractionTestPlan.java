@@ -1,4 +1,4 @@
-package net.openid.conformance.openbanking_brasil.plans.v1;
+package net.openid.conformance.openbanking_brasil.plans.dcr;
 
 import net.openid.conformance.fapi1advancedfinal.dcr_no_authorization_flow.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;

@@ -1,7 +1,8 @@
-package net.openid.conformance.openbanking_brasil.testmodules;
+package net.openid.conformance.openbanking_brasil.testmodules.dcr;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.testmodules.AbstractDcmSubjectDnTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.EnsurePaymentDateIsToday;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideCNPJ;
 import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithDCMSubjectDnTestClient1;
@@ -10,8 +11,6 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirector
 import net.openid.conformance.openbanking_brasil.testmodules.support.SetProtectedResourceUrlToPaymentsEndpoint;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.SanitiseQrCodeConfig;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = PaymentsDcmSubjectDnTestModule.testName,
