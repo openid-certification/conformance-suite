@@ -25,7 +25,7 @@ import java.time.format.DateTimeFormatter;
 	testName = "opin-patrimonial-api-test",
 	displayName = "Validates the structure of all Patrimonial API resources",
 	summary = "Validates the structure of all Patrimonial API resources\n" +
-		"\u2022 Creates a consent with all the permissions needed to access the Patrimonial API (“DAMAGES_AND_PEOPLE_PATRIMONIAL_READ”, “DAMAGES_AND_PEOPLE_PATRIMONIAL_POLICYINFO_READ”, “DAMAGES_AND_PEOPLE_AERONAUTICAL_PREMIUM_READ”, “DAMAGES_AND_PEOPLE_AERONAUTICAL_CLAIM_READ”,  “RESOURCES_READ”)\n" +
+		"\u2022 Creates a consent with all the permissions needed to access the Patrimonial API (“DAMAGES_AND_PEOPLE_PATRIMONIAL_READ”, “DAMAGES_AND_PEOPLE_PATRIMONIAL_POLICYINFO_READ”, “DAMAGES_AND_PEOPLE_PATRIMONIAL_PREMIUM_READ”, “DAMAGES_AND_PEOPLE_PATRIMONIAL_CLAIM_READ”,  “RESOURCES_READ”)\n" +
 		"\u2022 Expects 201 - Expects Success on Redirect - Validates all of the fields sent on the consents API\n" +
 		"\u2022 Calls GET Patrimonial “/” API\n" +
 		"\u2022 Expects 201 - Fetches one of the Policy IDs returned\n" +
