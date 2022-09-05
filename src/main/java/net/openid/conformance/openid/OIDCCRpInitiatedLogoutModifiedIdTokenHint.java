@@ -15,7 +15,7 @@ import javax.servlet.http.HttpSession;
 @PublishTestModule(
 	testName = "oidcc-rp-initiated-logout-modified-id-token-hint",
 	displayName = "OIDCC: rp initiated logout - modified id_token_hint",
-	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint with an id_token_hint that has been changed to alg:none.\n\nThe OP must show an error screen or confirm with the user before proceeding with the logout - a screenshot of which should be uploaded.",
+	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint with an id_token_hint that has been changed to alg:none.\n\nThe OP must not redirect back and must either show an error screen or confirm with the user if they want to logout - a screenshot of which should be uploaded.",
 	profile = "OIDCC"
 )
 public class OIDCCRpInitiatedLogoutModifiedIdTokenHint extends AbstractOIDCCRpInitiatedLogout {

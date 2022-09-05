@@ -15,7 +15,7 @@ import javax.servlet.http.HttpSession;
 @PublishTestModule(
 	testName = "oidcc-rp-initiated-logout-bad-post-logout-redirect-uri",
 	displayName = "OIDCC: rp initiated logout - bad post_logout_redirect_uri",
-	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint with a post_logout_redirect_uri that is not registered at the OP - the OP must not redirect to bad redirect uri, but may show an error or confirm the action with the user - a screenshot that shows what the user is shown must be uploaded.",
+	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint with a post_logout_redirect_uri that is not registered at the OP.\n\nThe OP must not redirect back and must either show an error screen or confirm with the user if they want to logout - a screenshot of which should be uploaded.",
 	profile = "OIDCC"
 )
 public class OIDCCRpInitiatedLogoutBadLogoutRedirectUri extends AbstractOIDCCRpInitiatedLogout {
