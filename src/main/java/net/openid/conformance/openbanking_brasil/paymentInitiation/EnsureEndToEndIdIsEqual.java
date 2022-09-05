@@ -22,7 +22,7 @@ public class EnsureEndToEndIdIsEqual extends AbstractJsonAssertingCondition {
 		if (requestEntity != null) {
 			JsonObject requestBody = new Gson().fromJson(new String(Base64.getUrlDecoder().decode(requestEntity.split("\\.")[1].getBytes())), JsonObject.class);
 			JsonObject data = requestBody.getAsJsonObject("data");
-			endToEndId = data.get("endToEndId").getAsString();
+			endToEndId = OIDFJSON.getString(data.get("endToEndId"));
 		} else {
 			endToEndId = environment.getString("endToEndId");
 		}
