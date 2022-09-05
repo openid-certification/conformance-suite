@@ -61,18 +61,10 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 				throw error("totalRecords field is missing in meta");
 			}
 
-			if(metaTotalRecords < 1){
-				throw error("totalRecords field cannot be less than 1", args("response", apiResponse));
-			}
-
 			if (JsonHelper.ifExists(apiResponse, "$.meta.totalPages")) {
 				metaTotalPages = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalPages"));
 			} else {
 				throw error("totalPages field is missing in meta");
-			}
-
-			if(metaTotalPages < 1){
-				throw error("metaTotalPages field cannot be less than 1", args("response", apiResponse));
 			}
 
 			if (JsonHelper.ifExists(apiResponse, "$.meta.requestDateTime")) {
