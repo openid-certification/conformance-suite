@@ -15,9 +15,8 @@ import net.openid.conformance.variant.ClientAuthType;
 
 @PublishTestModule(
 	testName = "loans-api-operational-limits",
-	displayName = "This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Credit Cards API are considered correctly and, if present, that the pagination-key parameter is correctly serving it’s function\n",
-	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here https://gitlab.com/obb1/certification/-/wikis/Operational-Limits\n" +
-		"This test will require the user to have set at least two ACTIVE resources each with at least 10 Transactions to be returned on the transactions-current endpoint for each active account\n" +
+	displayName ="This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Financings API are considered correctly\n",
+	summary = "This test will require the user to have set at least two ACTIVE resources on the Loans API. \n" +
 		"This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Loans API are considered correctly.\n" +
 		"\u2022 Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided\n" +
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Credit Operations permission group - Expect Server to return a 201\n" +
