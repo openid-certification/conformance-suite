@@ -1,6 +1,7 @@
 package net.openid.conformance.openbanking_brasil.testmodules;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.EnsureEndToEndIdIsEqual;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
@@ -42,7 +43,8 @@ public class PaymentsConsentsApiEnforceQRESNWithEmailAddressTestModule extends A
 		return sequenceOf(
 			condition(PaymentsProxyCheckForAcceptedStatus.class),
 			condition(PaymentsProxyCheckForInvalidStatus.class),
-			condition(PaymentFetchPixPaymentsValidator.class));
+			condition(PaymentFetchPixPaymentsValidator.class),
+			condition(EnsureEndToEndIdIsEqual.class));
 	}
 
 }
