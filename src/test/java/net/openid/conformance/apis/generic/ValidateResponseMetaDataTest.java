@@ -23,7 +23,7 @@ public class ValidateResponseMetaDataTest extends AbstractJsonResponseConditionU
 	public void validateStructureWithMissingLinksObject() {
 		ValidateResponseMetaData condition = new ValidateResponseMetaData();
 		ConditionError error = runAndFail(condition);
-		String expected = "totalPages field should not be 1.";
+		String expected = "totalPages field should not be 0 or 1.";
 		assertThat(error.getMessage(), containsString(expected));
 	}
 
@@ -137,4 +137,29 @@ public class ValidateResponseMetaDataTest extends AbstractJsonResponseConditionU
 		String expected = "Payment consent requires a 'self' link.";
 		assertThat(error.getMessage(), containsString(expected));
 	}
+	@Test
+	@UseResurce("jsonResponses/metaData/goodResponseWithEmptyData.json")
+	public void validateResponseWithEmptyData() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		run(condition);
+	}
+
+	@Test
+	@UseResurce("jsonResponses/metaData/badResponseWithEmptyData.json")
+	public void validateBadResponseWithEmptyData() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		ConditionError error = runAndFail(condition);
+		String expected = "totalPages and totalRecords fields have to be 0 when data array is empty";
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
+	@Test
+	@UseResurce("jsonResponses/metaData/badResponseWith3DataitemsAnd0Meta.json")
+	public void validateBadResponseWith3DataItemsAnd0Meta() {
+		ValidateResponseMetaData condition = new ValidateResponseMetaData();
+		ConditionError error = runAndFail(condition);
+		String expected = "Data contains more items than the metadata totalRecords.";
+		assertThat(error.getMessage(), containsString(expected));
+	}
+
 }

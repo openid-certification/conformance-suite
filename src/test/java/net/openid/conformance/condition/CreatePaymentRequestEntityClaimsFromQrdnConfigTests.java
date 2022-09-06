@@ -44,6 +44,9 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfigTests {
 		String rawPaymentJson = IOUtils.resourceToString("qrdn_payment.json", Charset.defaultCharset(), getClass().getClassLoader());
 
 		JsonObject expectedPayment = new JsonParser().parse(rawPaymentJson).getAsJsonObject();
+		JsonObject data = expectedPayment.getAsJsonObject("data");
+		data.remove("endToEndId");
+		data.addProperty("endToEndId", environment.getString("endToEndId"));
 
 		assertEquals(expectedPayment, paymentClaims);
 
