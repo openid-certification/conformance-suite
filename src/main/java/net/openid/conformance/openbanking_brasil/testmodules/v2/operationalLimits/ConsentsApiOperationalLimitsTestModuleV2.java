@@ -20,7 +20,7 @@ import net.openid.conformance.util.JsonUtils;
 @PublishTestModule(
 	testName = "consents-api-operational-limits",
 	displayName = "Consents Api operational limits test module V2",
-	summary = "Make sure that access is not blocked on the Consents API V2 regardless of the number of calls done against it.\n\n" +
+	summary = "This test will make sure that the server will not limit access to Consents API V2 regardless of the number of calls done against it.\n\n" +
 		"\u2022 Create a consent using the CPF and CNPJ provided for the Operational Limits tests. Send the permissions for either customer business or customer personal data, based on what has been provided on the test configuration\n" +
 		"\u2022 Redirect the user to authorise the Consent with the customer and the created consent scopes- Expect a success on the redirect\n" +
 		"\u2022 Call the GET Consents API 600 Times using the Authorized ConsentID\n" +
