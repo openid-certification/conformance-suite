@@ -15,7 +15,7 @@ public class AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl e
 		String fromBookingDateMaxLimited = env.getString("fromBookingDateMaxLimited");
 		String toBookingDateMaxLimited = env.getString("toBookingDateMaxLimited");
 
-		String url = String.format("%s?fromBookingDate=%s&toBookingDate=%s", baseUrl, fromBookingDateMaxLimited, toBookingDateMaxLimited);
+		String url = String.format("%s?fromBookingDateMaxLimited=%s&toBookingDateMaxLimited=%s", baseUrl, fromBookingDateMaxLimited, toBookingDateMaxLimited);
 		env.putString("protected_resource_url", url);
 		logSuccess("Parameters were added to the resource URL", Map.of("URL", url));
 		return env;
