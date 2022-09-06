@@ -7,14 +7,20 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.apache.commons.lang3.RandomStringUtils;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCondition {
 
+	static private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+
 	@Override
 	@PreEnvironment(required = "config" )
-	@PostEnvironment(required = "resource_request_entity_claims")
+	@PostEnvironment(required = "resource_request_entity_claims", strings = "endToEndId")
 	public Environment evaluate(Environment env) {
 		JsonObject paymentConsent = (JsonObject) env.getElementFromObject("resource", "brazilQrdnPaymentConsent");
 		String cnpj = OIDFJSON.getString(env.getElementFromObject("resource", "brazilQrdnCnpj"));
@@ -30,6 +36,14 @@ public class CreatePaymentRequestEntityClaimsFromQrdnConfig extends AbstractCond
 
 		JsonObject pixPayment = new JsonObject();
 		JsonObject data = new JsonObject();
+
+		OffsetDateTime currentDateTime = OffsetDateTime.now(ZoneOffset.UTC);
+		String formattedCurrentDateTime = currentDateTime.format(formatter);
+		String randomString = RandomStringUtils.randomAlphanumeric(11);
+		String endToEndId = String.format("E%s%s%s", DictHomologKeys.PROXY_E2EID_ISPB, formattedCurrentDateTime, randomString);
+		data.addProperty("endToEndId", endToEndId);
+		env.putString("endToEndId", endToEndId);
+
 		data.addProperty("localInstrument", "QRDN");
 		data.addProperty("cnpjInitiator", cnpj);
 		JsonElement ibgeTownCodeElement = paymentObject.get("ibgeTownCode");

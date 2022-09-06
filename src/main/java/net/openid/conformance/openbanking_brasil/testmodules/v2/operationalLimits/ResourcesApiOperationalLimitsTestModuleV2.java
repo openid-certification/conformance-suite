@@ -9,9 +9,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "resources-api-operational-limits",
 	displayName = "Test will make sure that the server has not implemented any type of operational limits for the Resources API.",
-	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here XPTO.\n" +
-		"This test will generate three different consent requests and call the resources API 450 times for each created consent\n" +
-		"Test will make sure that the server has not implemented any type of operational limits for the Resources API.\n" +
+	summary = "This test will generate three different consent requests and call the resources API 450 times for each created consent\n" +
 		"\u2022 Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test has been provided\n" +
 		"\u2022 Using the client_id for OL and the CPF/CNPJ for OL create a Consent Request sending either business or customer permissions, depending on what has been provided on the test plan configuration - Expect Server to return a 201 - Save ConsentID (1)\n" +
 		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
@@ -32,8 +30,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.brazilCnpj",
+		"resource.brazilCpfPersonal",
+		"resource.brazilCpfBusiness",
+		"resource.brazilCnpjBusiness",
 		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness",

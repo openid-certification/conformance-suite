@@ -7,9 +7,11 @@ import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.PublishTestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,14 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@PublishTestModule(
+	//Even though this class is not a test module per se, this annotation is necessary to ensure the logging. Will be changed
+	//once the upstream project is refactored.
+    testName = "ConditionSequenceRepeater",
+	displayName = "",
+	summary = "",
+	profile = ""
+)
 public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	private final Logger logger = LoggerFactory.getLogger(ConditionSequenceRepeater.class);
