@@ -4,7 +4,10 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractApiDcrTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithNewBrcacClient;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithOldBrcacClient;
+import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPaymentsConsents;
+import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -28,9 +31,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"\u2022 Unregister both created clients using the new style BRCAC",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
-		"server.discoveryUrl",
-		"resource.brazilPaymentConsent",
-		"resource.brazilOrganizationId"
+		"server.discoveryUrl"
 	}
 )
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
@@ -56,19 +57,15 @@ public class DcrBrcac2022SupportTestModule extends AbstractApiDcrTestModule {
 
 	@Override
 	protected void setupResourceEndpoint() {
-		callAndStopOnFailure(AddResourceUrlToConfig.class);
-		super.setupResourceEndpoint();
+		// Protected resource is not used in this test
 	}
 
 	@Override
-	protected void requestProtectedResource() {
-		// Not needed for this test since all requests are sent to the registration endpoint.
-	}
+	protected void performAuthorizationFlow() {
 
-	@Override
-	protected void onPostAuthorizationFlowComplete() {
+		performClientCredentialsGrant();
 
-		if(isOldBrcacClient){
+		if (isOldBrcacClient) {
 			isOldBrcacClient = false;
 			eventLog.startBlock("Retrieve client configuration using new BRCAC");
 
@@ -76,27 +73,55 @@ public class DcrBrcac2022SupportTestModule extends AbstractApiDcrTestModule {
 			callAndStopOnFailure(ExtractMTLSCertificatesFromConfiguration.class);
 
 			callClientConfigurationEndpoint();
-
 			eventLog.endBlock();
 			eventLog.startBlock("Make PUT request to the client configuration using new BRCAC");
 
-			createClientConfigurationRequestWithSubjectDn();
+			createClientConfigurationRequest();
 
 			callClientConfigurationEndpoint();
+			eventLog.endBlock();
 
 			deleteClient();
 
-			super.configureClient();
+			eventLog.startBlock("Perform Dynamic Client Registration");
+			callRegistrationEndpoint();
+			eventLog.endBlock();
+
 
 			performAuthorizationFlow();
-		}else {
+		} else {
 			deleteClient();
 			fireTestFinished();
 		}
-
 	}
 
-	protected void createClientConfigurationRequestWithSubjectDn() {
+	@Override
+	protected void addJwksToRequest() {
+		callAndStopOnFailure(AddScopeToDynamicRegistrationRequest.class);
+		super.addJwksToRequest();
+	}
+
+	@Override
+	protected void deleteClient() {
+		eventLog.startBlock("Unregister dynamically registered client");
+		super.deleteClient();
+		eventLog.endBlock();
+	}
+
+	protected void performClientCredentialsGrant() {
+		eventLog.startBlock("Calling Token Endpoint with client_credentials grant using " +
+			(isOldBrcacClient ? "Old BRCAC" : "New BRCAC"));
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+		callAndStopOnFailure(SetPaymentsConsentsScopeOnTokenEndpointRequest.class);
+		call(sequence(addTokenEndpointClientAuthentication));
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		eventLog.endBlock();
+	}
+
+	protected void createClientConfigurationRequest() {
 		callAndStopOnFailure(CreateClientConfigurationRequestFromDynamicClientRegistrationResponse.class);
 		// get a new SSA (technically there should be one in the DCR response, but they may be single use?)
 		callAndStopOnFailure(FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken.class);
