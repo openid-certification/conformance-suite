@@ -10,14 +10,19 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "oidcc-client-test-invalid-sig-es256",
 	displayName = "OIDCC: Relying party test. Invalid id_token signature using ES256.",
-	summary = "The client must identify the invalid signature and reject the ID Token after doing ID Token validation." +
-		" Corresponds to rp-id_token-bad-sig-es256 test in the old test suite",
+	summary = "The client must identify the invalid signature and reject the ID Token after doing ID Token validation. The client may skip this validation if the id token was received from the token endpoint as per https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation" +
+		"\n\nCorresponds to rp-id_token-bad-sig-es256 test in the old test suite",
 	profile = "OIDCC",
 	configurationFields = {
 		"waitTimeoutSeconds"
 	}
 )
 public class OIDCCClientTestInvalidIdTokenSignatureWithES256 extends AbstractOIDCCClientTestExpectingNothingInvalidIdToken {
+
+	@Override
+	protected boolean isInvalidSignature() {
+		return true;
+	}
 
 	@Override
 	public void customizeIdTokenSignature() {
