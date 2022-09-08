@@ -23,7 +23,7 @@ public abstract class AbstractFAPI1AdvancedFinalAttemptReuseAuthorizationCode ex
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 
-		eventLog.startBlock("Attempting reuse of authorisation code");
+		eventLog.startBlock("Attempting reuse of authorization code");
 
 		waitForAmountOfTime();
 

@@ -21,7 +21,7 @@ import net.openid.conformance.variant.VariantSetup;
 import org.apache.http.HttpStatus;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-attempt-reuse-authorisation-code-after-one-second",
+	testName = "fapi2-baseline-id2-attempt-reuse-authorization-code-after-one-second",
 	displayName = "FAPI2-Baseline-ID2: try to reuse authorization code after one second",
 	summary = "This test tries reusing an authorization code after one second, as the authorization code has already been used this must fail with the AS returning an invalid_grant error.",
 	profile = "FAPI2-Baseline-ID2",
@@ -68,7 +68,7 @@ public class FAPI2BaselineID2AttemptReuseAuthorizationCodeAfterOneSecond extends
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 
-		eventLog.startBlock("Attempting reuse of authorisation code");
+		eventLog.startBlock("Attempting reuse of authorization code");
 
 		waitForAmountOfTime();
 
