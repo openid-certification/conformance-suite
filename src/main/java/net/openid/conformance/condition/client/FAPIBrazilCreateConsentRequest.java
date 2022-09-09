@@ -11,13 +11,15 @@ import net.openid.conformance.testmodule.Environment;
 
 public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 
+
+	private String cpf;
+	private String cnpj;
+
+
 	@Override
 	@PreEnvironment(required = "config" )
 	@PostEnvironment(required = "consent_endpoint_request")
 	public Environment evaluate(Environment env) {
-
-		String cpf;
-		String cnpj = null;
 
 		String productType = env.getString("config", "consent.productType");
 		if (Strings.isNullOrEmpty(productType)) {
@@ -25,24 +27,8 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 		}
 
 		Boolean operationalLimitTest = env.getBoolean("operational_limit_consent");
-		if (operationalLimitTest != null && operationalLimitTest){
-			if (productType.equals("business")) {
-				log("Product type business was chosen, proceeding with Business CPF and Business CNPJ.");
-
-				cpf  = env.getString("config", "resource.brazilCpfOperationalBusiness");
-				cnpj = env.getString("config", "resource.brazilCnpjOperationalBusiness");
-
-				if (Strings.isNullOrEmpty(cnpj)) {
-					throw error("The operational limit CNPJ must be provided in the test configuration");
-				}
-			} else {
-				log("Product type Personal was chosen, proceeding with Personal CPF.");
-				cpf  = env.getString("config", "resource.brazilCpfOperationalPersonal");
-			}
-
-			if (Strings.isNullOrEmpty(cpf)) {
-				throw error("The operational limit CPF must be provided in the test configuration");
-			}
+		if (operationalLimitTest != null) {
+			assignOperationalLimitsTestCpfAndCnpj(env, productType, operationalLimitTest);
 		} else {
 			cpf = env.getString("config", "resource.brazilCpf");
 			cnpj = env.getString("config", "resource.brazilCnpj");
@@ -145,6 +131,36 @@ public class FAPIBrazilCreateConsentRequest extends AbstractCondition {
 		logSuccess(args("consent_endpoint_request", requestObject));
 
 		return env;
+	}
+
+
+
+	private void assignOperationalLimitsTestCpfAndCnpj(Environment env, String productType, boolean isOperationalLimits) {
+		String messagePart = "";
+		String keyOperationalPart = "";
+
+		if (isOperationalLimits) {
+			messagePart = "Operational Limits";
+			keyOperationalPart = "Operational";
+		}
+
+		if (productType.equals("business")) {
+			log(String.format("Product type business was chosen, proceeding with %s Business CPF and Business CNPJ.", messagePart));
+
+			cpf = env.getString("config", String.format("resource.brazilCpf%sBusiness", keyOperationalPart));
+			cnpj = env.getString("config", String.format("resource.brazilCnpj%sBusiness", keyOperationalPart));
+
+			if (Strings.isNullOrEmpty(cnpj)) {
+				throw error(String.format("The %s CNPJ must be provided in the test configuration", messagePart));
+			}
+		} else {
+			log(String.format("Product type Personal was chosen, proceeding with %s Personal CPF.", messagePart));
+			cpf = env.getString("config", String.format("resource.brazilCpf%sPersonal", keyOperationalPart));
+		}
+
+		if (Strings.isNullOrEmpty(cpf)) {
+			throw error(String.format("The %s CPF must be provided in the test configuration", messagePart));
+		}
 	}
 
 

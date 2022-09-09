@@ -19,7 +19,6 @@ public class SaveUnavailableResourceData extends AbstractSaveResourceData {
 				return resource;
 			}
 		}
-
-		throw error("No UNAVAILABLE/TEMPORARILY_UNAVAILABLE resource found.");
+		return null;
 	}
 }
