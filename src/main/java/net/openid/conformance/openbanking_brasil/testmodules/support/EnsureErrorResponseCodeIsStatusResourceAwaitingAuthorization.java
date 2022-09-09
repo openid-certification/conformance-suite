@@ -10,7 +10,7 @@ import net.openid.conformance.util.field.StringField;
 public class EnsureErrorResponseCodeIsStatusResourceAwaitingAuthorization extends AbstractJsonAssertingCondition {
 
 	@Override
-	@PreEnvironment(required = "resource_endpoint_response")
+	@PreEnvironment(strings = "resource_endpoint_response")
 	public Environment evaluate(Environment env) {
 		JsonObject body = bodyFrom(env).getAsJsonObject();
 		JsonArray errors = findByPath(body, "$.errors").getAsJsonArray();

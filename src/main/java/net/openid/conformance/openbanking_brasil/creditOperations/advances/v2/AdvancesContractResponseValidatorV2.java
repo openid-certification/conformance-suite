@@ -68,7 +68,7 @@ public class AdvancesContractResponseValidatorV2 extends AbstractJsonAssertingCo
 				.Builder("ipocCode")
 				.setMaxLength(67)
 				.setMinLength(22)
-				.setPattern("^\\d{22,67}$")
+				.setPattern("^[\\w\\W]{22,67}$")
 				.build());
 
 		assertField(body,

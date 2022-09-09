@@ -44,7 +44,7 @@ public class PlanNames {
 	public static final String OBB_DCR = "Open Banking Brazil - DCR";
 	public static final String OBB_DCR_WITHOUT_BROWSER_INTERACTION_TEST_PLAN = "Brazil DCR Test without Browser Interaction";
 
-	public static final String PAYMENTS_API_PHASE_2_TEST_PLAN = "Functional tests for payments API INIC, DICT, MANU, QRES and QRDN (T0/T1/T2) - Based on Swagger version: 1.0.1";
+	public static final String PAYMENTS_API_PHASE_2_TEST_PLAN = "Functional tests for payments API INIC, DICT, MANU, QRES and QRDN (T0/T1/T2) - Based on Swagger version: 1.2.0 (WIP)";
 	public static final String PAYMENTS_API_PHASE_3_TEST_PLAN = "Functional tests for payments PIX Scheduling (T3) - Based on Swagger version: 1.1.0 (WIP)";
 
 

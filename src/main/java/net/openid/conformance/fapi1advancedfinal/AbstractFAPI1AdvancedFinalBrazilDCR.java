@@ -146,7 +146,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		callAndStopOnFailure(AddClientCredentialsGrantTypeToDynamicRegistrationRequest.class);
 
 		if (clientAuthType == ClientAuthType.MTLS) {
-			addTlsClientAuthSubjectDn();
+			callAndStopOnFailure(AddTlsClientAuthSubjectDnToDynamicRegistrationRequest.class);
 		}
 
 		addJwksToRequest();
@@ -162,10 +162,6 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		addSoftwareStatementToRegistrationRequest();
 
 		callRegistrationEndpoint();
-	}
-
-	protected void addTlsClientAuthSubjectDn() {
-		callAndStopOnFailure(AddTlsClientAuthSubjectDnToDynamicRegistrationRequest.class);
 	}
 
 	protected void addJwksToRequest() {
