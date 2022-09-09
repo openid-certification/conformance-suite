@@ -2,16 +2,10 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.account.v2.*;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.account.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
-import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -23,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 @PublishTestModule(
 	testName = "accounts-api-operational-limits",
 	displayName = "Accounts Api operational limits test module",
-	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here https://gitlab.com/obb1/certification/-/wikis/Operational-Limits\n" +
+	summary = "This test will require the user to have set at least two ACTIVE resources each with at least 20 Transactions to be returned on the transactions-current endpoint for each active account \n" +
 		"Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided \n" +
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Accounts permission group - Expect Server to return a 201 - Save ConsentID (1) \n" +
 		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
@@ -58,8 +52,9 @@ import java.time.format.DateTimeFormatter;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.brazilCnpj",
+		"resource.brazilCpfPersonal",
+		"resource.brazilCpfBusiness",
+		"resource.brazilCnpjBusiness",
 		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness",
@@ -73,7 +68,6 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 
 	private int numberOfExecutions = 1;
 	private int numberOfIdsToFetch = 2;
-	private ClientAuthType clientAuthType;
 
 	@Override
 	protected void configureClient() {
@@ -94,6 +88,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
+		enableLogging();
 		expose("consent_id " + numberOfExecutions, env.getString("consent_id"));
 
 		if (numberOfExecutions == 1) {
@@ -121,15 +116,15 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 		});
 		if (numberOfExecutions == 1) {
 			String accountIdOne = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(0));
-			env.putString("accountId", accountIdOne);
+			env.putString(API_RESOURCE_ID, accountIdOne);
 			accountsOperationalLimitCalls();
 			String accountIdTwo = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(1));
-			env.putString("accountId", accountIdTwo);
+			env.putString(API_RESOURCE_ID, accountIdTwo);
 			accountsOperationalLimitCalls();
 			numberOfIdsToFetch--;
 		} else if (numberOfExecutions == 2) {
 			String accountIdOne = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(0));
-			env.putString("accountId", accountIdOne);
+			env.putString(API_RESOURCE_ID, accountIdOne);
 			accountsOperationalLimitCalls();
 		}
 
@@ -143,12 +138,14 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 		for (int i = 0; i < 30; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching First Account", i + 1));
 			if (i == 0) {
-				runInBlock("Validate Account Response", () -> {
+				runInLoggingBlock(() -> runInBlock("Validate Account Response", () -> {
 					callAndContinueOnFailure(AccountIdentificationResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 					callAndStopOnFailure(ValidateResponseMetaData.class);
-				});
+				}));
+
 			}
 		}
+		enableLogging();
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactions.class);
 
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
@@ -162,7 +159,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			preCallProtectedResource(String.format("[%d] Fetching transactions with booking date parameters", i + 1));
 
 			if (i == 0) {
-				runInBlock("Validate Account Transactions Response", () -> {
+				runInLoggingBlock(() -> runInBlock("Validate Account Transactions Response", () -> {
 					callAndContinueOnFailure(AccountTransactionsValidatorV2.class, Condition.ConditionResult.FAILURE);
 					callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class);
 
@@ -171,10 +168,10 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 						.onFail(Condition.ConditionResult.WARNING));
 
 					callAndStopOnFailure(EnsureAtLeastSpecifiedNumberOfRecordsWereReturned.class);
-				});
+				}));
 			}
 		}
-
+		enableLogging();
 		callAndStopOnFailure(PrepareUrlForFetchingAccountBalances.class);
 
 		for (int i = 0; i < 420; i++) {
@@ -182,6 +179,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			validateFields(i, "Validate Account Transactions Balances", AccountBalancesResponseValidatorV2.class);
 		}
 
+		enableLogging();
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionLimit.class);
 
 		for (int i = 0; i < 420; i++) {
@@ -189,6 +187,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			validateFields(i, "Validate accounts limits Balances", AccountLimitsValidatorV2.class);
 		}
 
+		enableLogging();
 		callAndStopOnFailure(PrepareUrlForFetchingAccountTransactionsCurrent.class);
 
 		for (int i = 0; i < 210; i++) {
@@ -196,6 +195,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			validateFields(i, "Validate Account Transactions current", AccountTransactionsCurrentValidatorV2.class);
 		}
 
+		enableLogging();
 		env.putString("fromBookingDateMaxLimited", currentDate.minusDays(6).format(FORMATTER));
 		env.putString("toBookingDateMaxLimited", currentDate.format(FORMATTER));
 
@@ -204,7 +204,7 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 		callAndContinueOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
 
 		refreshAccessToken();
-
+		enableLogging();
 		for (int i = 0; i < REQUIRED_NUMBER_OF_RECORDS; i++) {
 			preCallProtectedResource(String.format("[%d] Fetching Accounts Transactions Current next link", i + 1));
 
@@ -230,21 +230,18 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 			env.putString("protected_resource_url", env.getString("extracted_link"));
 
 			eventLog.endBlock();
+			disableLogging();
 		}
-
+		enableLogging();
 	}
 
 	private void validateFields(int i, String message, Class<? extends Condition> conditionClass) {
 		if (i == 0) {
-			runInBlock(message, () -> callAndStopOnFailure(conditionClass, Condition.ConditionResult.FAILURE));
+			runInLoggingBlock(() -> runInBlock(message, () -> callAndStopOnFailure(conditionClass, Condition.ConditionResult.FAILURE)));
 		}
 		if (i % 100 == 0) {
 			refreshAccessToken();
 		}
 	}
 
-	private void refreshAccessToken() {
-		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
-		call(refreshAccessTokenSteps);
-	}
 }

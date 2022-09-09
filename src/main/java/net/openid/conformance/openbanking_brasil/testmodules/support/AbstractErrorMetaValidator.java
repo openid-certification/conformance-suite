@@ -1,19 +1,26 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support;
 
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.jsonAsserting.AbstractJsonAssertingCondition;
+import net.openid.conformance.openbanking_brasil.LinksAndMetaOnlyRequestDateTimeValidator;
+
+import net.openid.conformance.openbanking_brasil.LinksAndMetaValidator;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JsonUtils;
 import net.openid.conformance.util.field.*;
 
-public abstract class ErrorMetaValidator extends AbstractJsonAssertingCondition {
+public abstract class AbstractErrorMetaValidator extends AbstractJsonAssertingCondition {
 	private static final Gson GSON = JsonUtils.createBigDecimalAwareGson();
 
 	@Override
 	public Environment evaluate(Environment environment) {
 		JsonElement body = bodyFrom(environment);
+
+
+		assertMeta(findByPath(body, "meta").getAsJsonObject(), environment);
 
 		assertField(body,
 			new ObjectArrayField
@@ -23,33 +30,19 @@ public abstract class ErrorMetaValidator extends AbstractJsonAssertingCondition 
 				.setMaxItems(13)
 				.build());
 
-
-		assertField(body,
-			new ObjectField
-				.Builder("meta")
-				.setValidator(this::assertMeta)
-				.setOptional()
-				.build());
-
 		return environment;
 	}
 
-	private void assertMeta(JsonObject meta) {
-		assertField(meta,
-			new IntField
-				.Builder("totalRecords")
-				.build());
+	private void assertMeta(JsonObject meta, Environment environment) {
+		String isMetaOnlyRequestDateTime = environment.getString("metaOnlyRequestDateTime");
 
-		assertField(meta,
-			new IntField
-				.Builder("totalPages")
-				.build());
-
-		assertField(meta,
-			new DatetimeField
-				.Builder("requestDateTime")
-				.setPattern(DatetimeField.ALTERNATIVE_PATTERN)
-				.build());
+		if(!Strings.isNullOrEmpty(isMetaOnlyRequestDateTime) && isMetaOnlyRequestDateTime.equals("true")){
+			LinksAndMetaOnlyRequestDateTimeValidator linksAndMetaOnlyRequestDateTimeValidator = new LinksAndMetaOnlyRequestDateTimeValidator(this);
+			linksAndMetaOnlyRequestDateTimeValidator.assertMeta(meta);
+		}else {
+			LinksAndMetaValidator linksAndMetaValidator = new LinksAndMetaValidator(this);
+			linksAndMetaValidator.assertMeta(meta);
+		}
 	}
 
 	private void assertError(JsonObject error) {
@@ -87,5 +80,5 @@ public abstract class ErrorMetaValidator extends AbstractJsonAssertingCondition 
 		return GSON.fromJson(resource, JsonElement.class);
 	}
 
-	abstract protected boolean isResource();
+	protected abstract boolean isResource();
 }
