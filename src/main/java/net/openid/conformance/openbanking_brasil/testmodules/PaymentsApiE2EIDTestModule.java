@@ -165,7 +165,7 @@ public class PaymentsApiE2EIDTestModule extends AbstractOBBrasilFunctionalTestMo
 				callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			} else {
 				callAndStopOnFailure(EnsureResponseWasJwt.class);
-				callAndContinueOnFailure(Ensure422ResponseCodeWasPARAMETRO_NAO_INFORMADO.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(Ensure422ErrorIsParameterNotInformed.class, Condition.ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 			}
 		} else if (!finalTest) {
@@ -176,7 +176,7 @@ public class PaymentsApiE2EIDTestModule extends AbstractOBBrasilFunctionalTestMo
 				callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			} else {
 				callAndStopOnFailure(EnsureResponseWasJwt.class);
-				callAndContinueOnFailure(Ensure422ResponseCodeWasPARAMETRO_INVALIDO.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(Ensure422ErrorIsInvalidParameter.class, Condition.ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateErrorAndMetaFieldNames.class, Condition.ConditionResult.FAILURE);
 			}
 		}
