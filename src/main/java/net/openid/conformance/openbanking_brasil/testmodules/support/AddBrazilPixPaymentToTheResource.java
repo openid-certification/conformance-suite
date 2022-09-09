@@ -3,11 +3,21 @@ package net.openid.conformance.openbanking_brasil.testmodules.support;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.DictHomologKeys;
 import net.openid.conformance.testmodule.Environment;
+import org.apache.commons.lang3.RandomStringUtils;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
+
+	static private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+
 	@Override
+	@PostEnvironment(strings = "endToEndId")
 	public Environment evaluate(Environment env) {
 		JsonObject consentData;
 		JsonObject consentDetails;
@@ -96,8 +106,14 @@ public class AddBrazilPixPaymentToTheResource extends AbstractCondition {
 		JsonObject data = new JsonObject();
 		JsonObject payment = new JsonObject();
 
+		OffsetDateTime currentDateTime = OffsetDateTime.now(ZoneOffset.UTC);
+		String formattedCurrentDateTime = currentDateTime.format(formatter);
+		String randomString = RandomStringUtils.randomAlphanumeric(11);
+		String endToEndId = String.format("E%s%s%s", DictHomologKeys.PROXY_E2EID_ISPB, formattedCurrentDateTime, randomString);
+		env.putString("endToEndId", endToEndId);
 
 		pixPayment.add("data", data);
+		data.addProperty("endToEndId", endToEndId);
 		data.add("payment", payment);
 		data.add("creditorAccount", creditorAccount);
 

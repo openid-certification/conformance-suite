@@ -21,10 +21,7 @@ public class GenerateRefreshAccessTokenSteps extends AbstractConditionSequence {
 			callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 			callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
 		} else {
-			skip(CreateClientAuthenticationAssertionClaims.class, "Skipping step for MTLS");
-			skip(SignClientAuthenticationAssertion.class, "Skipping step for MTLS");
-			skip(AddClientAssertionToTokenEndpointRequest.class, "Skipping step for MTLS");
-			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class, "Skipping step for MTLS");
+			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 		}
 
 		callAndStopOnFailure(CallTokenEndpoint.class);
