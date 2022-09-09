@@ -76,6 +76,7 @@ public class GetLoansResponseValidator extends AbstractJsonAssertingCondition {
 		assertField(body,
 			new StringField
 				.Builder("ipocCode")
+				.setPattern("^[\\w\\W]{22,67}$")
 				.setMaxLength(67)
 				.build());
 	}

@@ -2,13 +2,14 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
+import net.openid.conformance.condition.client.CheckItemCountHasMin1;
+import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
+import net.openid.conformance.condition.client.FAPIBrazilAddConsentIdToClientScope;
+import net.openid.conformance.condition.client.FAPIBrazilConsentEndpointResponseValidatePermissions;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.v2.ConsentDetailsIdentifiedByConsentIdValidatorV2;
 import net.openid.conformance.openbanking_brasil.consent.v2.CreateNewConsentValidatorV2;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.OpenBankingBrazilPreAuthorizationConsentApiV2;
@@ -19,7 +20,7 @@ import net.openid.conformance.util.JsonUtils;
 @PublishTestModule(
 	testName = "consents-api-operational-limits",
 	displayName = "Consents Api operational limits test module V2",
-	summary = "Make sure that access is not blocked on the Consents API V2 regardless of the number of calls done against it.\n\n" +
+	summary = "This test will make sure that the server will not limit access to Consents API V2 regardless of the number of calls done against it.\n\n" +
 		"\u2022 Create a consent using the CPF and CNPJ provided for the Operational Limits tests. Send the permissions for either customer business or customer personal data, based on what has been provided on the test configuration\n" +
 		"\u2022 Redirect the user to authorise the Consent with the customer and the created consent scopes- Expect a success on the redirect\n" +
 		"\u2022 Call the GET Consents API 600 Times using the Authorized ConsentID\n" +
@@ -65,8 +66,7 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractOperationa
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
 		env.putString("proceed_with_test", "true");
-		ConditionSequence preauthSteps = new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication, true);
-		return preauthSteps;
+		return new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication, true);
 	}
 
 
@@ -119,24 +119,34 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractOperationa
 	@Override
 	protected void requestProtectedResource() {
 		for (int i = 0; i < NUMBER_OF_EXECUTIONS; i++) {
-			if (i % 100 == 0) {
-				eventLog.startBlock(currentClientString() + "Refreshing access token.");
-				call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
-				eventLog.endBlock();
-			}
 
 			eventLog.startBlock(currentClientString() + String.format("[%d] Calling consent endpoint.", i + 1));
 			call(getPreConsentWithBearerTokenSequence());
 			eventLog.endBlock();
 
 			if (i == 0) {
-				call(getValidateConsentResponsePollingSequence());
+				runInLoggingBlock(() -> call(getValidateConsentResponsePollingSequence()));
+			}
+
+			if (i % 100 == 0) {
+				refreshAccessToken();
 			}
 		}
 	}
 
 	@Override
+	protected void refreshAccessToken() {
+		runInLoggingBlock(() -> {
+			eventLog.startBlock(currentClientString() + "Refreshing access token.");
+			call(createGetAccessTokenWithClientCredentialsSequence(addTokenEndpointClientAuthentication));
+			eventLog.endBlock();
+		});
+
+	}
+
+	@Override
 	protected void validateResponse() {
+		// Not needed for the test
 	}
 
 	protected ConditionSequence createGetAccessTokenWithClientCredentialsSequence(Class<? extends ConditionSequence> clientAuthSequence) {

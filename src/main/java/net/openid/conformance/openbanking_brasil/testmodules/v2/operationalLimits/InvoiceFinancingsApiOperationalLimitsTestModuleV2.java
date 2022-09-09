@@ -2,16 +2,12 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.discountedCreditRights.v2.*;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.discounted.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -19,8 +15,8 @@ import net.openid.conformance.variant.ClientAuthType;
 
 @PublishTestModule(
 	testName = "discounted-credit-rights-api-operational-limits",
-	displayName = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here https://gitlab.com/obb1/certification/-/wikis/Operational-Limits\n" +
-		"This test will require the user to have set at least two ACTIVE resources on the Invoice Financings API. \n" +
+	displayName ="This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Financings API are considered correctly\n",
+	summary = "This test will require the user to have set at least two ACTIVE resources on the Invoice Financings API. \n" +
 		"This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Invoice Financings API are considered correctly.\n" +
 		"\u2022 Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided\n" +
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Credit Operations permission group\n" +
@@ -52,8 +48,9 @@ import net.openid.conformance.variant.ClientAuthType;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.brazilCnpj",
+		"resource.brazilCpfPersonal",
+		"resource.brazilCpfBusiness",
+		"resource.brazilCnpjBusiness",
 		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness",
@@ -66,7 +63,6 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 	private int numberOfIdsToFetch = 2;
 
 	private int numberOfExecutions = 1;
-	private ClientAuthType clientAuthType;
 
 
 	@Override
@@ -108,42 +104,49 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 		});
 
 		for (int i = 0; i < numberOfIdsToFetch; i++) {
+			int currentResourceId = i + 1;
 
 			// Call invoice financings specific contract once with validation
 
 			String invoiceFinancingsContractId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
-			env.putString("contractId", invoiceFinancingsContractId);
+			env.putString(API_RESOURCE_ID, invoiceFinancingsContractId);
 			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContract.class);
 
-			preCallProtectedResource(String.format("Fetching Invoice Financings Contract using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
+			preCallProtectedResource(String.format("Fetching Invoice Financings Contract using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
 			validateResponse("Validate Invoice Financings Contract response", InvoiceFinancingAgreementResponseValidatorV2.class);
-
+			disableLogging();
 			// Call invoice financings specific contract 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetching Invoice Financings Contract using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetching Invoice Financings Contract using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			// Call invoice financings warranties once with validation
-			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractGuarantees.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractGuarantees.class);
 
-			preCallProtectedResource(String.format("Fetch Invoice Financings Warranties using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Invoice Financings Warranties", InvoiceFinancingContractGuaranteesResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Invoice Financings Warranties using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Invoice Financings Warranties", InvoiceFinancingContractGuaranteesResponseValidatorV2.class);
+
+			});
 
 			// Call invoice financings warranties 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Invoice Financings Warranties using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Invoice Financings Warranties using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			// Call invoice financings Scheduled Instalments once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractInstalments.class);
 
-			preCallProtectedResource(String.format("Fetch Invoice Financings Scheduled Instalments using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Invoice Financings Scheduled Instalments Response", InvoiceFinancingContractInstallmentsResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Invoice Financings Scheduled Instalments using resource_id_%d and and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Invoice Financings Scheduled Instalments Response", InvoiceFinancingContractInstallmentsResponseValidatorV2.class);
+
+			});
 
 			// Call invoice financings Scheduled Instalments 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Invoice Financings Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Invoice Financings Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			refreshAccessToken();
@@ -151,16 +154,19 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 
 			// Call invoice financings Payments GET once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractPayments.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingCreditDiscountedCreditRightsContractPayments.class);
 
-			preCallProtectedResource(String.format("Fetch Invoice Financings Payments using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Invoice Financings Payments Response", InvoiceFinancingContractPaymentsResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Invoice Financings Payments using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Invoice Financings Payments Response", InvoiceFinancingContractPaymentsResponseValidatorV2.class);
+
+			});
 
 			// Call invoice financings Payments GET 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Invoice Financings Payments using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Invoice Financings Payments using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
-
+			enableLogging();
 		}
 
 	}
@@ -168,6 +174,7 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
+		enableLogging();
 		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareUrlForDiscountedRoot.class);
 			unmapClient();
@@ -193,11 +200,6 @@ public class InvoiceFinancingsApiOperationalLimitsTestModuleV2 extends AbstractO
 			condition(validationClass),
 			condition(ValidateResponseMetaData.class)
 		);
-	}
-
-	private void refreshAccessToken() {
-		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
-		call(refreshAccessTokenSteps);
 	}
 
 }
