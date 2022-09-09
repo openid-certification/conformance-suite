@@ -2,18 +2,13 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.consents;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallConsentEndpointWithBearerTokenAnyHttpMethod;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CallConsentApiWithBearerToken;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseCodeWas422;
-import net.openid.conformance.openbanking_brasil.testmodules.support.IgnoreResponseError;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetContentTypeApplicationJson;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ValidateRequestedPermissionsAreNotWidened;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ArrayUtils;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -23,7 +18,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	testName = "consent-api-test-permission-groups-v2",
 	displayName = "Validate that consent API V2 accepts the consent groups",
 	summary = "Validates that consent API V2 accepts the consent groups\n" +
-		"\u2022 Creates a series of consent requests with valid permissions group and expect for each of them a 201 to be returned by the server\n" +
+		"\u2022 Creates a series of consent requests with valid permissions group and expect for each of them a 201 to be returned by the server with matching permissions or, instead, a 422 error response because server does not support the sent group.\n" +
 		"\u2022 Validates consent API V2 request for 'Personal Registration Data' permission group(s)\n" +
 		"\u2022 Validates consent API V2 request for 'Personal Additional Information' permission group(s)\n" +
 		"\u2022 Validates consent API V2 request for 'Business Registration Data' permission group(s)\n" +
@@ -109,8 +104,10 @@ public class ConsentsApiPermissionGroupsTestModuleV2 extends AbstractClientCrede
 			env.putString("consent_permissions", String.join(" ", permissions));
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
-			callAndStopOnFailure(IgnoreResponseError.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.SUCCESS);
+
+			callAndContinueOnFailure(CallConsentEndpointWithBearerTokenAnyHttpMethod.class, Condition.ConditionResult.SUCCESS);
+			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));
+			callAndContinueOnFailure(ResourceEndpointResponseFromFullResponse.class);
 
 			if (!env.getString("resource_endpoint_response").equals("{}")) {
 				passed = true;

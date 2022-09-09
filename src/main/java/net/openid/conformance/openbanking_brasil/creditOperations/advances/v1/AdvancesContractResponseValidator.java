@@ -51,6 +51,7 @@ public class AdvancesContractResponseValidator extends AbstractJsonAssertingCond
 		assertField(data,
 			new StringField
 				.Builder("ipocCode")
+				.setPattern("^[\\w\\W]{22,67}$")
 				.setMaxLength(67)
 				.build());
 

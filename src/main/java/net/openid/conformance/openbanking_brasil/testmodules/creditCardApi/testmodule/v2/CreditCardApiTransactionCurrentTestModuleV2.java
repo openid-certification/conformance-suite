@@ -110,7 +110,11 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 			() -> call(getPreCallProtectedResourceSequence()
 				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))
 		);
+		env.putString("metaOnlyRequestDateTime", "true");
 		callAndStopOnFailure(ResourceErrorMetaValidator.class);
+		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.WARNING));
 
 	}
 

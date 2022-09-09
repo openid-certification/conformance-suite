@@ -17,6 +17,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 @PublishTestModule(
 	testName = "consent-api-test-transactiondatetime-v2",
 	displayName = "Ensures the server refuses a consent v2 creation request if the fields transactionFromDateTime and transactionToDateTime are present",
@@ -50,6 +53,12 @@ public class ConsentsApiTestTransactionDateTimeV2 extends AbstractClientCredenti
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
+
+			Instant currentTime = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+			env.putString("transactionFromDateTime", currentTime.minus(1, ChronoUnit.DAYS).toString());
+			env.putString("transactionToDateTime", currentTime.toString());
+
+			callAndStopOnFailure(AddTransactionFromAndToConsentRequestBody.class);
 			callAndContinueOnFailure(CallConsentEndpointWithBearerTokenAnyHttpMethod.class);
 
 			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));

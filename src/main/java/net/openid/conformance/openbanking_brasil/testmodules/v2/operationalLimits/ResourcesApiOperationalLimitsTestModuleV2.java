@@ -1,27 +1,15 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimits;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
-import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
-import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
-import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "resources-api-operational-limits",
 	displayName = "Test will make sure that the server has not implemented any type of operational limits for the Resources API.",
-	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here XPTO.\n" +
-		"This test will generate three different consent requests and call the resources API 450 times for each created consent\n" +
-		"Test will make sure that the server has not implemented any type of operational limits for the Resources API.\n" +
+	summary = "This test will generate three different consent requests and call the resources API 450 times for each created consent\n" +
 		"\u2022 Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test has been provided\n" +
 		"\u2022 Using the client_id for OL and the CPF/CNPJ for OL create a Consent Request sending either business or customer permissions, depending on what has been provided on the test plan configuration - Expect Server to return a 201 - Save ConsentID (1)\n" +
 		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
@@ -42,8 +30,9 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"mtls.cert",
 		"mtls.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.brazilCnpj",
+		"resource.brazilCpfPersonal",
+		"resource.brazilCpfBusiness",
+		"resource.brazilCnpjBusiness",
 		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness",
@@ -55,7 +44,6 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 
 	private int currentBatch = 1;
 	private static final int NUMBER_OF_EXECUTIONS = 450;
-	private ClientAuthType clientAuthType;
 
 	@Override
 	protected void configureClient() {
@@ -70,7 +58,6 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 		switchToSecondClient();
 		callAndStopOnFailure(AddResourcesScope.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
-		clientAuthType = getVariant(ClientAuthType.class);
 		super.onConfigure(config, baseUrl);
 	}
 
@@ -80,7 +67,7 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 		for (int i = 0; i < NUMBER_OF_EXECUTIONS; i++) {
 			preCallProtectedResource(String.format("[%d] Calling Resources Endpoint with consent_id_%d", i + 1, currentBatch));
 
-			if(i == 0) {
+			if (i == 0) {
 				validateResponse();
 			}
 			if (i % 100 == 0) {
@@ -91,11 +78,10 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 
 	}
 
-
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 		expose("consent_id_" + currentBatch, env.getString("consent_id"));
-
+		enableLogging();
 		if (currentBatch == 3) {
 			fireTestFinished();
 		} else {
@@ -109,17 +95,16 @@ public class ResourcesApiOperationalLimitsTestModuleV2 extends AbstractOperation
 			performAuthorizationFlow();
 			currentBatch++;
 		}
+
 	}
 
 	@Override
 	protected void validateResponse() {
-		callAndContinueOnFailure(EnsureResponseCodeWas200.class);
-		callAndContinueOnFailure(ValidateResponseMetaData.class);
-		callAndStopOnFailure(ResourcesResponseValidatorV2.class);
+		runInLoggingBlock(() -> {
+			callAndContinueOnFailure(EnsureResponseCodeWas200.class);
+			callAndContinueOnFailure(ValidateResponseMetaData.class);
+			callAndStopOnFailure(ResourcesResponseValidatorV2.class);
+		});
 	}
 
-	private void refreshAccessToken() {
-		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
-		call(refreshAccessTokenSteps);
-	}
 }
