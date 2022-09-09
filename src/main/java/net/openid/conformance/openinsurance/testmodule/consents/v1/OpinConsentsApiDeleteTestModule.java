@@ -12,6 +12,7 @@ import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.Prepare
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v1.OpenBankingBrazilPreAuthorizationConsentApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
+import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.openinsurance.testmodule.support.EnsureTokenResponseWas403;
 import net.openid.conformance.openinsurance.testmodule.support.OpinPreAuthorizationConsentApi;
 import net.openid.conformance.openinsurance.testmodule.support.PermissionsGroup;
@@ -125,27 +126,14 @@ public class OpinConsentsApiDeleteTestModule extends AbstractFunctionalTestModul
 		callAndContinueOnFailure(EnsureResponseCodeWas401.class, Condition.ConditionResult.FAILURE);
 
 		eventLog.startBlock("Trying issuing a refresh token");
-		call(callTokenEndpointRefreshToken());
+		callTokenEndpointRefreshToken();
 	}
 
-	private ConditionSequence callTokenEndpointRefreshToken(){
-		ConditionSequence sequence = sequenceOf(
-			condition(GenerateRefreshTokenRequest.class),
-			condition(CreateClientAuthenticationAssertionClaims.class),
-			condition(SignClientAuthenticationAssertion.class),
-			condition(AddClientAssertionToTokenEndpointRequest.class),
-			condition(CallTokenEndpointAndReturnFullResponse.class).onFail(Condition.ConditionResult.WARNING).dontStopOnFailure(),
-			condition(EnsureTokenResponseWas403.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure(),
-			condition(EnsureTokenResponseWasAFailure.class).onFail(Condition.ConditionResult.FAILURE).dontStopOnFailure()
-		);
-
-		if (clientAuthType == ClientAuthType.MTLS) {
-			sequence.skip(CreateClientAuthenticationAssertionClaims.class, "Not needed for MTLS")
-				.skip(SignClientAuthenticationAssertion.class, "Not needed for MTLS")
-				.skip(AddClientAssertionToTokenEndpointRequest.class, "Not needed for MTLS");
-		}
-		return sequence;
+	private void callTokenEndpointRefreshToken(){
+		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
+		call(refreshAccessTokenSteps);
 	}
+
 	@Override
 	protected void validateResponse() {}
 }
