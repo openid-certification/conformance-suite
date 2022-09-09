@@ -20,7 +20,7 @@ public class ConsentsApiTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					OpinConsentApiTestModule.class
+
 				),
 				List.of(
 
