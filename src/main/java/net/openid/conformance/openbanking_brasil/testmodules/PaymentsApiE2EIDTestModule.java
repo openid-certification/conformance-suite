@@ -199,7 +199,6 @@ public class PaymentsApiE2EIDTestModule extends AbstractOBBrasilFunctionalTestMo
 					condition(TestTimedOut.class),
 					condition(ChuckWarning.class)))
 				.run();
-			callAndStopOnFailure(PollPaymentAcceptedResultCheck.class);
 		}
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
