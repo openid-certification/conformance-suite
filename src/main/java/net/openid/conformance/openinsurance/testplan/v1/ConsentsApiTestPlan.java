@@ -1,7 +1,6 @@
 package net.openid.conformance.openinsurance.testplan.v1;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openinsurance.testmodule.v1.consents.OpinConsentsApiPermissionGroupsTestModule;
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -20,7 +19,6 @@ public class ConsentsApiTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					OpinConsentsApiPermissionGroupsTestModule.class
 				),
 				List.of(
 

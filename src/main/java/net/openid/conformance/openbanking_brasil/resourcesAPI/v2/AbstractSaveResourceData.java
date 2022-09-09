@@ -19,6 +19,12 @@ abstract public class AbstractSaveResourceData extends AbstractCondition {
 		JsonArray dataArray = body.getAsJsonArray("data");
 
 		JsonObject resourceData = searchResource(dataArray);
+
+		if(resourceData == null) {
+			throw error("Resource type not found");
+		}
+
+		env.putBoolean("resource_found", true);
 		env.putObject("resource_data", resourceData);
 
 		logSuccess("Resource saved successfully.", resourceData);
