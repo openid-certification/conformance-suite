@@ -9,8 +9,11 @@ import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.EnsureEndToEndIdIsEqual;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.pixscheduling.PollForScheduledPaymentChangeSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
+import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
@@ -191,7 +194,14 @@ public class PaymentsApiE2EIDTestModule extends AbstractOBBrasilFunctionalTestMo
 			callAndStopOnFailure(EnsureResponseHasLinks.class);
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 
-			pollForAcceptedPayment();
+			repeatSequence(PollForAcceptedPaymentSequence::new)
+				.untilTrue("payment_accepted")
+				.trailingPause(30)
+				.times(10)
+				.onTimeout(sequenceOf(
+					condition(TestTimedOut.class),
+					condition(ChuckWarning.class)))
+				.run();
 			callAndStopOnFailure(PollPaymentAcceptedResultCheck.class);
 		}
 
@@ -243,43 +253,6 @@ public class PaymentsApiE2EIDTestModule extends AbstractOBBrasilFunctionalTestMo
 		requestProtectedResource();
 		if(finalTest) {
 			onPostAuthorizationFlowComplete();
-		}
-	}
-
-	protected void pollForAcceptedPayment() {
-		int count = 1;
-		boolean keepPolling = true;
-		while (keepPolling) {
-			callAndStopOnFailure(WaitFor30Seconds.class);
-			call(new ValidateSelfEndpoint()
-				.insertAfter(
-					EnsureResponseCodeWas200.class, sequenceOf(
-						condition(EnsureResponseWasJwt.class),
-						condition(PaymentFetchPixPaymentsValidator.class),
-						condition(EnsureEndToEndIdIsEqual.class)
-					)
-				)
-				.insertBefore(CallProtectedResource.class, sequenceOf(
-					condition(AddJWTAcceptHeader.class)
-				))
-				.insertAfter(ValidateResponseMetaData.class, sequenceOf(
-					condition(CheckPaymentAccepted.class)
-				))
-				.skip(SaveOldValues.class,
-					"Not saving old values")
-				.skip(LoadOldValues.class,
-					"Not loading old values")
-			);
-
-			if (env.getBoolean("payment_accepted")) {
-				keepPolling = false;
-			}
-
-			if (count >= 8) {
-				keepPolling = false;
-			} else {
-				count ++;
-			}
 		}
 	}
 }
