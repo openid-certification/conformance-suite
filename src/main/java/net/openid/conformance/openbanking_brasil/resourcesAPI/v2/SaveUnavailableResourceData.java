@@ -15,11 +15,10 @@ public class SaveUnavailableResourceData extends AbstractSaveResourceData {
 			JsonObject resource = resourceElement.getAsJsonObject();
 			String status = OIDFJSON.getString(resource.get("status"));
 
-			if (Objects.equals(status, "UNAVAILABLE") || Objects.equals(status, "TEMPORARY_UNAVAILABLE")) {
+			if (Objects.equals(status, "UNAVAILABLE") || Objects.equals(status, "TEMPORARILY_UNAVAILABLE")) {
 				return resource;
 			}
 		}
-
-		throw error("No UNAVAILABLE/TEMPORARY_UNAVAILABLE resource found.");
+		return null;
 	}
 }

@@ -2,15 +2,12 @@ package net.openid.conformance.openbanking_brasil.testmodules.v2.operationalLimi
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.creditOperations.loans.v2.*;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.PrepareAllCreditOperationsPermissionsForHappyPath;
 import net.openid.conformance.openbanking_brasil.testmodules.creditOperations.loans.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
-import net.openid.conformance.openbanking_brasil.testmodules.v2.GenerateRefreshAccessTokenSteps;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -18,9 +15,8 @@ import net.openid.conformance.variant.ClientAuthType;
 
 @PublishTestModule(
 	testName = "loans-api-operational-limits",
-	displayName = "This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Credit Cards API are considered correctly and, if present, that the pagination-key parameter is correctly serving it’s function\n",
-	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here https://gitlab.com/obb1/certification/-/wikis/Operational-Limits\n" +
-		"This test will require the user to have set at least two ACTIVE resources each with at least 10 Transactions to be returned on the transactions-current endpoint for each active account\n" +
+	displayName ="This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Financings API are considered correctly\n",
+	summary = "This test will require the user to have set at least two ACTIVE resources on the Loans API. \n" +
 		"This test will make sure that the server is not blocking access to the APIs as long as the operational limits for the Loans API are considered correctly.\n" +
 		"\u2022 Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided\n" +
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Credit Operations permission group - Expect Server to return a 201\n" +
@@ -52,8 +48,9 @@ import net.openid.conformance.variant.ClientAuthType;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.brazilCnpj",
+		"resource.brazilCpfPersonal",
+		"resource.brazilCpfBusiness",
+		"resource.brazilCnpjBusiness",
 		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness",
@@ -66,7 +63,6 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOperationalLi
 	private int numberOfIdsToFetch = 2;
 
 	private int numberOfExecutions = 1;
-	private ClientAuthType clientAuthType;
 
 
 	@Override
@@ -104,6 +100,7 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOperationalLi
 
 			env.putInteger("number_of_ids_to_fetch", numberOfIdsToFetch);
 			callAndStopOnFailure(FetchSpecifiedNumberOfExtractedApiIds.class);
+			disableLogging();
 
 			// Call loans GET 29 times
 			for (int i = 1; i < 30; i++) {
@@ -113,42 +110,51 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOperationalLi
 		});
 
 		for (int i = 0; i < numberOfIdsToFetch; i++) {
+			int currentResourceId = i + 1;
 
 			// Call loan specific contract once with validation
-
 			String loanContractId = OIDFJSON.getString(env.getObject("fetched_api_ids").getAsJsonArray("fetchedApiIds").get(i));
-			env.putString("contractId", loanContractId);
-			callAndStopOnFailure(PrepareUrlForFetchingLoanContractResource.class);
+			runInLoggingBlock(() -> {
+				env.putString(API_RESOURCE_ID, loanContractId);
+				callAndStopOnFailure(PrepareUrlForFetchingLoanContractResource.class);
 
-			preCallProtectedResource(String.format("Fetching Loans Contract using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Loans Contract response", ContractResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetching Loans Contract using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Loans Contract response", ContractResponseValidatorV2.class);
+
+			});
 
 			// Call loan specific contract 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetching Loans Contract using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetching Loans Contract using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			// Call loans warranties once with validation
-			callAndStopOnFailure(PrepareUrlForFetchingLoanContractWarrantiesResource.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingLoanContractWarrantiesResource.class);
 
-			preCallProtectedResource(String.format("Fetch Loans Warranties using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Loans Warranties", ContractGuaranteesResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Loans Warranties using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Loans Warranties", ContractGuaranteesResponseValidatorV2.class);
+
+			});
 
 			// Call loans warranties 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Loans Warranties using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Loans Warranties using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			// Call Loans Scheduled Instalments once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingLoanContractInstallmentsResource.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingLoanContractInstallmentsResource.class);
 
-			preCallProtectedResource(String.format("Fetch Loans Scheduled Instalments using resource_id_%d and and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Loans Scheduled Instalments Response", ContractInstallmentsResponseValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Loans Scheduled Instalments using resource_id_%d and and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Loans Scheduled Instalments Response", ContractInstallmentsResponseValidatorV2.class);
+
+			});
 
 			// Call Loans Scheduled Instalments 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Loans Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Loans Scheduled Instalments using resource_id_%d and and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
 
 			refreshAccessToken();
@@ -156,16 +162,18 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOperationalLi
 
 			// Call Loans Payments GET once with validation
 
-			callAndStopOnFailure(PrepareUrlForFetchingLoanContractPaymentsResource.class);
+			runInLoggingBlock(() -> {
+				callAndStopOnFailure(PrepareUrlForFetchingLoanContractPaymentsResource.class);
 
-			preCallProtectedResource(String.format("Fetch Loans Payments using resource_id_%d and consent_id_%d", i + 1, numberOfExecutions));
-			validateResponse("Validate Loans Payments Response", ContractPaymentsValidatorV2.class);
+				preCallProtectedResource(String.format("Fetch Loans Payments using resource_id_%d and consent_id_%d", currentResourceId, numberOfExecutions));
+				validateResponse("Validate Loans Payments Response", ContractPaymentsValidatorV2.class);
 
+			});
 			// Call Loans Payments GET 29 times
 			for (int j = 1; j < 30; j++) {
-				preCallProtectedResource(String.format("[%d] Fetch Loans Payments using resource_id_%d and consent_id_%d", j + 1, i + 1, numberOfExecutions));
+				preCallProtectedResource(String.format("[%d] Fetch Loans Payments using resource_id_%d and consent_id_%d", j + 1, currentResourceId, numberOfExecutions));
 			}
-
+			enableLogging();
 		}
 
 	}
@@ -173,6 +181,7 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOperationalLi
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
+		enableLogging();
 		if (numberOfExecutions == 1) {
 			callAndStopOnFailure(PrepareUrlForLoansRoot.class);
 			unmapClient();
@@ -198,10 +207,5 @@ public class LoansApiOperationalLimitsTestModuleV2 extends AbstractOperationalLi
 			condition(validationClass),
 			condition(ValidateResponseMetaData.class)
 		);
-	}
-
-	private void refreshAccessToken() {
-		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
-		call(refreshAccessTokenSteps);
 	}
 }

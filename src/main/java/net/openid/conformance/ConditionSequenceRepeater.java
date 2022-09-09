@@ -7,9 +7,11 @@ import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.PublishTestModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,14 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@PublishTestModule(
+	//Even though this class is not a test module per se, this annotation is necessary to ensure the logging. Will be changed
+	//once the upstream project is refactored.
+    testName = "ConditionSequenceRepeater",
+	displayName = "",
+	summary = "",
+	profile = ""
+)
 public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	private final Logger logger = LoggerFactory.getLogger(ConditionSequenceRepeater.class);
@@ -27,9 +37,11 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 	private int timeout = 5;
 
 	private Optional<Class<? extends Condition>> onTimeoutCondtion = Optional.empty();
-	private Optional<Class<? extends Condition>> preSequencePause = Optional.of(WaitForConfiguredSeconds.class);
+
+	private Optional<Class<? extends Condition>> preSequencePause = Optional.empty();
 	private Optional<Class<? extends Condition>> postSequencePause = Optional.of(WaitForConfiguredSeconds.class);
 	private Optional<ConditionSequence> onTimeoutCondtionSequence = Optional.empty();
+	private Optional<ConditionSequence> onRefreshSequence = Optional.empty();
 
 	private Predicate<Environment> timeoutPredicate = (e) -> {
 		int ttl = e.getInteger(TIMEOUT_COUNTER_KEY);
@@ -48,6 +60,7 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 		env.putInteger("loopSequencePauseTime", 0);
 		env.putInteger("preSequencePauseTime", 0);
 		env.putInteger("postSequencePauseTime", 0);
+		env.putInteger("refreshIteration", Integer.MAX_VALUE);
 
 		this.env = env;
 		this.sequenceSupplier = conditionSequenceSupplier;
@@ -65,7 +78,15 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 			preSequencePause.ifPresent(c -> callAndStopOnFailure(c));
 			env.putInteger(TIMEOUT_COUNTER_KEY, ttl);
 			ConditionSequence sequence = sequenceSupplier.get();
+			call(exec().startBlock(String.format("Pooling sequence [%s]", ttl)));
 			call(sequence);
+
+			int refreshIteration = env.getInteger("refreshIteration");
+			if (ttl % refreshIteration == 0) {
+				call(exec().startBlock("Pooling Refresh Sequence"));
+				onRefreshSequence.ifPresent(s -> call(s));
+			}
+
 			ttl++;
 			pause = env.getInteger("postSequencePauseTime");
 			env.putInteger("loopSequencePauseTime", pause);
@@ -106,6 +127,18 @@ public class ConditionSequenceRepeater extends AbstractFAPI1AdvancedFinalServerT
 	 */
 	public ConditionSequenceRepeater trailingPause(int pause) {
 		env.putInteger("postSequencePauseTime", pause);
+		return this;
+	}
+
+	/**
+	 * A
+	 * @param refreshIteration is the number of iterations for the condition to be executed
+	 * @param conditionSequence to be executed every specific number of iterations
+	 * @return
+	 */
+	public ConditionSequenceRepeater refreshSequence(ConditionSequence conditionSequence, int refreshIteration) {
+		env.putInteger("refreshIteration", refreshIteration);
+		this.onRefreshSequence = Optional.ofNullable(conditionSequence);
 		return this;
 	}
 

@@ -30,7 +30,7 @@ public class LinksAndMetaOnlyRequestDateTimeValidator {
 				.build());
 	}
 
-	private void assertLinks(JsonObject links) {
+	public void assertLinks(JsonObject links) {
 		validator.assertField(links,
 			new StringField
 				.Builder("self")
@@ -71,7 +71,7 @@ public class LinksAndMetaOnlyRequestDateTimeValidator {
 				.build());
 	}
 
-	private void assertMeta(JsonObject meta) {
+	public void assertMeta(JsonObject meta) {
 		validator.assertField(meta,
 			new DatetimeField
 				.Builder("requestDateTime")

@@ -3,18 +3,6 @@ package net.openid.conformance.openinsurance.testplan.utils;
 public class PlanNames {
 	/** VERSION 1 **/
 	/* Phase 1 - Open Data */
-
-
-	/* Phase 2 - Customer Data */
-	public static final String CONSENTS_API_TEST_PLAN = "Functional Tests for Consents API - based on Swagger Version 1.0.0 (WIP)";
-	public static final String RESOURCES_API_TEST_PLAN = "Functional Tests for Resources API - based on Swagger Version 1.0.0 (WIP)";
-	public static final String CUSTOMERS_BUSINESS_API_TEST_PLAN = "Functional Tests for Customers Business API - based on Swagger Version 1.0.0 (WIP)";
-	public static final String CUSTOMERS_PERSONAL_API_TEST_PLAN = "Functional Tests for Customers Personal API - based on Swagger Version 1.0.0 (WIP)";
-
-	public static final String PATRIMONIAL_API_TEST_PLAN = "Functional Tests for Patrimonial API - based on Swagger Version 1.0.0 (WIP)";
-
-
-	/* Phase 3 - Payment Initiation */
 	public static final String PRODUCTS_N_SERVICES_PERSON_API_TEST_PLAN  = "Functional tests for ProductsNServices - Person API - based on Swagger version: 1.0.3"; // OPIN Person
 	public static final String PERSON_PENSION_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Pension Plan API - based on Swagger version: 1.0.2"; // OPIN Pension Plan
 	public static final String AUTO_INSURANCE_PLAN_API_TEST_PLAN = "Functional tests for ProductsNServices - Auto Insurance API - based on Swagger version: 1.0.2"; // OPIN Auto Insurance
@@ -49,17 +37,27 @@ public class PlanNames {
 	public static final String CONDOMINIUM_API_TEST_PLAN =  "Functional tests for ProductsServices - Condominium API - based on Swagger version: 1.0.0";
 	public static final String ERRORS_OMISSIONS_LIABILITY_API_TEST_PLAN = "Functional tests for ProductsServices - Errors Omissions Liability API - based on Swagger version: 1.0.0";
 	public static final String DIRECTORS_OFFICERS_LIABILITY_API_TEST_PLAN = "Functional tests for ProductsServices - Directors Officers Liability API - based on Swagger version: 1.0.0";
-
-
-
-	/** VERSION 2 **/
-	public static  final String LATEST_VERSION_2 = "2.0.1 (WIP)";
 	public static final String HOUSING_API_TEST_PLAN = "Functional tests for ProductsServices - Housing API - based on Swagger version: 1.0.0";
-    public static final String OTHERS_SCOPES_API_TEST_PLAN = "Functional tests for ProductsServices - Others Scopes API - based on Swagger version: 1.0.0";
-    public static final String RURAL_API_TEST_PLAN = "Functional tests for ProductsServices - Rural API - based on Swagger version: 1.0.0";
-    public static final String TRANSPORT_API_TEST_PLAN = "Functional tests for ProductsServices - Transport API - based on Swagger version: 1.0.0";
-
+	public static final String OTHERS_SCOPES_API_TEST_PLAN = "Functional tests for ProductsServices - Others Scopes API - based on Swagger version: 1.0.0";
+	public static final String RURAL_API_TEST_PLAN = "Functional tests for ProductsServices - Rural API - based on Swagger version: 1.0.0";
+	public static final String TRANSPORT_API_TEST_PLAN = "Functional tests for ProductsServices - Transport API - based on Swagger version: 1.0.0";
 	public static final String INTERMEDIARY_API_TEST_PLAN = "Functional tests for Channels - Intermediary API - based on Swagger version: 1.1.0";
 	public static final String REFERENCED_NETWORK_API_TEST_PLAN = "Functional tests for Channels - Referenced Network API - based on Swagger version: 1.1.0";
+
+
+	/* Phase 2 - Customer Data */
+	public static final String CONSENTS_API_TEST_PLAN = "Functional Tests for Consents API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String RESOURCES_API_TEST_PLAN = "Functional Tests for Resources API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String CUSTOMERS_BUSINESS_API_TEST_PLAN = "Functional Tests for Customers Business API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String CUSTOMERS_PERSONAL_API_TEST_PLAN = "Functional Tests for Customers Personal API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String PATRIMONIAL_API_TEST_PLAN = "Functional Tests for Patrimonial API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String RESPONSIBILITY_API_PHASE_2_TEST_PLAN = "Functional Tests for Responsibility API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String FINANCIAL_RISKS_API_PHASE_2_TEST_PLAN = "Functional Tests for Financial Risks API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String ACCEPTANCE_AND_BRANCHES_ABROAD_PHASE_2_TEST_PLAN = "Functional Tests for Acceptance and Branches Abroad API - based on Swagger Version 1.0.0 (WIP)";
+	public static final String PETROLEUM_API_PHASE_2_TEST_PLAN = "Functional Tests for Petroleum API - based on Swagger Version 1.0.0 (WIP)";
+
+
+	/* Phase 3 - Payment Initiation */
+
 
 }
