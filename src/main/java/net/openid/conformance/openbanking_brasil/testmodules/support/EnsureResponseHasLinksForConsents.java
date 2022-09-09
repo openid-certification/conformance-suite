@@ -16,7 +16,7 @@ public class EnsureResponseHasLinksForConsents extends AbstractJsonAssertingCond
 
 		log("Check for navigation Links in the response body.");
 		String consentUrl = OIDFJSON.getString(environment.getObject("resource").get("consentUrl"));
-		boolean phase1or2 = consentUrl.contains("consents/v1/consents");
+		boolean phase1or2 = consentUrl.matches("^(https://)(.*?)(consents/v\\d/consents)");
 
 		// Ensure links for p3 consents
 		if(!phase1or2){

@@ -32,8 +32,18 @@ build:
     - if: $CI_COMMIT_BRANCH == "master"
   stage: build
   script:
-    - set_app_version
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$GIT_SSH_PRIVATE_KEY" | base64 -d)
+    - git config --global user.email "release@gitlab.com"
+    - git config --global user.name "ReleaseBot"
+    - mkdir -p ~/.ssh
+    - ssh-keyscan $CI_SERVER_HOST > ~/.ssh/known_hosts
+#    - git checkout -f master
+#    - mvn -B -Dpmd.skip clean release:prepare -Darguments=" -s ci_settings.xml" -DscmCommentPrefix="[skip ci]"
+#    - mvn -B -Dpmd.skip clean release:perform -Darguments=" -s ci_settings.xml"
     - mvn -B -Dpmd.skip clean package
+    - set_app_version
   artifacts:
     paths:
       - target/

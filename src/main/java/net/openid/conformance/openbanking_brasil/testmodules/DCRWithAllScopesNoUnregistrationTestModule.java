@@ -92,7 +92,7 @@ public class DCRWithAllScopesNoUnregistrationTestModule extends AbstractApiDcrTe
 		ClientAuthType clientAuthType = getVariant(ClientAuthType.class);
 
 		if (clientAuthType == ClientAuthType.MTLS) {
-			addTlsClientAuthSubjectDn();
+			callAndStopOnFailure(AddTlsClientAuthSubjectDnToDynamicRegistrationRequest.class);
 		}
 
 		addJwksToRequest();

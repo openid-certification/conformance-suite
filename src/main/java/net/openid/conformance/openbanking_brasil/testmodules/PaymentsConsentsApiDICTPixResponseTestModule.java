@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openbanking_brasil.paymentInitiation.EnsureEndToEndIdIsEqual;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
@@ -61,6 +62,7 @@ public class PaymentsConsentsApiDICTPixResponseTestModule extends AbstractOBBras
 	@Override
 	protected void validateResponse() {
 		callAndStopOnFailure(PaymentInitiationPixPaymentsValidator.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(EnsureEndToEndIdIsEqual.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(EnsureSelfLinkEndsInPaymentId.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
@@ -69,7 +71,8 @@ public class PaymentsConsentsApiDICTPixResponseTestModule extends AbstractOBBras
 			.insertAfter(
 				EnsureResponseCodeWas200.class, sequenceOf(
 					condition(EnsureResponseWasJwt.class),
-					condition(PaymentFetchPixPaymentsValidator.class)
+					condition(PaymentFetchPixPaymentsValidator.class),
+					condition(EnsureEndToEndIdIsEqual.class)
 				))
 			.replace(CallProtectedResource.class, sequenceOf(
 				condition(AddJWTAcceptHeader.class),
