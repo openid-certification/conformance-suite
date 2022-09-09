@@ -81,7 +81,7 @@ public class InvoiceFinancingContractsResponseValidatorV2 extends AbstractJsonAs
 				.Builder("ipocCode")
 				.setMaxLength(67)
 				.setMinLength(22)
-				.setPattern("^\\d{22,67}$")
+				.setPattern("^[\\w\\W]{22,67}$")
 				.build());
 	}
 }
