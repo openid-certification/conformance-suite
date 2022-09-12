@@ -76,6 +76,7 @@ public class OpinCustomerBusinessWrongPermissionsTestModule extends AbstractPerm
 	@Override
 	protected void requestResourcesWithIncorrectPermissions() {
 		runInBlock("Ensure we cannot call the  Customer Business Qualification", () -> {
+			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 			call(sequence(CallProtectedResourceExpectingFailureSequence.class));
 			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(EnsureResponseCodeWas403.class);
