@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testmodule.patrimonial.v1;
+package net.openid.conformance.openinsurance.testmodule.Patrimonial.v1;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
