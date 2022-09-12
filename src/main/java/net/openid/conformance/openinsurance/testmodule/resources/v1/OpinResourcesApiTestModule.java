@@ -70,22 +70,13 @@ public class OpinResourcesApiTestModule extends AbstractOBBrasilFunctionalTestMo
 	@Override
 	protected void validateResponse() {
 
-		String responseError = env.getString("resource_endpoint_error_code");
-		if (Strings.isNullOrEmpty(responseError)) {
-			String logMessage = "Validate resources api request";
-			runInBlock(logMessage, () -> {
-				callAndStopOnFailure(OpinResourcesListValidatorV1.class, Condition.ConditionResult.FAILURE);
-				callAndStopOnFailure(EnsureResponseHasLinks.class);
-				callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
-				call(sequence(ValidateSelfEndpoint.class));
-			});
-		} else {
-			callAndContinueOnFailure(ErrorValidator.class, Condition.ConditionResult.FAILURE);
-			callAndStopOnFailure(EnsureResponseCodeWas404.class);
-			callAndStopOnFailure(CustomerDataResources404.class);
-			callAndContinueOnFailure(ChuckWarning.class, Condition.ConditionResult.WARNING);
-		}
-
+		runInBlock("Validate resources api request", () -> {
+			callAndStopOnFailure(EnsureResponseCodeWas200.class);
+			callAndStopOnFailure(OpinResourcesListValidatorV1.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(EnsureResponseHasLinks.class);
+			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+			call(sequence(ValidateSelfEndpoint.class));
+		});
 
 	}
 }
