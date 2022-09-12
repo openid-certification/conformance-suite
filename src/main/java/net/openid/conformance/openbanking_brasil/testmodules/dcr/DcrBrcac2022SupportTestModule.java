@@ -4,10 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractApiDcrTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithNewBrcacClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideClientWithOldBrcacClient;
-import net.openid.conformance.openbanking_brasil.testmodules.support.OverrideScopeWithOpenIdPaymentsConsents;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirectoryInfo;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -21,17 +18,18 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 		"Test Behaviour:\n" +
 		"\u2022 Perform a DCR against the target Server using old style BRCAC\n" +
 		"\u2022 Expect a success 201 - First client_id (1) created for this set of credentials\n" +
-		"\u2022 Request an access token with the first client_id (1) using the client_credentials grant asking for both payments and consents scope - Expect a success\n" +
+		"\u2022 Request an access token with the first client_id (1) using the client_credentials grant asking for either payments or consents (depending on client configuration) scope - Expect a success\n" +
 		"\u2022 Using the new style BRCAC call the GET Registration API for the first client_id (1) - Expect a success\n" +
 		"\u2022 Using the new style BRCAC obtain an SSA from the participant directory\n" +
 		"\u2022 Using the new style BRCAC call the PUT Registration API for the first client_id (1) with a matching request body - Expect a success\n" +
 		"\u2022 Perform a DCR against the target Server using the new style BRCAC\n" +
 		"\u2022 Expect a success 201 - Second client_id (2) created\n" +
-		"\u2022 Request an access token with the second client_id (2) using the client_credentials grant asking for both payments and consents scope - Expect a success\n" +
+		"\u2022 Request an access token with the second client_id (2) using the client_credentials grant asking for either payments or consents (depending on client configuration) scope - Expect a success\n" +
 		"\u2022 Unregister both created clients using the new style BRCAC",
 	profile = OBBProfile.OBB_PROFILE,
 	configurationFields = {
-		"server.discoveryUrl"
+		"server.discoveryUrl",
+		"client.toggleable_scope"
 	}
 )
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
@@ -51,7 +49,7 @@ public class DcrBrcac2022SupportTestModule extends AbstractApiDcrTestModule {
 		clientAuthType = getVariant(ClientAuthType.class);
 		callAndStopOnFailure(OverrideClientWithOldBrcacClient.class);
 		callAndStopOnFailure(SetDirectoryInfo.class);
-		callAndStopOnFailure(OverrideScopeWithOpenIdPaymentsConsents.class);
+		callAndStopOnFailure(ExtractToggleableScope.class);
 		super.configureClient();
 	}
 
@@ -113,7 +111,13 @@ public class DcrBrcac2022SupportTestModule extends AbstractApiDcrTestModule {
 			(isOldBrcacClient ? "Old BRCAC" : "New BRCAC"));
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		callAndStopOnFailure(SetPaymentsConsentsScopeOnTokenEndpointRequest.class);
+
+		if (brazilPayments.isTrue()) {
+			callAndStopOnFailure(SetPaymentsScopeOnTokenEndpointRequest.class);
+		} else {
+			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
+		}
+
 		call(sequence(addTokenEndpointClientAuthentication));
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, Condition.ConditionResult.FAILURE);
