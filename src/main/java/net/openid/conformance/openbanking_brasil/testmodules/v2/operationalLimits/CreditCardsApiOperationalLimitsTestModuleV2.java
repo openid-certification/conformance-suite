@@ -202,10 +202,10 @@ public class CreditCardsApiOperationalLimitsTestModuleV2 extends AbstractOperati
 
 			// Call to credit card current transactions with dates and page size fetched from next once with validation
 			runInLoggingBlock(() -> {
-				env.putString("fromTransactionDateMaxLimited", currentDate.minusDays(6).format(FORMATTER));
-				env.putString("toTransactionDateMaxLimited", currentDate.format(FORMATTER));
+				env.putString("fromTransactionDate", currentDate.minusDays(6).format(FORMATTER));
+				env.putString("toTransactionDate", currentDate.format(FORMATTER));
 
-				callAndStopOnFailure(AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceUrl.class);
+				callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 				env.putInteger("required_page_size", 1);
 				callAndStopOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
 

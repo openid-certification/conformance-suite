@@ -52,8 +52,8 @@ import java.time.format.DateTimeFormatter;
 })
 public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	private static final String FROM_TRANSACTION_DATE = "fromTransactionDateMaxLimited";
-	private static final String TO_TRANSACTION_DATE = "toTransactionDateMaxLimited";
+	private static final String FROM_TRANSACTION_DATE = "fromTransactionDate";
+	private static final String TO_TRANSACTION_DATE = "toTransactionDate";
 
 	@Override
 	protected void configureClient() {
@@ -79,7 +79,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 		env.putString(FROM_TRANSACTION_DATE, currentDate.minusDays(6).format(FORMATTER));
 		env.putString(TO_TRANSACTION_DATE, currentDate.format(FORMATTER));
 
-		callAndStopOnFailure(AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Credit Card Account Current transactions with full range date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
 				.then(condition(CopyResourceEndpointResponse.class)))
@@ -92,7 +92,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 		env.putString(TO_TRANSACTION_DATE, currentDate.format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Credit Card Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Credit Card Account Current Transactions",
 			() -> call(getValidationSequence()
@@ -105,7 +105,7 @@ public class CreditCardApiTransactionCurrentTestModuleV2 extends AbstractOBBrasi
 		env.putString(TO_TRANSACTION_DATE, currentDate.minusDays(20).format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromTransactionDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Credit Card Account Current transactions V2 with invalid date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
 				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))

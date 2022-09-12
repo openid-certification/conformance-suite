@@ -5,6 +5,7 @@ import net.openid.conformance.openinsurance.testmodule.customers.v1.OpinCustomer
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.openinsurance.testmodule.customers.v1.*;
 
 import java.util.List;
 

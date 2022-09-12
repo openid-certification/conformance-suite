@@ -55,7 +55,7 @@ public class PlanNames {
 	public static final String FINANCIAL_RISKS_API_PHASE_2_TEST_PLAN = "Functional Tests for Financial Risks API - based on Swagger Version 1.0.0 (WIP)";
 	public static final String ACCEPTANCE_AND_BRANCHES_ABROAD_PHASE_2_TEST_PLAN = "Functional Tests for Acceptance and Branches Abroad API - based on Swagger Version 1.0.0 (WIP)";
 	public static final String PETROLEUM_API_PHASE_2_TEST_PLAN = "Functional Tests for Petroleum API - based on Swagger Version 1.0.0 (WIP)";
-	public static final String STRUCTURAL_TEST_PLAN = "Open Insurance Brasil Structural Tests for Phase 2 - Customer Data - API Version 1”";
+	public static final String STRUCTURAL_TEST_PLAN = "Open Insurance Brasil Structural Tests for Phase 2 - Customer Data - API Version 1";
 
 	/* Phase 3 - Payment Initiation */
 
