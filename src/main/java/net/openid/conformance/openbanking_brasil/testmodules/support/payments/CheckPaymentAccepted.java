@@ -25,7 +25,7 @@ public class CheckPaymentAccepted extends AbstractCondition {
 		if (STATUS.contains(status)) {
 			logSuccess("Payment status is accepted");
 		} else {
-			logFailure("Invalid payment status" + args("status", status));
+			logFailure("Invalid payment status", args("status", status));
 		}
 		return env;
 	}
