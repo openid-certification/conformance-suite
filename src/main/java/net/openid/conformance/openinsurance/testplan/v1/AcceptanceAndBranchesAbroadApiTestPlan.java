@@ -8,17 +8,18 @@ import net.openid.conformance.plan.TestPlan;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Insurance consents api test",
+	testPlanName = "Insurance acceptance and branches abroad api test",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
-	displayName = PlanNames.CONSENTS_API_TEST_PLAN,
-	summary = "Structural and logical tests for OpenInsurance Brasil-conformant consents API"
+	displayName = PlanNames.ACCEPTANCE_AND_BRANCHES_ABROAD_PHASE_2_TEST_PLAN,
+	summary = "Structural and logical tests for OpenInsurance Brasil-conformant acceptance and branches abroad API"
 )
 
-public class ConsentsApiTestPlan implements TestPlan {
+public class AcceptanceAndBranchesAbroadApiTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
+
 				),
 				List.of(
 
