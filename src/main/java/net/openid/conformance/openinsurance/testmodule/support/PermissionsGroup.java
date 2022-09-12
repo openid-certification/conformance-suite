@@ -4,6 +4,8 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public enum PermissionsGroup {
 	ALL,
+	All_PERSONAL,
+	ALL_BUSINESS,
 	RESOURCES,
 	CUSTOMERS_PERSONAL,
 	CUSTOMERS_BUSINESS,
@@ -28,11 +30,14 @@ public enum PermissionsGroup {
 	public String[] getPermissions() {
 		String[] permissions = {};
 
-		if(this.equals(ALL)) {
+		if (this.equals(ALL) || this.equals(All_PERSONAL) || this.equals(ALL_BUSINESS)) {
 			for (PermissionsGroup permissionsGroup : PermissionsGroup.values()) {
-				if (permissionsGroup.equals(ALL)) {
+				if (permissionsGroup.equals(ALL) ||
+					(this.equals(All_PERSONAL) && permissionsGroup.equals(CUSTOMERS_BUSINESS)) ||
+					(this.equals(ALL_BUSINESS) && permissionsGroup.equals(CUSTOMERS_PERSONAL))) {
 					continue;
 				}
+
 				permissions = ArrayUtils.addAll(permissions, getIndividualPermissions(permissionsGroup));
 			}
 		} else {

@@ -11,7 +11,7 @@ public class AddDummyPersonalProductTypeToConfig extends AbstractCondition {
 
 		String dummyPersonalProductType = "personal";
 		env.putString("config", "consent.productType", dummyPersonalProductType);
-		logSuccess("Dummy Personal Product Type added successfully", args("Dummy Business Product Type", dummyPersonalProductType));
+		logSuccess("Dummy Personal Product Type added successfully", args("Dummy Personal Product Type", dummyPersonalProductType));
 		return env;
 	}
 }
