@@ -15,7 +15,6 @@ import net.openid.conformance.openbanking_brasil.testmodules.support.SetDirector
 import static net.openid.conformance.condition.client.DetectIfHttpStatusIsSuccessOrFailure.endpointResponseWas2xx;
 
 public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
-    boolean useBrazilShortNames = true;
     boolean registrationFailed = false;
 
     protected abstract boolean isPaymentsApiTest();
@@ -35,16 +34,6 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
         }
         callAndStopOnFailure(SetDirectoryInfo.class);
         callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-        super.configureClient();
-
-        if (!registrationFailed) {
-            performPreAuthorizationSteps();
-
-            deleteClient();
-        }
-
-        // again but with non-RFC OIDs in numeric form
-        useBrazilShortNames = false;
         super.configureClient();
 
         performPreAuthorizationSteps();
@@ -99,50 +88,6 @@ public abstract class AbstractApiDcrSubjectDn extends AbstractApiDcrTestModule {
 
         deleteClient();
 
-    }
-
-    @Override
-    protected void callRegistrationEndpoint() {
-        if (useBrazilShortNames) {
-            callAndStopOnFailure(CallDynamicRegistrationEndpoint.class, "RFC7591-3.1", "OIDCR-3.2");
-
-            call(exec().mapKey("endpoint_response", "dynamic_registration_endpoint_response"));
-
-            callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
-            callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE,"OIDCR-3.2");
-            callAndStopOnFailure(DetectIfHttpStatusIsSuccessOrFailure.class);
-            if (env.getBoolean(endpointResponseWas2xx)) {
-                // this is all lifted out of 'super'
-                callAndContinueOnFailure(CheckNoErrorFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-                callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-                callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
-                callAndContinueOnFailure(ClientManagementEndpointAndAccessTokenRequired.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2");
-                validateDcrResponseScope();
-                // The tests expect scope to be part of the 'client' object, but it may not be in the dcr response so copy across
-                callAndStopOnFailure(CopyScopeFromDynamicRegistrationTemplateToClientConfiguration.class);
-                callAndStopOnFailure(CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration.class);
-            } else {
-                registrationFailed = true; // don't try to use/deregister this client
-                callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-                callAndContinueOnFailure(CheckErrorFromDynamicRegistrationEndpointIsInvalidClientMetadata.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-                callAndContinueOnFailure(CheckNoClientIdFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7591-3.2.2");
-            }
-
-            call(exec().unmapKey("endpoint_response"));
-        } else {
-            super.callRegistrationEndpoint();
-        }
-    }
-
-    @Override
-    protected void addTlsClientAuthSubjectDn() {
-        if (useBrazilShortNames) {
-            callAndStopOnFailure(AddTlsClientAuthSubjectDnWithBrazilShortnameToDynamicRegistrationRequest.class);
-            // uncomment this to test the 'failure' flow against the mock bank
-            //callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class);
-        } else {
-            super.addTlsClientAuthSubjectDn();
-        }
     }
 
     @Override
