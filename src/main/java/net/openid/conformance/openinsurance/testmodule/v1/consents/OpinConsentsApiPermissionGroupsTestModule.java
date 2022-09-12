@@ -2,6 +2,7 @@ package net.openid.conformance.openinsurance.testmodule.v1.consents;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallConsentEndpointWithBearerTokenAnyHttpMethod;
 import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
@@ -101,8 +102,10 @@ public class OpinConsentsApiPermissionGroupsTestModule extends AbstractClientCre
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
 			callAndStopOnFailure(FAPIBrazilCreateConsentRequest.class);
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
-			callAndStopOnFailure(IgnoreResponseError.class);
-			callAndContinueOnFailure(CallConsentApiWithBearerToken.class, Condition.ConditionResult.SUCCESS);
+
+			callAndContinueOnFailure(CallConsentEndpointWithBearerTokenAnyHttpMethod.class, Condition.ConditionResult.SUCCESS);
+			call(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"));
+			callAndContinueOnFailure(ResourceEndpointResponseFromFullResponse.class);
 
 			if (!env.getString("resource_endpoint_response").equals("{}")) {
 				passed = true;
