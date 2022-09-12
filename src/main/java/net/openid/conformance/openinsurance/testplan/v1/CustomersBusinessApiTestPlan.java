@@ -21,7 +21,8 @@ public class CustomersBusinessApiTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-
+					OpinCustomerBusinessDataApiTestModule.class,
+					OpinCustomerBusinessWrongPermissionsTestModule.class
 				),
 				List.of(
 
