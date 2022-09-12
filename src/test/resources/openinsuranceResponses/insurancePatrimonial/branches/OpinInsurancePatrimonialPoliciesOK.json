@@ -1,0 +1,50 @@
+{
+    "data": [
+        {
+            "brand": "string",
+            "companies": [
+                {
+                    "companyName": "string",
+                    "cnpjNumber": "12345678901234",
+                    "policies": [
+                        "42",
+                        "43"
+                    ]
+                }
+            ]
+        },
+        {
+            "brand": "string2",
+            "companies": [
+                {
+                    "companyName": "company21",
+                    "cnpjNumber": "12345678901234",
+                    "policies": [
+                        "44",
+                        "45",
+                        "46"
+                    ]
+                },
+                {
+                    "companyName": "company22",
+                    "cnpjNumber": "12345678901234",
+                    "policies": [
+                        "47",
+                        "48"
+                    ]
+                }
+            ]
+        }
+    ],
+    "links": {
+        "self": "https://api.organizacao.com.br/open-insurance/insurance-patrimonial/v1",
+        "first": "https://api.organizacao.com.br/open-insurance/insurance-patrimonial/v1",
+        "prev": "https://api.organizacao.com.br/open-insurance/insurance-patrimonial/v1",
+        "next": "https://api.organizacao.com.br/open-insurance/insurance-patrimonial/v1",
+        "last": "https://api.organizacao.com.br/open-insurance/insurance-patrimonial/v1"
+    },
+    "meta": {
+        "totalRecords": 10,
+        "totalPages": 1
+    }
+}
