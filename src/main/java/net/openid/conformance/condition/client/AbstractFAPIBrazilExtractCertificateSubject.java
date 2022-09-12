@@ -28,9 +28,32 @@ public abstract class AbstractFAPIBrazilExtractCertificateSubject extends Abstra
 		X500Name x500name = X500Name.getInstance(x500Principal.getEncoded());
 		String subjectDn = x500Principal.getName();
 
-		RDN ou = x500name.getRDNs(BCStyle.OU)[0];
-		String ouAsString = IETFUtils.valueToString(ou.getFirst().getValue());
-
+		RDN[] ouArray = x500name.getRDNs(BCStyle.OU);
+		String ouAsString;
+		JsonObject o = new JsonObject();
+		if (ouArray.length == 0) {
+			// 2022 style certificate - OU is removed, OI added, example subjectdn:
+			// C=BR,ST=SP,L=LONDON,O=Open Banking Brasil,
+			// CN=https://web.conformance.directory.openbankingbrasil.org.br,
+			// SERIALNUMBER=43142666000197,BusinessCategory=Government Entity,
+			// 1.3.6.1.4.1.311.60.2.1.3=UK,
+			// organizationIdentifier=OFBBR-74e929d9-33b6-4d85-8ba7-c146c867a817, <---- this is new
+			// UID=10120340-3318-4baf-99e2-0b56729c4ab2
+			RDN[] oiArray = x500name.getRDNs(BCStyle.ORGANIZATION_IDENTIFIER);
+			if (oiArray.length == 0) {
+				throw error("Certificate subjectdn contains neither 'organizational unit name' nor 'organization identifier'");
+			}
+			String oi = IETFUtils.valueToString(oiArray[0].getFirst().getValue());
+			String split[] = oi.split("-", 2);
+			if (split.length != 2) {
+				throw error("'organization identifier' in the certificate does not contain a '-'");
+			}
+			o.addProperty("org_type", split[0]); // the OFBBR prefix
+			ouAsString = split[1];
+		} else {
+			RDN ou = ouArray[0];
+			ouAsString = IETFUtils.valueToString(ou.getFirst().getValue());
+		}
 		RDN[] uid = x500name.getRDNs(BCStyle.UID);
 		String softwareId;
 		if (uid.length == 0) {
@@ -42,9 +65,8 @@ public abstract class AbstractFAPIBrazilExtractCertificateSubject extends Abstra
 			softwareId = IETFUtils.valueToString(uid[0].getFirst().getValue());
 		}
 
-		JsonObject o = new JsonObject();
 		o.addProperty("subjectdn", subjectDn);
-		o.addProperty("ou", ouAsString);
+		o.addProperty("ou", ouAsString); // This isn't always the actual ou from the certificate, but is always the Brazil organization id
 		o.addProperty("brazil_software_id", softwareId);
 		return o;
 	}
