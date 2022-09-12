@@ -7,6 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.springframework.security.core.parameters.P;
 
 import java.util.Base64;
 import java.util.Objects;
@@ -17,6 +18,7 @@ public class CheckPaymentAccepted extends AbstractCondition {
 	private final Set<String> STATUS = Sets.newHashSet("ACSP", "ACSC", "ACCC");
 
 	@Override
+	@PreEnvironment(required = "resource_endpoint_response_full")
 	public Environment evaluate(Environment env) {
 		JsonObject response = env.getObject("resource_endpoint_response_full");
 		String jwtBody = OIDFJSON.getString(response.get("body"));
