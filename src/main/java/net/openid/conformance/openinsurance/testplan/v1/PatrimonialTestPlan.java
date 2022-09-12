@@ -1,7 +1,7 @@
 package net.openid.conformance.openinsurance.testplan.v1;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openinsurance.testmodule.customers.v1.OpinCustomerPersonalDataApiTestModule;
+import net.openid.conformance.openinsurance.testmodule.patrimonial.v1.OpinPatrimonialApiTestModule;
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -9,18 +9,18 @@ import net.openid.conformance.plan.TestPlan;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "Insurance customer business api test",
+	testPlanName = "Insurance patrimonial api test",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
-	displayName = PlanNames.CUSTOMERS_BUSINESS_API_TEST_PLAN,
-	summary = "Structural and logical tests for OpenInsurance Brasil-conformant customer business API"
+	displayName = PlanNames.PATRIMONIAL_API_TEST_PLAN,
+	summary = "Structural and logical tests for OpenInsurance Brasil-patrimonial customer API"
 )
 
-public class CustomersBusinessApiTestPlan implements TestPlan {
+public class PatrimonialTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-
+					OpinPatrimonialApiTestModule.class
 				),
 				List.of(
 
