@@ -27,7 +27,7 @@ public class VerifyBranch extends AbstractJsonAssertingCondition {
 
 		JsonElement branchElement = findByPath(body, "$.data.insuredObjects.coverages.branch");
 
-		if (branchElement.isJsonPrimitive() && branchElement.getAsString().equals(branch.getBranchCode())) {
+		if (branchElement.isJsonPrimitive() && OIDFJSON.getString(branchElement).equals(branch.getBranchCode())) {
 			logSuccess(String.format("Successfully found a policyID of type %s", branch.name()));
 			env.putBoolean("branch_found", true);
 		}
