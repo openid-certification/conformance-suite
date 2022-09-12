@@ -17,9 +17,15 @@ import net.openid.conformance.runner.TestExecutionManager;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 import java.util.Map;
 
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"resource.brazilCpf",
+	"resource.brazilCnpj"
+})
 public abstract class AbstractOperationalLimitsTestModule extends AbstractOBBrasilFunctionalTestModule {
 
 	private TestInstanceEventLog originalLogger;

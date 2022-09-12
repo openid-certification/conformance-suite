@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 @PublishTestModule(
 	testName = "accounts-api-operational-limits",
 	displayName = "Accounts Api operational limits test module",
-	summary = "The test will require a DCR to be executed prior to the test against a server whose credentials are provided here https://gitlab.com/obb1/certification/-/wikis/Operational-Limits\n" +
+	summary = "This test will require the user to have set at least two ACTIVE resources each with at least 20 Transactions to be returned on the transactions-current endpoint for each active account \n" +
 		"Make Sure that the fields “Client_id for Operational Limits Test” (client_id for OL) and at least the CPF for Operational Limits (CPF for OL) test have been provided \n" +
 		"\u2022 Using the HardCoded clients provided on the test summary link, use the client_id for OL and the CPF/CNPJ for OL passed on the configuration and create a Consent Request sending the Accounts permission group - Expect Server to return a 201 - Save ConsentID (1) \n" +
 		"\u2022 Return a Success if Consent Response is a 201 containing all permissions required on the scope of the test. Return a Warning and end the test if the consent request returns either a 422 or a 201 without Permission for this specific test.\n" +
@@ -52,8 +52,9 @@ import java.time.format.DateTimeFormatter;
 		"mtls2.cert",
 		"mtls2.ca",
 		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.brazilCnpj",
+		"resource.brazilCpfPersonal",
+		"resource.brazilCpfBusiness",
+		"resource.brazilCnpjBusiness",
 		"resource.brazilCpfOperationalPersonal",
 		"resource.brazilCpfOperationalBusiness",
 		"resource.brazilCnpjOperationalBusiness",
