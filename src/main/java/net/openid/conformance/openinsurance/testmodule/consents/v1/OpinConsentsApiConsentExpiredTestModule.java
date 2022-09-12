@@ -1,30 +1,31 @@
-package net.openid.conformance.openinsurance.testmodule.deprecated.consent;
+package net.openid.conformance.openinsurance.testmodule.consents.v1;
 
+import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
-import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
-import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
-import net.openid.conformance.condition.client.RejectStateInUrlQueryForHybridFlow;
-import net.openid.conformance.condition.client.ValidateIssInAuthorizationResponse;
-import net.openid.conformance.condition.client.WaitFor2Seconds;
-import net.openid.conformance.condition.client.WaitFor60Seconds;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
+import net.openid.conformance.openbanking_brasil.testmodules.CopyFromConsentUrlToResourceUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.support.AddExpirationInOneMinute;
 import net.openid.conformance.openbanking_brasil.testmodules.support.CheckAuthorizationEndpointHasError;
 import net.openid.conformance.openbanking_brasil.testmodules.support.ChuckWarning;
+import net.openid.conformance.openbanking_brasil.testmodules.support.ResourceEndpointResponseFromFullResponse;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.ConsentHasExpiredInsteadOfBeenRejected;
+import net.openid.conformance.openinsurance.testmodule.support.OpinConsentPermissionsBuilder;
+import net.openid.conformance.openinsurance.testmodule.support.PermissionsGroup;
+import net.openid.conformance.openinsurance.validator.consents.v1.OpinCreateNewConsentValidatorV1;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "opin-consent-api-expired-consent-test-v1",
+	testName = "opin-consent-api-expired-consent-test",
 	displayName = "Validate that consents can expire",
 	summary = "Consent will be created with a 1-minute expiry, and the user will be sent to the authorization endpoint after the consent has expired. The authorization server must return the browser to the redirect URL with a valid OAuth2 error response.\n" +
-		"\u2022 Creates a Consent V1 with all of the existing permissions\n" +
-		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
+		"\u2022 Call the POST Consents API with either the customer’s business or the customer’s personal PERMISSIONS, depending on what option has been selected by the user on the configuration field\n" +
+		"\u2022 Expect a 201 - Validate all of the fields of response_body of the POST Consents API response\n" +
 		"\u2022 Expects a valid consent creation 201\n" +
 		"\u2022 Redirects the User - He should not accept the consent, waiting for the consent to reach an expired state\n" +
 		"\u2022 Verifies on the authorization endpoint response if the expiration of the consent resulted in an error message",
@@ -42,17 +43,41 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class OpinConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFunctionalTestModule {
 
+	OpinConsentPermissionsBuilder permissionsBuilder;
+
 	@Override
 	protected void configureClient(){
 		//Arbitrary resource
-		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(CopyFromConsentUrlToResourceUrl.class);
 		super.configureClient();
 	}
 
 	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		permissionsBuilder = new OpinConsentPermissionsBuilder(env,getId(),eventLog,testInfo,executionManager);
+		permissionsBuilder.addPermissionsGroup(PermissionsGroup.ALL);
+
+		String productType = env.getString("config", "consent.productType");
+		if (!Strings.isNullOrEmpty(productType) && productType.equals("business")) {
+			permissionsBuilder.removePermissionsGroups(PermissionsGroup.CUSTOMERS_PERSONAL);
+		}
+		if (!Strings.isNullOrEmpty(productType) && productType.equals("personal")) {
+			permissionsBuilder.removePermissionsGroups(PermissionsGroup.CUSTOMERS_BUSINESS);
+		}
+
+		permissionsBuilder.build();
+	}
+
+	@Override
 	protected ConditionSequence createOBBPreauthSteps() {
-		return super.createOBBPreauthSteps().
-			replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInOneMinute.class));
+
+		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(false,
+			false, addTokenEndpointClientAuthentication, false, false);
+		steps.replace(FAPIBrazilAddExpirationToConsentRequest.class, condition(AddExpirationInOneMinute.class));
+		steps.then(exec().mapKey("resource_endpoint_response_full", "consent_endpoint_response_full"),
+			condition(ResourceEndpointResponseFromFullResponse.class),
+			condition(OpinCreateNewConsentValidatorV1.class).dontStopOnFailure());
+		return steps;
 	}
 
 	@Override
@@ -61,8 +86,6 @@ public class OpinConsentsApiConsentExpiredTestModule extends AbstractOBBrasilFun
 		callAndContinueOnFailure(WaitFor2Seconds.class);
 		callAndContinueOnFailure(WaitFor60Seconds.class);
 	}
-
-
 
 	@Override
 	protected void onAuthorizationCallbackResponse() {

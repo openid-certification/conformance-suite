@@ -1,39 +1,25 @@
-package net.openid.conformance.openinsurance.testmodule.deprecated.consent;
+package net.openid.conformance.openinsurance.testmodule.consents.v1;
 
+import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
-import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
-import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
-import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilAddExpirationToConsentRequest;
-import net.openid.conformance.condition.client.FAPIBrazilCreateConsentRequest;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
-import net.openid.conformance.condition.client.GetStaticClient2Configuration;
-import net.openid.conformance.condition.client.GetStaticClientConfiguration;
+import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractClientCredentialsGrantFunctionalTestModule;
-import net.openid.conformance.openbanking_brasil.testmodules.support.AddConsentScope;
-import net.openid.conformance.openbanking_brasil.testmodules.support.CallConsentApiWithBearerToken;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ClearErrorResponseFromEnvironment;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ConsentIdExtractor;
-import net.openid.conformance.openbanking_brasil.testmodules.support.ConsentWasRejectedOrDeleted;
-import net.openid.conformance.openbanking_brasil.testmodules.support.EnsureResponseFromConsentApiWas403;
-import net.openid.conformance.openbanking_brasil.testmodules.support.IgnoreResponseError;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToDeleteConsent;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToFetchConsentRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.PrepareToPostConsentRequest;
-import net.openid.conformance.openbanking_brasil.testmodules.support.RequireResponseBody;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetContentTypeApplicationJson;
-import net.openid.conformance.openbanking_brasil.testmodules.support.SetResponseBodyOptional;
+import net.openid.conformance.openbanking_brasil.testmodules.support.*;
+import net.openid.conformance.openinsurance.testmodule.support.OpinConsentPermissionsBuilder;
+import net.openid.conformance.openinsurance.testmodule.support.PermissionsGroup;
 import net.openid.conformance.openinsurance.validator.consents.v1.OpinConsentDetailsIdentifiedByConsentIdValidatorV1;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "opin-consent-api-test-client-limits-v1",
+	testName = "opin-consent-api-test-client-limits",
 	displayName = "Validate that clients cannot obtain one another's consents",
 	summary = "Validates that clients cannot obtain one another's consents\n" +
-		"\u2022 Creates a Consent V1 with all of the existing permissions \n" +
+		"\u2022 Confirm if we are already selecting it to send either business or personal permissions \n" +
+		"\u2022 If the Consent is for Business Account, call the POST consent APIs with permission CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ, CUSTOMERS_BUSINESS_QUALIFICATION_READ, and CUSTOMERS_BUSINESS_ADITTIONALINFO_READ  \n" +
+		"\u2022 If the Consent is for Personal Account, call the POST consent APIs with permission CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ, CUSTOMERS_PERSONAL_QUALIFICATION_READ, and CUSTOMERS_PERSONAL_ADITTIONALINFO_READ  \n" +
+		"\u2022 Creates Consent with all of the Business/ Personal, besides all existing additional permissions \n" +
 		"\u2022 Calls the GET Consents with the Consent ID that has been created\n" +
 		"\u2022 Checks all of the fields sent on the consent API are specification compliant\n" +
 		"\u2022 Calls the Token endpoint using the 2nd client provided on the configuration file\n" +
@@ -42,7 +28,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"\u2022 Calls the DELETE Consents with the first Consent ID created, using the 2nd client\n" +
 		"\u2022 Expects the test to return a 403 - Forbidden\n" +
 		"\u2022 Calls the DELETE Consents with the first Consent ID created, using the 1st client\n" +
-		"\u2022 Expects success on the Delete 20x\n" +
+		"\u2022 Expects success on the Delete 204\n" +
 		"\u2022 Calls the GET Consents with the 1st Consent ID created\n" +
 		"\u2022 Confirms that the Consent has been sent to a Rejected state",
 	profile = OBBProfile.OBB_PROFILE_OPEN_INSURANCE_PHASE2,
@@ -65,8 +51,20 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class OpinConsentsApiCrossClientTestModule extends AbstractClientCredentialsGrantFunctionalTestModule {
 
+	private OpinConsentPermissionsBuilder permissionsBuilder;
 	@Override
 	protected void runTests() {
+		permissionsBuilder = new OpinConsentPermissionsBuilder(env,getId(),eventLog,testInfo,executionManager);
+		permissionsBuilder.addPermissionsGroup(PermissionsGroup.ALL);
+
+		String productType = env.getString("config", "consent.productType");
+		if (!Strings.isNullOrEmpty(productType) && productType.equals("business")) {
+			permissionsBuilder.removePermissionsGroups(PermissionsGroup.CUSTOMERS_PERSONAL);
+		}
+		if (!Strings.isNullOrEmpty(productType) && productType.equals("personal")) {
+			permissionsBuilder.removePermissionsGroups(PermissionsGroup.CUSTOMERS_BUSINESS);
+		}
+
 		runInBlock("Validating create consent response", () -> {
 			callAndStopOnFailure(PrepareToPostConsentRequest.class);
 			callAndStopOnFailure(SetContentTypeApplicationJson.class);
