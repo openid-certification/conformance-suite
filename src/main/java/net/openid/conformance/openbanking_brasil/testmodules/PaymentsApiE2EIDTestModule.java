@@ -8,6 +8,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.generic.ErrorValidator;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.EnsureEndToEndIdIsEqual;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentInitiationPixPaymentsValidator;
+import net.openid.conformance.openbanking_brasil.testmodules.pixscheduling.PollForScheduledPaymentChangeSequence;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
@@ -192,13 +193,14 @@ public class PaymentsApiE2EIDTestModule extends AbstractOBBrasilFunctionalTestMo
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 
 			repeatSequence(PollForAcceptedPaymentSequence::new)
-				.untilTrue("payment_accepted")
+				.untilTrue("payment_not_pending")
 				.trailingPause(30)
 				.times(10)
 				.onTimeout(sequenceOf(
 					condition(TestTimedOut.class),
 					condition(ChuckWarning.class)))
 				.run();
+			callAndStopOnFailure(CheckPaymentAccepted.class);
 		}
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");

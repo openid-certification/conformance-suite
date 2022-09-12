@@ -1,6 +1,5 @@
 package net.openid.conformance.openbanking_brasil.testmodules.support.payments;
 
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.EnsureEndToEndIdIsEqual;
 import net.openid.conformance.openbanking_brasil.paymentInitiation.PaymentFetchPixPaymentsValidator;
@@ -23,7 +22,7 @@ public class PollForAcceptedPaymentSequence extends AbstractConditionSequence {
 				condition(AddJWTAcceptHeader.class)
 			))
 			.insertAfter(ValidateResponseMetaData.class, sequenceOf(
-				condition(CheckPaymentAccepted.class)
+				condition(CheckPaymentPending.class)
 			))
 			.skip(SaveOldValues.class,
 				"Not saving old values")
