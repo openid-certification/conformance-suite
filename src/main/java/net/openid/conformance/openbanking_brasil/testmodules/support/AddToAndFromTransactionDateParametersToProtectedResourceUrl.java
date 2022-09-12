@@ -15,7 +15,11 @@ public class AddToAndFromTransactionDateParametersToProtectedResourceUrl extends
 		String fromTransactionDate = env.getString("fromTransactionDate");
 		String toTransactionDate = env.getString("toTransactionDate");
 
-		String url = String.format("%s?fromTransactionDate=%s&toTransactionDate=%s", baseUrl, fromTransactionDate, toTransactionDate);
+		String pattern = "%s?fromTransactionDate=%s&toTransactionDate=%s";
+		if(baseUrl.contains("?")){
+			pattern = "%s&fromTransactionDate=%s&toTransactionDate=%s";
+		}
+		String url = String.format(pattern, baseUrl, fromTransactionDate, toTransactionDate);
 		env.putString("protected_resource_url", url);
 		logSuccess("Parameters were added to the resource URL", Map.of("URL", url));
 		return env;

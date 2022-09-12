@@ -66,7 +66,7 @@ public class CreditCardApiMaxPageSizePagingTestModuleV2 extends AbstractOBBrasil
 		preCallProtectedResource("Prepare to Fetch Credit Card Transactions V2");
 		callAndStopOnFailure(CardAccountSelector.class);
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
-		callAndStopOnFailure(AppendToAndFromTransactionDateParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromTransactionDateParametersToProtectedResourceUrl.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResource.class);
