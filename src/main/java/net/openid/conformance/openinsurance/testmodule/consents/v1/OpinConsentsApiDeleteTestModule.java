@@ -123,15 +123,23 @@ public class OpinConsentsApiDeleteTestModule extends AbstractFunctionalTestModul
 
 		eventLog.startBlock("Try calling protected resource after consent is deleted");
 		callAndStopOnFailure(CallProtectedResource.class);
-		callAndContinueOnFailure(EnsureResponseCodeWas401.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureResponseCodeWas400.class, Condition.ConditionResult.FAILURE);
 
 		eventLog.startBlock("Trying issuing a refresh token");
-		callTokenEndpointRefreshToken();
-	}
 
-	private void callTokenEndpointRefreshToken(){
-		GenerateRefreshAccessTokenSteps refreshAccessTokenSteps = new GenerateRefreshAccessTokenSteps(clientAuthType);
-		call(refreshAccessTokenSteps);
+		call(new GenerateRefreshAccessTokenSteps(clientAuthType)
+			.replace(
+				CallTokenEndpoint.class,
+				condition(CallTokenEndpointAndReturnFullResponse.class))
+			.replace(
+				CheckIfTokenEndpointResponseError.class,
+				condition(EnsureTokenResponseWas403.class))
+			.replace(
+				CheckForAccessTokenValue.class,
+				condition(EnsureTokenResponseWasAFailure.class))
+			.skip(ExtractAccessTokenFromTokenResponse.class,"No access token should have been issued")
+			)
+		;
 	}
 
 	@Override
