@@ -20,7 +20,6 @@ public class StructuralTestPlan implements TestPlan{
 		return List.of(
 			new TestPlan.ModuleListEntry(
 				List.of(
-					OpinCustomerBusinessStructuralTestModule.class
 				),
 				List.of(
 
