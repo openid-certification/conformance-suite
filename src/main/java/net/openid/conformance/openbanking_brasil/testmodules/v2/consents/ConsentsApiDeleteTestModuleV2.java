@@ -5,7 +5,7 @@ import net.openid.conformance.AbstractFunctionalTestModule;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
-import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
+import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
 import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.PrepareToGetCustomCustomerIdentifications;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.OpenBankingBrazilPreAuthorizationConsentApiV2;
@@ -71,6 +71,13 @@ public class ConsentsApiDeleteTestModuleV2 extends AbstractFunctionalTestModule 
 		ConditionSequence preauthSteps = new OpenBankingBrazilPreAuthorizationConsentApiV2(addTokenEndpointClientAuthentication, false);
 
 		return preauthSteps;
+	}
+
+	@Override
+	protected void setupResourceEndpoint() {
+		// This resource is not used in this test, however it is needed to satisfy CallConsentApiWithBearerToken @preEnvironment
+		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		super.setupResourceEndpoint();
 	}
 
 	@Override

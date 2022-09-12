@@ -107,8 +107,12 @@ public class AccountsApiResourcesMultipleConsentsTestModuleV2 extends AbstractOB
 		));
 
 		runInBlock("Validate Accounts Balances response", () -> {
+			env.putString("metaOnlyRequestDateTime", "true");
 			callAndStopOnFailure(ResourceErrorMetaValidator.class);
-			callAndStopOnFailure(EnsureErrorResponseCodeIsStatusResourceAwaitingAuthorization.class);
+			call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
+				.dontStopOnFailure()
+				.onFail(Condition.ConditionResult.WARNING));
+			callAndStopOnFailure(EnsureErrorResponseCodeIsStatusResourcePendingAuthorisation.class);
 
 		});
 
