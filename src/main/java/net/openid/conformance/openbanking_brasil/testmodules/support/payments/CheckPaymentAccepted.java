@@ -23,7 +23,6 @@ public class CheckPaymentAccepted extends AbstractCondition {
 		} else {
 			logFailure("Invalid payment status: " + status);
 		}
-
 		return env;
 	}
 }
