@@ -131,15 +131,10 @@ public class OpinConsentsApiDeleteTestModule extends AbstractFunctionalTestModul
 			.replace(
 				CallTokenEndpoint.class,
 				condition(CallTokenEndpointAndReturnFullResponse.class))
-			.replace(
-				CheckIfTokenEndpointResponseError.class,
-				condition(EnsureTokenResponseWas403.class))
-			.replace(
-				CheckForAccessTokenValue.class,
-				condition(EnsureTokenResponseWasAFailure.class))
-			.skip(ExtractAccessTokenFromTokenResponse.class,"No access token should have been issued")
-			)
-		;
+			.insertAfter(
+				CallTokenEndpoint.class,
+				sequenceOf(condition(EnsureTokenResponseWasAFailure.class).dontStopOnFailure(),
+					       condition(EnsureTokenResponseWas403.class))));
 	}
 
 	@Override
