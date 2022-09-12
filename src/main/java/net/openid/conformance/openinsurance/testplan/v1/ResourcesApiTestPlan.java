@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testplan;
+package net.openid.conformance.openinsurance.testplan.v1;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
@@ -18,7 +18,6 @@ public class ResourcesApiTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-
 				),
 				List.of(
 

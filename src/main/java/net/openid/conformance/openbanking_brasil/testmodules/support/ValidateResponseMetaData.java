@@ -35,10 +35,10 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 		JsonObject consentEndpointResponse = env.getObject("consent_endpoint_response");
 		Boolean isConsentsForced = env.getBoolean("force_consents_response");
 
-		if(isConsentsForced != null && isConsentsForced){
+		if (isConsentsForced != null && isConsentsForced) {
 			apiResponse = consentEndpointResponse;
 			env.putBoolean("force_consents_response", false);
-		}else {
+		} else {
 			if (!Strings.isNullOrEmpty(resourceEndpointResponse) && JsonHelper.ifExists(bodyFrom(env), "$.data")) {
 				apiResponse = bodyFrom(env);
 			} else {
@@ -53,7 +53,6 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 		JsonElement dataElement = findByPath(apiResponse, "$.data");
 		int metaTotalRecords = 1;
 		int metaTotalPages = 1;
-
 		if (JsonHelper.ifExists(apiResponse, "$.meta")) {
 			if (JsonHelper.ifExists(apiResponse, "$.meta.totalRecords")) {
 				metaTotalRecords = OIDFJSON.getInt(findByPath(apiResponse, "$.meta.totalRecords"));
@@ -141,18 +140,19 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 			arrayCount = dataElement.getAsJsonArray().size();
 		}
 
+
 		if (arrayCount > metaTotalRecords) {
 			throw error("Data contains more items than the metadata totalRecords.");
 		}
 
-		// check if there is a next or prev link - if so, totalPages should be different than one.
+		// check if there is a next or prev link - if so, totalPages should be different than one and zero.
 		if (!Strings.isNullOrEmpty(prevLink) || !Strings.isNullOrEmpty(nextLink)) {
-			if (metaTotalPages == 1) {
-				throw error("totalPages field should not be 1.");
+			if (metaTotalPages == 0 || metaTotalPages == 1) {
+				throw error("totalPages field should not be 0 or 1.");
 			}
 		}
-		// check if there is 1 page - if so, there should not be a next and prev link.
-		if (metaTotalPages == 1) {
+		// check if there is 1 or none pages - if so, there should not be a next and prev link.
+		if (metaTotalPages == 0 || metaTotalPages == 1) {
 
 			// Make sure we don't have a next or prev link
 			if (!Strings.isNullOrEmpty(nextLink) || !Strings.isNullOrEmpty(prevLink)) {
@@ -219,6 +219,19 @@ public class ValidateResponseMetaData extends AbstractJsonAssertingCondition {
 				}
 			}
 		}
+
+		// if data array is empty then totalPages and totalRecords fields have to be 0 as per
+		// https://openbankingbrasil.atlassian.net/wiki/spaces/OB/pages/1737881/Pagina+o#Meta
+
+		if (arrayCount == 0) {
+			log("Array is empty");
+			if (metaTotalPages == 0 && metaTotalRecords == 0) {
+				logSuccess("totalPages and totalRecords are 0 as expected");
+			} else {
+				throw error("totalPages and totalRecords fields have to be 0 when data array is empty");
+			}
+		}
+
 
 		env.putString("metaOnlyRequestDateTime", "false");
 		return env;
