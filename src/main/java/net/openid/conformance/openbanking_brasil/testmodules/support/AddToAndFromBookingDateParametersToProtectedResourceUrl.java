@@ -15,7 +15,11 @@ public class AddToAndFromBookingDateParametersToProtectedResourceUrl extends Abs
 		String fromBookingDate = env.getString("fromBookingDate");
 		String toBookingDate = env.getString("toBookingDate");
 
-		String url = String.format("%s?fromBookingDate=%s&toBookingDate=%s", baseUrl, fromBookingDate, toBookingDate);
+		String pattern = "%s?fromBookingDate=%s&toBookingDate=%s";
+		if(baseUrl.contains("?")){
+			pattern = "%s&fromBookingDate=%s&toBookingDate=%s";
+		}
+		String url = String.format(pattern, baseUrl, fromBookingDate, toBookingDate);
 		env.putString("protected_resource_url", url);
 		logSuccess("Parameters were added to the resource URL", Map.of("URL", url));
 		return env;

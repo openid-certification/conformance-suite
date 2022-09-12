@@ -53,8 +53,8 @@ import java.time.format.DateTimeFormatter;
 public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasilFunctionalTestModule {
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	private static final String FROM_BOOKING_DATE_MAX_LIMITED = "fromBookingDateMaxLimited";
-	private static final String TO_BOOKING_DATE_MAX_LIMITED = "toBookingDateMaxLimited";
+	private static final String FROM_BOOKING_DATE_PARAMETER = "fromBookingDate";
+	private static final String TO_BOOKING_DATE_PARAMETER = "toBookingDate";
 
 	@Override
 	protected void configureClient(){
@@ -77,11 +77,11 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 
 		// Call with full range parameters | Anti Cheat
 		LocalDate currentDate = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(6).format(FORMATTER));
-		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.format(FORMATTER));
+		env.putString(FROM_BOOKING_DATE_PARAMETER, currentDate.minusDays(6).format(FORMATTER));
+		env.putString(TO_BOOKING_DATE_PARAMETER, currentDate.format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Account Current transactions with full range date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
 				.then(condition(CopyResourceEndpointResponse.class)))
@@ -89,11 +89,11 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 		env.mapKey("full_range_response", "resource_endpoint_response_full_copy");
 
 		// Call with valid  parameters
-		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(5).format(FORMATTER));
-		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.format(FORMATTER));
+		env.putString(FROM_BOOKING_DATE_PARAMETER, currentDate.minusDays(5).format(FORMATTER));
+		env.putString(TO_BOOKING_DATE_PARAMETER, currentDate.format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Account Current transactions with valid date parameters", () -> call(getPreCallProtectedResourceSequence()));
 		runInBlock("Validate Account Current Transactions",
 			() -> call(getValidationSequence()
@@ -102,11 +102,11 @@ public class AccountsApiTransactionsCurrentTestModuleV2 extends AbstractOBBrasil
 		);
 
 		// Call with invalid  parameters
-		env.putString(FROM_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(30).format(FORMATTER));
-		env.putString(TO_BOOKING_DATE_MAX_LIMITED, currentDate.minusDays(20).format(FORMATTER));
+		env.putString(FROM_BOOKING_DATE_PARAMETER, currentDate.minusDays(30).format(FORMATTER));
+		env.putString(TO_BOOKING_DATE_PARAMETER, currentDate.minusDays(20).format(FORMATTER));
 
 		callAndStopOnFailure(PrepareUrlForFetchingCurrentAccountTransactions.class);
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		runInBlock("Fetch Account Current transactions with invalid date parameters",
 			() -> call(getPreCallProtectedResourceSequence()
 				.replace(EnsureResponseCodeWas200.class, condition(EnsureResponseCodeWas422.class)))

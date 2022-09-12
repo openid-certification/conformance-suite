@@ -68,7 +68,7 @@ public class AccountsApiMaxPageSizePagingTestModule extends AbstractOBBrasilFunc
 		preCallProtectedResource("Prepare to Fetch Account Transactions");
 		callAndStopOnFailure(AccountSelector.class);
 		callAndStopOnFailure(SetProtectedResourceUrlTransactionsPageSize1000.class);
-		callAndStopOnFailure(AppendToAndFromBookingDateParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		callAndStopOnFailure(SetResourceMethodToGet.class);
 		callAndStopOnFailure(ClearContentTypeHeaderForResourceEndpointRequest.class);
 		callAndStopOnFailure(CallProtectedResource.class);
