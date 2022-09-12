@@ -67,6 +67,7 @@ public class OpinCustomerBusinessDataApiTestModule extends AbstractOBBrasilFunct
 			callAndContinueOnFailure(OpinCustomersBusinessIdentificationListValidatorV1.class, Condition.ConditionResult.FAILURE);
 		});
 		runInBlock("Validating business qualifications response V1", () -> {
+			callAndStopOnFailure(PrepareToGetBusinessQualifications.class);
 			callAndContinueOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureResponseCodeWas200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(OpinCustomersBusinessQualificationListValidatorV1.class, Condition.ConditionResult.FAILURE);
