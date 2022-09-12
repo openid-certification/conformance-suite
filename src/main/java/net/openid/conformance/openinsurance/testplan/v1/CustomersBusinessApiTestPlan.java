@@ -1,6 +1,7 @@
 package net.openid.conformance.openinsurance.testplan.v1;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openinsurance.testmodule.customers.v1.OpinCustomerPersonalDataApiTestModule;
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
