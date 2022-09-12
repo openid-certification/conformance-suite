@@ -126,16 +126,8 @@ public class CreditCardApiTestModuleV2 extends AbstractOBBrasilFunctionalTestMod
 		preCallProtectedResource("Fetch Credit Card bill transaction V2");
 		callAndContinueOnFailure(CreditCardAccountsTransactionBillResponseValidatorV2.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureResponseHasLinks.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateMetaOnlyRequestDateTime.class, Condition.ConditionResult.FAILURE);
-
-		call(new ValidateSelfEndpoint()
-			.replace(ValidateResponseMetaData.class, condition(ValidateMetaOnlyRequestDateTime.class)
-			));
-
-		call(condition(VerifyAdditionalFieldsWhenMetaOnlyRequestDateTime.class)
-			.dontStopOnFailure()
-			.onFail(Condition.ConditionResult.WARNING));
-
+		callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
+		call(sequence(ValidateSelfEndpoint.class));
 	}
 
 }
