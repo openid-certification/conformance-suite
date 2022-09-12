@@ -1,6 +1,8 @@
 package net.openid.conformance.openinsurance.testplan.v1;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openinsurance.testmodule.resources.v1.OpinResourcesApiTestModule;
+import net.openid.conformance.openinsurance.testmodule.resources.v1.OpinResourcesApiTestModuleCorrect404;
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -18,6 +20,8 @@ public class ResourcesApiTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
+					OpinResourcesApiTestModule.class,
+					OpinResourcesApiTestModuleCorrect404.class
 				),
 				List.of(
 

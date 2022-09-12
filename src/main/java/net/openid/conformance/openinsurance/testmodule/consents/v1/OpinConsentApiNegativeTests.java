@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testmodule.v1.consents;
+package net.openid.conformance.openinsurance.testmodule.consents.v1;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openbanking_brasil.OBBProfile;

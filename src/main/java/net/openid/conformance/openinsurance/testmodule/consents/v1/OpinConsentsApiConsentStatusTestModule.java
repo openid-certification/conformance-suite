@@ -1,4 +1,4 @@
-package net.openid.conformance.openinsurance.testmodule.v1.consents;
+package net.openid.conformance.openinsurance.testmodule.consents.v1;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;

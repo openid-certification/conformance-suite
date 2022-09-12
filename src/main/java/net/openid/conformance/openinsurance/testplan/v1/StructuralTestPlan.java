@@ -1,7 +1,9 @@
 package net.openid.conformance.openinsurance.testplan.v1;
 
 import net.openid.conformance.openbanking_brasil.OBBProfile;
+import net.openid.conformance.openinsurance.testmodule.structural.v1.OpinCustomerBusinessStructuralTestModule;
 import net.openid.conformance.openinsurance.testmodule.structural.v1.OpinCustomerPersonalStructuralTestModule;
+import net.openid.conformance.openinsurance.testmodule.structural.v1.OpinPatrimonialStructuralTestModule;
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
@@ -20,6 +22,9 @@ public class StructuralTestPlan implements TestPlan{
 		return List.of(
 			new TestPlan.ModuleListEntry(
 				List.of(
+					OpinCustomerPersonalStructuralTestModule.class,
+					OpinCustomerBusinessStructuralTestModule.class,
+					OpinPatrimonialStructuralTestModule.class
 				),
 				List.of(
 
