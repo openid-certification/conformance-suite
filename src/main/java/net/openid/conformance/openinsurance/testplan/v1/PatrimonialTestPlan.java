@@ -3,6 +3,7 @@ package net.openid.conformance.openinsurance.testplan.v1;
 import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openinsurance.testmodule.patrimonial.v1.OpinPatrimonialWrongPermissionsTestModule;
 import net.openid.conformance.openinsurance.testmodule.patrimonial.v1.OpinPatrimonialApiTestModule;
+import net.openid.conformance.openinsurance.testmodule.resources.v1.OpinResourcesApiTestModuleCorrect404;
 import net.openid.conformance.openinsurance.testplan.utils.PlanNames;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
