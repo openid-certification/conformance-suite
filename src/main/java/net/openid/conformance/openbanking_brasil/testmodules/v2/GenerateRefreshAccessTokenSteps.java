@@ -1,5 +1,6 @@
 package net.openid.conformance.openbanking_brasil.testmodules.v2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.payments.GenerateRefreshTokenRequest;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -14,6 +15,10 @@ public class GenerateRefreshAccessTokenSteps extends AbstractConditionSequence {
 	@Override
 	public void evaluate() {
 		call(exec().startBlock("Refreshing Access Token"));
+		call(condition(ExtractRefreshTokenFromTokenResponse.class)
+			.dontStopOnFailure()
+			.onFail(Condition.ConditionResult.INFO));
+
 		callAndStopOnFailure(GenerateRefreshTokenRequest.class);
 
 		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
