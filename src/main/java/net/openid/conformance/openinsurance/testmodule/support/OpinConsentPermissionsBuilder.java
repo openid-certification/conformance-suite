@@ -102,4 +102,18 @@ public class OpinConsentPermissionsBuilder extends AbstractFAPI1AdvancedFinalSer
 		call(condition(OpinLogConsentPermissions.class));
 	}
 
+	public void buildFromEnv() {
+
+		call(condition(OpinEnsurePermissionsBuilderInEnv.class).dontStopOnFailure());
+
+		String permissionGroupString = env.getString("permissions_builder");
+		PermissionsGroup permissionsGroup = null;
+		for (PermissionsGroup pg : PermissionsGroup.values()) {
+			if (pg.name().equals(permissionGroupString)) {
+				permissionsGroup = pg;
+			}
+		}
+
+		this.resetPermissions().addPermissionsGroup(permissionsGroup).build();
+	}
 }
