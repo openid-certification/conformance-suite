@@ -7,15 +7,13 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.security.core.parameters.P;
 
 import java.util.Base64;
-import java.util.Objects;
 import java.util.Set;
 
-public class CheckPaymentAccepted extends AbstractCondition {
+public class CheckPaymentPending extends AbstractCondition {
 
-	private final Set<String> STATUS = Sets.newHashSet("ACSP", "ACSC", "ACCC");
+	private final Set<String> STATUS = Sets.newHashSet("PDNG", "PART");
 
 	@Override
 	@PreEnvironment(required = "resource_endpoint_response_full")
@@ -24,11 +22,9 @@ public class CheckPaymentAccepted extends AbstractCondition {
 		String jwtBody = OIDFJSON.getString(response.get("body"));
 		JsonObject body = new Gson().fromJson(new String(Base64.getUrlDecoder().decode(jwtBody.split("\\.")[1].getBytes())), JsonObject.class);
 		String status = OIDFJSON.getString(body.getAsJsonObject("data").get("status"));
-		if (STATUS.contains(status)) {
-			logSuccess("Payment status is accepted");
-		} else {
-			logFailure("Invalid payment status", args("status", status));
-		}
+		log("Payment status extracted", args("status", status));
+		env.putBoolean("payment_not_pending", !STATUS.contains(status));
+		logSuccess(STATUS.contains(status) ? "Payment still pending" : "Payment not pending anymore");
 		return env;
 	}
 }

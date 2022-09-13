@@ -192,13 +192,14 @@ public class PaymentsApiE2EIDTestModule extends AbstractOBBrasilFunctionalTestMo
 			callAndContinueOnFailure(ValidateResponseMetaData.class, Condition.ConditionResult.FAILURE);
 
 			repeatSequence(PollForAcceptedPaymentSequence::new)
-				.untilTrue("payment_accepted")
+				.untilTrue("payment_not_pending")
 				.trailingPause(30)
 				.times(10)
 				.onTimeout(sequenceOf(
 					condition(TestTimedOut.class),
 					condition(ChuckWarning.class)))
 				.run();
+			callAndStopOnFailure(CheckPaymentAccepted.class);
 		}
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
