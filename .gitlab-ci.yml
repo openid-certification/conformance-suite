@@ -7,6 +7,7 @@ variables:
 
 stages:
   - build
+  - deploy_versioned_jar
   - dev_build
   - upload_dev
   - upload
@@ -39,10 +40,10 @@ build:
     - git config --global user.name "ReleaseBot"
     - mkdir -p ~/.ssh
     - ssh-keyscan $CI_SERVER_HOST > ~/.ssh/known_hosts
-#    - git checkout -f master
-#    - mvn -B -Dpmd.skip clean release:prepare -Darguments=" -s ci_settings.xml" -DscmCommentPrefix="[skip ci]"
-#    - mvn -B -Dpmd.skip clean release:perform -Darguments=" -s ci_settings.xml"
-    - mvn -B -Dpmd.skip clean package
+    - git checkout -f master
+    - mvn -B -Dpmd.skip clean release:prepare -Darguments=" -s ci_settings.xml" -DscmCommentPrefix="[skip ci]"
+    - mvn -B -Dpmd.skip clean release:perform -Darguments=" -s ci_settings.xml -Dmaven.javadoc.failOnError=false"
+#    - mvn -B -Dpmd.skip clean package
     - set_app_version
   artifacts:
     paths:
