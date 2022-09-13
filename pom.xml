@@ -4,7 +4,7 @@
 
 	<groupId>net.openid</groupId>
 	<artifactId>fapi-conformance-suite</artifactId>
-	<version>0.0.6</version>
+	<version>0.0.7-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>FAPI Conformance Test</name>
@@ -29,7 +29,7 @@
 	<scm>
 		<connection>scm:git:git@gitlab.com:obb1/certification.git</connection>
 		<developerConnection>scm:git:git@gitlab.com:obb1/certification.git</developerConnection>
-		<tag>fapi-conformance-suite-0.0.6</tag>
+		<tag>fapi-conformance-suite-0.0.1</tag>
 		<url>https://gitlab.com/obb1/certification/-/wikis/home</url>
 	</scm>
 
