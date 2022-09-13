@@ -359,6 +359,20 @@
                                 </div>
                             </div>
                             <div class="row config-form-element-container">
+                                <div class="col-md-2 key">Payments or Consents scope</div>
+                                <div class="col-md-10">
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="bottom" title="Whether test should send Payments or Consents scope during the execution."></span>
+                                        </div>
+                                        <select class="form-control config-form-element" data-json-target="client.toggleable_scope">
+                                            <option value="payments">Payments</option>
+                                            <option value="consents" selected>Consents</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row config-form-element-container">
                                 <div class="col-md-2 key">redirect_uri</div>
                                 <div class="col-md-10">
                                     <div class="input-group">
