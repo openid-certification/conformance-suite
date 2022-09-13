@@ -76,6 +76,8 @@ upload_dev:
  script:
    - setup_docker
    - install_build_dependencies
+   - ls -al
+   - ls -al target/
    - docker build -t conformance-suite .
    - upload_dev
    - sleep 120 # wait for deployment to happen
