@@ -11,7 +11,9 @@ import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.PrepareUrlForRe
 import net.openid.conformance.openbanking_brasil.resourcesAPI.v2.ResourcesResponseValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.AbstractOBBrasilFunctionalTestModule;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
+import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareUrlForAccountsRoot;
 import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareUrlForFetchingAccountBalances;
+import net.openid.conformance.openbanking_brasil.testmodules.account.PrepareUrlForFetchingAccountResource;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.warningMessages.TestTimedOut;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -137,6 +139,7 @@ public class AccountsApiResourcesMultipleConsentsTestModuleV2 extends AbstractOB
 
 		// Call accounts API
 		callAndStopOnFailure(BuildAccountsConfigResourceUrlFromConsentUrl.class);
+		callAndStopOnFailure(PrepareUrlForAccountsRoot.class);
 		runInBlock("Call Accounts API", () -> call(getPreCallProtectedResourceSequence()));
 
 		runInBlock("Validate Accounts response", () -> {
