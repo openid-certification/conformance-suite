@@ -31,7 +31,8 @@ public class ValidateErrorAndMetaFieldNames extends AbstractJsonAssertingConditi
 				apiResponse = env.getObject("resource_endpoint_response_full");
 				errorCodes = Sets.newHashSet(
 					"SALDO_INSUFICIENTE", "BENEFICIARIO_INCOMPATIVEL", "VALOR_INCOMPATIVEL", "VALOR_ACIMA_LIMITE", "VALOR_INVALIDO",
-					"COBRANCA_INVALIDA", "CONSENTIMENTO_INVALIDO", "JANELA_OPER_INVALIDA", "NAO_INFORMADO", "PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO"
+					"COBRANCA_INVALIDA", "CONSENTIMENTO_INVALIDO", "JANELA_OPER_INVALIDA", "NAO_INFORMADO", "PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO",
+					"PARAMETRO_INVALIDO", "PARAMETRO_NAO_INFORMADO"
 				);
 			} else {
 				apiResponse = getConsentJsonObject(env);
