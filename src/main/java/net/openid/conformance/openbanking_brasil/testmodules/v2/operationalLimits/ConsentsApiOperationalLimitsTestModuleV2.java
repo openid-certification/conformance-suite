@@ -11,6 +11,7 @@ import net.openid.conformance.openbanking_brasil.OBBProfile;
 import net.openid.conformance.openbanking_brasil.consent.v2.ConsentDetailsIdentifiedByConsentIdValidatorV2;
 import net.openid.conformance.openbanking_brasil.consent.v2.CreateNewConsentValidatorV2;
 import net.openid.conformance.openbanking_brasil.testmodules.account.BuildAccountsConfigResourceUrlFromConsentUrl;
+import net.openid.conformance.openbanking_brasil.testmodules.customerAPI.AddScopesForCustomerApi;
 import net.openid.conformance.openbanking_brasil.testmodules.support.*;
 import net.openid.conformance.openbanking_brasil.testmodules.support.consent.v2.OpenBankingBrazilPreAuthorizationConsentApiV2;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -60,6 +61,7 @@ public class ConsentsApiOperationalLimitsTestModuleV2 extends AbstractOperationa
 	protected void validateClientConfiguration() {
 		super.validateClientConfiguration();
 		callAndStopOnFailure(AddConsentScope.class);
+		callAndStopOnFailure(AddScopesForCustomerApi.class);
 		callAndContinueOnFailure(OperationalLimitsToConsentRequest.class);
 	}
 
