@@ -196,10 +196,10 @@ public class AccountsApiOperationalLimitsTestModule extends AbstractOperationalL
 		}
 
 		enableLogging();
-		env.putString("fromBookingDateMaxLimited", currentDate.minusDays(6).format(FORMATTER));
-		env.putString("toBookingDateMaxLimited", currentDate.format(FORMATTER));
+		env.putString("fromBookingDate", currentDate.minusDays(6).format(FORMATTER));
+		env.putString("toBookingDate", currentDate.format(FORMATTER));
 
-		callAndStopOnFailure(AddToAndFromBookingDateMaxLimitedParametersToProtectedResourceUrl.class);
+		callAndStopOnFailure(AddToAndFromBookingDateParametersToProtectedResourceUrl.class);
 		env.putInteger("required_page_size", 1);
 		callAndContinueOnFailure(AddSpecifiedPageSizeParameterToProtectedResourceUrl.class);
 
