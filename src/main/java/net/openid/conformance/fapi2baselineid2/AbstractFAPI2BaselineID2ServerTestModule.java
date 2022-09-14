@@ -434,15 +434,18 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 
 		private boolean isSecondClient;
+		private boolean isOpenId;
 		private boolean isJarm;
 		private boolean usePkce;
 		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
+											   boolean isOpenId,
 											   boolean isJarm,
 											   boolean usePkce,
 											   Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
+			this.isOpenId = isOpenId;
 			this.isJarm = isJarm;
 			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
 			// currently not possible to use 'skip' to skip a conditionsequence within a condition sequence
@@ -467,8 +470,10 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			callAndStopOnFailure(CreateRandomStateValue.class);
 			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
-			callAndStopOnFailure(CreateRandomNonceValue.class);
-			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+			if (isOpenId) {
+				callAndStopOnFailure(CreateRandomNonceValue.class);
+				callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
+			}
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
 			if (isJarm) {
@@ -487,7 +492,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		return new CreateAuthorizationRequestSteps(isSecondClient(), jarm, true, profileAuthorizationEndpointSetupSteps);
+		return new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, true, profileAuthorizationEndpointSetupSteps);
 	}
 
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {

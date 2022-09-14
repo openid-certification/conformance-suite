@@ -4,6 +4,8 @@ import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-ensure-authorization-request-without-nonce-success",
@@ -27,6 +29,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
 public class FAPI2BaselineID2EnsureAuthorizationRequestWithoutNonceSuccess extends AbstractFAPI2BaselineID2ServerTestModule {
 
 	@Override
