@@ -56,10 +56,10 @@ public class BrazilOBClientTestPlan implements TestPlan {
 
 		switch (profile) {
 			case "openbanking_brazil":
-				certProfile = "BR-OB Adv. OP DCR";
+				certProfile = "BR-OB Adv. RP w/";
 				break;
 			case "openinsurance_brazil":
-				certProfile = "BR-OPIN Adv. OP DCR";
+				certProfile = "BR-OPIN Adv. RP w/";
 				break;
 			default:
 				throw new RuntimeException("This plan can only be used for Brazil OpenBanking or OpenInsurance.");
