@@ -238,6 +238,9 @@ public class JWEUtil {
 
 	public static JWEDecrypter createDecrypter(Algorithm algorithm, JWK key) throws JOSEException
 	{
+		if (key == null) {
+			throw new RuntimeException("Private key is required for "+algorithm.toString());
+		}
 		if(AESDecrypter.SUPPORTED_ALGORITHMS.contains(algorithm)) {
 			AESDecrypter decrypter = new AESDecrypter((OctetSequenceKey)key);
 			return decrypter;
