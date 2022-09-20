@@ -16,12 +16,13 @@ public class FAPIBrazilOpenInsuranceVerifyCertificateSubjectOrganizationIdentifi
 			throw error("Certificate organization identifier field not found or empty; a valid OpenInsurance certificate must be used for testing");
 		}
 
-		if (!ou.equals("OIBBR")) {
-			throw error("Certificate organization identifier field is not prefixed by 'OIBBR'; a valid OpenInsurance certificate must be used for testing",
+		String expected = "OPIBR";
+		if (!ou.equals(expected)) {
+			throw error("Certificate organization identifier field is not prefixed by '"+expected+"'; a valid OpenInsurance certificate must be used for testing",
 				args("org_type", ou));
 		}
 
-		log("Certificate organization identifier field contains expected OIBBR", args("org_type", ou));
+		log("Certificate organization identifier field contains expected "+expected, args("org_type", ou));
 
 		return env;
 	}
