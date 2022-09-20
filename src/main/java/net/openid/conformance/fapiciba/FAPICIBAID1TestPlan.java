@@ -19,6 +19,7 @@ import java.util.Map;
 		FAPICIBAID1AuthReqIdExpired.class,
 		FAPICIBAID1EnsureAuthorizationRequestWithBindingMessageSucceeds.class,
 		FAPICIBAID1EnsureOtherScopeOrderSucceeds.class,
+		FAPICIBAID1EnsureRequestedExpiryAsStringSucceeds.class,
 
 		// Possible failure case
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,

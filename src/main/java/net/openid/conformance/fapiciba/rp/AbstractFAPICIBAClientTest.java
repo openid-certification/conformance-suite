@@ -607,7 +607,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(BackchannelRequestHasExactlyOneOfTheHintParameters.class, ConditionResult.FAILURE, "CIBA-7.1");
 		skipIfMissing(null, new String[]{ "id_token_hint"}, ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1", "CIBA-7.1.1");
 
 		createBackchannelResponse();
 		if(CIBAMode.PING.equals(cibaMode)) {

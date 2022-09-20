@@ -30,7 +30,7 @@ public class CreateBackchannelEndpointResponse extends AbstractCondition {
 	}
 
 	protected void addExpiresIn(Environment env, JsonObject backchannelResponse) {
-		Integer requestedExpiry = env.getInteger("backchannel_request_object", "claims.requested_expiry");
+		Integer requestedExpiry = env.getInteger("requested_expiry");
 		int expiresIn = requestedExpiry != null ? requestedExpiry : EXPIRES_IN;
 		backchannelResponse.addProperty("expires_in", expiresIn);
 
