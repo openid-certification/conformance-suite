@@ -3,6 +3,7 @@ package net.openid.conformance.condition.rs;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -12,11 +13,12 @@ import org.apache.commons.lang3.RandomStringUtils;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 public class FAPIBrazilGenerateNewConsentResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = {"fapi_interaction_id"})
+	@PreEnvironment(strings = {"fapi_interaction_id"}, required = "new_consent_request")
 	@PostEnvironment(strings = {"consent_id"}, required = {"consent_response", "consent_response_headers"})
 	public Environment evaluate(Environment env) {
 
@@ -38,10 +40,22 @@ public class FAPIBrazilGenerateNewConsentResponse extends AbstractCondition {
 		dataElement.addProperty("creationDateTime", creationDateTime);
 		dataElement.addProperty("status", "AWAITING_AUTHORISATION");
 		dataElement.addProperty("statusUpdateDateTime", creationDateTime);
+
+		JsonArray requestPermissions = (JsonArray) env.getElementFromObject("new_consent_request", "data.permissions");
 		JsonArray permissions = new JsonArray();
-		permissions.add("ACCOUNTS_READ");
-		permissions.add("ACCOUNTS_BALANCES_READ");
-		permissions.add("RESOURCES_READ");
+		// we use slightly different permissions for opin vs openbanking
+		List<String> supportedPermissions = List.of(
+			"ACCOUNTS_READ",
+			"ACCOUNTS_BALANCES_READ",
+			"RESOURCES_READ",
+			"CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ");
+		if (requestPermissions != null) {
+			for (String permission : supportedPermissions) {
+				if (requestPermissions.contains(new JsonPrimitive(permission))) {
+					permissions.add(permission);
+				}
+			}
+		}
 
 		dataElement.add("permissions", permissions);
 		dataElement.addProperty("expirationDateTime", expirationDateTime);
