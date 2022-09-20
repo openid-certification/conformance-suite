@@ -17,6 +17,7 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureTlsCl
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSSAFromDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSoftwareStatement;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilFetchDirectorySSAJwks;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilOpInFetchDirectorySSAJwks;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateDefaultAcrValues;
@@ -214,7 +215,11 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		call(exec().unmapKey("token_endpoint_request"));
 
 		callAndStopOnFailure(FAPIBrazilExtractSSAFromDynamicRegistrationRequest.class);
-		callAndStopOnFailure(FAPIBrazilFetchDirectorySSAJwks.class);
+		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilOpInFetchDirectorySSAJwks.class);
+		} else {
+			callAndStopOnFailure(FAPIBrazilFetchDirectorySSAJwks.class);
+		}
 		callAndStopOnFailure(FAPIBrazilValidateSSASignature.class);
 		callAndStopOnFailure(FAPIBrazilExtractSoftwareStatement.class);
 
