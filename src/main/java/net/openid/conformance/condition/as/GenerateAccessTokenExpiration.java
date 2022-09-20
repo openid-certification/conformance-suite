@@ -9,8 +9,8 @@ public class GenerateAccessTokenExpiration extends AbstractCondition {
 	@Override
 	@PostEnvironment(strings = { "access_token_expiration"})
 	public Environment evaluate(Environment env) {
-		env.putString("access_token_expiration", "3600");
-		log("Set access_token_expiration to 3600");
+		env.putString("access_token_expiration", "900");
+		log("Set access_token_expiration to 900");
 		return env;
 	}
 
