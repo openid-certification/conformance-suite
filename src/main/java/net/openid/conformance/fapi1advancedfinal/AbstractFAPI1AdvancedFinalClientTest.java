@@ -74,6 +74,7 @@ import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
+import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
@@ -876,6 +877,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected Object clientCredentialsGrantType(String requestId) {
 
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
@@ -1090,6 +1092,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected void issueAccessToken() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 
