@@ -1200,6 +1200,11 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
+        if all_test_modules[m]['profile'] in ['OID4VCI']:
+            # skip CI for credential issuance as we don't have access to a suitable server to use in the CI
+            untested_test_modules.remove(m)
+            continue
+
         if re.match(r'(oidcc-session-management-.*)', m):
             # The browser automation currently doesn't seem to work for the iframes/js these tests use
             untested_test_modules.remove(m)
