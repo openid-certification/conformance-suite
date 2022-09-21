@@ -2,7 +2,11 @@ package net.openid.conformance.condition.as;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported;
 import net.openid.conformance.testmodule.Environment;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class FAPI2ValidateRequestObjectSigningAlg extends AbstractCondition {
 
@@ -12,7 +16,8 @@ public class FAPI2ValidateRequestObjectSigningAlg extends AbstractCondition {
 
 		String alg = env.getString("authorization_request_object", "header.alg");
 
-		if (alg.equals("PS256") || alg.equals("ES256") || alg.equals("EdDSA") ) {
+		List<String> permitted = Arrays.asList(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.FAPI2_ALLOWED_ALGS);
+		if (permitted.contains(alg)) {
 			logSuccess("Request object was signed with a permitted algorithm", args("alg", alg));
 
 			return env;

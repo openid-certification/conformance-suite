@@ -129,6 +129,9 @@ public class JWTUtil {
 				}
 				JWKSet jwkSet = JWKUtil.parseJWKSet(privateJwksWithEncKeys.toString());
 				decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
+				if (decryptionKey == null) {
+					throw new ParseException("No suitable key for decrypting this JWT was provided in the test configuration.", 0);
+				}
 			}
 			JWEDecrypter decrypter = JWEUtil.createDecrypter(alg, decryptionKey);
 			encryptedJWT.decrypt(decrypter);

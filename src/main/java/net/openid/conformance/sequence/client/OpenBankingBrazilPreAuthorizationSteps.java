@@ -35,6 +35,7 @@ import net.openid.conformance.condition.client.FAPIBrazilExtractClientMTLSCertif
 import net.openid.conformance.condition.client.FAPIBrazilGetKeystoreJwksUri;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCreateConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCreateConsentRequest;
+import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceVerifyCertificateSubjectOrganizationIdentifier;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
@@ -198,6 +199,10 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		} else {
 			if (openInsurance) {
 				callAndStopOnFailure(FAPIBrazilOpenInsuranceCreateConsentRequest.class);
+
+				// check the certificate being used for testing
+				callAndStopOnFailure(FAPIBrazilExtractClientMTLSCertificateSubject.class);
+				callAndContinueOnFailure(FAPIBrazilOpenInsuranceVerifyCertificateSubjectOrganizationIdentifier.class, Condition.ConditionResult.FAILURE);
 			} else {
 				callAndStopOnFailure(FAPIBrazilOpenBankingCreateConsentRequest.class);
 			}

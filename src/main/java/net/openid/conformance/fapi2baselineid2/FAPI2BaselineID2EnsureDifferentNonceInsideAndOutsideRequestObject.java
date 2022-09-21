@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestDifferentNonceInsideAndOutsideErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-baseline-id2-ensure-different-nonce-inside-and-outside-request-object",
@@ -34,6 +36,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
 public class FAPI2BaselineID2EnsureDifferentNonceInsideAndOutsideRequestObject extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

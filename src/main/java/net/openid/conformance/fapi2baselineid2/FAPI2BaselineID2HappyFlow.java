@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForPayments;
 import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
@@ -52,6 +54,9 @@ public class FAPI2BaselineID2HappyFlow extends AbstractFAPI2BaselineID2MultipleC
 		if (isBrazil) {
 			if (brazilPayments) {
 				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
+				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForPayments.class, Condition.ConditionResult.FAILURE);
+			} else {
+				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments.class, Condition.ConditionResult.FAILURE);
 			}
 		}
 	}

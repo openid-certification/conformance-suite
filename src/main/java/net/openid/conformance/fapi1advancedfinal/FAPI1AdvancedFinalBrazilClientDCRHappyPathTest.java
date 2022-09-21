@@ -17,6 +17,7 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureTlsCl
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSSAFromDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSoftwareStatement;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilFetchDirectorySSAJwks;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilOpInFetchDirectorySSAJwks;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateDefaultAcrValues;
@@ -39,6 +40,8 @@ import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge
 import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLoginUri;
 import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
 import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
+import net.openid.conformance.condition.client.FAPIBrazilOpinCheckDirectoryKeystore;
 import net.openid.conformance.condition.common.CreateRandomRegistrationClientUri;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
@@ -46,6 +49,7 @@ import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
@@ -81,6 +85,15 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 	@Override
 	protected void addCustomValuesToIdToken(){
 		//Do nothing
+	}
+
+	@Override
+	protected void onConfigurationCompleted() {
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
+		} else if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
+			callAndContinueOnFailure(FAPIBrazilOpinCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
+		}
 	}
 
 	@Override
@@ -202,7 +215,11 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		call(exec().unmapKey("token_endpoint_request"));
 
 		callAndStopOnFailure(FAPIBrazilExtractSSAFromDynamicRegistrationRequest.class);
-		callAndStopOnFailure(FAPIBrazilFetchDirectorySSAJwks.class);
+		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilOpInFetchDirectorySSAJwks.class);
+		} else {
+			callAndStopOnFailure(FAPIBrazilFetchDirectorySSAJwks.class);
+		}
 		callAndStopOnFailure(FAPIBrazilValidateSSASignature.class);
 		callAndStopOnFailure(FAPIBrazilExtractSoftwareStatement.class);
 

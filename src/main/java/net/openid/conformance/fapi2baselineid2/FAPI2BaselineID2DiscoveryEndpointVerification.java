@@ -21,7 +21,6 @@ import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsS
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointGrantTypesSupported;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
@@ -208,7 +207,6 @@ public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2
 			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-6");
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-7");
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
 		}
 	}
 }

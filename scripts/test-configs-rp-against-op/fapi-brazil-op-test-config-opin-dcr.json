@@ -1,0 +1,66 @@
+{
+    "alias": "oidf-obbsb",
+    "description": "FAPI Brazil DCR OP test config for running against RP tests - opin",
+    "server": {
+        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
+    },
+    "client": {
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "use": "sig",
+                    "n": "AMaIkfuhHI1C1V_fHXK79KTHk54zGeZDlcBdJcuS6mSWdLmHTJHxU8_3l4c9yBrYDNJWY7T0_7Pqgc5V6m_M8rU1tSVzXl2X6xXNv05P-20cXFJ8f4HyqQb8oDT8WYypEtyWJ2uch6RL_OII5NYtDCmfRA7A8jaSs4yznWmHAF85Gq439kjKyMNdPdH7ItxRBafixsQ8HRjGsBUl1W32CuVtXhWe3YJnj8xNJtv_9PopzKMumeHxsrSCWZWD2OxB-ysm8BR27YsttVS90AiBpPo7eKQcnW45Er1zzHRtA_H9fK0jIX0NkO4ZhiMWZxwRzX_LB-vcdEHw1UnjPmHkrSk",
+                    "e": "AQAB",
+                    "d": "bAnF53k1YGoOU63HCLjf2QwCeQS2A2ikBZqrBq1cgICf5JaMRJ9fTL0f6KjmTDVmRNBeUgtBW1cybGa0vUJ6kcI4Ybj2kVgqxiLBCIzd9fKJCxpVCRJUiUjQpgTtdm5LpV7Q9O6poe74HslYPnUlOUFCeATnymrq6paUAulEeoxSStLZG07vVAJyECYhdcRbA_SsajzpF0asYDWDjRMBJ0RYbtsxHFFdAQTbsUXHkE3uFfaeCG7kSfnBNAge6U_uuu8ttJnL5JcWF5-orZ5IGwtlvH_QFZlcvVgIRE2jHpxOd9Lf-5a0f1VHuN3rP9sNi_R72tnjEjmnEFMwDV4tAQ",
+                    "p": "APgUAKnyZZgBvDVPeu5NBG6L8_uKO_hyC_08rqsP56Uy4Bx9Y6npGMGwuQIBjwBF0bCNqvbfbc04I7QrMKNXApMJ-o316VcTJDJHAU7mBqDE3MQ8l9O3MRadWJkgJp6vG8k3--eMOS0AIuCaA93C6HZE67LvncXf5yKUqKSdOOXd",
+                    "q": "AMzfjF-lPULhqMyniddUzIb4cktKs6EeSh6j2ctePSdgDNs9lrys7et9_dRMtMTEum6_dUB5wFS2JzVWgQNiJdo2UhtYRMT-nqABSpJET61QrdSe1iBF1h-Q2rrDaDkSMIJFte2xCkEWNJ1k-Bdu8AykZ5o-ljYpyPiUbFPvhc29",
+                    "dp": "ALMItIXx0tIGBo8uwhgy6wzg4f7Z_3fIztA-uAvqWZIGimjlMUURXXWDlbFV8J8QxEk3pHewPa0KY_IF7X8kL05wuCs1muXlgYzrY41OQuBJ0s2osSXxInMgsS0pX9XLqDDqv1iXAThxzbnsTPgBTwTzrmqftWx1r3hsct0CPmrd",
+                    "dq": "NnWSLfaRs06i_Uvn00qiV5qBX0xLNaAEmeJ6SZoSbX4VzM2xXRQm5nuGVsHRJ6EX4cqZE3uJybrl70LAZrLXVwsrhkNPfIImjmfpd7oa5_pTSvqx9sA5rAhobE73THxuUqLPOpDeJfEOKWymmiwOOX4WYCUU7u7qklF5_lHkYo0",
+                    "qi": "YVNSSHmR0Sp-GdQPNVaYDtdsk0dnkj_Dwz0tubKJGcQ0s-NEAQhih-0fpx3z7eIKDYWXDYeLGAcpcxZRuT4tPebU2EGFuK-7TwFv1d60ZQi25vwabJMOYARWrCdtzN73NEgmuWDLk0RS2eghg4eVGOdQnwnBw4eiuqQ82Y1vQus",
+                    "alg": "PS256",
+                    "kid": "LqEFll2xlaNFyImPovlulmby5xZTLE9N4vNOVqVrKks"
+                }
+            ]
+        }
+    },
+    "mtls": {
+        "cert": "-----BEGIN CERTIFICATE-----\nMIIG6TCCBdGgAwIBAgIUHYr117dwUPDYeIiwMkNZb7IZQ08wDQYJKoZIhvcNAQEL\nBQAwdzELMAkGA1UEBhMCQlIxHjAcBgNVBAoTFU9wZW4gSW5zdXJhbmNlIEJyYXNp\nbDEXMBUGA1UECxMOT3BlbiBJbnN1cmFuY2UxLzAtBgNVBAMTJk9wZW4gSW5zdXJh\nbmNlIFNBTkRCT1ggSXNzdWluZyBDQSAtIEcxMB4XDTIyMDkxOTE3MzUwMFoXDTIz\nMTAxOTE3MzUwMFowggEgMQswCQYDVQQGEwJCUjELMAkGA1UECBMCUkoxDzANBgNV\nBAcTBkxvbmRvbjEoMCYGA1UEChMfT1BFTiBJTlNVUkFOQ0UgQlJBU0lMIC0gUkFJ\nRElBTTERMA8GA1UEAxMIT0lERlRlc3QxFzAVBgNVBAUTDjAwMDAwMDEwNzQyODUx\nMR0wGwYDVQQPExRQcml2YXRlIE9yZ2FuaXphdGlvbjETMBEGCysGAQQBgjc8AgED\nEwJVSzEzMDEGA1UEYRMqT1BJQlItZmU2MzgyMDMtMTUzYy00OTE1LWI4MGEtMmNh\nNDcwYTNiMjVjMTQwMgYKCZImiZPyLGQBARMkOTNjMzU1MjMtMmZkNi00ZmFmLThl\nMjktNjg5NzZlMmVhYzRmMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\nyPb49H4viZeVkzwC9ZJ/eSjtiYsPYsvxhh6T/bDeap4RqLi6DHEUCLAcm/V5ieOb\noIFgff4wtGxOGoDQSz3UpykW6AGDlhDj+IJ8sSQySyZ3VnBzBFWqT7tR489rCbba\n+uak14bFqXM+9N6zMOLbaPeNZsn9VRrIYxkdo2yGE6+YEK1wmc/kjSfCvBzN/ycG\n/QIamGMXJX9hC9uMo9yHZzWUvo8aP+0+XSKaUdoVnT3pNRB2JM8gBZ3kHUlNSwoU\nzTaAlHB+pH8/aglkNEClnuZwDR2pcyP1AWz9CMtu87XheDWjkTT4jTsjh3Tweeyr\nxNErgQnnEJ3n1m+HEMHgwwIDAQABo4ICwDCCArwwDAYDVR0TAQH/BAIwADAdBgNV\nHQ4EFgQUy7MTUEeZIgaIe5yeosjIYxqdgM0wHwYDVR0jBBgwFoAUHupycfG7Jdfq\nbbUdIWNyTRMVpH4wRQYIKwYBBQUHAQEEOTA3MDUGCCsGAQUFBzABhilodHRwOi8v\nb2NzcC5zYW5kYm94LnBraS5vcGluYnJhc2lsLmNvbS5icjBEBgNVHR8EPTA7MDmg\nN6A1hjNodHRwOi8vY3JsLnNhbmRib3gucGtpLm9waW5icmFzaWwuY29tLmJyL2lz\nc3Vlci5jcmwwFQYDVR0RBA4wDIIKb3BlbmlkLm5ldDAOBgNVHQ8BAf8EBAMCBaAw\nEwYDVR0lBAwwCgYIKwYBBQUHAwIwggGhBgNVHSAEggGYMIIBlDCCAZAGCisGAQQB\ng7ovZAEwggGAMIIBNgYIKwYBBQUHAgIwggEoDIIBJFRoaXMgQ2VydGlmaWNhdGUg\naXMgc29sZWx5IGZvciB1c2Ugd2l0aCBSYWlkaWFtIFNlcnZpY2VzIExpbWl0ZWQg\nYW5kIG90aGVyIHBhcnRpY2lwYXRpbmcgb3JnYW5pc2F0aW9ucyB1c2luZyBSYWlk\naWFtIFNlcnZpY2VzIExpbWl0ZWRzIFRydXN0IEZyYW1ld29yayBTZXJ2aWNlcy4g\nSXRzIHJlY2VpcHQsIHBvc3Nlc3Npb24gb3IgdXNlIGNvbnN0aXR1dGVzIGFjY2Vw\ndGFuY2Ugb2YgdGhlIFJhaWRpYW0gU2VydmljZXMgTHRkIENlcnRpY2ljYXRlIFBv\nbGljeSBhbmQgcmVsYXRlZCBkb2N1bWVudHMgdGhlcmVpbi4wRAYIKwYBBQUHAgEW\nOGh0dHA6Ly9yZXBvc2l0b3J5LnNhbmRib3gucGtpLm9waW5icmFzaWwuY29tLmJy\nL3BvbGljaWVzMA0GCSqGSIb3DQEBCwUAA4IBAQCYj1I/7hdwMKITpWZ96CVgV0Et\nsXJE3H7/DoQ6gOlbx+1Z0gLijzJIkj5ptRWy/qfflUqYHcv+Jt4VYvk0ebaJeGNP\nPSNhQlciEKRhsYPnc1Lg0c0AKW0XcC1Mz6mfsRyqpgLK7y3r+m0CoFe/xxgdJU0z\nQJn0uXRbPnxligkhNAbM66E+9YsVKX4TKQLCr/XydFQ91ziATEXPZo3pgkH46ymf\nrRxReiCwccA2/gCIpZ2eJdfhgCG7mWr7UFBDrbzOHZQkCchxHavGqZntckrsMbg7\nZ6srpCRJ1fxv5g5fYBcR52Da+JemXuISiiOQ/okK0BYfT2tInaesgi+KK3XV\n-----END CERTIFICATE-----\n",
+        "key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDI9vj0fi+Jl5WT\nPAL1kn95KO2Jiw9iy/GGHpP9sN5qnhGouLoMcRQIsByb9XmJ45uggWB9/jC0bE4a\ngNBLPdSnKRboAYOWEOP4gnyxJDJLJndWcHMEVapPu1Hjz2sJttr65qTXhsWpcz70\n3rMw4tto941myf1VGshjGR2jbIYTr5gQrXCZz+SNJ8K8HM3/Jwb9AhqYYxclf2EL\n24yj3IdnNZS+jxo/7T5dIppR2hWdPek1EHYkzyAFneQdSU1LChTNNoCUcH6kfz9q\nCWQ0QKWe5nANHalzI/UBbP0Iy27zteF4NaORNPiNOyOHdPB57KvE0SuBCecQnefW\nb4cQweDDAgMBAAECggEAKXLu5BaGnX1bR1PQVHATxJyRaZX55Wmk9gGmimOJbDoP\n8FmxXdGQzT3tmKknmS4NsiwdB79+sifIcCTzUSF+k7+gztdJGZGAQ4g+SZbqnJ9h\na72jq1gz2WAMQs1MCWPihG8/vog4inuPl5e7I7EWie7NBk9Q5dWxUOckOsmuWa63\nP20ng5Yfjo9asM+yOA9eVPL8T7Z19aEvRnH1Oe2uOnsVydLXRGU8Ji2V7ac5TiMz\nfcWmxDpL8x8r2tRka/rmDw4INwL8w6DUGtPAw5hIR8JbXkga3TyRhcoLKzxB5z2i\ny7yRslBAi8UKZwPbzua3l5zS3oIdb+Z2AQ3elWOqmQKBgQDlad/ePHPWwlgG8pj9\nWKRzNNoo3lIg4PuOLuUKGt7hMGGS1aqYQ7wguchHmqJOnKJxROHxa1Gqal5IECPl\nkg4UyVm39pIHs+/UiUUrFe/Smf3kAkIwXIvlyZ9hcfoMFaZB4vDXtBjAOLrWH1dq\n0NZ9+Um7bm2p3iIojISdvt5JdQKBgQDgQRekzB9VFcYu+MK67o/w3JD+nHMmB8ZD\njtDTyTvrCS3Px5XyU9UjGoqsMs/IkUYKi+ChcEUwHGRaFh5a5M2sm6048ZhRgRx7\nJzkCammF9IOUiLLiO1PiGSYhRmnOOUyp101xfQ1RT3PHxXE8gNTA+8wGsG4kbK9q\nOTJgI5QCVwKBgFPsynf7d4keKaPJBgzQa8C1mgWPZ04d4AjgwOtUbyrETz2vKqxv\nQxhZvpnrSOsnRAnZ4Co4T3TfWsRUGz21k68pBchVzJBC1D7VRNeBO+24ZfgOl3Yn\ntQoIG2VDk+zt0peR1PekK9XOKxN//bPW2FDXbJDD0hxtZeOdnDo1BA6tAoGBAL0X\nhfVKvTzEgHkI/0IaeLsTcRuQFjRCJ/a9TO7X5zM3aS6jz5cnAzh3X+j1a2lmvdWU\nvtPB1EVOG3wu3GeuOJNMLZMvfE11feuGVjboPZRbajvrzFKgzgl/RTyXoA3pGPC5\ngC6q0Hj4cttHbEUlKMCVUSNuz2DdWEhMdGLGfT4/AoGARbBYXLQngzjKkPgfDgF8\naOnq/Fg8srDLZNO0Or9wFu2YUZ/1nlXkV2mXmO2ilM9+mr0jyYsUyv6aARcimwFI\nSBjAQ9gXi3586k4H+2i5ccpKR/lwS/itc0NhLEIkMGNU53slgezdJxZfKkXhne01\nN8+vKqzvNHA5i/e2MTNFNyA=\n-----END PRIVATE KEY-----\n"
+    },
+    "resource": {
+        "resourceUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/accounts/v1/accounts",
+        "consentUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/consents/v1/consents",
+        "brazilCpf": "76109277673"
+    },
+    "directory": {
+        "discoveryUrl": "https://auth.sandbox.directory.opinbrasil.com.br/.well-known/openid-configuration",
+        "client_id": "93c35523-2fd6-4faf-8e29-68976e2eac4f",
+        "apibase": "https://matls-api.sandbox.directory.opinbrasil.com.br/",
+        "keystore": "https://keystore.sandbox.directory.opinbrasil.com.br/"
+    },
+    "browser": [
+        {
+            "comment": "expect an immediate redirect back to the conformance suite",
+            "match": "https://*/test/a/oidf-fapi-rp-test/authorize*",
+            "tasks": [
+                {
+                    "task": "Verify Complete",
+                    "match": "https://*/test/a/oidf-obbsb/callback*",
+                    "commands": [
+                        [
+                            "wait",
+                            "id",
+                            "submission_complete",
+                            10
+                        ]
+                    ]
+                }
+            ]
+        }
+    ],
+    "consent": {
+        "productType": "personal"
+    }
+}

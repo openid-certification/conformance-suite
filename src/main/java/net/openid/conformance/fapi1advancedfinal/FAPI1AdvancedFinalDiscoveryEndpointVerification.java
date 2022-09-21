@@ -18,7 +18,6 @@ import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsS
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointGrantTypesSupported;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
@@ -193,7 +192,6 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-7");
 			}
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8", "BrazilOPIN-page8");
-			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
 		}
 	}
 }

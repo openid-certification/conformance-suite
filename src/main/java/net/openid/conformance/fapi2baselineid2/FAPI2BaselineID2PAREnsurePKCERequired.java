@@ -42,6 +42,7 @@ public class FAPI2BaselineID2PAREnsurePKCERequired extends AbstractFAPI2Baseline
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		return new CreateAuthorizationRequestSteps(isSecondClient(),
+			isOpenId,
 			jarm,
 			false,
 			profileAuthorizationEndpointSetupSteps);
