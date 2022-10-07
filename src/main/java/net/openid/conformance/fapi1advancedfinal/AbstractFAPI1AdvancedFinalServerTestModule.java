@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResource
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
@@ -812,6 +813,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 				callAndStopOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
 				callAndStopOnFailure(SetResourceMethodToPost.class);
 				callAndStopOnFailure(CreatePaymentRequestEntityClaims.class);
+				callAndStopOnFailure(AddEndToEndIdToPaymentRequestEntityClaims.class);
 
 				// we reuse the request object conditions to add various jwt claims; it would perhaps make sense to make
 				// these more generic.

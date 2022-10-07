@@ -105,8 +105,7 @@
                 },
                 "cnpjInitiator": "60545350000165",
                 "remittanceInformation": "Pagamento da nota XPTO035-002.",
-                "proxy": "12345678901",
-                "endToEndId": "E9040088820210128000800123873170"
+                "proxy": "12345678901"
             }
         }
     },
