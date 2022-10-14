@@ -3,6 +3,7 @@ package net.openid.conformance.security;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import net.openid.conformance.runner.TestDispatcher;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
@@ -36,6 +37,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
@@ -44,6 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -100,8 +103,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
-	@Autowired(required = false)
-	private CorsConfigurable additionalCorsConfiguration;
 
 	private RegisteredClient googleClientConfig() {
 		RegisteredClient rc = new RegisteredClient();
@@ -194,10 +195,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			@Override
 			public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
 				String newUrl = new DefaultUriBuilderFactory()
-					.uriString("/login.html")
-					.queryParam("error", exception.getMessage())
-					.build()
-					.toString();
+						.uriString("/login.html")
+						.queryParam("error", exception.getMessage())
+						.build()
+						.toString();
 
 				response.sendRedirect(newUrl);
 			}
@@ -236,29 +237,29 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 		http.csrf().disable()
 				.authorizeRequests()
-					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/robots.txt", "/.well-known/**")
-					.permitAll()
+				.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/robots.txt", "/.well-known/**")
+				.permitAll()
 				.and().authorizeRequests()
-					.requestMatchers(publicRequestMatcher("/log-detail.html", "/logs.html", "/plan-detail.html", "/plans.html"))
-					.permitAll()
+				.requestMatchers(publicRequestMatcher("/log-detail.html", "/logs.html", "/plan-detail.html", "/plans.html"))
+				.permitAll()
 				.anyRequest()
-					.authenticated()
+				.authenticated()
 				.and()
-					.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
+				.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
 				.exceptionHandling()
-					.authenticationEntryPoint(authenticationEntryPoint())
+				.authenticationEntryPoint(authenticationEntryPoint())
 				.and()
-					.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
 				.and()
-					.logout()
-					.logoutSuccessUrl("/login.html")
+				.logout()
+				.logoutSuccessUrl("/login.html")
 				.and()
-					//added to disable x-frame-options only for certain paths
-					.headers().frameOptions().disable()
+				//added to disable x-frame-options only for certain paths
+				.headers().frameOptions().disable()
 				.and()
-					.headers().addHeaderWriter(getXFrameOptionsHeaderWriter())
+				.headers().addHeaderWriter(getXFrameOptionsHeaderWriter())
 				.and()
-					.cors().configurationSource(getCorsConfigurationSource());
+				.cors().configurationSource(getCorsConfigurationSource());
 
 		// @formatter:on
 
@@ -288,15 +289,15 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("*"));
-		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+		configuration.setAllowedMethods(Arrays.asList("GET", "POST"));
+		configuration.setAllowedHeaders(List.of(CorsConfiguration.ALL));
+		configuration.setExposedHeaders(List.of("WWW-Authenticate", "DPoP-Nonce"));
 
 		AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
-		source.registerCorsConfiguration("/**/get_session_state", configuration);
+		source.setPathMatcher(new AntPathMatcher());
+		source.registerCorsConfiguration(TestDispatcher.TEST_PATH + "**", configuration);
+		source.registerCorsConfiguration(TestDispatcher.TEST_MTLS_PATH + "**", configuration);
 
-		if (additionalCorsConfiguration != null) {
-			additionalCorsConfiguration.getCorsConfigurations().forEach(source::registerCorsConfiguration);
-		}
 
 		return source;
 	}
