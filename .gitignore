@@ -80,3 +80,7 @@ fabric.properties
 
 # Helm ignore
 **/charts/*.tgz
+oidcc-*.zip
+fapi2-*.zip
+fapi1-*.zip
+fapi-*.zip

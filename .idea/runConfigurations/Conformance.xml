@@ -22,6 +22,11 @@
         <option name="name" value="fintechlabs.base_url" />
         <option name="value" value="https://localhost.emobix.co.uk:8443" />
       </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="spring.mvc.pathpattern.matching-strategy" />
+        <option name="value" value="ant_path_matcher" />
+      </param>
     </additionalParameters>
     <option name="ENABLE_JMX_AGENT" value="false" />
     <module name="conformance-suite" />
@@ -34,7 +39,7 @@
       <option name="IS_IGNORE_MISSING_FILES" value="false" />
       <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
       <ENTRIES>
-        <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
       </ENTRIES>
     </extension>
     <method v="2">
