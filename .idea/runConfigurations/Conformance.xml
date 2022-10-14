@@ -1,10 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Conformance" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <module name="fapi-conformance-suite" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="net.openid.conformance.Application" />
-    <option name="ENABLE_JMX_AGENT" value="false" />
-    <option name="ALTERNATIVE_JRE_PATH" />
-    <option name="UPDATE_ACTION_UPDATE_POLICY" value="UpdateClassesAndTriggerFile" />
+    <option name="ACTIVE_PROFILES" />
     <additionalParameters>
       <param>
         <option name="enabled" value="true" />
@@ -27,6 +23,20 @@
         <option name="value" value="https://localhost.emobix.co.uk:8443" />
       </param>
     </additionalParameters>
+    <option name="ENABLE_JMX_AGENT" value="false" />
+    <module name="conformance-suite" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="net.openid.conformance.Application" />
+    <option name="UPDATE_ACTION_UPDATE_POLICY" value="UpdateClassesAndTriggerFile" />
+    <extension name="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+      </ENTRIES>
+    </extension>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
