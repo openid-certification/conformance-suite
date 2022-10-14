@@ -5,17 +5,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.mongodb.BasicDBList;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.bson.BsonArray;
 import org.springframework.core.convert.converter.Converter;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BasicDBList> {
+public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonArray> {
 
 	private Gson gson = new GsonBuilder().serializeNulls().create();
 
@@ -23,13 +23,12 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, Basic
 	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
 	 */
 	@Override
-	@SuppressWarnings("deprecation")
-	public BasicDBList convert(JsonArray source) {
+	public BsonArray convert(JsonArray source) {
 		if (source == null) {
 			return null;
 		} else {
-			return (BasicDBList) com.mongodb.util.JSON.parse(gson.toJson(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(source)));
-
+			String json = gson.toJson(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(source));
+			return BsonArray.parse(json);
 		}
 	}
 

@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,14 +37,12 @@ public class GsonObjectToBsonDocumentConverter implements Converter<JsonObject, 
 	private Gson gson = new GsonBuilder().serializeNulls().create();
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public Bson convert(JsonObject source) {
 		if (source == null) {
 			return null;
 		} else {
 			String json = gson.toJson(convertFieldsToStructure(source));
-			Bson converted = (Bson) com.mongodb.util.JSON.parse(json);
-			return converted;
+			return BsonDocument.parse(json);
 		}
 	}
 
