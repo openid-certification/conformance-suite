@@ -1,7 +1,6 @@
-
 package net.openid.conformance;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
@@ -57,22 +56,24 @@ public class Application {
 
 		String currentVersion = getCurrentFeatureCompatibilityVersion(adminDb);
 		logger.info(String.format("mongodb server version is '%s', featureCompatibilityVersion is currently '%s' and openid.mongodb.targetFeatureCompatibilityVersion is '%s'",
-			getMongoDBVersion(adminDb),
-			currentVersion,
-			targetFeatureCompatibilityVersion));
+				getMongoDBVersion(adminDb),
+				currentVersion,
+				targetFeatureCompatibilityVersion));
 
 		if (!targetFeatureCompatibilityVersion.isBlank() &&
-			!currentVersion.equals(targetFeatureCompatibilityVersion)) {
+				!currentVersion.equals(targetFeatureCompatibilityVersion)) {
 			Document command = new Document("setFeatureCompatibilityVersion", targetFeatureCompatibilityVersion);
 			mongoClient.getDatabase("admin").runCommand(command);
 			logger.info("mongodb command setFeatureCompatibilityVersion " + targetFeatureCompatibilityVersion + " executed successfully");
 		}
 	}
+
 	private static String getMongoDBVersion(MongoDatabase adminDb) {
 		Document command = new Document("buildInfo", 1);
 		Document result = adminDb.runCommand(command);
 		return result.getString("version");
 	}
+
 	private static String getCurrentFeatureCompatibilityVersion(MongoDatabase adminDb) {
 		Document command = new Document("getParameter", 1);
 		command.put("featureCompatibilityVersion", 1);
@@ -132,7 +133,7 @@ public class Application {
 	}
 
 	@PostConstruct
-	private void doPostConstruct(){
+	private void doPostConstruct() {
 		serverInfoTemplate.initServerInfo();
 		testInfoService.createIndexes();
 		testPlanService.createIndexes();
