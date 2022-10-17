@@ -3,6 +3,7 @@ package net.openid.conformance.security;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import net.openid.conformance.runner.TestDispatcher;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
@@ -41,6 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -286,15 +288,17 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST"));
+        configuration.setAllowedHeaders(List.of(CorsConfiguration.ALL));
+        configuration.setExposedHeaders(List.of("WWW-Authenticate", "DPoP-Nonce"));
 
         AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();
         source.setPathMatcher(new AntPathMatcher());
-        source.registerCorsConfiguration("/*/*/check_session_iframe", configuration);
-        source.registerCorsConfiguration("/*/*/get_session_state", configuration);
+        source.registerCorsConfiguration(TestDispatcher.TEST_PATH + "**", configuration);
+        source.registerCorsConfiguration(TestDispatcher.TEST_MTLS_PATH + "**", configuration);
 
-        if (additionalCorsConfiguration != null) {
-            additionalCorsConfiguration.getCorsConfigurations().forEach(source::registerCorsConfiguration);
-        }
+//        if (additionalCorsConfiguration != null) {
+//            additionalCorsConfiguration.getCorsConfigurations().forEach(source::registerCorsConfiguration);
+//        }
 
         return source;
     }
