@@ -7,9 +7,7 @@ import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantSelection;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
-import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-basic-certification-test-plan",
