@@ -17,7 +17,7 @@ import net.openid.conformance.variant.VariantSelection;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-back-channel-logout-rp-hybrid-test-plan",
+	testPlanName = "oidcc-client-back-channel-logout-rp-hybrid",
 	displayName = "OpenID Connect Core: Back Channel Logout RP Certification Profile Relying Party Tests (Hybrid)",
 	profile = TestPlan.ProfileNames.rplogouttest
 )

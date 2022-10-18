@@ -12,7 +12,7 @@ import net.openid.conformance.variant.VariantSelection;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-rp-initiated-logout-rp-hybrid-test-plan",
+	testPlanName = "oidcc-client-rp-initiated-logout-rp-hybrid",
 	displayName = "OpenID Connect Core: RP Initiated Logout RP Certification Profile Relying Party Tests (Hybrid)",
 	profile = TestPlan.ProfileNames.rplogouttest
 )

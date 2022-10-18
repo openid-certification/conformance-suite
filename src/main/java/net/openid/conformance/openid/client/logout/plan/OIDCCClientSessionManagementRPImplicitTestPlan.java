@@ -9,7 +9,7 @@ import net.openid.conformance.variant.VariantSelection;
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-rp-session-management-rp-implicit-test-plan",
+	testPlanName = "oidcc-client-rp-session-management-rp-implicit",
 	displayName = "OpenID Connect Core: Session Management RP Certification Profile Relying Party Tests (Implicit)",
 	profile = TestPlan.ProfileNames.rplogouttest
 )
