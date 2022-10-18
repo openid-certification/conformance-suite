@@ -4,6 +4,7 @@ import net.openid.conformance.openid.client.logout.OIDCCClientTestSessionManagem
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -30,4 +31,9 @@ public class OIDCCClientSessionManagementRPImplicitTestPlan implements TestPlan 
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Session RP";
+	}
+
 }

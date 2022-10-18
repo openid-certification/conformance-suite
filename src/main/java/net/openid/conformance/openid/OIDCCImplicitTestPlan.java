@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -89,5 +90,9 @@ public class OIDCCImplicitTestPlan implements TestPlan {
 				variantIdTokenTokenBasic
 			)
 		);
+	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Implicit OP";
 	}
 }

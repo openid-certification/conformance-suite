@@ -7,6 +7,7 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -34,4 +35,9 @@ public class OIDCCClientRPInitiatedLogoutRPImplicitTestPlan implements TestPlan 
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "RP-Initiated RP";
+	}
+
 }

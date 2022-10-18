@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -222,4 +223,9 @@ public class OIDCCClientHybridTestPlan implements TestPlan {
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Hybrid RP";
+	}
+
 }

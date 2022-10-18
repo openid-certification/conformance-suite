@@ -5,6 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -97,5 +98,9 @@ public class OIDCCBasicTestPlan implements TestPlan {
 				variantCodeBasic
 			)
 		);
+	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Basic OP";
 	}
 }
