@@ -6,6 +6,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseMode;
 import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -106,5 +107,9 @@ public class OIDCCDynamicTestPlan implements TestPlan {
 				variantPrivateKeyJwtDynReg
 			)
 		);
+	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Dynamic OP";
 	}
 }
