@@ -3,6 +3,7 @@ package net.openid.conformance.openid.client.logout.plan;
 import net.openid.conformance.openid.client.OIDCCClient3rdPartyInitiatedLoginTest;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.VariantSelection;
 
 @PublishTestPlan(
 	testPlanName = "oidcc-client-test-3rd-party-init-login-test-plan",
@@ -13,4 +14,9 @@ import net.openid.conformance.plan.TestPlan;
 	}
 )
 public class OIDCCClient3rdPartyInitiatedLoginTestPlan implements TestPlan {
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "3rd Party-Init RP";
+	}
+
 }

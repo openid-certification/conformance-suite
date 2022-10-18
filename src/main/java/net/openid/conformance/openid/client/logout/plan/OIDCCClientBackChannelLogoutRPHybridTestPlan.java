@@ -12,15 +12,17 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-back-channel-logout-rp-hybrid",
+	testPlanName = "oidcc-client-back-channel-logout-rp-hybrid-test-plan",
 	displayName = "OpenID Connect Core: Back Channel Logout RP Certification Profile Relying Party Tests (Hybrid)",
 	profile = TestPlan.ProfileNames.rplogouttest
 )
 public class OIDCCClientBackChannelLogoutRPHybridTestPlan implements TestPlan {
+
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		List<Class<? extends TestModule>> testModules = List.of(
 			OIDCCClientTestBackChannelLogout.class,
@@ -47,4 +49,9 @@ public class OIDCCClientBackChannelLogoutRPHybridTestPlan implements TestPlan {
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Back-Channel RP";
+	}
+
 }

@@ -4,11 +4,12 @@ import net.openid.conformance.openid.client.logout.OIDCCClientTestSessionManagem
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-rp-session-management-rp-implicit",
+	testPlanName = "oidcc-client-rp-session-management-rp-implicit-test-plan",
 	displayName = "OpenID Connect Core: Session Management RP Certification Profile Relying Party Tests (Implicit)",
 	profile = TestPlan.ProfileNames.rplogouttest
 )
@@ -30,4 +31,9 @@ public class OIDCCClientSessionManagementRPImplicitTestPlan implements TestPlan 
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Session RP";
+	}
+
 }

@@ -7,11 +7,12 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-rp-initiated-logout-rp-hybrid",
+	testPlanName = "oidcc-client-rp-initiated-logout-rp-hybrid-test-plan",
 	displayName = "OpenID Connect Core: RP Initiated Logout RP Certification Profile Relying Party Tests (Hybrid)",
 	profile = TestPlan.ProfileNames.rplogouttest
 )
@@ -38,4 +39,9 @@ public class OIDCCClientRPInitiatedLogoutRPHybridTestPlan implements TestPlan {
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "RP-Initiated RP";
+	}
+
 }

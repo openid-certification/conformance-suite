@@ -6,11 +6,12 @@ import net.openid.conformance.openid.client.logout.OIDCCClientTestRPInitLogoutNo
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-rp-initiated-logout-rp-basic",
+	testPlanName = "oidcc-client-rp-initiated-logout-rp-basic-test-plan",
 	displayName = "OpenID Connect Core: RP Initiated Logout RP Certification Profile Relying Party Tests (Basic)",
 	profile = TestPlan.ProfileNames.rplogouttest
 )
@@ -31,4 +32,9 @@ public class OIDCCClientRPInitiatedLogoutRPBasicTestPlan implements TestPlan {
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "RP-Initiated RP";
+	}
+
 }

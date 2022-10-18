@@ -11,11 +11,12 @@ import net.openid.conformance.openid.client.logout.OIDCCClientTestBackChannelLog
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
 @PublishTestPlan(
-	testPlanName = "oidcc-client-back-channel-logout-rp-basic",
+	testPlanName = "oidcc-client-back-channel-logout-rp-basic-test-plan",
 	displayName = "OpenID Connect Core: Back Channel Logout RP Certification Profile Relying Party Tests (Basic)",
 	profile = TestPlan.ProfileNames.rplogouttest
 )
@@ -42,4 +43,9 @@ public class OIDCCClientBackChannelLogoutRPBasicTestPlan implements TestPlan {
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Back-Channel RP";
+	}
+
 }
