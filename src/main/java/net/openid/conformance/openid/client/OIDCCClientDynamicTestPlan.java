@@ -13,6 +13,7 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ClientRequestType;
 import net.openid.conformance.variant.ResponseType;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -60,4 +61,9 @@ public class OIDCCClientDynamicTestPlan implements TestPlan {
 			)
 		);
 	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+		return "Dynamic RP";
+	}
+
 }
