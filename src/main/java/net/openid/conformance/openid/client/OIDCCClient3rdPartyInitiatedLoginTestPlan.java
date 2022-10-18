@@ -1,6 +1,5 @@
-package net.openid.conformance.openid.client.logout.plan;
+package net.openid.conformance.openid.client;
 
-import net.openid.conformance.openid.client.OIDCCClient3rdPartyInitiatedLoginTest;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
