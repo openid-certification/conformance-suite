@@ -99,9 +99,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private DummyUserFilter dummyUserFilter;
 
-    @Autowired(required = false)
-    private CorsConfigurable additionalCorsConfiguration;
-
     private RegisteredClient googleClientConfig() {
         RegisteredClient rc = new RegisteredClient();
         rc.setClientId(googleClientId);
