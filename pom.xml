@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.14</version>
+		<version>2.6.12</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -208,7 +208,9 @@
 			<artifactId>json-schema-validator</artifactId>
 			<version>1.0.67</version>
 		</dependency>
-		<dependency>
+		<!--
+		dependency removed as springboot 2.6 has an updated version of jackson
+		dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
@@ -222,7 +224,7 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>${jackson.version}</version>
-		</dependency>
+		</dependency -->
 
 		<!-- introduced when migrating to springboot 2.3 -->
 		<dependency>
