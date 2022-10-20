@@ -157,6 +157,9 @@
     <div class="container-fluid">
         <div id="logDetail">
             <div class="header"></div>
+            <div id="fixedDiv">
+                <button class="btn btn-default btn-block" onclick="goToTop()" id="goToTopBtn"><span class="glyphicon glyphicon-circle-arrow-up"></span> Go to Top</button>
+            </div>
             <div class="logContent container-fluid">
                 <!-- log items are rendered here -->
             </div>
@@ -311,6 +314,23 @@
                     stopReloader();
                 }
             });
+        }
+
+        let fixedDiv= document.getElementById("fixedDiv");
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+            const scrollDistance = 400
+            if (document.body.scrollTop > scrollDistance || document.documentElement.scrollTop > scrollDistance) {
+            fixedDiv.style.display = "block";
+            } else {
+            fixedDiv.style.display = "none";
+            }
+        }
+
+        function goToTop() {
+          document.body.scrollTop = 0;
+          document.documentElement.scrollTop = 0;
         }
 
         function getHeader(testId, public) {
