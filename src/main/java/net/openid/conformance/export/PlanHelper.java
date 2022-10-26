@@ -134,6 +134,23 @@ public class PlanHelper {
 
 		throw new RuntimeException("Error getting plan descripton. This is a bug in the suite.");
 	}
+
+	public String getCertificationProfileName() {
+		try {
+			if(planExportInfo.getPlanInfo() instanceof PublicPlan) {
+				PublicPlan publicPlan = (PublicPlan)planExportInfo.getPlanInfo();
+				return publicPlan.getCertificationProfileName();
+			} else if(planExportInfo.getPlanInfo() instanceof Plan) {
+				Plan plan = (Plan)planExportInfo.getPlanInfo();
+				return plan.getCertificationProfileName();
+			}
+		} catch (Exception ex) {
+			logger.error("Error getting certification profile name from " + planExportInfo.getPlanInfo().getClass() + " id=" + getPlanId(), ex);
+		}
+
+		return null;
+	}
+
 	public String getPlanVersion() {
 		try {
 			if(planExportInfo.getPlanInfo() instanceof PublicPlan) {

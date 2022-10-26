@@ -28,7 +28,6 @@ public class Plan {
 	private Map<String, String> owner;
 	@Indexed
 	private String description;
-	@SuppressWarnings("unused")
 	private String certificationProfileName;
 	private List<Module> modules;
 	private String version;
@@ -122,6 +121,10 @@ public class Plan {
 
 	public String getDescription() {
 		return description;
+	}
+
+	public String getCertificationProfileName() {
+		return certificationProfileName;
 	}
 
 	public List<Module> getModules() {

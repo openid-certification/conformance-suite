@@ -25,6 +25,7 @@
 
         #header th{
             text-align:left;
+            padding-right: 16px;
         }
 
         #results{
@@ -266,6 +267,12 @@ Test Plan Details
             <th>Description</th>
             <td th:text="${planHelper.getPlanDescription()}"></td>
         </tr>
+        <span th:if="${planHelper.getCertificationProfileName() != null}">
+        <tr>
+            <th>Certification Profile</th>
+            <td th:text="${planHelper.getCertificationProfileName()}"></td>
+        </tr>
+        </span>
         <tr>
             <th>Version</th>
             <td th:text="${planHelper.getPlanVersion()}"></td>

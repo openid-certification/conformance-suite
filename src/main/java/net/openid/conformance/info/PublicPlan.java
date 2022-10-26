@@ -10,6 +10,8 @@ public class PublicPlan {
 	private String planName;
 	private VariantSelection variant;
 	private String description;
+
+	private String certificationProfileName;
 	private String started;
 	private List<Plan.Module> modules;
 	private String publish;
@@ -30,6 +32,10 @@ public class PublicPlan {
 
 	public String getDescription() {
 		return description;
+	}
+
+	public String getCertificationProfileName() {
+		return certificationProfileName;
 	}
 
 	public String getStarted() {
