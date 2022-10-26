@@ -178,6 +178,16 @@ textarea {
 	margin: 5px 0;
 }
 
+#fixedDiv {
+          display: none;
+          position: fixed;
+          bottom: 20px;
+          right: 30px;
+          padding: 15px;
+          border-radius: 4px;
+          z-index: 750;
+}
+
 .listHeader {
 	padding: 5px 0px 0px;
 	background-color: #fff;
