@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -53,10 +54,11 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 		try {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
 			JWK signingJwk = getSigningKey("signing", jwks);
-			JWSAlgorithm alg = JWSAlgorithm.parse(signingJwk.getAlgorithm().getName());
-			if (alg == null) {
+			Algorithm algorithm = signingJwk.getAlgorithm();
+			if (algorithm == null) {
 				throw error("No 'alg' field specified in key; please add 'alg' field in the configuration", args("jwk", signingJwk));
 			}
+			JWSAlgorithm alg = JWSAlgorithm.parse(algorithm.getName());
 
 			JWSSignerFactory jwsSignerFactory = MultiJWSSignerFactory.getInstance();
 			JWSSigner signer = jwsSignerFactory.createJWSSigner(signingJwk, alg);
