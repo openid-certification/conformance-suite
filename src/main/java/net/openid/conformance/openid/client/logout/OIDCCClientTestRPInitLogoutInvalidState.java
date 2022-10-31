@@ -1,9 +1,5 @@
 package net.openid.conformance.openid.client.logout;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.as.logout.AddInvalidStateToPostLogoutRedirectUriParams;
 import net.openid.conformance.condition.as.logout.EnsureEndSessionEndpointRequestContainsStateParameter;
 import net.openid.conformance.testmodule.PublishTestModule;
