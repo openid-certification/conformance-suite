@@ -1,16 +1,6 @@
 package net.openid.conformance.frontchannel;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.CookieManager;
-import com.gargoylesoftware.htmlunit.DefaultPageCreator;
-import com.gargoylesoftware.htmlunit.HttpWebConnection;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.ScriptException;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebConsole;
-import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.WebWindow;
+import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.javascript.JavaScriptErrorListener;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
@@ -41,11 +31,7 @@ import org.springframework.util.PatternMatchUtils;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
@@ -142,9 +128,9 @@ public class BrowserControl implements DataUtils {
 	 * browser configuration element, this will execute automatically. If there is no
 	 * matching element, the url is made available for user interaction.
 	 *
-	 * @param url the url to be visited
+	 * @param url         the url to be visited
 	 * @param placeholder the placeholder in the log that is expecting the results of
-	 * 	the transaction, usually as a screenshot, can be null
+	 *                    the transaction, usually as a screenshot, can be null
 	 */
 	public void goToUrl(String url, String placeholder) {
 		// find the first matching command set based on the url pattern in 'match'
@@ -203,10 +189,8 @@ public class BrowserControl implements DataUtils {
 		private String placeholder;
 
 		/**
-		 * @param url
-		 *            url to go to
-		 * @param tasks
-		 *            {@link JsonArray} of commands to perform once we get to the page
+		 * @param url   url to go to
+		 * @param tasks {@link JsonArray} of commands to perform once we get to the page
 		 */
 		private WebRunner(String url, JsonArray tasks, String placeholder) {
 			this.url = url;
@@ -356,9 +340,8 @@ public class BrowserControl implements DataUtils {
 		 * Only two action types are supported this way: "click" to click on a WebElement, and "text" which enters
 		 * text into a field like an input box.
 		 *
-		 * @throws TestFailureException
-		 *             if an invalid command is specified
 		 * @param command
+		 * @throws TestFailureException if an invalid command is specified
 		 */
 		private void doCommand(JsonArray command, String taskName) {
 			// general format for command is [command_string, element_id_type, element_id, other_args]
@@ -418,16 +401,15 @@ public class BrowserControl implements DataUtils {
 						"target", target,
 						"value", value,
 						"result", Condition.ConditionResult.INFO
-						));
+					));
 
 					try {
 						WebElement entryBox = driver.findElement(getSelector(elementType, target));
 
 						entryBox.clear();
 						entryBox.sendKeys(value);
-						logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")" );
-					}
-					catch (NoSuchElementException e) {
+						logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")");
+					} catch (NoSuchElementException e) {
 						String optional = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
 						if (optional != null && optional.equals("optional")) {
 							eventLog.log("WebRunner", args(
@@ -483,7 +465,7 @@ public class BrowserControl implements DataUtils {
 
 					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100); // hook to wait for this condition, check every 100 milliseconds until the max seconds
 					try {
-						if (elementType.equalsIgnoreCase("contains")){
+						if (elementType.equalsIgnoreCase("contains")) {
 							waiting.until(ExpectedConditions.urlContains(target));
 						} else if (elementType.equalsIgnoreCase("match")) {
 							waiting.until(ExpectedConditions.urlMatches(target)); // NB this takes a regexp
@@ -517,13 +499,12 @@ public class BrowserControl implements DataUtils {
 
 		/**
 		 * Returns the appropriate {@link By} statement based on type and value.
-		 * Currently supports id, name, xpath, css (css selector), and class (html class)
+		 * Currently, supports id, name, xpath, css (css selector), and class (html class)
 		 *
-		 * @throws TestFailureException
-		 *             if an invalid type is specified.
 		 * @param type
 		 * @param value
 		 * @return
+		 * @throws TestFailureException if an invalid type is specified.
 		 */
 		private By getSelector(String type, String value) {
 			if (type.equalsIgnoreCase("id")) {
@@ -591,7 +572,7 @@ public class BrowserControl implements DataUtils {
 		@Override
 		public WebResponse getResponse(WebRequest webRequest) throws IOException {
 			eventLog.log("WebRunner", args(
-				"msg", "Request "+webRequest.getHttpMethod()+" "+webRequest.getUrl(),
+				"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
 				"headers", webRequest.getAdditionalHeaders(),
 				"params", webRequest.getRequestParameters(),
 				"body", webRequest.getRequestBody(),
@@ -602,7 +583,7 @@ public class BrowserControl implements DataUtils {
 
 			if (response.getStatusCode() == 302) {
 				eventLog.log("WebRunner", args(
-					"msg", "Redirect "+response.getStatusCode() + " " + response.getStatusMessage()+" to " + response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"msg", "Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to " + response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
 					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
 					"body", response.getContentAsString(),
 					"result", Condition.ConditionResult.INFO
@@ -625,7 +606,8 @@ public class BrowserControl implements DataUtils {
 	 */
 	private class ResponseCodeHtmlUnitDriver extends HtmlUnitDriver {
 
-		public ResponseCodeHtmlUnitDriver() { super(true);
+		public ResponseCodeHtmlUnitDriver() {
+			super(true);
 			final WebConsole console = getWebClient().getWebConsole();
 			console.setLogger(new WebConsole.Logger() {
 
@@ -683,25 +665,25 @@ public class BrowserControl implements DataUtils {
 		}
 
 		public int getResponseCode() {
-			return this.lastPage().getWebResponse().getStatusCode();
+			return this.getCurrentWindow().lastPage().getWebResponse().getStatusCode();
 		}
 
 		public String getResponseContent() {
-			return this.lastPage().getWebResponse().getContentAsString();
+			return this.getCurrentWindow().lastPage().getWebResponse().getContentAsString();
 		}
 
 		public String getResponseContentType() {
-			return this.lastPage().getWebResponse().getContentType();
+			return this.getCurrentWindow().lastPage().getWebResponse().getContentType();
 		}
 
 		public String getCurrentDomAsXml() {
-			HtmlPage page = (HtmlPage) this.lastPage();
+			HtmlPage page = (HtmlPage) this.getCurrentWindow().lastPage();
 			return page.getDocumentElement().asXml();
 		}
 
 		public String getStatus() {
-			String responseCodeString = this.lastPage().getWebResponse().getStatusCode() + "-" +
-				this.lastPage().getWebResponse().getStatusMessage();
+			String responseCodeString = this.getCurrentWindow().lastPage().getWebResponse().getStatusCode() + "-" +
+				this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
 			return responseCodeString;
 		}
 
@@ -773,6 +755,7 @@ public class BrowserControl implements DataUtils {
 
 	/**
 	 * Get the list of URLs that require user interaction.
+	 *
 	 * @return
 	 */
 	public List<String> getUrls() {
@@ -782,8 +765,8 @@ public class BrowserControl implements DataUtils {
 	/**
 	 * Publish the given page content to fulfill the placeholder.
 	 *
-	 * @param placeholder the placeholder to fulfill
-	 * @param pageSource the source of the page as rendered
+	 * @param placeholder         the placeholder to fulfill
+	 * @param pageSource          the source of the page as rendered
 	 * @param responseContentType the content type last received from the server
 	 */
 	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType, boolean optional) {
@@ -810,6 +793,7 @@ public class BrowserControl implements DataUtils {
 
 	/**
 	 * Get the list of URLs that have been visited.
+	 *
 	 * @return
 	 */
 	public List<String> getVisited() {
