@@ -17,7 +17,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		" or will send both front and back channel logout requests" +
 		" if both backchannel_logout_uri and frontchannel_logout_uri are set," +
 		" then the RP is expected to handle post logout URI redirect despite it being called with a different state parameter." +
-		" Corresponds to rp-init-logout-other-state in the old test suite.",
+		" Corresponds to rp-init-logout-other-state in the old test suite. " +
+		"If the client does not send a state parameter, the test is skipped.",
 	profile = "OIDCC",
 	configurationFields = {
 	}
@@ -28,6 +29,7 @@ public class OIDCCClientTestRPInitLogoutInvalidState extends OIDCCClientTestRPIn
 	@Override
 	protected void validateEndSessionEndpointParameters() {
 		super.validateEndSessionEndpointParameters();
+		skipTestIfStateIsOmitted();
 		callAndStopOnFailure(EnsureEndSessionEndpointRequestContainsStateParameter.class);
 	}
 
@@ -35,4 +37,5 @@ public class OIDCCClientTestRPInitLogoutInvalidState extends OIDCCClientTestRPIn
 	protected void customizeEndSessionEndpointResponseParameters() {
 		callAndStopOnFailure(AddInvalidStateToPostLogoutRedirectUriParams.class, "OIDCRIL-2");
 	}
+
 }

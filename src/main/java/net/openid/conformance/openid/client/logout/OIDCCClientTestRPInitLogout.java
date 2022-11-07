@@ -92,4 +92,12 @@ public class OIDCCClientTestRPInitLogout extends AbstractOIDCCClientLogoutTest
 			return super.createEndSessionEndpointResponse();
 		}
 	}
+
+	protected void skipTestIfStateIsOmitted() {
+		String state = env.getString("end_session_endpoint_http_request_params", "state");
+		if(Strings.isNullOrEmpty(state)) {
+			fireTestSkipped("Skipping test due to the optional state parameter not being supplied to the end_session_endpoint");
+		}
+	}
+
 }
