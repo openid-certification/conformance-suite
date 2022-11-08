@@ -27,6 +27,7 @@
     <module name="fapi-conformance-suite" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="net.openid.conformance.Application" />
     <option name="UPDATE_ACTION_UPDATE_POLICY" value="UpdateClassesAndTriggerFile" />
+    <option name="VM_PARAMETERS" value="-Djdk.tls.maxHandshakeMessageSize=65536" />
     <method v="2">
       <option name="Make" enabled="$DEV_MACHINE$" />
     </method>
