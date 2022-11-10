@@ -223,6 +223,12 @@
 			<artifactId>jackson-core</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>annotations</artifactId>
+			<version>3.0.1u2</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -254,6 +260,7 @@
 				<configuration>
 					<source>11</source>
 					<target>11</target>
+					<release>11</release>
 					<showWarnings>true</showWarnings>
 					<compilerArgs>
 						<arg>-Xlint</arg>
@@ -415,22 +422,22 @@
 			<dependency>
 				<groupId>org.seleniumhq.selenium</groupId>
 				<artifactId>selenium-java</artifactId>
-				<version>3.141.59</version>
+				<version>4.5.2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.seleniumhq.selenium</groupId>
 				<artifactId>selenium-api</artifactId>
-				<version>3.141.59</version>
+				<version>4.5.2</version>
 			</dependency>
 			<dependency>
 				<groupId>net.sourceforge.htmlunit</groupId>
 				<artifactId>htmlunit</artifactId>
-				<version>2.50.0</version>
+				<version>2.66.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.seleniumhq.selenium</groupId>
 				<artifactId>htmlunit-driver</artifactId>
-				<version>2.50.0</version>
+				<version>4.5.2</version>
 			</dependency>
 			<dependency>
 				<groupId>javax.xml.bind</groupId>
