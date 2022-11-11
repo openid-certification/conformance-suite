@@ -6,4 +6,5 @@ EXPOSE 8080
 ENTRYPOINT java \
   -D"fintechlabs.base_url=${BASE_URL}" \
   -D"spring.data.mongodb.uri=mongodb://${MONGODB_HOST}:27017/test_suite" \
-  -jar /server/fapi-test-suite.jar
+  -jar /server/fapi-test-suite.jar \
+  -Djdk.tls.maxHandshakeMessageSize=65536
