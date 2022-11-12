@@ -6,8 +6,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from types import NoneType
-
 import asyncio
 import json
 import re
@@ -98,7 +96,7 @@ class Conformance(object):
                 await asyncio.sleep(1)
         raise Exception("exporthtml for {} failed even after retries".format(plan_id))
 
-    async def create_certification_package(self, plan_id, conformance_pdf_path, rp_logs_zip_path = NoneType, output_zip_directory = "./"):
+    async def create_certification_package(self, plan_id, conformance_pdf_path, rp_logs_zip_path = None, output_zip_directory = "./"):
         """
         Create a complete certification package zip file which is written
         to the directory specified by the 'output_zip_directory' parameter.
@@ -110,25 +108,28 @@ class Conformance(object):
         :output_zip_directory:  The (already existing) directory to which the certification package zip file is written.
         """
         certificationOfConformancePdf = open(conformance_pdf_path, 'rb')
-        clientSideData = open(rp_logs_zip_path, 'rb') if rp_logs_zip_path != NoneType else open(os.devnull, 'rb')
+        clientSideData = open(rp_logs_zip_path, 'rb') if rp_logs_zip_path is not None else open(os.devnull, 'rb')
         files = { 'certificationOfConformancePdf': certificationOfConformancePdf, 'clientSideData': clientSideData}
+        try:
+            with httpx.Client() as multipartClient:
+                multipartClient.headers = self.httpclient.headers.copy()
+                multipartClient.headers.pop('content-type')
+                api_url = '{0}api/plan/{1}/certificationpackage'.format(self.api_url_base, plan_id)
 
-        multipartClient = httpx.Client()
-        multipartClient.headers = self.httpclient.headers.copy()
-        multipartClient.headers.pop('content-type')
-        api_url = '{0}api/plan/{1}/certificationpackage'.format(self.api_url_base, plan_id)
+                response = multipartClient.post(api_url, files = files)
+                if response.status_code != 200:
+                    raise Exception("certificationpackage failed - HTTP {:d} {}".format(response.status_code, response.content))
 
-        response = multipartClient.post(api_url, files = files)
-        if response.status_code != 200:
-            raise Exception("certificationpackage failed - HTTP {:d} {}".format(response.status_code, response.content))
-
-        d = response.headers['content-disposition']
-        local_filename = re.findall('filename="(.+)"', d)[0]
-        full_path = os.path.join(output_zip_directory, local_filename)
-        with open(full_path, 'wb') as f:
-            for chunk in response.iter_bytes():
-                f.write(chunk)
-        print("Certification package zip for plan id {} written to {}".format(plan_id, full_path))
+                d = response.headers['content-disposition']
+                local_filename = re.findall('filename="(.+)"', d)[0]
+                full_path = os.path.join(output_zip_directory, local_filename)
+                with open(full_path, 'wb') as f:
+                    for chunk in response.iter_bytes():
+                        f.write(chunk)
+                print("Certification package zip for plan id {} written to {}".format(plan_id, full_path))
+        finally:
+            certificationOfConformancePdf.close();
+            clientSideData.close();
 
     async def create_test_plan(self, name, configuration, variant=None):
         api_url = '{0}api/plan'.format(self.api_url_base)
