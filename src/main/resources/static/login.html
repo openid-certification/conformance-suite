@@ -70,9 +70,9 @@
         });
 
         const addAcctToIdentifierValue = () => {
-            var input = document.querySelector('#identifier');
+            let input = document.querySelector('#identifier');
             if(input){
-                var inputValue = input.value;
+                let inputValue = input.value;
                 if (inputValue.indexOf('@') !== -1 && inputValue.indexOf('acct:') !== 0) {
                     input.value = 'acct:' + input.value;
                 }
