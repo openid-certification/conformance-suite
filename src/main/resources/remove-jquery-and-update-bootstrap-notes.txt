@@ -1,0 +1,3 @@
+
+ * login.html: Test login failures (should display error message), https://localhost:8443/login.html?error=No%20issuer%20found.
+ * login.html: Test logout (should display logout message), https://localhost:8443/login.html?logout=true
