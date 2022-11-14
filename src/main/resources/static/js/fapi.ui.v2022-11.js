@@ -2,13 +2,21 @@ var FAPI_UI = {
 
 		logTemplates : {},
 
+		loadHomepageTemplates: () => {
+			return fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => FAPI_UI.logTemplates.USER_INFO = _.template(data));
+		},
+
+		/*
 		loadHomepageTemplates : function() {
 			return $.when(
 				$.get('templates/userinfo.html', function(data) {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+
 				})
 			);
 		},
+		*/
 
 		loadScheduleTestPageTemplates : function() {
 			return $.when(
@@ -279,6 +287,20 @@ var FAPI_UI = {
 			}
 		},
 
+		getUserInfo: () => {
+			return fetch('/api/currentuser')
+				.then((response) => {
+					if(response.ok) {
+						return response.json();
+					}
+					return Promise.reject(response);
+				})
+				.then((userInfo) => {
+					document.querySelector('#userInfoHolder').innerHTML = FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo})
+				});
+		},
+
+		/*
 		getUserInfo : function() {
 			// get the current user info
 			var done = $.Deferred();
@@ -296,6 +318,7 @@ var FAPI_UI = {
 			});
 			return done.promise();
 		},
+		*/
 
 		activeTooltip : function() {
 			$('[data-toggle="tooltip"]').tooltip({
