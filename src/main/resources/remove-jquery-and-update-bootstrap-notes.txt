@@ -1,3 +1,16 @@
+# FAPI UI methods migrated:
+
+getUserInfo
+loadHomepageTemplates
+loadScheduleTestPageTemplates
+
+# TEST
 
  * login.html: Test login failures (should display error message), https://localhost:8443/login.html?error=No%20issuer%20found.
  * login.html: Test logout (should display logout message), https://localhost:8443/login.html?logout=true
+
+# CHECKLIST
+
+ * Check all instances of double quotes
+ * Check all instances of var
+ * Check all instances of console.log

@@ -18,6 +18,23 @@ var FAPI_UI = {
 		},
 		*/
 
+		loadScheduleTestPageTemplates: () => {
+			let testOption = fetch('templates/testOption.html')
+				.then((response) => response.text())
+				.then((data) => FAPI_UI.logTemplates.TEST_OPTION = _.template(data));
+
+			let testOptGroup = fetch('templates/testOptGroup.html')
+				.then((response) => response.text())
+				.then((data) => FAPI_UI.logTemplates.TEST_OPTGROUP = _.template(data));
+
+			let userInfo = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => FAPI_UI.logTemplates.USER_INFO = _.template(data));
+
+			return Promise.all([testOption, testOptGroup, userInfo]);
+		},
+
+		/*
 		loadScheduleTestPageTemplates : function() {
 			return $.when(
 					$.get('templates/testOption.html', function(data) {
@@ -31,6 +48,7 @@ var FAPI_UI = {
 					})
 			);
 		},
+		*/
 
 		loadRunningTestPageTemplates : function() {
 			return $.when(
