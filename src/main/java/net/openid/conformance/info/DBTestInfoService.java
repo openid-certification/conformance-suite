@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -74,21 +75,21 @@ public class DBTestInfoService implements TestInfoService {
 
 	@Override
 	public void createTest(String id, String testName, VariantSelection variant, VariantSelection variantFromPlanDefinition, String url, JsonObject config, String alias, Instant started, String planId, String description, String summary, String publish) {
-		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+		Map<String, String> owner = authenticationFacade.getPrincipal();
 
 		testInfos.save(new TestInfo(
-				id,
-				testName,
-				variant,
-				started,
-				config,
-				description, // for this instance,
-				alias,
-				owner,
-				planId,
-				version,
-				summary, // from the test definition,
-				publish));
+			id,
+			testName,
+			variant,
+			started,
+			config,
+			description, // for this instance,
+			alias,
+			owner,
+			planId,
+			version,
+			summary, // from the test definition,
+			publish));
 
 		if (planId != null) {
 			testPlanService.updateTestPlanWithModule(planId, testName, variantFromPlanDefinition, id);
@@ -200,7 +201,7 @@ public class DBTestInfoService implements TestInfoService {
 	}
 
 	@Override
-	public void createIndexes(){
+	public void createIndexes() {
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
 		collection.createIndex(new Document("$**", "text"));
 	}

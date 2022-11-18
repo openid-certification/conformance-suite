@@ -1,17 +1,17 @@
 package net.openid.conformance.security;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import org.mitre.openid.connect.model.OIDCAuthenticationToken;
-import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthorizationCodeAuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -40,7 +40,7 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	/**
 	 * If the security context has an Authentication object, return it.
-	 *
+	 * <p>
 	 * If not, return anything saved in the thread-local localAuthentication since
 	 * we might be running in a background task.
 	 *
@@ -55,21 +55,6 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		}
 	}
 
-	private OIDCAuthenticationToken getOIDC() {
-		Authentication a = getAuthentication();
-		if (a instanceof OIDCAuthenticationToken) {
-			return (OIDCAuthenticationToken) a;
-		}
-		return null;
-	}
-
-	private OAuth2Authentication getOAuth() {
-		Authentication a = getAuthentication();
-		if (a instanceof OAuth2Authentication) {
-			return (OAuth2Authentication) a;
-		}
-		return null;
-	}
 
 	private boolean hasAuthority(GrantedAuthority authority) {
 		Authentication a = getAuthentication();
@@ -93,60 +78,62 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	}
 
 	@Override
-	public ImmutableMap<String, String> getPrincipal() {
-		OIDCAuthenticationToken token = getOIDC();
-		OAuth2Authentication auth = getOAuth();
-		if (token != null) {
-			@SuppressWarnings("unchecked")
-			ImmutableMap<String, String> prinicipal = (ImmutableMap<String, String>) token.getPrincipal();
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	public Map<String, String> getPrincipal() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-			return prinicipal;
-		} else if (auth != null) {
-			// TODO: we might be able to build this off of other properties instead
-			@SuppressWarnings("unchecked")
-			ImmutableMap<String, String> prinicipal = (ImmutableMap<String, String>) auth.getPrincipal();
-
-			return prinicipal;
+		if (authentication instanceof OAuth2AuthenticationToken) {
+			OAuth2AuthenticationToken oauth = (OAuth2AuthenticationToken) authentication;
+			Map attributes = oauth.getPrincipal().getAttributes();
+			Map atts = new HashMap();
+			atts.putAll(attributes);
+			atts.put("iss", oauth.getAuthorizedClientRegistrationId());
+			atts.put("sub", oauth.getPrincipal().getName());
+			return atts;
 		}
+
+		if (authentication instanceof OAuth2LoginAuthenticationToken) {
+			OAuth2LoginAuthenticationToken oauth = (OAuth2LoginAuthenticationToken) authentication;
+			Map attributes = oauth.getPrincipal().getAttributes();
+			Map atts = new HashMap();
+			atts.putAll(attributes);
+			atts.put("iss", oauth.getClientRegistration().getRegistrationId());
+			atts.put("sub", oauth.getPrincipal().getName());
+			return atts;
+		}
+
+		if (authentication instanceof OAuth2AuthorizationCodeAuthenticationToken) {
+			OAuth2AuthorizationCodeAuthenticationToken oauth = (OAuth2AuthorizationCodeAuthenticationToken) authentication;
+			Map attributes = oauth.getAdditionalParameters();
+			Map atts = new HashMap();
+			atts.putAll(attributes);
+			atts.put("iss", oauth.getClientRegistration().getRegistrationId());
+			atts.put("sub", oauth.getName());
+			return atts;
+		}
+
 		return null;
 	}
 
 	@Override
 	public String getDisplayName() {
-		OIDCAuthenticationToken token = getOIDC();
-		OAuth2Authentication auth = getOAuth();
-		if (token != null) {
-			Map<String, String> principal = getPrincipal();
-			if (principal != null) {
-				String displayName = principal.toString();
-				UserInfo userInfo = getUserInfo();
-				if (userInfo != null) {
-					if (!Strings.isNullOrEmpty(userInfo.getEmail())) {
-						displayName = userInfo.getEmail();
-					} else if (!Strings.isNullOrEmpty(userInfo.getPreferredUsername())) {
-						displayName = userInfo.getPreferredUsername();
-					} else if (!Strings.isNullOrEmpty(userInfo.getName())) {
-						displayName = userInfo.getName();
-					}
-					return displayName;
-				}
-				return displayName;
-			}
-		} else if (auth != null) {
-			return auth.getName();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		if (authentication != null) {
+			OAuth2User usr = (OAuth2User) authentication.getPrincipal();
+			return usr.getAttribute("email");
 		}
 		return "";
 	}
 
 	@Override
-	public UserInfo getUserInfo() {
-		OIDCAuthenticationToken token = getOIDC();
+	public OAuth2User getUserInfo() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-		if (token != null) {
-			return token.getUserInfo();
+		if (authentication != null) {
+			return (OAuth2User) authentication.getPrincipal();
 		} else {
 			return null;
 		}
-
 	}
 }

@@ -1,6 +1,5 @@
 package net.openid.conformance.info;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
@@ -15,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Service
 public class DBSavedConfigurationService implements SavedConfigurationService {
@@ -32,7 +32,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 	 */
 	@Override
 	public Document getLastConfigForCurrentUser() {
-		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();
+		Map<String, String> user = authenticationFacade.getPrincipal();
 
 		if (user == null) {
 			return null;
@@ -47,7 +47,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 
 	@Override
 	public void saveTestConfigurationForCurrentUser(JsonObject config, String testName, VariantSelection variant) {
-		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();
+		Map<String, String> user = authenticationFacade.getPrincipal();
 
 		if (user == null) {
 			throw new IllegalStateException("No user found");
@@ -70,7 +70,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 
 	@Override
 	public void savePlanConfigurationForCurrentUser(JsonObject config, String planName, VariantSelection variant) {
-		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();
+		Map<String, String> user = authenticationFacade.getPrincipal();
 
 		if (user == null) {
 			throw new IllegalStateException("No user found");
@@ -91,7 +91,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 
 	}
 
-	private void clearOldConfigs(ImmutableMap<String, String> user) {
+	private void clearOldConfigs(Map<String, String> user) {
 
 		// TODO: save more than just the last one
 

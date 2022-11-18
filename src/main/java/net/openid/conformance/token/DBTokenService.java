@@ -1,7 +1,6 @@
 package net.openid.conformance.token;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -34,6 +33,7 @@ public class DBTokenService implements TokenService {
 	private AuthenticationFacade authenticationFacade;
 
 	@Override
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public Map createToken(boolean permanent) {
 
 		String id = RandomStringUtils.randomAlphanumeric(13);
@@ -41,16 +41,16 @@ public class DBTokenService implements TokenService {
 		byte[] tokenBytes = new byte[TOKEN_BYTES];
 		new SecureRandom().nextBytes(tokenBytes);
 
-		JsonObject jsonObject = authenticationFacade.getUserInfo().toJson();
-		// gitlab includes this in it's userinfo, but this keyname is not valid in mongodb. We don't need the data
-		// contained here currently, so just remove it.
-		jsonObject.remove("https://gitlab.org/claims/groups/owner");
+		Map principal = authenticationFacade.getPrincipal();
+		Document usrDoc = new Document(principal);
+
+
 		Document token = new Document()
-				.append("_id", id)
-				.append("owner", authenticationFacade.getPrincipal())
-				.append("info", Document.parse(jsonObject.toString()))
-				.append("token", Base64Utils.encodeToString(tokenBytes))
-				.append("expires", permanent ? null : System.currentTimeMillis() + DEFAULT_TTL_MS);
+			.append("_id", id)
+			.append("owner", authenticationFacade.getPrincipal())
+			.append("info", usrDoc)
+			.append("token", Base64Utils.encodeToString(tokenBytes))
+			.append("expires", permanent ? null : System.currentTimeMillis() + DEFAULT_TTL_MS);
 
 		mongoTemplate.insert(token, COLLECTION);
 		return token;
@@ -72,8 +72,8 @@ public class DBTokenService implements TokenService {
 
 		Query query = new Query(criteria);
 		query.fields()
-				.include("_id")
-				.include("expires");
+			.include("_id")
+			.include("expires");
 
 		return Lists.newArrayList(mongoTemplate.getCollection(COLLECTION).find(query.getQueryObject()).projection(query.getFieldsObject()));
 	}

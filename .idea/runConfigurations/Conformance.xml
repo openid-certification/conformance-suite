@@ -27,6 +27,16 @@
         <option name="name" value="spring.mvc.pathpattern.matching-strategy" />
         <option name="value" value="ant_path_matcher" />
       </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="oidc.google.clientid" />
+        <option name="value" value="googleClientid" />
+      </param>
+      <param>
+        <option name="enabled" value="true" />
+        <option name="name" value="oidc.gitlab.clientid" />
+        <option name="value" value="gitlabClientId" />
+      </param>
     </additionalParameters>
     <option name="ENABLE_JMX_AGENT" value="false" />
     <module name="conformance-suite" />

@@ -1,18 +1,12 @@
 package net.openid.conformance.runner;
 
-import com.google.common.collect.ImmutableMap;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.testmodule.TestModule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class InMemoryTestRunnerSupport implements TestRunnerSupport {
@@ -70,11 +64,11 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	public synchronized TestModule getRunningTestById(String testId) {
 		expireOldTests();
 
-		if (authenticationFacade.getPrincipal() == null || 	// if the user's not logged in at all (it's a back-channel or Selenium call)
-			authenticationFacade.isAdmin()) { 				// of if they're admin
-			return runningTests.get(testId); 				// just send the results
+		if (authenticationFacade.getPrincipal() == null ||    // if the user's not logged in at all (it's a back-channel or Selenium call)
+			authenticationFacade.isAdmin()) {                // of if they're admin
+			return runningTests.get(testId);                // just send the results
 		} else {
-			TestModule test = runningTests.get(testId);		// otherwise make sure only the current user can get the test information
+			TestModule test = runningTests.get(testId);        // otherwise make sure only the current user can get the test information
 			if (test != null &&
 				test.getOwner().equals(authenticationFacade.getPrincipal())) {
 				return test;
@@ -90,14 +84,14 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	public synchronized Set<String> getAllRunningTestIds() {
 		expireOldTests();
 
-		if (authenticationFacade.getPrincipal() == null || 	// if the user's not logged in at all (it's a back-channel or Selenium call)
-			authenticationFacade.isAdmin()) { 				// of if they're admin
+		if (authenticationFacade.getPrincipal() == null ||    // if the user's not logged in at all (it's a back-channel or Selenium call)
+			authenticationFacade.isAdmin()) {                // of if they're admin
 			return runningTests.entrySet().stream()
 				.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
 				.map(e -> e.getValue().getId())
 				.collect(Collectors.toCollection(() -> new LinkedHashSet<>()));
 		} else {
-			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			Map<String, String> owner = authenticationFacade.getPrincipal();
 			return runningTests.entrySet().stream()
 				.filter(map -> map.getValue().getOwner().equals(owner))
 				.sorted((e1, e2) -> e2.getValue().getCreated().compareTo(e1.getValue().getCreated())) // this sorts to newest-first
@@ -152,7 +146,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 					if (testModule.getStatusUpdated().plus(waitingTestTimeout).isBefore(Instant.now())) {
 						removeRunningTest(testId);
 						testModule.getTestExecutionManager().runInBackground(() -> {
-							testModule.stop(String.format("The test was idle for more than %s minutes.", waitingTestTimeout.getSeconds()/60));
+							testModule.stop(String.format("The test was idle for more than %s minutes.", waitingTestTimeout.getSeconds() / 60));
 							return "stopped";
 						});
 					}
@@ -169,8 +163,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	}
 
 	/**
-	 * @param closedTestTimeout
-	 *            the closedTestTimeout to set
+	 * @param closedTestTimeout the closedTestTimeout to set
 	 */
 	public void setClosedTestTimeout(Duration closedTestTimeout) {
 		this.closedTestTimeout = closedTestTimeout;

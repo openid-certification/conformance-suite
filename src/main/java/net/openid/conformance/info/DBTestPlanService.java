@@ -1,6 +1,5 @@
 package net.openid.conformance.info;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -64,7 +63,7 @@ public class DBTestPlanService implements TestPlanService {
 		Criteria updateCriteria = new Criteria();
 		if (variant != null) {
 			variant.getVariant().forEach((name, value) -> {
-				updateCriteria.and("module.variant."+name).is(value);
+				updateCriteria.and("module.variant." + name).is(value);
 			});
 		}
 		updateCriteria.and("module.testModule").is(testName);
@@ -83,21 +82,21 @@ public class DBTestPlanService implements TestPlanService {
 	@Override
 	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String certificationProfileName, List<Plan.Module> testModules, String summary, String publish) {
 
-		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+		Map<String, String> owner = authenticationFacade.getPrincipal();
 
 		plans.save(new Plan(
-				id,
-				planName,
-				variant,
-				config,
-				Instant.now(),
-				owner,
-				description, // for the specific instance
-				certificationProfileName,
-				testModules,
-				version,
-				summary, // from the plan definition
-				publish));
+			id,
+			planName,
+			variant,
+			config,
+			Instant.now(),
+			owner,
+			description, // for the specific instance
+			certificationProfileName,
+			testModules,
+			version,
+			summary, // from the plan definition
+			publish));
 	}
 
 	/* (non-Javadoc)
@@ -130,8 +129,7 @@ public class DBTestPlanService implements TestPlanService {
 
 		boolean found = false;
 
-		for (Plan.Module module : modules)
-		{
+		for (Plan.Module module : modules) {
 			if (module.getTestModule().equals(moduleName)) {
 				found = true;
 			}
@@ -172,12 +170,12 @@ public class DBTestPlanService implements TestPlanService {
 		if (!authenticationFacade.isAdmin()) {
 			Map<String, String> owner = authenticationFacade.getPrincipal();
 			return page.getResponse(
-					p -> plans.findAllByOwner(owner, p),
-					(s, p) -> plans.findAllByOwnerSearch(owner, s, p));
+				p -> plans.findAllByOwner(owner, p),
+				(s, p) -> plans.findAllByOwnerSearch(owner, s, p));
 		} else {
 			return page.getResponse(
-					p -> plans.findAll(p),
-					(s, p) -> plans.findAllSearch(s, p));
+				p -> plans.findAll(p),
+				(s, p) -> plans.findAllSearch(s, p));
 		}
 	}
 
@@ -188,8 +186,8 @@ public class DBTestPlanService implements TestPlanService {
 	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page) {
 
 		return page.getResponse(
-				p -> plans.findAllPublic(p),
-				(s, p) -> plans.findAllPublicSearch(s, p));
+			p -> plans.findAllPublic(p),
+			(s, p) -> plans.findAllPublicSearch(s, p));
 	}
 
 	/*
@@ -239,16 +237,16 @@ public class DBTestPlanService implements TestPlanService {
 		// "instances" arrays for the modules in this plan.
 
 		Object testModules = mongoTemplate.getCollection(COLLECTION)
-				.find(new Document("_id", id))
-				.first()
-				.get("modules");
+			.find(new Document("_id", id))
+			.first()
+			.get("modules");
 
 		Object[] latestTestIds = ((List<?>) testModules)
-				.stream()
-				.map(mod -> (List<?>) ((Map<?,?>) mod).get("instances"))
-				.filter(x -> !x.isEmpty())
-				.map(x -> x.get(x.size() - 1))
-				.toArray();
+			.stream()
+			.map(mod -> (List<?>) ((Map<?, ?>) mod).get("instances"))
+			.filter(x -> !x.isEmpty())
+			.map(x -> x.get(x.size() - 1))
+			.toArray();
 
 		// And now we plug the values back into a separate query in true
 		// no-SQL fashion.
@@ -311,7 +309,7 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	@Override
-	public void createIndexes(){
+	public void createIndexes() {
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
 		collection.createIndex(new Document("$**", "text"));
 	}
@@ -325,12 +323,12 @@ public class DBTestPlanService implements TestPlanService {
 			maybePlan = plans.findById(id);
 		}
 
-		if(maybePlan.isEmpty()) {
+		if (maybePlan.isEmpty()) {
 			return;
 		}
 
 		Plan plan = maybePlan.get();
-		if(plan.getImmutable() != null && plan.getImmutable()) {
+		if (plan.getImmutable() != null && plan.getImmutable()) {
 			return;
 		}
 
