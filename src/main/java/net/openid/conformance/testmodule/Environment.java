@@ -221,8 +221,8 @@ public class Environment {
 					break;
 				}
 			} else {
-				// didn't find it, stop processing
-				break;
+				throw new UnexpectedTypeException(String.format("An object is required for %s.%s but %s was found whilst traversing the path",
+					key, path, e.getClass().getSimpleName()));
 			}
 		}
 

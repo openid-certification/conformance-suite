@@ -19,18 +19,26 @@ public class LoadRequestedIdTokenClaims extends AbstractCondition {
 	@PostEnvironment(required = "id_token_claims")
 	public Environment evaluate(Environment env) {
 
-		JsonElement requesteIdTokenClaimsElement = env.getElementFromObject(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "claims.id_token");
-		if((null != requesteIdTokenClaimsElement) && requesteIdTokenClaimsElement.isJsonObject()) {
-			JsonObject requesteIdTokenClaims = requesteIdTokenClaimsElement.getAsJsonObject();
-			JsonObject idTokenClaims = env.getObject("id_token_claims");
+		JsonElement requestedIdTokenClaimsElement = env.getElementFromObject(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "claims.id_token");
 
-			for (String key: requesteIdTokenClaims.keySet()) {
-				setIdTokenClaim(idTokenClaims, key, requesteIdTokenClaims.get(key), false);
-			}
-			logSuccess("Added requested claims to ID Token", args("requested ID Token claims", requesteIdTokenClaims, "Claims returned", idTokenClaims));
-		} else {
+		if (requestedIdTokenClaimsElement == null) {
 			logSuccess("No ID Token claims requested");
+			return env;
 		}
+
+		if (!requestedIdTokenClaimsElement.isJsonObject()) {
+			throw error("claims.id_token.claims in request must be a JSON object",
+				args("claims", requestedIdTokenClaimsElement));
+		}
+
+		JsonObject requestedIdTokenClaims = requestedIdTokenClaimsElement.getAsJsonObject();
+		JsonObject idTokenClaims = env.getObject("id_token_claims");
+
+		for (String key: requestedIdTokenClaims.keySet()) {
+			setIdTokenClaim(idTokenClaims, key, requestedIdTokenClaims.get(key), false);
+		}
+		logSuccess("Added requested claims to ID Token", args("requested ID Token claims", requestedIdTokenClaims, "Claims returned", idTokenClaims));
+
 		return env;
 	}
 
