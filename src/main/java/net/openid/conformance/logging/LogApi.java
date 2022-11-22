@@ -411,10 +411,12 @@ public class LogApi {
 		@ApiResponse(code = 422, message = "Could not mark the plan as immutable")
 	})
 	public ResponseEntity<StreamingResponseBody> prepareCertificationPackageForTestPlan(
-		@ApiParam(value = "Id of test plan") @PathVariable("id") String id,
-		@ApiParam(value = "Signed certification of conformance pdf") @RequestParam("certificationOfConformancePdf") MultipartFile certificationOfConformancePdf,
-		@ApiParam(value = "Client data in zip format. Only required for RP tests") @RequestParam("clientSideData") MultipartFile clientSideData
-
+		@ApiParam(value = "Id of test plan")
+			@PathVariable("id") String id,
+		@ApiParam(value = "Signed certification of conformance pdf")
+			@RequestParam("certificationOfConformancePdf") MultipartFile certificationOfConformancePdf,
+		@ApiParam(value = "Client data in zip format. Only required for RP tests")
+			@RequestParam("clientSideData") Optional<MultipartFile> clientSideData
 	) {
 		if (!planService.publishTestPlan(id, "everything")) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -423,7 +425,7 @@ public class LogApi {
 		if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
 			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 		}
-		return exportPlanAsZip(id, false, true, certificationOfConformancePdf, clientSideData);
+		return exportPlanAsZip(id, false, true, certificationOfConformancePdf, clientSideData.orElse(null));
 	}
 
 
