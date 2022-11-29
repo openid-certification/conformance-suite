@@ -254,7 +254,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		callAndContinueOnFailure(FAPIBrazilValidateClientAuthenticationMethods.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1-7");
 		//BrazilOBDCR- 7.1-8 shall require encrypted request objects as required by the Brasil Open Banking Security Profile;
 		if(authRequestMethod!= FAPIAuthRequestMethod.PUSHED) {
-			callAndContinueOnFailure(FAPIBrazilValidateRequestObjectEncryption.class, Condition.ConditionResult.FAILURE,"BrazilOBDCR-7.1-8");
+			callAndContinueOnFailure(FAPIBrazilValidateRequestObjectEncryption.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.2.1-1");
 		}
 
 		//TODO how do you validate this during registration? registration request does not contain scopes?
