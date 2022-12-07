@@ -244,7 +244,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		call(condition(UnregisterDynamicallyRegisteredClient.class)
 			.skipIfObjectsMissing(new String[] {"client"})
 			.onSkip(Condition.ConditionResult.INFO)
-			.onFail(Condition.ConditionResult.WARNING)
+			.onFail(Condition.ConditionResult.FAILURE)
 			.dontStopOnFailure());
 
 		eventLog.endBlock();
