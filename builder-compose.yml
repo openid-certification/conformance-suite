@@ -6,4 +6,4 @@ services:
      - ${MAVEN_CACHE}:/root/.m2
      - .:/usr/src/mymaven
     working_dir: /usr/src/mymaven
-    command: mvn -B clean package
+    command: mvn -B clean package -DskipTests=true
