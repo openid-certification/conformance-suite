@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 public abstract class AbstractSetResponseTypeInDynamicRegistrationRequest extends AbstractCondition {
-	abstract protected String responseType();
+	protected abstract String responseType();
 
 	@Override
 	@PreEnvironment(required = "dynamic_registration_request")

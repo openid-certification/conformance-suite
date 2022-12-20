@@ -38,7 +38,7 @@ public class Application {
 	private EventLog eventLog;
 
 	private static class EventListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
-		final private static org.slf4j.Logger logger = LoggerFactory.getLogger(EventListener.class);
+		private static final org.slf4j.Logger logger = LoggerFactory.getLogger(EventListener.class);
 
 		@Override
 		public void onApplicationEvent(ApplicationEnvironmentPreparedEvent applicationEvent) {
