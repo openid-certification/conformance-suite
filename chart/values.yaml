@@ -31,7 +31,9 @@ resources:
 javaArgs: "-Xmx724M -Dfintechlabs.show_external_ip_address=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dump/"
 mongodb:
   image:
-    tag: 4.4.13
+    # this is currently the latest 5.0.x according to https://hub.docker.com/r/bitnami/mongodb/tags and https://www.mongodb.com/docs/manual/release-notes/5.0/
+    # it should be kept in sync with the version we're using for dev in the docker compose files
+    tag: 5.0.14
   auth:
       enabled: false
   usePassword: false
@@ -53,3 +55,5 @@ mongodb:
   persistence:
     size: 250Gi
     storageClass: premium-rwo
+  updateStrategy:
+    type: Recreate
