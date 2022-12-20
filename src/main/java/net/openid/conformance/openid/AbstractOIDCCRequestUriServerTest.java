@@ -50,6 +50,6 @@ public abstract class AbstractOIDCCRequestUriServerTest extends AbstractOIDCCSer
     }
 
     @Override
-	abstract protected void createAuthorizationRedirect();
+	protected abstract void createAuthorizationRedirect();
 
 }

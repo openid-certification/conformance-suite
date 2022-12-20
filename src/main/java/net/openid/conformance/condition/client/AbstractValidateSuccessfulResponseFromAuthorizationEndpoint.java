@@ -9,7 +9,7 @@ import java.util.List;
 
 public abstract class AbstractValidateSuccessfulResponseFromAuthorizationEndpoint extends AbstractCondition {
 
-	abstract protected List<String> getExpectedParams();
+	protected abstract List<String> getExpectedParams();
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_response")

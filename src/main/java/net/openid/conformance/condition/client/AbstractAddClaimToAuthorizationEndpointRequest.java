@@ -16,7 +16,7 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 		// We don't test value / values as we don't know what values the server may return
 		AsNull, AsEmpty, EssentialTrue, Random, EssentialFalse;
 
-		static public final ClaimRequestType[] values = values();
+		public static final ClaimRequestType[] values = values();
 
 		public ClaimRequestType next() {
 			return values[(ordinal() + 1) % values.length];

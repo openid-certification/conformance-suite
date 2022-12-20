@@ -125,7 +125,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 	 * 'callback_http_method': http method used at redirect uri (usually GET or POST)
 	 * 'callback_body_form_params': any form encoded body passed to redirect uri
 	 */
-	abstract protected void processCallback();
+	protected abstract void processCallback();
 
 	private Object handleImplicitSubmission(JsonObject requestParts) {
 

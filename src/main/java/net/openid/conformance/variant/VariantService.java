@@ -240,7 +240,7 @@ public class VariantService {
 		final TestModuleHolder module;
 		// the variants that are defined statically by the plan; i.e. those the user can't select
 		// null if no variants are pre-defined
-		final private Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
+		private final Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
 		/** configuration fields for any test modules with fixed variants */
 		final List<String> fixedVariantConfigurationFields;
 		/** "hide" configuration fields for any test modules with fixed variants */
