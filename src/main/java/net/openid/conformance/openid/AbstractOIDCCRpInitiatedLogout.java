@@ -31,19 +31,19 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 	}
 
 	@Override
-    protected void createAuthorizationRequest() {
-        // python includes the offline_access scope in all authorization requests; I checked with Roland (see 9th June
-        // 2020 email) and there was no reason he could remember for doing this and he suspected it was likely a C&P
-        // error, so java does not include offline_access.
+	protected void createAuthorizationRequest() {
+		// python includes the offline_access scope in all authorization requests; I checked with Roland (see 9th June
+		// 2020 email) and there was no reason he could remember for doing this and he suspected it was likely a C&P
+		// error, so java does not include offline_access.
 
-        if (firstTime) {
-            super.createAuthorizationRequest();
-        } else {
-            // with prompt=none this time
-            call(createAuthorizationRequestSequence()
-                .then(condition(AddPromptNoneToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
-        }
-    }
+		if (firstTime) {
+			super.createAuthorizationRequest();
+		} else {
+			// with prompt=none this time
+			call(createAuthorizationRequestSequence()
+				.then(condition(AddPromptNoneToAuthorizationEndpointRequest.class).requirements("OIDCC-3.1.2.1", "OIDCC-15.1")));
+		}
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

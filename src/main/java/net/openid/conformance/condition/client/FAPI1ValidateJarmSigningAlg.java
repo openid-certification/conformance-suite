@@ -9,8 +9,8 @@ import java.util.List;
 
 public class FAPI1ValidateJarmSigningAlg extends AbstractCondition {
 	@Override
-    @PreEnvironment(required = "jarm_response")
-    public Environment evaluate(Environment env) {
+	@PreEnvironment(required = "jarm_response")
+	public Environment evaluate(Environment env) {
 		String alg = env.getString("jarm_response", "header.alg");
 
 		List<String> permitted = Arrays.asList("PS256", "ES256");

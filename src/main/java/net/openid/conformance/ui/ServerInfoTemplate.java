@@ -36,5 +36,5 @@ public class ServerInfoTemplate {
 			return restTemplate.getForObject(URI, String.class);
 		}
 		return null;
-    }
+	}
 }

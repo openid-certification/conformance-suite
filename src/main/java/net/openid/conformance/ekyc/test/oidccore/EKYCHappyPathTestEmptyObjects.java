@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	displayName = "eKYC Happy Path Server Test - Empty Object",
 	summary = "Request only one claim, selected from the list of claims_in_verified_claims_supported, " +
 		"without requesting any other verification element and expect a happy path flow. Uses empty objects instead " +
-	    "of 'null' when requesting claim.",
+		"of 'null' when requesting claim.",
 	profile = "OIDCC",
 	configurationFields = {
 		"trust_framework",

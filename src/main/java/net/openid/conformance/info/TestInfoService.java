@@ -51,5 +51,5 @@ public interface TestInfoService {
 
 	void createIndexes();
 
-    boolean deleteTests(List<String> id);
+	boolean deleteTests(List<String> id);
 }
