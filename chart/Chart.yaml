@@ -4,5 +4,6 @@ name: fapi-conformance-suite
 version: 0.1.1
 dependencies:
     - name: mongodb
-      version: "11.2.0"
+      # this is currently the latest release from https://artifacthub.io/packages/helm/bitnami/mongodb/ that uses mongo 5.0.x
+      version: "12.1.31"
       repository: "https://charts.bitnami.com/bitnami"
