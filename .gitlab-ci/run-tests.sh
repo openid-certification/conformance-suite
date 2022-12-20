@@ -64,7 +64,9 @@ makeClientTest() {
 
 makeServerTest() {
     # FAPI2 baseline
+    TESTS=""
     TESTS="${TESTS} fapi2-baseline-id2-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][sender_constrain=dpop][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-dpop.json"
+    return
     TESTS="${TESTS} fapi2-baseline-id2-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
 
     # FAPI2 advanced
