@@ -30,8 +30,6 @@ resources:
 # environments but you may want to disable it if deploying internally
 javaArgs: "-Xmx724M -Djdk.tls.maxHandshakeMessageSize=65536 -Dfintechlabs.show_external_ip_address=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dump/"
 mongodb:
-  image:
-    tag: 4.4.13
   auth:
       enabled: false
   usePassword: false
