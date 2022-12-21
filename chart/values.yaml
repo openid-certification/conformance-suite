@@ -36,6 +36,7 @@ mongodb:
       enabled: false
   usePassword: false
   extraFlags:
+   - "--bind_ip_all"
    - "--wiredTigerCacheSizeGB=0.25"
    - "--setParameter maxIndexBuildMemoryUsageMegabytes=250"
   livenessProbe:
