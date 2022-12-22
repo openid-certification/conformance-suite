@@ -37,11 +37,15 @@ public class Application {
 	@Autowired
 	private EventLog eventLog;
 
-	private static class EventListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
-		private static final org.slf4j.Logger logger = LoggerFactory.getLogger(EventListener.class);
+	private static class PreparedEventListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+		private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PreparedEventListener.class);
 
 		@Override
 		public void onApplicationEvent(ApplicationEnvironmentPreparedEvent applicationEvent) {
+			startRedir(applicationEvent);
+		}
+
+		private static void startRedir(ApplicationEnvironmentPreparedEvent applicationEvent) {
 			// This redirects port 8443 on localhost to the same port on the ingress (httpd).
 			// This is so that selenium running on this machine can make submissions via the ingress
 			// when a developer is running the conformance suite locally, as otherwise accesses to
@@ -72,7 +76,7 @@ public class Application {
 		Security.addProvider(new BouncyCastleProvider());
 
 		SpringApplication springApplication = new SpringApplication(Application.class);
-		springApplication.addListeners(new EventListener());
+		springApplication.addListeners(new PreparedEventListener());
 		springApplication.run(args);
 	}
 
