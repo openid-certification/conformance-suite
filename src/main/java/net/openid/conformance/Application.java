@@ -12,6 +12,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bson.Document;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
@@ -47,18 +48,21 @@ public class Application {
 	@Autowired
 	private MongoClient mongoClient;
 
+	@Value("${openid.mongodb.targetFeatureCompatibilityVersion:}")
+	private String targetFeatureCompatibilityVersion;
+
 	@EventListener(ApplicationReadyEvent.class)
 	public void setMongoFeatureCompatibilityVersion() {
-		String targetFeatureCompatibilityVersion = "4.4";
 		MongoDatabase adminDb = mongoClient.getDatabase("admin");
 
 		String currentVersion = getCurrentFeatureCompatibilityVersion(adminDb);
-		logger.info(String.format("mongodb server version is %s, featureCompatibilityVersion is currently %s and we want it to be %s",
+		logger.info(String.format("mongodb server version is '%s', featureCompatibilityVersion is currently '%s' and openid.mongodb.targetFeatureCompatibilityVersion is '%s'",
 			getMongoDBVersion(adminDb),
 			currentVersion,
 			targetFeatureCompatibilityVersion));
 
-		if (!currentVersion.equals(targetFeatureCompatibilityVersion)) {
+		if (!targetFeatureCompatibilityVersion.isBlank() &&
+			!currentVersion.equals(targetFeatureCompatibilityVersion)) {
 			Document command = new Document("setFeatureCompatibilityVersion", targetFeatureCompatibilityVersion);
 			mongoClient.getDatabase("admin").runCommand(command);
 			logger.info("mongodb command setFeatureCompatibilityVersion " + targetFeatureCompatibilityVersion + " executed successfully");
