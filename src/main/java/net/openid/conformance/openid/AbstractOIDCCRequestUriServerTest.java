@@ -15,41 +15,41 @@ import javax.servlet.http.HttpSession;
  * Generic behaviour required when testing request_uri behaviours
  */
 public abstract class AbstractOIDCCRequestUriServerTest extends AbstractOIDCCServerTest {
-    @Override
-    protected void createDynamicClientRegistrationRequest() {
-        super.createDynamicClientRegistrationRequest();
+	@Override
+	protected void createDynamicClientRegistrationRequest() {
+		super.createDynamicClientRegistrationRequest();
 
-        callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
-        callAndStopOnFailure(AddRequestUriToDynamicRegistrationRequest.class);
-    }
+		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
+		callAndStopOnFailure(AddRequestUriToDynamicRegistrationRequest.class);
+	}
 
-    @Override
-    protected void onConfigure(JsonObject config, String baseUrl) {
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
 
-        super.onConfigure(config, baseUrl);
-        callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		super.onConfigure(config, baseUrl);
+		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
-    }
+	}
 
-    @Override
-    public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-        if (path.equals(env.getString("request_uri", "path"))) {
-            return handleRequestUriRequest();
-        }
-        return super.handleHttp(path, req, res, session, requestParts);
+		if (path.equals(env.getString("request_uri", "path"))) {
+			return handleRequestUriRequest();
+		}
+		return super.handleHttp(path, req, res, session, requestParts);
 
-    }
+	}
 
-    private Object handleRequestUriRequest() {
-        String requestObject = env.getString("request_object");
+	private Object handleRequestUriRequest() {
+		String requestObject = env.getString("request_object");
 
-        return ResponseEntity.ok()
-            .contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
-            .body(requestObject);
-    }
+		return ResponseEntity.ok()
+			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
+			.body(requestObject);
+	}
 
-    @Override
-	abstract protected void createAuthorizationRedirect();
+	@Override
+	protected abstract void createAuthorizationRedirect();
 
 }

@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 
 public class AddEndToEndIdToPaymentRequestEntityClaims extends AbstractCondition {
 	public static final String PROXY_E2EID_ISPB = "00000000";
-	static private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
 
 
 	@Override

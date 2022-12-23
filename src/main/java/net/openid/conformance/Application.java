@@ -1,20 +1,25 @@
 
 package net.openid.conformance;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.token.TokenService;
 import net.openid.conformance.ui.ServerInfoTemplate;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bson.Document;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import javax.annotation.PostConstruct;
@@ -22,6 +27,8 @@ import java.security.Security;
 
 @SpringBootApplication
 public class Application {
+	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Application.class);
+
 	@Autowired
 	private ServerInfoTemplate serverInfoTemplate;
 
@@ -37,11 +44,49 @@ public class Application {
 	@Autowired
 	private EventLog eventLog;
 
-	private static class EventListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
-		final private static org.slf4j.Logger logger = LoggerFactory.getLogger(EventListener.class);
+	@Autowired
+	private MongoClient mongoClient;
+
+	@EventListener(ApplicationReadyEvent.class)
+	public void setMongoFeatureCompatibilityVersion() {
+		String targetFeatureCompatibilityVersion = "4.4";
+		MongoDatabase adminDb = mongoClient.getDatabase("admin");
+
+		String currentVersion = getCurrentFeatureCompatibilityVersion(adminDb);
+		logger.info(String.format("mongodb server version is %s, featureCompatibilityVersion is currently %s and we want it to be %s",
+			getMongoDBVersion(adminDb),
+			currentVersion,
+			targetFeatureCompatibilityVersion));
+
+		if (!currentVersion.equals(targetFeatureCompatibilityVersion)) {
+			Document command = new Document("setFeatureCompatibilityVersion", targetFeatureCompatibilityVersion);
+			mongoClient.getDatabase("admin").runCommand(command);
+			logger.info("mongodb command setFeatureCompatibilityVersion " + targetFeatureCompatibilityVersion + " executed successfully");
+		}
+	}
+	private static String getMongoDBVersion(MongoDatabase adminDb) {
+		Document command = new Document("buildInfo", 1);
+		Document result = adminDb.runCommand(command);
+		return result.getString("version");
+	}
+	private static String getCurrentFeatureCompatibilityVersion(MongoDatabase adminDb) {
+		Document command = new Document("getParameter", 1);
+		command.put("featureCompatibilityVersion", 1);
+		Document result = adminDb.runCommand(command);
+		Document featureCompatibilityVersion = result.get("featureCompatibilityVersion", Document.class);
+		String currentVersion = featureCompatibilityVersion.getString("version");
+		return currentVersion;
+	}
+
+	private static class PreparedEventListener implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+		private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PreparedEventListener.class);
 
 		@Override
 		public void onApplicationEvent(ApplicationEnvironmentPreparedEvent applicationEvent) {
+			startRedir(applicationEvent);
+		}
+
+		private static void startRedir(ApplicationEnvironmentPreparedEvent applicationEvent) {
 			// This redirects port 8443 on localhost to the same port on the ingress (httpd).
 			// This is so that selenium running on this machine can make submissions via the ingress
 			// when a developer is running the conformance suite locally, as otherwise accesses to
@@ -72,7 +117,7 @@ public class Application {
 		Security.addProvider(new BouncyCastleProvider());
 
 		SpringApplication springApplication = new SpringApplication(Application.class);
-		springApplication.addListeners(new EventListener());
+		springApplication.addListeners(new PreparedEventListener());
 		springApplication.run(args);
 	}
 

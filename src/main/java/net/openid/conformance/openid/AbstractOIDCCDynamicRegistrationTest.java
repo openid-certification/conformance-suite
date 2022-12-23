@@ -149,7 +149,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 		call(new OIDCCCreateDynamicClientRegistrationRequest(responseType));
 	}
 
-	abstract protected void performAuthorizationFlow();
+	protected abstract void performAuthorizationFlow();
 
 	protected void createAuthorizationRequest() {
 		call(new CreateAuthorizationRequestSteps(formPost));
