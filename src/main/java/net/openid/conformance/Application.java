@@ -1,7 +1,7 @@
 
 package net.openid.conformance;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;

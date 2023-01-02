@@ -95,29 +95,29 @@ public class LogApi {
 	private TestPlanService planService;
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Get all test logs with paging, Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Retrieved successfully")
+	@Operation(summary = "Get all test logs with paging, Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	public ResponseEntity<Object> getAllTests(
-            @Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
+		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly,
 		PaginationRequest page) {
 
 		PaginationResponse<?> response;
 
 		if (publicOnly) {
 			response = page.getResponse(
-					p -> testInfos.findAllPublic(p),
-					(s, p) -> testInfos.findAllPublicSearch(s, p));
+				p -> testInfos.findAllPublic(p),
+				(s, p) -> testInfos.findAllPublicSearch(s, p));
 		} else if (authenticationFacade.isAdmin()) {
 			response = page.getResponse(
-					p -> testInfos.findAll(p),
-					(s, p) -> testInfos.findAllSearch(s, p));
+				p -> testInfos.findAll(p),
+				(s, p) -> testInfos.findAllSearch(s, p));
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			response = page.getResponse(
-					p -> testInfos.findAllByOwner(owner, p),
-					(s, p) -> testInfos.findAllByOwnerSearch(owner, s, p));
+				p -> testInfos.findAllByOwner(owner, p),
+				(s, p) -> testInfos.findAllByOwnerSearch(owner, s, p));
 		}
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -125,28 +125,28 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/log/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Get test log of given testId")
+	@Operation(summary = "Get test log of given testId")
 	@ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	public ResponseEntity<List<Document>> getLogResults(
-            @Parameter(description = "Id of test") @PathVariable("id") String id,
-            @Parameter(description = "Since when test created") @RequestParam(value = "since", required = false) Long since,
-            @Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+		@Parameter(description = "Id of test") @PathVariable("id") String id,
+		@Parameter(description = "Since when test created") @RequestParam(value = "since", required = false) Long since,
+		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, since, publicOnly);
 
 		return ResponseEntity.ok().body(results);
 	}
 
 	@GetMapping(value = "/log/export/{id}", produces = "application/zip")
-    @Operation(summary = "Export test log by test id")
+	@Operation(summary = "Export test log by test id")
 	@ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Exported successfully"),
-            @ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
+		@ApiResponse(responseCode = "200", description = "Exported successfully"),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
 	})
 	public ResponseEntity<StreamingResponseBody> export(
-            @Parameter(description = "Id of test") @PathVariable("id") String id,
-            @Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+		@Parameter(description = "Id of test") @PathVariable("id") String id,
+		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, null, publicOnly);
 
 		Optional<?> testInfo = getTestInfo(publicOnly, id);
@@ -195,14 +195,14 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/plan/export/{id}", produces = "application/zip")
-    @Operation(summary = "Export all test logs of plan by plan id")
+	@Operation(summary = "Export all test logs of plan by plan id")
 	@ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Exported successfully"),
-            @ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
+		@ApiResponse(responseCode = "200", description = "Exported successfully"),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
 	})
 	public ResponseEntity<StreamingResponseBody> exportLogsOfPlan(
-            @Parameter(description = "Id of plan") @PathVariable("id") String id,
-            @Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+		@Parameter(description = "Id of plan") @PathVariable("id") String id,
+		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
 		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
 
@@ -373,8 +373,7 @@ public class LogApi {
 		}
 
 		Query query = new Query(criteria);
-		if (summaryOnly)
-		{
+		if (summaryOnly) {
 			query.fields()
 				.include("result")
 				.include("testName")
@@ -397,25 +396,25 @@ public class LogApi {
 			return variant.getLegacyVariant() + "-";
 		} else {
 			return variant.getVariant().values()
-					.stream()
-					.collect(Collectors.joining("-"))
-					+ "-";
+				.stream()
+				.collect(Collectors.joining("-"))
+				+ "-";
 		}
 	}
 
 
 	@PostMapping(value = "/plan/{id}/certificationpackage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/zip")
-    @Operation(summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.")
+	@Operation(summary = "Prepare certification package for a test plan. Also publishes the plan and marks it as immutable.")
 	@ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Prepared successfully"),
-            @ApiResponse(responseCode = "403", description = "Could not publish plan"),
-            @ApiResponse(responseCode = "404", description = "Could not find a plan with the given id"),
-            @ApiResponse(responseCode = "422", description = "Could not mark the plan as immutable")
+		@ApiResponse(responseCode = "200", description = "Prepared successfully"),
+		@ApiResponse(responseCode = "403", description = "Could not publish plan"),
+		@ApiResponse(responseCode = "404", description = "Could not find a plan with the given id"),
+		@ApiResponse(responseCode = "422", description = "Could not mark the plan as immutable")
 	})
 	public ResponseEntity<StreamingResponseBody> prepareCertificationPackageForTestPlan(
-            @Parameter(description = "Id of test plan") @PathVariable("id") String id,
-            @Parameter(description = "Signed certification of conformance pdf") @RequestParam("certificationOfConformancePdf") MultipartFile certificationOfConformancePdf,
-            @Parameter(description = "Client data in zip format. Only required for RP tests") @RequestParam("clientSideData") MultipartFile clientSideData
+		@Parameter(description = "Id of test plan") @PathVariable("id") String id,
+		@Parameter(description = "Signed certification of conformance pdf") @RequestParam("certificationOfConformancePdf") MultipartFile certificationOfConformancePdf,
+		@Parameter(description = "Client data in zip format. Only required for RP tests") @RequestParam("clientSideData") MultipartFile clientSideData
 
 	) {
 		if (!planService.publishTestPlan(id, "everything")) {
@@ -430,15 +429,15 @@ public class LogApi {
 
 
 	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
-    @Operation(summary = "Export the full results for this plan as both html and json in a zip")
+	@Operation(summary = "Export the full results for this plan as both html and json in a zip")
 	@ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Exported successfully"),
-            @ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
+		@ApiResponse(responseCode = "200", description = "Exported successfully"),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
 	})
 	public ResponseEntity<StreamingResponseBody> exportPlanAsHTML(
 		HttpServletRequest httpRequest,
-            @Parameter(description = "Id of plan") @PathVariable("id") String id,
-            @Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+		@Parameter(description = "Id of plan") @PathVariable("id") String id,
+		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		return exportPlanAsZip(id, publicOnly, false, null, null);
 	}
 
@@ -489,7 +488,7 @@ public class LogApi {
 			}
 		}
 
-		if (planExportInfo.getTestExportCount()<1) {
+		if (planExportInfo.getTestExportCount() < 1) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
@@ -514,16 +513,16 @@ public class LogApi {
 						String htmlFileName = TestHelper.generateHtmlFileName(testLogInfoExport.getTestModuleName(), testLogInfoExport.getTestId());
 
 						String sigFileName = TestHelper.generateSigFileName(testLogInfoExport.getTestModuleName(), testLogInfoExport.getTestId());
-						if(addFolderForHtmlFiles){
+						if (addFolderForHtmlFiles) {
 							htmlFileName = "test-logs/" + htmlFileName;
 							sigFileName = "test-logs/" + sigFileName;
 						}
 
 						addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, testLogInfoExport.getExport(), htmlExportRenderer);
 
-						String jsonLogFilename = "test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json";
-						String jsonLogSigFilename = "test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json.sig";
-						if(addFolderForHtmlFiles){
+						String jsonLogFilename = "test-log-" + testLogInfoExport.getTestModuleName() + "-" + testLogInfoExport.getTestId() + ".json";
+						String jsonLogSigFilename = "test-log-" + testLogInfoExport.getTestModuleName() + "-" + testLogInfoExport.getTestId() + ".json.sig";
+						if (addFolderForHtmlFiles) {
 							jsonLogFilename = "test-logs/" + jsonLogFilename;
 							jsonLogSigFilename = "test-logs/" + jsonLogSigFilename;
 						}
@@ -531,14 +530,14 @@ public class LogApi {
 
 					}
 
-					if(certificationOfConformancePdf!=null && certificationOfConformancePdf.getSize()>0) {
+					if (certificationOfConformancePdf != null && certificationOfConformancePdf.getSize() > 0) {
 						ZipArchiveEntry zipEntry = new ZipArchiveEntry("OpenID-Certification-of-Conformance.pdf");
 						zipEntry.setSize(certificationOfConformancePdf.getSize());
 						archiveOutputStream.putArchiveEntry(zipEntry);
 						archiveOutputStream.write(certificationOfConformancePdf.getBytes());
 						archiveOutputStream.closeArchiveEntry();
 					}
-					if(clientSideData!=null && clientSideData.getSize()>0) {
+					if (clientSideData != null && clientSideData.getSize() > 0) {
 						ZipArchiveEntry zipEntry = new ZipArchiveEntry("client-data/" + clientSideData.getOriginalFilename());
 						zipEntry.setSize(clientSideData.getSize());
 						archiveOutputStream.putArchiveEntry(zipEntry);
@@ -563,7 +562,7 @@ public class LogApi {
 
 		String indexFilename = "index.html";
 		String indexSigFilename = "index.html.sig";
-		if(addLogsFolder) {
+		if (addLogsFolder) {
 			indexFilename = "test-logs/" + indexFilename;
 			indexSigFilename = "test-logs/" + indexSigFilename;
 		}
@@ -635,14 +634,14 @@ public class LogApi {
 	}
 
 	@GetMapping(value = "/log/exporthtml/{id}", produces = "application/zip")
-    @Operation(summary = "Export test logs as html by test id")
+	@Operation(summary = "Export test logs as html by test id")
 	@ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Exported successfully"),
-            @ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
+		@ApiResponse(responseCode = "200", description = "Exported successfully"),
+		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
 	})
 	public ResponseEntity<StreamingResponseBody> exportTestHtml(
-            @Parameter(description = "Id of test") @PathVariable("id") String id,
-            @Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
+		@Parameter(description = "Id of test") @PathVariable("id") String id,
+		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, null, publicOnly);
 
 		Optional<?> testInfo = getTestInfo(publicOnly, id);
@@ -680,8 +679,8 @@ public class LogApi {
 
 					addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, export, htmlExportRenderer);
 
-					addFilesToZip(archiveOutputStream, "test-log-"+testModuleNameFinal+"-" + id + ".json",
-						"test-log-"+testModuleNameFinal+"-" + id + ".json.sig", export);
+					addFilesToZip(archiveOutputStream, "test-log-" + testModuleNameFinal + "-" + id + ".json",
+						"test-log-" + testModuleNameFinal + "-" + id + ".json.sig", export);
 
 					archiveOutputStream.close();
 				} catch (Exception ex) {
@@ -709,42 +708,36 @@ public class LogApi {
 
 		@Override
 		public void write(int b)
-			throws IOException
-		{
-			write(new byte[]{(byte)b});
+			throws IOException {
+			write(new byte[]{(byte) b});
 		}
 
 		@Override
 		public void write(byte[] b)
-			throws IOException
-		{
+			throws IOException {
 			write(b, 0, b.length);
 		}
 
 		@Override
 		public void write(byte[] b, int offset, int len)
-			throws IOException
-		{
+			throws IOException {
 			target.write(b, offset, len);
 			try {
 				sig.update(b, offset, len);
-			}
-			catch(SignatureException ex) {
+			} catch (SignatureException ex) {
 				throw new IOException(ex);
 			}
 		}
 
 		@Override
 		public void flush()
-			throws IOException
-		{
+			throws IOException {
 			target.flush();
 		}
 
 		@Override
 		public void close()
-			throws IOException
-		{
+			throws IOException {
 			// we don't close the target stream when we're done because we might keep writing to it later
 			//target.close();
 		}
