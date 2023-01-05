@@ -87,6 +87,12 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		brazil = true;
 	}
 
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_ksa")
+	public void setupKSAFapi() {
+		profileSpecificChecks = new OpenBankingKSADiscoveryEndpointChecks();
+	}
+
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
@@ -192,6 +198,21 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-7");
 			}
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8", "BrazilOPIN-page8");
+		}
+	}
+
+	public static class OpenBankingKSADiscoveryEndpointChecks extends AbstractConditionSequence {
+
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "FAPI1-ADV-5.2.3-3");
+
+			callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "KSA");
+
+			callAndContinueOnFailure(FAPIOBCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.FAILURE, "OBSP-3.4");
+			callAndContinueOnFailure(FAPIOBCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIOBCheckDiscEndpointScopesSupported.class, Condition.ConditionResult.FAILURE);
+
 		}
 	}
 }

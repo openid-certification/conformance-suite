@@ -25,15 +25,16 @@ public class LogEntryHelper {
 		"#0077b6", "#7209b7", "#3a0ca3", "#8a817c", "#9a031e", "#5f0f40", "#8900f2");
 	public static final Set<String> visibleFields = Set.of(
 		"_id",
-		"_class",	//old test results contain _class elements with 'com.mongodb.BasicDBObject' values
+		"_class",    //old test results contain _class elements with 'com.mongodb.BasicDBObject' values
 		"msg", "src", "time", "result", "requirements", "upload",
 		"testOwner", "testId", "http", "blockId", "startBlock");
 
 	public static final Map<String, String> specLinks;
-	static{
+
+	static {
 		specLinks = new HashMap<>();
 		specLinks.put("BrazilOB-", "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-");
-		specLinks.put("BrazilOBDCR-","https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID2.html#section-");
+		specLinks.put("BrazilOBDCR-", "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID2.html#section-");
 		specLinks.put("BrazilOPIN-", "https://br-openinsurance.github.io/areadesenvolvedor/files/Controles_técnicos_de_Segurança_da_Informação_3.0.pdf#");
 		specLinks.put("FAPI-R-", "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.");
 		specLinks.put("FAPI-RW-", "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.");
@@ -71,12 +72,14 @@ public class LogEntryHelper {
 		specLinks.put("OIDCSM-", "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section.");
 		specLinks.put("OIDCRIL-", "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.");
 		specLinks.put("BCP195-", "https://tools.ietf.org/html/bcp195#section-");
-		specLinks.put("CDR-","https://consumerdatastandardsaustralia.github.io/standards/#");
+		specLinks.put("CDR-", "https://consumerdatastandardsaustralia.github.io/standards/#");
 		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-");
 		specLinks.put("DPOP-", "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-");
+		specLinks.put("KSA", "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security");
 	}
+
 	private Document logEntry;
 	private Map<String, Object> more = new LinkedHashMap<>();
 	private Object stackTrace = null;
@@ -89,18 +92,18 @@ public class LogEntryHelper {
 	public LogEntryHelper(Document logEntry, Gson collapsingGsonHttpMessageConverter) {
 		this.logEntry = logEntry;
 		this.gson = collapsingGsonHttpMessageConverter;
-		for(String field : logEntry.keySet()) {
-			if(!visibleFields.contains(field)) {
+		for (String field : logEntry.keySet()) {
+			if (!visibleFields.contains(field)) {
 				//assume that there can be only 1 stack trace and 1 cause_stacktrace
-				if("stacktrace".equals(field)) {
+				if ("stacktrace".equals(field)) {
 					this.stackTrace = logEntry.get(field);
-				} else if("cause_stacktrace".equals(field)) {
+				} else if ("cause_stacktrace".equals(field)) {
 					this.causeStackTrace = logEntry.get(field);
 				}
 				this.more.put(field, logEntry.get(field));
 			}
 		}
-		if(this.stackTrace!=null && this.causeStackTrace!=null) {
+		if (this.stackTrace != null && this.causeStackTrace != null) {
 			this.doubleStackTrace = true;
 			//otherwise they would be printed twice
 			this.more.remove("stacktrace");
@@ -113,31 +116,30 @@ public class LogEntryHelper {
 	}
 
 	public String getMoreFieldType(String key, Object fieldValue) {
-		if("img".equals(key)) {
+		if ("img".equals(key)) {
 			return "img";
 		}
-		if(fieldValue==null) {
+		if (fieldValue == null) {
 			return "";
 		}
 
-		if(!isDoubleStackTrace() && ("stacktrace".equals(key) || "cause_stacktrace".equals(key))) {
+		if (!isDoubleStackTrace() && ("stacktrace".equals(key) || "cause_stacktrace".equals(key))) {
 			return "exception";
 		}
-		if(fieldValue instanceof Document) {
+		if (fieldValue instanceof Document) {
 			Document doc = (Document) fieldValue;
-			if(doc.containsKey("verifiable_jws")) {
+			if (doc.containsKey("verifiable_jws")) {
 				return "verifiable_jws";
 			}
 			return "json";
 		}
-		if(fieldValue instanceof String) {
-			if (isJwt(fieldValue))
-			{
+		if (fieldValue instanceof String) {
+			if (isJwt(fieldValue)) {
 				return "jwt";
 			}
 			return "text";
 		}
-		if(fieldValue instanceof Number) {
+		if (fieldValue instanceof Number) {
 			return "text";
 		}
 		//json encode by default
@@ -153,43 +155,35 @@ public class LogEntryHelper {
 		return jwtString.split("\\.");
 	}
 
-	public void setMore(Map<String, Object> more)
-	{
+	public void setMore(Map<String, Object> more) {
 		this.more = more;
 	}
 
-	public Object getStackTrace()
-	{
+	public Object getStackTrace() {
 		return stackTrace;
 	}
 
-	public void setStackTrace(Object stackTrace)
-	{
+	public void setStackTrace(Object stackTrace) {
 		this.stackTrace = stackTrace;
 	}
 
-	public Object getCauseStackTrace()
-	{
+	public Object getCauseStackTrace() {
 		return causeStackTrace;
 	}
 
-	public void setCauseStackTrace(Object causeStackTrace)
-	{
+	public void setCauseStackTrace(Object causeStackTrace) {
 		this.causeStackTrace = causeStackTrace;
 	}
 
-	public boolean isDoubleStackTrace()
-	{
+	public boolean isDoubleStackTrace() {
 		return doubleStackTrace;
 	}
 
-	public void setDoubleStackTrace(boolean doubleStackTrace)
-	{
+	public void setDoubleStackTrace(boolean doubleStackTrace) {
 		this.doubleStackTrace = doubleStackTrace;
 	}
 
-	public Map<String, Object> getMore()
-	{
+	public Map<String, Object> getMore() {
 		return more;
 	}
 
@@ -208,8 +202,8 @@ public class LogEntryHelper {
 	}
 
 	public String getRequirementLink(String requirement) {
-		for(String key : specLinks.keySet()) {
-			if(requirement.startsWith(key)) {
+		for (String key : specLinks.keySet()) {
+			if (requirement.startsWith(key)) {
 				return specLinks.get(key) + requirement.substring(key.length());
 			}
 		}
@@ -228,7 +222,7 @@ public class LogEntryHelper {
 
 	public String getLogEntryResultClass() {
 		String result = logEntry.getString("result");
-		if(result==null || result.isEmpty()) {
+		if (result == null || result.isEmpty()) {
 			return "label result-unknown";
 		}
 		return "label result-" + result.toLowerCase(Locale.ENGLISH);
@@ -236,7 +230,7 @@ public class LogEntryHelper {
 
 	public String getLogEntryResult() {
 		String result = logEntry.getString("result");
-		if(result==null || result.isEmpty()) {
+		if (result == null || result.isEmpty()) {
 			return null;
 		}
 		return result;
