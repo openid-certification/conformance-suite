@@ -33,10 +33,11 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-	"plain_fapi",
-	"openbanking_uk",
-	"consumerdataright_au",
-	"openinsurance_brazil"
+		"plain_fapi",
+		"openbanking_uk",
+		"consumerdataright_au",
+		"openinsurance_brazil",
+		"openbanking_ksa"
 })
 public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI1AdvancedFinalServerTestModule {
 

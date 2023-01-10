@@ -24,8 +24,8 @@ public class SetProtectedResourceUrlToAccountsEndpoint extends AbstractCondition
 
 		// Build the endpoint URL
 		String resourceUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
-			.path(ACCOUNTS_RESOURCE)
-			.toUriString();
+				.path(ACCOUNTS_RESOURCE)
+				.toUriString();
 
 		env.putString("protected_resource_url", resourceUrl);
 
