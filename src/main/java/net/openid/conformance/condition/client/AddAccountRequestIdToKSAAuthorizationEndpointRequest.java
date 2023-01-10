@@ -17,7 +17,7 @@ public class AddAccountRequestIdToKSAAuthorizationEndpointRequest extends Abstra
 		String consentid = env.getString("account_request_id");
 
 		//authorizationEndpointRequest.remove("scope");
-		String scope = authorizationEndpointRequest.get("scope").getAsString();
+		//String scope = authorizationEndpointRequest.get("scope").getAsString();
 		authorizationEndpointRequest.addProperty("scope", "accounts:" + consentid + " openid");
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
