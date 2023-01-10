@@ -10,7 +10,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 public class SetProtectedResourceUrlToAccountsEndpoint extends AbstractCondition {
 
-	private static final String ACCOUNTS_RESOURCE = "accounts";
+	//private static final String ACCOUNTS_RESOURCE = "accounts";
 
 	@Override
 	@PreEnvironment(required = "resource")
@@ -23,9 +23,7 @@ public class SetProtectedResourceUrlToAccountsEndpoint extends AbstractCondition
 		}
 
 		// Build the endpoint URL
-		String resourceUrl = UriComponentsBuilder.fromUriString(resourceEndpoint)
-			.path(ACCOUNTS_RESOURCE)
-			.toUriString();
+		String resourceUrl = UriComponentsBuilder.fromUriString(resourceEndpoint).toUriString();
 
 		env.putString("protected_resource_url", resourceUrl);
 

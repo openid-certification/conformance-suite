@@ -148,6 +148,7 @@ import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAsser
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
+import net.openid.conformance.sequence.client.OpenBankingKSAAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingKSAPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
@@ -991,7 +992,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 				isSecondClient(),
 				false,
 				addTokenEndpointClientAuthentication);
-		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
+		profileAuthorizationEndpointSetupSteps = OpenBankingKSAAuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
 	}
 
