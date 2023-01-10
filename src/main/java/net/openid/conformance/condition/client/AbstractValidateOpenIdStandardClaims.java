@@ -179,6 +179,7 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 		@Override
 		public boolean isValid(JsonElement elt) {
 			if (!elt.isJsonObject() || elt.getAsJsonObject().size() == 0) {
+				logFailure("Not a JSON object or no identity claims");
 				return false;
 			}
 
