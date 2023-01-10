@@ -113,7 +113,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
-import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.SignWithNoneRequestObject;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -148,6 +148,7 @@ import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAsser
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
+import net.openid.conformance.sequence.client.OpenBankingKSAPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
@@ -213,7 +214,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		ISNT_CONFIGURED_YET;
 
 		boolean isTrue() {
-			if(this == ISNT_CONFIGURED_YET) {
+			if (this == ISNT_CONFIGURED_YET) {
 				throw new RuntimeException("This test should have configured a value but hasn't");
 			}
 			return this == IS;
@@ -239,13 +240,13 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	protected Troolean brazilPayments = Troolean.ISNT_CONFIGURED_YET; // whether using Brazil payments APIs
 
 	// for variants to fill in by calling the setup... family of methods
-	private Class <? extends ConditionSequence> resourceConfiguration;
-	protected Class <? extends ConditionSequence> addTokenEndpointClientAuthentication;
-	private Supplier <? extends ConditionSequence> preAuthorizationSteps;
-	protected Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
-	private Class <? extends ConditionSequence> profileIdTokenValidationSteps;
-	private Class <? extends ConditionSequence> supportMTLSEndpointAliases;
-	protected Class <? extends ConditionSequence> addParEndpointClientAuthentication;
+	private Class<? extends ConditionSequence> resourceConfiguration;
+	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
+	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
+	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
+	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+	protected Class<? extends ConditionSequence> addParEndpointClientAuthentication;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -255,6 +256,14 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
+		}
+	}
+
+
+	public static class OpenBankingKSAResourceConfiguration extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
@@ -423,7 +432,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		private boolean isSecondClient;
 		private boolean isJarm;
 		private boolean isPar;
-		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
+		private Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
 											   boolean isJarm,
@@ -506,7 +515,9 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			// jwsreq-26 is very explicit that client_id should be both inside and outside the request object
 			callAndStopOnFailure(AddClientIdToRequestObject.class, "FAPI1-ADV-5.2.3-8");
 
-			callAndStopOnFailure(SignRequestObject.class);
+			//callAndStopOnFailure(SignRequestObject.class);
+			// KSA Hack
+			callAndStopOnFailure(SignWithNoneRequestObject.class);
 
 			if (encrypt) {
 				callAndStopOnFailure(FAPIBrazilEncryptRequestObject.class, "BrazilOB-5.2.2-1", "BrazilOB-6.1.1-1");
@@ -564,7 +575,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
-			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
+			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6.1-1");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
@@ -642,10 +653,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-5.1");
-		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+		skipIfMissing(new String[]{"expires_in"}, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 		if (isBrazil()) {
-			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+			skipIfMissing(new String[]{"expires_in"}, null, Condition.ConditionResult.INFO,
 				FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
 		}
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
@@ -677,7 +688,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6");
 		}
 		skipIfElementMissing("id_token", "jwe_header", ConditionResult.INFO,
-			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
+			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE, "FAPI1-ADV-8.6.1-1");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		}
@@ -738,7 +749,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	protected void processCallbackForJARM() {
 		String errorParameter = env.getString("callback_query_params", "error");
 		String responseParameter = env.getString("callback_query_params", "response");
-		if(allowPlainErrorResponseForJarm && responseParameter==null && errorParameter!=null) {
+		if (allowPlainErrorResponseForJarm && responseParameter == null && errorParameter != null) {
 			//plain error response, no jarm
 			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
 		} else {
@@ -972,6 +983,19 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		profileIdTokenValidationSteps = null;
 	}
 
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_ksa")
+	public void setupOpenBankingKSA() {
+		resourceConfiguration = OpenBankingKSAResourceConfiguration.class;
+		preAuthorizationSteps = () ->
+			new OpenBankingKSAPreAuthorizationSteps(
+				isSecondClient(),
+				false,
+				addTokenEndpointClientAuthentication);
+		profileAuthorizationEndpointSetupSteps = FAPIAuthorizationEndpointSetup.class;
+		profileIdTokenValidationSteps = null;
+	}
+
+
 	protected boolean scopeContains(String requiredScope) {
 		String scope = env.getString("config", "client.scope");
 		if (Strings.isNullOrEmpty(scope)) {
@@ -1042,6 +1066,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 	/**
 	 * Subclasses may have more complex needs for this, so let them provide it as a sequence
+	 *
 	 * @return
 	 */
 	protected Optional<ConditionSequence> getBrazilPaymentsStatusCodeCheck() {

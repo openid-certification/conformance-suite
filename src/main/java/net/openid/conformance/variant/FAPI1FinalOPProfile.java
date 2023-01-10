@@ -15,7 +15,8 @@ public enum FAPI1FinalOPProfile {
 	// as per https://github.com/OpenBanking-Brasil/specs-seguranca/
 	OPENBANKING_BRAZIL,
 	// as per https://github.com/br-openinsurance/areadesenvolvedor/blob/develop/documentation/source/files/swagger/consents.yaml
-	OPENINSURANCE_BRAZIL;
+	OPENINSURANCE_BRAZIL,
+	OPENBANKING_KSA;
 
 	@Override
 	public String toString() {

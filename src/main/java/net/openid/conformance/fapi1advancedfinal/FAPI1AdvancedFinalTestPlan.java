@@ -7,7 +7,7 @@ import net.openid.conformance.variant.VariantSelection;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
-@PublishTestPlan (
+@PublishTestPlan(
 	testPlanName = "fapi1-advanced-final-test-plan",
 	displayName = "FAPI1-Advanced-Final: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
@@ -141,6 +141,14 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 			case "openinsurance_brazil":
 				certProfile = "BR-OPIN";
 				break;
+			case "openbanking_ksa":
+				if (!par) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: PAR is required for KSA OB",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				certProfile = "KSA-OB";
+				break;
+
 		}
 
 		certProfile += " Adv. OP w/";
