@@ -40,6 +40,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 	@PreEnvironment(required = { "access_token", "resource", "account_requests_endpoint_request", "resource_endpoint_request_headers" })
 	@PostEnvironment(required = { "resource_endpoint_response_headers", "account_requests_endpoint_response" })
 	public Environment evaluate(Environment env) {
+		// Note that this code doesn't follow the prefered pattern and should be refactored; extending CallProtectedResource is prefered
 
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {

@@ -33,6 +33,7 @@ public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken ext
 	@PreEnvironment(required = { "directory_access_token", "config", "certificate_subject" })
 	@PostEnvironment(required = {  "software_statement_assertion" })
 	public Environment evaluate(Environment env) {
+		// Note that this code doesn't follow the prefered pattern and should be refactored; extending CallProtectedResource is prefered
 
 		String accessToken = env.getString("directory_access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
