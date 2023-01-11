@@ -28,11 +28,11 @@ public class CreateCreateAccountRequestRequestWithExpiration extends AbstractCon
 		Instant baseDateRough = Instant.now();
 		Instant baseDate = baseDateRough.minusNanos(baseDateRough.getNano());
 
-		String expirationDateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
+		String expirationDateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"))
 				.format(baseDate.plus(2, ChronoUnit.HOURS));
-		String fromDate = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
+		String fromDate = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"))
 				.format(baseDate.minus(30, ChronoUnit.DAYS));
-		String toDate = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
+		String toDate = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"))
 				.format(baseDate);
 
 		data.addProperty("ExpirationDateTime", expirationDateTime);
