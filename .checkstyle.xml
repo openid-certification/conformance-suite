@@ -181,5 +181,10 @@
       <!-- The check is suppressed in the next line of code after the comment -->
       <property name="influenceFormat" value="1"/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="^\t*    "/>
+      <property name="message" value="Indent must use tab characters"/>
+      <property name="ignoreComments" value="true"/>
+    </module>
   </module>
 </module>
