@@ -81,6 +81,12 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		brazil = true;
 	}
 
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_ksa")
+	public void setupKSAFapi() {
+		profileSpecificChecks = new OpenBankingKSADiscoveryEndpointChecks();
+	}
+
+
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
 	public void setupOpenInsuranceBrazil() {
 		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(true);
@@ -192,6 +198,19 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-7");
 			}
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8", "BrazilOPIN-page8");
+		}
+	}
+
+	/**
+	 * The OpenBanking KSA is defined as FAPI 1 Advanced with PAR required. So the requirement for the discovery
+	 * endpoint response is the fapi1 requirement plus the requirement for supporting PAR.
+	 */
+	public static class OpenBankingKSADiscoveryEndpointChecks extends PlainFAPIDiscoveryEndpointChecks {
+
+		@Override
+		public void evaluate() {
+			super.evaluate();
+			callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "KSA");
 		}
 	}
 }

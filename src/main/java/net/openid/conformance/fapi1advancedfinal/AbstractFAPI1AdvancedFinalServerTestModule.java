@@ -148,6 +148,8 @@ import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAsser
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
+import net.openid.conformance.sequence.client.OpenBankingKSAAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.OpenBankingKSAPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
@@ -258,6 +260,14 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
+		}
+	}
+
+
+	public static class OpenBankingKSAResourceConfiguration extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
 		}
 	}
 
@@ -971,6 +981,19 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		profileAuthorizationEndpointSetupSteps = null;
 		profileIdTokenValidationSteps = null;
 	}
+
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_ksa")
+	public void setupOpenBankingKSA() {
+		resourceConfiguration = OpenBankingKSAResourceConfiguration.class;
+		preAuthorizationSteps = () ->
+			new OpenBankingKSAPreAuthorizationSteps(
+				isSecondClient(),
+				false,
+				addTokenEndpointClientAuthentication);
+		profileAuthorizationEndpointSetupSteps = OpenBankingKSAAuthorizationEndpointSetup.class;
+		profileIdTokenValidationSteps = null;
+	}
+
 
 	protected boolean scopeContains(String requiredScope) {
 		String scope = env.getString("config", "client.scope");

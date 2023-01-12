@@ -473,6 +473,7 @@ var FAPI_UI = {
 			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
 			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-",
 			"DPOP-" : "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-",
+			"KSA" : "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security",
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 
 		testJSON : {},

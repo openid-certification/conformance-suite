@@ -38,7 +38,12 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 // only applicable to UK OpenBanking as the SCA acr value we use is specific to that ecosystem
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "openinsurance_brazil" })
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
+		"plain_fapi",
+		"consumerdataright_au",
+		"openbanking_brazil",
+		"openinsurance_brazil",
+		"openbanking_ksa" })
 public class FAPI1AdvancedFinalTestEssentialAcrScaClaim extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
