@@ -9,9 +9,9 @@ import java.text.ParseException;
 
 public abstract class AbstractInvalidateJwsSignature extends AbstractCondition {
 
-    public Environment invalidateSignature(Environment env, String environmentKey) {
+	public Environment invalidateSignature(Environment env, String environmentKey) {
 
-        String jwtString = env.getString(environmentKey);
+		String jwtString = env.getString(environmentKey);
 
 		String invalidJwtString = invalidateSignatureString(environmentKey, jwtString);
 

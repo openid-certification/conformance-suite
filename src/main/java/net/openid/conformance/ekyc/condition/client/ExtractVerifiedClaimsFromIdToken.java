@@ -10,14 +10,14 @@ public class ExtractVerifiedClaimsFromIdToken extends AbstractCondition {
 
 	/**
 	 * Optionally adds verified_claims_response to env
-     * verified_claims_response is like
+	 * verified_claims_response is like
 	 *   {
 	 *    "id_token": jsonelement,
 	 *    "userinfo": jsonelement
 	 *   }
 	 * @param env
-     * @return
-     */
+	 * @return
+	 */
 
 	@Override
 	@PreEnvironment(required = {"server", "authorization_endpoint_request", "id_token"})

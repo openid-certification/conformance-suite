@@ -24,21 +24,21 @@ public class OIDCCLoadUserInfoWithAggregatedClaims_UnitTest {
 
 	private OIDCCLoadUserInfoWithAggregatedClaims cond;
 
-    @Before
-    public void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		cond = new OIDCCLoadUserInfoWithAggregatedClaims();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
-    }
+	}
 
-    @Test
-    public void evaluate() {
-    	cond.evaluate(env);
-    	JsonObject user = env.getObject("user_info");
+	@Test
+	public void evaluate() {
+		cond.evaluate(env);
+		JsonObject user = env.getObject("user_info");
 		assertNotNull(user);
 		JsonElement claimSources = user.get("_claim_sources");
 		assertNotNull(claimSources);
 		JsonObject claimSourcesObject = claimSources.getAsJsonObject();
 		assertTrue(claimSourcesObject.has("src1"));
 		assertTrue(claimSourcesObject.get("src1").getAsJsonObject().has("JWT"));
-    }
+	}
 }

@@ -12,8 +12,8 @@ public class EnsureMinimumRequestUriEntropy extends AbstractEnsureMinimumEntropy
 
 	/*
 	 draft-ietf-oauth-jwsreq-20 : 12.2.1 : A general guidance for the
-   validity time would be less than a minute and the Request Object URI
-   is to include a cryptographic random value of 128bit or more
+	 validity time would be less than a minute and the Request Object URI
+	 is to include a cryptographic random value of 128bit or more
 	 */
 	private final double requiredEntropy = 128;
 

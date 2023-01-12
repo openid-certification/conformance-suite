@@ -22,5 +22,5 @@ public class FAPI1ValidateJarmSigningAlg extends AbstractCondition {
 
 		throw error("JARM response must be signed with a permitted alg",
 			args("alg", alg, "permitted", permitted));
-    }
+	}
 }

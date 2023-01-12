@@ -57,8 +57,8 @@
       <property name="allowNonPrintableEscapes" value="true"/>
     </module>
     <module name="AvoidStarImport">
-		<property name="excludes" value="java.io,java.util,java.util.stream.Collectors,java.net,com.gargoylesoftware.htmlunit"/>
-	</module>
+        <property name="excludes" value="java.io,java.util,java.util.stream.Collectors,java.net,com.gargoylesoftware.htmlunit"/>
+    </module>
     <module name="OneTopLevelClass"/>
     <module name="NoLineWrap">
       <property name="tokens" value="PACKAGE_DEF, IMPORT, STATIC_IMPORT"/>
@@ -180,6 +180,11 @@
       <property name="checkFormat" value="$1"/>
       <!-- The check is suppressed in the next line of code after the comment -->
       <property name="influenceFormat" value="1"/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="^\t*    "/>
+      <property name="message" value="Indent must use tab characters"/>
+      <property name="ignoreComments" value="true"/>
     </module>
   </module>
 </module>

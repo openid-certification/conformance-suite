@@ -27,8 +27,8 @@ public class TestPlanApi_UnitTest {
 	Plan plan;
 	TestPlanApi api;
 
-    @Before
-    public void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		planService = Mockito.mock(TestPlanService.class);
 		infoService = Mockito.mock(TestInfoService.class);
 		plan = Mockito.mock(Plan.class);

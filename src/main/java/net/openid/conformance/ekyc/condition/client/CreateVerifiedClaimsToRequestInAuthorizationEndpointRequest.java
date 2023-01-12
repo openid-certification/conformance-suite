@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class CreateVerifiedClaimsToRequestInAuthorizationEndpointRequest extends AbstractAddClaimToAuthorizationEndpointRequest {
 
 	/**
-     * unverified_claims_to_request must be like
+	 * unverified_claims_to_request must be like
 	 * {
 	 *     "a claim name": {
 	 *         "location":"ID_TOKEN",
@@ -23,8 +23,8 @@ public class CreateVerifiedClaimsToRequestInAuthorizationEndpointRequest extends
 	 * }
 	 * essential is optional
 	 * @param env
-     * @return
-     */
+	 * @return
+	 */
 	@Override
 	@PreEnvironment(required = {"server"})
 	@PostEnvironment(required = "verified_claims_to_request")

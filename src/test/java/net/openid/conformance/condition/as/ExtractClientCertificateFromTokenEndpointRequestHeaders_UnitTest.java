@@ -30,8 +30,8 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {
 	private ExtractClientCertificateFromRequestHeaders cond;
 
 
-    @Before
-    public void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		cond = new ExtractClientCertificateFromRequestHeaders();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		JsonObject sampleHeaders = new JsonObject();
@@ -76,10 +76,10 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {
 		tokenEndpointRequest = new JsonObject();
 		tokenEndpointRequest.add("headers", sampleHeaders);
 
-    }
+	}
 
-    @Test
-    public void evaluate() throws InvalidNameException
+	@Test
+	public void evaluate() throws InvalidNameException
 	{
 		env.putObject("token_endpoint_request", tokenEndpointRequest);
 
@@ -110,5 +110,5 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {
 		JsonArray sanEmails = cert.getAsJsonArray("sanEmails");
 		assertTrue(sanEmails.contains(new JsonPrimitive("certification@openid.net")));
 
-    }
+	}
 }

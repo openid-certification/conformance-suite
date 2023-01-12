@@ -396,38 +396,38 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 	}
 
 	/* IN REQUEST:
-	"constrainable_element": {
-      "oneOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "value": {
-              "type": "string"
-            },
-            "values": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "minItems": 1
-            },
-            "essential": {
-              "type": "boolean"
-            },
-            "purpose": {
-              "type": "string" ,
-              "minLength": 3 ,
-              "maxLength": 300
-            }
-          }
-        }
-      ]
-    }
+	"constrainable_element":{
+		"oneOf":[
+			{
+				"type":"null"
+			},
+			{
+				"type":"object",
+				"properties":{
+					"value":{
+						"type":"string"
+					},
+					"values":{
+						"type":"array",
+						"items":{
+							"type":"string"
+						},
+						"minItems":1
+					},
+					"essential":{
+						"type":"boolean"
+					},
+					"purpose":{
+						"type":"string",
+						"minLength":3,
+						"maxLength":300
+					}
+				}
+			}
+		]
+	}
 
-    IN RESPONSE: string
+	IN RESPONSE: string
 	 */
 	protected void compareTrustFrameworks(JsonElement requestedTrustFramework, JsonElement returnedTrustFramework) {
 		if(requestedTrustFramework.isJsonNull()) {

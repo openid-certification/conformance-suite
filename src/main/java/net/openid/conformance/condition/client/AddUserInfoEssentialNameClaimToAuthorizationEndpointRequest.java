@@ -17,11 +17,11 @@ public class AddUserInfoEssentialNameClaimToAuthorizationEndpointRequest extends
 
 		or the decoded claims value:
 
-        "userinfo": {
-            "name": {
-                "essential": true
-            }
-        }
+		"userinfo": {
+			"name": {
+				"essential": true
+			}
+		}
 
 		 */
 
