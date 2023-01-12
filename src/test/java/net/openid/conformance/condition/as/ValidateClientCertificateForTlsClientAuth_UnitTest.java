@@ -25,8 +25,8 @@ public class ValidateClientCertificateForTlsClientAuth_UnitTest {
 
 	private ValidateClientCertificateForTlsClientAuth cond;
 
-    @Before
-    public void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		cond = new ValidateClientCertificateForTlsClientAuth();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		JsonObject sampleHeaders = new JsonObject();
@@ -76,13 +76,13 @@ public class ValidateClientCertificateForTlsClientAuth_UnitTest {
 
 	}
 
-    @Test
-    public void evaluate_SubjectDN() {
+	@Test
+	public void evaluate_SubjectDN() {
 		JsonObject client = new JsonObject();
 		client.addProperty("tls_client_auth_subject_dn", "cn=test.certification.example.com,o=oidf,l=san ramon,st=ca,c=us");
 		env.putObject("client", client);
 		cond.evaluate(env);
-    }
+	}
 
 	@Test
 	public void evaluate_SubjectDN_Reordered() {
@@ -149,7 +149,7 @@ public class ValidateClientCertificateForTlsClientAuth_UnitTest {
 		cond.evaluate(env);
 	}
 
-    @Test
+	@Test
 	public void checkSanIP_IPv6Shortened() {
 		JsonArray values = new JsonArray();
 		values.add("127.0.0.1");

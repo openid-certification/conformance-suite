@@ -7,19 +7,19 @@ import net.openid.conformance.testmodule.Environment;
 
 public class CheckNoErrorFromDynamicRegistrationEndpoint extends AbstractCondition {
 
-    @Override
-    @PreEnvironment(required = "dynamic_registration_endpoint_response")
-    public Environment evaluate(Environment env) {
+	@Override
+	@PreEnvironment(required = "dynamic_registration_endpoint_response")
+	public Environment evaluate(Environment env) {
 
-        JsonElement error = env.getElementFromObject("dynamic_registration_endpoint_response", "body_json.error");
+		JsonElement error = env.getElementFromObject("dynamic_registration_endpoint_response", "body_json.error");
 
-        if (error != null) {
-            throw error("'error' field found in response from dynamic registration endpoint.",
+		if (error != null) {
+			throw error("'error' field found in response from dynamic registration endpoint.",
 				args("error", error));
-        }
+		}
 
-        logSuccess("Dynamic registration endpoint did not return an error.");
+		logSuccess("Dynamic registration endpoint did not return an error.");
 
-        return env;
-    }
+		return env;
+	}
 }

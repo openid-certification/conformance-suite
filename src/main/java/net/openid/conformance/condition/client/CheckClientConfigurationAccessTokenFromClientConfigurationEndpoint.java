@@ -6,9 +6,9 @@ import net.openid.conformance.testmodule.Environment;
 
 public class CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint extends AbstractCondition {
 
-    @Override
-    @PreEnvironment(required = { "registration_client_endpoint_response", "client" })
-    public Environment evaluate(Environment env) {
+	@Override
+	@PreEnvironment(required = { "registration_client_endpoint_response", "client" })
+	public Environment evaluate(Environment env) {
 
 		String originalRegistrationAccessToken = env.getString("client", "registration_access_token");
 
@@ -26,8 +26,8 @@ public class CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint 
 			return env;
 		}
 
-        logSuccess("Client configuration endpoint returned same registration_access_token as previously.");
+		logSuccess("Client configuration endpoint returned same registration_access_token as previously.");
 
-        return env;
-    }
+		return env;
+	}
 }

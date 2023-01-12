@@ -12,13 +12,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class LogApi_UnitTest {
 
-    @Before
-    public void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 	}
 
 	@Test
-    public void createHtmlForTestLogs() {
-    	String jsonExport = "{\"testInfo\":{\"_id\":\"BeDwk5rd8H\",\"testId\":\"BeDwk5rd8H\",\"testName\":\"oidcc-client-t"+
+	public void createHtmlForTestLogs() {
+		String jsonExport = "{\"testInfo\":{\"_id\":\"BeDwk5rd8H\",\"testId\":\"BeDwk5rd8H\",\"testName\":\"oidcc-client-t"+
 			"est\",\"variant\":{\"client_auth_type\":\"tls_client_auth\",\"request_type\":\"plain_http_"+
 			"request\",\"response_type\":\"code\",\"client_registration\":\"dynamic_client\",\"response"+
 			"_mode\":\"default\"},\"started\":\"2020-05-22T07:01:12.101422Z\",\"config\":{\"alias\":\"ope"+

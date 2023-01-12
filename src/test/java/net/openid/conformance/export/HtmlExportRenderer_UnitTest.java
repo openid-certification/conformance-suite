@@ -15,8 +15,8 @@ public class HtmlExportRenderer_UnitTest
 	HtmlExportRenderer renderer;
 	Document bsonDocFromExport;
 
-    @Before
-    public void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		renderer = new HtmlExportRenderer(true);
 
 		String jsonExport = "{\"testInfo\":{\"_id\":\"BeDwk5rd8H\",\"testId\":\"BeDwk5rd8H\",\"testName\":\"oidcc-client-t"+
@@ -814,16 +814,16 @@ public class HtmlExportRenderer_UnitTest
 
 
 		bsonDocFromExport = Document.parse(jsonExport);
-    }
+	}
 
-    @Test
-    public void createHtmlForPlan()
-    {
-    }
+	@Test
+	public void createHtmlForPlan()
+	{
+	}
 
-    @Test
-    public void createHtmlForTestLogs()
-    {
+	@Test
+	public void createHtmlForTestLogs()
+	{
 		TestExportInfo exportInfo = new TestExportInfo("https://localhost:8443",
 			Map.of("sub", "unit-test-sub", "iss", "unit-test-iss"), "unit-test 1.2.3", bsonDocFromExport,
 			(List)bsonDocFromExport.get("results"));
@@ -841,12 +841,12 @@ public class HtmlExportRenderer_UnitTest
 			"HkA8MkgKaMXz-Y4XC-Fu77bLz_H8fw4gthdOU3tYmW0k_sKJhqTNUh77AVNqFJpeK8hgXYNXkSrrNtT0RVrRIW40fxgPhsQuX1oqsuYUdtas" +
 			"AOrXnOsxZC3TpdA1OS1qQ20gCEsVaiZefuXjaw86hGfQcCoJz98iNqA1BaKf5I90bcYIF6Q-O_ZoBMCgAv0BA6No3uXF9-2vCjRjyw</div>"));
 		assertTrue(html.contains("grant_type=authorization_code&amp;code=lt1UTp51m3&amp;redirect_uri=https%3A%2F%2Fopenid-client.local%2Fcb&amp;client_id=client_NuHAYAzlXPTuqLy36601%27%7B%5E%28%5D"));
-    }
+	}
 
-    @Test
-    public void createHtmlForLogEntry()
-    {
-    	String logJson = "{\n" +
+	@Test
+	public void createHtmlForLogEntry()
+	{
+		String logJson = "{\n" +
 			"    \"_id\": \"BeDwk5rd8H-j5T3YDQVp943pshGM7Gp9BxgQSQMVFfj\",\n" +
 			"    \"msg\": \"Generated server configuration\",\n" +
 			"    \"result\": \"SUCCESS\",\n" +
@@ -1068,5 +1068,5 @@ public class HtmlExportRenderer_UnitTest
 		assertTrue(html.contains("&quot;issuer&quot;: &quot;https://localhost.emobix.co.uk:8443/test/a/openid-client/&quot;,"));
 		assertTrue(html.contains("&quot;response_modes_supported&quot;:"));
 		assertTrue(html.contains("&quot;userinfo_encryption_enc_values_supported&quot;: ["));
-    }
+	}
 }

@@ -6,9 +6,9 @@ import net.openid.conformance.testmodule.Environment;
 
 public class CheckClientConfigurationUriFromClientConfigurationEndpoint extends AbstractCondition {
 
-    @Override
-    @PreEnvironment(required = { "registration_client_endpoint_response", "client" })
-    public Environment evaluate(Environment env) {
+	@Override
+	@PreEnvironment(required = { "registration_client_endpoint_response", "client" })
+	public Environment evaluate(Environment env) {
 
 		String expectedRegistrationClientUri = env.getString("client", "registration_client_uri");
 
@@ -22,8 +22,8 @@ public class CheckClientConfigurationUriFromClientConfigurationEndpoint extends 
 				args("registration_client_uri", registrationClientUri, "expected", expectedRegistrationClientUri));
 		}
 
-        logSuccess("Client configuration endpoint returned correct registration_client_uri.");
+		logSuccess("Client configuration endpoint returned correct registration_client_uri.");
 
-        return env;
-    }
+		return env;
+	}
 }

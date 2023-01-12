@@ -40,8 +40,8 @@ public class BrowserControl implements DataUtils {
 
 	/*  EXAMPLE OF WHAT TO ADD TO CONFIG:
 	 "browser": [
-	   	{
-	   		"match":"https://mitreid.org/authorize*",
+		{
+			"match":"https://mitreid.org/authorize*",
 			"tasks": [
 				{
 					"task": "Initial Login",
@@ -62,10 +62,10 @@ public class BrowserControl implements DataUtils {
 						["wait", "contains", "localhost", 10] // wait for up to 10 seconds for the URL to contain 'localhost' via a javascript location change, etc.
 					]
 				},
-	            {
-	                "task": "Verify Complete",
-	                "match": "https://localhost*"
-	            }
+				{
+					"task": "Verify Complete",
+					"match": "https://localhost*"
+				}
 			]
 		}
 	 ]

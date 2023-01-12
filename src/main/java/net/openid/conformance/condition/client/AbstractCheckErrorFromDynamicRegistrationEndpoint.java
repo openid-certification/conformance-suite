@@ -8,26 +8,26 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.List;
 
 public abstract class AbstractCheckErrorFromDynamicRegistrationEndpoint extends AbstractCondition {
-    abstract List<String> getPermittedErrors();
+	abstract List<String> getPermittedErrors();
 
-    @Override
-    @PreEnvironment(required = "dynamic_registration_endpoint_response")
-    public Environment evaluate(Environment env) {
+	@Override
+	@PreEnvironment(required = "dynamic_registration_endpoint_response")
+	public Environment evaluate(Environment env) {
 
-        String error = env.getString("dynamic_registration_endpoint_response", "body_json.error");
+		String error = env.getString("dynamic_registration_endpoint_response", "body_json.error");
 
-        if (Strings.isNullOrEmpty(error)) {
-            throw error("'error' field not found in response from dynamic registration endpoint");
-        }
+		if (Strings.isNullOrEmpty(error)) {
+			throw error("'error' field not found in response from dynamic registration endpoint");
+		}
 
-        List<String> permittedErrors = getPermittedErrors();
+		List<String> permittedErrors = getPermittedErrors();
 
-        if (!permittedErrors.contains(error)) {
-            throw error("'error' field has unexpected value", args("permitted", permittedErrors, "actual", error));
-        }
+		if (!permittedErrors.contains(error)) {
+			throw error("'error' field has unexpected value", args("permitted", permittedErrors, "actual", error));
+		}
 
-        logSuccess("Dynamic registration endpoint returned 'error'", args("permitted", permittedErrors, "error", error));
+		logSuccess("Dynamic registration endpoint returned 'error'", args("permitted", permittedErrors, "error", error));
 
-        return env;
-    }
+		return env;
+	}
 }
