@@ -130,10 +130,6 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in AU-CDR",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
 				break;
 			case "openbanking_brazil":
 				certProfile = "BR-OB";
