@@ -142,6 +142,10 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 					throw new RuntimeException(String.format("Invalid configuration for %s: PAR is required for KSA OB",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
+				if (jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in KSA OB",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
 				certProfile = "KSA-OB";
 				break;
 
