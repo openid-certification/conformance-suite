@@ -43,7 +43,7 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 
 	@Override
 	public void evaluate() {
-		call(exec().startBlock(currentClient + "Use client_credentials grant to obtain OpenBanking UK intent_id"));
+		call(exec().startBlock(currentClient + "Use client_credentials grant to obtain OpenBanking KSA consent scope"));
 
 		/* create client credentials request */
 

@@ -182,6 +182,9 @@ import java.util.function.Supplier;
 	"resource.resourceUrlAccountRequests",
 	"resource.resourceUrlAccountsResource"
 })
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_ksa", configurationFields = {
+	"resource.resourceUrlAccountRequests"
+})
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "consumerdataright_au", configurationFields = {
 	"resource.cdrVersion"
 })
