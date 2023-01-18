@@ -195,8 +195,7 @@ makeServerTest() {
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-rw-id2-ob-privatekey.json"
 
     # authlete KSA/SAMA openbanking
-    # Commented out as there's some failures which I think may be errors in the test config that need checking
-    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=openbanking_ksa][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi1-final-mtls-sama.json"
+    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=openbanking_ksa][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi1-final-mtls-sama.json"
 
     # authlete FAPI (request object by value)
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-rw-id2-mtls.json"
