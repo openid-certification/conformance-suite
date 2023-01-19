@@ -16,6 +16,7 @@ import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClie
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAccountRequestIdFromKSAAccountRequestsEndpointResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import net.openid.conformance.condition.client.FAPIKSASetClientScopeToAccountsConsentIdOpenId;
 import net.openid.conformance.condition.client.SetAccountScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -98,6 +99,8 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
 
 		callAndStopOnFailure(ExtractAccountRequestIdFromKSAAccountRequestsEndpointResponse.class);
+
+		callAndStopOnFailure(FAPIKSASetClientScopeToAccountsConsentIdOpenId.class);
 
 		call(exec().endBlock());
 	}
