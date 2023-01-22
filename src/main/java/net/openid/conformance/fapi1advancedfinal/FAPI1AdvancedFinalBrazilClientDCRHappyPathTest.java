@@ -17,6 +17,7 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilEnsureTlsCl
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSSAFromDynamicRegistrationRequest;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilExtractSoftwareStatement;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilFetchDirectorySSAJwks;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilOPINRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilOpInFetchDirectorySSAJwks;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterClient;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
@@ -333,7 +334,11 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 	protected JsonObject registerClient() {
 		callAndStopOnFailure(GenerateRegistrationAccessToken.class, "RFC7592-3");
 		callAndStopOnFailure(CreateRandomRegistrationClientUri.class, "RFC7592A-B");
-		callAndStopOnFailure(FAPIBrazilRegisterClient.class);
+		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
+			callAndStopOnFailure(FAPIBrazilOPINRegisterClient.class);
+		} else {
+			callAndStopOnFailure(FAPIBrazilRegisterClient.class);
+		}
 		JsonObject client = env.getObject("client");
 		return client;
 	}

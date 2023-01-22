@@ -1,0 +1,60 @@
+{
+    "alias": "oidf-fapi-rp-test",
+    "description": "FAPI Brazil OPIN RP test with MTLS against OP tests",
+    "server": {
+        "jwks": {
+            "keys": [
+                {
+                    "p": "2l0h2pco8a3Az0mMDHNmAyXLikF1EkCsCYzY6-GMlc8K8YWN08KWAGe9kfMOZifSoXpfanOP0gKOZHXZTIkaDIugvveFR97SUDXPpQmyedParhZz8lTf-B2PDXLAHtrZbUajnS8SwUjyHc8Y6Omjz-NlM8O_0p7X7uBsNFHBCxE",
+                    "kty": "RSA",
+                    "q": "2HcOxjEZPWWV1UwsPtI_2-Cz-UVbSn1ceFC11UzHKUF6e7nLeUWBmX3Glm7apfYUqQPdzfaGyTAz660oIOMdstfeaqmqKs4OWBeB9L_xQ8C9mm_tFM82BrOaXxYwnTa6Tmt-PZ2C39XjQypcPH70doZSJ32U4h0a5z_MXYEXrPU",
+                    "d": "IhH_XcCgyJCFW6Ip-ID1BFkcWsCRJ-BKOHmYAuzy1JEM8lj7aYqSNrNAtL5VPRebt9k8bDekl49gryO_bM2a7C886cZdNM_Kqe7vDYpHq2o_BdDN1G-MjmJ4kRrXrgcQaRkDlf-jOmW2_0LEvvXOWrSzwBvdxYqf4Smf-TOFXRtFCb6EK8_UErtjjIG--otLZwTKk6vhj13v9MPx2mq7fQ0O5U7MwlXPrEmCiBTPjHsqwsexQQQCMAV8VMgYbcNEY9Se4bC7PqbjdLPHTCqRaRwnhy5ows8dwVUtZ7CoV3laen3K9GCfiy4mW8ZgHh2eDk6LrGYG_RAZOnW4YEquQQ",
+                    "e": "AQAB",
+                    "use": "sig",
+                    "kid": "_PofFrN5DHA6jvha6jnFTbTfh4OZ-RbDKY9HxgKhQT0",
+                    "qi": "YipKaRURVmVO0t18dnJtaEL_Xhzm0D5jbt5Wj_12rX7ztqJjbDoV5ti6ns8eytpxws-5qf49CLl_Nh-twYaeI8QTl0Ja8sq-0McU0hv0mKqEGv7BV7lJKXWHEUc1il1VE9IGolqEQ0wLcFtQCm_EJ7XSVseYIDU70GIl7gIkSbk",
+                    "dp": "2ULMiibX8A5GxneQxlqS5xLVvwt9pdl-0km3EoppTCyh4MhW4pi6klClhu9kJjP9F_kfslSkhflRH5c5yzKmHlFWcGrpyyZh7rh7juNlFl25OHjSiAv2g3E1gdXoXUq2BknARIYvjOw9KXeCe0rrV84SRTzAQJkWk2_reOrWvWE",
+                    "alg": "PS256",
+                    "dq": "c9-3ruxVgIJCpL1z6eUOfhtY_BTee4-D0nwR-i5xZmpAsL6SZ0aHy6yCg8CvlquV_6usLjbLjCMbiAtXMdOh8DySOTK9ftBy6UEcNfIRqp0gYe2MUdliKFA4ULJGL8I-FQCBwWXxyvRqBWhFm7SyFEhu7ejRrAC8iBGkymDyVYk",
+                    "n": "uKQidVHqTjoWOyMG2hApxf-379ifin-x8aSvoZr5nicx98jpl8Mcqz-EM7eknwqfelCpIYMpKEjT1KeLqlQe8e0DYympJW1e2osEsD3BVR6u_Iu1rgT5f-fCmaJSSD7MHhcsdKsoijaE69zxns1pf1AtfR-aatQalYd8eL0jYx0H-NMUSeuZYNlTpwroJHtBnggnIe5M7yKjEuGEtUBVBefiR2hqzGgr7JygJkij0m3TqzvCqixZ9IkfAi5aY3fqN1Z9h7B5KUViEyv2NiaD7gEwx7TASsJzw_47rGZ1J4XuCHdd53B5wzpDBLFe1H0umI4ui2VVAjYTgeUYgLYDRQ"
+                },
+                {
+                    "p": "6-RGunw1LGXpsGIabzcG8n_ITbahS9waTzjcwLkzjWjyR5hxnTSrCMas9EsOuIt3qvkdf02psgwi-J0ZX680ujaXdeiPAeuOUbsLPBOhRuu-ySXxMTT7uiwWJmF5LtBx8Qd3hRV2sd9zOhYzSohcmWp8w_uKTOYrFzGtWMvlGic",
+                    "kty": "RSA",
+                    "q": "vn3cUU9RFc7pB3fjiEPGwYGA_h8f2X6dOqy-JYIMIiuYhPq6cT8xIlE-sHs58kZzC1QbOBc4y-qRyqj1L4StPaYH4mtJU0s_6A_b9Cai96yzYYmMr92be2nCFMxBpmpBhN21AIdGc640OxgWMdz5OVo455v1uIEQGPr2aDpOzVs",
+                    "d": "QrIJ9tPG7pSrt1KKSU-9EbAq-hU92FzEV9GwzuG_dbBPyRLYNVfAz-Yb8ug3YLuqec_kcB5JCep7QkYHgpNdX5WXFxARCpXa-J7Xq50oBdiAS2ehLpnYHXpJI7HqOcH9ASZML_MXjI8e_EpsI7Yk6xJ9qxk8bXGupw0C6anwL3NBe232zA7I1FnwL9tpZVOLPupeok7HMRbFc6QSR3dA54zJmkyEbyOSqzRqCK_g7AB_RcMImN0SoCg0epxZjrculIXPG0Gl1T3TG3WY-CBUtAkI1chFMGCgYF_v-FMSun8N6igilPC5O683BMcJoTK745khMCv7FcSCSFVh0H5vKQ",
+                    "e": "AQAB",
+                    "use": "enc",
+                    "kid": "0fe502dd-14f0-4f45-80f9-feb9a216f996",
+                    "qi": "W6TMI3L-Ob-Jx61TdYqN5gBoBsWF6KWuCmiE9ZiwJiMVCv5ddEbFafBuiIQgRnby1VpnH9j5KVb5PT_V78ohKFmpfL7ErXQerf_pJkEtvgK9lQta1EM1HMoShrJ4GdHPym_BZzDDmt6njvwTfSg95y28h-j5epuywcwu6TwAUA8",
+                    "dp": "a9rjD-8srNEoKVKhvYoObiBI6GeBllrb2K8qGCBV1ulOJbgo8nUbYpbci5Ip9-0k2RKwDv3mghcUglHqQRqt5BqD5BBiGsGmP-5is6RSEEhH4lar0hDkq_nuYrwcmXALOOZuGnZ239tIJx3xc7mnhSnwQ_emA4UV3LQFC12mse8",
+                    "alg": "RSA-OAEP",
+                    "dq": "Qk8TiyY-BoZg7Z2ZEYzuOdu3qD3zW0VMu-j3w5yyVo6wZ9HTZqplkxmO5eXvNNu7Hj1nwC2tMqZzm4UW3DSmDWinI_TOsHToSQKEQUfVwLtYMeKsm2dbwSj-SzkSvTgNmI-IeyebqZcBTXTD_RV7l7BFULIkZdZfYSKy9XMejTM",
+                    "n": "r4dl-ApW6c-fvDbfSVxHpdV8zi8VQW4b9-uHMRq7dzqCkvP8OAG1R3plSr1N6fL_YLiIr9y621XkyRiMEKR7-DeqGsLf2ZTaqrZ1LfYgjsc2i9o3NSOeSgBwKGmT7h1OgxZSbhLzo7Xaktu3CCUZCOWLzs7LKo_CvKkcTF7tPhK9jYjdTsdsnS0RJOPjYQe7JO83Mvhd1Ty3F-Qycd-cKKMSjcQRiHt9jKd09kA2fKVlFwbm2M1PM3NdtnMaOUw31-XC4ixay47XTMqnmX7-op7qYV9wXbeZmjTsAKFuTGwJiGJrOTfqciDLBW8IpGC2BzFJ5rYmRu0kAttpvkOG3Q"
+                }
+            ]
+        }
+    },
+    "client": {
+        "client_id": "UA5nelbHfgInILgWcHQP_",
+        "client_secret": "test-client-secret-452wf246w3g324t34",
+        "scope": "openid resources",
+        "redirect_uri": "{BASEURL}test/a/oidf-obbsb/callback",
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIG6TCCBdGgAwIBAgIUHYr117dwUPDYeIiwMkNZb7IZQ08wDQYJKoZIhvcNAQEL\nBQAwdzELMAkGA1UEBhMCQlIxHjAcBgNVBAoTFU9wZW4gSW5zdXJhbmNlIEJyYXNp\nbDEXMBUGA1UECxMOT3BlbiBJbnN1cmFuY2UxLzAtBgNVBAMTJk9wZW4gSW5zdXJh\nbmNlIFNBTkRCT1ggSXNzdWluZyBDQSAtIEcxMB4XDTIyMDkxOTE3MzUwMFoXDTIz\nMTAxOTE3MzUwMFowggEgMQswCQYDVQQGEwJCUjELMAkGA1UECBMCUkoxDzANBgNV\nBAcTBkxvbmRvbjEoMCYGA1UEChMfT1BFTiBJTlNVUkFOQ0UgQlJBU0lMIC0gUkFJ\nRElBTTERMA8GA1UEAxMIT0lERlRlc3QxFzAVBgNVBAUTDjAwMDAwMDEwNzQyODUx\nMR0wGwYDVQQPExRQcml2YXRlIE9yZ2FuaXphdGlvbjETMBEGCysGAQQBgjc8AgED\nEwJVSzEzMDEGA1UEYRMqT1BJQlItZmU2MzgyMDMtMTUzYy00OTE1LWI4MGEtMmNh\nNDcwYTNiMjVjMTQwMgYKCZImiZPyLGQBARMkOTNjMzU1MjMtMmZkNi00ZmFmLThl\nMjktNjg5NzZlMmVhYzRmMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\nyPb49H4viZeVkzwC9ZJ/eSjtiYsPYsvxhh6T/bDeap4RqLi6DHEUCLAcm/V5ieOb\noIFgff4wtGxOGoDQSz3UpykW6AGDlhDj+IJ8sSQySyZ3VnBzBFWqT7tR489rCbba\n+uak14bFqXM+9N6zMOLbaPeNZsn9VRrIYxkdo2yGE6+YEK1wmc/kjSfCvBzN/ycG\n/QIamGMXJX9hC9uMo9yHZzWUvo8aP+0+XSKaUdoVnT3pNRB2JM8gBZ3kHUlNSwoU\nzTaAlHB+pH8/aglkNEClnuZwDR2pcyP1AWz9CMtu87XheDWjkTT4jTsjh3Tweeyr\nxNErgQnnEJ3n1m+HEMHgwwIDAQABo4ICwDCCArwwDAYDVR0TAQH/BAIwADAdBgNV\nHQ4EFgQUy7MTUEeZIgaIe5yeosjIYxqdgM0wHwYDVR0jBBgwFoAUHupycfG7Jdfq\nbbUdIWNyTRMVpH4wRQYIKwYBBQUHAQEEOTA3MDUGCCsGAQUFBzABhilodHRwOi8v\nb2NzcC5zYW5kYm94LnBraS5vcGluYnJhc2lsLmNvbS5icjBEBgNVHR8EPTA7MDmg\nN6A1hjNodHRwOi8vY3JsLnNhbmRib3gucGtpLm9waW5icmFzaWwuY29tLmJyL2lz\nc3Vlci5jcmwwFQYDVR0RBA4wDIIKb3BlbmlkLm5ldDAOBgNVHQ8BAf8EBAMCBaAw\nEwYDVR0lBAwwCgYIKwYBBQUHAwIwggGhBgNVHSAEggGYMIIBlDCCAZAGCisGAQQB\ng7ovZAEwggGAMIIBNgYIKwYBBQUHAgIwggEoDIIBJFRoaXMgQ2VydGlmaWNhdGUg\naXMgc29sZWx5IGZvciB1c2Ugd2l0aCBSYWlkaWFtIFNlcnZpY2VzIExpbWl0ZWQg\nYW5kIG90aGVyIHBhcnRpY2lwYXRpbmcgb3JnYW5pc2F0aW9ucyB1c2luZyBSYWlk\naWFtIFNlcnZpY2VzIExpbWl0ZWRzIFRydXN0IEZyYW1ld29yayBTZXJ2aWNlcy4g\nSXRzIHJlY2VpcHQsIHBvc3Nlc3Npb24gb3IgdXNlIGNvbnN0aXR1dGVzIGFjY2Vw\ndGFuY2Ugb2YgdGhlIFJhaWRpYW0gU2VydmljZXMgTHRkIENlcnRpY2ljYXRlIFBv\nbGljeSBhbmQgcmVsYXRlZCBkb2N1bWVudHMgdGhlcmVpbi4wRAYIKwYBBQUHAgEW\nOGh0dHA6Ly9yZXBvc2l0b3J5LnNhbmRib3gucGtpLm9waW5icmFzaWwuY29tLmJy\nL3BvbGljaWVzMA0GCSqGSIb3DQEBCwUAA4IBAQCYj1I/7hdwMKITpWZ96CVgV0Et\nsXJE3H7/DoQ6gOlbx+1Z0gLijzJIkj5ptRWy/qfflUqYHcv+Jt4VYvk0ebaJeGNP\nPSNhQlciEKRhsYPnc1Lg0c0AKW0XcC1Mz6mfsRyqpgLK7y3r+m0CoFe/xxgdJU0z\nQJn0uXRbPnxligkhNAbM66E+9YsVKX4TKQLCr/XydFQ91ziATEXPZo3pgkH46ymf\nrRxReiCwccA2/gCIpZ2eJdfhgCG7mWr7UFBDrbzOHZQkCchxHavGqZntckrsMbg7\nZ6srpCRJ1fxv5g5fYBcR52Da+JemXuISiiOQ/okK0BYfT2tInaesgi+KK3XV\n-----END CERTIFICATE-----",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "kid": "XCB0CnPSpt3Zy8J84Omx63a_oIemAR1gXDfVNn833Zc",
+                    "alg": "PS256",
+                    "n": "y1oTTQpwLMPW_ZtBbI1v7dNjqzKlpoVyOjH9h3ZcO4HtcE10-_OcVyw0jto9qxY8OEIRNeLUDBxF1Zr3V7M2-KVAoKc46QTQREcPt-3F7xl7zFPWe4gE8oaPAK1w8culG9P7fFxMiCG6LByxsZPU4VpYVqo5FztrW62l9RVaShYipdgGL89i2gVmItK2oDo01VCn6YpQP_3uI6IWVjDhlWBFTOAXCPPNuV9LUHKUNLw9rlDNk_XH0sMkz75ratyS__IBnqngl5mgYEEmpPJWoFi4E4AKXAb0jXeRPAONHnF2buYY4BcTZ7N2WUIBJPIwArh9Au7PSGqL9ab5o8TSUw"
+                }
+            ]
+        }
+    },
+    "directory": {
+        "keystore": "https://keystore.sandbox.directory.opinbrasil.com.br/"
+    },
+    "consent": {}
+}
