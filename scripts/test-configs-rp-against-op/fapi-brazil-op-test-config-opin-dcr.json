@@ -5,7 +5,7 @@
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
     },
     "client": {
-        "scope": "openid accounts",
+        "scope": "openid resources",
         "jwks": {
             "keys": [
                 {
@@ -30,8 +30,8 @@
         "key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDI9vj0fi+Jl5WT\nPAL1kn95KO2Jiw9iy/GGHpP9sN5qnhGouLoMcRQIsByb9XmJ45uggWB9/jC0bE4a\ngNBLPdSnKRboAYOWEOP4gnyxJDJLJndWcHMEVapPu1Hjz2sJttr65qTXhsWpcz70\n3rMw4tto941myf1VGshjGR2jbIYTr5gQrXCZz+SNJ8K8HM3/Jwb9AhqYYxclf2EL\n24yj3IdnNZS+jxo/7T5dIppR2hWdPek1EHYkzyAFneQdSU1LChTNNoCUcH6kfz9q\nCWQ0QKWe5nANHalzI/UBbP0Iy27zteF4NaORNPiNOyOHdPB57KvE0SuBCecQnefW\nb4cQweDDAgMBAAECggEAKXLu5BaGnX1bR1PQVHATxJyRaZX55Wmk9gGmimOJbDoP\n8FmxXdGQzT3tmKknmS4NsiwdB79+sifIcCTzUSF+k7+gztdJGZGAQ4g+SZbqnJ9h\na72jq1gz2WAMQs1MCWPihG8/vog4inuPl5e7I7EWie7NBk9Q5dWxUOckOsmuWa63\nP20ng5Yfjo9asM+yOA9eVPL8T7Z19aEvRnH1Oe2uOnsVydLXRGU8Ji2V7ac5TiMz\nfcWmxDpL8x8r2tRka/rmDw4INwL8w6DUGtPAw5hIR8JbXkga3TyRhcoLKzxB5z2i\ny7yRslBAi8UKZwPbzua3l5zS3oIdb+Z2AQ3elWOqmQKBgQDlad/ePHPWwlgG8pj9\nWKRzNNoo3lIg4PuOLuUKGt7hMGGS1aqYQ7wguchHmqJOnKJxROHxa1Gqal5IECPl\nkg4UyVm39pIHs+/UiUUrFe/Smf3kAkIwXIvlyZ9hcfoMFaZB4vDXtBjAOLrWH1dq\n0NZ9+Um7bm2p3iIojISdvt5JdQKBgQDgQRekzB9VFcYu+MK67o/w3JD+nHMmB8ZD\njtDTyTvrCS3Px5XyU9UjGoqsMs/IkUYKi+ChcEUwHGRaFh5a5M2sm6048ZhRgRx7\nJzkCammF9IOUiLLiO1PiGSYhRmnOOUyp101xfQ1RT3PHxXE8gNTA+8wGsG4kbK9q\nOTJgI5QCVwKBgFPsynf7d4keKaPJBgzQa8C1mgWPZ04d4AjgwOtUbyrETz2vKqxv\nQxhZvpnrSOsnRAnZ4Co4T3TfWsRUGz21k68pBchVzJBC1D7VRNeBO+24ZfgOl3Yn\ntQoIG2VDk+zt0peR1PekK9XOKxN//bPW2FDXbJDD0hxtZeOdnDo1BA6tAoGBAL0X\nhfVKvTzEgHkI/0IaeLsTcRuQFjRCJ/a9TO7X5zM3aS6jz5cnAzh3X+j1a2lmvdWU\nvtPB1EVOG3wu3GeuOJNMLZMvfE11feuGVjboPZRbajvrzFKgzgl/RTyXoA3pGPC5\ngC6q0Hj4cttHbEUlKMCVUSNuz2DdWEhMdGLGfT4/AoGARbBYXLQngzjKkPgfDgF8\naOnq/Fg8srDLZNO0Or9wFu2YUZ/1nlXkV2mXmO2ilM9+mr0jyYsUyv6aARcimwFI\nSBjAQ9gXi3586k4H+2i5ccpKR/lwS/itc0NhLEIkMGNU53slgezdJxZfKkXhne01\nN8+vKqzvNHA5i/e2MTNFNyA=\n-----END PRIVATE KEY-----\n"
     },
     "resource": {
-        "resourceUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/accounts/v1/accounts",
-        "consentUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/consents/v1/consents",
+        "resourceUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/resources/v1",
+        "consentUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/consents/v1",
         "brazilCpf": "76109277673"
     },
     "directory": {
