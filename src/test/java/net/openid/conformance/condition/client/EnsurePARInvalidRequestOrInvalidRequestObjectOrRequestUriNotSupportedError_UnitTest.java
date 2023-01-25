@@ -95,7 +95,3 @@ public class EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupport
 		assertEquals("request_uri_not_supported", logParameters.get("error"));
 	}
 }
-
-
-
-
