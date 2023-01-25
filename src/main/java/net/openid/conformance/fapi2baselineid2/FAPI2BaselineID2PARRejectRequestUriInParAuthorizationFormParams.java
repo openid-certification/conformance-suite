@@ -3,7 +3,7 @@ package net.openid.conformance.fapi2baselineid2;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRequestUriToRequestParameters;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 //PAR-2.1 : The request_uri authorization request parameter MUST NOT be provided in this case
@@ -39,7 +39,7 @@ public class FAPI2BaselineID2PARRejectRequestUriInParAuthorizationFormParams ext
 
 		callAndStopOnFailure(CallPAREndpoint.class);
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.1-2");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError.class, Condition.ConditionResult.FAILURE, "PAR-2.1-2");
 
 		fireTestFinished();
 	}
