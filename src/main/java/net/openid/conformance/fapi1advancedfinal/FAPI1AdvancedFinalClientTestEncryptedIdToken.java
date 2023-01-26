@@ -15,7 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"The client should perform OpenID discovery from the displayed discoveryUrl, " +
 		"call the authorization endpoint (which will immediately redirect back with an encrypted id_token), " +
 		"exchange the authorization code for an access token at the token endpoint " +
-		"and make a GET request to the accounts endpoint displayed.",
+		"and make a request to the accounts/payments/resources endpoint displayed..",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
