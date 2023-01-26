@@ -9,12 +9,13 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 
-public class FAPIBrazilAddACRClaimToIdTokenClaims extends AbstractCondition {
+public abstract class AbstractBrazilAddACRClaimToIdTokenClaims extends AbstractCondition {
+
+	protected abstract List<String> getAcceptableAcrValues();
 
 	@Override
 	@PreEnvironment(required = "id_token_claims", strings = "requested_id_token_acr_values")
@@ -33,9 +34,7 @@ public class FAPIBrazilAddACRClaimToIdTokenClaims extends AbstractCondition {
 			List<String> requestedACRs;
 			requestedACRs = Arrays.asList(acrValuesString);
 
-			List<String> acceptableAcrValues = new ArrayList<>();
-			acceptableAcrValues.add("urn:brasil:openbanking:loa2");
-			acceptableAcrValues.add("urn:brasil:openbanking:loa3");
+			List<String> acceptableAcrValues = getAcceptableAcrValues();
 
 			String acrValue = null;
 			for (String singleACRValue : requestedACRs) {
