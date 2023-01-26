@@ -78,7 +78,7 @@ public class FAPI2BaselineID2AttemptReuseAuthorizationCodeAfterOneSecond extends
 			call(sequence(generateNewClientAssertionSteps));
 		}
 
-		if (isDpop) {
+		if (isDpop()) {
 			createDpopForTokenEndpoint(false);
 		}
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-5.2.2-13");

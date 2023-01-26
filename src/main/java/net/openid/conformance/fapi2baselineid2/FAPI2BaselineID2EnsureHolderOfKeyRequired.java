@@ -54,14 +54,14 @@ public class FAPI2BaselineID2EnsureHolderOfKeyRequired extends AbstractFAPI2Base
 	@Override
 	public void setupMTLS() {
 		super.setupMTLS();
-		validateTokenEndpointResponseSteps = isDpop ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithMTLS.class;
+		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		validateTokenEndpointResponseSteps = isDpop ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class FAPI2BaselineID2EnsureHolderOfKeyRequired extends AbstractFAPI2Base
 	protected void performPostAuthorizationFlow() {
 		createAuthorizationCodeRequest();
 
-		if (isDpop) {
+		if (isDpop()) {
 			// nothing to do; creating the new request cleared out any previous
 			// dpop header
 		} else {
