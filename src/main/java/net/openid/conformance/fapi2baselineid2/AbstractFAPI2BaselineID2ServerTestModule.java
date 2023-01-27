@@ -222,7 +222,6 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	protected Boolean isBrazil;
 	protected Boolean isOpenId;
 	protected Boolean isSignedRequest;
-	protected Boolean isDpop;
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
 	protected Boolean profileRequiresMtlsEverywhere;
 
@@ -250,6 +249,10 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 	}
 
+	protected Boolean isDpop() {
+		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
+	}
+
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
@@ -269,7 +272,6 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		isPar = true;
 		isBrazil = getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
-		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 
 		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
@@ -608,7 +610,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 	}
 
 	protected void exchangeAuthorizationCode() {
-		if (isDpop) {
+		if (isDpop()) {
 			createDpopForTokenEndpoint(true);
 		}
 
@@ -847,7 +849,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 			}
 		}
 
-		if (isDpop && (createDpopForResourceEndpointSteps != null) ) {
+		if (isDpop() && (createDpopForResourceEndpointSteps != null) ) {
 			call(sequence(createDpopForResourceEndpointSteps));
 		}
 
@@ -1034,7 +1036,7 @@ public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractR
 		}
 		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(
 			isSecondClient(),
-			isDpop,
+			isDpop(),
 			addTokenEndpointClientAuthentication,
 			brazilPayments,
 			false, // open insurance not yet supported in fapi2

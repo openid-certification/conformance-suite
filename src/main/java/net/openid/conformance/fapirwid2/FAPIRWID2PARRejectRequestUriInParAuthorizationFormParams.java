@@ -3,7 +3,7 @@ package net.openid.conformance.fapirwid2;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRequestUriToRequestParameters;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -44,7 +44,7 @@ public class FAPIRWID2PARRejectRequestUriInParAuthorizationFormParams extends Ab
 
 		callAndStopOnFailure(CallPAREndpoint.class);
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.1-2");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError.class, Condition.ConditionResult.FAILURE, "PAR-2.1-2");
 
 		fireTestFinished();
 	}

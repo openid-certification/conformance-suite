@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointRespon
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidGrantOrRequestError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
@@ -53,14 +54,14 @@ public class FAPI2BaselineID2EnsureHolderOfKeyRequired extends AbstractFAPI2Base
 	@Override
 	public void setupMTLS() {
 		super.setupMTLS();
-		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithMTLS.class;
+		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
 	@Override
@@ -114,7 +115,7 @@ public class FAPI2BaselineID2EnsureHolderOfKeyRequired extends AbstractFAPI2Base
 	protected void performPostAuthorizationFlow() {
 		createAuthorizationCodeRequest();
 
-		if (isDpop) {
+		if (isDpop()) {
 			// nothing to do; creating the new request cleared out any previous
 			// dpop header
 		} else {
@@ -160,4 +161,13 @@ public class FAPI2BaselineID2EnsureHolderOfKeyRequired extends AbstractFAPI2Base
 			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		}
 	}
+
+	public static class ValidateTokenEndpointResponseWithDpop extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// used always when DPoP is the holder of key mechanism
+			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2"); //TODO RFC6749?
+		}
+	}
+
 }

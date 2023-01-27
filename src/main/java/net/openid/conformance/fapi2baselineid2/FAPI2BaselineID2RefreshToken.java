@@ -72,7 +72,7 @@ public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2Multip
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
-		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop);
+		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop());
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
 				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-17").dontStopOnFailure());
@@ -100,7 +100,7 @@ public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2Multip
 
 			// try client 2's refresh_token with client 1
 			eventLog.startBlock("Attempting to use refresh_token issued to client 2 with client 1");
-			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop));
+			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop()));
 			eventLog.endBlock();
 			fireTestFinished();
 		}

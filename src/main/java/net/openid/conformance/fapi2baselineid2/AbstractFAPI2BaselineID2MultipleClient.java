@@ -57,7 +57,7 @@ public abstract class AbstractFAPI2BaselineID2MultipleClient extends AbstractFAP
 		// Switch back to client 1
 		unmapClient();
 
-		if (isDpop) {
+		if (isDpop()) {
 			eventLog.startBlock("Try Client1's DPoP key with Client2's access token");
 			updateResourceRequest();
 		} else {
