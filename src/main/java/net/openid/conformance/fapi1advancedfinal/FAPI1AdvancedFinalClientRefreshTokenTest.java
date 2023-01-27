@@ -16,11 +16,12 @@ import org.springframework.http.ResponseEntity;
 		"the client should perform OpenID discovery from the displayed discoveryUrl, " +
 		"call the authorization endpoint (which will immediately redirect back), " +
 		"exchange the authorization code for an access token at the token endpoint " +
-		"and make a GET request to the accounts endpoint displayed." +
-		" This call will always return a 401 error," +
-		" the client must call the token endpoint again using refresh_token grant type twice (the" +
-		" first call will return a new refresh token) to obtain a new access token" +
-		" and call the accounts endpoint again with the new access token obtained using the refresh_token.",
+		"and make a request to the accounts/payments/resources endpoint displayed. " +
+		"This call will always return a 401 error, " +
+		"the client must call the token endpoint again using refresh_token grant type twice (the " +
+		"first call will return a new refresh token) to obtain a new access token " +
+		"and call the accounts/payments/resources endpoint again with the new access " +
+		"token obtained using the refresh_token.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",

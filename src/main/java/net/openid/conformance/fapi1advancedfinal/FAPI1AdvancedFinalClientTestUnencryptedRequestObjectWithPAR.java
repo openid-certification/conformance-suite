@@ -14,7 +14,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"call the PAR endpoint with a request object which is NOT encrypted, " +
 		"call the authorization endpoint (which will immediately redirect back), " +
 		"exchange the authorization code for an access token at the token endpoint " +
-		"and make a GET request to the accounts endpoint displayed.",
+		"and make a request to the accounts/payments/resources endpoint displayed..",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks",
