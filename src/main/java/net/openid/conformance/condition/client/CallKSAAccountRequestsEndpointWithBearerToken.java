@@ -17,7 +17,7 @@ public class CallKSAAccountRequestsEndpointWithBearerToken extends CallProtected
 
 		String resourceUri = env.getString("resource","resourceUrlAccountRequests");
 		if (Strings.isNullOrEmpty(resourceUri)){
-			throw error("Missing Resource URL");
+			throw error("resourceUrlAccountRequests has not been provided in the test configuration");
 		}
 		return resourceUri;
 	}
