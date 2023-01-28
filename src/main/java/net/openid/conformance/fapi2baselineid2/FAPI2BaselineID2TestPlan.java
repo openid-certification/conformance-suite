@@ -74,7 +74,7 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 				certProfile = "BR-OB";
 				break;
 			case "idmvp":
-				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the fapi2-advanced test plan for IDMVP",
+				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for IDMVP",
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 

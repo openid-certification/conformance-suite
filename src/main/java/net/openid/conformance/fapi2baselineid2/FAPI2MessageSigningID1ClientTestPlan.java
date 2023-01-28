@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan (
-	testPlanName = "fapi2-advanced-id1-client-test-plan",
-	displayName = "FAPI2-Advanced-ID1: Relying Party (client) test - BETA; subject to change, no certification programme yet",
+	testPlanName = "fapi2-message-signing-id1-client-test-plan",
+	displayName = "FAPI2-MessageSigning-ID1: Relying Party (client) test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.rptest
 )
-public class FAPI2AdvancedID1ClientTestPlan implements TestPlan {
+public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		FAPI2BaselineID2ClientTestHappyPath.class,
 		FAPI2BaselineID2ClientTestInvalidIss.class,

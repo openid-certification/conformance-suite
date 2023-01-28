@@ -45,7 +45,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 			case "openbanking_brazil":
 				return "Not a conformance profile. Please use 'FAPI2-Baseline-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
 			case "idmvp":
-				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the fapi2-advanced test plan for IDMVP",
+				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for IDMVP",
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
@@ -72,7 +72,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 	}
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
-		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2AdvancedID1ClientTestPlan.testModules);
+		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningID1ClientTestPlan.testModules);
 
 		// Remove JARM tests which will cause VariantService errors on startup since this only tests response_mode=plain_response
 		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithoutIssFails.class);
