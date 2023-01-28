@@ -8,7 +8,7 @@ import net.openid.conformance.variant.VariantSelection;
 import java.util.List;
 
 @PublishTestPlan (
-	testPlanName = "fapi2-baseline-id2-brazil-dcr-test-plan",
+	testPlanName = "fapi2-securityprofile-id2-brazil-dcr-test-plan",
 	displayName = "FAPI2-Baseline-ID2: Brazil Dynamic Client Registration Authorization server test - INCORRECT/INCOMPLETE, DO NOT USE",
 	profile = TestPlan.ProfileNames.optest
 )

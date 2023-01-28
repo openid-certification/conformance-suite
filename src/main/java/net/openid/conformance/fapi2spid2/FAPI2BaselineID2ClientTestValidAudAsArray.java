@@ -7,7 +7,7 @@ import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-client-test-valid-aud-as-array",
+	testName = "fapi2-securityprofile-id2-client-test-valid-aud-as-array",
 	displayName = "FAPI2-Baseline-ID2: client test - valid aud in id_token as data type array",
 	summary = "This test should be successful. The value of aud within the id_token will be represented as array with one value",
 	profile = "FAPI2-Baseline-ID2",

@@ -9,7 +9,7 @@ import net.openid.conformance.condition.client.FAPIBrazilAddValuesFromSoftwareSt
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-brazil-dcr-no-software-statement",
+	testName = "fapi2-securityprofile-id2-brazil-dcr-no-software-statement",
 	displayName = "FAPI2-Baseline-ID2: Brazil DCR no software statement",
 	summary = "Perform the DCR flow, but without including a software statement (the values in the software statement are added to the body of the request) - the server must reject the registration attempt.",
 	profile = "FAPI2-Baseline-ID2",

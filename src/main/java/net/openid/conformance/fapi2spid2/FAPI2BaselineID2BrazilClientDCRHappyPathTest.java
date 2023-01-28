@@ -54,7 +54,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-client-brazildcr-happypath-test",
+	testName = "fapi2-securityprofile-id2-client-brazildcr-happypath-test",
 	displayName = "FAPI2-Baseline-ID2: client DCR happy path test",
 	summary = "Tests a 'happy path' flow; " +
 		"first perform OpenID discovery from the displayed discoveryUrl, and (after obtaining a software statement from the directory) register the client. " +
@@ -113,7 +113,7 @@ public class FAPI2BaselineID2BrazilClientDCRHappyPathTest extends AbstractFAPI2B
 		} else if (path.equals(env.getString("registration_client_uri", "path"))) {
 			if (OIDFJSON.getString(requestParts.get("method")).equals("DELETE")) {
 				// We ignore this to keep the OP tests against RP tests happy,
-				// fapi2-baseline-id2-brazildcr-happy-flow calls DELETE as it's final step.
+				// fapi2-securityprofile-id2-brazildcr-happy-flow calls DELETE as it's final step.
 				return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 			}
 

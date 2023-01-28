@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 // JSON response that contains request_uri and expires_in members at the top level with 201 Created
 // HTTP response code.
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-par-attempt-to-use-expired-request_uri",
+	testName = "fapi2-securityprofile-id2-par-attempt-to-use-expired-request_uri",
 	displayName = "PAR : try to use an expired request_uri",
 	summary = "This test tries to use a request_uri which has expired and expects authorization server to return an error. The test will call the PAR endpoint to create a new request_uri, then sleep until the expiry time for that request_uri before attempting to use it (this means this test may take some minutes to run, depending on the lifetime of the request_uri).",
 	profile = "FAPI2-Baseline-ID2",

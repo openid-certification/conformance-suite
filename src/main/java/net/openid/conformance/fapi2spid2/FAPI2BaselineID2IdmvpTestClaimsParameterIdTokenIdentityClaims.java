@@ -12,7 +12,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-idmvp-test-claims-parameter-idtoken-identity-claims",
+	testName = "fapi2-securityprofile-id2-idmvp-test-claims-parameter-idtoken-identity-claims",
 	displayName = "FAPI2-Baseline-ID2: test requesting id_token identity claims using the claims parameter",
 	summary = "The test will request the 6 IDMVP identity are returned in the id_token (using a variety of different forms of request), and will fail if any are not returned.\n\nThe test must be performed using a user which has all six supported claims present on the server.",
 	profile = "FAPI2-Baseline-ID2",

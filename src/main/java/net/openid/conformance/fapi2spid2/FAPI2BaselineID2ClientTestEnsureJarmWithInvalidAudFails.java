@@ -7,7 +7,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-client-test-ensure-jarm-with-invalid-aud-fails",
+	testName = "fapi2-securityprofile-id2-client-test-ensure-jarm-with-invalid-aud-fails",
 	displayName = "FAPI2-Baseline-ID2: sends a JARM response with an invalid aud claim.",
 	summary = "This test should end with the client displaying an error message that the JARM response has an invalid aud claim",
 	profile = "FAPI2-Baseline-ID2",

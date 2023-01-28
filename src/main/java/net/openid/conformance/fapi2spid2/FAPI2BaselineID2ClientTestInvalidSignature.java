@@ -4,7 +4,7 @@ import net.openid.conformance.condition.as.InvalidateIdTokenSignature;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-client-test-invalid-signature",
+	testName = "fapi2-securityprofile-id2-client-test-invalid-signature",
 	displayName = "FAPI2-Baseline-ID2: client test - invalid signature in id_token from token_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the signature in the id_token from the token_endpoint is invalid",
 	profile = "FAPI2-Baseline-ID2",

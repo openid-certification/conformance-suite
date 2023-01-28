@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.EnsureParHTTPError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-par-attempt-invalid-http-method",
+	testName = "fapi2-securityprofile-id2-par-attempt-invalid-http-method",
 	displayName = "PAR : try to use an invalid http method ",
 	summary = "This test tries to use an invalid http method and expects authorization server to return an error",
 	profile = "FAPI2-Baseline-ID2",

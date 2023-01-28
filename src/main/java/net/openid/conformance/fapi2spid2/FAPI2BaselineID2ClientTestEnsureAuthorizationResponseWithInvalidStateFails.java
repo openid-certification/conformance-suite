@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-client-test-ensure-authorization-response-with-invalid-state-fails",
+	testName = "fapi2-securityprofile-id2-client-test-ensure-authorization-response-with-invalid-state-fails",
 	displayName = "FAPI2-Baseline-ID2: sends an authorization endpoint response with an invalid state value.",
 	summary = "This test should end with the client displaying an error message that the state value in the authorization endpoint response is invalid",
 	profile = "FAPI2-Baseline-ID2",

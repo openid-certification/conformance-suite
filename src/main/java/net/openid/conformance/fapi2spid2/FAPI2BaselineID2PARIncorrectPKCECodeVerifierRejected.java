@@ -13,7 +13,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-incorrect-pkce-code-verifier-rejected",
+	testName = "fapi2-securityprofile-id2-incorrect-pkce-code-verifier-rejected",
 	displayName = "FAPI2-Baseline-ID2: Incorrect PKCE code_verifier rejected",
 	summary = "This test authenticates as normal except that when calling the token endpoint it passes an incorrect value in the 'code_verifier' parameter. The test must end with the token endpoint returning an 'invalid_grant' error, due to the incorrect the code_verifier parameter.",
 	profile = "FAPI2-Baseline-ID2",

@@ -4,7 +4,7 @@ import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedi
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-par-without-duplicate-parameters",
+	testName = "fapi2-securityprofile-id2-par-without-duplicate-parameters",
 	displayName = "FAPI2-Baseline-ID2: PAR request without duplicate parameters",
 	summary = "This test makes a PAR request and calls the authorization endpoint passing only the client_id and request_uri parameters - which must succeed, as per section 5 of https://datatracker.ietf.org/doc/html/rfc9101 - this intent was confirmed by the FAPI working group in https://bitbucket.org/openid/fapi/issues/315/par-certification-question-must-servers",
 	profile = "FAPI2-Baseline-ID2",

@@ -4,7 +4,7 @@ import net.openid.conformance.condition.as.RemoveExpFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-client-test-invalid-missing-exp",
+	testName = "fapi2-securityprofile-id2-client-test-invalid-missing-exp",
 	displayName = "FAPI2-Baseline-ID2: client test - missing exp value in id_token from token_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the exp value in the id_token from the token_endpoint is missing",
 	profile = "FAPI2-Baseline-ID2",

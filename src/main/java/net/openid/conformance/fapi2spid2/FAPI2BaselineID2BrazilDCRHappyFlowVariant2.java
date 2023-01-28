@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.ReverseScopeOrderInDynamicRegistr
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-brazildcr-happy-flow-variant-2",
+	testName = "fapi2-securityprofile-id2-brazildcr-happy-flow-variant-2",
 	displayName = "FAPI2-Baseline-ID2: Brazil DCR happy flow variant 2",
 	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and perform an authorization flow. The registration request has the members of the 'scope' string in a different order to the other happy flow variant test.",
 	profile = "FAPI2-Baseline-ID2",

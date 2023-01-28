@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-refresh-token",
+	testName = "fapi2-securityprofile-id2-refresh-token",
 	displayName = "FAPI2-Baseline-ID2: test refresh token behaviours",
 	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
 	profile = "FAPI2-Baseline-ID2",

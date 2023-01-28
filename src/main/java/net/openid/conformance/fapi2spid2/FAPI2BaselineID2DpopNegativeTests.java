@@ -24,7 +24,7 @@ import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-dpop-negative-tests",
+	testName = "fapi2-securityprofile-id2-dpop-negative-tests",
 	displayName = "FAPI2-Baseline-ID2: DPoP negative tests",
 	summary = "Obtain an access token as normal, check it works, then various negative tests to check the server is implementing the checks required by the DPoP specification.",
 	profile = "FAPI2-Baseline-ID2",

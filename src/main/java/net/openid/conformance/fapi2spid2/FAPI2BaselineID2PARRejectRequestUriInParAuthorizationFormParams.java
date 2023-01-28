@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 //PAR-2.1 : The request_uri authorization request parameter MUST NOT be provided in this case
 @PublishTestModule(
-	testName = "fapi2-baseline-id2-par-authorization-request-containing-request_uri-form-param",
+	testName = "fapi2-securityprofile-id2-par-authorization-request-containing-request_uri-form-param",
 	displayName = "PAR : The request_uri authorization request parameter MUST NOT be provided",
 	summary = "This test sends a random request_uri form parameter in PAR authorization request and expects authorization server to return an error",
 	profile = "FAPI2-Baseline-ID2",
