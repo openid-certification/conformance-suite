@@ -33,7 +33,7 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "idmvp"})
-public class FAPI2BaselineID2ClientRefreshTokenTest extends AbstractFAPI2BaselineID2ClientTest {
+public class FAPI2SPID2ClientRefreshTokenTest extends AbstractFAPI2SPID2ClientTest {
 	private int numberOfTimesRefreshTokenUsed = 0;
 
 	@Override

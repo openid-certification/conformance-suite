@@ -46,7 +46,7 @@ import net.openid.conformance.variant.VariantSetup;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2EnsureHolderOfKeyRequired extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2EnsureHolderOfKeyRequired extends AbstractFAPI2SPID2ServerTestModule {
 
 	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
 

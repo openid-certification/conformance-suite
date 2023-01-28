@@ -32,7 +32,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2PARAttemptReuseRequestUri extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2PARAttemptReuseRequestUri extends AbstractFAPI2SPID2ServerTestModule {
 	boolean secondAttempt = false;
 
 	@Override

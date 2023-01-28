@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPI2BaselineID2ClientTestInvalidMissingExp extends AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued {
+public class FAPI2SPID2ClientTestInvalidMissingExp extends AbstractFAPI2SPID2ClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

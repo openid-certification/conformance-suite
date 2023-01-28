@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.TestFailureException;
  * Base class for tests that return an invalid authorization response
  * Client must stop after receiving an invalid authorization response
  */
-public abstract class AbstractFAPI2BaselineID2ClientExpectNothingAfterParResponse extends AbstractFAPI2BaselineID2ClientTest {
+public abstract class AbstractFAPI2SPID2ClientExpectNothingAfterParResponse extends AbstractFAPI2SPID2ClientTest {
 
 	@Override
 	protected void createAuthorizationEndpointResponse() {

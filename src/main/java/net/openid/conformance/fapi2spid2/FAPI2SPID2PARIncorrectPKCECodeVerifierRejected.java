@@ -34,7 +34,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2PARIncorrectPKCECodeVerifierRejected extends AbstractFAPI2BaselineID2PerformTokenEndpoint {
+public class FAPI2SPID2PARIncorrectPKCECodeVerifierRejected extends AbstractFAPI2SPID2PerformTokenEndpoint {
 
 	@Override
 	protected void addPkceCodeVerifier() {

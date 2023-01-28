@@ -30,7 +30,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2PAREnsurePKCERequired extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2PAREnsurePKCERequired extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {

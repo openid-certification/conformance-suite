@@ -35,7 +35,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected void configureClient() {

@@ -38,7 +38,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"consumerdataright_au",
 	"idmvp"
 })
-public class FAPI2BaselineID2BrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2BrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected ConditionSequence createOBBPreauthSteps() {

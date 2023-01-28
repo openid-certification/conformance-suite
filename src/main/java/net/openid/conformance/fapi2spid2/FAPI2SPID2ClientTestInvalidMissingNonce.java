@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 
-public class FAPI2BaselineID2ClientTestInvalidMissingNonce extends AbstractFAPI2BaselineID2ClientTest {
+public class FAPI2SPID2ClientTestInvalidMissingNonce extends AbstractFAPI2SPID2ClientTest {
 	protected boolean issuedMissingNonce = false;
 
 	@Override

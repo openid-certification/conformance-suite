@@ -51,7 +51,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
-public class FAPI2BaselineID2TestClaimsParameterIdentityClaims extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2TestClaimsParameterIdentityClaims extends AbstractFAPI2SPID2ServerTestModule {
 
 	private boolean isClaimsParameterSupported() {
 		JsonElement claimsSupportedEl = env.getElementFromObject("server", "claims_parameter_supported");

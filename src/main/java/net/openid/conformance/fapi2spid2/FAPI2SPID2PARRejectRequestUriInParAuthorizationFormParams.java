@@ -29,7 +29,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2PARRejectRequestUriInParAuthorizationFormParams extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2PARRejectRequestUriInParAuthorizationFormParams extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected  void performParAuthorizationRequestFlow() {

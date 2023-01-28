@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPI2BaselineID2ClientTestInvalidSignature extends AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued {
+public class FAPI2SPID2ClientTestInvalidSignature extends AbstractFAPI2SPID2ClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

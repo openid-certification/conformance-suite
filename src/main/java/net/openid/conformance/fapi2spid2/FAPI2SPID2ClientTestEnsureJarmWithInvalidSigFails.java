@@ -23,7 +23,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = { "plain_response" })
-public class FAPI2BaselineID2ClientTestEnsureJarmWithInvalidSigFails extends AbstractFAPI2BaselineID2ClientExpectNothingAfterAuthorizationResponse {
+public class FAPI2SPID2ClientTestEnsureJarmWithInvalidSigFails extends AbstractFAPI2SPID2ClientExpectNothingAfterAuthorizationResponse {
 
 
 	@Override

@@ -39,7 +39,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2RefreshToken extends AbstractFAPI2BaselineID2MultipleClient {
+public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 
 	protected void addPromptConsentToAuthorizationEndpointRequest() {
 		callAndStopOnFailure(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class, "OIDCC-11");

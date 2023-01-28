@@ -46,7 +46,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 			"resource.resourceUrl"
 		}
 	)
-public class FAPI2BaselineID2HappyFlow extends AbstractFAPI2BaselineID2MultipleClient {
+public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

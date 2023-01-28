@@ -28,7 +28,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 //PAR-2.3.3 : If the request did not use POST, the authorization server shall return 405 Method Not Allowed HTTP error response.
-public class FAPI2BaselineID2PARRejectInvalidHttpVerb extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2PARRejectInvalidHttpVerb extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected void performParAuthorizationRequestFlow() {

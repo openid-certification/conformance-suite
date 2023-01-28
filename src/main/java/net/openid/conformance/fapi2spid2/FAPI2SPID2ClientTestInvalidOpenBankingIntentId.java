@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_brazil", "idmvp" })
-public class FAPI2BaselineID2ClientTestInvalidOpenBankingIntentId extends AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued {
+public class FAPI2SPID2ClientTestInvalidOpenBankingIntentId extends AbstractFAPI2SPID2ClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

@@ -27,7 +27,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2BrazilDCRInvalidJwksByValue extends AbstractFAPI2BaselineID2BrazilDCR {
+public class FAPI2SPID2BrazilDCRInvalidJwksByValue extends AbstractFAPI2SPID2BrazilDCR {
 
 	@Override
 	protected void setupJwksUri() {

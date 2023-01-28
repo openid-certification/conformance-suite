@@ -72,7 +72,7 @@ import javax.servlet.http.HttpSession;
 	}
 )
 
-public class FAPI2BaselineID2BrazilClientDCRHappyPathTest extends AbstractFAPI2BaselineID2ClientTest {
+public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2ClientTest {
 	boolean resourceEndpointCalled = false;
 	boolean clientConfigEndpointCalled = false;
 

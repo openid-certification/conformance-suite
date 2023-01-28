@@ -21,7 +21,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
-public class FAPI2BaselineID2ClientTestValidAudAsArray extends AbstractFAPI2BaselineID2ClientTest {
+public class FAPI2SPID2ClientTestValidAudAsArray extends AbstractFAPI2SPID2ClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken(){

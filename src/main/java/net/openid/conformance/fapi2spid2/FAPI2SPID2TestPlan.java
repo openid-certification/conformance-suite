@@ -17,24 +17,24 @@ import java.util.Map;
 	displayName = "FAPI2-SecurityProfile-ID2: Authorization server test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.optest
 )
-public class FAPI2BaselineID2TestPlan implements TestPlan {
+public class FAPI2SPID2TestPlan implements TestPlan {
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2AdvancedID1TestPlan.testModules);
 
 		// these require signing, so remove them (otherwise the VariantService gets upset on app start)
-		modules.remove(FAPI2BaselineID2EnsureRequestObjectWithoutExpFails.class);
-		modules.remove(FAPI2BaselineID2EnsureRequestObjectWithoutNbfFails.class);
-		modules.remove(FAPI2BaselineID2EnsureExpiredRequestObjectFails.class);
-		modules.remove(FAPI2BaselineID2EnsureRequestObjectWithBadAudFails.class);
-		modules.remove(FAPI2BaselineID2EnsureRequestObjectWithExpOver60Fails.class);
-		modules.remove(FAPI2BaselineID2EnsureRequestObjectWithNbfOver60Fails.class);
-		modules.remove(FAPI2BaselineID2EnsureSignedRequestObjectWithRS256Fails.class);
-		modules.remove(FAPI2BaselineID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class);
-		modules.remove(FAPI2BaselineID2EnsureRequestObjectWithInvalidSignatureFails.class);
-		modules.remove(FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest.class);
-		modules.remove(FAPI2BaselineID2EnsureUnsignedRequestAtParEndpointFails.class);
-		modules.remove(FAPI2BaselineID2PARRejectRequestUriInParAuthorizationRequest.class);
+		modules.remove(FAPI2SPID2EnsureRequestObjectWithoutExpFails.class);
+		modules.remove(FAPI2SPID2EnsureRequestObjectWithoutNbfFails.class);
+		modules.remove(FAPI2SPID2EnsureExpiredRequestObjectFails.class);
+		modules.remove(FAPI2SPID2EnsureRequestObjectWithBadAudFails.class);
+		modules.remove(FAPI2SPID2EnsureRequestObjectWithExpOver60Fails.class);
+		modules.remove(FAPI2SPID2EnsureRequestObjectWithNbfOver60Fails.class);
+		modules.remove(FAPI2SPID2EnsureSignedRequestObjectWithRS256Fails.class);
+		modules.remove(FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class);
+		modules.remove(FAPI2SPID2EnsureRequestObjectWithInvalidSignatureFails.class);
+		modules.remove(FAPI2SPID2EnsureMatchingKeyInAuthorizationRequest.class);
+		modules.remove(FAPI2SPID2EnsureUnsignedRequestAtParEndpointFails.class);
+		modules.remove(FAPI2SPID2PARRejectRequestUriInParAuthorizationRequest.class);
 
 		List<TestPlan.Variant> baselineVariants = List.of(
 			new TestPlan.Variant(FAPI2AuthRequestMethod.class, "unsigned"),
@@ -55,7 +55,7 @@ public class FAPI2BaselineID2TestPlan implements TestPlan {
 		String senderConstrain = v.get("sender_constrain");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
-		String certProfile = "FAPI2BaselineID2 ";
+		String certProfile = "FAPI2SPID2 ";
 
 		switch (profile) {
 			case "plain_fapi":

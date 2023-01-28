@@ -25,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2ParWithoutDuplicateParameters extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2ParWithoutDuplicateParameters extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected void performPARRedirectWithRequestUri() {

@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPI2BaselineID2ClientTestTokenEndpointResponseWithoutExpiresIn extends AbstractFAPI2BaselineID2ClientTest {
+public class FAPI2SPID2ClientTestTokenEndpointResponseWithoutExpiresIn extends AbstractFAPI2SPID2ClientTest {
 
 	@Override
 	protected void addCustomValuesToIdToken() {

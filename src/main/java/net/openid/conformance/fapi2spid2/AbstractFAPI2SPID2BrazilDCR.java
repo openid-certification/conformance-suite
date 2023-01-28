@@ -49,7 +49,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.variant.ClientAuthType;
 
-public abstract class AbstractFAPI2BaselineID2BrazilDCR extends AbstractFAPI2BaselineID2ServerTestModule {
+public abstract class AbstractFAPI2SPID2BrazilDCR extends AbstractFAPI2SPID2ServerTestModule {
 	protected void getSsa() {
 
 		eventLog.startBlock("Obtain access token for directory and retrieve a software statement");

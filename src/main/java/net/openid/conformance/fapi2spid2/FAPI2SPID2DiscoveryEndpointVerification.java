@@ -54,7 +54,7 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPIResponseMode.class,
 	FAPIOpenIDConnect.class
 })
-public class FAPI2BaselineID2DiscoveryEndpointVerification extends AbstractFAPI2BaselineID2DiscoveryEndpointVerification {
+public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2DiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;
 	private Class<? extends ConditionSequence> oidcChecks;

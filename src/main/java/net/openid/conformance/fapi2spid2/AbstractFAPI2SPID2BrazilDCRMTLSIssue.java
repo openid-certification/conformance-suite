@@ -10,7 +10,7 @@ import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClientExpectingFailure;
 
-public abstract class AbstractFAPI2BaselineID2BrazilDCRMTLSIssue extends AbstractFAPI2BaselineID2BrazilDCR {
+public abstract class AbstractFAPI2SPID2BrazilDCRMTLSIssue extends AbstractFAPI2SPID2BrazilDCR {
 	protected abstract void mapToWrongMTLS();
 
 	@Override

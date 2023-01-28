@@ -12,7 +12,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client2.org_jwks"
 })
-public abstract class AbstractFAPI2BaselineID2MultipleClient extends AbstractFAPI2BaselineID2ServerTestModule {
+public abstract class AbstractFAPI2SPID2MultipleClient extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected void configureClient() {

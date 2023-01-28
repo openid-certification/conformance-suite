@@ -16,7 +16,7 @@ import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAutho
 import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationResponse;
 import net.openid.conformance.sequence.ConditionSequence;
 
-public abstract class AbstractFAPI2BaselineID2EnsureRequestObjectWithoutState extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public abstract class AbstractFAPI2SPID2EnsureRequestObjectWithoutState extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {

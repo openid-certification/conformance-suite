@@ -17,7 +17,7 @@ import java.util.Map;
 	displayName = "FAPI2-SecurityProfile-ID2: Relying Party (client) test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.rptest
 )
-public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
+public class FAPI2SPID2ClientTestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
 
@@ -27,7 +27,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 		String senderConstrain = v.get("sender_constrain");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
-		String certProfile = "FAPI2BaselineID2 ";
+		String certProfile = "FAPI2SPID2 ";
 
 		switch (profile) {
 			case "plain_fapi":
@@ -75,14 +75,14 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningID1ClientTestPlan.testModules);
 
 		// Remove JARM tests which will cause VariantService errors on startup since this only tests response_mode=plain_response
-		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithoutIssFails.class);
-		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithInvalidIssFails.class);
-		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithoutAudFails.class);
-		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithInvalidAudFails.class);
-		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithoutExpFails.class);
-		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithExpiredExpFails.class);
-		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmWithInvalidSigFails.class);
-		modules.remove(FAPI2BaselineID2ClientTestEnsureJarmSignatureAlgIsNotNone.class);
+		modules.remove(FAPI2SPID2ClientTestEnsureJarmWithoutIssFails.class);
+		modules.remove(FAPI2SPID2ClientTestEnsureJarmWithInvalidIssFails.class);
+		modules.remove(FAPI2SPID2ClientTestEnsureJarmWithoutAudFails.class);
+		modules.remove(FAPI2SPID2ClientTestEnsureJarmWithInvalidAudFails.class);
+		modules.remove(FAPI2SPID2ClientTestEnsureJarmWithoutExpFails.class);
+		modules.remove(FAPI2SPID2ClientTestEnsureJarmWithExpiredExpFails.class);
+		modules.remove(FAPI2SPID2ClientTestEnsureJarmWithInvalidSigFails.class);
+		modules.remove(FAPI2SPID2ClientTestEnsureJarmSignatureAlgIsNotNone.class);
 
 		List<TestPlan.Variant> variant = List.of(
 			new TestPlan.Variant(FAPI2AuthRequestMethod.class, "unsigned"),

@@ -20,7 +20,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 	}
 )
 
-public class FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidStateFails extends AbstractFAPI2BaselineID2ClientExpectNothingAfterAuthorizationResponse {
+public class FAPI2SPID2ClientTestEnsureAuthorizationResponseWithInvalidStateFails extends AbstractFAPI2SPID2ClientExpectNothingAfterAuthorizationResponse {
 
 	@Override
 	protected void addCustomValuesToAuthorizationResponse() {

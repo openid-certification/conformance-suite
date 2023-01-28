@@ -44,7 +44,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2BrazilDCRUpdateClientConfig extends AbstractFAPI2BaselineID2BrazilDCR {
+public class FAPI2SPID2BrazilDCRUpdateClientConfig extends AbstractFAPI2SPID2BrazilDCR {
 	String originalRedirectUri;
 
 	@Override

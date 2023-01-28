@@ -41,7 +41,7 @@ import net.openid.conformance.variant.VariantSetup;
 	)
 
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values={"mtls"})
-public class FAPI2BaselineID2CheckDpopProofNbfExp extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTestModule {
 
 
 	@Override

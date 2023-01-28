@@ -9,7 +9,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
  * Client must stop after receiving an invalid id_token
  */
 @VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
-public abstract class AbstractFAPI2BaselineID2ClientExpectNothingAfterIdTokenIssued extends AbstractFAPI2BaselineID2ClientTest {
+public abstract class AbstractFAPI2SPID2ClientExpectNothingAfterIdTokenIssued extends AbstractFAPI2SPID2ClientTest {
 	protected boolean issueIdTokenCalled = false;
 
 	@Override

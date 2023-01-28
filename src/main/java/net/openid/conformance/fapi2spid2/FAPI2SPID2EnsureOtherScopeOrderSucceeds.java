@@ -30,7 +30,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 // idmvp only requires the openid scope to be supported, but this test requires at least two scopes
 @VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "idmvp" })
-public class FAPI2BaselineID2EnsureOtherScopeOrderSucceeds extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2EnsureOtherScopeOrderSucceeds extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {

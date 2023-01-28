@@ -19,7 +19,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class FAPI2BaselineID2ClientTestTokenTypeCaseInsenstivity extends AbstractFAPI2BaselineID2ClientTest {
+public class FAPI2SPID2ClientTestTokenTypeCaseInsenstivity extends AbstractFAPI2SPID2ClientTest {
 	@Override
 	protected void issueAccessToken() {
 		super.issueAccessToken();

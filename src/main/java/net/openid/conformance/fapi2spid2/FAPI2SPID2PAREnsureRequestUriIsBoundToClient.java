@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2PAREnsureRequestUriIsBoundToClient extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2PAREnsureRequestUriIsBoundToClient extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

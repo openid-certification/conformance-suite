@@ -23,7 +23,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 
-public class FAPI2BaselineID2ClientTestInvalidAuthorizationResponseIss extends AbstractFAPI2BaselineID2ClientExpectNothingAfterAuthorizationResponse {
+public class FAPI2SPID2ClientTestInvalidAuthorizationResponseIss extends AbstractFAPI2SPID2ClientExpectNothingAfterAuthorizationResponse {
 	@Override
 	protected String getAuthorizationResponseErrorMessage() {
 		return "Returned invalid iss";

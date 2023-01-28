@@ -23,7 +23,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2BrazilDCRHappyFlow extends AbstractFAPI2BaselineID2BrazilDCR {
+public class FAPI2SPID2BrazilDCRHappyFlow extends AbstractFAPI2SPID2BrazilDCR {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

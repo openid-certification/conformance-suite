@@ -225,7 +225,7 @@ import javax.servlet.http.HttpSession;
 	"client.scope", // scope is always openid
 	"client2.scope"
 })
-public abstract class AbstractFAPI2BaselineID2ClientTest extends AbstractTestModule {
+public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";

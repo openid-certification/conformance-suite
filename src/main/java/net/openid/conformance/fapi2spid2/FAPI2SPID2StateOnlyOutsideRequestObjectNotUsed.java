@@ -27,7 +27,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2StateOnlyOutsideRequestObjectNotUsed extends AbstractFAPI2BaselineID2EnsureRequestObjectWithoutState {
+public class FAPI2SPID2StateOnlyOutsideRequestObjectNotUsed extends AbstractFAPI2SPID2EnsureRequestObjectWithoutState {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {

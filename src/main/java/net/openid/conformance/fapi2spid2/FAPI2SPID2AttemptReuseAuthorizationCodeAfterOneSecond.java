@@ -42,7 +42,7 @@ import org.apache.http.HttpStatus;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2AttemptReuseAuthorizationCodeAfterOneSecond extends AbstractFAPI2BaselineID2ServerTestModule {
+public class FAPI2SPID2AttemptReuseAuthorizationCodeAfterOneSecond extends AbstractFAPI2SPID2ServerTestModule {
 
 	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;
 

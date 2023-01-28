@@ -23,7 +23,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 
-public class FAPI2BaselineID2ClientTestRemoveAuthorizationResponseIss extends AbstractFAPI2BaselineID2ClientExpectNothingAfterAuthorizationResponse {
+public class FAPI2SPID2ClientTestRemoveAuthorizationResponseIss extends AbstractFAPI2SPID2ClientExpectNothingAfterAuthorizationResponse {
 	@Override
 	protected String getAuthorizationResponseErrorMessage() {
 		return "Removed iss from authorization response";

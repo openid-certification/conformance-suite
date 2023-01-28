@@ -26,7 +26,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2BrazilDCRNoSoftwareStatement extends AbstractFAPI2BaselineID2BrazilDCR {
+public class FAPI2SPID2BrazilDCRNoSoftwareStatement extends AbstractFAPI2SPID2BrazilDCR {
 
 	@Override
 	protected void addSoftwareStatementToRegistrationRequest() {

@@ -25,7 +25,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 
 
 
-public class FAPI2BaselineID2ClientTestEnsureAuthorizationResponseWithInvalidMissingStateFails extends AbstractFAPI2BaselineID2ClientTest {
+public class FAPI2SPID2ClientTestEnsureAuthorizationResponseWithInvalidMissingStateFails extends AbstractFAPI2SPID2ClientTest {
 
 	protected boolean removedState = false;
 

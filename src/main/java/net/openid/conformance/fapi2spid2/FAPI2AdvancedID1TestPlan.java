@@ -17,91 +17,91 @@ import java.util.Map;
 public class FAPI2AdvancedID1TestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		// Normal well behaved client cases
-		FAPI2BaselineID2DiscoveryEndpointVerification.class,
-		FAPI2BaselineID2HappyFlow.class,
-		FAPI2BaselineID2UserRejectsAuthentication.class,
-		FAPI2BaselineID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
-		FAPI2BaselineID2EnsureAuthorizationRequestWithoutStateSuccess.class,
-		FAPI2BaselineID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
-		FAPI2BaselineID2EnsureOtherScopeOrderSucceeds.class,
-		FAPI2BaselineID2TestClaimsParameterIdentityClaims.class,
-		FAPI2BaselineID2AccessTokenTypeHeaderCaseSensitivity.class,
+		FAPI2SPID2DiscoveryEndpointVerification.class,
+		FAPI2SPID2HappyFlow.class,
+		FAPI2SPID2UserRejectsAuthentication.class,
+		FAPI2SPID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
+		FAPI2SPID2EnsureAuthorizationRequestWithoutStateSuccess.class,
+		FAPI2SPID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
+		FAPI2SPID2EnsureOtherScopeOrderSucceeds.class,
+		FAPI2SPID2TestClaimsParameterIdentityClaims.class,
+		FAPI2SPID2AccessTokenTypeHeaderCaseSensitivity.class,
 
 		// DPoP tests
-		FAPI2BaselineID2CheckDpopProofNbfExp.class,
+		FAPI2SPID2CheckDpopProofNbfExp.class,
 
 		// Possible failure case
-		FAPI2BaselineID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
-		FAPI2BaselineID2EnsureRequestObjectWithLongNonce.class,
-		FAPI2BaselineID2EnsureRequestObjectWithLongState.class,
+		FAPI2SPID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
+		FAPI2SPID2EnsureRequestObjectWithLongNonce.class,
+		FAPI2SPID2EnsureRequestObjectWithLongState.class,
 
 		// Negative tests for request objects
-		FAPI2BaselineID2EnsureRequestObjectWithoutExpFails.class,
-		FAPI2BaselineID2EnsureRequestObjectWithoutNbfFails.class,
-		FAPI2BaselineID2EnsureRequestObjectWithoutScopeFails.class,
-		FAPI2BaselineID2StateOnlyOutsideRequestObjectNotUsed.class,
-		FAPI2BaselineID2EnsureRequestObjectWithoutRedirectUriFails.class,
-		FAPI2BaselineID2EnsureExpiredRequestObjectFails.class,
-		FAPI2BaselineID2EnsureRequestObjectWithBadAudFails.class,
-		FAPI2BaselineID2EnsureRequestObjectWithExpOver60Fails.class,
-		FAPI2BaselineID2EnsureRequestObjectWithNbfOver60Fails.class,
-		FAPI2BaselineID2EnsureSignedRequestObjectWithRS256Fails.class,
-		FAPI2BaselineID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
-		FAPI2BaselineID2EnsureRequestObjectWithInvalidSignatureFails.class,
-		FAPI2BaselineID2EnsureMatchingKeyInAuthorizationRequest.class,
-		FAPI2BaselineID2EnsureUnsignedRequestAtParEndpointFails.class,
+		FAPI2SPID2EnsureRequestObjectWithoutExpFails.class,
+		FAPI2SPID2EnsureRequestObjectWithoutNbfFails.class,
+		FAPI2SPID2EnsureRequestObjectWithoutScopeFails.class,
+		FAPI2SPID2StateOnlyOutsideRequestObjectNotUsed.class,
+		FAPI2SPID2EnsureRequestObjectWithoutRedirectUriFails.class,
+		FAPI2SPID2EnsureExpiredRequestObjectFails.class,
+		FAPI2SPID2EnsureRequestObjectWithBadAudFails.class,
+		FAPI2SPID2EnsureRequestObjectWithExpOver60Fails.class,
+		FAPI2SPID2EnsureRequestObjectWithNbfOver60Fails.class,
+		FAPI2SPID2EnsureSignedRequestObjectWithRS256Fails.class,
+		FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
+		FAPI2SPID2EnsureRequestObjectWithInvalidSignatureFails.class,
+		FAPI2SPID2EnsureMatchingKeyInAuthorizationRequest.class,
+		FAPI2SPID2EnsureUnsignedRequestAtParEndpointFails.class,
 
 		// Negative tests for authorization request
-		FAPI2BaselineID2EnsureRegisteredRedirectUri.class,
-		FAPI2BaselineID2EnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
-		FAPI2BaselineID2EnsureRedirectUriInAuthorizationRequest.class,
-		FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails.class,
+		FAPI2SPID2EnsureRegisteredRedirectUri.class,
+		FAPI2SPID2EnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
+		FAPI2SPID2EnsureRedirectUriInAuthorizationRequest.class,
+		FAPI2SPID2EnsureResponseTypeCodeIdTokenFails.class,
 
 		// Negative tests for token endpoint
-		FAPI2BaselineID2EnsureClientIdInTokenEndpoint.class,
-		FAPI2BaselineID2EnsureHolderOfKeyRequired.class,
-		FAPI2BaselineID2EnsureAuthorizationCodeIsBoundToClient.class,
-		FAPI2BaselineID2AttemptReuseAuthorizationCodeAfterOneSecond.class,
+		FAPI2SPID2EnsureClientIdInTokenEndpoint.class,
+		FAPI2SPID2EnsureHolderOfKeyRequired.class,
+		FAPI2SPID2EnsureAuthorizationCodeIsBoundToClient.class,
+		FAPI2SPID2AttemptReuseAuthorizationCodeAfterOneSecond.class,
 
 		// Private key specific tests
-		FAPI2BaselineID2EnsureSignedClientAssertionWithRS256Fails.class,
-		FAPI2BaselineID2EnsureClientAssertionInTokenEndpoint.class,
-		FAPI2BaselineID2EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
-		FAPI2BaselineID2EnsureClientAssertionWithWrongAudFails.class,
-		FAPI2BaselineID2EnsureClientAssertionWithNoSubFails.class,
+		FAPI2SPID2EnsureSignedClientAssertionWithRS256Fails.class,
+		FAPI2SPID2EnsureClientAssertionInTokenEndpoint.class,
+		FAPI2SPID2EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
+		FAPI2SPID2EnsureClientAssertionWithWrongAudFails.class,
+		FAPI2SPID2EnsureClientAssertionWithNoSubFails.class,
 
-		FAPI2BaselineID2DpopNegativeTests.class,
+		FAPI2SPID2DpopNegativeTests.class,
 
 		//Refresh token tests
-		FAPI2BaselineID2RefreshToken.class,
+		FAPI2SPID2RefreshToken.class,
 
 		// OBUK specific tests
-		FAPI2BaselineID2EnsureServerHandlesNonMatchingIntentId.class,
-		FAPI2BaselineID2TestEssentialAcrScaClaim.class,
+		FAPI2SPID2EnsureServerHandlesNonMatchingIntentId.class,
+		FAPI2SPID2TestEssentialAcrScaClaim.class,
 
 		// OB Brazil specific tests
-		FAPI2BaselineID2BrazilEnsureBadPaymentSignatureFails.class,
+		FAPI2SPID2BrazilEnsureBadPaymentSignatureFails.class,
 
 		// IDMVP specific tests
-		FAPI2BaselineID2IdmvpTestClaimsParameterIdTokenIdentityClaims.class,
+		FAPI2SPID2IdmvpTestClaimsParameterIdTokenIdentityClaims.class,
 
 		//PAR tests
-		FAPI2BaselineID2PARAttemptReuseRequestUri.class,
-		FAPI2BaselineID2PARAttemptToUseExpiredRequestUri.class,
-		FAPI2BaselineID2PARCheckAudienceForJWTClientAssertion.class,
-		FAPI2BaselineID2PAREnsureRequestUriIsBoundToClient.class,
-		FAPI2BaselineID2PARRejectRequestUriInParAuthorizationFormParams.class,
-		FAPI2BaselineID2PARRejectInvalidHttpVerb.class,
+		FAPI2SPID2PARAttemptReuseRequestUri.class,
+		FAPI2SPID2PARAttemptToUseExpiredRequestUri.class,
+		FAPI2SPID2PARCheckAudienceForJWTClientAssertion.class,
+		FAPI2SPID2PAREnsureRequestUriIsBoundToClient.class,
+		FAPI2SPID2PARRejectRequestUriInParAuthorizationFormParams.class,
+		FAPI2SPID2PARRejectInvalidHttpVerb.class,
 
 		// PKCE tests
-		FAPI2BaselineID2PAREnsurePKCERequired.class,
-		FAPI2BaselineID2PAREnsurePKCECodeVerifierRequired.class,
-		FAPI2BaselineID2PARIncorrectPKCECodeVerifierRejected.class,
-		FAPI2BaselineID2PAREnsurePlainPKCERejected.class,
+		FAPI2SPID2PAREnsurePKCERequired.class,
+		FAPI2SPID2PAREnsurePKCECodeVerifierRequired.class,
+		FAPI2SPID2PARIncorrectPKCECodeVerifierRejected.class,
+		FAPI2SPID2PAREnsurePlainPKCERejected.class,
 
-		FAPI2BaselineID2PARRejectRequestUriInParAuthorizationRequest.class,
+		FAPI2SPID2PARRejectRequestUriInParAuthorizationRequest.class,
 
-		FAPI2BaselineID2ParWithoutDuplicateParameters.class
+		FAPI2SPID2ParWithoutDuplicateParameters.class
 	);
 
 	public static List<ModuleListEntry> testModulesWithVariants() {

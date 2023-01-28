@@ -213,7 +213,7 @@ import java.util.function.Supplier;
 	"client.scope", // scope is always openid
 	"client2.scope"
 })
-public abstract class AbstractFAPI2BaselineID2ServerTestModule extends AbstractRedirectServerTestModule {
+public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
 	protected Boolean jarm;

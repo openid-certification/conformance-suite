@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2BaselineID2EnsureRegisteredRedirectUri extends AbstractFAPI2BaselineID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2EnsureRegisteredRedirectUri extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

@@ -9,7 +9,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
  * Client must stop after receiving an invalid authorization response
  */
 @VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
-public abstract class AbstractFAPI2BaselineID2ClientExpectNothingAfterAuthorizationResponse extends AbstractFAPI2BaselineID2ClientTest {
+public abstract class AbstractFAPI2SPID2ClientExpectNothingAfterAuthorizationResponse extends AbstractFAPI2SPID2ClientTest {
 	@Override
 	protected void createAuthorizationEndpointResponse() {
 		super.createAuthorizationEndpointResponse();
