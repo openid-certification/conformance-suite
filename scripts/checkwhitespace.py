@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Checks for incorrect whitespace in source files
 
@@ -58,7 +58,7 @@ args = parser.parse_args()
 
 # only check files known to git - this neatly avoids us processing git ignored files, generated files, etc
 command = ['git', 'ls-files']
-files = subprocess.check_output(command)
+files = subprocess.check_output(command).decode('utf8')
 fixed = False
 errors = False
 for f in files.split('\n'):
