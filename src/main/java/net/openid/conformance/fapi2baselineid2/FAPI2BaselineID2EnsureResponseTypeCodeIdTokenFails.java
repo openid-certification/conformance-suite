@@ -44,7 +44,7 @@ public class FAPI2BaselineID2EnsureResponseTypeCodeIdTokenFails extends Abstract
 	@Override
 	protected void createPlaceholder() {
 		// see https://bitbucket.org/openid/fapi/issues/476/is-response_type-code-id_token-permitted
-		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI2-BASE-4.3.1-3");
+		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI2-SP-ID2-4.3.1-3");
 
 		env.putString("error_callback_placeholder", env.getString("response_type_error"));
 	}
