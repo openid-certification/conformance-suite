@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "fapi2-securityprofile-id2-par-attempt-invalid-http-method",
 	displayName = "PAR : try to use an invalid http method ",
 	summary = "This test tries to use an invalid http method and expects authorization server to return an error",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

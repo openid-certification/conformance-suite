@@ -8,9 +8,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-client-test-ensure-jarm-without-exp-fails",
-	displayName = "FAPI2-Baseline-ID2: sends a JARM response without the exp claim.",
+	displayName = "FAPI2-SecurityProfile-ID2: sends a JARM response without the exp claim.",
 	summary = "This test should end with the client displaying an error message that the JARM response is missing the exp claim",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

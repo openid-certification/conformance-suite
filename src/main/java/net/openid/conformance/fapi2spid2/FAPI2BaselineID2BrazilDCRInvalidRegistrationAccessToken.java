@@ -9,9 +9,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-brazildcr-invalid-registration-access-token",
-	displayName = "FAPI2-Baseline-ID2: Brazil DCR invalid registration access token",
+	displayName = "FAPI2-SecurityProfile-ID2: Brazil DCR invalid registration access token",
 	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server then check behaviour of GET/DELETE operations when a bad access token.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

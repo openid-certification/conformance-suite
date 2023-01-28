@@ -14,7 +14,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-securityprofile-id2-client-test-plan",
-	displayName = "FAPI2-Baseline-ID2: Relying Party (client) test - BETA; subject to change, no certification programme yet",
+	displayName = "FAPI2-SecurityProfile-ID2: Relying Party (client) test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.rptest
 )
 public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
@@ -43,7 +43,7 @@ public class FAPI2BaselineID2ClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				return "Not a conformance profile. Please use 'FAPI2-Baseline-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
+				return "Not a conformance profile. Please use 'FAPI2-SecurityProfile-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
 			case "idmvp":
 				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for IDMVP",
 					MethodHandles.lookup().lookupClass().getSimpleName()));

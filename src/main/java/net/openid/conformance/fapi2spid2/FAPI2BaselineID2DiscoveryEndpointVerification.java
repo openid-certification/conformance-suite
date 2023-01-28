@@ -40,9 +40,9 @@ import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-discovery-end-point-verification",
-	displayName = "FAPI2-Baseline-ID2: Discovery Endpoint Verification",
+	displayName = "FAPI2-SecurityProfile-ID2: Discovery Endpoint Verification",
 	summary = "This test ensures that the server's configuration (including scopes, response_types, grant_types etc) contains values required by the specification",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 	}

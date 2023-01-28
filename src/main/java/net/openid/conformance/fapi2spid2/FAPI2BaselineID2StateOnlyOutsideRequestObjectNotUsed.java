@@ -7,9 +7,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-state-only-outside-request-object-not-used",
-	displayName = "FAPI2-Baseline-ID2: check that a state value passed only outside request object is not used",
+	displayName = "FAPI2-SecurityProfile-ID2: check that a state value passed only outside request object is not used",
 	summary = "This test uses a request object that does not contain state, but state is passed in the url parameters to the authorization endpoint (hence state should be ignored, as FAPI says only parameters inside the request object should be used). The expected result is a successful authentication that returns neither state nor s_hash. It is also permissible to show (a screenshot of which should be uploaded) or return an error message: invalid_request, invalid_request_object or access_denied.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

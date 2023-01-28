@@ -12,9 +12,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-brazil-ensure-bad-payment-signature-fails",
-	displayName = "FAPI2-Baseline-ID2: ensure bad payment signature fails",
+	displayName = "FAPI2-SecurityProfile-ID2: ensure bad payment signature fails",
 	summary = "This test makes a request to the payment consent endpoint request with a bad signature, which must fail.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

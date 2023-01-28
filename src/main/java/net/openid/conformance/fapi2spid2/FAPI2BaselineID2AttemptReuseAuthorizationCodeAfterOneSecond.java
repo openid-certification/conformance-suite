@@ -22,9 +22,9 @@ import org.apache.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-attempt-reuse-authorization-code-after-one-second",
-	displayName = "FAPI2-Baseline-ID2: try to reuse authorization code after one second",
+	displayName = "FAPI2-SecurityProfile-ID2: try to reuse authorization code after one second",
 	summary = "This test tries reusing an authorization code after one second, as the authorization code has already been used this must fail with the AS returning an invalid_grant error.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

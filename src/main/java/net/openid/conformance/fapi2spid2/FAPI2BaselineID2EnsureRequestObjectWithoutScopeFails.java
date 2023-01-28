@@ -16,9 +16,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-ensure-request-object-without-scope-fails",
-	displayName = "FAPI2-Baseline-ID2: ensure request object without scope fails",
+	displayName = "FAPI2-SecurityProfile-ID2: ensure request object without scope fails",
 	summary = "This test passes 'scope' only outside the request object. As FAPI requires that all parameters are inside the request object, this test should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response (invalid_request, invalid_request_object, invalid_request_uri or access_denied), or the PAR endpoint call an return the error.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

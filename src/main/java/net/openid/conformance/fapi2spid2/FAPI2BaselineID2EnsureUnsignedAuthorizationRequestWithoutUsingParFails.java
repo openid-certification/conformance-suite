@@ -11,9 +11,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-ensure-unsigned-authorization-request-without-using-par-fails",
-	displayName = "FAPI2-Baseline-ID2: ensure unsigned authorization request without using PAR fails",
+	displayName = "FAPI2-SecurityProfile-ID2: ensure unsigned authorization request without using PAR fails",
 	summary = "This test calls the authorization endpoint without using a request object (i.e. with all the parameters passed in the url query), and should end with the authorization server showing an error message that the request is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with an invalid_request error.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

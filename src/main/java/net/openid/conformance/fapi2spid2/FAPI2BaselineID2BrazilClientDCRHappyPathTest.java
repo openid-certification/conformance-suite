@@ -55,7 +55,7 @@ import javax.servlet.http.HttpSession;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-client-brazildcr-happypath-test",
-	displayName = "FAPI2-Baseline-ID2: client DCR happy path test",
+	displayName = "FAPI2-SecurityProfile-ID2: client DCR happy path test",
 	summary = "Tests a 'happy path' flow; " +
 		"first perform OpenID discovery from the displayed discoveryUrl, and (after obtaining a software statement from the directory) register the client. " +
 		"Then call the authorization endpoint (which will immediately redirect back), " +
@@ -66,7 +66,7 @@ import javax.servlet.http.HttpSession;
 		"stores the registration_client_uri and registration_access_token so that future changes may be "+
 		"made to the configuration of the client.\n\n" +
 		"If you do not have access to the directory you can use the keys in this configuration: https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.jwks"
 	}

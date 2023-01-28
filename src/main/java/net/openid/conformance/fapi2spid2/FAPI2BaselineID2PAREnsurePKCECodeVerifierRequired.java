@@ -13,9 +13,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-ensure-pkce-code-verifier-required",
-	displayName = "FAPI2-Baseline-ID2: Ensure PKCE code_verifier required",
+	displayName = "FAPI2-SecurityProfile-ID2: Ensure PKCE code_verifier required",
 	summary = "This test authenticates as normal except that when calling the token endpoint it omits the 'code_verifier' parameter. The test must end with the token endpoint returning an 'invalid_grant' error, as PKCE is required and requires the code_verifier parameter.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

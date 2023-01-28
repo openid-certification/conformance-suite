@@ -1181,7 +1181,7 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        if all_test_modules[m]['profile'] in ['FAPI2-Baseline-ID2']:
+        if all_test_modules[m]['profile'] in ['FAPI2-SecurityProfile-ID2']:
             # skip CI for FAPI2Baseline as we don't have access to a server supporting it / the tests aren't finished yet
             untested_test_modules.remove(m)
             continue

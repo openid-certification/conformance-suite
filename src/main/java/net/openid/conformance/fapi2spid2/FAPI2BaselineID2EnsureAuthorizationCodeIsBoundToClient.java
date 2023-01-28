@@ -15,9 +15,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-ensure-authorization-code-is-bound-to-client",
-	displayName = "FAPI2-Baseline-ID2: ensure authorization code is bound to client",
+	displayName = "FAPI2-SecurityProfile-ID2: ensure authorization code is bound to client",
 	summary = "This test ensures the token endpoint returns an error if a valid authorization code is used with another client's credentials.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

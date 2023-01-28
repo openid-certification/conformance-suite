@@ -11,9 +11,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-brazil-dcr-invalid-jwks-by-value",
-	displayName = "FAPI2-Baseline-ID2: Brazil DCR Invalid JWKS by value",
+	displayName = "FAPI2-SecurityProfile-ID2: Brazil DCR Invalid JWKS by value",
 	summary = "Perform the DCR flow, but passing a jwks by value - the server must reject the registration attempt.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

@@ -18,9 +18,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-ensure-request-object-with-long-nonce",
-	displayName = "FAPI2-Baseline-ID2: ensure request object with long nonce",
+	displayName = "FAPI2-SecurityProfile-ID2: ensure request object with long nonce",
 	summary = "This test passes a 384 character nonce in the request object. The authorization server must either successfully authenticate and return the nonce correctly, or if it does not support nonces that long it may return an invalid_request error back to the client or show an error page (saying the server rejects long nonce - upload a screenshot of the error page). The server MUST NOT return the nonce corrupted or truncated.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

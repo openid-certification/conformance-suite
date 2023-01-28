@@ -10,9 +10,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-securityprofile-id2-brazil-dcr-no-redirect-uri",
-	displayName = "FAPI2-Baseline-ID2: Brazil DCR no redirect uri",
+	displayName = "FAPI2-SecurityProfile-ID2: Brazil DCR no redirect uri",
 	summary = "Perform the DCR flow, but without including a redirect uri in the request body - the server must reject the registration attempt.",
-	profile = "FAPI2-Baseline-ID2",
+	profile = "FAPI2-SecurityProfile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",
