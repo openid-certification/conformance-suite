@@ -64,13 +64,13 @@ makeClientTest() {
 
 makeServerTest() {
     # FAPI2 baseline
-    TESTS="${TESTS} fapi2-securityprofile-id2-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][sender_constrain=dpop][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-dpop.json"
-    TESTS="${TESTS} fapi2-securityprofile-id2-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+    TESTS="${TESTS} fapi2-securityprofile-id2-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][sender_constrain=dpop][fapi_profile=openbanking_brazil] authlete-fapi2securityprofile-brazil-privatekey-dpop.json"
+    TESTS="${TESTS} fapi2-securityprofile-id2-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2securityprofile-brazil-privatekey.json"
 
     # FAPI2 advanced
-    TESTS="${TESTS} fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=jarm][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey-jarm.json"
+    TESTS="${TESTS} fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=jarm][fapi_profile=openbanking_brazil] authlete-fapi2securityprofile-brazil-privatekey-jarm.json"
     # We don't have access to a server that supports 'signed_non_repudiation' yet
-    #TESTS="${TESTS} fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2baseline-brazil-privatekey.json"
+    #TESTS="${TESTS} fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2securityprofile-brazil-privatekey.json"
 
     # OIDCC certification tests - static server, static client configuration
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
