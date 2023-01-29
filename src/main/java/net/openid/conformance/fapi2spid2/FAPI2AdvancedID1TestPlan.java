@@ -11,7 +11,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-message-signing-id1-test-plan",
-	displayName = "FAPI2-MessageSigning-ID1: Authorization server test - BETA; subject to change, no certification programme yet",
+	displayName = "FAPI2-Message-Signing-ID1: Authorization server test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI2AdvancedID1TestPlan implements TestPlan {
