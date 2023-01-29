@@ -8,9 +8,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-client-test-valid-aud-as-array",
-	displayName = "FAPI2-SecurityProfile-ID2: client test - valid aud in id_token as data type array",
+	displayName = "FAPI2-Security-Profile-ID2: client test - valid aud in id_token as data type array",
 	summary = "This test should be successful. The value of aud within the id_token will be represented as array with one value",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

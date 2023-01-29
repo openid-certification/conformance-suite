@@ -6,9 +6,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-client-test-token-type-case-insensitivity",
-	displayName = "FAPI2-SecurityProfile-ID2: test client for case insensitivity of token type in token endpoint response",
+	displayName = "FAPI2-Security-Profile-ID2: test client for case insensitivity of token type in token endpoint response",
 	summary = "Tests whether the client has case sensitiveness when an all inverted case token_type is returned in the token endpoint response",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

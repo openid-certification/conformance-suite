@@ -515,7 +515,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			if (isSecondClient) {
 				callAndStopOnFailure(AddIatToRequestObject.class);
 			}
-			callAndStopOnFailure(AddNbfToRequestObject.class, "FAPI1-ADV-5.2.2-17"); // mandatory in FAPI2-SecurityProfile-ID2
+			callAndStopOnFailure(AddNbfToRequestObject.class, "FAPI1-ADV-5.2.2-17"); // mandatory in FAPI2-Security-Profile-ID2
 			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI1-ADV-5.2.2-13");
 
 			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI1-ADV-5.2.2-14");

@@ -10,9 +10,9 @@ import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-client-test-ensure-authorization-response-with-invalid-missing-state-fails",
-	displayName = "FAPI2-SecurityProfile-ID2: sends an authorization endpoint response with a missing state value which the client should reject",
+	displayName = "FAPI2-Security-Profile-ID2: sends an authorization endpoint response with a missing state value which the client should reject",
 	summary = "This test should end with the client displaying an error message that the state value in the authorization endpoint response is invalid. If the client does not send a state value the test result will be SKIPPED.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

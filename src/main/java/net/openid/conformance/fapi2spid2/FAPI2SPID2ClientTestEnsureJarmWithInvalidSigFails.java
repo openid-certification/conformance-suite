@@ -9,9 +9,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-client-test-ensure-jarm-with-invalid-sig-fails",
-	displayName = "FAPI2-SecurityProfile-ID2: sends a JARM response with an invalid signature.",
+	displayName = "FAPI2-Security-Profile-ID2: sends a JARM response with an invalid signature.",
 	summary = "This test should end with the client displaying an error message that the JARM response has an invalid signature",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

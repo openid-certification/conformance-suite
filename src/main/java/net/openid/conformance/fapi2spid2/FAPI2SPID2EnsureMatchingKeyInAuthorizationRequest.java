@@ -14,9 +14,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-matching-key-in-authorization-request",
-	displayName = "FAPI2-SecurityProfile-ID2: ensure matching key in authorization request",
+	displayName = "FAPI2-Security-Profile-ID2: ensure matching key in authorization request",
 	summary = "This test sends a valid request object for client 1 but signed by client 2, and should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded), or with an error from the PAR endpoint, or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

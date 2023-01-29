@@ -28,9 +28,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-brazildcr-update-client-config",
-	displayName = "FAPI2-SecurityProfile-ID2: Brazil DCR update client config",
+	displayName = "FAPI2-Security-Profile-ID2: Brazil DCR update client config",
 	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and perform an authorization flow. After the registration, a PUT will be made to the RFC7592 client to change the redirect uri (both redirect uris must be present in the software on the Brazil directory), which must succeed and an authorization flow will then be run using the new redirect uri. The contents of the 'PUT' is the dynamic registration response the server supplied, so any problems with the PUT request are due to errors in the DCR response. PUTs to the client config url to change the redirect_uri with various bad authentication will then be tried, which should all be rejected. The test will then verify the redirect uri wasn't changed.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-client-refresh-token-test",
-	displayName = "FAPI2-SecurityProfile-ID2: client refresh token test",
+	displayName = "FAPI2-Security-Profile-ID2: client refresh token test",
 	summary = "Tests a refresh token flow; " +
 		"the client should perform OpenID discovery from the displayed discoveryUrl, " +
 		"call the authorization endpoint (which will immediately redirect back), " +
@@ -22,7 +22,7 @@ import org.springframework.http.ResponseEntity;
 		"first call will return a new refresh token) to obtain a new access token " +
 		"and call the accounts/payments/resources endpoint again with the new access " +
 		"token obtained using the refresh_token.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

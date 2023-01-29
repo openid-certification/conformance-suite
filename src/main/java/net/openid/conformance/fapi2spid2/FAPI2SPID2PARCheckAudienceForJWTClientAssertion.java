@@ -12,7 +12,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-id2-par-test-pushed-authorization-url-as-audience-for-client-JWT-assertion",
 	displayName = "PAR : try to use pushed authorization request endpoint url as audience for Client JWT Assertion",
 	summary = "This test tries to use the pushed authorization request endpoint url as audience for Client JWT Assertion, the authorization server is expected to accept it",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

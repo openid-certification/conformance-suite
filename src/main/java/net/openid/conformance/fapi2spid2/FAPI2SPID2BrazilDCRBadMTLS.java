@@ -5,9 +5,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-brazil-dcr-bad-mtls",
-	displayName = "FAPI2-SecurityProfile-ID2: Brazil DCR bad MTLS",
+	displayName = "FAPI2-Security-Profile-ID2: Brazil DCR bad MTLS",
 	summary = "Perform the DCR flow, but presenting a TLS client certificate that should not be trusted - the server must reject the registration attempt, either by refusing the TLS negotiation or returning a valid error response. The client configuration endpoint GET and DELETE methods are called with a bad TLS certificate and must be rejected.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

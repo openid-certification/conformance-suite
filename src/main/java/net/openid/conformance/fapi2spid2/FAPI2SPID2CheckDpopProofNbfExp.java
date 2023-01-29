@@ -19,9 +19,9 @@ import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 		testName = "fapi2-security-profile-id2-check-dpop-proof-nbf-exp",
-		displayName = "FAPI2-SecurityProfile-ID2: checks DPoP Proof nbf and exp claim validation",
+		displayName = "FAPI2-Security-Profile-ID2: checks DPoP Proof nbf and exp claim validation",
 		summary = "Tests whether the AS can handle the nbf and exp claim in the DPoP Proof",
-		profile = "FAPI2-SecurityProfile-ID2",
+		profile = "FAPI2-Security-Profile-ID2",
 		configurationFields = {
 			"server.discoveryUrl",
 			"client.client_id",

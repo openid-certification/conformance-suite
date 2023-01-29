@@ -9,9 +9,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-authorization-request-without-nonce-success",
-	displayName = "FAPI2-SecurityProfile-ID2: ensure authorization endpoint request without noce success",
+	displayName = "FAPI2-Security-Profile-ID2: ensure authorization endpoint request without noce success",
 	summary = "This test makes an authentication request that does not include 'nonce'. nonce is an optional parameter for response_type=code, so the authorization server must successfully authenticate and must not return a nonce.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

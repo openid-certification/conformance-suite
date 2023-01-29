@@ -8,9 +8,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-redirect-uri-in-authorization-request",
-	displayName = "FAPI2-SecurityProfile-ID2: ensure redirect URI in authorization request",
+	displayName = "FAPI2-Security-Profile-ID2: ensure redirect URI in authorization request",
 	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

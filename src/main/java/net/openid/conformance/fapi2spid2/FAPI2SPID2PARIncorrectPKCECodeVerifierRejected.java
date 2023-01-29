@@ -14,9 +14,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-incorrect-pkce-code-verifier-rejected",
-	displayName = "FAPI2-SecurityProfile-ID2: Incorrect PKCE code_verifier rejected",
+	displayName = "FAPI2-Security-Profile-ID2: Incorrect PKCE code_verifier rejected",
 	summary = "This test authenticates as normal except that when calling the token endpoint it passes an incorrect value in the 'code_verifier' parameter. The test must end with the token endpoint returning an 'invalid_grant' error, due to the incorrect the code_verifier parameter.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -7,9 +7,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-client-test-invalid-openbanking-intent-id",
-	displayName = "FAPI2-SecurityProfile-ID2: client test  - invalid openbanking_intent_id, should be rejected",
+	displayName = "FAPI2-Security-Profile-ID2: client test  - invalid openbanking_intent_id, should be rejected",
 	summary = "This test should end with the client displaying an error message that the openbanking_intent_id returned in id_token from authorization endpoint does not match the value sent in the request object",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

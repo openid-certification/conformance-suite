@@ -8,9 +8,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-client-test-ensure-jarm-with-expired-exp-fails",
-	displayName = "FAPI2-SecurityProfile-ID2: sends a JARM response with an expired exp claim.",
+	displayName = "FAPI2-Security-Profile-ID2: sends a JARM response with an expired exp claim.",
 	summary = "This test should end with the client displaying an error message that the JARM response has an invalid/expired exp claim",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

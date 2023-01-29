@@ -14,7 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "fapi2-security-profile-id2-par-attempt-reuse-request_uri",
 	displayName = "PAR : try to reuse a request_uri ",
 	summary = "This test tries to use a request_uri twice and expects the authorization server either show an error or redirect back with an invalid_request_uri error, PAR section 7.3 states 'the AS SHOULD make the request URIs one-time use'. If the authentication succeeds a warning will be issued.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

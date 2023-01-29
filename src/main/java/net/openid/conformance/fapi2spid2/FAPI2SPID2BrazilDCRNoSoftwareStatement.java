@@ -10,9 +10,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-brazil-dcr-no-software-statement",
-	displayName = "FAPI2-SecurityProfile-ID2: Brazil DCR no software statement",
+	displayName = "FAPI2-Security-Profile-ID2: Brazil DCR no software statement",
 	summary = "Perform the DCR flow, but without including a software statement (the values in the software statement are added to the body of the request) - the server must reject the registration attempt.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.scope",

@@ -17,9 +17,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-request-object-without-nbf-fails",
-	displayName = "FAPI2-SecurityProfile-ID2: ensure request object without nbf fails",
+	displayName = "FAPI2-Security-Profile-ID2: ensure request object without nbf fails",
 	summary = "This test should end with the authorization server showing an error message: invalid_request, invalid_request_object (for request object by value), invalid_request_uri (when PAR in use) or access_denied (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",

@@ -7,9 +7,9 @@ import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-client-test-ensure-authorization-response-with-invalid-state-fails",
-	displayName = "FAPI2-SecurityProfile-ID2: sends an authorization endpoint response with an invalid state value.",
+	displayName = "FAPI2-Security-Profile-ID2: sends an authorization endpoint response with an invalid state value.",
 	summary = "This test should end with the client displaying an error message that the state value in the authorization endpoint response is invalid",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",

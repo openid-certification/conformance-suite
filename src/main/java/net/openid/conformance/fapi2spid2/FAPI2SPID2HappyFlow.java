@@ -26,9 +26,9 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 
 @PublishTestModule(
 		testName = "fapi2-security-profile-id2-happy-flow",
-		displayName = "FAPI2-SecurityProfile-ID2: Happy flow",
+		displayName = "FAPI2-Security-Profile-ID2: Happy flow",
 		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that sender constrained access tokens (required by the FAPI spec) are correctly implemented.",
-		profile = "FAPI2-SecurityProfile-ID2",
+		profile = "FAPI2-Security-Profile-ID2",
 		configurationFields = {
 			"server.discoveryUrl",
 			"client.client_id",

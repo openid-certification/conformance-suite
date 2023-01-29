@@ -15,9 +15,9 @@ import net.openid.conformance.variant.ClientAuthType;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-client-id-in-token-endpoint",
-	displayName = "FAPI2-SecurityProfile-ID2: ensure client_id in token endpoint",
+	displayName = "FAPI2-Security-Profile-ID2: ensure client_id in token endpoint",
 	summary = "Send client_id for the second client to the token endpoint, which should result in the token endpoint returning an error message that the client is invalid. Note that you must configure the second client to use client credentials that are not equivalent to those for the first client - e.g. if using tls_client_auth_subject_dn, the certificates must have different subject distinguished names.",
-	profile = "FAPI2-SecurityProfile-ID2",
+	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
