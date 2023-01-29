@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-client-refresh-token-test",
+	testName = "fapi2-security-profile-id2-client-refresh-token-test",
 	displayName = "FAPI2-SecurityProfile-ID2: client refresh token test",
 	summary = "Tests a refresh token flow; " +
 		"the client should perform OpenID discovery from the displayed discoveryUrl, " +

@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 //PAR-2.2.1 : The request_uri MUST be bound to the client that posted the authorization request.
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-par-attempt-to-use-request_uri-for-different-client",
+	testName = "fapi2-security-profile-id2-par-attempt-to-use-request_uri-for-different-client",
 	displayName = "PAR : try to use request_uri from client1 for client2",
 	summary = "This test tries to use a request_uri (meant for client1) with client2 and expects authorization server to return an  error",
 	profile = "FAPI2-SecurityProfile-ID2",

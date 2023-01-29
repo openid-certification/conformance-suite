@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-ensure-registered-redirect-uri",
+	testName = "fapi2-security-profile-id2-ensure-registered-redirect-uri",
 	displayName = "FAPI2-SecurityProfile-ID2: ensure registered redirect URI",
 	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
 	profile = "FAPI2-SecurityProfile-ID2",

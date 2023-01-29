@@ -10,7 +10,7 @@ import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationRespo
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-ensure-authorization-request-without-state-success",
+	testName = "fapi2-security-profile-id2-ensure-authorization-request-without-state-success",
 	displayName = "FAPI2-SecurityProfile-ID2: ensure authorization endpoint request without state success",
 	summary = "This test makes an authentication request that does not include 'state'. State is an optional parameter, so the authorization server must successfully authenticate and must not return state nor s_hash.",
 	profile = "FAPI2-SecurityProfile-ID2",

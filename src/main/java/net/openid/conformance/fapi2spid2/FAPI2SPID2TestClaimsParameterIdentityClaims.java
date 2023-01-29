@@ -29,7 +29,7 @@ import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-test-claims-parameter-identity-claims",
+	testName = "fapi2-security-profile-id2-test-claims-parameter-identity-claims",
 	displayName = "FAPI2-SecurityProfile-ID2: test requesting identity claims using the claims parameter",
 	summary = "This is an optional test that will be skipped if the server's metadata does not indicate support for requesting identity claims using the claims parameter, as supporting these claims is not mandatory in the specification.\n\nThe test will request all claims listed in the claims_supported server metadata are returned in the id_token and userinfo (using a variety of different forms of request, and including requesting some random unknown claims that should be ignored), and will warn if any are not returned in either - the server is free to decide whether to only make them available via the id_token, via the userinfo endpoint (if it has one), or via both.\n\nThe test should be performed using a user which has all supported claims present on the server.",
 	profile = "FAPI2-SecurityProfile-ID2",

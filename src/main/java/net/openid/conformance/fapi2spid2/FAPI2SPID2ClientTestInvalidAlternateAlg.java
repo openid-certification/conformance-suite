@@ -5,7 +5,7 @@ import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-client-test-invalid-alternate-alg",
+	testName = "fapi2-security-profile-id2-client-test-invalid-alternate-alg",
 	displayName = "FAPI2-SecurityProfile-ID2: client test - the id_token is signed with RS256, which the client should not accept as it is expecting PS256, ES256, or EdDSA",
 	summary = "This test should end with the client displaying an error message that the algorithm used to sign the id_token does not match the required algorithm",
 	profile = "FAPI2-SecurityProfile-ID2",

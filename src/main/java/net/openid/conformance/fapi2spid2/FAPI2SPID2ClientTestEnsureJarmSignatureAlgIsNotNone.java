@@ -7,7 +7,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-client-test-ensure-jarm-signature-is-not-none",
+	testName = "fapi2-security-profile-id2-client-test-ensure-jarm-signature-is-not-none",
 	displayName = "FAPI2-SecurityProfile-ID2: sends a JARM response with a signature signed with the none algorithm.",
 	summary = "This test should end with the client displaying an error message that the JARM signature and/or algorithm is invalid",
 	profile = "FAPI2-SecurityProfile-ID2",

@@ -25,7 +25,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-ensure-holder-of-key-required",
+	testName = "fapi2-security-profile-id2-ensure-holder-of-key-required",
 	displayName = "FAPI2-SecurityProfile-ID2: ensure holder of key required",
 	summary = "This test ensures that all endpoints comply with the TLS version/cipher limitations and that the token endpoint returns an error if a valid request is sent without a holder of key mechanism (i.e. without DPoP / MTLS).",
 	profile = "FAPI2-SecurityProfile-ID2",

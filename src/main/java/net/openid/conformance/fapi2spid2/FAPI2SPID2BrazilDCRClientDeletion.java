@@ -20,7 +20,7 @@ import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointRes
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-brazildcr-client-delete",
+	testName = "fapi2-security-profile-id2-brazildcr-client-delete",
 	displayName = "FAPI2-SecurityProfile-ID2: Brazil DCR client deletion",
 	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server then check behaviour of GET/DELETE operations after client deletion.",
 	profile = "FAPI2-SecurityProfile-ID2",

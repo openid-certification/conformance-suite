@@ -14,7 +14,7 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-ensure-unsigned-request-at-par-endpoint-fails",
+	testName = "fapi2-security-profile-id2-ensure-unsigned-request-at-par-endpoint-fails",
 	displayName = "FAPI2-SecurityProfile-ID2: ensure unsigned request at PAR endpoint fails",
 	summary = "This test passes the request parameters to the PAR endpoint without them being wrapped in a signed request object, which should be rejected as signed request objects are required.\n\nThe test should end with the authorization server showing an error message that the request is invalid (a screenshot of which should be uploaded), or in an error from the PAR endpoint, or with the user being redirected back to the client's registered redirect_uri with a correct error response.",
 	profile = "FAPI2-SecurityProfile-ID2",

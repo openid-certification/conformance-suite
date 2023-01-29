@@ -17,7 +17,7 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-ensure-request-object-with-invalid-signature-fails",
+	testName = "fapi2-security-profile-id2-ensure-request-object-with-invalid-signature-fails",
 	displayName = "FAPI2-SecurityProfile-ID2: ensure request object with invalid signature fails",
 	summary = "This test should end with the authorization server showing an error message that the signature of the request object is not verified (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI2-SecurityProfile-ID2",

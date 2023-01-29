@@ -4,7 +4,7 @@ import net.openid.conformance.condition.client.SetTokenRequestTokenTypeToInverte
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-		testName = "fapi2-securityprofile-id2-access-token-type-header-case-sensitivity",
+		testName = "fapi2-security-profile-id2-access-token-type-header-case-sensitivity",
 		displayName = "FAPI2-SecurityProfile-ID2: Test whether the Token endpoint's authorization header is case sensitive for token type",
 		summary = "Tests whether the AS is case sensitive to the access token type in the token request",
 		profile = "FAPI2-SecurityProfile-ID2",

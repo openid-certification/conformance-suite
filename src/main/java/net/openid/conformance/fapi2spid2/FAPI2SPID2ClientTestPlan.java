@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan (
-	testPlanName = "fapi2-securityprofile-id2-client-test-plan",
+	testPlanName = "fapi2-security-profile-id2-client-test-plan",
 	displayName = "FAPI2-SecurityProfile-ID2: Relying Party (client) test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.rptest
 )

@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.ReorderGrantTypesInDynamicRegistr
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-brazildcr-happy-flow-variant",
+	testName = "fapi2-security-profile-id2-brazildcr-happy-flow-variant",
 	displayName = "FAPI2-SecurityProfile-ID2: Brazil DCR happy flow variant",
 	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and perform an authorization flow. The registration request has the members of the 'grant_types' in a different order to the normal happy flow test, and includes the optional 'scope' parameter.",
 	profile = "FAPI2-SecurityProfile-ID2",

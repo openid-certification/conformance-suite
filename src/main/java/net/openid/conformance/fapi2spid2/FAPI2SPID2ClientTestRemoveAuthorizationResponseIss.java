@@ -9,7 +9,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"jarm"
 })
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-client-test-remove-authorization-response-iss",
+	testName = "fapi2-security-profile-id2-client-test-remove-authorization-response-iss",
 	displayName = "FAPI2-SecurityProfile-ID2: client test - authorization_endpoint response without iss must be rejected",
 	summary = "This test does not send an issuer in the authorization response. The client should display a message that the authorization response does not contain an issuer and must not call any other endpoints.",
 	profile = "FAPI2-SecurityProfile-ID2",

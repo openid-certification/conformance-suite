@@ -4,7 +4,7 @@ import net.openid.conformance.condition.as.AddInvalidIssValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-client-test-invalid-iss",
+	testName = "fapi2-security-profile-id2-client-test-invalid-iss",
 	displayName = "FAPI2-SecurityProfile-ID2: client test - invalid iss in id_token from token_endpoint, should be rejected",
 	summary = "This test should end with the client displaying an error message that the iss value in the id_token does not match the authorization server's issuer",
 	profile = "FAPI2-SecurityProfile-ID2",

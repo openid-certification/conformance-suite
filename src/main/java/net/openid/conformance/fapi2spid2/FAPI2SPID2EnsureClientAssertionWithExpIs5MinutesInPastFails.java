@@ -18,7 +18,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-ensure-client-assertion-with-exp-is-5-minutes-in-past-fails",
+	testName = "fapi2-security-profile-id2-ensure-client-assertion-with-exp-is-5-minutes-in-past-fails",
 	displayName = "FAPI2-SecurityProfile-ID2: ensure client_assertion with exp is 5 minutes in the past fails",
 	summary = "This test passes client assertion where 'exp' is 5 minutes ago. The server must be rejected at the token endpoint and returning an error message that the expiration time ('exp') of the client assertion is invalid.",
 	profile = "FAPI2-SecurityProfile-ID2",

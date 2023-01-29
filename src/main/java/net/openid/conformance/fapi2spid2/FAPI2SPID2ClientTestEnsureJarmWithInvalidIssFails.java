@@ -8,7 +8,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-client-test-ensure-jarm-with-invalid-iss-fails",
+	testName = "fapi2-security-profile-id2-client-test-ensure-jarm-with-invalid-iss-fails",
 	displayName = "FAPI2-SecurityProfile-ID2: sends a JARM response with an invalid iss claim.",
 	summary = "This test should end with the client displaying an error message that the JARM response has an invalid iss claim",
 	profile = "FAPI2-SecurityProfile-ID2",

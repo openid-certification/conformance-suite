@@ -15,7 +15,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-securityprofile-id2-ensure-client-assertion-in-token-endpoint",
+	testName = "fapi2-security-profile-id2-ensure-client-assertion-in-token-endpoint",
 	displayName = "FAPI2-SecurityProfile-ID2: ensure client_assertion in token endpoint",
 	summary = "This test performs a normal authentication but when it calls the token endpoint to exchange the authorization code for tokens, it does not include a client authentication assertion. The token endpoint must return the error 'invalid_client' or 'invalid_request' as client authentication is mandatory at the token endpoint when using private_key_jwt client authentication.",
 	profile = "FAPI2-SecurityProfile-ID2",
