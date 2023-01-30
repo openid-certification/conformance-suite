@@ -435,8 +435,8 @@ var FAPI_UI = {
 			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
 			"FAPI1-BASE-" : "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.",
 			"FAPI1-ADV-" : "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.",
-			"FAPI2-BASE-" : "https://openid.bitbucket.io/fapi/fapi-2_0-baseline.html#section.", // not a stable version - update to implementers draft 2 when available
-			"FAPI2-ADV-" : "https://openid.bitbucket.io/fapi/fapi-2_0-advanced.html#section.", // not a stable version - update to implementers draft 2 when available
+			"FAPI2-SP-ID2-" : "https://openid.net/specs/fapi-2_0-security-profile-ID2.html#section.",
+			"FAPI2-MS-" : "https://openid.bitbucket.io/fapi/fapi-2_0-message-signing.html#section.", // not a stable version - update to implementers draft when available
 			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.",
 			"FAPI-CIBA-" : "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.",
 			"JARM-" : "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.",

@@ -1,0 +1,224 @@
+package net.openid.conformance.fapi2spid2;
+
+import net.openid.conformance.plan.PublishTestPlan;
+import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.VariantSelection;
+
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
+
+@PublishTestPlan (
+	testPlanName = "fapi2-message-signing-id1-test-plan",
+	displayName = "FAPI2-Message-Signing-ID1: Authorization server test - BETA; subject to change, no certification programme yet",
+	profile = TestPlan.ProfileNames.optest
+)
+public class FAPI2AdvancedID1TestPlan implements TestPlan {
+	public static final List<Class<? extends TestModule>> testModules = List.of(
+		// Normal well behaved client cases
+		FAPI2SPID2DiscoveryEndpointVerification.class,
+		FAPI2SPID2HappyFlow.class,
+		FAPI2SPID2UserRejectsAuthentication.class,
+		FAPI2SPID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
+		FAPI2SPID2EnsureAuthorizationRequestWithoutStateSuccess.class,
+		FAPI2SPID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
+		FAPI2SPID2EnsureOtherScopeOrderSucceeds.class,
+		FAPI2SPID2TestClaimsParameterIdentityClaims.class,
+		FAPI2SPID2AccessTokenTypeHeaderCaseSensitivity.class,
+
+		// DPoP tests
+		FAPI2SPID2CheckDpopProofNbfExp.class,
+
+		// Possible failure case
+		FAPI2SPID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
+		FAPI2SPID2EnsureRequestObjectWithLongNonce.class,
+		FAPI2SPID2EnsureRequestObjectWithLongState.class,
+
+		// Negative tests for request objects
+		FAPI2SPID2EnsureRequestObjectWithoutExpFails.class,
+		FAPI2SPID2EnsureRequestObjectWithoutNbfFails.class,
+		FAPI2SPID2EnsureRequestObjectWithoutScopeFails.class,
+		FAPI2SPID2StateOnlyOutsideRequestObjectNotUsed.class,
+		FAPI2SPID2EnsureRequestObjectWithoutRedirectUriFails.class,
+		FAPI2SPID2EnsureExpiredRequestObjectFails.class,
+		FAPI2SPID2EnsureRequestObjectWithBadAudFails.class,
+		FAPI2SPID2EnsureRequestObjectWithExpOver60Fails.class,
+		FAPI2SPID2EnsureRequestObjectWithNbfOver60Fails.class,
+		FAPI2SPID2EnsureSignedRequestObjectWithRS256Fails.class,
+		FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class,
+		FAPI2SPID2EnsureRequestObjectWithInvalidSignatureFails.class,
+		FAPI2SPID2EnsureMatchingKeyInAuthorizationRequest.class,
+		FAPI2SPID2EnsureUnsignedRequestAtParEndpointFails.class,
+
+		// Negative tests for authorization request
+		FAPI2SPID2EnsureRegisteredRedirectUri.class,
+		FAPI2SPID2EnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
+		FAPI2SPID2EnsureRedirectUriInAuthorizationRequest.class,
+		FAPI2SPID2EnsureResponseTypeCodeIdTokenFails.class,
+
+		// Negative tests for token endpoint
+		FAPI2SPID2EnsureClientIdInTokenEndpoint.class,
+		FAPI2SPID2EnsureHolderOfKeyRequired.class,
+		FAPI2SPID2EnsureAuthorizationCodeIsBoundToClient.class,
+		FAPI2SPID2AttemptReuseAuthorizationCodeAfterOneSecond.class,
+
+		// Private key specific tests
+		FAPI2SPID2EnsureSignedClientAssertionWithRS256Fails.class,
+		FAPI2SPID2EnsureClientAssertionInTokenEndpoint.class,
+		FAPI2SPID2EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
+		FAPI2SPID2EnsureClientAssertionWithWrongAudFails.class,
+		FAPI2SPID2EnsureClientAssertionWithNoSubFails.class,
+
+		FAPI2SPID2DpopNegativeTests.class,
+
+		//Refresh token tests
+		FAPI2SPID2RefreshToken.class,
+
+		// OBUK specific tests
+		FAPI2SPID2EnsureServerHandlesNonMatchingIntentId.class,
+		FAPI2SPID2TestEssentialAcrScaClaim.class,
+
+		// OB Brazil specific tests
+		FAPI2SPID2BrazilEnsureBadPaymentSignatureFails.class,
+
+		// IDMVP specific tests
+		FAPI2SPID2IdmvpTestClaimsParameterIdTokenIdentityClaims.class,
+
+		//PAR tests
+		FAPI2SPID2PARAttemptReuseRequestUri.class,
+		FAPI2SPID2PARAttemptToUseExpiredRequestUri.class,
+		FAPI2SPID2PARCheckAudienceForJWTClientAssertion.class,
+		FAPI2SPID2PAREnsureRequestUriIsBoundToClient.class,
+		FAPI2SPID2PARRejectRequestUriInParAuthorizationFormParams.class,
+		FAPI2SPID2PARRejectInvalidHttpVerb.class,
+
+		// PKCE tests
+		FAPI2SPID2PAREnsurePKCERequired.class,
+		FAPI2SPID2PAREnsurePKCECodeVerifierRequired.class,
+		FAPI2SPID2PARIncorrectPKCECodeVerifierRejected.class,
+		FAPI2SPID2PAREnsurePlainPKCERejected.class,
+
+		FAPI2SPID2PARRejectRequestUriInParAuthorizationRequest.class,
+
+		FAPI2SPID2ParWithoutDuplicateParameters.class
+	);
+
+	public static List<ModuleListEntry> testModulesWithVariants() {
+		List<TestPlan.Variant> variant = List.of(
+		);
+
+		return List.of(
+			new TestPlan.ModuleListEntry(testModules, variant)
+		);
+
+	}
+
+	public static String certificationProfileName(VariantSelection variant) {
+
+		Map<String, String> v = variant.getVariant();
+		String profile = v.get("fapi_profile");
+		String openidVariant = v.get("openid");
+		String clientAuth = v.get("client_auth_type");
+		String requestMethod = v.get("fapi_request_method");
+		String responseMode = v.get("fapi_response_mode");
+		String senderConstrain = v.get("sender_constrain");
+		boolean jarm = responseMode.equals("jarm");
+		boolean privateKey = clientAuth.equals("private_key_jwt");
+		boolean dpop = senderConstrain.equals("dpop");
+		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
+		boolean openid = openidVariant.equals("openid_connect");
+
+		String certProfile = "FAPI2AdvancedID2 ";
+
+		if (openid) {
+			certProfile += "OpenID ";
+		}
+
+		switch (profile) {
+			case "plain_fapi":
+				break;
+			case "openbanking_uk":
+				certProfile = "UK-OB";
+				if (jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in UK",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
+			case "consumerdataright_au":
+				certProfile = "AU-CDR";
+				if (!privateKey) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in AU-CDR",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
+			case "openbanking_brazil":
+				certProfile = "BR-OB";
+				break;
+			case "idmvp":
+				if (!privateKey) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for IDMVP",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!signedRequest) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only signed requests are required for IDMVP",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (dpop) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: DPoP sender constraining is not used for IDMVP",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM responses are not used for IDMVP",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!openid) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: OpenID must be selected for IDMVP",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				// as there's only one possible correct configuration, stop here and return just the name
+				return "IDMVP";
+		}
+
+		certProfile += " OP w/";
+
+		switch (clientAuth) {
+			case "private_key_jwt":
+				certProfile += " Private Key";
+				break;
+			case "mtls":
+				certProfile += " MTLS client auth";
+				break;
+		}
+		switch (requestMethod) {
+			case "unsigned":
+				break;
+			case "signed_non_repudiation":
+				certProfile += ", non-repudiation signed request";
+				break;
+		}
+		switch (senderConstrain) {
+			case "mtls":
+				certProfile += ", MTLS constrain";
+				break;
+			case "dpop":
+				certProfile += ", DPoP";
+				break;
+		}
+		switch (responseMode) {
+			case "plain_response":
+				// nothing
+				break;
+			case "jarm":
+				certProfile += ", JARM";
+				break;
+		}
+
+
+		return certProfile;
+	}
+}

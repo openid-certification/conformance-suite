@@ -20,7 +20,7 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
-        "test-name": "fapi2-baseline-id2-attempt-reuse-authorization-code-after-one-second",
+        "test-name": "fapi2-security-profile-id2-attempt-reuse-authorization-code-after-one-second",
         "variant": "*",
         "configuration-filename": "authlete*.json",
         "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
