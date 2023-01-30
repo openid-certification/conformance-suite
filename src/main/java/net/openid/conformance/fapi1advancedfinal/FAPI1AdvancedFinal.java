@@ -139,7 +139,7 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 
 	@Override
 	protected void requestProtectedResource() {
-		if (!isSecondClient() && !FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL.equals(profile)) {
+		if (!isSecondClient()) {
 			checkAccountRequestEndpointTLS();
 			checkAccountResourceEndpointTLS();
 		}
