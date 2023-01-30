@@ -23,6 +23,7 @@ public class ValidateClientAssertionClaimsForPAREndpoint extends ValidateClientA
 		String tokenEndpoint = env.getString("server", "token_endpoint");
 		String issuer = env.getString("server", "issuer");
 		String parEndpoint = env.getString("server", "pushed_authorization_request_endpoint");
+		String parMTLSEndpoint = env.getString("server", "mtls_endpoint_aliases.pushed_authorization_request_endpoint");
 		JsonElement aud = env.getElementFromObject("client_assertion", "claims.aud");
 		if (aud == null) {
 			throw error("Missing aud");
@@ -31,12 +32,16 @@ public class ValidateClientAssertionClaimsForPAREndpoint extends ValidateClientA
 		expectedValues.add(issuer);
 		expectedValues.add(tokenEndpoint);
 		expectedValues.add(parEndpoint);
+		if(parMTLSEndpoint != null && !parMTLSEndpoint.equals("")) {
+			expectedValues.add(parMTLSEndpoint);
+		}
 
 		if (aud.isJsonArray()) {
 			if (!(
 					aud.getAsJsonArray().contains(new JsonPrimitive(tokenEndpoint)) ||
 					aud.getAsJsonArray().contains(new JsonPrimitive(issuer)) ||
-					aud.getAsJsonArray().contains(new JsonPrimitive(parEndpoint))
+					aud.getAsJsonArray().contains(new JsonPrimitive(parEndpoint)) ||
+					aud.getAsJsonArray().contains(new JsonPrimitive(parMTLSEndpoint))
 				)) {
 				throw error("aud values do not contain any of the expected values", args("expected", expectedValues, "actual", aud));
 			}
@@ -44,7 +49,8 @@ public class ValidateClientAssertionClaimsForPAREndpoint extends ValidateClientA
 			if (!(
 					tokenEndpoint.equals(OIDFJSON.getString(aud)) ||
 					issuer.equals(OIDFJSON.getString(aud)) ||
-					parEndpoint.equals(OIDFJSON.getString(aud))
+					parEndpoint.equals(OIDFJSON.getString(aud)) ||
+					parMTLSEndpoint.equals(OIDFJSON.getString(aud))
 				)) {
 				throw error("aud claim is not one of the expected values", args("expected", expectedValues, "actual", aud));
 			}

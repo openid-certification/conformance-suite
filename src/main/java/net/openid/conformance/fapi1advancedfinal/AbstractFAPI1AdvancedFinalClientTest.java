@@ -76,6 +76,7 @@ import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationRespon
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
+import net.openid.conformance.condition.as.FAPIKSAValidateConsentScope;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
@@ -117,6 +118,7 @@ import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCiph
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateFAPIResourcesEndpointResponse;
+import net.openid.conformance.condition.rs.CreateKSAOBAccountRequestResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
@@ -150,6 +152,7 @@ import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentReque
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestAud;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestIat;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
+import net.openid.conformance.condition.rs.GenerateKSAAccountConsentId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
@@ -280,6 +283,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
 	}
 
+	protected boolean isKSA() {
+		return profile == FAPI1FinalOPProfile.OPENBANKING_KSA;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
@@ -352,6 +359,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			case OPENBANKING_UK:
 				exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 				exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
+				break;
+			case OPENBANKING_KSA:
+				exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
+				exposeMtlsPath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 				break;
 			default:
 				exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
@@ -475,7 +486,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(isBrazil()) {
+			if(isBrazil() || isKSA()) {
 				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
 					"using the token_endpoint found in mtls_endpoint_aliases.");
 			} else {
@@ -487,14 +498,19 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			return userinfoEndpoint(requestId);
+			if(isKSA()) {
+				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
+						"using the token_endpoint found in mtls_endpoint_aliases.");
+			} else {
+				return userinfoEndpoint(requestId);
+			}
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
 		} else if (path.equals("par") && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(isBrazil()) {
+			if(isBrazil() || isKSA()) {
 				throw new TestFailureException(getId(), "In Brazil, the PAR endpoint must be called over an mTLS " +
 					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
 			}
@@ -506,7 +522,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			return accountRequestsEndpoint(requestId);
+			if(isKSA()) {
+				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
+						"using the token_endpoint found in mtls_endpoint_aliases.");
+			} else {
+				return accountRequestsEndpoint(requestId);
+			}
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -562,6 +583,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			} else if (FAPIBrazilRsPathConstants.BRAZIL_OPIN_CUSTOMERS_PATH.equals(path)) {
 				return resourcesEndpoint(requestId);
 			}
+		}
+		if (isKSA() && path.equals(ACCOUNT_REQUESTS_PATH)){
+			return ksaAccountRequestEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
 	}
@@ -883,7 +907,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			// we're doing the authorization code grant for user access
 			return authorizationCodeGrantType(requestId);
 		} else if (grantType.equals("client_credentials")) {
-			if( profile == FAPI1FinalOPProfile.OPENBANKING_UK) {
+			if( profile == FAPI1FinalOPProfile.OPENBANKING_UK || isKSA()) {
 				// we're doing the client credentials grant for initial token access
 				return clientCredentialsGrantType(requestId);
 			} else if(isBrazil()) {
@@ -1112,6 +1136,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 					callAndStopOnFailure(EnsureScopeContainsAccounts.class);
 				}
 			}
+		} if (isKSA()){
+			callAndStopOnFailure(FAPIKSAValidateConsentScope.class);
 		} else {
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
@@ -1361,6 +1387,47 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		return new ResponseEntity<>(endpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
+	/**
+	 * KSA OpenBanking Request consent to access accounts
+	 */
+	protected Object ksaAccountRequestEndpoint(String requestId){
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
+
+		//Requires method=POST. defined in API docs
+		callAndStopOnFailure(EnsureIncomingRequestMethodIsPost.class);
+
+		checkResourceEndpointRequest(true);
+		//callAndContinueOnFailure(FAPIKSAEnsureAuthorizationRequestScopesContainAccounts.class, Condition.ConditionResult.FAILURE);
+
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE,"FAPI1-BASE-6.2.1-11");
+
+		//TODO: validate the consent structure
+		//callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+
+		callAndStopOnFailure(GenerateKSAAccountConsentId.class);
+		exposeEnvString("account_request_id");
+
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE,"FAPI1-BASE-6.2.1-11");
+		callAndStopOnFailure(CreateKSAOBAccountRequestResponse.class);
+
+		JsonObject accountRequestResponse = env.getObject("account_request_response");
+		JsonObject headerJson = env.getObject("account_request_response_headers");
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
+
+	}
+
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
@@ -1384,6 +1451,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	public void setupOpenBankingUk() {
 		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
 		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
+		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
+	}
+
+	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_ksa")
+	public void setupOpenBankingKSA() {
+		//authorizationCodeGrantTypeProfileSteps = null;
+		//authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
 	}
 

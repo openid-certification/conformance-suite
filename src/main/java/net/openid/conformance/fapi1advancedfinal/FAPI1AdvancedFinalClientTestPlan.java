@@ -81,6 +81,17 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 			case "openinsurance_brazil":
 				// this deliberately doesn't throw an exception as we rely on this case in our CI to test the Brazil profile currently
 				return "Not a conformance profile. Please use 'FAPI1-Advanced-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
+			case "openbanking_ksa":
+				certProfile = "KSA-OB";
+				if (!par) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only pused request is used for KSA-OB",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in KSA-OB",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
 			default:
 				throw new RuntimeException("Not a conformance profile.");
 		}

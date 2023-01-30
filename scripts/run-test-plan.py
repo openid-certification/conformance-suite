@@ -320,30 +320,50 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                     os.environ['BRAZIL_CLIENT_SCOPE'] = brazil_client_scope
                 profile = variant['fapi_profile']
                 alias = parsed_config["alias"]
-                os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
-                os.environ['ACCOUNTS'] = 'test-mtls/a/' + alias + '/open-banking/v1.1/accounts'
-                os.environ['ACCOUNT_REQUEST'] = 'test/a/' + alias + '/open-banking/v1.1/account-requests'
-                os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/consents/v1/consents'
-                os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/payments/v1/consents'
-                os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/accounts/v1/accounts'
-                os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/payments/v1/pix/payments'
+                client_auth_type = variant['client_auth_type']
+                if profile == "openbanking_ksa":
+                    if client_auth_type == "mtls":
+                        subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
+                                         "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
+                                         "--transportCert", "./model_bank/transport.crt",
+                                         "--transportKey", "./model_bank/transport.key",
+                                         "--signingKey", "./model_bank/signing.key",
+                                         "--encryptionKey", "./model_bank/encryption.key",
+                                         "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"] ], cwd="./ksa-rp-client/")
+                    else:
+                        subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
+                                         "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
+                                         "--transportCert", "./model_bank/transport.crt",
+                                         "--transportKey", "./model_bank/transport.key",
+                                         "--signingKey", "./model_bank/signing.key",
+                                         "--encryptionKey", "./model_bank/encryption.key",
+                                         "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"],
+                                         "--privateKeyAuth"], cwd="./ksa-rp-client/")
+                else:
+                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
+                    os.environ['ACCOUNTS'] = 'test-mtls/a/' + alias + '/open-banking/v1.1/accounts'
+                    os.environ['ACCOUNT_REQUEST'] = 'test/a/' + alias + '/open-banking/v1.1/account-requests'
+                    os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/consents/v1/consents'
+                    os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/payments/v1/consents'
+                    os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/accounts/v1/accounts'
+                    os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/payments/v1/pix/payments'
 
-                os.environ['FAPI_PROFILE'] = profile
-                if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
-                    os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
-                else:
-                    os.environ['FAPI_AUTH_REQUEST_METHOD'] = 'by_value'
-                if 'fapi_response_mode' in variant.keys() and variant['fapi_response_mode']:
-                    os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
-                else:
-                    os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
-                if 'fapi_client_type' in variant.keys() and variant['fapi_client_type']:
-                    os.environ['FAPI_CLIENT_TYPE'] =  variant['fapi_client_type']
-                else:
-                    os.environ['FAPI_CLIENT_TYPE'] = 'oidc'
+                    os.environ['FAPI_PROFILE'] = profile
+                    if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
+                        os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
+                    else:
+                        os.environ['FAPI_AUTH_REQUEST_METHOD'] = 'by_value'
+                    if 'fapi_response_mode' in variant.keys() and variant['fapi_response_mode']:
+                        os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
+                    else:
+                        os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
+                    if 'fapi_client_type' in variant.keys() and variant['fapi_client_type']:
+                        os.environ['FAPI_CLIENT_TYPE'] =  variant['fapi_client_type']
+                    else:
+                        os.environ['FAPI_CLIENT_TYPE'] = 'oidc'
 
-                os.environ['TEST_MODULE_NAME'] = module
-                subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
+                    os.environ['TEST_MODULE_NAME'] = module
+                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
             await conformance.wait_for_state(module_id, ["FINISHED"])
 
