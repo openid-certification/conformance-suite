@@ -163,8 +163,8 @@
                         ],
                         [
                             "click",
-                            "class",
-                            "btn"
+                            "id",
+                            "continue"
                         ]
                     ]
                 },
