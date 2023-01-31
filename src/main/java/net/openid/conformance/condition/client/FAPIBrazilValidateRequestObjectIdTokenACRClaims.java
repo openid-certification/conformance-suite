@@ -22,7 +22,6 @@ public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCon
 
 		String scope = env.getString("authorization_request_object", "claims.scope");
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope).iterator());
-		boolean isPayment = scopes.contains("payments");
 
 		JsonElement acrClaim = env.getElementFromObject("authorization_request_object", "claims.claims.id_token.acr");
 		if (acrClaim == null) {
@@ -60,10 +59,17 @@ public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCon
 
 		List<String> expectedValues = new ArrayList<>();
 		//Read-and-Write APIs (Transactional): shall require resource owner authentication to at least LoA3.
-		if(!isPayment) {
+
+		if (scopes.contains("accounts")) {
 			expectedValues.add("urn:brasil:openbanking:loa2");
+			expectedValues.add("urn:brasil:openbanking:loa3");
 		}
-		expectedValues.add("urn:brasil:openbanking:loa3");
+		if (scopes.contains("payments")) {
+			expectedValues.add("urn:brasil:openbanking:loa3");
+		}
+		if (scopes.contains("resources")) {
+			expectedValues.add("urn:brasil:openinsurance:loa2");
+		}
 
 		JsonArray matchedAcrValues = new JsonArray();
 		for (String possibleAcrValues : receivedValues) {

@@ -3,6 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AbstractBrazilAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
@@ -55,7 +56,6 @@ import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.FAPIBrazilAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
@@ -68,6 +68,8 @@ import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
+import net.openid.conformance.condition.as.FAPIBrazilOBAddACRClaimToIdTokenClaims;
+import net.openid.conformance.condition.as.FAPIBrazilOPINAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInServerConfiguration;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
@@ -1167,8 +1169,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		addCustomValuesToIdToken();
 
 		if(isBrazil()) {
+			Class<? extends AbstractBrazilAddACRClaimToIdTokenClaims> addAcrClaimClass =
+				FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL.equals(profile)
+				? FAPIBrazilOPINAddACRClaimToIdTokenClaims.class
+				: FAPIBrazilOBAddACRClaimToIdTokenClaims.class;
 			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				FAPIBrazilAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+				addAcrClaimClass, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
 		} else {
 			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
 				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");

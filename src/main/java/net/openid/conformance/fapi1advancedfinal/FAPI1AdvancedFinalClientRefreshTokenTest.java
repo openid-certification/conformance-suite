@@ -61,17 +61,7 @@ public class FAPI1AdvancedFinalClientRefreshTokenTest extends AbstractFAPI1Advan
 	@Override
 	protected Object accountsEndpoint(String requestId) {
 		if(numberOfTimesRefreshTokenUsed < 2) {
-			setStatus(Status.RUNNING);
-
-			call(exec().startBlock("Accounts endpoint (always rejected)"));
-			callAndStopOnFailure(LogAccessTokenAlwaysRejectedToForceARefreshGrant.class);
-			JsonObject wwwAuthHeader = new JsonObject();
-			wwwAuthHeader.addProperty("WWW-Authenticate",
-				"Bearer realm=\"conformancesuite\", " +
-					"error=\"invalid_token\", " +
-					"error_description=\"Invalid access token. This test requires you to obtain a new access token twice using the refresh_token\"");
-			setStatus(Status.WAITING);
-			return new ResponseEntity<>(headersFromJson(wwwAuthHeader), HttpStatus.UNAUTHORIZED);
+			return rejectAccessToken("Accounts endpoint (always rejected)");
 		}
 		return super.accountsEndpoint(requestId);
 	}
@@ -79,18 +69,33 @@ public class FAPI1AdvancedFinalClientRefreshTokenTest extends AbstractFAPI1Advan
 	@Override
 	protected Object brazilHandleNewPaymentInitiationRequest(String requestId) {
 		if(numberOfTimesRefreshTokenUsed < 2) {
-			setStatus(Status.RUNNING);
-
-			call(exec().startBlock("Payment initiation endpoint (always rejected)"));
-			callAndStopOnFailure(LogAccessTokenAlwaysRejectedToForceARefreshGrant.class);
-			JsonObject wwwAuthHeader = new JsonObject();
-			wwwAuthHeader.addProperty("WWW-Authenticate",
-				"Bearer realm=\"conformancesuite\", " +
-					"error=\"invalid_token\", " +
-					"error_description=\"Invalid access token. This test requires you to obtain a new access token twice using the refresh_token\"");
-			setStatus(Status.WAITING);
-			return new ResponseEntity<>(headersFromJson(wwwAuthHeader), HttpStatus.UNAUTHORIZED);
+			return rejectAccessToken("Payment initiation endpoint (always rejected)");
 		}
 		return super.brazilHandleNewPaymentInitiationRequest(requestId);
 	}
+
+	@Override
+	protected Object resourcesEndpoint(String requestId) {
+		if(numberOfTimesRefreshTokenUsed < 2) {
+			return rejectAccessToken("Resources endpoint (always rejected)");
+		}
+		return super.resourcesEndpoint(requestId);
+	}
+
+
+	protected ResponseEntity<Object> rejectAccessToken(String blockLabel) {
+		setStatus(Status.RUNNING);
+		call(exec().startBlock(blockLabel));
+
+		callAndStopOnFailure(LogAccessTokenAlwaysRejectedToForceARefreshGrant.class);
+		JsonObject wwwAuthHeader = new JsonObject();
+		wwwAuthHeader.addProperty("WWW-Authenticate",
+			"Bearer realm=\"conformancesuite\", " +
+				"error=\"invalid_token\", " +
+				"error_description=\"Invalid access token. This test requires you to obtain a new access token twice using the refresh_token\"");
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<>(headersFromJson(wwwAuthHeader), HttpStatus.UNAUTHORIZED);
+	}
+
 }
