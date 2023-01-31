@@ -153,18 +153,13 @@
                     "commands": [
                         [
                             "click",
-                            "xpath",
-                            "//label[@for='hidden-291e5a29-49ed-401f-a583-193caa7aceee']/div[1]/div[1]"
-                        ],
-                        [
-                            "click",
                             "id",
                             "consent"
                         ],
                         [
                             "click",
-                            "class",
-                            "btn"
+                            "id",
+                            "continue"
                         ]
                     ]
                 },
