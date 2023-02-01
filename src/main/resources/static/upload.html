@@ -108,6 +108,34 @@
 
         });
 
+    function getUploadedImageCount() {
+        /*
+         * Attempt to determine the number of uploaded images by counting the
+         * number of log items currently shown.
+         */
+        return $('#imageBlocks .logItem').length;
+    }
+
+    function validateSelectedImageFile(file) {
+        // Impose as 550KB file size limit.
+        const UPLOAD_SIZE_LIMIT = 500 * 1024;
+
+        if (file.size > UPLOAD_SIZE_LIMIT) {
+            FAPI_UI.showError({"error":"Invalid File Size", "message":"File size exceeds the 500KB limit"});
+            return false;
+        }
+
+        // Limit the accepted file types.
+        let typeMatched = ["image/jpeg", "image/png"].includes(file.type);
+
+        if (! typeMatched) {
+            FAPI_UI.showError({"error":"Invalid File Type", "message":"Only jpeg/png files accepted"});
+            return false;
+        }
+
+        return true;
+    }
+
     function loadImagesForLog(testId) {
         return $.ajax({
             type: 'GET',
@@ -133,23 +161,26 @@
                     var el = $(this);
 
                     $('[type="file"]', el).change(function(evt) {
-                        var reader = new FileReader();
+                        // Validate the selected file before upload.
+                        if (validateSelectedImageFile($(this).prop('files')[0])) {
+                            var reader = new FileReader();
 
-                        reader.onload = function(evt) {
-                            // once it's loaded from the file, preview it and enable the upload button
+                            reader.onload = function(evt) {
+                                // once it's loaded from the file, preview it and enable the upload button
 
-                            var content = evt.target.result;
-                            $('.imagePreview', el).prop('src', content);
+                                var content = evt.target.result;
+                                $('.imagePreview', el).prop('src', content);
 
-                            $('.uploadBtn', el)
-                                .prop('disabled', false)
-                                .removeClass('btn-default')
-                                .addClass('btn-success');
+                                $('.uploadBtn', el)
+                                    .prop('disabled', false)
+                                    .removeClass('btn-default')
+                                    .addClass('btn-success');
 
-                        };
+                            };
 
-                        // this reads the file data and triggers the 'onload' function above
-                        reader.readAsDataURL($(this).prop('files')[0]);
+                            // this reads the file data and triggers the 'onload' function above
+                            reader.readAsDataURL($(this).prop('files')[0]);
+                        }
                     });
 
                     $('.uploadBtn', el).click(function(evt) {
@@ -168,10 +199,25 @@
                                 el.replaceWith(FAPI_UI.logTemplates.EXISTING({item: data}));
                             },
                             error: function(jqxhr, status, error) {
-                                FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                    code: jqxhr.status,
-                                    error: error
-                                });
+                                if (typeof (jqxhr.responseJSON) === 'string') {
+                                    FAPI_UI.showError({
+                                        code: jqxhr.status,
+                                        error: jqxhr.responseText.length != 0 ? jqxhr.responseText : error
+                                    });
+                                }
+                                else {
+                                    FAPI_UI.showError(jqxhr.responseJSON)
+                                }
+
+                                // reset the form
+                                $('.uploadBtn', el)
+                                    .prop('disabled', true)
+                                    .removeClass('btn-success')
+                                    .addClass('btn-default');
+
+                                $('.imagePreview', el).prop('src', '/images/placeholder.png');
+
+                                $('[type="file"]', el).val('');
                             }
                         });
 
@@ -180,6 +226,21 @@
 
                 // wire up the buttons on the "add a new image" panel
                 $('#additionalUploader [type="file"]').change(function(evt) {
+                    // Validate the selected file before upload.
+                    if (! validateSelectedImageFile($(this).prop('files')[0])) {
+                        // reset the form
+                        $('#additionalUploader .uploadBtn')
+                            .prop('disabled', true)
+                            .removeClass('btn-success')
+                            .addClass('btn-default');
+
+                        $('#additionalUploader .imagePreview').prop('src', '/images/placeholder.png');
+
+                        $('#additionalUploader [type="file"]').val('');
+
+                        return;
+                    }
+
                     var reader = new FileReader();
 
                     reader.onload = function(evt) {
@@ -216,6 +277,12 @@
                             // on a successful upload, append the new log entry to the display
                             $('#imageBlocks').append(FAPI_UI.logTemplates.EXISTING({item: data}));
 
+                            // impose an upload limit of 2
+                            if (getUploadedImageCount() >= 2) {
+                                // hide the uploader when the limit is reached
+                                $('#additionalUploader').hide();
+                            }
+
                             // reset the form
                             $('#additionalUploader .uploadBtn')
                                 .prop('disabled', true)
@@ -227,10 +294,25 @@
                             $('#additionalUploader [type="file"]').val('');
                         },
                         error: function(jqxhr, status, error) {
-                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                code: jqxhr.status,
-                                error: error
-                            });
+                            if (typeof (jqxhr.responseJSON) === 'string') {
+                                FAPI_UI.showError({
+                                    code: jqxhr.status,
+                                    error: jqxhr.responseText.length != 0 ? jqxhr.responseText : error
+                                });
+                            }
+                            else {
+                                FAPI_UI.showError(jqxhr.responseJSON)
+                            }
+
+                            // reset the form
+                            $('#additionalUploader .uploadBtn')
+                                .prop('disabled', true)
+                                .removeClass('btn-success')
+                                .addClass('btn-default');
+
+                            $('#additionalUploader .imagePreview').prop('src', '/images/placeholder.png');
+
+                            $('#additionalUploader [type="file"]').val('');
                         }
                     });
 
@@ -261,6 +343,23 @@
                     // loop through the clipboard to see if there's an image; when found, send to the reader which triggers the 'onload' function above
                     _.each(e.originalEvent.clipboardData.items, function(item) {
                         if (item.type.startsWith('image/')) {
+                            // Validate the paste buffer file before upload.
+                            if (! validateSelectedImageFile(item.getAsFile())) {
+                                // reset the form
+                                var target = $('.imagePasteTarget').first();
+
+                                $('.uploadBtn', target.parents('.logItem'))
+                                    .prop('disabled', true)
+                                    .removeClass('btn-success')
+                                    .addClass('btn-default');
+
+                                target.prop('src', '/images/placeholder.png');
+
+                                target.prop('[type="file"]', '');
+
+                                return;
+                            }
+
                             reader.readAsDataURL(item.getAsFile());
                         }
                     });
@@ -370,7 +469,7 @@
                             <input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
                             <label class="btn btn-default">
                                 <span class="glyphicon glyphicon-camera"></span> Select File</input>
-                                    <input type="file" hidden>
+                                    <input type="file" accept=".jpg,.jpeg,.png,image/png,image/jpeg" hidden>
                             </label>
                             <button class="btn btn-default uploadBtn" disabled>Upload</button>
                         </div>
