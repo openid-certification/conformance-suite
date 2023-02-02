@@ -16,6 +16,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +58,7 @@ public class ImageAPI {
 	@ApiOperation(value = "Upload image for a test log")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Uploaded image successfully"),
+		@ApiResponse(code = 400, message = "Image validation failure"),
 		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
 	})
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
@@ -65,6 +69,13 @@ public class ImageAPI {
 
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
+
+			// Validate encoded image.
+			ResponseEntity<Object> response = validateEncodedImageFile(encoded, testId);
+
+			if (response.getStatusCode() != HttpStatus.OK) {
+				return response;
+			}
 
 			String entryId = testId + "-" + RandomStringUtils.randomAlphanumeric(32);
 
@@ -95,6 +106,7 @@ public class ImageAPI {
 	@ApiOperation(value = "Upload the image to existing log entry")
 	@ApiResponses(value = {
 		@ApiResponse(code = 200, message = "Uploaded image successfully"),
+		@ApiResponse(code = 400, message = "Image validation failure"),
 		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
 	})
 	public ResponseEntity<Object> uploadImageToExistingLogEntry(
@@ -106,6 +118,13 @@ public class ImageAPI {
 
 		if (authenticationFacade.isAdmin() ||
 			authenticationFacade.getPrincipal().equals(testOwner)) {
+
+			// Validate encoded image.
+			ResponseEntity<Object> response = validateEncodedImageFile(encoded, testId);
+
+			if (response.getStatusCode() != HttpStatus.OK) {
+				return response;
+			}
 
 			Map<String, Object> update = ImmutableMap.of("img", encoded, "updatedAt", new Date().getTime());
 
@@ -158,6 +177,65 @@ public class ImageAPI {
 			// otherwise we need to do it directly in the database
 			testInfoService.updateTestResult(testId, Result.REVIEW);
 		}
+	}
+
+	/**
+	 * Validate an encoded image file string.
+	 *
+	 * @param encoded  Image encoded as string
+	 *
+	 * @return A ResponseEntity object containing the result of the validation.
+	 */
+	private ResponseEntity<Object> validateEncodedImageFile(String encoded, String testId) {
+		// Limit the number of uploaded images.
+		Query query = new Query();
+		query.addCriteria(Criteria.where("testId").is(testId));
+		query.addCriteria(Criteria.where("img").exists(true));
+
+		if (mongoTemplate.find(query, Document.class, DBEventLog.COLLECTION).size() >= 2) {
+			return new ResponseEntity<Object>("Only 2 image uploads permitted per test", HttpStatus.BAD_REQUEST);
+		}
+
+		// Limit the accepted file types.
+		final String[] imageTypes  = {"image/jpeg", "image/png"};
+		boolean typeMatched = false;
+
+		for (String type : imageTypes) {
+			/*
+			 * The encoded string is expected to start with the mime type.
+			 * eg. 'data:image/png;'.
+			 */
+			if (encoded.startsWith("data:" + type + ";")) {
+				typeMatched = true;
+				break;
+			}
+		}
+
+		if (! typeMatched) {
+			return new ResponseEntity<Object>("Only jpeg/png files accepted", HttpStatus.BAD_REQUEST);
+		}
+
+		// Impose as 550KB file size limit.
+		final int UPLOAD_SIZE_LIMIT = 500 * 1024;
+
+		// Impose the limit on the file before encoding.
+		final String encodingMarker = "base64,";
+		int index = encoded.indexOf(encodingMarker);
+
+		if (index != -1) {
+			// Skip the file type header.
+			String encodedData = encoded.substring(index + encodingMarker.length());
+
+			byte[] decodedBytes = Base64.getDecoder().decode(encodedData);
+			if (decodedBytes.length > UPLOAD_SIZE_LIMIT) {
+				return new ResponseEntity<Object>("File size exceeds the 500KB limit", HttpStatus.BAD_REQUEST);
+			}
+		}
+		else {
+			return new ResponseEntity<Object>("Invalid file encoding", HttpStatus.BAD_REQUEST);
+		}
+
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 }
