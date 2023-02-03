@@ -482,10 +482,10 @@ local_test:
   function install_build_dependencies() {
     apk -q add --no-cache --update --upgrade curl tar gzip make ca-certificates openssl python3 py-pip
     update-ca-certificates
-    pip -q install docker-compose==1.23.2
+    pip -q install docker-compose==1.29.2
     docker-compose --version
 
-    curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-375.0.0-linux-x86_64.tar.gz | tar zx
+    curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-416.0.0-linux-x86_64.tar.gz | tar zx
     ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
   }
 
