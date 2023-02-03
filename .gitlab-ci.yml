@@ -520,6 +520,7 @@ local_test:
     ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
 
     echo "Pushing to GCR..."
+    ./google-cloud-sdk/bin/gcloud auth configure-docker -q
     ./google-cloud-sdk/bin/gcloud docker -- push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
     echo ""
   }
