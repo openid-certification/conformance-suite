@@ -29,8 +29,10 @@
                 <% } %>
             </div>
             <div class="col-md-2"> <!-- controls -->
-                <button class="btn btn-default btn-block downloadBtn"><span class="glyphicon glyphicon-save-file"></span> Download Logs</button>
-                <a class="btn btn-default btn-block viewBtn" href="log-detail.html?log=<%- encodeURIComponent(test.id) %>"><span class="glyphicon glyphicon-list-alt"></span> View Test Details</a>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-light bg-gradient border border-secondary downloadBtn"><span class="bi bi-save2"></span> Download Logs</button>
+                    <a class="btn btn-sm btn-light bg-gradient border border-secondary viewBtn" href="log-detail.html?log=<%- encodeURIComponent(test.id) %>"><span class="bi bi-card-list"></span> View Test Details</a>
+                </div>
             </div>
 
         </div>

@@ -10,27 +10,30 @@
     <title>OIDF Conformance: Available logs</title>
 
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+    <!-- Boostrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 
     <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
-
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
 
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css">
+
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <!-- Popper (necessary for Bootstrap's tooltips) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
     <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
@@ -38,11 +41,11 @@
 <body>
 
     <div class="pageHeader container-fluid">
-        <div class="row-fluid">
+        <div class="row">
             <div class="col-md-8">
                 <a href="index.html"><img src="/images/openid.png"></a>
             </div>
-            <div id="userInfoHolder" class="col-md-4 text-right"></div>
+            <div id="userInfoHolder" class="col-md-4"></div>
         </div>
     </div>
     <div class="clearfix"></div>
@@ -66,27 +69,25 @@
 
 
     <!-- error modal -->
-    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title" id="errorLabel">Error</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Error: <span id="errorMessage"></span>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- loading modal -->
-    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
+    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -105,25 +106,23 @@
     </div>
 
     <!-- Config modal popup -->
-    <div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title">
-                        <button class="btn-clipboard btn btn-xs" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
+                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
                         Configuration for <code id="configTestId" class="text-muted"></code>
                     </h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="wrapLongStrings">
-                        <pre id="config"></pre>
+                        <pre id="config row-bg-light p-1"></pre>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -277,7 +276,10 @@
                         evt.preventDefault();
                         $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
                         $('#configTestId').html(_.escape(data.testId));
-                        $('#configModal').modal('show');
+
+                        var myModalEl = document.getElementById('configModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
                     });
                 },
                 order: [[5, "desc"]] // sort by the "date" column, descending, by default

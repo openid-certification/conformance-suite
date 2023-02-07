@@ -203,7 +203,7 @@
         .result-default {
             background-color: #00cc00;
         }
-        .badge{
+        .rounded-pill{
             background-color: rgba(0.5, 0.5, 0.5, 0.5);
             border-top-left-radius: 0.25em;
             border-top-right-radius: 0.25em;
@@ -457,15 +457,15 @@ Test Summary
         </tr>
         <tr>
             <td align="center">
-                <span class="label result-success">SUCCESS <span class="badge" th:text="${helper.getSuccessCount()}"></span></span>
+                <span class="label result-success">SUCCESS <span class="badge rounded-pill" th:text="${helper.getSuccessCount()}"></span></span>
 
-                <span class="label result-failure">FAILURE <span class="badge" th:text="${helper.getFailureCount()}"></span></span>
+                <span class="label result-failure">FAILURE <span class="badge rounded-pill" th:text="${helper.getFailureCount()}"></span></span>
 
-                <span class="label result-warning">WARNING <span class="badge" th:text="${helper.getWarningCount()}"></span></span>
+                <span class="label result-warning">WARNING <span class="badge rounded-pill" th:text="${helper.getWarningCount()}"></span></span>
 
-                <span class="label result-review">REVIEW <span class="badge" th:text="${helper.getReviewCount()}"></span></span>
+                <span class="label result-review">REVIEW <span class="badge rounded-pill" th:text="${helper.getReviewCount()}"></span></span>
 
-                <span class="label result-info">INFO <span class="badge" th:text="${helper.getInfoCount()}"></span></span>
+                <span class="label result-info">INFO <span class="badge rounded-pill" th:text="${helper.getInfoCount()}"></span></span>
             </td>
         </tr>
         <tr th:if="${helper.hasAnyFailures()}">

@@ -19,12 +19,12 @@
                 <span th:attr="class=|${item.getLogEntryResultClass()}|" th:text="${item.getLogEntryResult()}" th:if="${item.getLogEntryResult()!=null}"></span>
 
                 <span class="log-http" th:if="${item.get('http')}" th:switch="${item.get('http')}">
-                        <span class="label label-info" th:case="'result'">REQUEST</span>
-                        <span class="label label-info" th:case="'response'">RESPONSE</span>
-                        <span class="label label-info" th:case="'incoming'">INCOMING</span>
-                        <span class="label label-info" th:case="'outgoing'">OUTGOING</span>
-                        <span class="label label-info" th:case="'redirect'">REDIRECT</span>
-                        <span class="label label-info" th:case="'redirect-in'">REDIRECT-IN</span>
+                        <span class="label bg-info" th:case="'result'">REQUEST</span>
+                        <span class="label bg-info" th:case="'response'">RESPONSE</span>
+                        <span class="label bg-info" th:case="'incoming'">INCOMING</span>
+                        <span class="label bg-info" th:case="'outgoing'">OUTGOING</span>
+                        <span class="label bg-info" th:case="'redirect'">REDIRECT</span>
+                        <span class="label bg-info" th:case="'redirect-in'">REDIRECT-IN</span>
                 </span>
 
                 <span th:if="${item.get('img')}" class="label result-review">IMAGE</span>
