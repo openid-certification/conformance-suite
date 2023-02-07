@@ -3,5 +3,6 @@ repos:
       rev: v2.3.0
       hooks:
         -   id: check-yaml
+            exclude: ^chart/templates/
         -   id: end-of-file-fixer
         -   id: trailing-whitespace
