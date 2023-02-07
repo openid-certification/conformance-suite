@@ -1,5 +1,7 @@
 image: alpine:latest
 
+include:
+  local: .gitlab-ci/pre-commit-autofix.yaml
 variables:
   LM_JAVA_VERSION: 11
 
