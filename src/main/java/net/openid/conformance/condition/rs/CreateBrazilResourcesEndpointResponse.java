@@ -13,7 +13,6 @@ public class CreateBrazilResourcesEndpointResponse extends AbstractOpenBankingAp
 	@PreEnvironment(strings = "fapi_interaction_id")
 	@PostEnvironment(required = {"resources_endpoint_response", "resources_endpoint_response_headers"})
 	public Environment evaluate(Environment env) {
-		
 		//Copied from https://br-openinsurance.github.io/areadesenvolvedor/#api-customers-v100-obtem-os-registros-de-identificacao-da-pessoa-natural
 		JsonObject response = JsonParser.parseString(
 			"{\n" +
