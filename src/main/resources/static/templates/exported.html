@@ -1,10 +1,10 @@
 
 <fieldset>
     <legend>Exported Values:</legend>
-    <dl class="dl-horizontal">
+    <dl class="row">
         <% _.each(exported, function(val, key) { %>
-        <dt><%- key %></dt>
-        <dd class="wrapLongStrings"><%- val %></dd>
+        <dt class="col-sm-3"><%- key %></dt>
+        <dd class="col-sm-9 wrapLongStrings"><%- val %></dd>
         </dt>
         <% }); %>
     </dl>

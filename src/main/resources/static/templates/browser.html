@@ -1,31 +1,35 @@
             <fieldset>
                 <legend>Browser Interaction:</legend>
-                <dl class="dl-horizontal">
+                <dl class="row">
                     <% _.each(browser.urls, function(val) { %>
-                        <dt><button class="btn btn-primary visitBtn" data-url="<%- val %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test <span class="glyphicon glyphicon-share-alt"></span></button></dt>
-                        <dd class="wrapLongStrings"><i><%- val %></i></dd>
+                        <dt class="col-sm-3"><button class="btn btn-primary visitBtn" data-url="<%- val %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test <span class="bi bi-send-fill"></span></button></dt>
+                        <dd class="col-sm-9 wrapLongStrings"><i><%- val %></i></dd>
                     <% }); %>
                     <% _.each(browser.visited, function(val) { %>
-                        <dt><button class="btn" disabled >Visited <span class="glyphicon glyphicon-share-alt"></span></button></dt>
-                        <dd class="wrapLongStrings"><i><%- val %></i></dd>
+                        <dt class="col-sm-3"><button class="btn" disabled >Visited <span class="bi bi-send-fill"></span></button></dt>
+                        <dd class="col-sm-9 wrapLongStrings"><i><%- val %></i></dd>
                     <% }); %>
                     <% _.each(browser.runners, function(val) { %>
-                        <dt>Selenium Instance</dt>
-                        <dd class="well">
-                            <dl class="dl-horizontal">
-                                <dt>Starting Url</dt>
-                                <dd class="wrapLongStrings"><i><%- val.url %></i></dd>
-                                <dt>Current Url</dt>
-                                <dd class="wrapLongStrings"><i><%- val.currentUrl %></i></dd>
-                                <dt>Current Task</dt>
-                                <dd class="wrapLongStrings"><i><%- val.currentTask %></i></dd>
-                                <dt>Current Command</dt>
-                                <dd class="wrapLongStrings"><i><%- val.currentCommand %></i></dd>
-                                <dt>Last Response Code</dt>
-                                <dd class="wrapLongStrings"><i><%- val.lastResponseCode %></i></dd>
-                                <dt>Last Exception</dt>
-                                <dd class="wrapLongStrings"><i><%- val.lastException %></i></dd>
-                            </dl>
+                        <dt class="col-sm-3">Selenium Instance</dt>
+                        <dd class="col-sm-9">
+                            <div class="card">
+                                <div class="card-body bg-light">
+                                    <dl class="dl-horizontal">
+                                        <dt class="col-sm-3">Starting Url</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.url %></i></dd>
+                                        <dt class="col-sm-3">Current Url</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.currentUrl %></i></dd>
+                                        <dt class="col-sm-3">Current Task</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.currentTask %></i></dd>
+                                        <dt class="col-sm-3">Current Command</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.currentCommand %></i></dd>
+                                        <dt class="col-sm-3">Last Response Code</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.lastResponseCode %></i></dd>
+                                        <dt class="col-sm-3">Last Exception</dt>
+                                        <dd class="col-sm-9  wrapLongStrings"><i><%- val.lastException %></i></dd>
+                                    </dl>
+                                </div>
+                            </div>
                         </dd>
                     <% }); %>
                 </dl>

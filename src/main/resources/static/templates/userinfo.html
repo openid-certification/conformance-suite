@@ -1,9 +1,15 @@
-        <div id="userInfoData">
-            <form action="/logout" method="post" class="form-inline">
-                <p class="form-control-static">Logged in as
-                    <% if (userInfo.isAdmin) { %><small class="label label-danger">ADMIN</small> <%}%>
-                    <span class="text-primary" data-toggle="tooltip" title="<%- userInfo.principal %>" data-placement="bottom"><%- userInfo.displayName %></span></p>
-                <% if (!userInfo.isAdmin) { %><a class="btn btn-sm btn-default" href="/tokens.html">Tokens</a><% } %>
-                <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+        <div id="userInfoData" class="float-end">
+            <form action="/logout" method="post" class="row g-3">
+                <div class="col-auto">
+                    <p class="form-control-plaintext">Logged in as
+                        <% if (userInfo.isAdmin) { %><small class="badge bg-danger">ADMIN</small> <%}%>
+                        <span class="text-primary" data-bs-toggle="tooltip" title="<%- userInfo.principal %>" data-bs-placement="bottom"><%- userInfo.displayName %></span></p>
+                </div>
+                <div class="col-auto">
+                    <% if (!userInfo.isAdmin) { %><a class="btn btn-sm btn-secondary" href="/tokens.html">Tokens</a><% } %>
+                </div>
+                <div class="col-auto">
+                    <input type="submit" class="btn btn-sm btn-primary" value="Logout">
+                </div>
             </form>
         </div>

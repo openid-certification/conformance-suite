@@ -11,10 +11,12 @@
 <title>OIDF Conformance: Test Detail</title>
 
 <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+<!-- Boostrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 
 <!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.css" integrity="sha256-HS1ihgXZ6qfUcS5BTehJhV81EZR+I5Q6zx5yGdEqbp0=" crossorigin="anonymous" />
 
@@ -22,8 +24,10 @@
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<!-- Popper (necessary for Bootstrap's tooltips) -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
@@ -38,37 +42,35 @@
 <body>
 
     <div class="pageHeader container-fluid">
-        <div class="row-fluid">
+        <div class="row">
             <div class="col-md-8">
                 <a href="index.html"><img src="/images/openid.png"></a>
             </div>
-            <div id="userInfoHolder" class="col-md-4 text-right"></div>
+            <div id="userInfoHolder" class="col-md-4"></div>
         </div>
     </div>
     <div class="clearfix"></div>
 
     <!-- error modal -->
-    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title" id="errorLabel">Error</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Error: <span id="errorMessage"></span>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- loading modal -->
-    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
+    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -87,17 +89,15 @@
     </div>
 
     <!-- Config modal popup -->
-    <div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title">
-                        <button class="btn-clipboard btn btn-xs" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
+                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
                         Configuration for <code id="configTestId" class="text-muted"></code>
                     </h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="wrapLongStrings">
@@ -105,49 +105,45 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Publish modal -->
-    <div class="modal fade" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title" id="errorLabel">Publish</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Are you sure? This will make all keys, secrets, and all other test information publicly visible.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal" data-publish="everything">Publish</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-publish="everything">Publish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Rerun test confirmation modal -->
-    <div class="modal fade" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title">Run test confirmation</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Are you sure you want to rerun this test? It is owned by a different user.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
@@ -158,7 +154,9 @@
         <div id="logDetail">
             <div class="header"></div>
             <div id="fixedDiv">
-                <button class="btn btn-default btn-block" onclick="goToTop()" id="goToTopBtn"><span class="glyphicon glyphicon-circle-arrow-up"></span> Go to Top</button>
+                <div class="d-grid">
+                    <button class="btn btn-secondary" onclick="goToTop()" id="goToTopBtn"><span class="bi bi-arrow-up-circle-fill"></span> Go to Top</button>
+                </div>
             </div>
             <div class="logContent container-fluid">
                 <!-- log items are rendered here -->
@@ -219,7 +217,7 @@
                                     startBlock: startBlock
                                 }));
 
-                                $('.failureSummaryTitle').removeClass('hidden');
+                                $('.failureSummaryTitle').removeAttr('hidden');
                                 $('.failureSummary').append(failureDetailInfo);
 
                                 $('.failureText', failureDetailInfo).click(function(evt) {
@@ -255,12 +253,12 @@
                                     if ($(this).data('activated')) {
                                         // it's already been activated, need to hide things
                                         $('.moreInfo', el).hide(); // hide the content
-                                        $('.glyphicon', this).removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+                                        $('.bi', this).removeClass('bi-chevron-up').addClass('bi-chevron-down');
                                         $(this).data('activated', false);
                                     } else {
                                         // need to show the collapsed entity
                                         $('.moreInfo', el).show(); // show the content
-                                        $('.glyphicon', this).removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+                                        $('.bi', this).removeClass('bi-chevron-down').addClass('bi-chevron-up');
                                         $(this).data('activated', true);
                                     }
                                 });
@@ -298,11 +296,11 @@
                     if (uploadCount) {
                         $('#uploadCount').html(uploadCount);
                         $('#uploadBtn').addClass('btn-info');
-                        $('#uploadBtn').removeClass('btn-default');
+                        $('#uploadBtn').removeClass('btn-secondary');
                     } else {
                         $('#uploadCount').html('');
                         $('#uploadBtn').removeClass('btn-info');
-                        $('#uploadBtn').addClass('btn-default');
+                        $('#uploadBtn').addClass('btn-secondary');
                     }
                  },
                 error: function(jqxhr, status, error) {
@@ -373,7 +371,9 @@
                         $('#reloadBtn').click(function(evt) {
                             evt.preventDefault();
                             if(FAPI_UI.currentUser.sub !== data.owner.sub){
-                                $('#reRunTestModal').modal('show');
+                                var myModalEl = document.getElementById('reRunTestModal');
+                                var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                                modal.show();
                             } else {
                                 runTest(data.testName, data.variant, data.planId, data.config, testId);
                             }
@@ -384,7 +384,10 @@
                             evt.preventDefault();
                             $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
                             $('#configTestId').html(_.escape(testId));
-                            $('#configModal').modal('show');
+
+                            var myModalEl = document.getElementById('configModal');
+                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                            modal.show();
                         });
 
                         if (!public) {
@@ -402,7 +405,10 @@
                         // wire up publish button
                         $('#publishBtn').click(function(evt) {
                             evt.preventDefault();
-                            $('#publishModal').modal('show');
+
+                            var myModalEl = document.getElementById('publishModal');
+                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                            modal.show();
                         });
 
                         $('#stopBtn').click(function(evt) {

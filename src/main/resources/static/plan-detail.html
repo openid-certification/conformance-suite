@@ -11,17 +11,21 @@
     <title>OIDF Conformance: Test Plan</title>
 
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+    <!-- Boostrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 
     <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <!-- Popper (necessary for Bootstrap's tooltips) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
@@ -32,37 +36,35 @@
 <body>
 
     <div class="pageHeader container-fluid">
-        <div class="row-fluid">
+        <div class="row">
             <div class="col-md-8">
                 <a href="index.html"><img src="/images/openid.png"></a>
             </div>
-            <div id="userInfoHolder" class="col-md-4 text-right"></div>
+            <div id="userInfoHolder" class="col-md-4"></div>
         </div>
     </div>
     <div class="clearfix"></div>
 
     <!-- error modal -->
-    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title" id="errorLabel">Error</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Error: <span id="errorMessage"></span>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- loading modal -->
-    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static" data-keyboard="false">
+    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -81,17 +83,15 @@
     </div>
 
     <!-- Config modal popup -->
-    <div class="modal fade" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title">
-                        <button class="btn-clipboard btn btn-xs" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="glyphicon glyphicon-copy"></span></button>
+                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
                         Configuration for <code id="configTestId" class="text-muted"></code>
                     </h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="wrapLongStrings">
@@ -99,42 +99,38 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Publish modal -->
-    <div class="modal fade" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title">Publish</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Are you sure? This will make all keys, secrets, and all other test information publicly visible.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal" data-publish="everything">Publish</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-publish="everything">Publish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Certification submission modal -->
-    <div class="modal fade" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-backdrop="static">
+    <div class="modal" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content pad28">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title" id="errorLabel">Prepare Certification Submission Package</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
                     <div id="certificationPackageFormModalBody" class="modal-body">
@@ -143,44 +139,44 @@
                     <ol class="top15">
                         <li>
                             <strong>The test plan will be published.</strong>
-                            <p class="help-block">This will make all keys, secrets, and all other test information publicly visible.</p>
+                            <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
                         </li>
                         <li>
                             <strong>The test plan will be marked as immutable.</strong>
-                            <p class="help-block">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
+                            <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
                         </li>
                         <li>
                             <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
-                            <p class="help-block">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
+                            <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
                             to complete the certification process.</p>
                         </li>
                     </ol>
 
                     <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
                     <div>
-                        <div class="form-group">
+                        <div class="mb-3 row">
                                 <fieldset>
                                     <strong>1.</strong> A filled out and signed <strong>certification of conformance</strong> document.
                                     <label class="text-info">
                                         (<a class="darkblue" href="https://openid.net/wordpress-content/uploads/2021/07/OpenID-Certification-of-Conformance.pdf" target="coc">Download the template here.</a>)
                                     </label>
                                     <input class="top10" type="file" id="certificationOfConformancePdfBtn" name="certificationOfConformancePdf" accept="application/pdf">
-                                    <p class="help-block">Upload the signed certification of conformance document
+                                    <p class="form-text">Upload the signed certification of conformance document
                                         (as per the instructions, completed and signed by an authorized person).
                                     </p>
                                 </fieldset>
                         </div>
-                        <div class="form-group">
+                        <div class="mb-3 row">
                             <fieldset>
                                 <strong>2.</strong> <strong>Client data</strong> (For RP Tests Only)
                                 <input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip">
-                                <p class="help-block">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
+                                <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
                             </fieldset>
                         </div>
                     </div>
                 </div>
 
-                    <div id="certificationPackageDownloaded" class="modal-body hidden">
+                    <div id="certificationPackageDownloaded" class="modal-body" hidden>
                         <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
                             is complete then you will find the zip file in your browser download directory.</p>
                         <p>Please rename the zip file according to <a class="darkblue" href="https://openid.net/certification/op_submission/" target="instructions">the instructions</a>
@@ -189,9 +185,9 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-primary" disabled>Create Certification Package</button>
-                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-default hidden">Close</button>
+                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-secondary" hidden>Close</button>
                     </div>
                 </form>
             </div>
@@ -199,14 +195,12 @@
     </div>
 
     <!-- Prepare certification of conformance pdf modal -->
-    <div class="modal fade" id="certificationOfConformanceTemplateModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="certificationOfConformanceTemplateModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title" id="errorLabel">Prepare Certification of Conformance PDF</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 
                 </div>
                 <form class="form-small" name="certificationOfConformanceForm" id="certificationOfConformanceForm" action="" method="post">
@@ -227,32 +221,32 @@
                                 </h3>
                                 <div style="padding-left:1em;">
 
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             Name of Entity (“Implementer”) Making this Certification
                                         </label>
                                         <input class="form-control" type="text" id="certificationOfConformance_nameOfImplementer" name="nameOfImplementer">
                                     </div>
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             Software or Service (&quot;Deployment&quot;) Name &amp; Version #
                                         </label>
                                         <input class="form-control" type="text" id="certificationOfConformance_deploymentVersion" name="deploymentVersion">
                                     </div>
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             OpenID Conformance Profile
                                         </label>
                                         <input class="form-control" type="text" id="certificationOfConformance_conformanceProfile" name="conformanceProfile" readonly>
                                     </div>
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             Conformance Test Suite Software
                                         </label>
                                         <input class="form-control" type="text" id="certificationOfConformance_suiteSoftware" name="suiteSoftware" readonly>
                                     </div>
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             Test Date
                                         </label>
                                         <input class="form-control" type="text" id="certificationOfConformance_testDate" name="testDate" readonly>
@@ -264,26 +258,26 @@
                                     Optional Extra Information
                                 </h3>
                                 <div style="padding-left:1em;">
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             URL at which people interested in using your implementation can learn about it and/or obtain it:
                                         </label>
                                         <input class="form-control" type="text" id="certificationOfConformance_moreInfoUrl" name="moreInfoUrl">
                                     </div>
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             1-2 sentence description of the implementation
                                         </label>
                                         <textarea class="form-control" type="text" id="certificationOfConformance_implementationDescription" name="implementationDescription"></textarea>
                                     </div>
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             The programming language of the software and deployment environment for it, if applicable (e.g., “JavaScript for Node.js”, “Binaries for iOS”, or “Service”)
                                         </label>
                                         <input class="form-control" type="text" id="certificationOfConformance_programmingLanguage" name="programmingLanguage">
                                     </div>
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
                                             Licensing terms of the software, if applicable (e.g., “Apache 2.0” or “Proprietary”)
                                         </label>
                                         <input class="form-control" type="text" id="certificationOfConformance_license" name="license">
@@ -294,7 +288,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button id="certificationOfConformanceFormSubmitBtn" type="submit" class="btn btn-primary">Download as PDF</button>
                     </div>
                 </form>
@@ -303,35 +297,31 @@
     </div>
 
     <!-- Rerun test confirmation modal -->
-    <div class="modal fade" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title">Run test confirmation</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Are you sure you want to rerun this test? It is owned by a different user.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Delete plan modal -->
-    <div class="modal fade" id="deletePlanModal" tabindex="-1" role="dialog">
+    <div class="modal" id="deletePlanModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content pad28">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                     <h4 class="modal-title" >Delete plan</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div id="deleteMutablePlanModalBody" class="modal-body">
 
@@ -349,7 +339,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button id="confirmDeletePlanBtn" type="button" class="btn btn-danger">Delete plan</button>
                 </div>
 
@@ -388,23 +378,35 @@
                        evt.preventDefault();
                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
                        $('#configTestId').html(_.escape(planId));
-                       $('#configModal').modal('show');
+
+                       var myModalEl = document.getElementById('configModal');
+                       var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                       modal.show();
                    });
 
                    // wire up publish button
                    $('#publishBtn').click(function(evt) {
                        evt.preventDefault();
-                       $('#publishModal').modal('show');
+
+                       var myModalEl = document.getElementById('publishModal');
+                       var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                       modal.show();
                    });
 
                    $('#certificationPackageBtn').click(function(evt) {
                        evt.preventDefault();
-                       $('#certificationPackageModal').modal('show');
+
+                       var myModalEl = document.getElementById('certificationPackageModal');
+                       var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                       modal.show();
                    });
 
                    $('#certificationOfConformanceTemplateBtn').click(function(evt) {
                        evt.preventDefault();
-                       $('#certificationOfConformanceTemplateModal').modal('show');
+
+                       var myModalEl = document.getElementById('certificationOfConformanceTemplateModal');
+                       var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                       modal.show();
                    });
                    $('#certificationOfConformanceForm').attr('action','/api/plan/'+planId+'/certificationofconformance');
                    $('#certificationOfConformance_conformanceProfile').val(data.certificationProfileName);
@@ -413,7 +415,9 @@
 
                    if(document.querySelector('#deleteMutablePlanBtn')) {
                        document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
-                           $('#deletePlanModal').modal('show');
+                           var myModalEl = document.getElementById('deletePlanModal');
+                           var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                           modal.show();
                        });
                    }
 
@@ -424,7 +428,10 @@
                        if(FAPI_UI.currentUser.sub !== data.owner.sub){
                            $('#reRunTestModalBtn').data('test-name', testName);
                            $('#reRunTestModalBtn').data('variant', variant);
-                           $('#reRunTestModal').modal('show');
+
+                           var myModalEl = document.getElementById('reRunTestModal');
+                           var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                           modal.show();
                        } else {
                            runTest(testName, variant, planId);
                        }
@@ -573,7 +580,7 @@
 
        function showDialogError(containerId, error) {
             $('<div class="alert alert-danger">' +
-               '<button type="button" class="close" data-dismiss="alert">' +
+               '<button type="button" class="btn-close" data-bs-dismiss="alert">' +
                '&times;</button>' + error + '</div>').appendTo('#' + containerId);
         }
 
@@ -608,20 +615,25 @@
                 return false;
             } else {
                 // Hide previous modal content and the cancel and certification package buttons
-                document.querySelector('#certificationPackageFormModalBody').classList.add('hidden');
-                document.querySelector('#cancelCertificationPackageFormModal').classList.add('hidden');
-                document.querySelector('#certificationPackageFormSubmitBtn').classList.add('hidden');
+                document.querySelector('#certificationPackageFormModalBody').setAttribute("hidden", "");
+                document.querySelector('#cancelCertificationPackageFormModal').setAttribute("hidden", "");
+                document.querySelector('#certificationPackageFormSubmitBtn').setAttribute("hidden", "");
 
                 // Show the file download info content in the modal and the close button
-                document.querySelector('#certificationPackageDownloaded').classList.remove('hidden');
-                document.querySelector('#closeCertificationPackageFormModal').classList.remove('hidden');
+                document.querySelector('#certificationPackageDownloaded').classList.removeAttribute('hidden');
+                document.querySelector('#closeCertificationPackageFormModal').classList.removeAttribute('hidden');
 
                 return true;
             }
         });
 
         $('#closeCertificationPackageFormModal').on('click', e => {
-            $('#certificationPackageModal').modal('hide');
+            var myModalEl = document.getElementById('certificationPackageModal');
+            var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+            if (modal != null) {
+                modal.hide();
+            }
             window.location.reload();
         });
 
@@ -660,11 +672,21 @@
                 fetch('/api/plan/' + encodeURIComponent(planId), {
                     method:'DELETE'
                 }).then(response => {
-                    $('#deletePlanModal').modal('hide');
+                    var myModalEl = document.getElementById('deletePlanModal');
+                    var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+                    if (modal != null) {
+                        modal.hide();
+                    }
                     window.location.reload();
                     return;
                 }).catch(error => {
-                    $('#deletePlanModal').modal('hide');
+                    var myModalEl = document.getElementById('deletePlanModal');
+                    var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+                    if (modal != null) {
+                        modal.hide();
+                    }
                     FAPI_UI.showError(error);
                 });
             });
