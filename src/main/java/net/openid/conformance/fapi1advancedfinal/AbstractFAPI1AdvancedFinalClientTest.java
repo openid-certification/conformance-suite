@@ -188,6 +188,8 @@ import org.springframework.web.servlet.view.RedirectView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Arrays;
+import java.util.List;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -439,6 +441,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		// Allow calls to jkws and discovery even after the test is finished,
+		List<String> pathsThatMayBeCalledAfterFinish = Arrays.asList("jwks", ".well-known/openid-configuration");
+		if (Status.FINISHED.equals(getStatus()) && pathsThatMayBeCalledAfterFinish.contains(path)) {
+			return handleClientRequestForPath(null, path);
+		}
+
 		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
@@ -456,7 +464,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		return handleClientRequestForPath(requestId, path);
 
 	}
-
 
 	protected Object handleClientRequestForPath(String requestId, String path){
 		if (path.equals("authorize")) {
@@ -749,10 +756,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	}
 
 	protected Object discoveryEndpoint() {
-		setStatus(Status.RUNNING);
+		setStatusUnlessTestIsFinished(Status.RUNNING);
 		JsonObject serverConfiguration = env.getObject("server");
 
-		setStatus(Status.WAITING);
+		setStatusUnlessTestIsFinished(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
@@ -839,12 +846,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	}
 
 	protected Object jwksEndpoint() {
-
-		setStatus(Status.RUNNING);
+		setStatusUnlessTestIsFinished(Status.RUNNING);
 		JsonObject jwks = env.getObject("server_public_jwks");
 
-		setStatus(Status.WAITING);
-
+		setStatusUnlessTestIsFinished(Status.WAITING);
 		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
@@ -924,6 +929,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
+	}
+
+	protected void setStatusUnlessTestIsFinished(Status status) {
+		if (!Status.FINISHED.equals(getStatus())) {
+			setStatus(status);
+		}
 	}
 
 	protected void validateRedirectUriForAuthorizationCodeGrantType() {
