@@ -47,8 +47,8 @@ import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestPar
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCodeIdToken;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
+import net.openid.conformance.condition.as.EnsureScopeContainsCustomers;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
-import net.openid.conformance.condition.as.EnsureScopeContainsResources;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
@@ -127,8 +127,8 @@ import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainCustomers;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainResources;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId;
@@ -227,6 +227,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 	public static final String RESOURCES_PATH = "resources/v1";
+
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureAuthRequestMethodSteps;
@@ -344,7 +345,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				break;
 			case OPENINSURANCE_BRAZIL:
 				exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_OPIN_CONSENTS_PATH);
-				exposePath("resources_endpoint", RESOURCES_PATH);
+				exposeMtlsPath("resources_endpoint", FAPIBrazilRsPathConstants.BRAZIL_OPIN_CUSTOMERS_PATH);
 				break;
 			case OPENBANKING_UK:
 				exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
@@ -548,7 +549,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				return brazilHandleNewPaymentInitiationRequest(requestId);
 			}
 
+
 			if(RESOURCES_PATH.equals(path)) {
+				return resourcesEndpoint(requestId);
+			} else if (FAPIBrazilRsPathConstants.BRAZIL_OPIN_CUSTOMERS_PATH.equals(path)) {
 				return resourcesEndpoint(requestId);
 			}
 		}
@@ -1092,7 +1096,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				callAndStopOnFailure(EnsureScopeContainsPayments.class);
 			} else {
 				if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
-					callAndStopOnFailure(EnsureScopeContainsResources.class);
+					callAndStopOnFailure(EnsureScopeContainsCustomers.class);
 				} else {
 					callAndStopOnFailure(EnsureScopeContainsAccounts.class);
 				}
@@ -1330,7 +1334,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		call(exec().mapKey("incoming_request", requestId));
 		checkResourceEndpointRequest(false);
-		callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainResources.class);
+		callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainCustomers.class);
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 		callAndStopOnFailure(CreateFAPIResourcesEndpointResponse.class);
 		if (resourcesEndpointProfileSteps != null) {
