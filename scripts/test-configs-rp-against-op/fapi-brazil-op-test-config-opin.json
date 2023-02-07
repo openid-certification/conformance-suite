@@ -6,7 +6,7 @@
     },
     "client": {
         "client_id": "6827311122562855",
-        "scope": "openid resources",
+        "scope": "openid customers",
         "jwks": {
             "keys": [
                 {
@@ -41,8 +41,8 @@
         }
     },
     "resource": {
-        "resourceUrl": "{BASEURL}test-mtls/a/oidf-rp-opin/resources/v1",
-        "consentUrl": "{BASEURL}test-mtls/a/oidf-rp-opin/consents/v1",
+        "resourceUrl": "{BASEURL}test-mtls/a/oidf-rp-opin/open-insurance/customers/v1/personal/identifications",
+        "consentUrl": "{BASEURL}test-mtls/a/oidf-rp-opin/open-insurance/consents/v1",
         "brazilCpf": "14308086086",
         "brazilOrganizationId": "234234"
     },
