@@ -318,7 +318,7 @@ textarea {
 
 /* to make labels wrap better */
 .labelCollection {
-	line-height: 2.1em;
+	line-height: 1.5em;
 }
 
 .moreInfo {
@@ -337,53 +337,53 @@ textarea {
 }
 
 /* Test result labels */
-.label.result-success {
+.badge.result-success {
 	background-color: #00cc00;
 }
 
-.label.result-failure {
+.badge.result-failure {
 	background-color: #cc0000;
 }
 
-.label.result-warning {
+.badge.result-warning {
 	background-color: #d88602;
 }
 
-.label.result-review {
+.badge.result-review {
 	background-color: #00ccff;
 }
 
-.label.result-interrupted {
+.badge.result-interrupted {
 	background-color: #ddbb88;
 }
 
-.label.result-finished {
+.badge.result-finished {
 	background-color: #383647;
 }
 
-.label.result-info {
+.badge.result-info {
 	background-color: #e2bfce;
 }
 
-.label.result-skipped {
+.badge.result-skipped {
     background-color: #d88602;
 }
 
 /* JJH: I don't believe this default value is ever used, there is no code to treat an unknown value as the default
   and unknown values seem to display as white-on-white */
-.label.result-default {
+.badge.result-default {
 	background-color: #00cc00;
 }
 
-.label.result-success .badge,
-.label.result-failure .badge,
-.label.result-warning .badge,
-.label.result-review .badge,
-.label.result-interrupted .badge,
-.label.result-info .badge,
-.label.result-finished .badge,
-.label.result-skipped .badge,
-.label.result-default .badge {
+.badge.result-success .rounded-pill,
+.badge.result-failure .rounded-pill,
+.badge.result-warning .rounded-pill,
+.badge.result-review .rounded-pill,
+.badge.result-interrupted .rounded-pill,
+.badge.result-info .rounded-pill,
+.badge.result-finished .rounded-pill,
+.badge.result-skipped .rounded-pill,
+.badge.result-default .rounded-pill {
 	background-color: rgba(0.5, 0.5, 0.5, 0.5);
 	font-size: 10px;
 }
@@ -481,6 +481,15 @@ pre.prettyprint {
 	position: fixed;
 	top: 0;
 	z-index:100;
+}
+
+/* Bootstrap card background color */
+.card {
+        background-color: #f1f1f1;
+}
+
+.row-bg-light {
+        background-color: #f9f9f9;
 }
 
 /* People on large monitors <= 3000 */
