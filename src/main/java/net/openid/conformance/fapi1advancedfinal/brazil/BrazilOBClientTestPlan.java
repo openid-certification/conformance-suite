@@ -31,7 +31,6 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantSelection;
 
-import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -84,18 +83,15 @@ public class BrazilOBClientTestPlan implements TestPlan {
 				break;
 			case "jarm":
 				certProfile += ", JARM";
-				switch(fapiClientType) {
-					case "oidc":
-						certProfile += " (OpenID Connect)";
-						break;
-					case "plain_oauth":
-						certProfile += " (OAuth)";
-						break;
-					default:
-						throw new RuntimeException(String.format("Invalid configuration for %s: Unexpected jarm type value: %s",
-							MethodHandles.lookup().lookupClass().getSimpleName(), fapiClientType));
-				}
+
 				break;
+		}
+
+		switch(fapiClientType) {
+			case "oidc":
+				break;
+			default:
+				throw new RuntimeException("OpenBanking and OpenInsurance RP clients are required to be oidc clients.");
 		}
 		return certProfile;
 	}
