@@ -541,7 +541,7 @@ local_test:
   }
 
   function run_client_test_plan() {
-    apk add nodejs npm
+    apk add nodejs npm go
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests-only
   }
