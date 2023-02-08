@@ -1136,7 +1136,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 					callAndStopOnFailure(EnsureScopeContainsAccounts.class);
 				}
 			}
-		} if (isKSA()){
+		} else if (isKSA()){
 			callAndStopOnFailure(FAPIKSAValidateConsentScope.class);
 		} else {
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
