@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class IdmvpCheckClaimsSupported extends AbstractValidateJsonArray {
+public class AustraliaConnectIdCheckClaimsSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "claims_supported";
 

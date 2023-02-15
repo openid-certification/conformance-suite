@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public class IdmvpAddClaimsToAuthorizationEndpointRequestIdTokenClaims extends AbstractAddClaimToAuthorizationEndpointRequest {
+public class AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims extends AbstractAddClaimToAuthorizationEndpointRequest {
 
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_request", "server"})
@@ -16,7 +16,7 @@ public class IdmvpAddClaimsToAuthorizationEndpointRequestIdTokenClaims extends A
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		String locationStr = "id_token";
 		JsonObject claimsObject = getClaimsForLocation(authorizationEndpointRequest, locationStr);
-		List<String> claimsToAdd = List.of(IdmvpCheckClaimsSupported.idmvpMandatoryToSupportClaims);
+		List<String> claimsToAdd = List.of(AustraliaConnectIdCheckClaimsSupported.idmvpMandatoryToSupportClaims);
 
 		addRequestsForClaims(claimsObject, claimsToAdd);
 

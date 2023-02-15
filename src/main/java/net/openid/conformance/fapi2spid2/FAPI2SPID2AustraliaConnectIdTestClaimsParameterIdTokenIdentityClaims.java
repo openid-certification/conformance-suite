@@ -4,8 +4,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckForUnexpectedClaimsInIdToken;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsRequestedClaims;
-import net.openid.conformance.condition.client.IdmvpAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
-import net.openid.conformance.condition.client.IdmvpCheckClaimsSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
+import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
@@ -34,16 +34,16 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil" })
-public class FAPI2SPID2IdmvpTestClaimsParameterIdTokenIdentityClaims extends AbstractFAPI2SPID2ServerTestModule {
+public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
-		callAndContinueOnFailure(IdmvpCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
+		callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
 
 		return super.makeCreateAuthorizationRequestSteps()
-			.then(condition(IdmvpAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class).requirements("OIDCC-5.1", "OIDCC-5.5", "IDMVP"));
+			.then(condition(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class).requirements("OIDCC-5.1", "OIDCC-5.5", "IDMVP"));
 	}
 
 	@Override

@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.Arrays;
 import java.util.List;
 
-public class IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims extends AbstractCondition {
+public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY})

@@ -16,14 +16,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class IdmvpEnsureAuthorizationRequestContainsNoAcrClaimsTest_UnitTest {
+public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaimsTest_UnitTest {
 	@Spy
 	private Environment env = new Environment();
 
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private IdmvpEnsureAuthorizationRequestContainsNoAcrClaims cond;
+	private AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims cond;
 
 	private JsonObject request;
 
@@ -38,7 +38,7 @@ public class IdmvpEnsureAuthorizationRequestContainsNoAcrClaimsTest_UnitTest {
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new IdmvpEnsureAuthorizationRequestContainsNoAcrClaims();
+		cond = new AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims();
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		String requestStr =
