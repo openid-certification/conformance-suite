@@ -91,6 +91,7 @@ import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedT
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
+import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
@@ -823,7 +824,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
-				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2"))
+				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2")).then(condition(ValidateClientAssertionAudClaimForPAREndpoint.class).onFail(ConditionResult.WARNING).requirements("PAR-2").dontStopOnFailure())
 			);
 		} else {
 			call(sequence(validateClientAuthenticationSteps));
