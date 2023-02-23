@@ -156,10 +156,10 @@ public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 	@Override
 	protected void onPostAuthorizationFlowComplete() {
 
-	    if (!isSecondClient()) {
-		callAndContinueOnFailure(EnsureIdTokenDoesNotContainNonRequestedClaims.class, Condition.ConditionResult.WARNING);
-	    }
+		if (!isSecondClient()) {
+			callAndContinueOnFailure(EnsureIdTokenDoesNotContainNonRequestedClaims.class, Condition.ConditionResult.WARNING);
+		}
 
-	    super.onPostAuthorizationFlowComplete();
+		super.onPostAuthorizationFlowComplete();
 	}
 }

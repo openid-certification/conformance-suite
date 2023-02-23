@@ -34,7 +34,7 @@ public class EnsureIdTokenDoesNotContainNonRequestedClaims extends AbstractCondi
 
 		for (String key : idTokenClaims.keySet()) {
 			if (idTokenValidClaims.contains(key)) {
-			    continue;
+				continue;
 			}
 
 			failure = true;
