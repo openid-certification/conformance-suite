@@ -83,7 +83,7 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 		FAPI2SPID2BrazilEnsureBadPaymentSignatureFails.class,
 
 		// IDMVP specific tests
-		FAPI2SPID2IdmvpTestClaimsParameterIdTokenIdentityClaims.class,
+		FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims.class,
 
 		//PAR tests
 		FAPI2SPID2PARAttemptReuseRequestUri.class,

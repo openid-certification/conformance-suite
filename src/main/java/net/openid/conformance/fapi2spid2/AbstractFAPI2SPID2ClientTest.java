@@ -81,8 +81,8 @@ import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
-import net.openid.conformance.condition.as.IdmvpAddClaimsSupportedToServerConfiguration;
-import net.openid.conformance.condition.as.IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
+import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.LoadRequestedIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
@@ -109,7 +109,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectId
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.IdmvpEnsureAuthorizationRequestContainsNoAcrClaims;
+import net.openid.conformance.condition.client.AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
@@ -321,7 +321,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		} else if (profile == FAPI2ID2OPProfile.IDMVP) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "IDMVP");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "IDMVP");
-			callAndStopOnFailure(IdmvpAddClaimsSupportedToServerConfiguration.class, "IDMVP");
+			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "IDMVP");
 			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "IDMVP");
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
@@ -1159,8 +1159,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 		} else {
 			if (profile == FAPI2ID2OPProfile.IDMVP) {
-				callAndContinueOnFailure(IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "IDMVP");
-				callAndContinueOnFailure(IdmvpEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "IDMVP");
+				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "IDMVP");
+				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "IDMVP");
 			}
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}

@@ -14,7 +14,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaimsTest_UnitTest {
+public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaimsTest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,7 +22,7 @@ public class IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaimsTest
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims cond;
+	private AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims cond;
 
 	private JsonObject request;
 
@@ -38,7 +38,7 @@ public class IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaimsTest
 	@Before
 	public void setUp() {
 
-		cond = new IdmvpEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims();
+		cond = new AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims();
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		String requestStr =

@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.testmodule.Environment;
 
-public class IdmvpEnsureAuthorizationRequestContainsNoAcrClaims extends AbstractCondition {
+public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY)
