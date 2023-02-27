@@ -108,15 +108,15 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 	@Override
 	protected void performEndpointVerification() {
 
-		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2BASE-4.3.1-2");
+		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-4.3.1-2");
 		if (jarm) {
 			callAndContinueOnFailure(CheckDiscEndpointResponseModesSupportedContainsJwt.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
 		} else {
 			// https://bitbucket.org/openid/fapi/issues/478/fapi2-baseline-jarm-iss-draft
-			callAndContinueOnFailure(EnsureAuthorizationResponseIssParameterSupportedIsTrue.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-3", "FAPI2BASE-4.3.1-13");
+			callAndContinueOnFailure(EnsureAuthorizationResponseIssParameterSupportedIsTrue.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-3", "FAPI2-SP-ID2-4.3.1-13");
 		}
 
-		callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "PAR-5", "FAPI2BASE-4.3.1-4");
+		callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "PAR-5", "FAPI2-SP-ID2-4.3.1-4");
 
 		super.performEndpointVerification();
 
