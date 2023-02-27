@@ -129,7 +129,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
 		boolean openid = openidVariant.equals("openid_connect");
 
-		String certProfile = "FAPI2AdvancedID2 ";
+		String certProfile = "FAPI2MsgSigningID2 ";
 
 		if (openid) {
 			certProfile += "OpenID ";

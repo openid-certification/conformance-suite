@@ -76,7 +76,7 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 		boolean dpop = senderConstrain.equals("dpop");
 		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
 
-		String certProfile = "FAPI2AdvancedID1 ";
+		String certProfile = "FAPI2MsgSigningID1 ";
 
 		switch (profile) {
 			case "plain_fapi":
