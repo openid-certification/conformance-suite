@@ -14,7 +14,7 @@ import java.util.Map;
 	displayName = "FAPI2-Message-Signing-ID1: Authorization server test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.optest
 )
-public class FAPI2AdvancedID1TestPlan implements TestPlan {
+public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		// Normal well behaved client cases
 		FAPI2SPID2DiscoveryEndpointVerification.class,
