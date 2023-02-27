@@ -1,6 +1,6 @@
 {
     "alias": "oidf-fapi-rp-test",
-    "description": "FAPI RP test config for running against OP tests (IDMVP)",
+    "description": "FAPI RP test config for running against OP tests (ConnectID)",
     "server": {
         "jwks": {
             "keys": [

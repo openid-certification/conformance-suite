@@ -1,11 +1,11 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
+import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckForUnexpectedClaimsInIdToken;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsRequestedClaims;
-import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
-import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
@@ -14,7 +14,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-australia-connectid-test-claims-parameter-idtoken-identity-claims",
 	displayName = "FAPI2-Security-Profile-ID2: test requesting id_token identity claims using the claims parameter",
-	summary = "The test will request the 6 IDMVP identity are returned in the id_token (using a variety of different forms of request), and will fail if any are not returned.\n\nThe test must be performed using a user which has all six supported claims present on the server.",
+	summary = "The test will request the 6 identity claims required by ConnectID are returned in the id_token (using a variety of different forms of request), and will fail if any are not returned.\n\nThe test must be performed using a user which has all six supported claims present on the server.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -40,10 +40,10 @@ public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaim
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
-		callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
+		callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CONNECTID");
 
 		return super.makeCreateAuthorizationRequestSteps()
-			.then(condition(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class).requirements("OIDCC-5.1", "OIDCC-5.5", "IDMVP"));
+			.then(condition(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class).requirements("OIDCC-5.1", "OIDCC-5.5", "CONNECTID"));
 	}
 
 	@Override

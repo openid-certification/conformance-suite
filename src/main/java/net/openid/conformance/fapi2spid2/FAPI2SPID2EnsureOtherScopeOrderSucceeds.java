@@ -28,8 +28,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-// idmvp only requires the openid scope to be supported, but this test requires at least two scopes
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "idmvp" })
+// ConnectID only requires the openid scope to be supported, but this test requires at least two scopes
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "connectid_au" })
 public class FAPI2SPID2EnsureOtherScopeOrderSucceeds extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override

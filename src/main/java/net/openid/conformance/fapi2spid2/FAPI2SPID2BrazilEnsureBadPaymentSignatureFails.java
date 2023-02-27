@@ -36,7 +36,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"plain_fapi",
 	"openbanking_uk",
 	"consumerdataright_au",
-	"idmvp"
+	"connectid_au"
 })
 public class FAPI2SPID2BrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2SPID2ServerTestModule {
 

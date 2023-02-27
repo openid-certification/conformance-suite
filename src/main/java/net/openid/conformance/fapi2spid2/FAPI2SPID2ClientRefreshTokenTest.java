@@ -32,7 +32,7 @@ import org.springframework.http.ResponseEntity;
 		"client.jwks"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "idmvp"})
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "connectid_au"})
 public class FAPI2SPID2ClientRefreshTokenTest extends AbstractFAPI2SPID2ClientTest {
 	private int numberOfTimesRefreshTokenUsed = 0;
 
