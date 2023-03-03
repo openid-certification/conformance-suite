@@ -5,9 +5,10 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Map;
 
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings("deprecation")
+@RunWith(MockitoJUnitRunner.class)
 public class CheckTokenEndpointReturnedInvalidClientGrantOrRequestError_UnitTest {
 
 	@Test
@@ -101,7 +102,6 @@ public class CheckTokenEndpointReturnedInvalidClientGrantOrRequestError_UnitTest
 
 	@Test
 	public void the_condition_succeeds_if_the_error_is_invalid_request_and_the_http_status_code_is_400() {
-		MockitoAnnotations.initMocks(this);
 		TestInstanceEventLog log = mock(TestInstanceEventLog.class);
 
 		CheckTokenEndpointReturnedInvalidClientGrantOrRequestError condition = new CheckTokenEndpointReturnedInvalidClientGrantOrRequestError();
@@ -121,7 +121,6 @@ public class CheckTokenEndpointReturnedInvalidClientGrantOrRequestError_UnitTest
 
 	@Test
 	public void the_condition_succeeds_if_the_error_is_invalid_grant_and_the_http_status_code_is_400() {
-		MockitoAnnotations.initMocks(this);
 		TestInstanceEventLog log = mock(TestInstanceEventLog.class);
 
 		CheckTokenEndpointReturnedInvalidClientGrantOrRequestError condition = new CheckTokenEndpointReturnedInvalidClientGrantOrRequestError();
@@ -141,7 +140,6 @@ public class CheckTokenEndpointReturnedInvalidClientGrantOrRequestError_UnitTest
 
 	@Test
 	public void the_condition_succeeds_if_the_error_is_invalid_client_and_the_http_status_code_is_401() {
-		MockitoAnnotations.initMocks(this);
 		TestInstanceEventLog log = mock(TestInstanceEventLog.class);
 
 		CheckTokenEndpointReturnedInvalidClientGrantOrRequestError condition = new CheckTokenEndpointReturnedInvalidClientGrantOrRequestError();
