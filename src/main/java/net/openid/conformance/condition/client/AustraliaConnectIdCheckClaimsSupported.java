@@ -9,7 +9,7 @@ public class AustraliaConnectIdCheckClaimsSupported extends AbstractValidateJson
 
 	private static final String environmentVariable = "claims_supported";
 
-	public static final String[] idmvpMandatoryToSupportClaims = {
+	public static final String[] ConnectIdMandatoryToSupportClaims = {
 		"name",
 		"given_name",
 		"family_name",
@@ -19,14 +19,14 @@ public class AustraliaConnectIdCheckClaimsSupported extends AbstractValidateJson
 		"address"
 	};
 
-	private static final int minimumMatchesRequired = idmvpMandatoryToSupportClaims.length;
+	private static final int minimumMatchesRequired = ConnectIdMandatoryToSupportClaims.length;
 
 	private static final String errorMessageNotEnough = "The server does not support the required claims.";
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		return validate(env, environmentVariable, Arrays.asList(idmvpMandatoryToSupportClaims), minimumMatchesRequired, errorMessageNotEnough);
+		return validate(env, environmentVariable, Arrays.asList(ConnectIdMandatoryToSupportClaims), minimumMatchesRequired, errorMessageNotEnough);
 	}
 
 }

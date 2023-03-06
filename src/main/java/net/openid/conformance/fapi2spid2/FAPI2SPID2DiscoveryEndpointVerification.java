@@ -2,6 +2,7 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
@@ -25,7 +26,6 @@ import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEnd
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
-import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseIssParameterSupportedIsTrue;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -86,9 +86,9 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 		brazil = true;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "idmvp")
-	public void setupIdmvp() {
-		profileSpecificChecks = IdmvpDiscoveryEndpointChecks.class;
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "connectid_au")
+	public void setupConnectId() {
+		profileSpecificChecks = ConnectIdAuDiscoveryEndpointChecks.class;
 	}
 
 	@VariantSetup(parameter = FAPIOpenIDConnect.class, value = "openid_connect")
@@ -108,15 +108,15 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 	@Override
 	protected void performEndpointVerification() {
 
-		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2BASE-4.3.1-2");
+		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-4.3.1-2");
 		if (jarm) {
 			callAndContinueOnFailure(CheckDiscEndpointResponseModesSupportedContainsJwt.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
 		} else {
 			// https://bitbucket.org/openid/fapi/issues/478/fapi2-baseline-jarm-iss-draft
-			callAndContinueOnFailure(EnsureAuthorizationResponseIssParameterSupportedIsTrue.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-3", "FAPI2BASE-4.3.1-13");
+			callAndContinueOnFailure(EnsureAuthorizationResponseIssParameterSupportedIsTrue.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-3", "FAPI2-SP-ID2-4.3.1-13");
 		}
 
-		callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "PAR-5", "FAPI2BASE-4.3.1-4");
+		callAndContinueOnFailure(CheckDiscEndpointPARSupported.class, Condition.ConditionResult.FAILURE, "PAR-5", "FAPI2-SP-ID2-4.3.1-4");
 
 		super.performEndpointVerification();
 
@@ -149,17 +149,17 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 		}
 	}
 
-	public static class IdmvpDiscoveryEndpointChecks extends AbstractConditionSequence {
+	public static class ConnectIdAuDiscoveryEndpointChecks extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
 
-			callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
-			callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
-			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
-			callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IDMVP");
-			callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsOnlyPairwise.class, Condition.ConditionResult.FAILURE, "IDMVP");
-			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "IDMVP");
+			callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CONNECTID");
+			callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CONNECTID");
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CONNECTID");
+			callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CONNECTID");
+			callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsOnlyPairwise.class, Condition.ConditionResult.FAILURE, "CONNECTID");
+			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "CONNECTID");
 		}
 	}
 

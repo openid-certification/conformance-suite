@@ -53,7 +53,7 @@ public class FAPI2SPID2EnsureResponseTypeCodeIdTokenFails extends AbstractFAPI2S
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		return super.makeCreateAuthorizationRequestSteps()
 			.replace(SetAuthorizationEndpointRequestResponseTypeToCode.class,
-				condition(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class).requirements("FAPI2BASE-4.3.1-3"));
+				condition(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class).requirements("FAPI2-SP-ID2-4.3.1-3"));
 	}
 
 	@Override

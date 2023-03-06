@@ -208,7 +208,7 @@ import java.util.function.Supplier;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "idmvp", configurationFields = {
+@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {
 	"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
 	"client2.scope"
@@ -279,7 +279,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			variant == FAPI2ID2OPProfile.OPENBANKING_UK ||
 			variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
 			variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-			variant == FAPI2ID2OPProfile.IDMVP; // https://gitlab.com/idmvp/specifications/-/issues/29
+			variant == FAPI2ID2OPProfile.CONNECTID_AU; // https://gitlab.com/idmvp/specifications/-/issues/29
 
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -321,9 +321,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 	protected void setupResourceEndpoint() {
 		// Set up the resource endpoint configuration
-		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.IDMVP) {
-			// always use the MTLS version if available, as IDMVP always uses mtls sender constraining
-			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "IDMVP");
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
+			// always use the MTLS version if available, as ConnectID always uses mtls sender constraining
+			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CONNECTID");
 		} else {
 			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 			call(sequence(resourceConfiguration));
@@ -364,7 +364,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	protected void validateClientConfiguration() {
-		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.IDMVP) {
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
 			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
 		}
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
@@ -560,7 +560,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
 
-		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2BASE-4.3.1-13");
+		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-ID2-4.3.1-13");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
@@ -598,7 +598,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	protected void addPkceCodeVerifier() {
-		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2BASE-4.3.2-5");
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2-SP-ID2-4.3.2-5");
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
@@ -1003,8 +1003,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		profileIdTokenValidationSteps = null;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "idmvp")
-	public void setupIdmvp() {
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "connectid_au")
+	public void setupConnectId() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = null;

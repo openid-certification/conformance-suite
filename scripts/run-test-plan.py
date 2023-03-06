@@ -4,17 +4,16 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import argparse
+import asyncio
 import datetime
+import fnmatch
+import json
 import os
 import re
+import subprocess
 import sys
 import time
-import subprocess
-import fnmatch
-import asyncio
-
-import json
-import argparse
 import traceback
 
 from conformance import Conformance
@@ -1201,11 +1200,6 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        if all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']:
-            # skip CI for FAPI2Baseline as we don't have access to a server supporting it / the tests aren't finished yet
-            untested_test_modules.remove(m)
-            continue
-
         if re.match(r'(oidcc-session-management-.*)', m):
             # The browser automation currently doesn't seem to work for the iframes/js these tests use
             untested_test_modules.remove(m)
@@ -1230,10 +1224,17 @@ async def main():
 
         client_test = re.match(r'fapi-rw-id2-client-.*', m) or \
                       re.match(r'fapi1-advanced-final-client-.*', m) or \
+                      re.match(r'fapi2-security-profile-id2-client-.*', m) or \
                       re.match(r'oidcc-client-.*', m)
         ciba_op_test = re.match(r'fapi-ciba-id1.*', m)
         rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
         ekyc_test = re.match(r'ekyc-server-', m)
+        fapi1r = all_test_modules[m]['profile'] in ['FAPI-R']
+        fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
+        fapi2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']
+        brazildcr = re.match(r'.*brazil.*dcr.*', m)
+        obuk = re.match(r'.*ensure-server-handles-non-matching-intent-id.*', m) or \
+          re.match(r'.*test-essential-acr-sca-claim.*', m)
 
         if show_untested == 'client':
             # Only run client test, therefore ignore all server test
@@ -1241,18 +1242,19 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
 
-            if all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']:
-                # no tests for FAPI1-Final yet
+            if fapi1 or fapi2:
+                # no tests for FAPI1-Final / FAPI2 yet
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if re.match(r'fapi1?-.*', m) or client_test or ekyc_test:
+            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test:
+            # we've not yet setup fapi2 brazil dcr or uk test runs
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or (fapi2 and (brazildcr or obuk)):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':

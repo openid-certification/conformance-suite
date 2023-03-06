@@ -44,9 +44,12 @@ public class FAPI2SPID2ClientTestPlan implements TestPlan {
 				break;
 			case "openbanking_brazil":
 				return "Not a conformance profile. Please use 'FAPI2-Security-Profile-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
-			case "idmvp":
-				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for IDMVP",
+			case "connectid_au":
+				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID",
 					MethodHandles.lookup().lookupClass().getSimpleName()));
+			default:
+				throw new RuntimeException(String.format("Unknown profile %s for %s",
+					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
 		certProfile += " RP w/";

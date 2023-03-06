@@ -19,7 +19,7 @@ public class AustraliaConnectIdAddClaimsSupportedToServerConfiguration extends A
 
 		JsonObject server = env.getObject("server");
 
-		List<String> claimsToAdd = List.of(AustraliaConnectIdCheckClaimsSupported.idmvpMandatoryToSupportClaims);
+		List<String> claimsToAdd = List.of(AustraliaConnectIdCheckClaimsSupported.ConnectIdMandatoryToSupportClaims);
 		JsonArray claimsSupported = new JsonArray();
 
 		for (String claim: claimsToAdd) {
@@ -28,7 +28,7 @@ public class AustraliaConnectIdAddClaimsSupportedToServerConfiguration extends A
 
 		server.add("claims_supported", claimsSupported);
 
-		log("Added IDMVP required claims to claims_supported in server metadata", args("server", server));
+		log("Added ConnectID required claims to claims_supported in server metadata", args("server", server));
 
 		return env;
 	}

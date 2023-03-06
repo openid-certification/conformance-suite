@@ -76,7 +76,7 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 		boolean dpop = senderConstrain.equals("dpop");
 		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
 
-		String certProfile = "FAPI2AdvancedID1 ";
+		String certProfile = "FAPI2MsgSigningID1 ";
 
 		switch (profile) {
 			case "plain_fapi":
@@ -102,25 +102,25 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 			case "openbanking_brazil":
 				certProfile = "BR-OB";
 				break;
-			case "idmvp":
+			case "connectid_au":
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!signedRequest) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only signed requests are required for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only signed requests are required for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (dpop) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: DPoP sender constraining is not used for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: DPoP sender constraining is not used for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM responses are not used for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM responses are not used for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return "IDMVP";
+				return "ConnectID RP";
 		}
 
 		certProfile += " RP w/";

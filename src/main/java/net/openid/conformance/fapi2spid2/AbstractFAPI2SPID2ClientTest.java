@@ -18,6 +18,8 @@ import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfi
 import net.openid.conformance.condition.as.AddSubjectTypesSupportedPairwiseToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
@@ -81,8 +83,6 @@ import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
-import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedToServerConfiguration;
-import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.LoadRequestedIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
@@ -104,12 +104,12 @@ import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
+import net.openid.conformance.condition.client.AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
@@ -221,7 +221,7 @@ import javax.servlet.http.HttpSession;
 	"client.scope",
 	"client2.scope"
 })
-@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "idmvp", configurationFields = {
+@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {
 	"client.scope", // scope is always openid
 	"client2.scope"
 })
@@ -298,7 +298,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			profile == FAPI2ID2OPProfile.OPENBANKING_UK ||
 			profile == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
 			profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-			profile == FAPI2ID2OPProfile.IDMVP; // https://gitlab.com/idmvp/specifications/-/issues/29
+			profile == FAPI2ID2OPProfile.CONNECTID_AU; // https://gitlab.com/idmvp/specifications/-/issues/29
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
@@ -318,11 +318,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
-		} else if (profile == FAPI2ID2OPProfile.IDMVP) {
-			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "IDMVP");
-			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "IDMVP");
-			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "IDMVP");
-			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "IDMVP");
+		} else if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CONNECTID");
+			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CONNECTID");
+			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CONNECTID");
+			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CONNECTID");
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
@@ -360,7 +360,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
-		} else if (profile == FAPI2ID2OPProfile.IDMVP) {
+		} else if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
 			// nothing to expose; the endpoints all come from discovery (the userinfo endpoint is used as the resource endpoint)
 		} else if (profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
@@ -417,8 +417,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	}
 
 	protected void validateClientConfiguration() {
-		if (profile == FAPI2ID2OPProfile.IDMVP) {
-			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "IDMVP");
+		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "CONNECTID");
 		}
 	}
 
@@ -891,8 +891,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		if (profile == FAPI2ID2OPProfile.IDMVP) {
-			// for IDMVP we use the userinfo endpoint as the resource endpoint, so this is the end of the test
+		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+			// for ConnectID we use the userinfo endpoint as the resource endpoint, so this is the end of the test
 			resourceEndpointCallComplete();
 		} else {
 			setStatus(Status.WAITING);
@@ -1158,9 +1158,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				callAndStopOnFailure(EnsureScopeContainsAccounts.class);
 			}
 		} else {
-			if (profile == FAPI2ID2OPProfile.IDMVP) {
-				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "IDMVP");
-				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "IDMVP");
+			if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "CONNECTID");
+				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CONNECTID");
 			}
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
@@ -1227,7 +1227,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		if(profile == FAPI2ID2OPProfile.IDMVP) {
+		if(profile == FAPI2ID2OPProfile.CONNECTID_AU) {
 			callAndContinueOnFailure(LoadRequestedIdTokenClaims.class);
 		}
 
@@ -1419,8 +1419,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "idmvp")
-	public void setupIdmvp() {
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "connectid_au")
+	public void setupConnectIdAu() {
 		authorizationCodeGrantTypeProfileSteps = null;
 		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = null;

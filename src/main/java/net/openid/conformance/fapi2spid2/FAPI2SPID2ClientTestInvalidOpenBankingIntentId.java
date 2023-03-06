@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.jwks"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_brazil", "idmvp" })
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au" })
 public class FAPI2SPID2ClientTestInvalidOpenBankingIntentId extends AbstractFAPI2SPID2ClientExpectNothingAfterIdTokenIssued {
 
 	@Override

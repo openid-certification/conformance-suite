@@ -20,7 +20,7 @@ import java.util.Map;
 public class FAPI2SPID2TestPlan implements TestPlan {
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
-		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2AdvancedID1TestPlan.testModules);
+		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningID1TestPlan.testModules);
 
 		// these require signing, so remove them (otherwise the VariantService gets upset on app start)
 		modules.remove(FAPI2SPID2EnsureRequestObjectWithoutExpFails.class);
@@ -73,9 +73,12 @@ public class FAPI2SPID2TestPlan implements TestPlan {
 			case "openbanking_brazil":
 				certProfile = "BR-OB";
 				break;
-			case "idmvp":
-				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for IDMVP",
+			case "connectid_au":
+				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID",
 					MethodHandles.lookup().lookupClass().getSimpleName()));
+			default:
+				throw new RuntimeException(String.format("Unknown profile %s for %s",
+					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
 		certProfile += " OP w/";

@@ -16,11 +16,11 @@ public class AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenCla
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		String locationStr = "id_token";
 		JsonObject claimsObject = getClaimsForLocation(authorizationEndpointRequest, locationStr);
-		List<String> claimsToAdd = List.of(AustraliaConnectIdCheckClaimsSupported.idmvpMandatoryToSupportClaims);
+		List<String> claimsToAdd = List.of(AustraliaConnectIdCheckClaimsSupported.ConnectIdMandatoryToSupportClaims);
 
 		addRequestsForClaims(claimsObject, claimsToAdd);
 
-		logSuccess("Added IDMVP required claims to authorization_endpoint_request using various different forms of request",
+		logSuccess("Added ConnectID required claims to authorization_endpoint_request using various different forms of request",
 			args("authorization_endpoint_request", authorizationEndpointRequest,
 				"oidc_claims", claimsToAdd));
 

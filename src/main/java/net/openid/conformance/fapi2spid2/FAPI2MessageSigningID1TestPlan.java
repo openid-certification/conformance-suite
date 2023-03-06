@@ -14,7 +14,7 @@ import java.util.Map;
 	displayName = "FAPI2-Message-Signing-ID1: Authorization server test - BETA; subject to change, no certification programme yet",
 	profile = TestPlan.ProfileNames.optest
 )
-public class FAPI2AdvancedID1TestPlan implements TestPlan {
+public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		// Normal well behaved client cases
 		FAPI2SPID2DiscoveryEndpointVerification.class,
@@ -82,7 +82,7 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 		// OB Brazil specific tests
 		FAPI2SPID2BrazilEnsureBadPaymentSignatureFails.class,
 
-		// IDMVP specific tests
+		// ConnectID specific tests
 		FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims.class,
 
 		//PAR tests
@@ -129,7 +129,7 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
 		boolean openid = openidVariant.equals("openid_connect");
 
-		String certProfile = "FAPI2AdvancedID2 ";
+		String certProfile = "FAPI2MsgSigningID2 ";
 
 		if (openid) {
 			certProfile += "OpenID ";
@@ -159,29 +159,32 @@ public class FAPI2AdvancedID1TestPlan implements TestPlan {
 			case "openbanking_brazil":
 				certProfile = "BR-OB";
 				break;
-			case "idmvp":
+			case "connectid_au":
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!signedRequest) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only signed requests are required for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only signed requests are required for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (dpop) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: DPoP sender constraining is not used for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: DPoP sender constraining is not used for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM responses are not used for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM responses are not used for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!openid) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: OpenID must be selected for IDMVP",
+					throw new RuntimeException(String.format("Invalid configuration for %s: OpenID must be selected for ConnectID",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return "IDMVP";
+				return "ConnectID OP";
+			default:
+				throw new RuntimeException(String.format("Unknown profile %s for %s",
+					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
 		certProfile += " OP w/";
