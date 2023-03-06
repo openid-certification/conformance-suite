@@ -1,24 +1,23 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Conformance" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <option name="ACTIVE_PROFILES" />
     <additionalParameters>
       <param>
-        <option name="enabled" value="$DEV_MACHINE$" />
+        <option name="enabled" value="true" />
         <option name="name" value="fintechlabs.devmode" />
-        <option name="value" value="$DEV_MACHINE$" />
+        <option name="value" value="true" />
       </param>
       <param>
-        <option name="enabled" value="$DEV_MACHINE$" />
+        <option name="enabled" value="true" />
         <option name="name" value="spring.data.mongodb.uri" />
         <option name="value" value="mongodb://127.0.0.1:27017/test_suite" />
       </param>
       <param>
-        <option name="enabled" value="$DEV_MACHINE$" />
+        <option name="enabled" value="true" />
         <option name="name" value="fintechlabs.external_url_override" />
         <option name="value" value="https://www.heenan.me.uk" />
       </param>
       <param>
-        <option name="enabled" value="$DEV_MACHINE$" />
+        <option name="enabled" value="true" />
         <option name="name" value="fintechlabs.base_url" />
         <option name="value" value="https://localhost.emobix.co.uk:8443" />
       </param>
@@ -29,7 +28,7 @@
     <option name="UPDATE_ACTION_UPDATE_POLICY" value="UpdateClassesAndTriggerFile" />
     <option name="VM_PARAMETERS" value="-Djdk.tls.maxHandshakeMessageSize=65536" />
     <method v="2">
-      <option name="Make" enabled="$DEV_MACHINE$" />
+      <option name="Make" enabled="true" />
     </method>
   </configuration>
 </component>
