@@ -1,6 +1,6 @@
 apiVersion: v2
-description: Helm chart for FAPI conformance suite
-name: fapi-conformance-suite
+description: Helm chart for OIDF conformance suite
+name: conformance-suite
 version: 0.1.1
 dependencies:
     - name: mongodb
