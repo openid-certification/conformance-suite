@@ -11,6 +11,7 @@ import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenRespo
 import net.openid.conformance.condition.client.FAPIBrazilRefreshTokenRequired;
 import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.condition.client.ValidateRefreshTokenNotRotated;
+import net.openid.conformance.condition.client.WaitFor30Seconds;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
@@ -77,7 +78,25 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
 				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-17").dontStopOnFailure());
 		}
+
+		// Save the refresh token prior to, possibly, obtaining a new one.
+		env.putString("refresh_token_prev", env.getString("refresh_token"));
 		call(sequence);
+
+		if (getVariant(FAPI2ID2OPProfile.class) != FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+			if (env.getString("refresh_token_prev").equals(env.getString("refresh_token"))) {
+				eventLog.log(getName(), "Refresh token not rotated. Skipping lost refresh token test.");
+			}
+			else {
+				// Restore the previous refresh token.
+				env.putString("refresh_token", env.getString("refresh_token_prev"));
+
+				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.1.1-9").butFirst(condition(WaitFor30Seconds.class));
+				call(sequence1);
+			}
+		}
+
+		env.removeNativeValue("refresh_token_prev");
 	}
 
 	@Override
