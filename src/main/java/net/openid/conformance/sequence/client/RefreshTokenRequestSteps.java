@@ -42,23 +42,33 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 
 	private boolean secondClient;
 	private boolean isDpop;
+	private String testTitle;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
 	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
-		this(secondClient, addClientAuthenticationToTokenEndpointRequest, false);
+		this(secondClient, addClientAuthenticationToTokenEndpointRequest, false, null);
 	}
 
 	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop) {
+		this(secondClient, addClientAuthenticationToTokenEndpointRequest, isDpop, null);
+	}
+
+	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop, String testTitle) {
 		this.secondClient = secondClient;
 		this.isDpop = isDpop;
+		this.testTitle = testTitle;
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 	}
 
 	@Override
 	public void evaluate() {
-		call(exec().startBlock(currentClient + "Refresh Token Request"));
+		if (testTitle == null) {
+			testTitle = "Refresh Token Request";
+		}
+		call(exec().startBlock(currentClient + testTitle));
+
 		callAndStopOnFailure(CreateRefreshTokenRequest.class);
 		if (!secondClient) {
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
