@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
+import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
@@ -150,5 +151,15 @@ public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 		if (!isSecondClient()) {
 			performAdditionalResourceEndpointTests();
 		}
+	}
+
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+
+		if (isOpenId && !isSecondClient()) {
+			callAndContinueOnFailure(EnsureIdTokenDoesNotContainNonRequestedClaims.class, Condition.ConditionResult.WARNING);
+		}
+
+		super.onPostAuthorizationFlowComplete();
 	}
 }
