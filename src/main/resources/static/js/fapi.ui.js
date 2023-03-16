@@ -298,9 +298,10 @@ var FAPI_UI = {
 		},
 
 		activeTooltip : function() {
-			$('[data-toggle="tooltip"]').tooltip({
-				container: 'body'
-			});
+
+                        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+                        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
 		},
 
 		getStatusHelp : function(value) {
@@ -363,11 +364,18 @@ var FAPI_UI = {
 			}
 
 			FAPI_UI.hideBusy(); // only one modal at a time
-			$('#errorModal').modal('show');
+                        var myModalEl = document.getElementById('errorModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
 		},
 
 		hideError : function() {
-			$('#errorModal').modal('hide');
+                        var myModalEl = document.getElementById('errorModal');
+                        var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+                        if (modal != null) {
+                            modal.hide();
+                        }
 		},
 
 		showBusy : function(label, message) {
@@ -379,11 +387,19 @@ var FAPI_UI = {
 			$('#loadingMessage').html(_.escape(message));
 
 			FAPI_UI.hideError(); // only one modal at a time
-			$('#loadingModal').modal('show');
+
+                        var myModalEl = document.getElementById('loadingModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
 		},
 
 		hideBusy : function() {
-			$('#loadingModal').modal('hide');
+                        var myModalEl = document.getElementById('loadingModal');
+                        var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+                        if (modal != null) {
+                            modal.hide();
+                        }
 		},
 
 		// responsible for converting any dot syntax in our key parameter into object refs

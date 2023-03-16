@@ -1,15 +1,15 @@
             <span class="log-http">
                 <% if (http == 'request') { %>
-                    <span class="label label-info"><span class="glyphicon glyphicon-arrow-right"></span> REQUEST</span>
+                    <span class="badge bg-info"><span class="bi bi-arrow-right"></span> REQUEST</span>
                 <% } else if (http == 'response') { %>
-                    <span class="label label-info"><span class="glyphicon glyphicon-arrow-left"></span> RESPONSE</span>
+                    <span class="badge bg-info"><span class="bi bi-arrow-left"></span> RESPONSE</span>
                 <% } else if (http == 'incoming') { %>
-                    <span class="label label-info"><span class="glyphicon glyphicon-arrow-down"></span> INCOMING</span>
+                    <span class="badge bg-info"><span class="bi bi-arrow-down"></span> INCOMING</span>
                 <% } else if (http == 'outgoing') { %>
-                    <span class="label label-info"><span class="glyphicon glyphicon-arrow-up"></span> OUTGOING</span>
+                    <span class="badge bg-info"><span class="bi bi-arrow-up"></span> OUTGOING</span>
                 <% } else if (http == 'redirect') { %>
-                    <span class="label label-info"><span class="glyphicon glyphicon-share-alt"></span> REDIRECT</span>
+                    <span class="badge bg-info"><span class="bi bi-send-fill"></span> REDIRECT</span>
                 <% } else if (http == 'redirect-in') { %>
-                    <span class="label label-info"><span class="glyphicon glyphicon-download"></span> REDIRECT-IN</span>
+                    <span class="badge bg-info"><span class="bi bi-arrow-down-circle"></span> REDIRECT-IN</span>
                 <% } %>
             </span>
