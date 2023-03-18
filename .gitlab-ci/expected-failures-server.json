@@ -96,19 +96,5 @@
         "condition": "EnsureHttpStatusCodeIs401",
         "expected-result": "warning",
         "comment": "Authlete doesn't support jti uniqueness"
-    },
-    {
-        "test-name": "fapi2-baseline-id2-dpop-negative-tests",
-        "variant": {
-            "openid": "openid_connect",
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "dpop",
-            "fapi_profile": "openbanking_brazil"
-        },
-        "configuration-filename": "authlete-fapi2baseline-brazil-privatekey-dpop.json",
-        "current-block": "Try DPoP proof expecting Scheme based comparison of htm claim",
-        "condition": "EnsureHttpStatusCodeIs200or201",
-        "expected-result": "warning",
-        "comment": "Authlete doesn't support jti uniqueness"
     }
 ]
