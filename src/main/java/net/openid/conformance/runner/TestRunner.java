@@ -243,6 +243,13 @@ public class TestRunner implements DataUtils {
 					recreate=true;
 				}
 			}
+			if (testPlan.getPlanName().equals("fapi2-security-profile-id2-test-plan") ||
+				testPlan.getPlanName().equals("fapi2-message-signing-id1-test-plan"))
+			{
+				if (planVersion.isLowerThan("5.1.1")) {
+					recreate=true;
+				}
+			}
 			if (recreate) {
 				return new ResponseEntity<>(stringMap("error", "This test plan was created on an old version of the suite. Please recreate the plan (using the 'Edit Configuration' button)."), HttpStatus.INTERNAL_SERVER_ERROR);
 			}
