@@ -6,7 +6,7 @@
     </JavaCodeStyleSettings>
     <codeStyleSettings language="JAVA">
       <indentOptions>
-        <option name="USE_TAB_CHARACTER" value="$DEV_MACHINE$" />
+        <option name="USE_TAB_CHARACTER" value="true" />
       </indentOptions>
     </codeStyleSettings>
   </code_scheme>

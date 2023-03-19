@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>net.openid</groupId>
-	<artifactId>fapi-conformance-suite</artifactId>
+	<artifactId>conformance-suite</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>FAPI Conformance Test</name>
-	<description>Network based protocol tester for FAPI and related systems.</description>
+	<name>Conformance Suite</name>
+	<description>Network based protocol tester for OpenID Foundation specifications etc.</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -415,7 +415,7 @@
 			<dependency>
 				<groupId>io.specto</groupId>
 				<artifactId>hoverfly-java</artifactId>
-				<version>0.14.0</version>
+				<version>0.14.4</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>

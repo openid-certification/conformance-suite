@@ -21,7 +21,7 @@ cp package/docker-compose.yml $TMPDIR
 
 echo Archiving...
 
-TARGET=${PWD}/fapi-conformance-suite-${VERSION}.zip
+TARGET=${PWD}/conformance-suite-${VERSION}.zip
 
 (cd $TMPDIR && zip -r $TARGET .)
 
