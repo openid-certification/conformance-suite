@@ -99,6 +99,7 @@
 		<!-- a potentially useful rule, but triggers loads of false positives as we have many real classes that have
 		 'Test' in their name, and isn't configurable enough -->
 		<exclude name="JUnit4TestShouldUseTestAnnotation"/>
+		<exclude name="ArrayIsStoredDirectly"/>
 	</rule>
 	<!--
 	   We should probably enable more rules one day

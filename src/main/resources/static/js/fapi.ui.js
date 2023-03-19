@@ -462,6 +462,7 @@ var FAPI_UI = {
 			"OIDCR-" : "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.",
 			"OAuth2-FP" : "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html#rfc.section.",
 			"OAuth2-iss" : "https://tools.ietf.org/html/rfc9207#section-",
+			"RFC3986-" :"https://tools.ietf.org/html/rfc3986#section-",
 			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
 			"RFC6749A-" : "https://tools.ietf.org/html/rfc6749#appendix-",
 			"RFC6750-" : "https://tools.ietf.org/html/rfc6750#section-",

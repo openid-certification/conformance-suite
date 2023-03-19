@@ -87,5 +87,19 @@
         "condition": "ValidateIdTokenACRClaimAgainstRequest",
         "expected-result": "failure",
         "comment": "RP tests currently don't return requested acr values"
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-dpop-negative-tests",
+        "variant": {
+            "openid": "openid_connect",
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "fapi_profile": "openbanking_brazil"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "current-block": "DPoP reuse, Second use of the same jti",
+        "condition": "EnsureHttpStatusCodeIs401",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support jti uniqueness"
     }
 ]
