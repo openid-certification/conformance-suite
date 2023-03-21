@@ -1,513 +1,63 @@
-/** Generic styles **/
-body {
-	font-family: 'PT Sans', sans-serif;
-	font-size: 16px;
-}
-
-.pageHeader {
-	margin-top: 5px;
-	margin-bottom: 20px;
-	padding-bottom: 10px;
-}
-
-.pageHeader img {
-	max-height: 40px;
-}
-
-h1 {
-	font-size: 24px;
-	margin: 0 0 5px;
-}
-
-h2 {
-	font-size: 20px;
-	margin: 0 0 5px;
-}
-
-h3 {
-	font-size: 18px;
-	margin: 0;
-	padding: 10px;
-}
-
-a {
-	text-decoration: none;
-	color: #1bc5f8;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-input[type=text], textarea {
-	text-indent: 5px;
-	border: 1px solid #ccc;
-}
-
-.wrapLongStrings {
-	word-wrap: break-word;
-	word-break: break-all;
-}
-
-.wrapLongStrings pre {
-	white-space: pre-wrap;
-}
-
-/** index.html **/
-textarea {
-	width: 100%;
-	height: 200px;
-}
-
-#alias {
-	width: 100%;
-	margin: 15px 0 0px;
-}
-
-#launch-buttons button {
-	margin: 5px 5px 5px 0;
-}
-
-.runningTest {
-	border-bottom: 1px #eee solid;
-	padding: 5px;
-}
-
-.runningTest:hover {
-	background-color: #f6fefe;
-}
-
-#running-tests {
-	border-left: 1px #eee solid;
-	border-top: 1px #eee solid;
-}
-
-.testResult {
-	margin: 10px 0;
-	padding: 5px;
-	border-radius: 5px;
-}
-
-.testResult.result-unknown {
-	background-color: #efefef;
-}
-
-.testResult.result-failed {
-	background-color: #bc827d;
-}
-
-.testResult.result-waiting {
-	background-color: #eab79c;
-}
-
-.testResult.result-passed {
-	background-color: #a8c69f;
-}
-
-.testResult.result-configured {
-	background-color: #d5aee5;
-}
-
-.testResult button {
-	color: #fff;
-	border: 2px solid #fff;
-}
-
-.testResult button.start {
-	background-color: #00ee00;
-}
-
-.testResult button.stop {
-	background-color: #ee0000;
-}
-
-.testResult button.view {
-	background-color: #4cc6ea;
-}
-
-.browser li {
-	padding: 5px;
-}
-
-.externalURLLink {
-	background-color: #111;
-	padding: 5px;
-}
-
-/* JSON form tabs */
-.tab-content {
-	padding: 0px 12px;
-	border: 1px solid #ddd;
-	border-top: none;
-}
-
-.tab-pane {
-	padding: 0px;
-}
-
-.tab-content input {
-	width: 100%;
-}
-
-.tab-content textarea {
-	width: 100%;
-	height: 240px;
-}
-
-.tab-content .row {
-	margin-bottom: 10px;
-}
-
-#config {
-	border: none;
-}
-
-.config-form-container-header {
-	border-bottom: 1px #dcdcdc solid;
-	background: linear-gradient(#ffffff, #efefef);
-}
-
-/** index.html end **/
-
-/** logs listing **/
-#logs {
-	margin: 0 20px;
-}
-
-#logs .content .link {
-	margin: 5px 0;
-}
-
-#fixedDiv {
-          display: none;
-          position: fixed;
-          bottom: 20px;
-          right: 30px;
-          padding: 15px;
-          border-radius: 4px;
-          z-index: 750;
-}
-
-.listHeader {
-	padding: 5px 0px 0px;
-	background-color: #fff;
-	border: 1px solid #ddd;
-	border-radius: 3px;
-}
-
-.logContent {
-	border-top: 1px #eee solid;
-}
-
-.logItem {
-	border-bottom: 1px #eee solid;
-	padding-top: 7px;
-	padding-bottom: 3px;
-}
-
-.startBlock {
-	border: none;
-	font-size: 0.8em;
-	font-weight: bold;
-}
-
-.logItem:hover {
-	background-color: #f6fefe;
-}
-
-.log-source {
-	font-family: monospace;
-	font-size: 85%;
-	color: #666666;
-}
-
-/* Override the default link color */
-.log-requirement a:link, .log-requirement a:visited {
-	color: #ffffff;
-}
-
-.bgSummary {
-	padding: 5px 10px;
-	margin: 4px;
-	border: 1px #ddd solid;
-	border-radius: 2px;
-}
-
-.testStatusResultBlock {
-	padding: 5px 10px;
-	border-radius: 3px;
-	margin: 1px;
-	text-align: center;
-	font-size: 110%;
-}
-
-.testStatusResultBox {
-	display: inline-block;
-	padding: 5px 10px;
-	border-radius: 3px;
-	margin: 1px;
-	text-align: center;
-	font-size: 110%;
-	height: 2rem;
-}
-
-.testStatus-created {
-	background-color: #fcd9f6;
-	color: black;
-}
-
-.testStatus-configured {
-	background-color: #d3fffe;
-	color: black;
-}
-
-.testStatus-running {
-	background-color: #6d09e8;
-	color: white;
-}
-
-.testStatus-waiting {
-	background-color: #6ac4c2;
-	color: black;
-}
-
-.testStatus-interrupted {
-	background-color: #b70018;
-	color: white;
-}
-
-.testStatus-finished {
-	background-color: #383647;
-	color: white;
-}
-
-.testStatus-unknown {
-    background-color: #dedada;
-    color: #6d6a6a;
-}
-
-.testResult-passed {
-	background-color: #40e809;
-	color: black;
-}
-
-.testResult-warning {
-	background-color: #d88602;
-	color: white;
-}
-
-.testResult-failed {
-	background-color: red;
-	color: white;
-}
-
-.testResult-review {
-	background-color: #6ac4c2;
-	color: black;
-}
-
-.testResult-skipped {
-    background-color: #d88602;
-    color: white;
-}
-
-.testResult-unknown {
-	background-color: #dedada;
-	color: #6d6a6a;
-}
-
-/* to make labels wrap better */
-.labelCollection {
-	line-height: 1.5em;
-}
-
-.moreInfo {
-	background: #eee;
-	border: thin #C0C0C0 solid;
-	border-radius: 4px;
-	padding: 6px;
-}
-
-.pageFooter {
-	padding: 4rem 0;
-	margin-top: 4rem;
-	font-size: 85%;
-	text-align: center;
-	background-color: #f7f7f7;
-}
-
-/* Test result labels */
-.badge.result-success {
-	background-color: #00cc00;
-}
-
-.badge.result-failure {
-	background-color: #cc0000;
-}
-
-.badge.result-warning {
-	background-color: #d88602;
-}
-
-.badge.result-review {
-	background-color: #00ccff;
-}
-
-.badge.result-interrupted {
-	background-color: #ddbb88;
-}
-
-.badge.result-finished {
-	background-color: #383647;
-}
-
-.badge.result-info {
-	background-color: #e2bfce;
-}
-
-.badge.result-skipped {
-    background-color: #d88602;
-}
-
-/* JJH: I don't believe this default value is ever used, there is no code to treat an unknown value as the default
-  and unknown values seem to display as white-on-white */
-.badge.result-default {
-	background-color: #00cc00;
-}
-
-.badge.result-success .rounded-pill,
-.badge.result-failure .rounded-pill,
-.badge.result-warning .rounded-pill,
-.badge.result-review .rounded-pill,
-.badge.result-interrupted .rounded-pill,
-.badge.result-info .rounded-pill,
-.badge.result-finished .rounded-pill,
-.badge.result-skipped .rounded-pill,
-.badge.result-default .rounded-pill {
-	background-color: rgba(0.5, 0.5, 0.5, 0.5);
-	font-size: 10px;
-}
-
-
-.ownerSub {
-	background: #d9c9fe;
-	color: black;
-	padding: 2px 10px;
-	border-top-left-radius: 6px;
-	border-bottom-left-radius: 6px;
-	border-top: 1px darkgrey solid;
-	border-left: 1px darkgrey solid;
-	border-bottom: 1px darkgrey solid;
-}
-
-.ownerIss {
-	background: #d3dcf5;
-	color: black;
-	padding: 2px 10px;
-	border-top-right-radius: 6px;
-	border-bottom-right-radius: 6px;
-	border-top: 1px darkgrey solid;
-	border-right: 1px darkgrey solid;
-	border-bottom: 1px darkgrey solid;
-}
-
-/* pretty-printed JSON blocks */
-pre.prettyprint {
-	border: none !important;
-}
-
-/* highlighted JWTs */
-.jwtHeader {
-	color: #fb015b;
-}
-
-.jwtPayload {
-	color: #d63aff;
-}
-
-.jwtSignature {
-	color: #00b9f1;
-}
-
-.jweCypher {
-	color: #f1a551;
-}
-
-.jweTag {
-	color: #38a321;
-}
-
-.darkblue {
-	color: #23527c;
-}
-
-/* spacers for page elements */
-.top5 { margin-top:5px; }
-.top7 { margin-top:7px; }
-.top10 { margin-top:10px; }
-.top15 { margin-top:15px; }
-.top17 { margin-top:17px; }
-.top30 { margin-top:30px; }
-
-.pad28 { padding: 28px; }
-
-/* shim for hidden elements */
-[hidden] {
-	display: none !important;
-}
-
-.imagePreview {
-	max-height: 50vh;
-}
-
-.paddingRight5 {
-	padding-right: 5px;
-}
-
-.marginTopBottom5 {
-	margin: 5px 0px 5px 0px;
-}
-
-.fitContent {
-	display: block;
-	width: fit-content;
-}
-
-.showHover {
-	cursor: pointer;
-}
-
-.sticky {
-	position: fixed;
-	top: 0;
-	z-index:100;
-}
-
-/* Bootstrap card background color */
-.card {
-        background-color: #f1f1f1;
-}
-
-.row-bg-light {
-        background-color: #f9f9f9;
-}
-
-/* People on large monitors <= 3000 */
-@media all and (max-width : 3000px) {
-}
-
-/* Regular desktop/laptop type users & tablet landscape <= 1400 */
-@media all and (max-width : 1400px) {
-}
-
-/* < Tablet landscape */
-@media all and (max-width : 1023px) {
-}
-
-/* <= Phones */
-@media all and (max-width : 640px) {
-}
-
-/* <= Phones portrait */
-@media all and (max-width : 320px) {
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;400;700&display=swap');
+
+:root {
+	--bs-link-color: #353793;
+	--bs-link-hover-color: #353793;
+}
+
+body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
+	font-family: Roboto, sans-serif;
+}
+
+.btn-openid-orange {
+	--bs-btn-color: #fff;
+	--bs-btn-bg: #F59000;
+	--bs-btn-border-color: #F59000;
+	--bs-btn-hover-color: #fff;
+	--bs-btn-hover-bg: #c47300;
+	--bs-btn-hover-border-color: #c47300;
+	--bs-btn-focus-shadow-rgb: 225,83,97;
+	--bs-btn-active-color: #fff;
+	--bs-btn-active-bg: ##ffa82b;
+	--bs-btn-active-border-color: ##ffa82b;
+	--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+	--bs-btn-disabled-color: #fff;
+	--bs-btn-disabled-bg: #F5900088;
+	--bs-btn-disabled-border-color: #F5900088;
+	--bs-gradient: none;
+}
+
+.btn-openid-purple {
+	--bs-btn-color: #fff;
+	--bs-btn-bg: #353793;
+	--bs-btn-border-color: #353793;
+	--bs-btn-hover-color: #fff;
+	--bs-btn-hover-bg: #252767;
+	--bs-btn-hover-border-color: #252767;
+	--bs-btn-focus-shadow-rgb: 225,83,97;
+	--bs-btn-active-color: #fff;
+	--bs-btn-active-bg: #3c3faa;
+	--bs-btn-active-border-color: #3c3faa;
+	--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+	--bs-btn-disabled-color: #fff;
+	--bs-btn-disabled-bg: #35379388;
+	--bs-btn-disabled-border-color: #35379388;
+	--bs-gradient: none;
+}
+
+.btn-openid-purple-outline {
+	--bs-btn-color: #353793;
+	--bs-btn-border-color: #353793;
+	--bs-btn-hover-color: #fff;
+	--bs-btn-hover-bg: #353793;
+	--bs-btn-hover-border-color: #353793;
+	--bs-btn-focus-shadow-rgb: 13,110,253;
+	--bs-btn-active-color: #fff;
+	--bs-btn-active-bg: #353793;
+	--bs-btn-active-border-color: #353793;
+	--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+	--bs-btn-disabled-color: #35379388;
+	--bs-btn-disabled-bg: transparent;
+	--bs-btn-disabled-border-color: #35379388;
+	--bs-gradient: none;
 }
