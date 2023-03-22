@@ -9,7 +9,7 @@ body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
 	font-family: Roboto, sans-serif;
 }
 
-.btn-openid-orange {
+.btn-oidf-orange {
 	--bs-btn-color: #fff;
 	--bs-btn-bg: #F59000;
 	--bs-btn-border-color: #F59000;
@@ -18,8 +18,8 @@ body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
 	--bs-btn-hover-border-color: #c47300;
 	--bs-btn-focus-shadow-rgb: 225,83,97;
 	--bs-btn-active-color: #fff;
-	--bs-btn-active-bg: ##ffa82b;
-	--bs-btn-active-border-color: ##ffa82b;
+	--bs-btn-active-bg: #ffa82b;
+	--bs-btn-active-border-color: #ffa82b;
 	--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 	--bs-btn-disabled-color: #fff;
 	--bs-btn-disabled-bg: #F5900088;
@@ -27,7 +27,7 @@ body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
 	--bs-gradient: none;
 }
 
-.btn-openid-purple {
+.btn-oidf-purple {
 	--bs-btn-color: #fff;
 	--bs-btn-bg: #353793;
 	--bs-btn-border-color: #353793;
@@ -45,7 +45,7 @@ body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
 	--bs-gradient: none;
 }
 
-.btn-openid-purple-outline {
+.btn-oidf-purple-outline {
 	--bs-btn-color: #353793;
 	--bs-btn-border-color: #353793;
 	--bs-btn-hover-color: #fff;
@@ -60,4 +60,33 @@ body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
 	--bs-btn-disabled-bg: transparent;
 	--bs-btn-disabled-border-color: #35379388;
 	--bs-gradient: none;
+}
+
+.page-link {
+	--bs-pagination-active-bg: #353793;
+	--bs-pagination-active-border-color: #353793;
+}
+
+.badge-oidf-purple {
+	background-color: #353793;
+}
+
+.openid-logo {
+	max-width: 190px;
+}
+
+.bg-oidf-light {
+	background-color: #eceeef;
+}
+
+.navbar-oidf-item {
+	border-bottom: 2px solid #fff;
+}
+
+.navbar-oidf-item:hover {
+	border-bottom: 2px solid #f59000;
+}
+
+.datatable-container {
+	border-bottom: none !important;
 }

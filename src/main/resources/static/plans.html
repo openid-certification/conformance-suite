@@ -1,318 +1,183 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta charset="UTF-8">
-    <title>OIDF Conformance: Available plans</title>
-
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-
-    <!-- Boostrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
-    <link rel="stylesheet" type="text/css" href="css/layout.css">
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css">
-
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
-
-    <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js"></script>
-
-    <script type="text/javascript" src="js/fapi.ui.js"></script>
+    <title>OpenID Foundation: Conformance test suite</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.2.0/dist/style.css" rel="stylesheet" type="text/css">
+    <link href="/css/layout.css" rel="stylesheet" >
+    <style>
+    </style>
 </head>
-
 <body>
 
-    <div class="pageHeader container-fluid">
-        <div class="row">
-            <div class="col-md-8">
-                <a href="index.html"><img src="/images/openid.png"></a>
-            </div>
-            <div id="userInfoHolder" class="col-md-4"></div>
-        </div>
-    </div>
-    <div class="clearfix"></div>
 
-    <!-- resident DOM -->
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
+<nav class="navbar navbar-expand-md py-4">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <img class="d-inline-block mb-4 openid-logo" src="/images/openid-logo.png" alt="OpenID Foundation" />
+        </a>
 
-                <table id="plansListing" class="table table-striped table-bordered table-hover">
-                    <thead>
-                    </thead>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-                    <tbody>
-                    </tbody>
-                </table>
+        <div class="collapse navbar-collapse text-uppercase" id="main-navbar">
+            <ul class="navbar-nav me-auto mb-2 mb-sm-0">
 
-            </div>
-        </div>
-    </div>
+                <li class="nav-item ms-5">
+                    <a class="nav-link navbar-oidf-item active" href="#">Home</a>
+                </li>
 
+                <li class="nav-item ms-3">
+                    <a class="nav-link navbar-oidf-item" href="/schedule-test.html">Create new test plan</a>
+                </li>
 
-    <!-- error modal -->
-    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Error</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Error: <span id="errorMessage"></span>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+                <li class="nav-item ms-3 dropdown">
+                    <a class="nav-link navbar-oidf-item dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">View</a>
+                    <ul class="dropdown-menu">
+                        <li class="m-2"><a class="dropdown-item" href="/plans.html">View all test plans</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="/plans.html?public=true">View published test plans</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="/logs.html">View all logs</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="/logs.html?public=true">View published logs</a></li>
+                    </ul>
+                </li>
 
-    <!-- loading modal -->
-    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center">
-                        <img src="/images/spinner.gif" width="100px" height="30px" />
-                    </div>
-                    <div>
-                        <span id="loadingMessage"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                <li class="nav-item ms-3 dropdown">
+                    <a class="nav-link navbar-oidf-item dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Documentation</a>
+                    <ul class="dropdown-menu">
+                        <li class="m-2"><a class="dropdown-item" href="https://openid.net/certification/instructions/" target="oidf">Instructions</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="https://openid.net/certification/faq/" target="oidf">FAQ</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="/api-document.html">API documentation</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="ttps://openid.net/certification/fees/">Certification fees</a></li>
+                    </ul>
+                </li>
 
-    <!-- Config modal popup -->
-    <div class="modal" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true"></span>
+            </ul>
+
+            <div class="nav-item ms-3 dropdown">
+
+                <div class="btn-group">
+                    <button id="logged-in-user" type="button" class="btn btn-sm btn-oidf-orange dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     </button>
-                    <h4 class="modal-title">
-                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
-                        Configuration for <code id="configTestId" class="text-muted"></code>
-                    </h4>
+                    <ul class="dropdown-menu">
+                        <li><small><a class="dropdown-item disabled" href="#">Tokens</a></small></li>
+                        <li><small><a class="dropdown-item" href="#">Log out</a></small></li>
+                    </ul>
                 </div>
-                <div class="modal-body">
-                    <div class="wrapLongStrings row-bg-light p-1">
-                        <pre id="config"></pre>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+
             </div>
+
         </div>
     </div>
+</nav>
 
+<div class="container mt-4">
+    <h3>Most recent test plans</h3>
+    <hr class="my-4" />
 
-    <script>
-        /**
-         *
-         */
-        $(document).ready(function() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var public = Boolean(urlParams.get('public'));
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Plan id</th>
+            <th>Name</th>
+            <th>Variant</th>
+            <th>Description</th>
+            <th>Started</th>
+        </tr>
+        </thead>
+    </table>
 
-            FAPI_UI.showBusy();
+</div>
 
-            FAPI_UI.loadPlanListTemplates()
-            .then(function() {
-                return FAPI_UI.getUserInfo();
-            }).then(function() {
-                return loadAvailablePlans(public);
-            }).always(function() {
-                FAPI_UI.hideBusy();
-            });
+<div class="container py-5">
+    <footer class="footer d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+        <p class="col-md-6 mb-0 text-muted">
+            OpenID Conformance Suite
+            <span id="suite-version"></span>
+            <span id="external-ip"></span>
+        </p>
 
-            var clipboard = new ClipboardJS('.btn-clipboard');
-            clipboard.on('success', function(e) {
-                console.log(e);
-            });
-            clipboard.on('error', function(e) {
-                console.log(e);
-            });
-
-        });
-
-        /**
-         *
-         */
-
-        /**
-         *
-         */
-        function loadAvailablePlans(public) {
-            return $('#plansListing').DataTable({
-                serverSide: true,
-                ajax: {
-                    url: '/api/plan' + (public ? '?public=true' : ''),
-                    cache: true,
-                    data: function(data) {
-                        // Translate query parameters into a simpler schema
-                        return {
-                            draw: data.draw,
-                            start: data.start,
-                            length: data.length,
-                            search: data.search.value,
-                            order: _.map(data.order, function(x) {
-                                return data.columns[x.column].data + ',' + x.dir;
-                            }).join(',')
-                        };
-                    },
-                    error: function(jqxhr, status, error) {
-                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                            code: jqxhr.status,
-                            error: error
-                        });
-                    }
-                },
-                columns: [
-                    {
-                        title: 'Instance ID',
-                        data: '_id',
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data, public: public }); }
-                        }
-                    },
-                    {
-                        title: 'Config',
-                        data: null,
-                        render: {
-                            display: function() { return FAPI_UI.logTemplates.CONFIG(); }
-                        },
-                        createdCell: function(cell) { $(cell).addClass('configColumn'); },
-                        orderable: false,
-                        visible: !public
-                    },
-                    {
-                        title: 'Name',
-                        data: 'planName',
-                        render: $('#plansListing').DataTable.render.text()
-                    },
-                    {
-                        title: 'Variant',
-                        data: 'variant',
-                        defaultContent: '',
-                        render: {
-                            display: function(v) { return FAPI_UI.formatVariant(v); }
-                        }
-                    },
-                    {
-                        title: 'Description',
-                        data: 'description',
-                        render: $('#plansListing').DataTable.render.text(),
-                        defaultContent: ''
-                    },
-                    {
-                        title: 'Started',
-                        data: 'started',
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
-                        }
-                    },
-                    {
-                        title: 'Modules',
-                        data: 'modules',
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.PLAN_MODULES({ modules: data }); }
-                        },
-                        orderable: false
-                    },
-                    {
-                        title: 'Owner',
-                        data: function(row) { return { owner: row.owner ? row.owner : {} }; },
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
-                        },
-                        visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin
-                    }
-                ],
-                createdRow: function(row, data) {
-                    // wire up configuration button
-                    $('.showConfigBtn', row).click(function(evt) {
-                        evt.preventDefault();
-                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
-                        $('#configTestId').html(_.escape(data._id));
-
-                        var myModalEl = document.getElementById('configModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
-                    });
-                },
-                drawCallback: function() {
-                    FAPI_UI.activeTooltip();
-                    fetchTestResults($('#plansListing').DataTable(), public);
-                },
-                order: [[5, "desc"]] // sort by the "date" column, descending, by default
-            });
-        }
-
-        function fetchTestResults(dt, public) {
-            // for every visible row
-            dt.rows(':visible').every(function (index) {
-                var row = dt.row(index);
-                // look for any test instances that haven't been loaded
-                $('[data-instance]', row.node()).each(function() {
-
-                    var el = $(this);
-
-                    var testId = el.data('instance');
-
-                    if (testId) {
-                        // get this instance's status
-                        $.ajax({
-                            type: 'GET',
-                            url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
-                            data: {},
-                            success: function(data) {
-                                el.data('instance', ''); // clear the data attribute so we don't re-fetch
-                                if (data.result) {
-                                    el.removeClass('testResult-unknown');
-                                    el.addClass('testResult-' + data.result.toLowerCase());
-                                }
-                            },
-                            error: function() {
-
-                            }
-                        });
-                    }
-                });
-            });
-
-        }
-
-    </script>
-
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
+        <ul class="nav col-md-6 justify-content-end">
+            <li class="nav-item"><a href="https://openid.net/certification/instructions/" target="oidf" class="nav-link px-2">Instructions</a></li>
+            <li class="nav-item"><a href="https://openid.net/certification/faq/" target="oidf" class="nav-link px-2">FAQ</a></li>
+            <li class="nav-item"><a href="https://openid.net/certification/fees/" target="oidf" class="nav-link px-2">Certification fees</a></li>
+        </ul>
     </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+<!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script src="js/fapi.ui.js"></script-->
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.2.0"></script>
+<script src="js/common.js"></script>
+<script>
+
+async function loadPlans() {
+    const plans = await fetchJson('/api/plan?' + new URLSearchParams({
+        draw: 1,
+        start: 0,
+        length: 16,
+        search: '',
+        order: 'started desc'
+    }));
+    return plans;
+}
+
+(async () => {
+
+    const plans = await loadPlans();
+    console.log(plans);
+    const columnData = plans.data.map(p => [
+        p._id,
+        p.planName,
+        Object.keys(p.variant).map(k => { return `${k}=${p.variant[k]}` }).join(', '),
+        p.description,
+        p.started
+    ]);
+
+    window.table = new simpleDatatables.DataTable('.table', {
+        searchable: false,
+        paging: false,
+        classes: {
+            active: 'active',
+            disabled: 'disabled',
+            dropdown: 'entries-per-page',
+            selector: 'form-select',
+            search: 'datatable-search',
+            input: 'form-control',
+            pagination: 'ignore',
+            paginationList: 'pagination',
+            paginationListItem: 'page-item',
+            paginationListItemLink: 'page-link'
+        },
+        columns: [
+            {
+                select: 0,
+                type: 'html',
+                render: (cell) => {
+                    let planId = cell[0].data;
+                    return `<a href="/plan-detail.html?plan=${planId}">${planId}</a>`;
+                }
+            },
+            {
+                select: 4,
+                type: 'html',
+                render: (cell) => {
+                    let started = cell[0].data;
+                    let startedDate = new Date(Date.parse(started));
+                    return startedDate.toISOString();
+                }
+            }
+        ],
+        data: { data: columnData }
+    });
+
+})();
+
+</script>
 
 </body>
-
 </html>

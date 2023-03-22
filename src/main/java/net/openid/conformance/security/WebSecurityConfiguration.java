@@ -236,7 +236,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 		http.csrf().disable()
 				.authorizeRequests()
-					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/robots.txt", "/.well-known/**")
+					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/robots.txt", "/.well-known/**", "/api/server")
 					.permitAll()
 				.and().authorizeRequests()
 					.requestMatchers(publicRequestMatcher("/log-detail.html", "/logs.html", "/plan-detail.html", "/plans.html"))

@@ -13,7 +13,7 @@
 <div class="container col-xl-10 col-xxl-8 px-4 py-5">
     <div class="col">
         <a class="d-inline-block" href="/">
-            <img class="d-block mb-4" src="/images/openid-logo.png" alt="OpenID Foundation" width="190" />
+            <img class="d-block mb-4 openid-logo" src="/images/openid-logo.png" alt="OpenID Foundation" />
         </a>
     </div>
 
@@ -28,10 +28,10 @@
             </p>
             <div class="row row-cols-auto gx-1 my-4">
                 <div class="col">
-                    <a href="/logs.html?public=true" class="btn btn-openid-orange">View published logs</a>&nbsp;
+                    <a href="/logs.html?public=true" class="btn btn-oidf-orange">View published logs</a>&nbsp;
                 </div>
                 <div class="col">
-                    <a href="/plans.html?public=true" class="btn btn-openid-orange">View published plans</a>
+                    <a href="/plans.html?public=true" class="btn btn-oidf-orange">View published plans</a>
                 </div>
             </div>
         </div>
@@ -39,17 +39,17 @@
             <div class="p-4 p-md-5 border rounded-3 bg-light">
                 <p class="text-muted text-center fs-5 mb-4">Log in with</p>
                 <div class="form-floating mb-3">
-                    <a href="/openid_connect_login?iss=https://accounts.google.com" class="btn btn-openid-purple btn-lg w-100">Google</a>
+                    <a href="/openid_connect_login?iss=https://accounts.google.com" class="btn btn-oidf-purple btn-lg w-100">Google</a>
                 </div>
                 <div class="form-floating mb-3">
-                    <a href="/openid_connect_login?iss=https://gitlab.com" class="btn btn-openid-purple btn-lg w-100">Gitlab</a>
+                    <a href="/openid_connect_login?iss=https://gitlab.com" class="btn btn-oidf-purple btn-lg w-100">Gitlab</a>
                 </div>
                 <hr class="my-4">
                 <p class="text-muted mb-2 form-label">Username:</p>
                 <form action="/openid_connect_login" method="post" id="login_form" onsubmit="addAcctToIdentifierValue()">
                     <div class="input-group mb-3">
                     <input id="identifier" type="text" class="form-control" placeholder="name@example.com" aria-label="Username" aria-describedby="button-addon-username-login">
-                    <button class="btn btn-openid-purple-outline" type="submit" id="button-addon-username-login">Log in</button>
+                    <button class="btn btn-oidf-purple-outline" type="submit" id="button-addon-username-login">Log in</button>
                     </div>
                 </form>
                 <hr class="my-4">
@@ -70,7 +70,7 @@
                         <p id="modal-details"></p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-openid-purple" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-oidf-purple" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -81,9 +81,13 @@
 
 <div class="container col-xl-10 col-xxl-8 px-4 py-5">
     <footer class="footer d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-        <p class="col-md-4 mb-0 text-muted">OpenID Conformance Suite</p>
+        <p class="col-md-6 mb-0 text-muted">
+            OpenID Conformance Suite
+            <span id="suite-version"></span>
+            <span id="external-ip"></span>
+        </p>
 
-        <ul class="nav col-md-4 justify-content-end">
+        <ul class="nav col-md-6 justify-content-end">
             <li class="nav-item"><a href="https://openid.net/certification/instructions/" target="oidf" class="nav-link px-2">Instructions</a></li>
             <li class="nav-item"><a href="https://openid.net/certification/faq/" target="oidf" class="nav-link px-2">FAQ</a></li>
             <li class="nav-item"><a href="https://openid.net/certification/fees/" target="oidf" class="nav-link px-2">Certification fees</a></li>
@@ -92,10 +96,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+<script src="js/common.js"></script>
 <script>
 
-    function addAcctToIdentifierValue(){
-        let input = document.getElementById('identifier');
+    function addAcctToIdentifierValue() {
+        let input = $('#identifier');
         if(input){
             let inputValue = input.value;
             if(inputValue.indexOf('@') !== -1 && inputValue.indexOf('acct:') !== 0) {
@@ -104,127 +109,26 @@
         }
     }
 
-    (function() {
+    (async () => {
         let urlParams = new URLSearchParams(window.location.search);
         let error = urlParams.get('error');
         let logout = urlParams.get('logout');
 
         if (error) {
-            document.querySelector('#modal-title').textContent = 'Error';
-            document.querySelector('#modal-details').textContent = error;
+            $('#modal-title').textContent = 'Error';
+            $('#modal-details').textContent = error;
         }
 
         if (logout != null) {
-            document.querySelector('#modal-title').textContent = 'Logout';
-            document.querySelector('#modal-details').textContent = 'You have been logged out.';
+            $('#modal-title').textContent = 'Logout';
+            $('#modal-details').textContent = 'You have been logged out.';
         }
 
         if (error || logout != null) {
-            new bootstrap.Modal(document.getElementById('modal')).show();
+            new bootstrap.Modal($('#modal')).show();
         }
     })();
 
 </script>
 </body>
 </html>
-
-
-
-<!--
-<!DOCTYPE html>
-
-<head>
-    <meta charset="UTF-8">
-    <title>OIDF Conformance: Login</title>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" type="text/css" href="/css/layout.css">
-
-</head>
-<body>
-    <div class="pageHeader container-fluid">
-        <div class="row">
-            <div class="col-md-8">
-                <a href="index.html"><img src="/images/openid.png"></a>
-            </div>
-            <div id="userInfoDiv" class="col-md-4 text-end"></div>
-        </div>
-    </div>
-    <div class="clearfix"></div>
-
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-xs-12 col-md-6 col-md-offset-3 mx-auto center-text">
-                <h1 class="text-center">Login to the OpenID Foundation Conformance Suite</h1>
-                <p id="error" class="bg-danger collapse">There was an error logging you in: <span id="error-details"></span></p>
-                <p id="logout" class="bg-info collapse">You have been logged out.</p>
-                <p class="text-center">
-                    <a class="btn btn-lg btn-danger bg-gradient border border-secondary" href="/openid_connect_login?iss=https://accounts.google.com">Log in with Google</a>
-                    <a class="btn btn-lg btn-primary bg-gradient border border-secondary" href="/openid_connect_login?iss=https://gitlab.com">Log in with gitlab</a>
-                </p>
-                <div>
-                    <h4 class="lead text-center">Or use another OpenID Connect provider that supports <a href="https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery">'webfinger'</a></h4>
-                    <form action="/openid_connect_login" method="post" id="login_form" onsubmit="addAcctToIdentifierValue()">
-                        <div class="mb-3 mt-3">
-                            <label for="identifier" class="form-label">User Name :</label>
-                            <input type="text" class="form-control" id="identifier" name="identifier" placeholder="user@example.com" />
-                        </div>
-                        <div class="mb-3">
-                            <input type="submit" class="btn btn-sm btn-light bg-gradient border border-secondary" value="Sign In" />
-                        </div>
-                    </form>
-                    <script>
-                        function addAcctToIdentifierValue(){
-                            var input = document.getElementById('identifier');
-                            if(input){
-                                var inputValue = input.value;
-                                if(inputValue.indexOf('@')!==-1 && inputValue.indexOf('acct:')!==0){
-                                    input.value = 'acct:' + input.value;
-                                }
-                            }
-                        }
-                    </script>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="mx-auto col-md-2">
-                <div class="d-grid gap-2">
-                    <a href="logs.html?public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-files"></span> View published logs</a>
-                    <a href="plans.html?public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> View published plans</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
-
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
-    </footer>
-
-    <script type="text/javascript">
-        $(document).ready(function() {
-            var urlParams = new URLSearchParams(window.location.search);
-
-            var error = urlParams.get('error');
-            var logout = urlParams.get('logout');
-
-            if (error) {
-                   $('#error').show();
-                   $('#error-details').text(error);
-            }
-
-            if (logout) {
-                   $('#logout').show();
-            }
-        });
-    </script>
-
-
-</body>
-</html>
-
--->
