@@ -75,17 +75,17 @@
 </nav>
 
 <div class="container mt-4">
-    <h3>Most recent test plans</h3>
+    <h3 class="display-7">My most recent test plans</h3>
     <hr class="my-4" />
 
     <table class="table table-hover">
         <thead>
         <tr>
-            <th>Plan id</th>
-            <th>Name</th>
-            <th>Variant</th>
-            <th>Description</th>
-            <th>Started</th>
+            <th>Plan Id <i class="ms-2 bi bi-arrow-down-up"></i></th>
+            <th>Name <i class="ms-2 bi bi-arrow-down-up"></i></th>
+            <th>Variant <i class="ms-2 bi bi-arrow-down-up"></i></th>
+            <th>Description <i class="ms-2 bi bi-arrow-down-up"></i></th>
+            <th>Started <i class="ms-2 bi bi-arrow-down-up"></i></th>
         </tr>
         </thead>
     </table>
@@ -109,28 +109,26 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-<!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-<script src="js/fapi.ui.js"></script-->
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.2.0"></script>
 <script src="js/common.js"></script>
 <script>
 
-async function loadPlans() {
-    const plans = await fetchJson('/api/plan?' + new URLSearchParams({
-        draw: 1,
-        start: 0,
-        length: 16,
-        search: '',
-        order: 'started desc'
-    }));
+async function loadPlans(start, length, search, order, public) {
+    let plans = await fetchJson('/api/plan?' + new URLSearchParams({ start, length, search, order, public }));
     return plans;
 }
 
 (async () => {
 
-    const plans = await loadPlans();
-    console.log(plans);
-    const columnData = plans.data.map(p => [
+    let urlParams = new URLSearchParams(window.location.search);
+    let start = urlParams.get('start');
+    let length = urlParams.get('length');
+    let search = urlParams.get('search');
+    let order = urlParams.get('order');
+    let public = urlParams.get('public');
+
+    let plans = await loadPlans(start, length, search, order, public);
+    let columnData = plans.data.map(p => [
         p._id,
         p.planName,
         Object.keys(p.variant).map(k => { return `${k}=${p.variant[k]}` }).join(', '),
@@ -138,21 +136,8 @@ async function loadPlans() {
         p.started
     ]);
 
-    window.table = new simpleDatatables.DataTable('.table', {
-        searchable: false,
-        paging: false,
-        classes: {
-            active: 'active',
-            disabled: 'disabled',
-            dropdown: 'entries-per-page',
-            selector: 'form-select',
-            search: 'datatable-search',
-            input: 'form-control',
-            pagination: 'ignore',
-            paginationList: 'pagination',
-            paginationListItem: 'page-item',
-            paginationListItemLink: 'page-link'
-        },
+    new simpleDatatables.DataTable('.table', {
+        data: { data: columnData },
         columns: [
             {
                 select: 0,
@@ -172,7 +157,20 @@ async function loadPlans() {
                 }
             }
         ],
-        data: { data: columnData }
+        searchable: false,
+        paging: false,
+        classes: {
+            active: 'active',
+            disabled: 'disabled',
+            dropdown: 'entries-per-page',
+            selector: 'form-select',
+            search: 'datatable-search',
+            input: 'form-control',
+            pagination: 'ignore',
+            paginationList: 'pagination',
+            paginationListItem: 'page-item',
+            paginationListItemLink: 'page-link'
+        }
     });
 
 })();
