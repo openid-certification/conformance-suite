@@ -92,15 +92,23 @@ body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
 	border-bottom: none !important;
 }
 
-.datatable-sorter {
+.table > thead > tr > th {
 	font-size: 1.2rem;
 	font-weight: normal;
-	text-decoration: none;
 	color: #000;
 }
+
+.table > thead > tr > th > a {
+	text-decoration: none;
+}
+
 .table > tbody td {
 	padding-top: 1rem;
 	padding-bottom: 1rem;
+}
+
+.table tbody tr {
+	cursor: pointer;
 }
 
 .display-7 {

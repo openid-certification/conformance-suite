@@ -4,15 +4,12 @@
     <title>OpenID Foundation: Conformance test suite</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.2.0/dist/style.css" rel="stylesheet" type="text/css">
-    <link href="/css/layout.css" rel="stylesheet" >
+    <link href="/css/layout.css" rel="stylesheet">
     <style>
     </style>
 </head>
 <body>
-
 
 <nav class="navbar navbar-expand-md py-4">
     <div class="container">
@@ -28,7 +25,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-sm-0">
 
                 <li class="nav-item ms-5">
-                    <a class="nav-link navbar-oidf-item active" href="#">Home</a>
+                    <a class="nav-link navbar-oidf-item" href="#">Home</a>
                 </li>
 
                 <li class="nav-item ms-3">
@@ -36,12 +33,13 @@
                 </li>
 
                 <li class="nav-item ms-3 dropdown">
-                    <a class="nav-link navbar-oidf-item dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">View</a>
+                    <a class="nav-link navbar-oidf-item dropdown-toggle active" href="#" data-bs-toggle="dropdown" aria-expanded="false">View</a>
                     <ul class="dropdown-menu">
-                        <li class="m-2"><a class="dropdown-item" href="/plans.html">View all test plans</a></li>
-                        <li class="m-2"><a class="dropdown-item" href="/plans.html?public=true">View published test plans</a></li>
-                        <li class="m-2"><a class="dropdown-item" href="/logs.html">View all logs</a></li>
-                        <li class="m-2"><a class="dropdown-item" href="/logs.html?public=true">View published logs</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="/plans.html">My test plans</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="/plans.html?public=true">All published test plans</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li class="m-2"><a class="dropdown-item" href="/logs.html">My test logs</a></li>
+                        <li class="m-2"><a class="dropdown-item" href="/logs.html?public=true">All published test logs</a></li>
                     </ul>
                 </li>
 
@@ -60,7 +58,9 @@
             <div class="nav-item ms-3 dropdown">
 
                 <div class="btn-group">
-                    <button id="logged-in-user" type="button" class="btn btn-sm btn-oidf-orange dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button type="button" class="btn btn-sm btn-oidf-orange dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="is-admin" class="badge badge-oidf-purple text-uppercase visually-hidden me-2">Admin</span>
+                        <span id="logged-in-user"></span>
                     </button>
                     <ul class="dropdown-menu">
                         <li><small><a class="dropdown-item disabled" href="#">Tokens</a></small></li>
@@ -74,9 +74,24 @@
     </div>
 </nav>
 
-<div class="container mt-4">
-    <h3 class="display-7">My most recent test plans</h3>
-    <hr class="my-4" />
+<div class="container-fluid mt-4 p-4">
+    <h3 id="heading" class="display-7"></h3>
+
+    <div class="mt-4">
+
+        <nav class="d-inline-flex nav-pagination" aria-label="Pagination">
+        </nav>
+
+        <form class="d-inline-flex" role="search">
+            <input class="form-control me-2" type="search" name="search" placeholder="Filter&hellip;" aria-label="Search">
+            <input type="hidden" name="length" value="10" />
+            <input type="hidden" name="order" value="created,desc" />
+            <button class="btn btn-oidf-purple" type="submit">Search</button>
+        </form>
+
+    </div>
+
+    <hr class="my-2" />
 
     <table class="table table-hover">
         <thead>
@@ -86,6 +101,7 @@
             <th>Variant <i class="ms-2 bi bi-arrow-down-up"></i></th>
             <th>Description <i class="ms-2 bi bi-arrow-down-up"></i></th>
             <th>Started <i class="ms-2 bi bi-arrow-down-up"></i></th>
+            <th>Modules</th>
         </tr>
         </thead>
     </table>
@@ -93,7 +109,7 @@
 </div>
 
 <div class="container py-5">
-    <footer class="footer d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+    <footer class="footer d-flex flex-wrap justify-content-between align-items-center py-3 my-4">
         <p class="col-md-6 mb-0 text-muted">
             OpenID Conformance Suite
             <span id="suite-version"></span>
@@ -110,70 +126,106 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.2.0"></script>
-<script src="js/common.js"></script>
-<script>
+<script src="js/globals.js"></script>
+<script src="js/info.js"></script>
+<script type="module">
 
-async function loadPlans(start, length, search, order, public) {
-    let plans = await fetchJson('/api/plan?' + new URLSearchParams({ start, length, search, order, public }));
-    return plans;
-}
+    import * as SUITE from './js/common.js';
 
-(async () => {
+    function plansToPaginationHtml(plans, searchOptions) {
+        let html = '';
 
-    let urlParams = new URLSearchParams(window.location.search);
-    let start = urlParams.get('start');
-    let length = urlParams.get('length');
-    let search = urlParams.get('search');
-    let order = urlParams.get('order');
-    let public = urlParams.get('public');
-
-    let plans = await loadPlans(start, length, search, order, public);
-    let columnData = plans.data.map(p => [
-        p._id,
-        p.planName,
-        Object.keys(p.variant).map(k => { return `${k}=${p.variant[k]}` }).join(', '),
-        p.description,
-        p.started
-    ]);
-
-    new simpleDatatables.DataTable('.table', {
-        data: { data: columnData },
-        columns: [
-            {
-                select: 0,
-                type: 'html',
-                render: (cell) => {
-                    let planId = cell[0].data;
-                    return `<a href="/plan-detail.html?plan=${planId}">${planId}</a>`;
-                }
-            },
-            {
-                select: 4,
-                type: 'html',
-                render: (cell) => {
-                    let started = cell[0].data;
-                    let startedDate = new Date(Date.parse(started));
-                    return startedDate.toISOString();
-                }
-            }
-        ],
-        searchable: false,
-        paging: false,
-        classes: {
-            active: 'active',
-            disabled: 'disabled',
-            dropdown: 'entries-per-page',
-            selector: 'form-select',
-            search: 'datatable-search',
-            input: 'form-control',
-            pagination: 'ignore',
-            paginationList: 'pagination',
-            paginationListItem: 'page-item',
-            paginationListItemLink: 'page-link'
+        let numberOfPages = Math.ceil(plans.recordsFiltered / PAGE_ROW_COUNT);
+        if (numberOfPages <= 1) {
+            return html;
         }
-    });
 
-})();
+        html += '<ul class="pagination me-4"><li class="page-item"><a id="previous" class="page-link">Previous</a></li>'
+        for(let i = 1; i <= numberOfPages; i++) {
+            html += `<li class="page-item">`
+                  + `<a class="page-link" id="page-${i}"} href="?start=${(i-1)*PAGE_ROW_COUNT}&length=${PAGE_ROW_COUNT}`
+                  + `&order=${searchOptions.order}&search=${searchOptions.search}&public=${searchOptions.public}">${i}</a>`
+                  + `</li>`;
+        }
+        html += '<li class="page-item"><a id="next" class="page-link">Next</a></li></ul>';
+        return html;
+    }
+
+    function setPaginationState(start, recordsFiltered) {
+        let paginationIndex = Math.ceil(start / PAGE_ROW_COUNT) + 1;
+
+        let numberOfPages = Math.ceil(recordsFiltered / PAGE_ROW_COUNT);
+        if (numberOfPages <= 1) {
+            return;
+        }
+
+        let activePage = $(`#page-${paginationIndex}`);
+        activePage.removeAttribute('href');
+        activePage.classList.add('active');
+
+        let previousPage = $('#previous');
+        if(paginationIndex > 1) {
+            previousPage.setAttribute('href', $(`#page-${paginationIndex-1}`).href);
+        } else {
+            previousPage.classList.add('disabled');
+        }
+
+        let nextPage = $('#next');
+        if(paginationIndex < numberOfPages) {
+            nextPage.setAttribute('href', $(`#page-${paginationIndex+1}`).href);
+        } else {
+            nextPage.classList.add('disabled');
+        }
+    }
+
+    (async () => {
+
+        let searchOptions = SUITE.queryStringToSearchOptions(window.location.search);
+
+        var heading = 'My test plans';
+        if (searchOptions.public) {
+            heading = 'All public test plans'
+        }
+        $('#heading').textContent = heading;
+
+        let plans = await SUITE.loadPlans(searchOptions);
+
+        let paginationHtml = plansToPaginationHtml(plans, searchOptions);
+        $('.nav-pagination').innerHTML = paginationHtml;
+        setPaginationState(searchOptions.start, plans.recordsFiltered);
+
+        $('input[name=search]').value = searchOptions.search;
+
+        let columnData = plans.data.map(p => [
+            SUITE.planIdToAnchor(p._id),
+            p.planName,
+            SUITE.variantObjectToCellHtml(p.variant),
+            p.description ?? '',
+            SUITE.startedDateToCellHtml(p.started),
+            '<button class="btn btn-oidf-purple-outline">Load modules</button><span class="badge bg-danger"></span>'
+        ]);
+
+        new simpleDatatables.DataTable('.table', {
+            data: { data: columnData },
+            columns: [{
+                select: 5,
+                sortable: false
+            }],
+            searchable: false,
+            paging: false,
+            classes: {
+                active: 'active',
+                disabled: 'disabled',
+                pagination: 'ignore',
+            }
+        });
+
+        $$('.table tbody tr').forEach(tr => tr.addEventListener('click', e => {
+            let planId = e.target.closest('tr').querySelector('td:first-child > a').textContent;
+            document.location.href = `/plan-detail.html?plan=${planId}`;
+        }));
+
+    })();
 
 </script>
 

@@ -1,6 +1,6 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
-
+const PAGE_ROW_COUNT = 10;
 
 (async () => {
     try {
