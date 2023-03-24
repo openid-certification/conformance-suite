@@ -442,6 +442,15 @@ local_test:
     kubectl exec $MONGO_POD -- \
       mongo mongodb://localhost/test_suite --eval \
         "db.API_TOKEN.update({ _id: \"ci_token\" }, { _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null }, { upsert: true })"
+    echo "Inserting preset tokens"
+    OLDIFS=$IFS
+    IFS='|'
+    for token in ${PRESET_CI_TOKENS}; do
+      kubectl exec $MONGO_POD -- \
+        mongo mongodb://localhost/test_suite --eval \
+          "db.API_TOKEN.update($token, { upsert: true })"
+    done
+    IFS=$OLDIFS
 
     # This passes these two variables to the test jobs
     echo "CONFORMANCE_SERVER=$CI_ENVIRONMENT_URL" >> deploy.env
