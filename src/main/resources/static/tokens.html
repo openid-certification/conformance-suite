@@ -19,10 +19,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <!-- Popper (necessary for Bootstrap's tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
@@ -31,9 +29,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
+    <!-- jQuery (necessary for DataTables -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
     <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
@@ -124,24 +124,24 @@
         /**
          *
          */
-        $(document).ready(function() {
+        document.addEventListener("DOMContentLoaded", () => {
 
             FAPI_UI.loadTokenListTemplates()
             .then(function() {
                 return FAPI_UI.getUserInfo();
             })
             .then(function() {
-                $('#tokenTable').html(FAPI_UI.logTemplates.TOKEN_TABLE({userInfo: FAPI_UI.currentUser}));
+                document.getElementById('tokenTable').innerHTML = FAPI_UI.logTemplates.TOKEN_TABLE({userInfo: FAPI_UI.currentUser});
                 // wire up create buttons
-                $('#newTemporaryToken').click(function(evt) {
+                document.getElementById('newTemporaryToken').onclick = function(evt) {
                     evt.preventDefault();
                     newToken(false);
-                });
+                };
 
-                $('#newPermanentToken').click(function(evt) {
+                document.getElementById('newPermanentToken').onclick = function(evt) {
                     evt.preventDefault();
                     newToken(true);
-                });
+                };
                 return loadTokens();
             });
 
@@ -229,25 +229,66 @@
         }
 
         function newToken(permanent) {
-            $.ajax({
-                type: 'POST',
-                url: '/api/token',
-                contentType: 'application/json',
-                data: JSON.stringify({ permanent: permanent }),
-                success: function(data) {
-                    $('#tokenValue').html(_.escape(data.token));
-
-                    var myModalEl = document.getElementById('createdModal');
-                    var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                    modal.show();
-
-                    $('#tokensListing').DataTable().ajax.reload();
+            fetch('/api/token', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
                 },
-                error: function(jqxhr, status, error) {
-                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                        code: jqxhr.status,
-                        error: error
+                body: JSON.stringify({ permanent: permanent }),
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
+
+                return response.json();
+            })
+            .then((data) => {
+                document.getElementById('tokenValue').innerHTML = _.escape(data.token);
+
+                var myModalEl = document.getElementById('createdModal');
+                var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                modal.show();
+
+                $('#tokensListing').DataTable().ajax.reload();
+            })
+            .catch((error) => {
+                if (error instanceof Response) {
+                    // We have a 'Respose' object.
+                    var message = error.statusText;
+                    var responseClone = error.clone();
+
+                    error.text()
+                    .then(textError => {
+                        // Text error thrown by the app
+                        messageParsed = true;
+
+                        const errorObj = JSON.parse(textError);
+
+                        if (errorObj.error.length != 0) {
+                            message = errorObj.error;
+                        }
+
+                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                    })
+                    .catch(error1 => {
+                        // JSON error thrown by the app
+                        responseClone.json()
+                        .then(jsonError => {
+                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                message = jsonError;
+                            }
+
+                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                        })
+                        .catch(genericError => {
+                            // Error thrown by the server
+                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                        });
                     });
+                } else {
+                    // Network error automatically detected by fetch.
+                    FAPI_UI.showError({code: "", error: error});
                 }
             });
         }

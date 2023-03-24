@@ -21,8 +21,6 @@
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.2/css/dataTables.bootstrap5.min.css">
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <!-- Popper (necessary for Bootstrap's tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
@@ -31,9 +29,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
+    <!-- jQuery (necessary for DataTables -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
     <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
@@ -133,7 +133,7 @@
         /**
          *
          */
-        $(document).ready(function() {
+        document.addEventListener("DOMContentLoaded", () => {
             var urlParams = new URLSearchParams(window.location.search);
             var public = Boolean(urlParams.get('public'));
 
@@ -143,7 +143,7 @@
                 return FAPI_UI.getUserInfo();
             }).then(function() {
                 return loadAvailableLogs(public);
-            }).always(function() {
+            }).finally(function() {
                 FAPI_UI.hideBusy();
             });
 

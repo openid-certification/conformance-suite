@@ -3,254 +3,377 @@ var FAPI_UI = {
 		logTemplates : {},
 
 		loadHomepageTemplates : function() {
-			return $.when(
-				$.get('templates/userinfo.html', function(data) {
+			return fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
 					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				})
-			);
+				});
 		},
 
 		loadScheduleTestPageTemplates : function() {
-			return $.when(
-					$.get('templates/testOption.html', function(data) {
-						FAPI_UI.logTemplates.TEST_OPTION = _.template(data);
-					}),
-					$.get('templates/testOptGroup.html', function(data) {
-						FAPI_UI.logTemplates.TEST_OPTGROUP = _.template(data);
-					}),
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					})
-			);
+			const p1 = fetch('templates/testOption.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.TEST_OPTION = _.template(data);
+				});
+
+			const p2 = fetch('templates/testOptGroup.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.TEST_OPTGROUP = _.template(data);
+				});
+
+			const p3 = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				});
+
+			const promises = [p1, p2, p3];
+
+			return Promise.allSettled(promises);
 		},
 
 		loadRunningTestPageTemplates : function() {
-			return $.when(
-				$.get('templates/runningTest.html', function(data) {
+			const p1 = fetch('templates/runningTest.html')
+				.then((response) => response.text())
+				.then((data) => {
 					FAPI_UI.logTemplates.RUNNING_TEST = _.template(data);
-				}),
-				$.get('templates/owner.html', function(data) {
+				});
+
+			const p2 = fetch('templates/owner.html')
+				.then((response) => response.text())
+				.then((data) => {
 					FAPI_UI.logTemplates.OWNER = _.template(data);
-				}),
-				$.get('templates/statusAndResult.html', function(data) {
+				});
+
+			const p3 = fetch('templates/statusAndResult.html')
+				.then((response) => response.text())
+				.then((data) => {
 					FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
-				}),
-				$.get('templates/userinfo.html', function(data) {
+				});
+
+			const p4 = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
 					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				})
-			);
+				});
+
+			const promises = [p1, p2, p3, p4];
+
+			return Promise.allSettled(promises);
 		},
 
 		loadLogDetailTemplates: function() {
-			return $.when(
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					}),
+			const p1 = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				});
 
-					$.get('templates/logHeader.html', function(data) {
-						FAPI_UI.logTemplates.LOG_START = _.template(data);
-					}),
+			const p2 = fetch('templates/logHeader.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.LOG_START = _.template(data);
+				});
 
-					$.get('templates/logEntry.html', function(data) {
-						FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
-					}),
+			const p3 = fetch('templates/logEntry.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
+				});
 
-					$.get('templates/source.html', function(data) {
-						FAPI_UI.logTemplates.SOURCE = _.template(data);
-					}),
+			const p4 = fetch('templates/source.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.SOURCE = _.template(data);
+				});
 
-					$.get('templates/message.html', function(data) {
-						FAPI_UI.logTemplates.MESSAGE = _.template(data);
-					}),
+			const p5 = fetch('templates/message.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.MESSAGE = _.template(data);
+				});
 
-					$.get('templates/requirements.html', function(data) {
-						FAPI_UI.logTemplates.REQUIREMENTS = _.template(data);
-					}),
+			const p6 = fetch('templates/requirements.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.REQUIREMENTS = _.template(data);
+				});
 
-					$.get('templates/upload.html', function(data) {
-						FAPI_UI.logTemplates.UPLOAD = _.template(data);
-					}),
+			const p7 = fetch('templates/upload.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.UPLOAD = _.template(data);
+				});
 
-					$.get('templates/owner.html', function(data) {
-						FAPI_UI.logTemplates.OWNER = _.template(data);
-					}),
+			const p8 = fetch('templates/owner.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.OWNER = _.template(data);
+				});
 
-					$.get('templates/result.html', function(data) {
-						FAPI_UI.logTemplates.RESULT = _.template(data);
-					}),
+			const p9 = fetch('templates/result.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.RESULT = _.template(data);
+				});
 
-					$.get('templates/time.html', function(data) {
-						FAPI_UI.logTemplates.TIME = _.template(data);
-					}),
+			const p10 = fetch('templates/time.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.TIME = _.template(data);
+				});
 
-					$.get('templates/more.html', function(data) {
-						FAPI_UI.logTemplates.MORE = _.template(data);
-					}),
+			const p11 = fetch('templates/more.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.MORE = _.template(data);
+				});
 
-					$.get('templates/moreButton.html', function(data) {
-						FAPI_UI.logTemplates.MORE_BUTTON = _.template(data);
-					}),
+			const p12 = fetch('templates/moreButton.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.MORE_BUTTON = _.template(data);
+				});
 
-					$.get('templates/exported.html', function(data) {
-						FAPI_UI.logTemplates.EXPORTED = _.template(data);
-					}),
+			const p13 = fetch('templates/exported.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.EXPORTED = _.template(data);
+				});
 
-					$.get('templates/browser.html', function(data) {
-						FAPI_UI.logTemplates.BROWSER = _.template(data);
-					}),
+			const p14 = fetch('templates/browser.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.BROWSER = _.template(data);
+				});
 
-					$.get('templates/http.html', function(data) {
-						FAPI_UI.logTemplates.HTTP = _.template(data);
-					}),
+			const p15 = fetch('templates/http.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.HTTP = _.template(data);
+				});
 
-					$.get('templates/finalError.html', function(data) {
-						FAPI_UI.logTemplates.FINAL_ERROR = _.template(data);
-					}),
+			const p16 = fetch('templates/finalError.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.FINAL_ERROR = _.template(data);
+				});
 
-					$.get('templates/statusAndResult.html', function(data) {
-						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
-					}),
+			const p17 = fetch('templates/statusAndResult.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
+				});
 
-					$.get('templates/resultsSummary.html', function(data) {
-						FAPI_UI.logTemplates.SUMMARY = _.template(data);
-					}),
+			const p18 = fetch('templates/resultsSummary.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.SUMMARY = _.template(data);
+				});
 
-					$.get('templates/startBlock.html', function(data) {
-						FAPI_UI.logTemplates.START_BLOCK = _.template(data);
-					}),
+			const p19 = fetch('templates/startBlock.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.START_BLOCK = _.template(data);
+				});
 
-					$.get('templates/failureSummary.html', function(data) {
-						FAPI_UI.logTemplates.FAILURE_SUMMARY = _.template(data);
-					})
-			);
+			const p20 = fetch('templates/failureSummary.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.FAILURE_SUMMARY = _.template(data);
+				});
 
+			const promises = [p1, p2, p3, p4. p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20];
+
+			return Promise.allSettled(promises);
 		},
 
 		loadLogListTemplates: function() {
-			return $.when(
-					$.get('templates/configButton.html', function(data) {
-						FAPI_UI.logTemplates.CONFIG = _.template(data);
-					}),
+			const p1 = fetch('templates/configButton.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.CONFIG = _.template(data);
+				});
 
-					$.get('templates/date.html', function(data) {
-						FAPI_UI.logTemplates.DATE = _.template(data);
-					}),
+			const p2 = fetch('templates/date.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.DATE = _.template(data);
+				});
 
-					$.get('templates/logDetailButton.html', function(data) {
-						FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
-					}),
+			const p3 = fetch('templates/logDetailButton.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
+				});
 
-					$.get('templates/owner.html', function(data) {
-						FAPI_UI.logTemplates.OWNER = _.template(data);
-					}),
+			const p4 = fetch('templates/owner.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.OWNER = _.template(data);
+				});
 
-					$.get('templates/planDetailButton.html', function(data) {
-						FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
-					}),
+			const p5 = fetch('templates/planDetailButton.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
+				});
 
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					})
-			);
+			const p6 = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				});
 
+			const promises = [p1, p2, p3, p4. p5, p6];
+
+			return Promise.allSettled(promises);
 		},
 
 		loadPlanTemplates: function() {
-			return $.when(
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					}),
+			const p1 = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				});
 
-					$.get('templates/plan.html', function(data) {
-						FAPI_UI.logTemplates.PLAN_START = _.template(data);
-					}),
+			const p2 = fetch('templates/plan.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.PLAN_START = _.template(data);
+				});
 
-					$.get('templates/owner.html', function(data) {
-						FAPI_UI.logTemplates.OWNER = _.template(data);
-					}),
+			const p3 = fetch('templates/owner.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.OWNER = _.template(data);
+				});
 
-					$.get('templates/statusAndResult.html', function(data) {
-						FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
-					}),
+			const p4 = fetch('templates/statusAndResult.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.TEST_STATUS = _.template(data);
+				});
 
-					$.get('templates/testVersion.html', function(data) {
-						FAPI_UI.logTemplates.TEST_VERSION = _.template(data);
-					})
-			);
+			const p5 = fetch('templates/testVersion.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.TEST_VERSION = _.template(data);
+				});
 
+			const promises = [p1, p2, p3, p4. p5];
+
+			return Promise.allSettled(promises);
 		},
 
 		loadPlanListTemplates: function() {
-			return $.when(
-					$.get('templates/configButton.html', function(data) {
-						FAPI_UI.logTemplates.CONFIG = _.template(data);
-					}),
+			const p1 = fetch('templates/configButton.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.CONFIG = _.template(data);
+				});
 
-					$.get('templates/date.html', function(data) {
-						FAPI_UI.logTemplates.DATE = _.template(data);
-					}),
+			const p2 = fetch('templates/date.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.DATE = _.template(data);
+				});
 
-					$.get('templates/planDetailButton.html', function(data) {
-						FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
-					}),
+			const p3 = fetch('templates/planDetailButton.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
+				});
 
-					$.get('templates/planModules.html', function(data) {
-						FAPI_UI.logTemplates.PLAN_MODULES = _.template(data);
-					}),
+			const p4 = fetch('templates/planModules.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.PLAN_MODULES = _.template(data);
+				});
 
-					$.get('templates/owner.html', function(data) {
-						FAPI_UI.logTemplates.OWNER = _.template(data);
-					}),
+			const p5 = fetch('templates/owner.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.OWNER = _.template(data);
+				});
 
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					})
-			);
+			const p6 = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				});
+
+			const promises = [p1, p2, p3, p4. p5, p6];
+
+			return Promise.allSettled(promises);
 		},
 
 		loadImageUploadTemplates: function() {
-			return $.when(
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					}),
+			const p1 = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				});
 
-					$.get('templates/pendingImageUploader.html', function(data) {
-						FAPI_UI.logTemplates.PENDING = _.template(data);
-					}),
+			const p2 = fetch('templates/pendingImageUploader.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.PENDING = _.template(data);
+				});
 
-					$.get('templates/existingImage.html', function(data) {
-						FAPI_UI.logTemplates.EXISTING = _.template(data);
-					}),
+			const p3 = fetch('templates/existingImage.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.EXISTING = _.template(data);
+				});
 
-					$.get('templates/source.html', function(data) {
-						FAPI_UI.logTemplates.SOURCE = _.template(data);
-					}),
+			const p4 = fetch('templates/source.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.SOURCE = _.template(data);
+				});
 
-					$.get('templates/message.html', function(data) {
-						FAPI_UI.logTemplates.MESSAGE = _.template(data);
-					}),
+			const p5 = fetch('templates/message.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.MESSAGE = _.template(data);
+				});
 
-					$.get('templates/uploadHeader.html', function(data) {
-						FAPI_UI.logTemplates.UPLOAD_HEADER = _.template(data);
-					})
-			);
+			const p6 = fetch('templates/uploadHeader.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.UPLOAD_HEADER = _.template(data);
+				});
 
+			const promises = [p1, p2, p3, p4. p5, p6];
+
+			return Promise.allSettled(promises);
 		},
 
 		loadTokenListTemplates: function() {
-			return $.when(
-					$.get('templates/date.html', function(data) {
-						FAPI_UI.logTemplates.DATE = _.template(data);
-					}),
+			const p1 = fetch('templates/date.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.DATE = _.template(data);
+				});
 
-					$.get('templates/tokenTable.html', function(data) {
-						FAPI_UI.logTemplates.TOKEN_TABLE = _.template(data);
-					}),
+			const p2 = fetch('templates/tokenTable.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.TOKEN_TABLE = _.template(data);
+				});
 
-					$.get('templates/userinfo.html', function(data) {
-						FAPI_UI.logTemplates.USER_INFO = _.template(data);
-					})
-			);
+			const p3 = fetch('templates/userinfo.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.USER_INFO = _.template(data);
+				});
+
+			const promises = [p1, p2, p3];
+
+			return Promise.allSettled(promises);
 		},
 		//when you add a new value to this list also update net.openid.conformance.export.LogEntryHelper
 		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
@@ -281,26 +404,30 @@ var FAPI_UI = {
 
 		getUserInfo : function() {
 			// get the current user info
-			var done = $.Deferred();
-			$.getJSON({
-				url: '/api/currentuser',
-				context: this
-			}).done(function(userInfo) {
-				this.currentUser = userInfo;
-				$('#userInfoHolder').html(FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo}));
-				FAPI_UI.activeTooltip();
-			}).fail(function() {
-				// User is not logged in; don't fill in the user info holder
-			}).always(function() {
-				done.resolve();
-			});
-			return done.promise();
+			return fetch("/api/currentuser")
+				.then((response) => {
+					if (! response.ok) {
+						throw new Error("Network response was not OK");
+					}
+
+					return response.json();
+				})
+				.then((userInfo) => {
+					this.currentUser = userInfo;
+					const elem = document.getElementById('userInfoHolder');
+					elem.innerHTML = FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo});
+					FAPI_UI.activeTooltip();
+				})
+				.catch((error) => {
+					// User is not logged in; don't fill in the user info holder
+				});
+
 		},
 
 		activeTooltip : function() {
 
-                        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-                        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+			const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+			const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 		},
 
@@ -343,6 +470,8 @@ var FAPI_UI = {
 		 * Takes in a JSON object representing the error from the server and shows an error display
 		 */
 		showError : function(error) {
+			const elem = document.getElementById('errorMessage');
+
 			if (error != null) {
 				var msg = error.error || error.code;
 				if (/^\d+$/.test(msg)) {
@@ -358,24 +487,24 @@ var FAPI_UI = {
 				if (error.error == "Unauthorized") {
 					msgHtml += "<br><br>Refresh the page to renew your session";
 				}
-				$('#errorMessage').html(msgHtml);
+				elem.innerHTML = msgHtml;
 			} else {
-				$('#errorMessage').html('Error from server.');
+				elem.innerHTML = 'Error from server.';
 			}
 
 			FAPI_UI.hideBusy(); // only one modal at a time
-                        var myModalEl = document.getElementById('errorModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+			var myModalEl = document.getElementById('errorModal');
+			var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+			modal.show();
 		},
 
 		hideError : function() {
-                        var myModalEl = document.getElementById('errorModal');
-                        var modal     = bootstrap.Modal.getInstance(myModalEl);
+			var myModalEl = document.getElementById('errorModal');
+			var modal     = bootstrap.Modal.getInstance(myModalEl);
 
-                        if (modal != null) {
-                            modal.hide();
-                        }
+			if (modal != null) {
+			    modal.hide();
+			}
 		},
 
 		showBusy : function(label, message) {
@@ -383,23 +512,25 @@ var FAPI_UI = {
 				label = "Loading...";
 			}
 
-			$('#loadingLabel').html(_.escape(label));
-			$('#loadingMessage').html(_.escape(message));
+			var elem = document.getElementById('loadingLabel');
+			elem.innerHTML = _.escape(label);
+			var elem = document.getElementById('loadingMessage');
+			elem.innerHTML = _.escape(message);
 
 			FAPI_UI.hideError(); // only one modal at a time
 
-                        var myModalEl = document.getElementById('loadingModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+			var myModalEl = document.getElementById('loadingModal');
+			var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+			modal.show();
 		},
 
 		hideBusy : function() {
-                        var myModalEl = document.getElementById('loadingModal');
-                        var modal     = bootstrap.Modal.getInstance(myModalEl);
+			var myModalEl = document.getElementById('loadingModal');
+			var modal     = bootstrap.Modal.getInstance(myModalEl);
 
-                        if (modal != null) {
-                            modal.hide();
-                        }
+			if (modal != null) {
+			    modal.hide();
+			}
 		},
 
 		// responsible for converting any dot syntax in our key parameter into object refs

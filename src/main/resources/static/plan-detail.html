@@ -20,8 +20,6 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <!-- Popper (necessary for Bootstrap's tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
@@ -359,259 +357,483 @@
 
     <script type="text/javascript">
 
-       function getPlan(planId, public) {
-           return $.ajax({
-               type: 'GET',
-               url: '/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''),
-               data: {},
-               success: function(data) {
-                   $('#certificationPackageForm').attr('action','/api/plan/'+planId+'/certificationpackage');
-                   $('.content').append(FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant) }));
+        function getPlan(planId, public) {
+            return fetch('/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''))
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
 
-                   $('#downloadAllBtn').click(function(evt) {
-                       evt.preventDefault();
-                       window.open('/api/plan/exporthtml/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
-                   });
+                return response.json();
+            })
+            .then((data) => {
+                document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
+                document.querySelectorAll('.content')?.forEach(function(element) {
+                    element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant)}));
+                });
 
-                   // wire up configuration button
-                   $('#showConfigBtn').click(function(evt) {
-                       evt.preventDefault();
-                       $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
-                       $('#configTestId').html(_.escape(planId));
+                if (document.getElementById('downloadAllBtn') != null) {
+                    document.getElementById('downloadAllBtn').onclick = function(evt) {
+                        evt.preventDefault();
+                        window.open('/api/plan/exporthtml/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
+                    };
+                }
 
-                       var myModalEl = document.getElementById('configModal');
-                       var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                       modal.show();
-                   });
+                // wire up configuration button
+                if (document.getElementById('showConfigBtn') != null) {
+                    document.getElementById('showConfigBtn').onclick = function(evt) {
+                        evt.preventDefault();
+                        document.getElementById('config').innerHTML = _.escape(JSON.stringify(data.config, null, 4));
+                        document.getElementById('configTestId').innerHTML = _.escape(planId);
 
-                   // wire up publish button
-                   $('#publishBtn').click(function(evt) {
-                       evt.preventDefault();
+                        var myModalEl = document.getElementById('configModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    };
+                }
 
-                       var myModalEl = document.getElementById('publishModal');
-                       var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                       modal.show();
-                   });
+                // wire up publish button
+                if (document.getElementById('publishBtn') != null) {
+                    document.getElementById('publishBtn').onclick = function(evt) {
+                        evt.preventDefault();
 
-                   $('#certificationPackageBtn').click(function(evt) {
-                       evt.preventDefault();
+                        var myModalEl = document.getElementById('publishModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    };
+                }
 
-                       var myModalEl = document.getElementById('certificationPackageModal');
-                       var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                       modal.show();
-                   });
+                if (document.getElementById('certificationPackageBtn') != null) {
+                    document.getElementById('certificationPackageBtn').onclick = function(evt) {
+                        evt.preventDefault();
 
-                   $('#certificationOfConformanceTemplateBtn').click(function(evt) {
-                       evt.preventDefault();
+                        var myModalEl = document.getElementById('certificationPackageModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    };
+                }
 
-                       var myModalEl = document.getElementById('certificationOfConformanceTemplateModal');
-                       var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                       modal.show();
-                   });
-                   $('#certificationOfConformanceForm').attr('action','/api/plan/'+planId+'/certificationofconformance');
-                   $('#certificationOfConformance_conformanceProfile').val(data.certificationProfileName);
-                   $('#certificationOfConformance_suiteSoftware').val('www.certification.openid.net version ' + data.version);
-                   $('#certificationOfConformance_testDate').val(data.started?data.started.substring(0,10):'');
+                if (document.getElementById('certificationOfConformanceTemplateBtn') != null) {
+                    document.getElementById('certificationOfConformanceTemplateBtn').onclick = function(evt) {
+                        evt.preventDefault();
 
-                   if(document.querySelector('#deleteMutablePlanBtn')) {
-                       document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
-                           var myModalEl = document.getElementById('deletePlanModal');
-                           var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                           modal.show();
-                       });
-                   }
+                        var myModalEl = document.getElementById('certificationOfConformanceTemplateModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    };
+                }
+                document.getElementById('certificationOfConformanceForm').setAttribute('action','/api/plan/'+planId+'/certificationofconformance');
+                document.getElementById('certificationOfConformance_conformanceProfile').value = data.certificationProfileName;
+                document.getElementById('certificationOfConformance_suiteSoftware').value = 'www.certification.openid.net version ' + data.version;
+                document.getElementById('certificationOfConformance_testDate').value = data.started?data.started.substring(0,10):'';
 
-                   $('[data-module]').click(function(evt) {
-                       evt.preventDefault();
-                       var testName = $(this).data('module');
-                       var variant = $(this).data('variant')
-                       if(FAPI_UI.currentUser.sub !== data.owner.sub){
-                           $('#reRunTestModalBtn').data('test-name', testName);
-                           $('#reRunTestModalBtn').data('variant', variant);
+                if(document.querySelector('#deleteMutablePlanBtn')) {
+                    document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
+                        var myModalEl = document.getElementById('deletePlanModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    });
+                }
 
-                           var myModalEl = document.getElementById('reRunTestModal');
-                           var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                           modal.show();
-                       } else {
-                           runTest(testName, variant, planId);
-                       }
-                   });
+                document.querySelectorAll('[data-module]')?.forEach(function(element) {
+                    element.onclick = function(evt) {
+                        evt.preventDefault();
+                        var testName = this.dataset.module;
+                        var variant = this.dataset.variant;
+                        if(FAPI_UI.currentUser.sub !== data.owner.sub){
+                            document.getElementById('reRunTestModalBtn').dataset.testName = testName;
+                            document.getElementById('reRunTestModalBtn').dataset.variant = variant;
 
-                   $('[data-instance-id]').each(function() {
-                      var _self = $(this);
+                            var myModalEl = document.getElementById('reRunTestModal');
+                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                            modal.show();
+                        } else {
+                            runTest(testName, (variant !== "null") ? variant : null, planId);
+                        }
+                    };
+                });
 
-                      var testId = _self.data('instanceId');
+                document.querySelectorAll('[data-instance-id]')?.forEach(function(element) {
+                    var testId = element.dataset.instanceId;
 
-                      if (testId) {
-                          // wire up the download button
-                          $('.downloadBtn', _self).click(function(evt) {
-                              evt.preventDefault();
-                              window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
-                          });
-                          $('.downloadBtn', _self).show();
-                          // show the view button
-                          $('.viewBtn', _self).css('display', 'inline-block');
-                          // fetch the test status
-                          console.log('Fetching |' + testId + '|');
-                          $.ajax({
-                              type: 'GET',
-                              url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
-                              data: {},
-                              success: function(data) {
-                                  $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
-                                  $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version}));
-                                  FAPI_UI.activeTooltip();
-                                  if(data.status === 'FINISHED'
-                                      && (["PASSED", "WARNING", "REVIEW"].includes(data.result))
-                                      && document.querySelector('#certificationPackageBtn')) {
-                                          document.querySelector('#certificationPackageBtn').disabled = false;
-                                  }
-                              },
-                              error: function(jqxhr, status, error) {
-                                  if (jqxhr.status == 404) {
-                                      // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
-                                      // we won't be able to fetch the status (error 404).
-                                      // Just ignore it.
-                                  } else {
-                                      FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                          code: jqxhr.status,
-                                          error: error
-                                      });
-                                  }
-                              }
-                          });
-                      } else {
-                          // render an "UNKNOWN" field
-                          $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: {}}));
-                          $('.testVersion', _self).html(FAPI_UI.logTemplates.TEST_VERSION({testVersion: ''}));
-                          FAPI_UI.activeTooltip();
-                      }
+                    if (testId) {
+                        // wire up the download button
+                        element.querySelectorAll('.downloadBtn')?.forEach(function(element1) {
+                            element1.onclick = function(evt) {
+                                evt.preventDefault();
+                                window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
+                            };
 
+                            element1.classList.add('show');
+                        });
 
-                   });
+                        // show the view button
+                        element.querySelectorAll('.viewBtn')?.forEach(function(element1) {
+                            element1.style.display = 'inline-block';
+                        });
 
-                   $('[data-publish]').click(function(evt) {
-                       evt.preventDefault();
+                        // fetch the test status
+                        console.log('Fetching |' + testId + '|');
+                        fetch('/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''))
+                        .then((response) => {
+                            if (!response.ok) {
+                                return Promise.reject(response);
+                            }
 
-                       var publish = $(this).data('publish');
+                            return response.json();
+                        })
+                        .then((data) => {
+                            element.querySelectorAll('.testStatusAndResult')?.forEach(function(element1) {
+                                element1.innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: data});
+                            });
 
-                       $.ajax({
-                           type: 'POST',
-                           url: '/api/plan/' + encodeURIComponent(planId) + '/publish',
-                           contentType: 'application/json',
-                           data: JSON.stringify({ publish: publish }),
-                           success: function(data) {
-                               // redirect to the published version or reload
-                               window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId) + (publish ? '&public=true' : ''));
-                           },
-                           error: function(jqxhr, status, error) {
-                               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                   code: jqxhr.status,
-                                   error: error
-                               });
-                           }
-                       });
-                   });
+                            element.querySelectorAll('.testVersion')?.forEach(function(element1) {
+                                element1.innerHTML = FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version});
+                            });
 
-                    //only for making an immutable plan mutable again
-                   $('[data-immutable]').click(function(evt) {
-                       evt.preventDefault();
+                            FAPI_UI.activeTooltip();
+                            if(data.status === 'FINISHED'
+                                && (["PASSED", "WARNING", "REVIEW"].includes(data.result))
+                                && document.querySelector('#certificationPackageBtn')) {
+                                    document.querySelector('#certificationPackageBtn').disabled = false;
+                            }
+                        })
+                        .catch((error) => {
+                            if (error instanceof Response) {
+                                // We have a 'Respose' object.
+                                if (error.status == 404) {
+                                    // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
+                                    // we won't be able to fetch the status (error 404).
+                                    // Just ignore it.
+                                }
+                                else {
+                                    var message = error.statusText;
+                                    var responseClone = error.clone();
 
-                       $.ajax({
-                           type: 'POST',
-                           url: '/api/plan/' + encodeURIComponent(planId) + '/makemutable',
-                           contentType: 'application/x-www-form-urlencoded',
-                           success: function(data) {
-                               // redirect to the published version or reload
-                               window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
-                           },
-                           error: function(jqxhr, status, error) {
-                               FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                   code: jqxhr.status,
-                                   error: error
-                               });
-                           }
-                       });
-                   });
+                                    error.text()
+                                    .then(textError => {
+                                        // Text error thrown by the app
+                                        messageParsed = true;
 
-                   $('#reRunTestModalBtn').click(function(evt) {
-                       evt.preventDefault();
-                       var testName = $('#reRunTestModalBtn').data('test-name');
-                       var variant = $('#reRunTestModalBtn').data('variant');
-                       runTest(testName, variant, planId);
-                   });
+                                        const errorObj = JSON.parse(textError);
 
-               },
-               error: function(jqxhr, status, error) {
-                   FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                       code: jqxhr.status,
-                       error: error
-                   });
-               }
-           })
+                                        if (errorObj.error.length != 0) {
+                                            message = errorObj.error;
+                                        }
 
-       }
+                                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                                    })
+                                    .catch(error1 => {
+                                        // JSON error thrown by the app
+                                        responseClone.json()
+                                        .then(jsonError => {
+                                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                                message = jsonError;
+                                            }
 
-       function runTest(testName, testVariant, planId) {
-           var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
+                                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                                        })
+                                        .catch(genericError => {
+                                            // Error thrown by the server
+                                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                        });
+                                    });
+                                }
+                            } else {
+                                // Network error automatically detected by fetch.
+                                FAPI_UI.showError({code: "", error: error});
+                            }
+                        });
+                    } else {
+                        // render an "UNKNOWN" field
+                        element.querySelectorAll('.testStatusAndResult')?.forEach(function(element1) {
+                            element1.innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: {}});
+                        });
+                        element.querySelectorAll('.testVersion')?.forEach(function(element1) {
+                            element1.innerHTML = FAPI_UI.logTemplates.TEST_VERSION({testVersion: ''});
+                        });
+                        FAPI_UI.activeTooltip();
+                    }
+                });
 
-           if (testVariant !== null && testVariant !== undefined) {
-               runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
-           }
+                document.querySelectorAll('[data-publish]')?.forEach(function(element) {
 
-           FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
+                    element.onclick = function(evt) {
+                        evt.preventDefault();
 
-           $.ajax({
-               url: runTestUrl,
-               type: 'POST',
-               contentType: 'application/json',
-               success: function(testData, status) {
-                   // we need to switch to the new window now
-                   window.location.assign('/log-detail.html?log=' + encodeURIComponent(testData.id));
-               },
-               error: function(jqxhr, status, error) {
-                   FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                       code: jqxhr.status,
-                       error: error
-                   });
-               }
-           });
-       }
+                        var publish = this.dataset.publish;
 
-       function showDialogError(containerId, error) {
-            $('<div class="alert alert-danger">' +
-               '<button type="button" class="btn-close" data-bs-dismiss="alert">' +
-               '&times;</button>' + error + '</div>').appendTo('#' + containerId);
+                        fetch('/api/plan/' + encodeURIComponent(planId) + '/publish', {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ publish: publish }),
+                        })
+                        .then((response) => {
+                            if (!response.ok) {
+                                return Promise.reject(response);
+                            }
+
+                            return response.json();
+                        })
+                        .then((data) => {
+                            // redirect to the published version or reload
+                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId) + (publish ? '&public=true' : ''));
+                        })
+                        .catch((error) => {
+                            if (error instanceof Response) {
+                                // We have a 'Respose' object.
+                                var message = error.statusText;
+                                var responseClone = error.clone();
+
+                                error.text()
+                                .then(textError => {
+                                    // Text error thrown by the app
+                                    messageParsed = true;
+
+                                    const errorObj = JSON.parse(textError);
+
+                                    if (errorObj.error.length != 0) {
+                                        message = errorObj.error;
+                                    }
+
+                                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                                })
+                                .catch(error1 => {
+                                    // JSON error thrown by the app
+                                    responseClone.json()
+                                    .then(jsonError => {
+                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                            message = jsonError;
+                                        }
+
+                                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                                    })
+                                    .catch(genericError => {
+                                        // Error thrown by the server
+                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                    });
+                                });
+                            } else {
+                                // Network error automatically detected by fetch.
+                                FAPI_UI.showError({code: "", error: error});
+                            }
+                        });
+                    };
+                });
+
+                //only for making an immutable plan mutable again
+                document.querySelectorAll('[data-immutable]')?.forEach(function(element) {
+                    element.onclick = function(evt) {
+                        evt.preventDefault();
+
+                        fetch('/api/plan/' + encodeURIComponent(planId) + '/makemutable', {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                            },
+                        })
+                        .then((response) => {
+                            if (!response.ok) {
+                                return Promise.reject(response);
+                            }
+
+                            // redirect to the published version or reload
+                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
+                        })
+                        .catch((error) => {
+                            if (error instanceof Response) {
+                                // We have a 'Respose' object.
+                                var message = error.statusText;
+                                var responseClone = error.clone();
+
+                                error.text()
+                                .then(textError => {
+                                    // Text error thrown by the app
+                                    messageParsed = true;
+
+                                    const errorObj = JSON.parse(textError);
+
+                                    if (errorObj.error.length != 0) {
+                                        message = errorObj.error;
+                                    }
+
+                                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                                })
+                                .catch(error1 => {
+                                    // JSON error thrown by the app
+                                    responseClone.json()
+                                    .then(jsonError => {
+                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                            message = jsonError;
+                                        }
+
+                                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                                    })
+                                    .catch(genericError => {
+                                        // Error thrown by the server
+                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                    });
+                                });
+                            } else {
+                                // Network error automatically detected by fetch.
+                                FAPI_UI.showError({code: "", error: error});
+                            }
+                        });
+                    };
+                });
+
+                document.getElementById('reRunTestModalBtn').onclick = function(evt) {
+                    evt.preventDefault();
+                    var testName = this.dataset.testName;
+                    var variant = this.dataset.variant;
+                    runTest(testName, (variant !== "null") ? variant : null, planId);
+                };
+            })
+            .catch((error) => {
+                if (error instanceof Response) {
+                    // We have a 'Respose' object.
+                    var message = error.statusText;
+                    var responseClone = error.clone();
+
+                    error.text()
+                    .then(textError => {
+                        // Text error thrown by the app
+                        messageParsed = true;
+
+                        const errorObj = JSON.parse(textError);
+
+                        if (errorObj.error.length != 0) {
+                            message = errorObj.error;
+                        }
+
+                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                    })
+                    .catch(error1 => {
+                        // JSON error thrown by the app
+                        responseClone.json()
+                        .then(jsonError => {
+                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                message = jsonError;
+                            }
+
+                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                        })
+                        .catch(genericError => {
+                            // Error thrown by the server
+                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                        });
+                    });
+                } else {
+                    // Network error automatically detected by fetch.
+                    FAPI_UI.showError({code: "", error: error});
+                }
+            });
         }
 
-       /**
-        * Checks file inputs to make sure they're within max file size limits
-        * @param filesToCheck array of file 'input' element IDs to check
-        * @param maxFileSize max file size
-        * @returns {number} -1 if all files are less than maxFileSize
-        *                   else the return value is the nth element
-        *                   in the list
-        */
-       function validateFileSizes(filesToCheck, maxFileSize) {
-           for(var i = 0; i < filesToCheck.length; i++) {
-               var file = $('#' + filesToCheck[i]);
-               if(file[0].files && file[0].files.length > 0) {
-                   if(file[0].files[0].size > maxFileSize) {
-                       return i;
-                   }
-               }
-           }
-           return -1;
-       }
+        function runTest(testName, testVariant, planId) {
+            var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
 
-       document.querySelector('#certificationPackageForm').addEventListener('submit', e => {
+            if (testVariant !== null && testVariant !== undefined) {
+                runTestUrl += '&variant=' + encodeURIComponent(testVariant);
+            }
+
+            FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
+
+            fetch(runTestUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
+
+                return response.json();
+            })
+            .then((data) => {
+                // we need to switch to the new window now
+                window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
+            })
+            .catch((error) => {
+                if (error instanceof Response) {
+                    // We have a 'Respose' object.
+                    var message = error.statusText;
+                    var responseClone = error.clone();
+
+                    error.text()
+                    .then(textError => {
+                        // Text error thrown by the app
+                        messageParsed = true;
+
+                        const errorObj = JSON.parse(textError);
+
+                        if (errorObj.error.length != 0) {
+                            message = errorObj.error;
+                        }
+
+                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                    })
+                    .catch(error1 => {
+                        // JSON error thrown by the app
+                        responseClone.json()
+                        .then(jsonError => {
+                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                message = jsonError;
+                            }
+
+                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                        })
+                        .catch(genericError => {
+                            // Error thrown by the server
+                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                        });
+                    });
+                } else {
+                    // Network error automatically detected by fetch.
+                    FAPI_UI.showError({code: "", error: error});
+                }
+            });
+        }
+
+        function showDialogError(containerId, error) {
+            document.getElementById(containerId).insertAdjacentHTML('beforeend',
+                '<div class="alert alert-danger">' +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert">' +
+                '</button>' + error + '</div>');
+        }
+
+        /**
+         * Checks file inputs to make sure they're within max file size limits
+         * @param filesToCheck array of file 'input' element IDs to check
+         * @param maxFileSize max file size
+         * @returns {number} -1 if all files are less than maxFileSize
+         *                   else the return value is the nth element
+         *                   in the list
+         */
+        function validateFileSizes(filesToCheck, maxFileSize) {
+            for(var i = 0; i < filesToCheck.length; i++) {
+                var file = document.getElementById(filesToCheck[i]);
+                if(file.files && file.files.length > 0) {
+                    if(file.files[0].size > maxFileSize) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        document.getElementById('certificationPackageForm').addEventListener("submit", function(evt){
 
             const filesToCheck = [ "certificationOfConformancePdfBtn", "clientSideDataBtn" ];
             const maxFileSize = 1024000;
             const fileNum = validateFileSizes(filesToCheck, maxFileSize);
             if (fileNum >= 0) {
-                e.preventDefault();
-                showDialogError('certificationPackageFormErrors', $('#' + filesToCheck[fileNum])[0].files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
+                evt.preventDefault();
+                showDialogError('certificationPackageFormErrors', document.getElementById(filesToCheck[fileNum]).files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
                 return false;
             } else {
                 // Hide previous modal content and the cancel and certification package buttons
@@ -627,7 +849,7 @@
             }
         });
 
-        $('#closeCertificationPackageFormModal').on('click', e => {
+        document.getElementById('closeCertificationPackageFormModal').onclick = function(evt) {
             var myModalEl = document.getElementById('certificationPackageModal');
             var modal     = bootstrap.Modal.getInstance(myModalEl);
 
@@ -635,9 +857,9 @@
                 modal.hide();
             }
             window.location.reload();
-        });
+        };
 
-        $(document).ready(function() {
+        document.addEventListener("DOMContentLoaded", () => {
             var urlParams = new URLSearchParams(window.location.search);
             var planId = urlParams.get('plan');
             var public = Boolean(urlParams.get('public'));
@@ -649,7 +871,7 @@
                 return FAPI_UI.getUserInfo() // Then get the current user info
             }).then(function() {
                 return getPlan(planId, public); // Only once the user is loaded, then render the plan info
-            }).always(function() {
+            }).finally(function() {
                 FAPI_UI.activeTooltip();
                 FAPI_UI.hideBusy();
             });

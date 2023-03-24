@@ -16,7 +16,6 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
-    <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -25,16 +24,12 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <!-- Popper (necessary for Bootstrap's tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
-
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
@@ -113,7 +108,7 @@
     </div>
 
     <script type="text/javascript">
-        $(function() {
+        document.addEventListener("DOMContentLoaded", () => {
 
             FAPI_UI.loadRunningTestPageTemplates()
             .then(function() {
@@ -126,9 +121,9 @@
         });
 
         function loadRunningTest() {
-            $('#refresh').click(function(event) {
+            document.getElementById('refresh').onclick = function(event) {
                 updateRunningTable();
-            });
+            };
 
             // refresh the running table right now
             updateRunningTable();
@@ -138,65 +133,111 @@
          *
          */
         function updateRunningTable() {
-            return $.getJSON('/api/runner/running', function(data) {
-                //console.log('running: ', JSON.stringify(data));
-                $('#running-tests').html('');
+            return fetch('/api/runner/running')
+                .then((response) => response.json())
+                .then((data) => {
+                    //console.log('running: ', JSON.stringify(data));
+                    document.getElementById('running-tests').innerHTML = "";
 
-                // run this as a string of deferreds to guarantee order
-                var deferred = $.when(1);
+                    var promise = Promise.resolve();
 
-                _.each(data, function(testId) {
-                    //console.log('getting: ' + testId);
-                    deferred = deferred.then(function() {
-                        return getRunningTest(testId);
+                    _.each(data, function(testId) {
+                        //console.log('getting: ' + testId);
+                        promise = promise.then(() => {
+                            return getRunningTest(testId);
+                        });
                     });
-                });
 
-                deferred.then(function() {
-                    FAPI_UI.activeTooltip();
-                });
-            });
+                    promise.then(() => {
+                        FAPI_UI.activeTooltip();
+                    });
+                })
         }
 
         function getRunningTest(testId) {
-            return $.getJSON('/api/runner/' + encodeURIComponent(testId), function(data) {
+            return fetch('/api/runner/' + encodeURIComponent(testId))
+                .then((response) => response.json())
+                .then((data) => {
+                    var runningTest = FAPI_UI.logTemplates.RUNNING_TEST({
+                        test: data
+                    });
 
-                var runningTest = $(FAPI_UI.logTemplates.RUNNING_TEST({
-                    test: data
-                }));
+                    var runningTestsElement = document.getElementById('running-tests');
+                    runningTestsElement.insertAdjacentHTML('beforeend', runningTest);
 
-                $('#running-tests').append(runningTest);
+                    runningTestsElement.querySelector('[data-instance-id="' + testId + '"]').querySelector('.downloadBtn').onclick = function(evt) {
+                        evt.preventDefault();
+                        window.open('/api/log/' + encodeURIComponent(testId) + '?dl=true');
+                    };
 
-                $('.downloadBtn', runningTest).click(function(evt) {
-                    evt.preventDefault();
-                    window.open('/api/log/' + encodeURIComponent(testId) + '?dl=true');
-                });
-            }).then(function() {
+                }).then(function() {
+                    return fetch('/api/info/' + encodeURIComponent(testId))
+                    .then((response) => {
+                        if (!response.ok) {
+                            return Promise.reject(response);
+                        }
 
-                var _self =  $(`[data-instance-id='${testId}']`);
+                        return response.json();
+                    })
+                    .then((data) => {
+                        var testElement = document.querySelector('[data-instance-id="' + testId + '"]')
 
-                return $.ajax({
-                    type: 'GET',
-                    url: '/api/info/' + encodeURIComponent(testId),
-                    data: {},
-                    success: function(data) {
-                        $('.testStatusAndResult', _self).html(FAPI_UI.logTemplates.TEST_STATUS({test: data}));
+                        testElement.querySelector('.testStatusAndResult').innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: data});
                         FAPI_UI.activeTooltip();
-                    },
-                    error: function(jqxhr, status, error) {
-                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                            code: jqxhr.status,
-                            error: error
-                        });
-                    }
+                    })
+                    .catch((error) => {
+                        if (error instanceof Response) {
+                            // We have a 'Respose' object.
+                            var message = error.statusText;
+                            var responseClone = error.clone();
+
+                            error.text()
+                            .then(textError => {
+                                // Text error thrown by the app
+                                messageParsed = true;
+
+                                const errorObj = JSON.parse(textError);
+
+                                if (errorObj.error.length != 0) {
+                                    message = errorObj.error;
+                                }
+
+                                FAPI_UI.showError({code: error.status.toString(), error: message});
+                            })
+                            .catch(error1 => {
+                                // JSON error thrown by the app
+                                responseClone.json()
+                                .then(jsonError => {
+                                    if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                        message = jsonError;
+                                    }
+
+                                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                                })
+                                .catch(genericError => {
+                                    // Error thrown by the server
+                                    FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                });
+                            });
+                        } else {
+                            // Network error automatically detected by fetch.
+                            FAPI_UI.showError({code: "", error: error});
+                        }
+                    });
                 });
-            });
         }
 
         function loadServerInfo() {
-            return $.getJSON('/api/server', function(data) {
-                $(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
-            });
+            return fetch('/api/server')
+                .then((response) => response.json())
+                .then((data) => {
+                    const textStr =
+                        [(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""),
+                         (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - ");
+
+                    const element = document.querySelector('.serverInfo');
+                    element.textContent = textStr;
+                });
         }
     </script>
 

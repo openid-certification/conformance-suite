@@ -16,7 +16,6 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
-    <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -25,16 +24,12 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <!-- Popper (necessary for Bootstrap's tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
-
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
@@ -1094,7 +1089,7 @@
         /**
          *
          */
-        $(function() {
+        document.addEventListener("DOMContentLoaded", () => {
 
             FAPI_UI.showBusy('Loading available tests...');
 
@@ -1111,45 +1106,48 @@
                 return loadScheduleTestPage();
             }).then(function() {
                 return loadServerInfo();
-            }).always(function() {
+            }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
         });
 
         function loadAvailableTests() {
-            return $.getJSON('/api/runner/available', function(data) {
-                // save the list of available tests and associated info for later
-                FAPI_UI.availableTests = _.keyBy(data, 'testName');
-            });
+            return fetch('/api/runner/available')
+                .then((response) => response.json())
+                .then((data) => {
+                    // save the list of available tests and associated info for later
+                    FAPI_UI.availableTests = _.keyBy(data, 'testName');
+                })
         }
 
         function loadAvailablePlans() {
-            return $.getJSON('/api/plan/available', function(data) {
-                FAPI_UI.availablePlans = _.keyBy(data, 'planName');
+            return fetch('/api/plan/available')
+                .then((response) => response.json())
+                .then((data) => {
+                    FAPI_UI.availablePlans = _.keyBy(data, 'planName');
 
-                // sort the plans into groups by profile
-                var groupedPlans = _.groupBy(data, 'profile');
-                // consistent ordering for plans
-                var profiles = _.keys(groupedPlans).sort();
+                    // sort the plans into groups by profile
+                    var groupedPlans = _.groupBy(data, 'profile');
+                    // consistent ordering for plans
+                    var profiles = _.keys(groupedPlans).sort();
 
-                // render all the plans into the dropdown
-                _.each(profiles, function(profile) {
+                    // render all the plans into the dropdown
+                    _.each(profiles, function(profile) {
 
-                    var optGroup = $(FAPI_UI.logTemplates.TEST_OPTGROUP({
-                        label: profile
-                    }));
-                    $('#planSelect').append(optGroup);
+                        var optGroup = FAPI_UI.logTemplates.TEST_OPTGROUP({
+                            label: profile
+                        });
+                        document.getElementById('planSelect').insertAdjacentHTML('beforeend', optGroup);
 
-                    // note that we're sorting the plans within each group as well
-                    _.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
-                        optGroup.append(FAPI_UI.logTemplates.TEST_OPTION({
-                            val: item.planName,
-                            display: item.displayName
-                        }));
+                        // note that we're sorting the plans within each group as well
+                        _.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
+                            document.getElementById('planSelect').insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.TEST_OPTION({
+                                val: item.planName,
+                                display: item.displayName
+                            }));
+                        });
                     });
-                });
-
-            });
+                })
         }
 
         function saveConfig(config) {
@@ -1181,40 +1179,43 @@
 
         function loadPlanConfig(planId) {
             // Load config of plan from database
-            return $.getJSON('/api/plan/' + encodeURIComponent(planId), function(data) {
-
-                if (data.config) {
-                    // we found a configuration file, load it up
-                    $("#config").val(JSON.stringify(data.config, null, 4));
-                    updateSelectedTestSelector(data.planName);
-                    if (data.variant) {
-                        FAPI_UI.selectedVariant = data.variant;
+            return fetch('/api/plan/' + encodeURIComponent(planId))
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.config) {
+                        // we found a configuration file, load it up
+                        const el = document.getElementById('config');
+                        el.value = JSON.stringify(data.config, null, 4);
+                        updateSelectedTestSelector(data.planName);
+                        if (data.variant) {
+                            FAPI_UI.selectedVariant = data.variant;
+                        }
+                    } else {
+                        // otherwise set the defaults
+                        const el = document.getElementById('config');
+                        el.value = JSON.stringify(FAPI_UI.testJSON, null, 4);
                     }
-                } else {
-                    // otherwise set the defaults
-                    $("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
-                }
-
-            });
+                })
         }
 
         function loadTestConfig(testId) {
-            // Load config of test from database
-            return $.getJSON('/api/info/' + encodeURIComponent(testId), function(data) {
-
-                if (data.config) {
-                    // we found a configuration file, load it up
-                    $("#config").val(JSON.stringify(data.config, null, 4));
-                    updateSelectedTestSelector(data.planName);
-                    if (data.variant) {
-                        FAPI_UI.selectedVariant = data.variant;
+            return fetch('/api/info/' + encodeURIComponent(testId))
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.config) {
+                        // we found a configuration file, load it up
+                        const el = document.getElementById('config');
+                        el.value = JSON.stringify(data.config, null, 4);
+                        updateSelectedTestSelector(data.planName);
+                        if (data.variant) {
+                            FAPI_UI.selectedVariant = data.variant;
+                        }
+                    } else {
+                        // otherwise set the defaults
+                        const el = document.getElementById('config');
+                        el.value = JSON.stringify(FAPI_UI.testJSON, null, 4);
                     }
-                } else {
-                    // otherwise set the defaults
-                    $("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
-                }
-
-            });
+                })
         }
 
         function loadLastConfig() {
@@ -1231,7 +1232,8 @@
             // If we left the page with an unsaved config, restore it now.
 
             if (localSavedConfig) {
-                $('#config').val(localSavedConfig.config);
+                const el = document.getElementById('config');
+                el.value = localSavedConfig.config;
                 updateSelectedTestSelector(localSavedConfig.planName);
                 if (localSavedConfig.variant) {
                     FAPI_UI.selectedVariant = localSavedConfig.variant;
@@ -1240,35 +1242,47 @@
             }
 
             // Otherwise, try to get a config from the server
+            return fetch('/api/lastconfig')
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.config) {
+                        // we found a configuration file, load it up
+                        const el = document.getElementById('config');
+                        el.value = JSON.stringify(data.config, null, 4);
+                        updateSelectedTestSelector(data.planName);
+                        if (data.variant) {
+                            FAPI_UI.selectedVariant = data.variant;
+                        }
+                    } else {
 
-            return $.getJSON('/api/lastconfig', function(data) {
-
-                if (data.config) {
-                    // we found a configuration file, load it up
-
-                    $("#config").val(JSON.stringify(data.config, null, 4));
-                    updateSelectedTestSelector(data.planName);
-                    if (data.variant) {
-                        FAPI_UI.selectedVariant = data.variant;
+                        // otherwise set the defaults
+                        const el = document.getElementById('config');
+                        el.value = JSON.stringify(FAPI_UI.testJSON, null, 4);
                     }
-                } else {
-
-                    // otherwise set the defaults
-
-                    $("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
-                }
-
-            });
+                })
         }
 
         function updateSelectedTestSelector(planName) {
-            $('#planSelect option[value="' + planName + '"]').prop('selected', true).change();
+            const selectElement = document.getElementById('planSelect');
+            const selectOptions = selectElement.options;
+
+            for (var opt, j=0; opt=selectOptions[j]; j++) {
+                if (opt.value == planName) {
+                    selectElement.selectedIndex = j;
+
+                    const e = new Event("change");
+                    selectElement.dispatchEvent(e);
+
+                    break;
+                }
+            }
         }
 
         function loadScheduleTestPage() {
 
-            $('#createPlanBtn').click(function(evt) {
-                var planName = $('#planSelect').val();
+            document.getElementById('createPlanBtn').onclick = function(evt) {
+
+                const planName = document.getElementById('planSelect').value;
 
                 // if the user hasn't picked anything, just bail
                 if (!planName || planName == 'select') {
@@ -1281,7 +1295,7 @@
                 /* Figures out which tab is visible then populates the form appropriately
                 this is to ensure that the $('#config') value has properly updated in the event of a
                 quick paste into a form field  with no tab switch and then a button press */
-                if ($("#formInput").hasClass("active")) {
+                if (document.getElementById('formInput').classList.contains('active')) {
                     updateJSONFromFormElements();
                 }
 
@@ -1290,7 +1304,7 @@
                 var selectedVariant = getSelectedVariant();
 
                 // Stash the config in case we are unable to create the test
-                saveConfig({ config: $('#config').val(), planName: planName, variant: selectedVariant });
+                saveConfig({ config: document.getElementById('config').value, planName: planName, variant: selectedVariant });
 
                 var createUrl = '/api/plan?planName=' + encodeURIComponent(planName);
                 for (var [key, value] of Object.entries(selectedVariant)) {
@@ -1304,32 +1318,74 @@
                     createUrl += '&variant=' + encodeURIComponent(JSON.stringify(selectedVariant));
                 }
 
-                $.ajax({
-                       url: createUrl,
-                       type: 'POST',
-                       contentType: 'application/json',
-                       data: $('#config').val(),
-                       success: function(data, status) {
-                           clearSavedConfig();
-                           // forward to the test plan page
-                           window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.id));
-                       },
-                    error: function(jqxhr, status, error) {
-                        FAPI_UI.hideBusy();
-                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                            code: jqxhr.status,
-                            error: error
+                fetch(createUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: document.getElementById("config").value,
+                })
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+
+                    return response.json();
+                })
+                .then((data) => {
+                    clearSavedConfig();
+                    // forward to the test plan page
+                    window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.id));
+                })
+                .catch((error) => {
+                    FAPI_UI.hideBusy();
+
+                    if (error instanceof Response) {
+                        // We have a 'Respose' object.
+                        var message = error.statusText;
+                        var responseClone = error.clone();
+
+                        error.text()
+                        .then(textError => {
+                            // Text error thrown by the app
+                            messageParsed = true;
+
+                            const errorObj = JSON.parse(textError);
+
+                            if (errorObj.error.length != 0) {
+                                message = errorObj.error;
+                            }
+
+                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                        })
+                        .catch(error1 => {
+                            // JSON error thrown by the app
+                            responseClone.json()
+                            .then(jsonError => {
+                                if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                    message = jsonError;
+                                }
+
+                                FAPI_UI.showError({code: error.status.toString(), error: message});
+                            })
+                            .catch(genericError => {
+                                // Error thrown by the server
+                                FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                            });
                         });
+                    } else {
+                        // Network error automatically detected by fetch.
+                        FAPI_UI.showError({code: "", error: error});
                     }
                 });
-            });
+            };
 
             // update field visibility when the selectors change
-            $('#planSelect').on('change', function(_) {
+            document.getElementById('planSelect').addEventListener("change", function(){
                 updateVariants();
                 updateConfigFieldVisibility();
             });
-            $('#variantSelectors').on('change', function(_) {
+            document.getElementById('variantSelectors').addEventListener("change", function(){
                 updateConfigFieldVisibility();
             });
 
@@ -1338,25 +1394,27 @@
             if (FAPI_UI.selectedVariant) {
                 var selection = FAPI_UI.selectedVariant;
                 _.each(selection, function(value, key) {
-                    $('.variant-selector[data-variant-parameter="' + key + '"]').val(value);
+                    document.querySelector('.variant-selector[data-variant-parameter="' + key + '"]').value = value;
                 });
             }
             updateConfigFieldVisibility();
 
             // Config UI
-            $(".config-form-element").attr("autocomplete", "off");
-            $(".config-form-element").attr("autocorrect", "off");
-            $(".config-form-element").attr("autocapitalize", "off");
-            $(".config-form-element").attr("spellcheck", "false");
+            document.querySelectorAll('.config-form-element')?.forEach(function(element) {
+                element.setAttribute("autocomplete", "off");
+                element.setAttribute("autocorrect", "off");
+                element.setAttribute("autocapitalize", "off");
+                element.setAttribute("spellcheck", "false");
+            });
 
             // tab actions
-            $('#tab-form-elements').click(function(e) {
+            document.getElementById('tab-form-elements').onclick = function(evt) {
                 updateFormElementsFromJSON();
-            })
+            };
 
-            $('#tab-json-elements').click(function(e) {
+            document.getElementById('tab-json-elements').onclick = function(evt) {
                 updateJSONFromFormElements();
-            })
+            };
 
             // sync the JSON at least once
             updateFormElementsFromJSON();
@@ -1367,18 +1425,18 @@
 
         function updateConfigFieldVisibility() {
             // Hide the entire config form and launch button until a plan/test & all variants are selected.
-            $('#configForm').hide();
-            $('#launchButtons').hide();
+            document.getElementById('configForm').style.display = 'none';
+            document.getElementById('launchButtons').style.display = 'none';
 
             var fieldsNotToShow = [];
 
             // multi test plan selected
-            var planName = $('#planSelect').val();
+            var planName = document.getElementById('planSelect').value;
 
             // if the user hasn't picked anything, disable the create button
             if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
                 var fieldsToShow = [];
-                $('#createPlanBtn').prop('disabled', true);
+                document.getElementById('createPlanBtn').disabled = true;
             } else {
                 var selectedPlan = FAPI_UI.availablePlans[planName];
                 var fieldsToShow = selectedPlan.configurationFields;
@@ -1402,43 +1460,50 @@
                         fieldsNotToShow = _.uniqBy(fieldsNotToShow.concat(planVariants[p]["variantValues"][v].hidesConfigurationFields));
                     }
                 });
-                $('#createPlanBtn').prop('disabled', !allVariantsSelected);
+                document.getElementById('createPlanBtn').disabled = !allVariantsSelected;
+
                 if (allVariantsSelected) {
-                    $('#configForm').show();
-                    $('#launchButtons').show();
+                    document.getElementById('configForm').style.display = '';
+                    document.getElementById('launchButtons').style.display = '';
                 }
             }
 
             fieldsToShow = _.difference(fieldsToShow, fieldsNotToShow);
             fieldsToShow.push('alias', 'description', 'publish'); // always show the alias, description, and publish fields
 
-            if ($('#configForm').css('display') !== 'none') {
-
+            if (document.getElementById('configForm').style.display !== 'none') {
                 // show/hide all the appropriate fields on the page
-                $('.config-form-element-container').each(function() {
-                    if (_.includes(fieldsToShow, $('.config-form-element', this).data("jsonTarget"))) {
-                        $(this).show();
+                document.querySelectorAll(".config-form-element-container")?.forEach(function(element) {
+                    const formElement = element.querySelector('.config-form-element');
+
+                    if (_.includes(fieldsToShow, formElement.dataset.jsonTarget)) {
+                        element.style.display = '';
                     } else {
-                        $(this).hide();
+                        element.style.display = 'none';
                     }
                 });
 
                 // collapse empty sections
-                $('.config-form-container').each(function() {
+                document.querySelectorAll('.config-form-container')?.forEach(function(element) {
                     var hasAtLeastOneDisplayElement = false;
-                    $(this).children().not('.config-form-container-header').each(function() {
-                        if ($(this).css("display") !== "none") {
+
+                    for (const child of element.children) {
+                        if (child.classList.contains('config-form-container-header')) {
+                            continue;
+                        }
+
+                        if (child.style.display !== 'none') {
                             hasAtLeastOneDisplayElement = true;
                             // found at least one visible element, break the loop
-                            return false;
+                            break;
                         }
-                    });
+                    }
 
                     if (hasAtLeastOneDisplayElement) {
-                        $('.config-form-container-header', this).show();
+                        element.querySelector('.config-form-container-header').style.display = '';
                     } else {
                         // there are no visible elements anymore, hide the header
-                        $('.config-form-container-header', this).hide();
+                        element.querySelector('.config-form-container-header').style.display = 'none';
                     }
                 });
             }
@@ -1446,16 +1511,20 @@
 
         function updateVariants() {
             var map = FAPI_UI.availablePlans;
-            var itemSelected = $('#planSelect').val();
+            var itemSelected = document.getElementById('planSelect').value;
 
-            $('#variantSelectors').empty();
+            const node = document.getElementById('variantSelectors');
+            while (node.firstChild) {
+                node.removeChild(node.firstChild);
+            }
+
             if (map[itemSelected] && map[itemSelected].variants && Object.keys(map[itemSelected].variants).length > 0) {
 
                 // update the variant display
                 _.each(map[itemSelected].variants, function(values, parameter) {
 
                     var id = 'vp_' + parameter;
-                    var selector = $('<div class="mb-3 row">' +
+                    var selector = '<div class="mb-3 row">' +
                             '<label for="' + id + '" class="col-md-2 col-form-label">' + values.variantInfo.displayName + '</label>' +
                             '<div class="col-md-10">' +
                             '<div class="input-group">\n' +
@@ -1464,29 +1533,30 @@
                             '</div>' +
                             '<select class="form-select variant-selector" id="' + id + '" data-variant-parameter="' + parameter + '">' +
                             '<option value="select">--- Select A Variant ----</option>' +
-                            '</select></div></div></div>');
-                    $('#variantSelectors').append(selector);
+                            '</select></div></div></div>';
+                    document.getElementById('variantSelectors').insertAdjacentHTML('beforeend', selector);
                     _.each(values.variantValues, function(info, value) {
-                        $('#' + id).append(FAPI_UI.logTemplates.TEST_OPTION({
+                        document.getElementById(id).insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.TEST_OPTION({
                             val: value,
                             display: value
                         }));
                     });
                 });
 
-                $('#variantSelectors').show();
+                document.getElementById('variantSelectors').style.display = '';
             } else {
 
                 // don't show the variant if there's none to show
-                $('#variantSelectors').hide();
+                document.getElementById('variantSelectors').style.display = 'none';
             }
             FAPI_UI.activeTooltip();
         }
 
         function getSelectedVariant() {
             var selection = {};
-            $('.variant-selector[data-variant-parameter]').each(function() {
-                selection[$(this).attr('data-variant-parameter')] = $(this).val();
+
+            document.querySelectorAll('.variant-selector[data-variant-parameter]')?.forEach(function(element) {
+                selection[element.getAttribute('data-variant-parameter')] = element.value;
             });
             return selection;
         }
@@ -1495,13 +1565,13 @@
          *
          */
         function updateJSONFromFormElements() {
-            var children = $("#formInput").find(".config-form-element");
-
-            _.each(children, function(child) {
-                populateJSON($(child).data("jsonTarget"), $(child).val());
+            document.getElementById('formInput').querySelectorAll('.config-form-element')?.forEach(function(element) {
+                if (element.classList.contains('config-form-element')) {
+                    populateJSON(element.dataset.jsonTarget, element.value);
+                }
             });
 
-            $("#config").val(JSON.stringify(FAPI_UI.testJSON, null, 4));
+            document.getElementById('config').value = JSON.stringify(FAPI_UI.testJSON, null, 4);
         }
 
         /**
@@ -1509,7 +1579,7 @@
          */
         function updateFormElementsFromJSON() {
             try {
-                FAPI_UI.testJSON = JSON.parse($("#config").val());
+                FAPI_UI.testJSON = JSON.parse(document.getElementById('config').value);
             } catch (e) {
                 FAPI_UI.showError({
                     error: e
@@ -1525,7 +1595,10 @@
                 return false;
             }
 
-            $(".config-form-element").val(""); // clear all form details - we are going to read it in from the JSON
+            // clear all form details - we are going to read it in from the JSON
+            document.querySelectorAll('.config-form-element')?.forEach(function(element) {
+                element.value = "";
+            });
 
             walkJSON(FAPI_UI.testJSON);
         }
@@ -1543,13 +1616,13 @@
                     path = key;
                 }
 
-                var el = $(".config-form-element[data-json-target='" + path + "']");
+                var el = document.querySelector(".config-form-element[data-json-target='" + path + "']");
 
-                if (el && $(document).find(el).length) {
+                if (el != null) {
                     if (_.isArray(value) || _.isObject(value)) {
-                        el.val(JSON.stringify(value, null, 4));
+                        el.value = JSON.stringify(value, null, 4);
                     } else {
-                        el.val(value);
+                        el.value = value;
                     }
                 } else {
                     if (_.isObject(value)) {
@@ -1593,9 +1666,16 @@
         }
 
         function loadServerInfo() {
-            return $.getJSON('/api/server', function(data) {
-                $(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
-            });
+            return fetch('/api/server')
+                .then((response) => response.json())
+                .then((data) => {
+                    const textStr =
+                        [(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""),
+                         (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - ");
+
+                    const element = document.querySelector('.serverInfo');
+                    element.textContent = textStr;
+                });
         }
 
         function tryGetStorage(type) {
