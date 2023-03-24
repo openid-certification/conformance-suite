@@ -75,8 +75,14 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 		boolean dpop = senderConstrain.equals("dpop");
 		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
+		String clientType = v.get("fapi_client_type");
+		boolean openid = clientType.equals("oidc");
 
 		String certProfile = "FAPI2MsgSigningID1 ";
+
+		if (openid) {
+			certProfile += "OpenID ";
+		}
 
 		switch (profile) {
 			case "plain_fapi":
@@ -120,7 +126,7 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return "ConnectID RP";
+				return certProfile + " ConnectID RP";
 		}
 
 		certProfile += " RP w/";
@@ -133,19 +139,19 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 				certProfile += " MTLS client auth";
 				break;
 		}
-		switch (requestMethod) {
-			case "unsigned":
-				break;
-			case "signed_non_repudiation":
-				certProfile += ", non-repudiation signed request";
-				break;
-		}
 		switch (senderConstrain) {
 			case "mtls":
 				certProfile += ", MTLS constrain";
 				break;
 			case "dpop":
 				certProfile += ", DPoP";
+				break;
+		}
+		switch (requestMethod) {
+			case "unsigned":
+				break;
+			case "signed_non_repudiation":
+				certProfile += ", JAR";
 				break;
 		}
 		switch (responseMode) {
