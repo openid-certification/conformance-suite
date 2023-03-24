@@ -446,6 +446,7 @@ local_test:
     OLDIFS=$IFS
     IFS='|'
     for token in ${PRESET_CI_TOKENS}; do
+      echo $token
       kubectl exec $MONGO_POD -- \
         mongo mongodb://localhost/test_suite --eval \
           "db.API_TOKEN.update($token, { upsert: true })"
