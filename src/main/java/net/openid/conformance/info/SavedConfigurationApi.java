@@ -1,9 +1,9 @@
 package net.openid.conformance.info;
 
 import com.google.gson.JsonObject;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,9 +21,9 @@ public class SavedConfigurationApi {
 	private SavedConfigurationService savedConfigurationService;
 
 	@GetMapping(value = "/lastconfig", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get last configuration of current user")
+	@Operation(summary = "Get last configuration of current user")
 	@ApiResponses({
-		@ApiResponse(code = 200, message = "Retrieved successfully")
+			@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	public ResponseEntity<Object> getLastConfig() {
 

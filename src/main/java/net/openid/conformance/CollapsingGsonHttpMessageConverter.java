@@ -7,15 +7,11 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
-import net.openid.conformance.serializers.SpringfoxApiListingJsonSerializer;
-import net.openid.conformance.serializers.SpringfoxJsonSerializer;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantSelectionJsonSerializer;
 import org.bson.Document;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
-import springfox.documentation.service.ApiListing;
-import springfox.documentation.spring.web.json.Json;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -105,10 +101,7 @@ public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter
 					}
 				}
 			})
-			// needed for making calls to /v2/api-docs
-			.registerTypeAdapter(Json.class, new SpringfoxJsonSerializer())
-			// needed for making calls to /swagger-ui.html
-			.registerTypeAdapter(ApiListing.class, new SpringfoxApiListingJsonSerializer())
+
 			// needed for variants
 			.registerTypeAdapter(VariantSelection.class, new VariantSelectionJsonSerializer());
 		if(prettyPrint) {

@@ -1,8 +1,8 @@
 package net.openid.conformance.ui;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import net.openid.conformance.security.AuthenticationFacade;
 import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +29,9 @@ public class UserInfoUIController {
 	 * @return
 	 */
 	@GetMapping(value = "/currentuser", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get current user information")
+	@Operation(summary = "Get current user information")
 	@ApiResponses({
-		@ApiResponse(code = 200, message = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	public ResponseEntity<Object> getCurrentUserInfo() {
 		Map<String, Object> map = new HashMap<>();
