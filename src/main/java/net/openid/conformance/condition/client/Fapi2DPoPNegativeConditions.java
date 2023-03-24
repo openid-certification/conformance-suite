@@ -21,6 +21,7 @@ import net.openid.conformance.condition.common.AbstractInvalidateJwsSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -196,7 +197,12 @@ public class Fapi2DPoPNegativeConditions {
 	public static class FixedJtiClaim extends ChangeDpopClaims {
 		@Override
 		public void changeClaim(JsonObject claims, Environment env) {
-			claims.addProperty("jti", "abcdefg123456789012345");
+			String existingJTI = env.getString("jti");
+			if(existingJTI == null || existingJTI.equals("")){
+				existingJTI = RandomStringUtils.randomAlphanumeric(15);
+				env.putString("jti", existingJTI);
+			}
+			claims.addProperty("jti", existingJTI);
 		}
 	}
 
