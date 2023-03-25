@@ -10,7 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-par-test-token-endpoint-url-as-audience-for-client-JWT-assertion",
-	displayName = "PAR : try to use token endpoint endpoint url as audience for Client JWT Assertion",
+	displayName = "PAR : try to use token endpoint url as audience for Client JWT Assertion",
 	summary = "This test tries to use the token endpoint url as audience for Client JWT Assertion, the authorization server is expected to accept it",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
