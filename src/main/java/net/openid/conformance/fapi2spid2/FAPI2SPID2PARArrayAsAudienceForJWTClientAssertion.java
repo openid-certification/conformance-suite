@@ -1,0 +1,52 @@
+package net.openid.conformance.fapi2spid2;
+
+import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims;
+import net.openid.conformance.condition.client.UpdateClientAuthenticationAssertionClaimsWithISSAud;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
+import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
+
+
+@PublishTestModule(
+	testName = "fapi2-security-profile-id2-par-test-array-as-audience-for-client-JWT-assertion",
+	displayName = "PAR : try to use an array containing the issuer and another value as the audience for Client JWT Assertion",
+	summary = "This test tries to use an array containing the issuer and another value as audience for Client JWT Assertion, the authorization server is expected to accept it as per discussion at https://gitlab.com/openid/conformance-suite/-/issues/1187",
+	profile = "FAPI2-Security-Profile-ID2",
+	configurationFields = {
+		"server.discoveryUrl",
+		"client.client_id",
+		"client.scope",
+		"client.jwks",
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca",
+		"client2.client_id",
+		"client2.scope",
+		"client2.jwks",
+		"mtls2.key",
+		"mtls2.cert",
+		"mtls2.ca",
+		"resource.resourceUrl"
+	}
+)
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"mtls"
+})
+public class FAPI2SPID2PARArrayAsAudienceForJWTClientAssertion extends AbstractFAPI2SPID2ServerTestModule {
+	/*
+	PAR-2.0
+	Note that there's some potential ambiguity around the appropriate audience value to use when
+	JWT client assertion based authentication is employed. To address that ambiguity the issuer
+	identifier URL of the AS according to [RFC8414] SHOULD be used as the value of the audience.
+	In order to facilitate interoperability the AS MUST accept its issuer identifier,
+	token endpoint URL, or pushed authorization request endpoint URL as values that identify
+	it as an intended audience.
+	*/
+	@Override
+	protected void addClientAuthenticationToPAREndpointRequest() {
+		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
+			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
+			condition(AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.3"))));
+	}
+}
