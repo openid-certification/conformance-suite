@@ -88,8 +88,8 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		//PAR tests
 		FAPI2SPID2PARAttemptReuseRequestUri.class,
 		FAPI2SPID2PARAttemptToUseExpiredRequestUri.class,
-		FAPI2SPID2PARCheckAudienceForJWTClientAssertion.class,
-		FAPI2SPID2PARCheckAudienceForJWTClientAssertion1.class,
+		FAPI2SPID2PAREndpointAsAudienceForJWTClientAssertion.class,
+		FAPI2SPID2PARTokenEndpointAsAudienceForJWTClientAssertion.class,
 		FAPI2SPID2PAREnsureRequestUriIsBoundToClient.class,
 		FAPI2SPID2PARRejectRequestUriInParAuthorizationFormParams.class,
 		FAPI2SPID2PARRejectInvalidHttpVerb.class,

@@ -1,6 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
-import net.openid.conformance.condition.client.AddPAREndpointAsAudToClientAuthenticationAssertionClaims;
+import net.openid.conformance.condition.client.AddTokenEndpointAsAudToClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.UpdateClientAuthenticationAssertionClaimsWithISSAud;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -9,9 +9,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-id2-par-test-pushed-authorization-url-as-audience-for-client-JWT-assertion",
-	displayName = "PAR : try to use pushed authorization request endpoint url as audience for Client JWT Assertion",
-	summary = "This test tries to use the pushed authorization request endpoint url as audience for Client JWT Assertion, the authorization server is expected to accept it",
+	testName = "fapi2-security-profile-id2-par-test-token-endpoint-url-as-audience-for-client-JWT-assertion",
+	displayName = "PAR : try to use token endpoint endpoint url as audience for Client JWT Assertion",
+	summary = "This test tries to use the token endpoint url as audience for Client JWT Assertion, the authorization server is expected to accept it",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -33,7 +33,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
 })
-public class FAPI2SPID2PARCheckAudienceForJWTClientAssertion extends AbstractFAPI2SPID2ServerTestModule {
+public class FAPI2SPID2PARTokenEndpointAsAudienceForJWTClientAssertion extends AbstractFAPI2SPID2ServerTestModule {
 	/*
 	PAR-2.0
 	Note that there's some potential ambiguity around the appropriate audience value to use when
@@ -47,6 +47,6 @@ public class FAPI2SPID2PARCheckAudienceForJWTClientAssertion extends AbstractFAP
 	protected void addClientAuthenticationToPAREndpointRequest() {
 		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
 			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
-			condition(AddPAREndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2"))));
+			condition(AddTokenEndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2"))));
 	}
 }
