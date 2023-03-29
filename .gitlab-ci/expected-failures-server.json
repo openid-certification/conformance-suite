@@ -97,7 +97,7 @@
             "fapi_profile": "openbanking_brazil"
         },
         "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
-        "current-block": "DPoP reuse, Second use of the same jti",
+        "current-block": "DPoP reuse, Second use of the same jti, this 'should' fail",
         "condition": "EnsureHttpStatusCodeIs401",
         "expected-result": "warning",
         "comment": "Authlete doesn't support jti uniqueness"
