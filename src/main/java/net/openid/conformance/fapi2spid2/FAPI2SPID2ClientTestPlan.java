@@ -26,8 +26,14 @@ public class FAPI2SPID2ClientTestPlan implements TestPlan {
 		String clientAuth = v.get("client_auth_type");
 		String senderConstrain = v.get("sender_constrain");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
+		String clientType = v.get("fapi_client_type");
+		boolean openid = clientType.equals("oidc");
 
 		String certProfile = "FAPI2SPID2 ";
+
+		if (openid) {
+			certProfile += "OpenID ";
+		}
 
 		switch (profile) {
 			case "plain_fapi":

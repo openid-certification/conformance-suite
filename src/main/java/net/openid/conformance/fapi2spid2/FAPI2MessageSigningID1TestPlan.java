@@ -88,8 +88,9 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		//PAR tests
 		FAPI2SPID2PARAttemptReuseRequestUri.class,
 		FAPI2SPID2PARAttemptToUseExpiredRequestUri.class,
-		FAPI2SPID2PARCheckAudienceForJWTClientAssertion.class,
-		FAPI2SPID2PARCheckAudienceForJWTClientAssertion1.class,
+		FAPI2SPID2PAREndpointAsAudienceForJWTClientAssertion.class,
+		FAPI2SPID2PARTokenEndpointAsAudienceForJWTClientAssertion.class,
+		FAPI2SPID2PARArrayAsAudienceForJWTClientAssertion.class,
 		FAPI2SPID2PAREnsureRequestUriIsBoundToClient.class,
 		FAPI2SPID2PARRejectRequestUriInParAuthorizationFormParams.class,
 		FAPI2SPID2PARRejectInvalidHttpVerb.class,
@@ -119,7 +120,6 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
-		String openidVariant = v.get("openid");
 		String clientAuth = v.get("client_auth_type");
 		String requestMethod = v.get("fapi_request_method");
 		String responseMode = v.get("fapi_response_mode");
@@ -128,7 +128,8 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 		boolean dpop = senderConstrain.equals("dpop");
 		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
-		boolean openid = openidVariant.equals("openid_connect");
+		String clientType = v.get("openid");
+		boolean openid = clientType.equals("openid_connect");
 
 		String certProfile = "FAPI2MsgSigningID2 ";
 
@@ -182,7 +183,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return "ConnectID OP";
+				return certProfile + " ConnectID OP";
 			default:
 				throw new RuntimeException(String.format("Unknown profile %s for %s",
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -198,19 +199,19 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 				certProfile += " MTLS client auth";
 				break;
 		}
-		switch (requestMethod) {
-			case "unsigned":
-				break;
-			case "signed_non_repudiation":
-				certProfile += ", non-repudiation signed request";
-				break;
-		}
 		switch (senderConstrain) {
 			case "mtls":
 				certProfile += ", MTLS constrain";
 				break;
 			case "dpop":
 				certProfile += ", DPoP";
+				break;
+		}
+		switch (requestMethod) {
+			case "unsigned":
+				break;
+			case "signed_non_repudiation":
+				certProfile += ", JAR";
 				break;
 		}
 		switch (responseMode) {

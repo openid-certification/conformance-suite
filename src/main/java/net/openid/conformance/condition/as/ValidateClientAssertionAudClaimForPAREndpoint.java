@@ -17,7 +17,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class ValidateClientAssertionAudClaimForPAREndpoint extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "server", "client" })
+	@PreEnvironment(required = { "server", "client_assertion" })
 	public Environment evaluate(Environment env) {
 		String      issuer = env.getString("server", "issuer");
 		JsonElement aud    = env.getElementFromObject("client_assertion", "claims.aud");
@@ -27,8 +27,8 @@ public class ValidateClientAssertionAudClaimForPAREndpoint extends AbstractCondi
 		}
 
 		if (aud.isJsonArray()) {
-			if (! (aud.getAsJsonArray().contains(new JsonPrimitive(issuer)) && aud.getAsJsonArray().size() == 1)) {
-				throw error("aud claim does not match the authentication server issuer url", args("expected", issuer, "actual", aud));
+			if (! (aud.getAsJsonArray().contains(new JsonPrimitive(issuer)))) {
+				throw error("aud claim array does not contain the authentication server issuer url", args("expected", issuer, "actual", aud));
 			}
 		} else {
 			if (!issuer.equals(OIDFJSON.getString(aud))) {
@@ -36,7 +36,7 @@ public class ValidateClientAssertionAudClaimForPAREndpoint extends AbstractCondi
 			}
 		}
 
-		logSuccess("Client Assertion 'aud' claim matches the authentication server issuer url");
+		logSuccess("Client Assertion 'aud' claim matches or contains the authentication server issuer url");
 		return env;
 	}
 }
