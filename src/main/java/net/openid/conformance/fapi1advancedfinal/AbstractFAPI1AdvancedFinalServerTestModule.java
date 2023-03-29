@@ -121,6 +121,8 @@ import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDiffe
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.condition.client.ValidateIssInAuthorizationResponse;
+import net.openid.conformance.condition.client.ValidateJARMEncryptionAlg;
+import net.openid.conformance.condition.client.ValidateJARMEncryptionEnc;
 import net.openid.conformance.condition.client.ValidateJARMExpRecommendations;
 import net.openid.conformance.condition.client.ValidateJARMResponse;
 import net.openid.conformance.condition.client.ValidateJARMSignatureUsingKid;
@@ -769,6 +771,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-4.4-3", "JARM-4.4-4", "JARM-4.4-5");
 
 			callAndContinueOnFailure(FAPI1ValidateJarmSigningAlg.class, ConditionResult.FAILURE);
+
+			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO,
+				ValidateJARMEncryptionAlg.class, ConditionResult.FAILURE);
+
+			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO,
+				ValidateJARMEncryptionEnc.class, ConditionResult.FAILURE);
 
 			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-4.1");
 
