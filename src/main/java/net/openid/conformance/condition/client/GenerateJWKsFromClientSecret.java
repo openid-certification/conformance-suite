@@ -31,7 +31,29 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 		}
 
 		// generate a JWK Set for the client's secret
-		JWK jwk = new OctetSequenceKey.Builder(clientSecret.getBytes())
+		byte[] clientSecretBytes = clientSecret.getBytes();
+
+		//address issue #1196
+		// client secret might be shorter than the required size to be used to sign
+		int minSize;
+		switch(alg.toUpperCase()) {
+			case "HS256":
+				minSize = 32;
+				break;
+			case "HS384":
+				minSize = 48;
+				break;
+			default:
+				minSize = 64;
+				break;
+		}
+		if(clientSecretBytes.length < minSize){
+			throw error("The secret configured on the test plan is too short to sign JWT with that. The " +
+					alg.toUpperCase() + " requires a secret with at least " + minSize +
+					" bytes and the provided secret is " + clientSecretBytes.length + " length.");
+		}
+
+		JWK jwk = new OctetSequenceKey.Builder(clientSecretBytes)
 			.algorithm(JWSAlgorithm.parse(alg))
 			.keyUse(KeyUse.SIGNATURE)
 			// no key ID
