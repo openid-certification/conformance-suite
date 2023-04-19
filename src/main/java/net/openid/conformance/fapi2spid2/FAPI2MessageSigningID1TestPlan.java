@@ -32,6 +32,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 
 		// Possible failure case
 		FAPI2SPID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
+		FAPI2SPID2EnsureDifferentStateInsideAndOutsideRequestObject.class,
 		FAPI2SPID2EnsureRequestObjectWithLongNonce.class,
 		FAPI2SPID2EnsureRequestObjectWithLongState.class,
 
