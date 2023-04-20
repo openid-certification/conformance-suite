@@ -15,6 +15,7 @@ import subprocess
 import sys
 import time
 import traceback
+import ssl
 
 from conformance import Conformance
 
@@ -147,6 +148,7 @@ async def run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, oidcc
                     os.putenv('VARIANT', variantstr)
                     os.putenv('MODULE_NAME', module)
                     os.putenv('ISSUER', oidcc_issuer_str)
+                    os.putenv('NODE_TLS_REJECT_UNAUTHORIZED','0')
                     subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
 
                     await conformance.wait_for_state(module_id, ["FINISHED"])
@@ -328,7 +330,8 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                                          "--transportKey", "./model_bank/transport.key",
                                          "--signingKey", "./model_bank/signing.key",
                                          "--encryptionKey", "./model_bank/encryption.key",
-                                         "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"] ], cwd="./ksa-rp-client/")
+                                         "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"],
+                                         "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"]], cwd="./ksa-rp-client/")
                     else:
                         subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
                                          "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
@@ -337,6 +340,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                                          "--signingKey", "./model_bank/signing.key",
                                          "--encryptionKey", "./model_bank/encryption.key",
                                          "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"],
+                                         "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"],
                                          "--privateKeyAuth"], cwd="./ksa-rp-client/")
                 else:
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
@@ -346,7 +350,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                     os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/payments/v1/consents'
                     os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/accounts/v1/accounts'
                     os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/payments/v1/pix/payments'
-
+                    os.environ['NODE_TLS_REJECT_UNAUTHORIZED']= '0'
                     os.environ['FAPI_PROFILE'] = profile
                     if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
                         os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
@@ -1019,6 +1023,10 @@ async def main():
     global untested_test_modules
     global args
 
+
+
+    print(ssl.OPENSSL_VERSION)
+
     dev_mode = 'CONFORMANCE_DEV_MODE' in os.environ
 
     if 'CONFORMANCE_SERVER' in os.environ:
@@ -1036,6 +1044,7 @@ async def main():
         dev_mode = True
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
+        os.environ["CONFORMANCE_SERVER_MTLS"] = 'https://localhost.emobix.co.uk:8444/'
 
     if dev_mode:
         token = None

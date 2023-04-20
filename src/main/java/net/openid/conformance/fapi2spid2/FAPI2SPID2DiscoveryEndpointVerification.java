@@ -100,12 +100,12 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 	}
 
 	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
-		super.configure(config, baseUrl, externalUrlOverride);
+		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}
 
 	@Override
