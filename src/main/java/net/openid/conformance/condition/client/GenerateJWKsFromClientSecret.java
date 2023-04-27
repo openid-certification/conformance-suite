@@ -48,9 +48,9 @@ public class GenerateJWKsFromClientSecret extends AbstractCondition {
 				break;
 		}
 		if(clientSecretBytes.length < minSize){
-			throw error("The secret configured on the test plan is too short to sign JWT with that. The " +
+			throw error("The client secret configured in the test plan is too short to sign a JWT with. The " +
 					alg.toUpperCase() + " requires a secret with at least " + minSize +
-					" bytes and the provided secret is " + clientSecretBytes.length + " length.");
+					" bytes and the provided secret is " + clientSecretBytes.length + " bytes.");
 		}
 
 		JWK jwk = new OctetSequenceKey.Builder(clientSecretBytes)
