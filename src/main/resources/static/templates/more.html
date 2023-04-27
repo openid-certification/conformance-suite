@@ -51,7 +51,12 @@
 
                 <% if(!_.isUndefined(value.public_jwk)) {
                         var buildQueryParams = {'token' : value.verifiable_jws, 'publicKey' : value.public_jwk};
-                        var link = 'https://jwt.io/#debugger-io?' + $.param(buildQueryParams);
+
+                        const urlData = Object.keys(buildQueryParams).map(function(key) {
+                            return encodeURIComponent(key) + '=' + encodeURIComponent(buildQueryParams[key]);
+                        }).join('&');
+
+                        var link = 'https://jwt.io/#debugger-io?' + urlData;
                 %>
                         <div class="fitContent"><a href="<%- link %>"><img src="/images/jwt_io_badge.png" class="img-fluid mx-auto marginTopBottom5"></a></div>
                 <% } %>

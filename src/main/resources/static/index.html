@@ -16,7 +16,6 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
-    <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -25,8 +24,6 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <!-- Popper (necessary for Bootstrap's tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
@@ -34,7 +31,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
 
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
@@ -75,7 +71,7 @@
     </div>
 
     <script type="text/javascript">
-        $(function() {
+        document.addEventListener('DOMContentLoaded', () => {
             FAPI_UI.loadHomepageTemplates()
             .then(function() {
                 return FAPI_UI.getUserInfo();
@@ -85,9 +81,16 @@
         });
 
         function loadServerInfo() {
-            return $.getJSON('/api/server', function(data) {
-                $(".serverInfo").text([(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""), (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - "));
-            });
+            return fetch('/api/server')
+                .then((response) => response.json())
+                .then((data) => {
+                    const textStr =
+                        [(data.hasOwnProperty('external_ip') ? "External IP: " + data.external_ip:""),
+                         (data.hasOwnProperty('version') ? "Version: " +data.version:"")].filter(Boolean).join(" - ");
+
+                    const element = document.querySelector('.serverInfo');
+                    element.textContent = textStr;
+                })
         }
     </script>
 

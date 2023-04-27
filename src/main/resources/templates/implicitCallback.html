@@ -36,8 +36,6 @@
             </div>
         </div>
     </div>
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <!-- Popper (necessary for Bootstrap's tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -55,10 +53,11 @@
             }
             console.log("assumeComplete workaround for https://gitlab.com/openid/conformance-suite/-/issues/766 activated - assuming post has completed as 5 seconds have elapsed")
             // add a hidden tag so that Selenium can detect we're done processing
-            $('#complete').append('<span id="submission_complete" hidden></span>');
+
+            document.getElementById('complete').insertAdjacentHTML('beforeend', '<span id="submission_complete" hidden></span>');
         }
 
-        $(function() {
+        document.addEventListener("DOMContentLoaded", () => {
 
             var hash = window.location.hash;
 
@@ -68,20 +67,18 @@
             // after 5 seconds
             setTimeout(function(){ assumeComplete(); }, 5000);
 
-            $.post({
-                url: [[${implicitSubmitUrl}]],
-                data: hash,
-                contentType: "text/plain", // this will be parsed on the server side, no need to wrap it
-            }).always(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', [[${implicitSubmitUrl}]], true);
+            xhr.setRequestHeader('Content-type', 'text/plain');
+            xhr.onload = function () {
                 console.log("implicit submit complete")
-                $('#complete a').attr('href', returnUrl); // provide the link only after the page is rendered.
-                $('#complete').show();
+                document.querySelector('#complete a').setAttribute("href", returnUrl);
+                document.getElementById('complete').classList.add('show');
                 submitComplete = true;
                 // add a hidden tag so that Selenium can detect we're done processing
-                $('#complete').append('<span id="submission_complete" hidden></span>');
-            });
-
-
+                document.getElementById('complete').insertAdjacentHTML('beforeend', '<span id="submission_complete" hidden></span>');
+            };
+            xhr.send(hash);
         });
     </script>
 
