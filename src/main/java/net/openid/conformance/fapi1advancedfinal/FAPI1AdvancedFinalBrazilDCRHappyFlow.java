@@ -2,6 +2,7 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -24,6 +25,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPI1AdvancedFinalBrazilDCRHappyFlow extends AbstractFAPI1AdvancedFinalBrazilDCR {
+
+	@Override
+	protected void performPARRedirectWithRequestUri() {
+		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "PAR-4");
+		performRedirect();
+	}
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
