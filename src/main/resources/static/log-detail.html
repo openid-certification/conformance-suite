@@ -724,7 +724,7 @@
                                     headers: {
                                         "Content-Type": "application/json",
                                     },
-                                    body: { publish: publish },
+                                    body: JSON.stringify({ publish: publish }),
                                 })
                                 .then((response) => {
                                     if (!response.ok) {

@@ -1,5 +1,5 @@
             <div class="moreInfo collapse">
-                <div class="row gy-1 me-1">
+                <dl class="row">
             <%
                 // regular expression for displaying JWTs
                 var jwtRe = /^(e[yw][a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)(\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+))?$/;
@@ -9,8 +9,8 @@
 
                 %>
 
-                    <span class="col-sm-2 text-end text-truncate" data-bs-toggle="tooltip" title="stacktrace" data-bs-placement="bottom">stacktrace</span>
-                    <span class="col-sm-10 text-start wrapLongStrings row-bg-light">
+                    <dt class="col-sm-2 text-end text-truncate" data-bs-toggle="tooltip" title="stacktrace" data-bs-placement="bottom">stacktrace</dt>
+                    <dd class="col-sm-10 text-start wrapLongStrings row-bg-light">
                         <ul>
                             <% _.each(more['stacktrace'], function(v) { %>
                                 <li><%- v %></li>
@@ -24,7 +24,7 @@
                                 <li><%- v %></li>
                             <% }); %>
                         </ul>
-                    </span>
+                    </dd>
                 <%
 
                     var doubleStack = true;
@@ -39,8 +39,8 @@
                         return;
                     }
             %>
-                    <span class="col-sm-2 text-end text-truncate" data-bs-toggle="tooltip" title="<%- key %>" data-bs-placement="bottom"><%- key %></span>
-                    <span class="col-sm-10 text-start wrapLongStrings row-bg-light">
+                    <dd class="col-sm-2 text-end text-truncate" data-bs-toggle="tooltip" title="<%- key %>" data-bs-placement="bottom"><%- key %></dd>
+                    <dt class="col-sm-10 text-start wrapLongStrings row-bg-light">
             <% if (key == 'img') { %>
                 <img src="<%- value %>" class="img-fluid mx-auto imagePreview">
             <% } else if (value != null && !_.isUndefined(value.verifiable_jws)) { %>
@@ -77,9 +77,9 @@
                     <pre class="prettyprint lang-javascript"><%- JSON.stringify(value, null, 2) %></pre>
             <% } %>
 
-                    </span>
+                    </dt>
             <%
                 });
             %>
-                </div>
+                </dl>
             </div>
