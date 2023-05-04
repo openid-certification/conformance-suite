@@ -103,6 +103,7 @@ import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
 import net.openid.conformance.condition.as.jarm.SignJARMResponse;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
+import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
@@ -1021,6 +1022,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		setAuthorizationEndpointRequestParamsForHttpMethod();
 		if(authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
 			callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
+			callAndContinueOnFailure(EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR.class, Condition.ConditionResult.WARNING);
 		}
 
 		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {

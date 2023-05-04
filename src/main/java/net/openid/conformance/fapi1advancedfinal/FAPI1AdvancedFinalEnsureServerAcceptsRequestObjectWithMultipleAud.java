@@ -2,6 +2,7 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddMultipleAudToRequestObject;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -28,6 +29,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class FAPI1AdvancedFinalEnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPI1AdvancedFinalServerTestModule {
+
+	@Override
+	protected void performPARRedirectWithRequestUri() {
+		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "PAR-4");
+		performRedirect();
+	}
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {

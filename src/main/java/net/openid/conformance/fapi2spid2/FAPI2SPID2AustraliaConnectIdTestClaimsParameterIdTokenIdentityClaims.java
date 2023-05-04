@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spid2;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckForUnexpectedClaimsInIdToken;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsRequestedClaims;
@@ -35,6 +36,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil" })
 public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims extends AbstractFAPI2SPID2ServerTestModule {
+
+	@Override
+	protected void performPARRedirectWithRequestUri() {
+		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "PAR-4");
+		performRedirect();
+	}
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
