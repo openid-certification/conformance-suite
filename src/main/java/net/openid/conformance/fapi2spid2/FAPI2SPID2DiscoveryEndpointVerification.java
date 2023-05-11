@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckDiscEndpointAuthSignAlgValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptAlgValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptEncValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
@@ -113,6 +114,7 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 		callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-4.3.1-2");
 		if (jarm) {
 			callAndContinueOnFailure(CheckDiscEndpointResponseModesSupportedContainsJwt.class, Condition.ConditionResult.FAILURE, "JARM-4.3.4");
+			callAndContinueOnFailure(CheckDiscEndpointAuthSignAlgValuesIsJsonArray.class, Condition.ConditionResult.FAILURE, "JARM-6");
 			callAndContinueOnFailure(CheckDiscEndpointAuthEncryptAlgValuesIsJsonArray.class, Condition.ConditionResult.FAILURE, "JARM-6");
 			callAndContinueOnFailure(CheckDiscEndpointAuthEncryptEncValuesIsJsonArray.class, Condition.ConditionResult.FAILURE, "JARM-6");
 		} else {
