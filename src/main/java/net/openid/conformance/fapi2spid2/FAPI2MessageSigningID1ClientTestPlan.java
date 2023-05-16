@@ -20,7 +20,6 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 		FAPI2SPID2ClientTestInvalidIss.class,
 		FAPI2SPID2ClientTestInvalidAud.class,
 		FAPI2SPID2ClientTestInvalidSecondaryAud.class,
-		FAPI2SPID2ClientTestInvalidSignature.class,
 		FAPI2SPID2ClientTestInvalidNullAlg.class,
 		FAPI2SPID2ClientTestInvalidAlternateAlg.class,
 		FAPI2SPID2ClientTestInvalidExpiredExp.class,

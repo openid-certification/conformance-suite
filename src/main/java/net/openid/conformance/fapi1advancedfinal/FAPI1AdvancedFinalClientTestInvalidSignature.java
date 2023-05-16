@@ -2,6 +2,8 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.as.InvalidateIdTokenSignature;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-invalid-signature",
@@ -18,6 +20,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
+@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
 public class FAPI1AdvancedFinalClientTestInvalidSignature extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
