@@ -134,6 +134,7 @@ import net.openid.conformance.condition.client.ValidateJARMEncryptionEnc;
 import net.openid.conformance.condition.client.ValidateJARMExpRecommendations;
 import net.openid.conformance.condition.client.ValidateJARMResponse;
 import net.openid.conformance.condition.client.ValidateJARMSignatureUsingKid;
+import net.openid.conformance.condition.client.ValidateJARMSigningAlg;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
@@ -738,6 +739,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-4.4-3", "JARM-4.4-4", "JARM-4.4-5");
 
 			callAndContinueOnFailure(FAPI2ValidateJarmSigningAlg.class, ConditionResult.FAILURE);
+
+			skipIfElementMissing("jarm_response", "jws_header", ConditionResult.INFO,
+				ValidateJARMSigningAlg.class, ConditionResult.FAILURE);
 
 			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO,
 				ValidateJARMEncryptionAlg.class, ConditionResult.FAILURE);
