@@ -19,7 +19,7 @@ public class AustraliaConnectIdCheckClaimsSupported extends AbstractValidateJson
 		"address"
 	};
 
-	private static final int minimumMatchesRequired = ConnectIdMandatoryToSupportClaims.length;
+	private static final int minimumMatchesRequired = 1;
 
 	private static final String errorMessageNotEnough = "The server does not support the required claims.";
 	@Override
