@@ -256,6 +256,10 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 	}
 
+	protected Boolean isMTLS() {
+		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS;
+	}
+
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);

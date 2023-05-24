@@ -2,21 +2,39 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
+import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CDRRefreshTokenRequiredWhenSharingDurationRequested;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailure;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
+import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIBrazilRefreshTokenRequired;
 import net.openid.conformance.condition.client.FAPIEnsureServerConfigurationDoesNotSupportRefreshToken;
+import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateRefreshTokenNotRotated;
 import net.openid.conformance.condition.client.WaitFor30Seconds;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-refresh-token",
@@ -41,6 +59,22 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 	}
 )
 public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
+
+	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	@Override
+	public void setupMTLS() {
+		super.setupMTLS();
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithMTLS.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@Override
+	public void setupPrivateKeyJwt() {
+		super.setupPrivateKeyJwt();
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+	}
 
 	protected void addPromptConsentToAuthorizationEndpointRequest() {
 		callAndStopOnFailure(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class, "OIDCC-11");
@@ -97,6 +131,59 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 		}
 
 		env.removeNativeValue("refresh_token_prev");
+
+		if (! isSecondClient()) {
+			// Ensure a sender constrained refresh_token grant attempt, sent without proof of possession, fails.
+
+			if (isMTLS()) {
+				eventLog.startBlock("Attempting to use an MTLS sender constrained refresh_token without proof of possession");
+				env.mapKey("mutual_tls_authentication", "none_existent_key");
+			}
+			else {
+				eventLog.startBlock("Attempting to use an DPOP sender constrained refresh_token without proof of possession");
+			}
+
+			callAndStopOnFailure(CreateRefreshTokenRequest.class);
+			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
+
+			call(sequence(addTokenEndpointClientAuthentication));
+
+			if (isMTLS()) {
+				callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI1-ADV-5.2.2-6");
+				Boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
+				if (sslError != null && sslError) {
+					// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
+					// is required, so there's no further checks to do
+				} else {
+					callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, ConditionResult.FAILURE, "RFC6749-5.2");
+
+					// this is only a warning to allow for an SSL terminator returning a generic 400 response
+					callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.WARNING, "OIDCC-3.1.3.4");
+
+					if (env.getBoolean(CheckTokenEndpointReturnedJsonContentType.tokenEndpointResponseWasJsonKey)) {
+						call(sequence(validateTokenEndpointResponseSteps));
+						callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, ConditionResult.FAILURE, "RFC6749-5.2");
+						callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, ConditionResult.WARNING, "RFC6749-5.2");
+						callAndContinueOnFailure(ValidateErrorDescriptionFromTokenEndpointResponseError.class, ConditionResult.FAILURE, "RFC6749-5.2");
+						callAndContinueOnFailure(ValidateErrorUriFromTokenEndpointResponseError.class, ConditionResult.FAILURE, "RFC6749-5.2");
+					}
+				}
+			}
+			else {
+				callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+
+				callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class);
+				callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+				callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+				callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, ConditionResult.FAILURE, "RFC6749-5.2");
+			}
+
+			eventLog.endBlock();
+
+			if (isMTLS()) {
+				env.unmapKey("mutual_tls_authentication");
+			}
+		}
 	}
 
 	@Override
@@ -138,5 +225,22 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 		env.mapKey("id_token", "second_id_token");
 
 		sendRefreshTokenRequestAndCheckIdTokenClaims();
+	}
+
+	public static class ValidateTokenEndpointResponseWithMTLS extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// if the SSL connection was not dropped, we expect a well-formed 'invalid_client' error
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		}
+	}
+
+	public static class ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// if the ssl connection was not dropped, we expect one of invalid_request, invalid_grant or invalid_client
+			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		}
 	}
 }
