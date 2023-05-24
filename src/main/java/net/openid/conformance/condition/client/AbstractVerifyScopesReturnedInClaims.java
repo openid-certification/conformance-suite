@@ -17,7 +17,7 @@ public abstract class AbstractVerifyScopesReturnedInClaims extends AbstractCondi
 
 	// https://github.com/OpenIDC/pyoidc/blob/master/src/oic/oic/message.py#L996
 	@SuppressWarnings("serial")
-	private final Map<String, List<String>> SCOPE_STANDARD_CLAIMS = new HashMap<>() {{
+	protected final Map<String, List<String>> SCOPE_STANDARD_CLAIMS = new HashMap<>() {{
 		put("openid", new ArrayList<>(Arrays.asList("sub")));
 		put("profile", new ArrayList<>(Arrays.asList("name",
 			"given_name",
