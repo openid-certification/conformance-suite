@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spid2;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CallProtectedResourceForceBearer;
 import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
@@ -47,19 +48,30 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 	class CallResourceEndpointSteps extends AbstractConditionSequence {
 		boolean expectSuccess;
 		boolean shouldFail;
+		boolean forceBearer;
 
 		String[] requirements;
 
 		public CallResourceEndpointSteps(boolean expectSuccess, boolean shouldFail, String... requirements) {
+			this(expectSuccess, shouldFail, false, requirements);
+		}
+
+		public CallResourceEndpointSteps(boolean expectSuccess, boolean shouldFail, boolean forceBearer, String... requirements) {
 			this.expectSuccess = expectSuccess;
 			this.shouldFail = shouldFail;
+			this.forceBearer = forceBearer;
 			this.requirements = requirements;
 		}
 
 		@Override
 		public void evaluate() {
 			call(makeUpdateResourceRequestSteps());
-			callAndStopOnFailure(CallProtectedResource.class, "RFC7231-5.3.2");
+			if (forceBearer) {
+				callAndStopOnFailure(CallProtectedResourceForceBearer.class, "RFC7231-5.3.2");
+			}
+			else {
+				callAndStopOnFailure(CallProtectedResource.class, "RFC7231-5.3.2");
+			}
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			Condition.ConditionResult result = Condition.ConditionResult.FAILURE;
 			if (!shouldFail) {
@@ -241,6 +253,11 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 
 		eventLog.startBlock("Try resource access without DPoP proof");
 		call(new CallResourceEndpointSteps(false, true, "FAPI2-BASE-4.3.3")
+			.insertAfter(AddDpopHeaderForResourceEndpointRequest.class,
+				condition(Fapi2DPoPNegativeConditions.RemoveDpopFromResourceRequest.class)));
+
+		eventLog.startBlock("Try resource access without DPoP proof and authorization type changed to 'Bearer'");
+		call(new CallResourceEndpointSteps(false, true, true, "DPOP-7.1")
 			.insertAfter(AddDpopHeaderForResourceEndpointRequest.class,
 				condition(Fapi2DPoPNegativeConditions.RemoveDpopFromResourceRequest.class)));
 
