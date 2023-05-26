@@ -1350,10 +1350,14 @@
                             // Text error thrown by the app
                             messageParsed = true;
 
-                            const errorObj = JSON.parse(textError);
+                            try {
+                                const errorObj = JSON.parse(textError);
 
-                            if (errorObj.error.length != 0) {
-                                message = errorObj.error;
+                                if (errorObj.error.length != 0) {
+                                    message = errorObj.error;
+                                }
+                            }
+                            catch (e) {
                             }
 
                             FAPI_UI.showError({code: error.status.toString(), error: message});
