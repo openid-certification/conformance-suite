@@ -5,9 +5,10 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Map;
 
@@ -18,10 +19,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError_UnitTest {
 
 	@Test
-	public void condition_fails_when_http_status_code_is_null(){
+	public void condition_fails_when_http_status_code_is_null() {
 		EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError condition = new EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError();
 		condition.setProperties("UNIT-TEST", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 
@@ -32,7 +34,7 @@ public class EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupport
 	}
 
 	@Test
-	public void condition_fails_when_http_status_code_is_200(){
+	public void condition_fails_when_http_status_code_is_200() {
 		EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError condition = new EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError();
 		condition.setProperties("UNIT-TEST", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 
@@ -44,7 +46,7 @@ public class EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupport
 	}
 
 	@Test
-	public void condition_fails_when_http_status_code_is_400_but_the_error_property_is_missing(){
+	public void condition_fails_when_http_status_code_is_400_but_the_error_property_is_missing() {
 		EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError condition = new EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError();
 		condition.setProperties("UNIT-TEST", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 
@@ -56,7 +58,7 @@ public class EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupport
 	}
 
 	@Test
-	public void condition_fails_when_http_status_code_is_400_and_error_field_does_not_match(){
+	public void condition_fails_when_http_status_code_is_400_and_error_field_does_not_match() {
 		EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError condition = new EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError();
 		condition.setProperties("UNIT-TEST", mock(TestInstanceEventLog.class), Condition.ConditionResult.FAILURE);
 
@@ -74,7 +76,6 @@ public class EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupport
 
 	@Test
 	public void condition_passes_when_http_status_code_is_400_and_error_field_is_one_of_the_expected_values() {
-		MockitoAnnotations.initMocks(this);
 		TestInstanceEventLog log = mock(TestInstanceEventLog.class);
 
 		EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError condition = new EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError();
