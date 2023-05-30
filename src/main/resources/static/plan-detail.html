@@ -515,10 +515,14 @@
                                         // Text error thrown by the app
                                         messageParsed = true;
 
-                                        const errorObj = JSON.parse(textError);
+                                        try {
+                                            const errorObj = JSON.parse(textError);
 
-                                        if (errorObj.error.length != 0) {
-                                            message = errorObj.error;
+                                            if (errorObj.error.length != 0) {
+                                                message = errorObj.error;
+                                            }
+                                        }
+                                        catch (e) {
                                         }
 
                                         FAPI_UI.showError({code: error.status.toString(), error: message});
@@ -592,10 +596,14 @@
                                     // Text error thrown by the app
                                     messageParsed = true;
 
-                                    const errorObj = JSON.parse(textError);
+                                    try {
+                                        const errorObj = JSON.parse(textError);
 
-                                    if (errorObj.error.length != 0) {
-                                        message = errorObj.error;
+                                        if (errorObj.error.length != 0) {
+                                            message = errorObj.error;
+                                        }
+                                    }
+                                    catch (e) {
                                     }
 
                                     FAPI_UI.showError({code: error.status.toString(), error: message});
@@ -653,10 +661,14 @@
                                     // Text error thrown by the app
                                     messageParsed = true;
 
-                                    const errorObj = JSON.parse(textError);
+                                    try {
+                                        const errorObj = JSON.parse(textError);
 
-                                    if (errorObj.error.length != 0) {
-                                        message = errorObj.error;
+                                        if (errorObj.error.length != 0) {
+                                            message = errorObj.error;
+                                        }
+                                    }
+                                    catch (e) {
                                     }
 
                                     FAPI_UI.showError({code: error.status.toString(), error: message});
@@ -702,10 +714,14 @@
                         // Text error thrown by the app
                         messageParsed = true;
 
-                        const errorObj = JSON.parse(textError);
+                        try {
+                            const errorObj = JSON.parse(textError);
 
-                        if (errorObj.error.length != 0) {
-                            message = errorObj.error;
+                            if (errorObj.error.length != 0) {
+                                message = errorObj.error;
+                            }
+                        }
+                        catch (e) {
                         }
 
                         FAPI_UI.showError({code: error.status.toString(), error: message});
@@ -729,6 +745,9 @@
                     // Network error automatically detected by fetch.
                     FAPI_UI.showError({code: "", error: error});
                 }
+
+                // Percolate the error up.
+                return Promise.reject(error);
             });
         }
 
@@ -769,10 +788,14 @@
                         // Text error thrown by the app
                         messageParsed = true;
 
-                        const errorObj = JSON.parse(textError);
+                        try {
+                            const errorObj = JSON.parse(textError);
 
-                        if (errorObj.error.length != 0) {
-                            message = errorObj.error;
+                            if (errorObj.error.length != 0) {
+                                message = errorObj.error;
+                            }
+                        }
+                        catch (e) {
                         }
 
                         FAPI_UI.showError({code: error.status.toString(), error: message});
