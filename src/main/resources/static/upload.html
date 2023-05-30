@@ -140,7 +140,7 @@
                 el.querySelector('.uploadBtn').onclick = function(evt) {
                     evt.preventDefault();
 
-                    var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.data('uploadId'));
+                    var url = "/api/log/" + encodeURIComponent(testId) + '/images/' + encodeURIComponent(el.dataset.uploadId);
 
                     fetch(url, {
                         method: "POST",
