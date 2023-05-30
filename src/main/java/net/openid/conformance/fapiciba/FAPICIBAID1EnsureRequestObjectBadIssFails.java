@@ -1,6 +1,6 @@
 package net.openid.conformance.fapiciba;
 
-import net.openid.conformance.condition.client.AddBadIssToRequestObject;
+import net.openid.conformance.condition.client.AddIssForSecondClientToRequestObject;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -28,8 +28,17 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPICIBAID1EnsureRequestObjectBadIssFails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 
 	@Override
+	protected void configClient() {
+		super.configClient();
+
+		// This test requires the second client.
+		setupClient2();
+	}
+
+
+	@Override
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
-		callAndStopOnFailure(AddBadIssToRequestObject.class, "CIBA-7.1.1");
+		callAndStopOnFailure(AddIssForSecondClientToRequestObject.class, "CIBA-7.1.1");
 	}
 }

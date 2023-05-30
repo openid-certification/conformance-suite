@@ -14,7 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AddBadIssToRequestObject_UnitTest {
+public class AddIssForSecondClientToRequestObject_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,13 +22,14 @@ public class AddBadIssToRequestObject_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private AddBadIssToRequestObject cond;
+	private AddIssForSecondClientToRequestObject cond;
 
 	private String clientId = "21541757519";
+	private String client2Id = "8920218600959526";
 
 	@Before
 	public void setUp() throws Exception {
-		cond = new AddBadIssToRequestObject();
+		cond = new AddIssForSecondClientToRequestObject();
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
@@ -37,6 +38,11 @@ public class AddBadIssToRequestObject_UnitTest {
 		client.addProperty("client_id", clientId);
 
 		env.putObject("client", client);
+
+		JsonObject client2 = new JsonObject();
+		client2.addProperty("client_id", client2Id);
+
+		env.putObject("client2", client2);
 	}
 
 	@Test
@@ -50,7 +56,7 @@ public class AddBadIssToRequestObject_UnitTest {
 
 		assertThat(env.getObject("request_object_claims").has("iss")).isTrue();
 
-		assertThat(env.getString("request_object_claims", "iss")).isNotEqualTo(clientId);
+		assertThat(env.getString("request_object_claims", "iss")).isEqualTo(client2Id);
 
 	}
 
