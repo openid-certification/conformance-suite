@@ -1398,7 +1398,11 @@
             if (FAPI_UI.selectedVariant) {
                 var selection = FAPI_UI.selectedVariant;
                 _.each(selection, function(value, key) {
-                    document.querySelector('.variant-selector[data-variant-parameter="' + key + '"]').value = value;
+                    var el = document.querySelector('.variant-selector[data-variant-parameter="' + key + '"]');
+
+                    if (el != null) {
+                        el.value = value;
+                    }
                 });
             }
             updateConfigFieldVisibility();
