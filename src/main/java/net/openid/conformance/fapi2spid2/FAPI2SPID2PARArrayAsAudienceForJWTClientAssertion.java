@@ -1,16 +1,18 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims;
+import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.UpdateClientAuthenticationAssertionClaimsWithISSAud;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-id2-par-test-array-as-audience-for-client-JWT-assertion",
-	displayName = "PAR : try to use an array containing the issuer and another value as the audience for Client JWT Assertion",
+	testName = "fapi2-security-profile-id2-test-array-as-audience-for-client-JWT-assertion",
+	displayName = "Try to use an array containing the issuer and another value as the audience for Client JWT Assertions at the PAR and token endpoints",
 	summary = "This test tries to use an array containing the issuer and another value as audience for Client JWT Assertion, the authorization server is expected to accept it as per discussion at https://gitlab.com/openid/conformance-suite/-/issues/1187",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
@@ -48,5 +50,12 @@ public class FAPI2SPID2PARArrayAsAudienceForJWTClientAssertion extends AbstractF
 		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
 			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
 			condition(AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.3"))));
+	}
+
+	@Override
+	protected void addClientAuthenticationToTokenEndpointRequest() {
+		call(new CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest().insertAfter(
+			CreateClientAuthenticationAssertionClaims.class,
+			condition(AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims.class).requirements("RFC7519-4.1.3")));
 	}
 }
