@@ -15,7 +15,6 @@ import com.nimbusds.jwt.JWTParser;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class JWTUtil {
@@ -122,7 +121,7 @@ public class JWTUtil {
 					throw new ParseException("A client secret is required to decrypt this JWT", 0);
 				}
 				decryptionKey = JWEUtil.createSymmetricJWKForAlgAndSecret(client_secret,
-										alg, encryptedJWT.getHeader().getEncryptionMethod(), UUID.randomUUID().toString());
+										alg, encryptedJWT.getHeader().getEncryptionMethod(), null);
 			} else {
 				if (privateJwksWithEncKeys == null) {
 					throw new ParseException("A JWKS is required to decrypt this JWT", 0);

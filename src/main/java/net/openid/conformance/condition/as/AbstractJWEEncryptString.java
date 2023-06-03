@@ -17,7 +17,6 @@ import net.openid.conformance.util.JWEUtil;
 import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
-import java.util.UUID;
 
 /**
  * Can be used to encrypt id tokens, userinfo responses, request objects
@@ -81,7 +80,7 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 			//symmetric key
 			try
 			{
-				recipientJWK = JWEUtil.createSymmetricJWKForAlgAndSecret(clientSecret, algorithm, encryptionMethod, UUID.randomUUID().toString());
+				recipientJWK = JWEUtil.createSymmetricJWKForAlgAndSecret(clientSecret, algorithm, encryptionMethod, null);
 			} catch (KeyLengthException e) {
 				throw error("Failed to create symmetric encryption key", e, args("algorithm", algorithm));
 			}
