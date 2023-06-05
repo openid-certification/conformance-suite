@@ -189,6 +189,7 @@ import java.util.function.Supplier;
 	FAPIOpenIDConnect.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2ID2OPProfile.class,
+	FAPIOpenIDConnect.class,
 	FAPIResponseMode.class
 })
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {
@@ -276,9 +277,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			return;
 		}
 
-                if (getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && scopeContains("openid")) {
-                        throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
-                }
+		if (getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && scopeContains("openid")) {
+			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
+		}
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
