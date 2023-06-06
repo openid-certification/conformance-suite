@@ -13,7 +13,7 @@ public class FAPIBrazilValidateSSASignature extends AbstractVerifyJwsSignature {
 
 		String ssa = env.getString("software_statement_assertion");
 		JsonObject jwks = env.getObject("directory_ssa_jwks");
-		verifyJwsSignature(ssa, jwks, "software statement");
+		verifyJwsSignature(ssa, jwks, "software statement", true, "directory ssa");
 		return env;
 	}
 }

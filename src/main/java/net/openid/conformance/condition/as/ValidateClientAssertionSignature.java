@@ -14,7 +14,7 @@ public class ValidateClientAssertionSignature extends AbstractVerifyJwsSignature
 		String clientAssertionString = env.getString("client_assertion", "value");
 		JsonObject client = env.getObject("client");
 		JsonObject clientJWKS = client.get("jwks").getAsJsonObject();
-		verifyJwsSignature(clientAssertionString, clientJWKS, "client_assertion");
+		verifyJwsSignature(clientAssertionString, clientJWKS, "client_assertion", true, "client");
 
 		return env;
 	}

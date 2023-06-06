@@ -13,7 +13,7 @@ public class ValidateLogoutTokenSignature extends AbstractVerifyJwsSignature {
 		String idToken = env.getString("logout_token", "value");
 		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
 
-		verifyJwsSignature(idToken, serverJwks, "logout_token");
+		verifyJwsSignature(idToken, serverJwks, "logout_token", false, null);
 
 		return env;
 	}

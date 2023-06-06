@@ -8,7 +8,6 @@ import net.openid.conformance.condition.client.ValidateIdToken;
 import net.openid.conformance.condition.client.ValidateIdTokenACRClaimAgainstRequest;
 import net.openid.conformance.condition.client.ValidateIdTokenNonce;
 import net.openid.conformance.condition.client.ValidateIdTokenSignature;
-import net.openid.conformance.condition.client.ValidateIdTokenSignatureUsingKid;
 import net.openid.conformance.condition.client.ValidateIdTokenStandardClaims;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
@@ -32,7 +31,6 @@ public class PerformStandardIdTokenChecks extends AbstractConditionSequence {
 		callAndContinueOnFailure(ValidateIdTokenACRClaimAgainstRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5.1.1");
 
 		callAndContinueOnFailure(ValidateIdTokenSignature.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateIdTokenSignatureUsingKid.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckForSubjectInIdToken.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
 		callAndContinueOnFailure(EnsureIdTokenUpdatedAtValid.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
 
