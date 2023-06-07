@@ -1,20 +1,20 @@
-package net.openid.conformance.fapi2spid2;
+package net.openid.conformance.fapi1advancedfinal;
 
-import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.UpdateClientAuthenticationAssertionClaimsWithISSAud;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims;
+
 
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-id2-test-array-as-audience-for-client-JWT-assertion",
+	testName = "fapi1-advanced-final-test-array-as-audience-for-client-JWT-assertion",
 	displayName = "Try to use an array containing the issuer and another value as the audience for Client JWT Assertions at the PAR and token endpoints",
-	summary = "This test tries to use an array containing the issuer and another value as audience for Client JWT Assertion, the authorization server is expected to accept it as per discussion at https://gitlab.com/openid/conformance-suite/-/issues/1187",
-	profile = "FAPI2-Security-Profile-ID2",
+	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
 		"client.client_id",
@@ -35,7 +35,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
 })
-public class FAPI2SPID2PARArrayAsAudienceForJWTClientAssertion extends AbstractFAPI2SPID2ServerTestModule {
+public class FAPI1AdvancedFinalPARArrayAsAudienceForJWTClientAssertion extends AbstractFAPI1AdvancedFinalServerTestModule {
 	/*
 	PAR-2.0
 	Note that there's some potential ambiguity around the appropriate audience value to use when
@@ -45,6 +45,7 @@ public class FAPI2SPID2PARArrayAsAudienceForJWTClientAssertion extends AbstractF
 	token endpoint URL, or pushed authorization request endpoint URL as values that identify
 	it as an intended audience.
 	*/
+
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
 		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
