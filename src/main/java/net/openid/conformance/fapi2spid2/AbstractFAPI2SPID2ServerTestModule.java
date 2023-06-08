@@ -76,6 +76,7 @@ import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
 import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
 import net.openid.conformance.condition.client.EnsureResourceResponseReturnedJsonContentType;
+import net.openid.conformance.condition.client.ExpectNoIdTokenInTokenResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -188,6 +189,7 @@ import java.util.function.Supplier;
 	FAPIOpenIDConnect.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2ID2OPProfile.class,
+	FAPIOpenIDConnect.class,
 	FAPIResponseMode.class
 })
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {
@@ -273,6 +275,10 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			callAndContinueOnFailure(ConfigurationRequestsTestIsSkipped.class, Condition.ConditionResult.FAILURE);
 			fireTestFinished();
 			return;
+		}
+
+		if (getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && scopeContains("openid")) {
+			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 		}
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
@@ -688,6 +694,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 				ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
 			skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
 				ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		}
+		else {
+			callAndStopOnFailure(ExpectNoIdTokenInTokenResponse.class);
 		}
 
 	}

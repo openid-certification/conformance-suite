@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonCon
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
+import net.openid.conformance.condition.client.ExpectNoIdTokenInTokenResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIBrazilRefreshTokenRequired;
@@ -111,6 +112,11 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
 				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-17").dontStopOnFailure());
+		}
+
+		if (! isOpenId) {
+			sequence = sequence.insertBefore(ExtractIdTokenFromTokenResponse.class,
+				condition(ExpectNoIdTokenInTokenResponse.class));
 		}
 
 		// Save the refresh token prior to, possibly, obtaining a new one.

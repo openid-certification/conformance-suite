@@ -69,8 +69,8 @@ makeClientTest() {
 makeServerTest() {
     # FAPI2 security profile
     # plain oauth
-    TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=plain_oauth][client_auth_type=mtls][sender_constrain=mtls][fapi_profile=plain_fapi] authlete-fapi2securityprofile-mtls.json"
-    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=plain_fapi] authlete-fapi2securityprofile-privatekey.json"
+    TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=plain_oauth][client_auth_type=mtls][sender_constrain=mtls][fapi_profile=plain_fapi] authlete-fapi2securityprofile-mtls-plainoauth.json"
+    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=plain_fapi] authlete-fapi2securityprofile-privatekey-plainoauth.json"
 
     # oidc
     TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=plain_fapi] authlete-fapi2securityprofile-privatekey.json"
@@ -83,7 +83,7 @@ makeServerTest() {
 
     # Brazil
     TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][sender_constrain=dpop][fapi_profile=openbanking_brazil] authlete-fapi2securityprofile-brazil-privatekey-dpop.json"
-    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2securityprofile-brazil-privatekey.json"
+    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=openbanking_brazil] authlete-fapi2securityprofile-brazil-privatekey-plainoauth.json"
 
     # FAPI2 message signing - jar + connectid
     TESTS="${TESTS} fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=connectid_au][fapi_response_mode=plain_response] authlete-fapi2securityprofile-connectid-privatekey.json"
