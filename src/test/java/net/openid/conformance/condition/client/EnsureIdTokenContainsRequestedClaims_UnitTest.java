@@ -33,11 +33,13 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 		JsonObject server = JsonParser.parseString("{"
 			+ "\"claims_supported\": ["
 				+ "\"given_name\","
+				+ "\"middle_name\","
 				+ "\"family_name\","
 				+ "\"email\","
 				+ "\"birthdate\","
 				+ "\"phone_number\","
-				+ "\"address\""
+				+ "\"address\","
+				+ "\"txn\""
 			+ "]}")
 			.getAsJsonObject();
 		env.putObject("server", server);
@@ -51,11 +53,13 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 			+ "\"claims\": {"
 				+ "\"id_token\": {\n"
 					+ "\"given_name\": {},"
+					+ "\"middle_name\": {},"
 					+ "\"family_name\": {\"essential\": true},"
 					+ "\"email\": {\"7EimPyJ0oq\": \"eRpxS9SF3u\"},"
 					+ "\"birthdate\": {\"essential\": false},"
 					+ "\"phone_number\": null,"
-					+ "\"address\": {}"
+					+ "\"address\": {},"
+					+ "\"txn\": {}"
 				+ "}"
 			+ "}}")
 			.getAsJsonObject();
@@ -65,11 +69,13 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 		JsonObject idTokenClaims = JsonParser.parseString("{"
 			+ "\"claims\": {"
 				+ "\"given_name\": \"Jane\","
+				+ "\"middle_name\": \"Anne\","
 				+ "\"family_name\": \"Doe\","
 				+ "\"email\": \"janedoe@example.com\","
 				+ "\"birthdate\": \"1/1/1970\","
 				+ "\"phone_number\": \"12345678\","
-				+ "\"address\": \"10 Downing Street\""
+				+ "\"address\": \"10 Downing Street\","
+				+ "\"txn\": \"2c6fb585-d51b-465a-9dca-b8cd22a11451\""
 			+ "}}")
 			.getAsJsonObject();
 		env.putObject("id_token", idTokenClaims);
@@ -86,11 +92,13 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 				+ "\"id_token\": {"
 					+ "\"name\": null,"
 					+ "\"given_name\": {},"
+					+ "\"middle_name\": {},"
 					+ "\"family_name\": {\"essential\": true},"
 					+ "\"email\": {\"7EimPyJ0oq\": \"eRpxS9SF3u\"},"
 					+ "\"birthdate\": {\"essential\": false},"
 					+ "\"phone_number\": null,"
-					+ "\"address\": {}"
+					+ "\"address\": {},"
+					+ "\"txn\": {}"
 				+ "}"
 			+ "}}")
 			.getAsJsonObject();
@@ -101,11 +109,13 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 		JsonObject idTokenClaims = JsonParser.parseString("{"
 			+ "\"claims\": {"
 				+ "\"given_name\": \"Jane\","
+				+ "\"middle_name\": \"Anne\","
 				+ "\"family_name\": \"Doe\","
 				+ "\"email\": \"janedoe@example.com\","
 				+ "\"birthdate\": \"1/1/1970\","
 				+ "\"phone_number\": \"12345678\","
-				+ "\"address\": \"10 Downing Street\""
+				+ "\"address\": \"10 Downing Street\","
+				+ "\"txn\": \"2c6fb585-d51b-465a-9dca-b8cd22a11451\""
 			+ "}}")
 			.getAsJsonObject();
 		env.putObject("id_token", idTokenClaims);
@@ -121,11 +131,13 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 			+ "\"claims\": {"
 				+ "\"id_token\": {"
 					+ "\"given_name\": {},"
+					+ "\"middle_name\": {},"
 					+ "\"family_name\": {\"essential\": true},"
 					+ "\"email\": {\"7EimPyJ0oq\": \"eRpxS9SF3u\"},"
 					+ "\"birthdate\": {\"essential\": false},"
 					+ "\"phone_number\": null,"
-					+ "\"address\": {}"
+					+ "\"address\": {},"
+					+ "\"txn\": {}"
 				+ "}"
 			+ "}}")
 			.getAsJsonObject();
@@ -135,11 +147,13 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 		// This should result in an error as this claim is supported by the server.
 		JsonObject idTokenClaims = JsonParser.parseString("{"
 			+ "\"claims\": {"
+				+ "\"middle_name\": \"Anne\","
 				+ "\"family_name\": \"Doe\","
 				+ "\"email\": \"janedoe@example.com\","
 				+ "\"birthdate\": \"1/1/1970\","
 				+ "\"phone_number\": \"12345678\","
-				+ "\"address\": \"10 Downing Street\""
+				+ "\"address\": \"10 Downing Street\","
+				+ "\"txn\": \"2c6fb585-d51b-465a-9dca-b8cd22a11451\""
 			+ "}}")
 			.getAsJsonObject();
 		env.putObject("id_token", idTokenClaims);

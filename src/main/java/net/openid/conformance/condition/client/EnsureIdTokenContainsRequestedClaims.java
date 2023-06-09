@@ -39,12 +39,12 @@ public class EnsureIdTokenContainsRequestedClaims extends AbstractCondition {
 		}
 
 		if (missingClaims.isEmpty()) {
-			logSuccess("id_token contains all the requested claims");
+			logSuccess("id_token contains all the, supported, requested claims", args("claims_supported", supportedClaims));
 			return env;
 		}
 
-		throw error("id_token does not contain all the requested claims. Please check the test user contains the claims, that the server correctly understood the request, and that consent was granted to share the claims. It is permitted for the claims to be omitted from the id_token, as the server may have chosen to return them from the userinfo endpoint instead, in which case you may ignore this warning.",
-			args("requested", requestedClaims, "missing", missingClaims));
+		throw error("id_token does not contain all the, supported, requested claims. Please check the test user contains the claims, that the server correctly understood the request, and that consent was granted to share the claims. It is permitted for the claims to be omitted from the id_token, as the server may have chosen to return them from the userinfo endpoint instead, in which case you may ignore this warning.",
+			args("claims_supported", supportedClaims, "requested", requestedClaims, "missing", missingClaims));
 	}
 
 }
