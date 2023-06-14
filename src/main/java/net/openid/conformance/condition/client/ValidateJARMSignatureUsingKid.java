@@ -13,7 +13,7 @@ public class ValidateJARMSignatureUsingKid extends AbstractVerifyJwsSignature {
 		String jarmResponse = env.getString("jarm_response", "value");
 		JsonObject serverJwks = env.getObject("server_jwks");
 
-		verifyJwsSignature(jarmResponse, serverJwks, "jarm_response", false, null);
+		verifyJwsSignature(jarmResponse, serverJwks, "jarm_response", true, "server");
 
 		return env;
 	}
