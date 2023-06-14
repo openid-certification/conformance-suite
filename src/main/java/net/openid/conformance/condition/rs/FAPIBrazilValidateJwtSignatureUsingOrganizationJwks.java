@@ -13,7 +13,7 @@ public class FAPIBrazilValidateJwtSignatureUsingOrganizationJwks extends Abstrac
 
 		String jwtString = env.getString("parsed_client_request_jwt", "value");
 		JsonObject orgJwks = env.getObject("client_organization_jwks");
-		verifyJwsSignature(jwtString, orgJwks, "jwt");
+		verifyJwsSignature(jwtString, orgJwks, "jwt", true, "client organization");
 
 		return env;
 	}

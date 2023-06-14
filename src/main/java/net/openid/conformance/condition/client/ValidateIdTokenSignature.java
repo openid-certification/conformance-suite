@@ -13,7 +13,7 @@ public class ValidateIdTokenSignature extends AbstractVerifyJwsSignature {
 		String idToken = env.getString("id_token", "value");
 		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
 
-		verifyJwsSignature(idToken, serverJwks, "id_token");
+		verifyJwsSignature(idToken, serverJwks, "id_token", false, null);
 
 		return env;
 	}

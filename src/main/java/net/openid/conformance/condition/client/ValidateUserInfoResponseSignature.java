@@ -15,7 +15,7 @@ public class ValidateUserInfoResponseSignature extends AbstractVerifyJwsSignatur
 
 		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
 
-		verifyJwsSignature(userInfoStr, serverJwks, USERINFO_ENDPOINT_RESPONSE);
+		verifyJwsSignature(userInfoStr, serverJwks, USERINFO_ENDPOINT_RESPONSE, false, null);
 
 		return env;
 	}

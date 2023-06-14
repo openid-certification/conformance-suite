@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateResourceResponseSignature extends AbstractVerifyJwsSignatureUsingKid {
+public class ValidateResourceResponseSignature extends AbstractVerifyJwsSignature {
 
 	@Override
 	@PreEnvironment(required = { "endpoint_response_jwt", "org_server_jwks" })
