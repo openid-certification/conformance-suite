@@ -27,7 +27,8 @@ public class OIDCCLoadUserInfo extends AbstractCondition {
 			"email_verified",
 			"website",
 			"profile",
-			"updated_at"
+			"updated_at",
+			"txn",
 			// TODO add a picture?
 			// "picture"
 		};
@@ -117,6 +118,10 @@ public class OIDCCLoadUserInfo extends AbstractCondition {
 
 				case "updated_at":
 					user.addProperty("updated_at", 1580000000);
+					break;
+
+				case "txn":
+					user.addProperty("txn", "2c6fb585-d51b-465a-9dca-b8cd22a11451");
 					break;
 
 				default:

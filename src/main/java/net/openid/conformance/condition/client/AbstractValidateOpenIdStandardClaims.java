@@ -152,6 +152,8 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 		put("updated_at", VALIDATE_NUMBER);
 		put("_claim_names", VALIDATE_JSON_OBJECT);
 		put("_claim_sources", VALIDATE_JSON_OBJECT);
+		// digitalid-financial-api-04.md
+		put("txn", VALIDATE_STRING);
 	}};
 
 	protected JsonObject unknownClaims = new JsonObject();

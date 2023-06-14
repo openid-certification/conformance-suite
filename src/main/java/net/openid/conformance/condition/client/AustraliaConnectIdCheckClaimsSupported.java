@@ -12,11 +12,13 @@ public class AustraliaConnectIdCheckClaimsSupported extends AbstractValidateJson
 	public static final String[] ConnectIdMandatoryToSupportClaims = {
 		"name",
 		"given_name",
+		"middle_name",
 		"family_name",
 		"email",
 		"birthdate",
 		"phone_number",
-		"address"
+		"address",
+		"txn"
 	};
 
 	private static final int minimumMatchesRequired = 1;
