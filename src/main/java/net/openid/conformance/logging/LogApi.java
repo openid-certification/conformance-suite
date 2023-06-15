@@ -322,6 +322,86 @@ public class LogApi {
 		archiveOutputStream.closeArchiveEntry();
 	}
 
+	// Remove markers and newlines from an mtls key, for comparison purposes.
+	private String removeMtlsKeyMarkers(String key) {
+		key = key.replace("-----BEGIN PRIVATE KEY-----", "");
+		key = key.replace("-----END PRIVATE KEY-----", "");
+		key = key.replaceAll("[\\n]", "");
+		key = key.trim();
+
+		return key;
+	}
+
+	// Recursively process the bson document redacting sensitive data.
+	private void redactOutput(Document document) {
+		ArrayList<String> mtlsKeys = new ArrayList<>();
+
+		redactOutput(document, mtlsKeys);
+	}
+
+	private void redactOutput(Document document, List<String> mtlsKeys) {
+		final String redactedString = "...redacted...";
+
+		for (String key : document.keySet()) {
+			// Match config entries containing mtls key entries.
+			//
+			// mtls* {
+			//   cert
+			//   key
+			// }
+			if (key.startsWith("mtls")) {
+				Object obj = document.get(key);
+
+				if (obj instanceof Document) {
+					Document mtls = (Document)obj;
+
+					if (mtls.containsKey("key")) {
+						Object obj1 = mtls.get("key");
+
+						if (obj1 instanceof String) {
+							String mtlsKey = (String)obj1;
+
+							mtlsKey = removeMtlsKeyMarkers(mtlsKey);
+
+							if (! mtlsKeys.contains(mtlsKey) && ! mtlsKey.equals(redactedString)) {
+								// Store the key to allow it to be identified elsewhere in the document.
+								mtlsKeys.add(mtlsKey);
+							}
+
+							// Redact the key
+							mtls.put("key", redactedString);
+							continue;
+						}
+					}
+				}
+			}
+			// Match any "key" entry
+			else if (key.equals("key")) {
+				Object obj = document.get("key");
+
+				if (obj instanceof String) {
+					String possibleMtslKey = (String)obj;
+
+					possibleMtslKey = removeMtlsKeyMarkers(possibleMtslKey);
+
+					if (mtlsKeys.contains(possibleMtslKey)) {
+						// Redact the key if it matches a known private mtls key.
+						document.put("key", redactedString);
+					}
+
+					continue;
+				}
+			}
+
+			Object obj = document.get(key);
+
+			if (obj instanceof Document) {
+				// Recurively process the child document object.
+				redactOutput((Document)obj, mtlsKeys);
+			}
+		}
+	}
+
 	protected Optional<?> getTestInfo(boolean publicOnly, String testId) {
 		Optional<?> testInfo = Optional.empty();
 
@@ -335,6 +415,14 @@ public class LogApi {
 				testInfo = testInfos.findByIdAndOwner(testId, owner);
 			}
 		}
+
+		// Redact sensitive data in the config.
+		if (testInfo.isPresent()) {
+			Document config = ((TestInfo)testInfo.get()).getConfig();
+
+			redactOutput(config);
+		}
+
 		return testInfo;
 	}
 
@@ -381,11 +469,21 @@ public class LogApi {
 				.include("time");
 		}
 
-		return Lists.newArrayList(mongoTemplate
+		ArrayList<Document> results = Lists.newArrayList(mongoTemplate
 			.getCollection(DBEventLog.COLLECTION)
 			.find(query.getQueryObject())
 			.projection(query.getFieldsObject())
 			.sort(new Document("time", 1)));
+
+		// List of mtls keys to be maintained during document redaction..
+		ArrayList<String> mtlsKeys = new ArrayList<>();
+
+		for (Document entry : results) {
+			// Redact sensitive data in the test results.
+			redactOutput(entry, mtlsKeys);
+		}
+
+		return results;
 	}
 
 	private static String variantSuffix(VariantSelection variant) {
