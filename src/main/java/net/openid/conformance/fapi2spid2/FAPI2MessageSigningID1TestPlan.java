@@ -131,7 +131,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		String clientType = v.get("openid");
 		boolean openid = clientType.equals("openid_connect");
 
-		String certProfile = "FAPI2MsgSigningID2 ";
+		String certProfile = "FAPI2MsgSigningID1 ";
 
 		if (openid) {
 			certProfile += "OpenID ";
