@@ -27,6 +27,7 @@ import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfP
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
+import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
@@ -1088,6 +1089,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if (fapiClientType == FAPIClientType.OIDC) {
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 				CheckForUnexpectedClaimsInClaimsParameter.class, ConditionResult.WARNING, "OIDCC-5.5");
+			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
+				CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1");
 		}
 
 		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-SP-ID2-4.3.2-5");
