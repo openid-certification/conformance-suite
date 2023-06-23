@@ -101,5 +101,21 @@
         "condition": "EnsureHttpStatusCodeIs401",
         "expected-result": "warning",
         "comment": "Authlete doesn't support jti uniqueness"
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-client-test-happy-path",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_client_type": "oidc",
+            "sender_constrain": "mtls",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-au-connectid-rp-test-config-1.json",
+        "current-block": "Authorization endpoint",
+        "condition": "CheckRequestObjectClaimsParameterMemberValues",
+        "expected-result": "failure",
+        "comment": "allow intentional unknown value in authorization request object"
     }
 ]
