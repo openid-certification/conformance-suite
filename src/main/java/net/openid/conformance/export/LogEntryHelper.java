@@ -40,7 +40,7 @@ public class LogEntryHelper {
 		specLinks.put("FAPI1-BASE-", "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.");
 		specLinks.put("FAPI1-ADV-", "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.");
 		specLinks.put("FAPI2-SP-ID2-", "https://openid.net/specs/fapi-2_0-security-profile-ID2.html#section.");
-		specLinks.put("FAPI2-MS-", "https://openid.bitbucket.io/fapi/fapi-2_0-message-signing.html#section."); // not a stable version - update to implementers draft when available
+		specLinks.put("FAPI2-MS-ID1-", "https://openid.net/specs/fapi-2_0-message-signing-ID1.html#section..");
 		specLinks.put("CIBA-", "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.");
 		specLinks.put("FAPI-CIBA-", "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.");
 		specLinks.put("JARM-", "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.");

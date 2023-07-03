@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-response-mode-query",
 	displayName = "FAPI1-Advanced-Final: ensure response_mode query",
-	summary = "This test includes response_mode=query in the authorization request. The authorization server should show an error message that response_mode=query is not allowed by FAPI-RW (a screenshot of which should be uploaded), should return an error to the client, or must successfully authenticate without returning the result in the query.",
+	summary = "This test includes response_mode=query in the authorization request. The authorization server should show an error message that response_mode=query is not permitted for FAPI1 Advanced (a screenshot of which should be uploaded), should return an error to the client, or must successfully authenticate without returning the result in the query.\n\nThis requirement comes from https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#Combinations - 'the query encoding MUST NOT be used'\n\nOr, if response_type=code is in use, then response_mode=jwt is required by FAPI1 Advanced.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",

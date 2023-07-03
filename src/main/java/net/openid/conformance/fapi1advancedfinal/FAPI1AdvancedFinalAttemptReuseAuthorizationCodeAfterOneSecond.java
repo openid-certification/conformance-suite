@@ -9,7 +9,7 @@ import org.apache.http.HttpStatus;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-attempt-reuse-authorisation-code-after-one-second",
 	displayName = "FAPI1-Advanced-Final: try to reuse authorization code after one second",
-	summary = "This test tries reusing an authorization code after one second, as the authorization code has already been used this must fail with the AS returning an invalid_grant error.",
+	summary = "This test tries reusing an authorization code after one second, as the authorization code has already been used this must fail with the AS returning an invalid_grant error.\n\nAny issued access token 'should' also be revoked as per RFC6749 section 4.1.2 (although this is only recommended behaviour and this warning won't prevent you certifying) - see https://bitbucket.org/openid/fapi/issues/397/query-over-certification-test-for-access",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",

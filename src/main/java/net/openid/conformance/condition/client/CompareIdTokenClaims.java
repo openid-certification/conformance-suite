@@ -11,6 +11,13 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Compare the claims between two id tokens, at least one of which was issued from the refresh token grant
+ *
+ * Implements checks as per:
+ *
+ * https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse
+ */
 public class CompareIdTokenClaims extends AbstractCondition {
 	private static final String CLAIM_AUTH_TIME = "auth_time";
 	private static final String CLAIM_IAT = "iat";

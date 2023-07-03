@@ -211,7 +211,7 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 		call(new CallResourceEndpointSteps(true, true, "DPOP-7.1")
 			.insertAfter(CreateDpopClaims.class,
 				condition(Fapi2DPoPNegativeConditions.FixedJtiClaim.class)));
-		eventLog.startBlock("DPoP reuse, Second use of the same jti");
+		eventLog.startBlock("DPoP reuse, Second use of the same jti, this 'should' fail");
 		call(new CallResourceEndpointSteps(false, false, "DPOP-7.1")
 			.insertAfter(CreateDpopClaims.class,
 				condition(Fapi2DPoPNegativeConditions.FixedJtiClaim.class)));

@@ -39,7 +39,6 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		// Negative tests for request objects
 		FAPI2SPID2EnsureRequestObjectWithoutExpFails.class,
 		FAPI2SPID2EnsureRequestObjectWithoutNbfFails.class,
-		FAPI2SPID2EnsureRequestObjectWithoutScopeFails.class,
 		FAPI2SPID2StateOnlyOutsideRequestObjectNotUsed.class,
 		FAPI2SPID2EnsureRequestObjectWithoutRedirectUriFails.class,
 		FAPI2SPID2EnsureExpiredRequestObjectFails.class,
@@ -132,7 +131,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		String clientType = v.get("openid");
 		boolean openid = clientType.equals("openid_connect");
 
-		String certProfile = "FAPI2MsgSigningID2 ";
+		String certProfile = "FAPI2MsgSigningID1 ";
 
 		if (openid) {
 			certProfile += "OpenID ";
