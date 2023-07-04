@@ -1235,18 +1235,21 @@
         function pinVisitSectionOnTopWindow() {
             // make the running test information section float/pin to the top of the window
             // when the user scroll down and the 'Visit' button was enable
-            const rect = document.getElementById('runningTestInformation').getBoundingClientRect();
-            const sticky = rect.top + window.scrollY;
+            let runningTestInfo = document.getElementById('runningTestInformation');
+            if (runningTestInfo) {
+                const rect = runningTestInfo.getBoundingClientRect();
+                const sticky = rect.top + window.scrollY;
 
-            document.getElementById('runningTestInformation').style.width = document.getElementById('logDetail');
+                runningTestInfo.style.width = document.getElementById('logDetail');
 
-            window.addEventListener("scroll", function(){
-                if (window.scrollTop > sticky && isPendingInteraction()) {
-                    document.getElementById('runningTestInformation').classList.add('sticky');
-                } else {
-                    document.getElementById('runningTestInformation').classList.remove('sticky');
-                }
-            });
+                window.addEventListener("scroll", function(){
+                    if (window.scrollTop > sticky && isPendingInteraction()) {
+                        runningTestInfo.classList.add('sticky');
+                    } else {
+                        runningTestInfo.classList.remove('sticky');
+                    }
+                });
+            }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1273,10 +1276,10 @@
                 FAPI_UI.hideBusy();
 
                 if (! promiseError) {
-                    if (!public)
+                    if (!public) {
                         startReloader(testId); // periodically reload the page as long as the test is active
-
-                    pinVisitSectionOnTopWindow();
+                        pinVisitSectionOnTopWindow();
+                    }
                 }
             });
 
