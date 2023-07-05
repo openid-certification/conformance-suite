@@ -23,6 +23,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -135,8 +136,9 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		variantAuthChecks = PrivateKeyJWTChecks.class;
-		// FAPI requires the use of MTLS sender constrained access tokens, so we must use the MTLS version of the
-		// token endpoint even when using private_key_jwt client authentication
-		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+
+		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
+			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+		}
 	}
 }

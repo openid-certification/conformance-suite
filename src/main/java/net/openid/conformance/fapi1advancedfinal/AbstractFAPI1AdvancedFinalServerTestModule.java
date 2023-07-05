@@ -1066,7 +1066,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
 
-		if (!mtlsRequired) {
+		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
 		}
 
