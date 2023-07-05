@@ -1,0 +1,63 @@
+{
+    "alias": "oidf-fapi-op-test",
+    "description": "FAPI OP test config for running against RP tests",
+    "server": {
+        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
+    },
+    "client": {
+        "client_id": "52480754053",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "d": "ZHPB6jX2Np7cUjFu2iiYlT1YPdJ6KSyyPjEWT72TYOX6O-0a48Ez3m5OnOy_bCwD3F7_WAL0wbWXWFsRt6DmCqW-MGxG38klMQwV4dhgI6lEYyfhvBazJyQJeqHwKE5VIezgyBJyGkK9GHUqq3k3s-hsS_MLVE6BDcLNf9iPRUlQ5JJLHGMZYAW6uv3ex-LGqhLT_BWX4Y1fowAgUvDLcaLj-_tRonKF4oJRiz6oMO4KTJJofhXzptY0T_K0u8bx7Y7JN-W7fC8havmG5bnKetsLQYHcn7ddWtOA_6Qxjxb6SMIr1bNWeGVA5p15NMHcIfsNmSK03Y-Xic5eiuBhwQ",
+                    "e": "AQAB",
+                    "kid": "fapi-jwt-assertion-20180817-1",
+                    "alg": "PS256",
+                    "n": "9sLLHll-BiuwIvupyiAOaTR-ChAjuwQhThxtSD5wgL9AG2YJlamxo52ZEhTdNKomGRw3woihBRk8okPSd1YZCkFuOc7iF1sUsxDA0APbdeAzZdwGcqvPlEqoz8HsnormZFTP9tG451Z_cMd20_cCufGqi6XBpE2fOMGhn9CNEo-_3TPyrFZwmP-rqsQ3TKp5Zkb42AACsT9GuxB-Qrrpp1hkCJdSvXhAwIvX2jOxXQORJZkW2ST0DpCTbtAoPEW0aoCIkwWjV08qTSBduA14eIl9xPACfElosTDEbL1bR6BGxoILSJTe4U5Lz4Us7l8TWhO_OaQsyxSLFxXOy13KMQ"
+                }
+            ]
+        }
+    },
+    "resource": {
+        "resourceUrl": "{BASEURL}test/a/oidf-fapi-rp-test/open-banking/v1.1/accounts",
+        "institution_id": "xxx"
+    },
+    "client2": {
+        "client_id": "61732691006",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "d": "Nha1ReQVpOa1vsTz0oEcbtCd2UAbYWXhLr06CXXENXxDHWhTkXCaayh4kEOp6CNfY5b75tbBZB2hhxyY7vPNSmnvrIHn1YE5a321vHEti0GoNI9UGi2KhAO40Qu0ZPqvYCo3nfRsS-CWUWzchcKlqwiwuIwXOWPEGTnuKf-iqsqm6zNXB6zkIXb0Qkm5ByyGiF_wgOJLdlEx9hHlmHPiT_RKYbsQQ4mNqwOVnkInttzPiWmfY1cYN4qlxMYtIF7vb1pz1eWjZLlQpM37qQSxNXVeKNIUrs3NRyP-VDv47YFWDRLaPEPnnS7Y5RwJgeydTPHfZ91C2Q_m79KMGHSqkQ",
+                    "e": "AQAB",
+                    "kid": "fapi-jwt-assertion-20180817-2",
+                    "alg": "PS256",
+                    "n": "kne7a8IYQR6jweqpHAplq-XRGOuiVyF5Siy6_647OhOC8ppRIMV2O_wP6qK1AKCFb78Bb8qbRI3Mz-Tr9hCWm1BZQkD-HGbNowjVsOj7oB2nbNbGfqciTyT3kTG1f5PmeX2N4-f9zZM-J4Jmi9PdMjn2fkNl9oMCW9XaLHHzCU6f-vYftxdCnVQD7ZKr40HjoAeXjwdGhgzvuWSZHkhEqx_QMh8JskqP46PjsMykFWiryju9balCdS5yASf-Fno8pXMFEV1wgipy-FPlhB5FZtLwVvH9F2jAxRaWkRQzhM5hWugIUi8YobjoIwhrmJ04JTK-DGOlThJsNvS4QANDZw"
+                }
+            ]
+        }
+    },
+    "browser": [
+        {
+            "comment": "expect an immediate redirect back to the conformance suite",
+            "match": "https://*/test/a/oidf-fapi-rp-test/authorize*",
+            "tasks": [
+                {
+                    "task": "Verify Complete",
+                    "match": "https://*/test/a/oidf-fapi-op-test/callback*",
+                    "commands": [
+                        [
+                            "wait",
+                            "id",
+                            "submission_complete",
+                            10
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
+}

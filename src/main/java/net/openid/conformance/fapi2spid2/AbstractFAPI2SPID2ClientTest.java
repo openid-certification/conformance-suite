@@ -373,7 +373,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		} else {
-			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
+			if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+				exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
+			} else {
+				exposePath("accounts_endpoint", ACCOUNTS_PATH);
+			}
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -532,6 +536,16 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			return accountRequestsEndpoint(requestId);
+		} else if (path.equals(ACCOUNTS_PATH)) {
+			if(startingShutdown){
+				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
+			}
+
+			if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+				throw new TestFailureException(getId(), "The accounts endpoint must be called over an mTLS secured connection.");
+			}
+
+			return accountsEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -556,6 +570,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
+			if (fapi2SenderConstrainMethod != FAPI2SenderConstrainMethod.MTLS) {
+				throw new TestFailureException(getId(), "The accounts endpoint must not be called over an mTLS secured connection.");
+			}
+
 			return accountsEndpoint(requestId);
 		} else if (path.equals("userinfo")) {
 			if(startingShutdown){
