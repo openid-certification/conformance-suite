@@ -60,6 +60,10 @@ public class FAPI2SPID2EnsureClientIdInTokenEndpoint extends AbstractFAPI2SPID2P
 
 	@Override
 	protected void exchangeAuthorizationCode() {
+		if (isDpop()) {
+			createDpopForTokenEndpoint(true);
+		}
+
 		/* This test ends up using an authorization code for client1.
 		 * For MTLS, it passes the client_id for client2 but the tls cert for client 1.
 		 * For private_key_jwt, it passes the client_id and a client_assertion for client 2, but signed

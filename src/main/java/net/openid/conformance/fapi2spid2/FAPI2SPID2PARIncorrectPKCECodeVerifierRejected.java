@@ -45,6 +45,10 @@ public class FAPI2SPID2PARIncorrectPKCECodeVerifierRejected extends AbstractFAPI
 
 	@Override
 	protected void exchangeAuthorizationCode() {
+		if (isDpop()) {
+			createDpopForTokenEndpoint(true);
+		}
+
 		/* expect an 'invalid_grant' error */
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-19");
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
