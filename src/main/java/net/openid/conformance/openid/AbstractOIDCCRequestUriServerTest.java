@@ -25,6 +25,7 @@ public abstract class AbstractOIDCCRequestUriServerTest extends AbstractOIDCCSer
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
 
 		super.onConfigure(config, baseUrl);
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");

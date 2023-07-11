@@ -56,7 +56,7 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 		}
 
 		// send a front channel request to start things off
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(authorizationEndpoint);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(authorizationEndpoint);
 
 		builder.queryParam(paramName, paramValue);
 

@@ -1,0 +1,29 @@
+package net.openid.conformance.condition.client;
+
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+
+public class CreateDirectPostResponseUri extends AbstractCondition {
+
+	@Override
+	@PreEnvironment(strings = "base_url")
+	@PostEnvironment(strings = "response_uri")
+	public Environment evaluate(Environment in) {
+		String baseUrl = in.getString("base_url");
+
+		if (baseUrl.isEmpty()) {
+			throw error("Base URL is empty");
+		}
+
+		String responseUri = baseUrl + "/responseuri";
+		in.putString("response_uri", responseUri);
+
+		log("Created response URI",
+			args("response_uri", responseUri));
+
+		return in;
+	}
+
+}
