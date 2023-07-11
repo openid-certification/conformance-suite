@@ -15,9 +15,6 @@ public class AddAudToRequestObject extends AbstractCondition {
 
 		String serverIssuerUrl = env.getString("server", "issuer");
 
-		// FIXME not sure why we need a different issuer value here
-		serverIssuerUrl = "https://issuer.research.identiproof.io";
-
 		if (serverIssuerUrl != null) {
 			requestObjectClaims.addProperty("aud", serverIssuerUrl);
 
