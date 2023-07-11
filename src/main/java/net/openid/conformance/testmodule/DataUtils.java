@@ -27,6 +27,9 @@ public interface DataUtils {
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JOSE = new MediaType("application", "jose");
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_JWT = new MediaType("application", "jwt");
 
+	// as per https://www.rfc-editor.org/rfc/rfc9101.html#section-4
+	MediaType DATAUTILS_MEDIATYPE_APPLICATION_OAUTH_OAUTHZ_REQ_JWT = new MediaType("application", "oauth-authz-req+jwt");
+
 	/**
 	 * Utility function to convert an incoming multi-value map to a JSonObject for storage.
 	 * this will throw out any duplicated headers.

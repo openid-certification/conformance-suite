@@ -210,7 +210,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL to server's authorization endpoint."></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL to server's authorization endpoint. When testing a wallet use 'openid4vp://' or similar."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="server.authorization_endpoint"></input>
                                         </div>
@@ -367,6 +367,17 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Scopes to use in authorization request, e.g. 'openid accounts'. For Brazil, you may use the 'accounts' or the 'payments' scope depending which API endpoint you want to use for testing."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="client.scope"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">presentation_definition</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="presentation_definition to use in authorization request"></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="client.presentation_definition"></textarea>
                                         </div>
                                     </div>
                                 </div>

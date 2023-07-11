@@ -26,10 +26,15 @@
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
     </remote-repository>
-    <remote-repository>
+	  <remote-repository>
       <option name="id" value="central" />
       <option name="name" value="Maven Repository Switchboard" />
       <option name="url" value="https://repo1.maven.org/maven2" />
+	  </remote-repository>
+	  <remote-repository>
+      <option name="id" value="gmaven" />
+      <option name="name" value="gmaven" />
+      <option name="url" value="https://maven.google.com" />
     </remote-repository>
   </component>
 </project>

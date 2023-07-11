@@ -66,6 +66,8 @@
                         <li><%- v %></li>
                     <% }); %>
                 </ul>
+            <% } else if (key == 'cbor_diagnostic') { %>
+                <pre><%- value %></pre>
             <% } else if (jwtRe.exec(value)) { // it's a JWT
                 var jwt = jwtRe.exec(value);
             %>
