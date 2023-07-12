@@ -15,7 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-australia-connectid-test-claims-parameter-idtoken-identity-claims",
 	displayName = "FAPI2-Security-Profile-ID2: test requesting id_token identity claims using the claims parameter",
-	summary = "The test will request all valid ConnectID identity claims and check those contained in the server's discovery document 'claims_supported' parameter are returned in the id_token (using a variety of different forms of request), and will fail if any are not returned.",
+	summary = "The test will request all valid ConnectID identity claims and check those contained in the server's discovery document 'claims_supported' parameter are returned in the id_token (using a variety of different forms of request), and will fail if any are not returned.\n\nThe user you use in this test must have values present for all the claims your OP supports.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
