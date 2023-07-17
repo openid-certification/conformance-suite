@@ -164,14 +164,20 @@ public class JWEUtil {
 		OctetSequenceKey key = null;
 		if(JWEAlgorithm.Family.AES_GCM_KW.contains(algorithm) || JWEAlgorithm.Family.AES_KW.contains(algorithm)) {
 			byte[] secretBytes = deriveEncryptionKey(algorithm.getName(), secret);
-			key = new OctetSequenceKey.Builder(secretBytes).
-				keyUse(KeyUse.ENCRYPTION).keyID(keyId).algorithm(algorithm).
-				build();
+			OctetSequenceKey.Builder builder = new OctetSequenceKey.Builder(secretBytes).
+				keyUse(KeyUse.ENCRYPTION).algorithm(algorithm);
+			if(keyId != null) {
+				builder.keyID(keyId);
+			}
+			key = builder.build();
 		} else if(JWEAlgorithm.DIR.equals(algorithm)) {
 			byte[] secretBytes = deriveEncryptionKey(encMethod.getName(), secret);
-			key = new OctetSequenceKey.Builder(secretBytes).
-				keyUse(KeyUse.ENCRYPTION).keyID(keyId).algorithm(algorithm).
-				build();
+			OctetSequenceKey.Builder builder = new OctetSequenceKey.Builder(secretBytes).
+				keyUse(KeyUse.ENCRYPTION).algorithm(algorithm);
+			if(keyId != null) {
+				builder.keyID(keyId);
+			}
+			key = builder.build();
 		}
 		return key;
 	}
@@ -265,4 +271,10 @@ public class JWEUtil {
 		JWEAlgorithm algorithm = JWEAlgorithm.parse(algorithmName);
 		return JWEAlgorithm.Family.ASYMMETRIC.contains(algorithm);
 	}
+
+	public static boolean isSymmetricJWEAlgorithm(String algorithmName) {
+		JWEAlgorithm algorithm = JWEAlgorithm.parse(algorithmName);
+		return JWEAlgorithm.Family.SYMMETRIC.contains(algorithm);
+	}
+
 }

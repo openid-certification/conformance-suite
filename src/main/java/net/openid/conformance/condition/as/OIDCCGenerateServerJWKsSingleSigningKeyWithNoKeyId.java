@@ -5,7 +5,7 @@ public class OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId extends OIDCCGen
 	@Override
 	protected void setupParameters()
 	{
-		this.setGenerateKids(false);
+		this.setGenerateSigKids(false);
 		this.setNumberOfRSASigningKeysWithNoAlg(1);
 		this.setNumberOfECCurveP256SigningKeysWithNoAlg(1);
 		this.setNumberOfECCurveSECP256KSigningKeysWithNoAlg(1);

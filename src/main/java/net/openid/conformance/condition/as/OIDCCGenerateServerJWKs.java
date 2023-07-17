@@ -39,7 +39,8 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 	protected int numberOfRSAEncKeys = 1;
 	protected int numberOfECEncKeys = 1;
 
-	protected boolean generateKids = true;
+	protected boolean generateSigKids = true;
+	protected boolean generateEncKids = true;
 
 	protected int rsaKeySize = 2048;
 	protected Curve esCurve = Curve.P_256;
@@ -141,7 +142,8 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 			if(keyUse!=null) {
 				jwkGenerator.keyUse(keyUse);
 			}
-			if(generateKids) {
+			if( (generateSigKids && ((null == keyUse) || (KeyUse.SIGNATURE.equals(keyUse)))) ||
+				(generateEncKids && ((null == keyUse) || (KeyUse.ENCRYPTION.equals(keyUse))))) {
 				jwkGenerator.keyID(UUID.randomUUID().toString());
 			}
 			if(algorithm!=null) {
@@ -185,8 +187,12 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		this.numberOfECEncKeys = numberOfECEncKeys;
 	}
 
-	public void setGenerateKids(boolean generateKids) {
-		this.generateKids = generateKids;
+	public void setGenerateSigKids(boolean generateSigKids) {
+		this.generateSigKids = generateSigKids;
+	}
+
+	public void setGenerateEncKids(boolean generateEncKids) {
+		this.generateEncKids = generateEncKids;
 	}
 
 	public void setRsaKeySize(int rsaKeySize) {
@@ -237,8 +243,12 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 		return numberOfECEncKeys;
 	}
 
-	public boolean isGenerateKids() {
-		return generateKids;
+	public boolean isGenerateSigKids() {
+		return generateSigKids;
+	}
+
+	public boolean isGenerateEncKids() {
+		return generateEncKids;
 	}
 
 	public int getRsaKeySize() {
