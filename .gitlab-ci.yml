@@ -489,9 +489,13 @@ local_test:
   }
 
   function install_build_dependencies() {
-    apk -q add --no-cache --update --upgrade curl tar gzip make ca-certificates openssl python3 py-pip
+    apk -q add --no-cache --update --upgrade curl tar gzip make ca-certificates openssl python3 py-pip py3-cffi
     update-ca-certificates
-    pip -q install docker-compose==1.29.2
+    # workaround https://github.com/yaml/pyyaml/issues/724
+    pip install wheel
+    pip install "cython<3.0.0" pyyaml==5.4.1 --no-build-isolation
+
+    pip install docker-compose==1.29.2
     docker-compose --version
 
     curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-416.0.0-linux-x86_64.tar.gz | tar zx
