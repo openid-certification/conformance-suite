@@ -52,8 +52,14 @@ public class Command implements TestExecutionUnit {
 		return this;
 	}
 
-	public void putInteger(String key, Integer value) {
+	public Command putInteger(String key, Integer value) {
 		envCommands.add(env -> env.putInteger(key, value));
+		return this;
+	}
+
+	public Command removeNativeValue(String key) {
+		envCommands.add(env -> env.removeNativeValue(key));
+		return this;
 	}
 
 	/**
