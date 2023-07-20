@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
 import net.openid.conformance.condition.client.RemoveMTLSCertificates;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
@@ -122,9 +123,10 @@ public class FAPI1AdvancedFinalEnsureMTLSHolderOfKeyRequired extends AbstractFAP
 			// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
 			// is required, so there's no further checks to do
 		} else {
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
-
-			// this is only a warning to allow for an SSL terminator returning a generic 400 response
+			call(exec().mapKey("endpoint_response", "token_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			// these are only warnings to allow for an SSL terminator returning a generic 4xx response due to the missing cert
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");
 			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.3.4");
 
 			if (env.getBoolean(CheckTokenEndpointReturnedJsonContentType.tokenEndpointResponseWasJsonKey)) {
