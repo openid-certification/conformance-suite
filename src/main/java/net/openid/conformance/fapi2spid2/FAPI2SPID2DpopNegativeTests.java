@@ -144,18 +144,18 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 		// 5. the algorithm in the header of the JWT indicates an asymmetric digital signature algorithm, is not none, is supported by the application, and is deemed secure,
 		// I think mostly this is one that can only be tested at the token endpoint, but there are a few things we can try:
 		eventLog.startBlock("Try DPoP proof signed using RS256");
-		call(new CallResourceEndpointSteps(false, true, "FAPI2-BASE-4.4")
+		call(new CallResourceEndpointSteps(false, true, "FAPI2-SP-ID2-5.4")
 			.insertBefore(SignDpopProof.class,
 				condition(Fapi2DPoPNegativeConditions.ChangeSignAlgorithm.class)));
 
 		eventLog.startBlock("Try DPoP proof with none alg");
-		call(new CallResourceEndpointSteps(false, true, "FAPI2-BASE-4.4")
+		call(new CallResourceEndpointSteps(false, true, "FAPI2-SP-ID2-5.4")
 			.replace(SignDpopProof.class,
 				condition(Fapi2DPoPNegativeConditions.SignDpopProofWithNone.class)));
 
 		// 6. the JWT signature verifies with the public key contained in the jwk header of the JWT,
 		eventLog.startBlock("Try DPoP proof with invalid signature");
-		call(new CallResourceEndpointSteps(false, true, "FAPI2-BASE-4.4")
+		call(new CallResourceEndpointSteps(false, true, "FAPI2-SP-ID2-5.4")
 			.insertAfter(SignDpopProof.class,
 				condition(Fapi2DPoPNegativeConditions.InvalidateDpopProofSignature.class)));
 
