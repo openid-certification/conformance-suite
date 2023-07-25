@@ -354,9 +354,9 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 			call(sequence(profileAuthorizationEndpointSetupSteps));
 
 			if (isSecondClient) {
-				exec().putInteger("requested_state_length", 128);
+				call(exec().putInteger("requested_state_length", 128));
 			} else {
-				exec().putInteger("requested_state_length", null);
+				call(exec().removeNativeValue("requested_state_length"));
 			}
 
 			callAndStopOnFailure(CreateRandomStateValue.class);

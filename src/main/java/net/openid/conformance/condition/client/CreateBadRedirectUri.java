@@ -11,21 +11,23 @@ public class CreateBadRedirectUri extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = "base_url")
 	@PostEnvironment(strings = "redirect_uri")
-	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
+	public Environment evaluate(Environment env) {
+		String baseUrl = env.getString("base_url");
 
 		if (baseUrl.isEmpty()) {
 			throw error("Base URL is empty");
 		}
 
 		// create a random redirect URI which shouldn't be registered with the server
-		String redirectUri = baseUrl + "/" + RandomStringUtils.randomAlphanumeric(10);
-		in.putString("redirect_uri", redirectUri);
+		String badRedirectPath = RandomStringUtils.randomAlphanumeric(10);
+		String redirectUri = baseUrl + "/" + badRedirectPath;
+		env.putString("redirect_uri", redirectUri);
+		env.putString("bad_redirect_path", badRedirectPath);
 
-		logSuccess("Created redirect URI",
+		logSuccess("Created a randomised (and hence unregistered) redirect URI",
 			args("redirect_uri", redirectUri));
 
-		return in;
+		return env;
 	}
 
 }

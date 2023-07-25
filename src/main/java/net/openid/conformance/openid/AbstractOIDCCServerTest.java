@@ -500,11 +500,11 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
 
 			callAndStopOnFailure(CreateRandomStateValue.class);
-			exec().exposeEnvironmentString("state");
+			call(exec().exposeEnvironmentString("state"));
 			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(CreateRandomNonceValue.class);
-			exec().exposeEnvironmentString("nonce");
+			call(exec().exposeEnvironmentString("nonce"));
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class);

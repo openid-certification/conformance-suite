@@ -89,6 +89,9 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
 				jsonString = response.getBody();
 
+				JsonObject fullResponse = convertJsonResponseForEnvironment("token", response);
+				env.putObject("token_endpoint_response_full", fullResponse);
+
 			} catch (RestClientResponseException e) {
 				throw error("RestClientResponseException occurred whilst calling token endpoint",
 					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
@@ -109,7 +112,6 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 				logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
 
 				env.putObject("token_endpoint_response", jsonRoot.getAsJsonObject());
-
 				return env;
 			} catch (JsonParseException e) {
 				return handleJsonParseException(env, e);

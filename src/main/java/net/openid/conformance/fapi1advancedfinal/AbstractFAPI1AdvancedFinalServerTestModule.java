@@ -464,9 +464,9 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			}
 
 			if (isSecondClient) {
-				exec().putInteger("requested_state_length", 128);
+				call(exec().putInteger("requested_state_length", 128));
 			} else {
-				exec().putInteger("requested_state_length", null);
+				call(exec().removeNativeValue("requested_state_length"));
 			}
 
 			callAndStopOnFailure(CreateRandomStateValue.class);

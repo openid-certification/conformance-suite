@@ -9,6 +9,10 @@ import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-registered-redirect-uri",
 	displayName = "FAPI1-Advanced-Final: ensure registered redirect URI",
@@ -72,5 +76,15 @@ public class FAPI1AdvancedFinalEnsureRegisteredRedirectUri extends AbstractFAPI1
 	@Override
 	protected void processCallback() {
 		throw new TestFailureException(getId(), "The authorization server called the registered redirect uri. This should not have happened as the client provided a bad redirect_uri in the request.");
+	}
+
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		if (path.equals(env.getString("bad_redirect_path"))) {
+			throw new TestFailureException(getId(), "The authorization server redirected the user to the requested but randomised/unregistered redirect uri. This must not happen as the provided redirect uri could not have been registered.");
+		} else {
+			return super.handleHttp(path, req, res, session, requestParts);
+		}
+
 	}
 }
