@@ -81,7 +81,7 @@ public class FAPI2SPID2EnsureRegisteredRedirectUri extends AbstractFAPI2SPID2Exp
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		if (path.equals(env.getString("bad_redirect_path"))) {
-			throw new TestFailureException(getId(), "The authorization server redirected the user to the requested but randomised/unregistered redirect uri. This must not have happen as the provided redirect uri could not have been registered.");
+			throw new TestFailureException(getId(), "The authorization server redirected the user to the requested but randomised/unregistered redirect uri. This must not happen as the provided redirect uri could not have been registered.");
 		} else {
 			return super.handleHttp(path, req, res, session, requestParts);
 		}
