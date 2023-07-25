@@ -22,6 +22,14 @@ public class EnsureIdTokenDoesNotContainNonRequestedClaims extends AbstractVerif
 		"acr",
 		"amr",
 		"azp",
+		// https://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken
+		"at_hash",
+		"c_hash",
+		// as per https://www.rfc-editor.org/rfc/rfc7519.html#section-4.1.7
+		"nbf",
+		"jti",
+		// as per https://openid.net/specs/openid-connect-frontchannel-1_0.html#OPLogout
+		"sid",
 		// as per https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
 		"at_hash",
 		// as per https://openid.net/specs/openid-financial-api-part-2-1_0.html#id-token-as-detached-signature
@@ -74,7 +82,8 @@ public class EnsureIdTokenDoesNotContainNonRequestedClaims extends AbstractVerif
 		}
 
 		if (failure) {
-			throw error("id_token contains non-requested claims");
+			throw error("id_token contains non-requested claims. This may indicate the authorization server is returning data about the user that it should not, or that a specification has been wrongly implemented, or that it implements an extension the conformance suite is currently aware of.",
+				args("requested_scope", scopeStr, "supplied", idTokenClaims));
 		}
 
 		logSuccess("no non-requested id_token claims found");
