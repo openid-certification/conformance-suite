@@ -7,20 +7,20 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 
 public abstract class AbstractCheckTokenEndpointReturnedExpectedErrorAndHttpStatus extends AbstractCondition {
 
-	protected abstract Map<String, Integer> getErrorStatusMap();
+	protected abstract Map<String, Set<Integer>> getErrorStatusMap();
 
 	protected void verifyThatErrorIsExpectedAndMatchesStatusCode(String error, Integer httpStatus) throws ConditionError {
-		Map<String, Integer> errorStatusMap = getErrorStatusMap();
+		Map<String, Set<Integer>> errorStatusMap = getErrorStatusMap();
 		if (!errorStatusMap.containsKey(error)) {
 			throw error("Unexpected error '" + error + "' received", args("actual", error, "expected", errorStatusMap.keySet()));
 		}
-		Integer expectedHttpStatus = getErrorStatusMap().get(error);
-		if (!Objects.equals(httpStatus, expectedHttpStatus)) {
-			throw error("Invalid http status with error " + error , args("actual", httpStatus, "expected", expectedHttpStatus));
+		Set<Integer> expectedHttpStatusCodes = getErrorStatusMap().get(error);
+		if(!expectedHttpStatusCodes.contains(httpStatus)) {
+			throw error("Invalid http status with error " + error , args("actual", httpStatus, "expected", expectedHttpStatusCodes));
 		}
 	}
 
