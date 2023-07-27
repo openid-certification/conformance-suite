@@ -309,15 +309,23 @@
                 // count up any "image required" items
                 const uploadCount  = document.querySelectorAll('[data-image-required]')?.length;
                 if (uploadCount) {
-                    document.getElementById('uploadCount').innerHTML = uploadCount;
-                    document.getElementById('uploadBtn').classList.add('btn-info');
-                    document.getElementById('uploadBtn').classList.remove('btn-light');
+                    if (document.getElementById('uploadCount') !== null) {
+                        document.getElementById('uploadCount').innerHTML = uploadCount;
+                    }
+
+                    if (document.getElementById('uploadBtn') !== null) {
+                        document.getElementById('uploadBtn').classList.add('btn-info');
+                        document.getElementById('uploadBtn').classList.remove('btn-light');
+                    }
                 } else {
                     if (document.getElementById('uploadCount') !== null) {
                         document.getElementById('uploadCount').innerHTML = '';
                     }
-                    document.getElementById('uploadBtn')?.classList.remove('btn-info');
-                    document.getElementById('uploadBtn')?.classList.add('btn-light');
+
+                    if (document.getElementById('uploadBtn') !== null) {
+                        document.getElementById('uploadBtn')?.classList.remove('btn-info');
+                        document.getElementById('uploadBtn')?.classList.add('btn-light');
+                    }
                 }
             })
             .catch((error) => {
@@ -415,10 +423,12 @@
                             variant: FAPI_UI.formatVariant(data.variant)
                         });
 
-                    document.getElementById('downloadBtn').onclick = function(evt) {
-                        evt.preventDefault();
-                        window.open('/api/log/exporthtml/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
-                    };
+                    if (document.getElementById('downloadBtn') !== null) {
+                        document.getElementById('downloadBtn').onclick = function(evt) {
+                            evt.preventDefault();
+                            window.open('/api/log/exporthtml/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
+                        };
+                    }
 
                     if (document.getElementById('uploadBtn') !== null) {
                         document.getElementById('uploadBtn').onclick = function(evt) {
@@ -650,84 +660,88 @@
 
                                 var nextModule = planData.modules[thisModuleIndex + 1];
 
-                                document.getElementById('nextPlanBtn').onclick = function(evt) {
-                                    evt.preventDefault();
+                                if (document.getElementById('nextPlanBtn') !== null) {
+                                    document.getElementById('nextPlanBtn').onclick = function(evt) {
+                                        evt.preventDefault();
 
-                                    FAPI_UI.showBusy('Creating a new test for ' + nextModule.testModule + '...');
+                                        FAPI_UI.showBusy('Creating a new test for ' + nextModule.testModule + '...');
 
-                                    var runTestUrl = '/api/runner/?test=' + encodeURIComponent(nextModule.testModule) + '&plan=' + encodeURIComponent(data.planId);
-                                    var testVariant = nextModule.variant;
-                                    if (testVariant !== null && testVariant !== undefined) {
-                                        runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
-                                    }
-
-                                    fetch(runTestUrl, {
-                                        method: "POST",
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                        },
-                                    })
-                                    .then((response) => {
-                                        if (!response.ok) {
-                                            return Promise.reject(response);
+                                        var runTestUrl = '/api/runner/?test=' + encodeURIComponent(nextModule.testModule) + '&plan=' + encodeURIComponent(data.planId);
+                                        var testVariant = nextModule.variant;
+                                        if (testVariant !== null && testVariant !== undefined) {
+                                            runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
                                         }
 
-                                        return response.json();
-                                    })
-                                    .then((data) => {
-                                        // we need to switch to the new window now
-                                        var newUrl = window.location.href.replace(testId, data.id);
-                                        window.location.assign(newUrl);
-                                    })
-                                    .catch((error) => {
-                                        if (error instanceof Response) {
-                                            // We have a 'Respose' object.
-                                            var message = error.statusText;
-                                            var responseClone = error.clone();
+                                        fetch(runTestUrl, {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                            },
+                                        })
+                                        .then((response) => {
+                                            if (!response.ok) {
+                                                return Promise.reject(response);
+                                            }
 
-                                            error.text()
-                                            .then(textError => {
-                                                // Text error thrown by the app
-                                                messageParsed = true;
+                                            return response.json();
+                                        })
+                                        .then((data) => {
+                                            // we need to switch to the new window now
+                                            var newUrl = window.location.href.replace(testId, data.id);
+                                            window.location.assign(newUrl);
+                                        })
+                                        .catch((error) => {
+                                            if (error instanceof Response) {
+                                                // We have a 'Respose' object.
+                                                var message = error.statusText;
+                                                var responseClone = error.clone();
 
-                                                try {
-                                                    const errorObj = JSON.parse(textError);
+                                                error.text()
+                                                .then(textError => {
+                                                    // Text error thrown by the app
+                                                    messageParsed = true;
 
-                                                    if (errorObj.error.length != 0) {
-                                                        message = errorObj.error;
+                                                    try {
+                                                        const errorObj = JSON.parse(textError);
+
+                                                        if (errorObj.error.length != 0) {
+                                                            message = errorObj.error;
+                                                        }
                                                     }
-                                                }
-                                                catch (e) {
-                                                }
-
-                                                FAPI_UI.showError({code: error.status.toString(), error: message});
-                                            })
-                                            .catch(error1 => {
-                                                // JSON error thrown by the app
-                                                responseClone.json()
-                                                .then(jsonError => {
-                                                    if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                                        message = jsonError;
+                                                    catch (e) {
                                                     }
 
                                                     FAPI_UI.showError({code: error.status.toString(), error: message});
                                                 })
-                                                .catch(genericError => {
-                                                    // Error thrown by the server
-                                                    FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                                });
-                                            });
-                                        } else {
-                                            // Network error automatically detected by fetch.
-                                            FAPI_UI.showError({code: "", error: error});
-                                        }
+                                                .catch(error1 => {
+                                                    // JSON error thrown by the app
+                                                    responseClone.json()
+                                                    .then(jsonError => {
+                                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                                            message = jsonError;
+                                                        }
 
-                                        // don't update anymore
-                                        stopReloader();
-                                    });
+                                                        FAPI_UI.showError({code: error.status.toString(), error: message});
+                                                    })
+                                                    .catch(genericError => {
+                                                        // Error thrown by the server
+                                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                                    });
+                                                });
+                                            } else {
+                                                // Network error automatically detected by fetch.
+                                                FAPI_UI.showError({code: "", error: error});
+                                            }
+
+                                            // don't update anymore
+                                            stopReloader();
+                                        });
+                                    }
                                 }
 
-                                document.getElementById('nextPlanBtn').style.display = '';
+                                if (document.getElementById('nextPlanBtn') !== null) {
+                                    document.getElementById('nextPlanBtn').style.display = '';
+                                }
                             }
 
                             document.querySelector('[data-publish]').onclick = function(evt) {
@@ -918,8 +932,10 @@
                 return true;
             }
 
-            if (document.getElementById('startBtn').classList.contains('show')) {
-                return true;
+            if (document.getElementById('startBtn') !== null) {
+                if (document.getElementById('startBtn').classList.contains('show')) {
+                    return true;
+                }
             }
 
             return false;
@@ -941,12 +957,15 @@
                 return;
             }
             var sticky = headerInfoDivOffsetTop + rect.height + 20;
-            document.getElementById('runningTestInformation').style.width = document.getElementById('logDetail');
 
-            if (window.scrollTop > sticky && isPendingInteraction()) {
-                document.getElementById('runningTestInformation').classList.add('sticky');
-            } else {
-                document.getElementById('runningTestInformation').classList.remove('sticky');
+            if (document.getElementById('runningTestInformation') !== null) {
+                document.getElementById('runningTestInformation').style.width = document.getElementById('logDetail');
+
+                if (window.scrollTop > sticky && isPendingInteraction()) {
+                    document.getElementById('runningTestInformation').classList.add('sticky');
+                } else {
+                    document.getElementById('runningTestInformation').classList.remove('sticky');
+                }
             }
         }
 
@@ -962,7 +981,9 @@
             })
             .then((data) => {
                 // show the overall container
-                document.getElementById('runningTestInformation').classList.add('show');
+                if (document.getElementById('runningTestInformation') !== null) {
+                    document.getElementById('runningTestInformation').classList.add('show');
+                }
 
                 // if it's an active test, keep it updated unless we figure out otherwise
                 FAPI_UI.running = true;
@@ -971,27 +992,54 @@
                 if (FAPI_UI.status) {
                     if (FAPI_UI.status == 'finished' || FAPI_UI.status == 'interrupted') {
                         // can't start or stop a stopped test
-                        document.getElementById('startBtn').classList.remove('show');
-                        document.getElementById('stopBtn').classList.remove('show');
+                        if (document.getElementById('startBtn') !== null) {
+                            document.getElementById('startBtn').classList.remove('show');
+                        }
+
+                        if (document.getElementById('stopBtn') !== null) {
+                            document.getElementById('stopBtn').classList.remove('show');
+                        }
+
                         // show the "stopped" alert and hide the other
-                        document.getElementById('runningTestActive').style.display = 'none';
-                        document.getElementById('runningTestInactive').style.display = '';
-                        document.getElementById('runningTestArchived').classList.remove('show');
+                        if (document.getElementById('runningTestActive') !== null) {
+                            document.getElementById('runningTestActive').style.display = 'none';
+                        }
+
+                        if (document.getElementById('runningTestInactive') !== null) {
+                            document.getElementById('runningTestInactive').style.display = '';
+                        }
+
+                        if (document.getElementById('runningTestArchived') !== null) {
+                            document.getElementById('runningTestArchived').classList.remove('show');
+                        }
                         // no need to keep updating either
                         stopReloader();
                     } else {
                         // this test is currently running and can potentially be stopped
-                        document.getElementById('stopBtn').classList.add('show');
-                        document.getElementById('runningTestActive').style.display = '';
-                        document.getElementById('runningTestInactive').style.display = 'none';
-                        document.getElementById('runningTestArchived').classList.remove('show');
+                        if (document.getElementById('stopBtn') !== null) {
+                            document.getElementById('stopBtn').classList.add('show');
+                        }
+
+                        if (document.getElementById('runningTestActive') !== null) {
+                            document.getElementById('runningTestActive').style.display = '';
+                        }
+
+                        if (document.getElementById('runningTestInactive') !== null) {
+                            document.getElementById('runningTestInactive').style.display = 'none';
+                        }
+
+                        if (document.getElementById('runningTestArchived') !== null) {
+                            document.getElementById('runningTestArchived').classList.remove('show');
+                        }
 
                         // if the test is currently in a "configured" state it can also be started
-                        if (FAPI_UI.status == 'configured') {
-                            document.getElementById('startBtn').classList.add('show');
-                        } else {
-                            // otherwise, the test can't be started
-                            document.getElementById('startBtn').classList.remove('show');
+                        if (document.getElementById('startBtn') !== null) {
+                            if (FAPI_UI.status == 'configured') {
+                                document.getElementById('startBtn').classList.add('show');
+                            } else {
+                                // otherwise, the test can't be started
+                                document.getElementById('startBtn').classList.remove('show');
+                            }
                         }
                     }
                     updateTestInfoStickiness(testId);
@@ -1003,9 +1051,12 @@
                     var currentExposedDataJson = document.body.dataset.currentExposedDataJson;
                     if(currentExposedDataJson != newExposedDataJson) {
                         document.body.dataset.currentExposedDataJson = newExposedDataJson;
-                        document.getElementById('runningTestExport').innerHTML = FAPI_UI.logTemplates.EXPORTED({
-                            exported: data.exposed
-                        });
+
+                        if (document.getElementById('runningTestExport') !== null) {
+                            document.getElementById('runningTestExport').innerHTML = FAPI_UI.logTemplates.EXPORTED({
+                                exported: data.exposed
+                            });
+                        }
                     }
                 }
 
@@ -1015,9 +1066,11 @@
                     var currentBrowserJson = document.body.dataset.currentBrowserJson;
                     if(currentBrowserJson != newBrowserJson) {
                         document.body.dataset.currentBrowserJson = newBrowserJson;
-                        document.getElementById('runningTestBrowser').innerHTML = FAPI_UI.logTemplates.BROWSER({
-                            browser: data.browser
-                        });
+                        if (document.getElementById('runningTestBrowser') !== null) {
+                            document.getElementById('runningTestBrowser').innerHTML = FAPI_UI.logTemplates.BROWSER({
+                                browser: data.browser
+                            });
+                        }
                         updateTestInfoStickiness(testId);
 
                         if (document.querySelector('#runningTestBrowser .visitBtn') !== null) {
@@ -1099,10 +1152,12 @@
 
                 // if there's a final test error, display it
                 if (data.error) {
-                    document.getElementById('runningTestError').innerHTML = FAPI_UI.logTemplates.FINAL_ERROR({
-                        error: data.error
-                    });
-                    document.getElementById('runningTestError').classList.add('show');
+                    if (document.getElementById('runningTestError') !== null) {
+                        document.getElementById('runningTestError').innerHTML = FAPI_UI.logTemplates.FINAL_ERROR({
+                            error: data.error
+                        });
+                        document.getElementById('runningTestError').classList.add('show');
+                    }
 
                     document.getElementById('stacktraceBtn').onclick = function(evt) {
                         event.preventDefault();
@@ -1113,11 +1168,26 @@
             })
             .catch((error) => {
                 // test isn't currently in the runner, can't start or stop it
-                document.getElementById('startBtn').classList.remove('show');
-                document.getElementById('stopBtn').classList.remove('show');
-                document.getElementById('runningTestActive').style.display = 'none';
-                document.getElementById('runningTestInactive').style.display = 'none';
-                document.getElementById('runningTestArchived').classList.add('show');
+                if (document.getElementById('startBtn') !== null) {
+                    document.getElementById('startBtn').classList.remove('show');
+                }
+
+                if (document.getElementById('stopBtn') !== null) {
+                    document.getElementById('stopBtn').classList.remove('show');
+                }
+
+                if (document.getElementById('runningTestActive') !== null) {
+                    document.getElementById('runningTestActive').style.display = 'none';
+                }
+
+                if (document.getElementById('runningTestInactive') !== null) {
+                    document.getElementById('runningTestInactive').style.display = 'none';
+                }
+
+                if (document.getElementById('runningTestArchived') !== null) {
+                    document.getElementById('runningTestArchived').classList.add('show');
+                }
+
                 // don't update anymore
                 stopReloaderNow();
                 updateTestInfoStickiness();
