@@ -133,15 +133,19 @@
             .then(function() {
                 document.getElementById('tokenTable').innerHTML = FAPI_UI.logTemplates.TOKEN_TABLE({userInfo: FAPI_UI.currentUser});
                 // wire up create buttons
-                document.getElementById('newTemporaryToken').onclick = function(evt) {
-                    evt.preventDefault();
-                    newToken(false);
-                };
+                if (document.getElementById('newTemporaryToken') !== null) {
+                    document.getElementById('newTemporaryToken').onclick = function(evt) {
+                        evt.preventDefault();
+                        newToken(false);
+                    };
+                }
 
-                document.getElementById('newPermanentToken').onclick = function(evt) {
-                    evt.preventDefault();
-                    newToken(true);
-                };
+                if (document.getElementById('newPermanentToken') !== null) {
+                    document.getElementById('newPermanentToken').onclick = function(evt) {
+                        evt.preventDefault();
+                        newToken(true);
+                    };
+                }
                 return loadTokens();
             });
 
