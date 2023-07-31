@@ -824,10 +824,15 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 				// CDR requires this header when the x-fapi-customer-ip-address header is present
 				callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
 			}
+		}
 
+		if (!isSecondClient() || brazilPayments.isTrue()) {
+			// Brazil payments APIs always require x-fapi-interaction id; see
+			// https://gitlab.com/openid/conformance-suite/-/issues/1220 and https://gitlab.com/openid/conformance-suite/-/issues/1224
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
+
 		}
 
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {

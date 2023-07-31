@@ -127,7 +127,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
 
-		if (!secondClient) {
+		if (!secondClient || payments) {
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
@@ -244,7 +244,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
 
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
-		if (!secondClient) {
+		if (!secondClient || payments) {
 			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 		}
 		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
