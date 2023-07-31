@@ -15,6 +15,7 @@ public class ExtractFapiInteractionIdHeader extends AbstractCondition {
 
 		String header = env.getString("incoming_request", "headers.x-fapi-interaction-id");
 		if (Strings.isNullOrEmpty(header)) {
+			env.removeNativeValue("fapi_interaction_id");
 			throw error("Couldn't find FAPI interaction ID header");
 		} else {
 

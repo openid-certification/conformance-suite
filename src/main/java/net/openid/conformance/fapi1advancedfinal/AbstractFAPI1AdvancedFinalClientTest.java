@@ -19,6 +19,7 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
+import net.openid.conformance.condition.as.CheckForFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
@@ -91,10 +92,11 @@ import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
-import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimForPAREndpoint;
+import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
+import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
@@ -601,7 +603,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
 			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
-
+		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
 	}
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
 		callAndContinueOnFailure(EnsureBearerAccessTokenNotInParams.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-1");
@@ -628,6 +630,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		checkResourceEndpointRequest(true);
 
 		if(isPayments) {
+			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
 			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
@@ -689,6 +692,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
 
+		if (isPayments) {
+			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
+		}
 
 		checkResourceEndpointRequest(true);
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
@@ -737,6 +743,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, Condition.ConditionResult.FAILURE);
 
 		checkResourceEndpointRequest(false);
+
+		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainPayments.class, Condition.ConditionResult.FAILURE);
 
