@@ -56,6 +56,10 @@ public class FAPI2SPID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFA
 
 		createAuthorizationCodeRequest();
 
+		if (isDpop()) {
+			createDpopForTokenEndpoint(true);
+		}
+
 		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-6");
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");

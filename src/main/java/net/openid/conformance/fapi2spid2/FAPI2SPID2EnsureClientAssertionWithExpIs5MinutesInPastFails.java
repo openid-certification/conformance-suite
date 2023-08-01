@@ -55,6 +55,10 @@ public class FAPI2SPID2EnsureClientAssertionWithExpIs5MinutesInPastFails extends
 
 	@Override
 	protected void exchangeAuthorizationCode() {
+		if (isDpop()) {
+			createDpopForTokenEndpoint(true);
+		}
+
 		/* If we get an error back from the token endpoint server:
 		 * - It must be a 'invalid_client' or 'invalid_request' error
 		 */
