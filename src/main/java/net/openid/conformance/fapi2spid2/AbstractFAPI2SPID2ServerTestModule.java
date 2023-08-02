@@ -415,7 +415,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	protected void performAuthorizationFlow() {
 		performPreAuthorizationSteps();
 
-		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
+		eventLog.startBlock(currentClientString() + "Create authorization request");
 
 		createAuthorizationRequest();
 
@@ -429,6 +429,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 
 		if (isPar) {
+			eventLog.startBlock(currentClientString() + "Make request to PAR endpoint");
 			if (isSignedRequest) {
 				callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
 			} else {
@@ -438,6 +439,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
+			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 			buildRedirect();
 			performRedirect();
 		}
@@ -1070,6 +1072,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	protected void performPARRedirectWithRequestUri() {
+		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class, "PAR-4");
 		performRedirect();
 	}

@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.AddAudAsPaymentConsentUriToReques
 import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
 import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObject;
@@ -18,10 +19,12 @@ import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
+import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
+import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractConsentIdFromConsentEndpointResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
@@ -60,10 +63,12 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 	private boolean openInsurance;
 	private boolean dpop;
 	private boolean stopAfterConsentEndpointCall;
+	private boolean secondClient;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
 	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, boolean dpop, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean openInsurance, boolean stopAfterConsentEndpointCall) {
+		this.secondClient = secondClient;
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.dpop = dpop;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
@@ -121,6 +126,12 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
 		callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+
+		if (!secondClient || payments) {
+			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
+			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "FAPI1-BASE-6.2.2-5");
+		}
 
 		if (payments) {
 			// as per https://github.com/OpenBanking-Brasil/areadesenvolvedor/blob/master/documentation/source/swagger/swagger_payments_apis.yaml
@@ -233,7 +244,9 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		callAndStopOnFailure(ExtractConsentIdFromConsentEndpointResponse.class);
 
 		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11", "FAPI1-BASE-6.2.1-11");
-
+		if (!secondClient || payments) {
+			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		}
 		callAndStopOnFailure(FAPIBrazilAddConsentIdToClientScope.class);
 
 		call(exec().endBlock());
