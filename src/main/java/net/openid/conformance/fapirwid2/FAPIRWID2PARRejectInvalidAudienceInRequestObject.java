@@ -50,7 +50,7 @@ public class FAPIRWID2PARRejectInvalidAudienceInRequestObject extends AbstractFA
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps().
-			replace(AddAudToRequestObject.class, condition(AddPAREndpointAsAudToRequestObject.class).requirement("PAR-2"));
+			replace(AddAudToRequestObject.class, condition(AddPAREndpointAsAudToRequestObject.class).requirement("JAR-4"));
 	}
 
 	@Override
