@@ -89,7 +89,7 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
 				jsonString = response.getBody();
 
-				JsonObject fullResponse = convertJsonResponseForEnvironment("token", response);
+				JsonObject fullResponse = convertJsonResponseForEnvironment("token", response, true);
 				env.putObject("token_endpoint_response_full", fullResponse);
 
 			} catch (RestClientResponseException e) {
