@@ -86,15 +86,21 @@ test:
 
 compare_cloud:
   <<: *compare
-  needs: ["server_test", "ciba_test", "client_test", "ekyc_test", "brazil_test"]
+  needs: ["server_test", "ciba_test", "ekyc_test", "brazil_test"]
   script:
-    - run_compare server_test ciba_test client_test ekyc_test brazil_test
+    - run_compare server_test ciba_test ekyc_test brazil_test
 
 compare_local:
   <<: *compare
   needs: ["local_test"]
   script:
     - run_compare local_test
+
+compare_client:
+  <<: *compare
+  needs: ["client_test"]
+  script:
+    - run_compare client_test
 
 check-trailing-whitespace:
   interruptible: true
