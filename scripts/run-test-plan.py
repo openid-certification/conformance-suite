@@ -233,6 +233,10 @@ async def run_test_plan(test_plan, config_file, output_dir):
     test_plan_info = await conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
     parsed_config = json.loads(json_config)
+    parsed_alias = ""
+    if "alias" in parsed_config:
+        parsed_alias = parsed_config["alias"]
+    print("{}: starting job for alias '{}'".format(plan_id, parsed_alias))
     parallel_jobs = 3
     if args.no_parallel:
         parallel_jobs = 1
@@ -1012,6 +1016,8 @@ async def run_test_plan_wrapper(plan_name, config_json, export_dir):
     else:
         results.append(result)
 
+async def print_queue_time(queue_start_time, alias):
+    print('Queue "{}" took {:.1f} seconds'.format(alias, time.time() - queue_start_time))
 
 async def main():
     global conformance
@@ -1106,6 +1112,11 @@ async def main():
             workers.extend([asyncio.create_task(queue_worker(queues[alias])) for _ in range(parallel_jobs)])
         print("Adding {} {} to queue {}".format(plan_name, config_json, alias))
         queues[alias].put_nowait(run_test_plan_wrapper(plan_name, config_json, args.export_dir))
+
+    queue_start_time = time.time()
+    for alias in queues:
+        # add a final job that prints how long each queue took
+        queues[alias].put_nowait(print_queue_time(queue_start_time, alias))
 
     for q in queues:
         print("plan: joining "+str(q))

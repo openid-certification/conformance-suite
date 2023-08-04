@@ -6,16 +6,17 @@
 #
 # It is run in our gitlab CI in the 'compare' job to compare MR against the latest master results.
 
-import zipfile
-import tempfile
-import os
-import subprocess
 import fnmatch
 import json
+import os
+import subprocess
 import sys
+import tempfile
+import zipfile
+
 
 def load_results(artifacts_zip):
-    print(artifacts_zip)
+    print("Loading results: "+artifacts_zip)
     if os.path.isdir(artifacts_zip):
         # gitlab CI gives us all the downloaded zipfiles
         owd = os.getcwd()
