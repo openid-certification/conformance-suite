@@ -1,0 +1,67 @@
+{
+    "alias": "oidf-fapi-op-test",
+    "description": "FAPI OP test config for running against RP tests",
+    "server": {
+        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
+    },
+    "client": {
+        "client_id": "52480754053",
+        "scope": "openid accounts",
+        "dpop_signing_alg": "EdDSA",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "OKP",
+                    "d": "RuUNw6yrc4SqWfQmjsOGHuJzqIuuV0V2a3fsUXC-Ayo",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "dHg59YomyTbIDozWyGD-5zNMVRjBLbIWtdLor0vQ5xc",
+                    "x": "1NF31XUGltZmf4t4CyHdVSSovTY2A7sKAg0FWt6Gg5s",
+                    "alg": "EdDSA"
+                }
+            ]
+        }
+    },
+    "resource": {
+        "resourceUrl": "{BASEURL}test/a/oidf-fapi-rp-test/open-banking/v1.1/accounts",
+        "institution_id": "xxx"
+    },
+    "client2": {
+        "client_id": "61732691006",
+        "scope": "openid accounts",
+        "dpop_signing_alg": "EdDSA",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "OKP",
+                    "d": "1XBPEROVcYMwn7Mi_JGtQ72m0Zd8O8HJ6nF4Sqvfe7M",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "jtAUMIDTLgaFlxh_-DoevlMn0DQZJNyQAi_34tcT1QI",
+                    "x": "03TY8u8MkPrgHQy5psgj9z5Q2f_cdtGXKJ7V-qYTBBM",
+                    "alg": "EdDSA"
+                }
+            ]
+        }
+    },
+    "browser": [
+        {
+            "comment": "expect an immediate redirect back to the conformance suite",
+            "match": "https://*/test/a/oidf-fapi-rp-test/authorize*",
+            "tasks": [
+                {
+                    "task": "Verify Complete",
+                    "match": "https://*/test/a/oidf-fapi-op-test/callback*",
+                    "commands": [
+                        [
+                            "wait",
+                            "id",
+                            "submission_complete",
+                            10
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
+}

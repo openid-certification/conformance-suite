@@ -353,8 +353,15 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 		exposeEnvString("client_id");
 
-		callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+		boolean mtlsRequired =
+			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
+			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
+			profileRequiresMtlsEverywhere;
+
+		if (mtlsRequired) {
+			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+		}
 
 		validateClientConfiguration();
 	}
@@ -364,8 +371,16 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
-		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-		callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
+
+		boolean mtlsRequired =
+			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
+			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
+			profileRequiresMtlsEverywhere;
+
+		if (mtlsRequired) {
+			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
+		}
 
 		validateClientConfiguration();
 
@@ -392,7 +407,14 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
 
-		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
+		boolean mtlsRequired =
+			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
+			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
+			profileRequiresMtlsEverywhere;
+
+		if (mtlsRequired) {
+			callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -890,7 +912,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
-		if (!mtlsRequired) {
+		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
 		}
 
@@ -992,9 +1014,11 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
-		// FAPI requires the use of MTLS sender constrained access tokens, so we must use the MTLS version of the
-		// token endpoint even when using private_key_jwt client authentication
-		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+
+		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
+			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+		}
+
 		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest.class;
 	}
 
@@ -1092,7 +1116,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
 
-		if (!mtlsRequired) {
+		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
 		}
 
