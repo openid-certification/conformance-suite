@@ -4,7 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateIssInAuthorizationResponse extends AbstractCondition {
+public class ValidateIssIfPresentInAuthorizationResponse extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "authorization_endpoint_response", "server" } )
