@@ -31,7 +31,9 @@ public abstract class AbstractSignClaimsWithNullAlgorithm extends AbstractCondit
 
 			env.putString(jwtTargetKey, plainJwt.serialize());
 
-			logSuccess(getSuccessMsg(), args(jwtTargetKey, plainJwt, jwtTargetKey + " serialized", plainJwt.serialize()));
+			logSuccess(getSuccessMsg(), args("header", header.toJSONObject(),
+				"claims", claimSet.toJSONObject(),
+				jwtTargetKey + "_serialized", plainJwt.serialize()));
 
 			return env;
 		} catch (ParseException e) {
