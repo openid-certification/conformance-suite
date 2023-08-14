@@ -492,6 +492,10 @@ pre.prettyprint {
         background-color: #f9f9f9;
 }
 
+.qr > img {
+	width: 100%;
+}
+
 /* People on large monitors <= 3000 */
 @media all and (max-width : 3000px) {
 }

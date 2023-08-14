@@ -16,7 +16,8 @@ Content-Type: application/x-www-form-urlencoded
 <%- val.queryParams %></code></pre></dd>
                         <% }
                         else { %>
-                            <dd class="col-sm-9 wrapLongStrings"><i><%- val.originalUrl %></i></dd>
+                            <dd class="col-sm-6 wrapLongStrings"><i><%- val.originalUrl %></i></dd>
+                            <dd class="col-sm-3 wrapLongStrings qr" data-url="<%- val.originalUrl %>"></dd>
                         <% } %>
                     <% }); %>
                     <% _.each(browser.visitedUrlsWithMethod, function(val) { %>
