@@ -1073,9 +1073,11 @@
                             });
                         }
 
-                        document.querySelectorAll('#runningTestBrowser .qr').forEach(qr => {
-                            new QRCode(qr, qr.dataset.url);
-                        });
+                       if (data.browser.show_qr_code) {
+                            document.querySelectorAll('#runningTestBrowser .qr').forEach(qr => {
+                                new QRCode(qr, qr.dataset.url);
+                            });
+                       }
 
                         updateTestInfoStickiness(testId);
 

@@ -101,6 +101,7 @@ public class BrowserControl implements DataUtils {
 	private TestExecutionManager executionManager;
 	private JsonArray browserCommands = null;
 	private boolean verboseLogging;
+	private boolean showQrCodes = false;
 
 	private List<String> urls = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
@@ -818,6 +819,14 @@ public class BrowserControl implements DataUtils {
 	 */
 	public List<String> getUrls() {
 		return urls;
+	}
+
+	public boolean showQrCodes() {
+		return this.showQrCodes;
+	}
+
+	public void setShowQrCodes(boolean showQrCodes) {
+		this.showQrCodes = showQrCodes;
 	}
 
 	/**
