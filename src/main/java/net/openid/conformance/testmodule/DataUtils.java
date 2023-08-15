@@ -145,10 +145,10 @@ public interface DataUtils {
 			.map(StackTraceElement::toString)
 			.collect(Collectors.toList());
 
-		event.put("stacktrace", stack);
 		event.put("result", Condition.ConditionResult.FAILURE);
 		if (!in.containsKey("msg")) {
 			event.put("msg", "unexpected exception caught: "+exception.getMessage());
+			event.put("stacktrace", stack);
 		}
 
 		return event;
