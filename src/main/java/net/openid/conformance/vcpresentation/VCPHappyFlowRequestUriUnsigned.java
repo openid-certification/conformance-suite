@@ -13,6 +13,7 @@ import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlg
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPost;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
+import net.openid.conformance.condition.common.CreateRandomRequestUri;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.openid.AbstractOIDCCRequestUriServerTest;
@@ -40,6 +41,7 @@ public class VCPHappyFlowRequestUriUnsigned extends AbstractOIDCCRequestUriServe
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
 		super.onConfigure(config, baseUrl);
 		browser.setShowQrCodes(true);
 	}
