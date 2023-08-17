@@ -4,18 +4,21 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientIdAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddRequestUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
+import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
@@ -69,6 +72,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CreateRandomRequestUri;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
@@ -87,7 +91,11 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import org.springframework.http.ResponseEntity;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -346,9 +354,9 @@ public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestMo
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
 
-		callAndStopOnFailure(CreateRedirectUri.class); // FIXME
-		callAndStopOnFailure(CreateDirectPostResponseUri.class); // FIXME
+		callAndStopOnFailure(CreateRedirectUri.class);
 
+		callAndStopOnFailure(CreateDirectPostResponseUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
@@ -416,8 +424,7 @@ public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestMo
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
-
-		// No custom configuration
+		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 	}
 
 	protected void configureClient() {
@@ -451,6 +458,9 @@ public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestMo
 		call(new OIDCCCreateDynamicClientRegistrationRequest(responseType));
 
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
+
+		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
+		callAndStopOnFailure(AddRequestUriToDynamicRegistrationRequest.class);
 	}
 
 	protected void configureDynamicClient() {
@@ -662,6 +672,26 @@ public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestMo
 	protected void onPostAuthorizationFlowComplete() {
 		fireTestFinished();
 	}
+
+
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		if (path.equals(env.getString("request_uri", "path"))) {
+			return handleRequestUriRequest();
+		}
+		return super.handleHttp(path, req, res, session, requestParts);
+
+	}
+
+	private Object handleRequestUriRequest() {
+		String requestObject = env.getString("request_object");
+
+		return ResponseEntity.ok()
+			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
+			.body(requestObject);
+	}
+
 
 	@Override
 	public void cleanup() {

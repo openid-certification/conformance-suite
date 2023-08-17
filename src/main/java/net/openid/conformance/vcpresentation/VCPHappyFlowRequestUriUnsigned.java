@@ -36,7 +36,7 @@ import javax.servlet.http.HttpSession;
 	}
 )
 
-public class VCPHappyFlowRequestUriUnsigned extends AbstractVCPRequestUriServerTest {
+public class VCPHappyFlowRequestUriUnsigned extends AbstractVCPServerTest {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
