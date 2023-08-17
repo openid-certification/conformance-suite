@@ -8,7 +8,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "vcp-test-plan",
-	displayName = "OpenID for Verifiable Credential Presentation: Alpha tests (not part of certification program)",
+	displayName = "OpenID for Verifiable Credential Presentation: Alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.wallettest
 )
 public class VCPTestPlan implements TestPlan {

@@ -16,7 +16,6 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.common.CreateRandomRequestUri;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
-import net.openid.conformance.openid.AbstractOIDCCRequestUriServerTest;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -37,7 +36,7 @@ import javax.servlet.http.HttpSession;
 	}
 )
 
-public class VCPHappyFlowRequestUriUnsigned extends AbstractOIDCCRequestUriServerTest {
+public class VCPHappyFlowRequestUriUnsigned extends AbstractVCPRequestUriServerTest {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
