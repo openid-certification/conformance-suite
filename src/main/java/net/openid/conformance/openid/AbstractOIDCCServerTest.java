@@ -6,11 +6,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientIdAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
@@ -24,10 +24,10 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
+import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
@@ -50,6 +50,8 @@ import net.openid.conformance.condition.client.ExtractInitialAccessTokenFromStor
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
+import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -59,6 +61,8 @@ import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToFormPost;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
+import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -71,8 +75,12 @@ import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizati
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
+import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
+import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
@@ -351,9 +359,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
 
-		callAndStopOnFailure(CreateRedirectUri.class); // FIXME
-		callAndStopOnFailure(CreateDirectPostResponseUri.class); // FIXME
-
+		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
@@ -372,19 +378,19 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 
 		// make sure the server configuration passes some basic sanity checks
-		//callAndStopOnFailure(CheckServerConfiguration.class); // FIXME doesn't like the openid4vp:// url being set as authorization endpoint url
+		callAndStopOnFailure(CheckServerConfiguration.class);
 
-//		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class); // FIXME doesn't like the openid4vp:// url being set as authorization endpoint url
+		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class);
 
-//		callAndStopOnFailure(FetchServerKeys.class); is there a jwks uri?
-//		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(FetchServerKeys.class);
+		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 		// Includes verify-base64url and bare-keys assertions (OIDC test)
-		//callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		//callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-		//callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		//callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
+		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
 
-//		skipTestIfSigningAlgorithmNotSupported();
+		skipTestIfSigningAlgorithmNotSupported();
 
 		// Set up the client configuration
 		configureClient();
@@ -392,7 +398,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		skipTestIfScopesNotSupported();
 
 		// Set up the resource endpoint configuration
-//		callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class);
+		callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -467,7 +473,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void completeClientConfiguration() {
-		//callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class); // FIXME need a configurable scope as it might be used instead of presentation definition
+		callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
 
 		if (profileCompleteClientConfiguration != null) {
 			call(sequence(profileCompleteClientConfiguration));
@@ -491,7 +497,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 		protected boolean formPost;
 
-		public CreateAuthorizationRequestSteps(boolean formPost) {
+		CreateAuthorizationRequestSteps(boolean formPost) {
 			this.formPost = formPost;
 		}
 		@Override
@@ -501,8 +507,6 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 			callAndStopOnFailure(CreateRandomStateValue.class);
 			call(exec().exposeEnvironmentString("state"));
 			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
-
-			callAndStopOnFailure(AddPresentationDefinitionToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(CreateRandomNonceValue.class);
 			call(exec().exposeEnvironmentString("nonce"));
