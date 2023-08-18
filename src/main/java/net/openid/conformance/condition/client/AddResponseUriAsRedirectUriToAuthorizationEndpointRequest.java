@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddResponseUriToAuthorizationEndpointRequest extends AbstractCondition {
+public class AddResponseUriAsRedirectUriToAuthorizationEndpointRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "response_uri", required = "authorization_endpoint_request")
@@ -20,12 +20,11 @@ public class AddResponseUriToAuthorizationEndpointRequest extends AbstractCondit
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		authorizationEndpointRequest.addProperty("response_uri", responseUri);
+		authorizationEndpointRequest.addProperty("redirect_uri", responseUri);
 
 		logSuccess("Added response_uri parameter to request", authorizationEndpointRequest);
 
 		return env;
 
 	}
-
 }

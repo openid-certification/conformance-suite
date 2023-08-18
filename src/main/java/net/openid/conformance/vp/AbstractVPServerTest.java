@@ -1,4 +1,4 @@
-package net.openid.conformance.vcpresentation;
+package net.openid.conformance.vp;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -7,11 +7,14 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
+import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddFormBasedClientIdAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddRequestUriToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AddResponseUriAsRedirectUriToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
@@ -28,11 +31,10 @@ import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
-import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
+import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
-import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -58,8 +60,10 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPost;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToFormPost;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeFromEnvironment;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
+import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -71,6 +75,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
+import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomRequestUri;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -106,11 +111,7 @@ import java.util.function.Supplier;
 	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
-	"server.issuer",
-	"server.jwks_uri",
-	"server.authorization_endpoint",
-	"server.token_endpoint",
-	"server.userinfo_endpoint"
+	"server.authorization_endpoint"
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {
 	"server.discoveryUrl"
@@ -133,9 +134,9 @@ import java.util.function.Supplier;
 	"mtls.cert",
 	"mtls.ca"
 })
-@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
-	"client.client_id"
-})
+//@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
+//	"client.client_id"
+//})
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name"
 })
@@ -153,10 +154,11 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = ResponseType.class, value = "id_token token", configurationFields = {
 	"server.token_endpoint"
 })
-public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestModule {
+public abstract class AbstractVPServerTest extends AbstractRedirectServerTestModule {
 
 	protected ResponseType responseType;
 	protected boolean formPost;
+	protected Boolean pre_id2 = null;
 	private boolean serverSupportsDiscovery;
 
 	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
@@ -354,12 +356,19 @@ public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestMo
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
 
-		callAndStopOnFailure(CreateRedirectUri.class);
+		pre_id2 = env.getBoolean("config", "pre_id2");
+		if (pre_id2 == null) {
+			pre_id2 = false;
+		}
 
 		callAndStopOnFailure(CreateDirectPostResponseUri.class);
+		callAndStopOnFailure(SetClientIdToResponseUri.class);
+		if (pre_id2) {
+			callAndContinueOnFailure(WarningAboutTestingOldSpec.class, ConditionResult.WARNING);
+		}
 
 		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
+		exposeEnvString("response_uri");
 
 		switch (getVariant(ServerMetadata.class)) {
 			case DISCOVERY:
@@ -500,7 +509,8 @@ public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestMo
 		}
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(CreateAuthorizationEndpointRequestFromClientInformation.class);
+			callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(CreateRandomStateValue.class);
 			call(exec().exposeEnvironmentString("state"));
@@ -512,8 +522,11 @@ public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestMo
 			call(exec().exposeEnvironmentString("nonce"));
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class);
+//			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class);
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToVpToken.class);
+			callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
 
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPost.class);
 			if (formPost) {
 				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToFormPost.class);
 			}
@@ -525,7 +538,15 @@ public abstract class AbstractVCPServerTest extends AbstractRedirectServerTestMo
 	}
 
 	protected ConditionSequence createAuthorizationRequestSequence() {
-		return new CreateAuthorizationRequestSteps(formPost);
+		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(formPost);
+
+		if (pre_id2) {
+			createAuthorizationRequestSteps = createAuthorizationRequestSteps.
+				replace(AddResponseUriToAuthorizationEndpointRequest.class,
+					condition(AddResponseUriAsRedirectUriToAuthorizationEndpointRequest.class));
+		}
+
+		return createAuthorizationRequestSteps;
 	}
 
 	protected void createAuthorizationRedirect() {

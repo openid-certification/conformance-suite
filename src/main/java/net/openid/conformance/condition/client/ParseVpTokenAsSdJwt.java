@@ -3,68 +3,83 @@ package net.openid.conformance.condition.client;
 import com.authlete.sd.Disclosure;
 import com.authlete.sd.SDJWT;
 import com.authlete.sd.SDObjectDecoder;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ParseVpTokenAsSdJwt extends AbstractCondition {
 
+	private static final Gson gson = new Gson();
+
 	@Override
 	@PreEnvironment(strings = "vp_token")
+	@PostEnvironment(required = "sdjwt")
 	public Environment evaluate(Environment env) {
-		String sdJwtStr = env.getString("vp_token"); // "eyJjdHkiOiJjcmVkZW50aWFsLWNsYWltcy1zZXQranNvbiIsInR5cCI6InZjK3NkLWp3dCIsImFsZyI6IkVTMjU2In0."+
-//			"eyJjcmVkZW50aWFsU3ViamVjdCI6eyJfc2QiOlsiQXN0c3NCb0tVbVNiREZXdUZmMmtRNU5CbFMtR1NBejF2LVhmQkJSQnJESSIsImw4VTl"+
-//			"pcUphUzFlWmxheDRCdEF3WTJNaS1aMUxXSTdHa1dBYnBtVndCaWMiLCJ5QkYtMUpIclJJczJBdVVIdEd5WktuQ3RNaUNtNzRxZEpreU5XVUdS" +
-//			"NDcwIl19LCJfc2RfYWxnIjoic2hhLTI1NiIsImlzcyI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpGUXlJc0ltTnlkaUk2SWxBdE1qVTJJaXdpZUN" +
-//			"JNkluQlJNWFpZZEZOVmRGRmxXWEY2U2t4aUxXVXlaV000TTJKR2RFazJkbXg2VG5SbE4yUXdPRkZLZWpRaUxDSjVJam9pVW5abU9WbFVSME" +
-//			"ZyTVRCNk56SnpSbTB6UldsbVZqaFNSVTl1WWs1eFgxWlhZMlZoT0d4NFVtZzBUU0lzSW1Gc1p5STZJa1ZUTWpVMkluMD0iLCJjbmYiOnsian" +
-//			"drIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiQVNDVW1OQ2dQTk9BVFJiZDhrc3UxdVVNQmpkLXYzVElYNjNxSEtsQzZVQSIsIn" +
-//			"kiOiJWc055Y1Rkb3ZZb1p2bHVtbTJPTjFQc0tqelFGald1cmNZYjFWS2o1TzFzIn19LCJ0eXBlIjoiVmVyaWZpZWRFTWFpbCIsImV4cCI6M" +
-//			"TY4MzQ3MDc3NywiaWF0IjoxNjgyNjA2Nzc3fQ.-1lAonblykatcmb7tmJYmI4SmsRSWLp1TmujK0nlvgqYuw-bP2Me29fBnnvQrmh-phW6i" +
-//			"K7XG1LbQoe7fbhlUQ~WyJsUWlWQVBub1V0Vlo5Z3NHVGhobGlBIiwiZW1haWwiLCJqb3NlcGhAaGVlbmFuLm1lLnVrIl0~eyJ0eXAiOiJKV1" +
-//			"QiLCJhbGciOiJFUzI1NiJ9.eyJub25jZSI6IjV1Mm1sMmJFTUUiLCJpYXQiOjE2OTA5MDQ5OTUsImF1ZCI6Imh0dHBzOi8vbG9jYWxob3N0Lm" +
-//			"Vtb2JpeC5jby51azo4NDQzL3Rlc3QvYS9vaWRmLXZjLXRlc3QvY2FsbGJhY2sifQ.oEXwTsJiOq2da037fl2cbKKzPCq4iPYReQPnQA8ZtWxG" +
-//			"74D3CoYRCyPT6GrL-H8xi1PUI7AAvGmsJaStDZifPA";
+		String sdJwtStr = env.getString("vp_token");
 
-		SDJWT sdJwt = SDJWT.parse(sdJwtStr);
+		SDJWT sdJwt;
+		try {
+			sdJwt = SDJWT.parse(sdJwtStr);
+		} catch (IllegalArgumentException e) {
+			throw error("Parsing SD-JWT failed", e, args("sdjwt", sdJwtStr));
+		}
+
 
 		List<String> disclosures = sdJwt.getDisclosures().stream().map(Disclosure::getJson).collect(Collectors.toList());
-
-
-		SDObjectDecoder decoder = new SDObjectDecoder();
-		Collection<Disclosure> disclosed;
 		Map<String, Object> decodedMap;
-		JsonObject credJwt = null;
-		JsonObject bindJwt = null;
 		try {
 			String credJwtStr = sdJwt.getCredentialJwt();
 			JWT nimbusCredJwt = JWTUtil.parseJWT(credJwtStr);
-			boolean includeNullValues = true;
 			JWTClaimsSet jwtClaimsSet = nimbusCredJwt.getJWTClaimsSet();
-			var encodedMap = jwtClaimsSet.toJSONObject(includeNullValues);
-			decodedMap  = decoder.decode(encodedMap, sdJwt.getDisclosures());
-
-			credJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(sdJwt.getCredentialJwt());
-			bindJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(sdJwt.getBindingJwt());
+			boolean includeNullValues = true;
+			decodedMap = new SDObjectDecoder().decode(
+				jwtClaimsSet.toJSONObject(includeNullValues),
+				sdJwt.getDisclosures()
+			);
 		} catch (ParseException e) {
-			throw new RuntimeException(e);
+			throw error("Applying SD-JWT disclosures failed", e, args("sdjwt", sdJwtStr));
 		}
 
-		logSuccess("Parsed SDJWT",
-			args("cred", credJwt,
-				"binding", bindJwt,
-				"disclosure", disclosures,
-				"decoded_map", decodedMap));
+		JsonObject credJwt = null;
+		try {
+			credJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(sdJwt.getCredentialJwt());
+		} catch (ParseException e) {
+			throw error("Parsing SD-JWT credential jwt failed", e, args("sdjwt", sdJwtStr));
+		}
+
+		JsonObject bindJwt = null;
+		try {
+			String bindingJwt = sdJwt.getBindingJwt();
+			if (bindingJwt == null) {
+				throw error("SD-JWT does not containg a holder binding", args("sdjwt", sdJwtStr));
+			}
+			bindJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(bindingJwt);
+		} catch (ParseException e) {
+			throw error("Parsing SD-JWT binding jwt failed", e, args("sdjwt", sdJwtStr));
+		}
+
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("value", sdJwtStr);
+		jsonObject.add("decoded", JsonParser.parseString(gson.toJson(decodedMap)).getAsJsonObject());
+		jsonObject.add("disclosures", JsonParser.parseString(gson.toJson(disclosures)).getAsJsonArray());
+		jsonObject.add("binding", bindJwt);
+		jsonObject.add("credential", credJwt);
+
+		env.putObject("sdjwt", jsonObject);
+
+		logSuccess("Parsed SDJWT", jsonObject);
 
 		return env;
 	}

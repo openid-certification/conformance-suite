@@ -10,20 +10,20 @@ public class CreateDirectPostResponseUri extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = "base_url")
 	@PostEnvironment(strings = "response_uri")
-	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
+	public Environment evaluate(Environment env) {
+		String baseUrl = env.getString("base_url");
 
 		if (baseUrl.isEmpty()) {
 			throw error("Base URL is empty");
 		}
 
 		String responseUri = baseUrl + "/responseuri";
-		in.putString("response_uri", responseUri);
+		env.putString("response_uri", responseUri);
 
 		log("Created response URI",
 			args("response_uri", responseUri));
 
-		return in;
+		return env;
 	}
 
 }
