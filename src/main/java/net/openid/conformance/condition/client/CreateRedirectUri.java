@@ -14,14 +14,14 @@ public class CreateRedirectUri extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = "base_url")
 	@PostEnvironment(strings = "redirect_uri")
-	public Environment evaluate(Environment in) {
-		String baseUrl = in.getString("base_url");
+	public Environment evaluate(Environment env) {
+		String baseUrl = env.getString("base_url");
 
 		if (baseUrl.isEmpty()) {
 			throw error("Base URL is empty");
 		}
 
-		String suffix = in.getString("redirect_uri_suffix");
+		String suffix = env.getString("redirect_uri_suffix");
 
 		if (!Strings.isNullOrEmpty(suffix)) {
 			log("Appending suffix to redirect URI", args("suffix", suffix));
@@ -31,12 +31,12 @@ public class CreateRedirectUri extends AbstractCondition {
 
 		// calculate the redirect URI based on our given base URL
 		String redirectUri = baseUrl + "/callback" + suffix;
-		in.putString("redirect_uri", redirectUri);
+		env.putString("redirect_uri", redirectUri);
 
 		logSuccess("Created redirect URI",
 			args("redirect_uri", redirectUri));
 
-		return in;
+		return env;
 	}
 
 }
