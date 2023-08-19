@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddAuthTimeToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
@@ -153,6 +154,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.time.Instant;
 
 
 @VariantParameters({
@@ -924,6 +926,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			//addSHashToIdToken();
 		}
 
+		if(isAuthorizationCodeGrantType || responseType.includesIdToken()) {
+			addAuthTimeToIdToken();
+		}
+
 		addCustomValuesToIdToken();
 
 		signIdToken();
@@ -955,6 +961,11 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	protected void addCHashToIdToken() {
 		skipIfMissing(null, new String[] { "c_hash" }, Condition.ConditionResult.INFO,
 			AddCHashToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+	}
+
+	protected void addAuthTimeToIdToken() {
+		skipIfElementMissing("effective_authorization_endpoint_request", "max_age", Condition.ConditionResult.INFO,
+			AddAuthTimeToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.1");
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {
@@ -1214,6 +1225,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 
 			viewToReturn = new RedirectView(redirectTo, false, false, false);
 		}
+
+		env.putString("auth_time", Long.toString(Instant.now().getEpochSecond()));
 
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 		return viewToReturn;
