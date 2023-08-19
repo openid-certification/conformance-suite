@@ -106,6 +106,6 @@ public class FAPI2SPID2TestPlan implements TestPlan {
 				break;
 		}
 
-		return certProfile;
+		return certProfile.replaceAll("  ", " ");
 	}
 }
