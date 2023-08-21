@@ -77,7 +77,7 @@ public class FAPI2SPID2ClientTestPlan implements TestPlan {
 				break;
 		}
 
-		return certProfile;
+		return certProfile.replaceAll("  ", " ");
 	}
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
