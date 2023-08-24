@@ -18,7 +18,7 @@ public class SwaggerConfig {
 	public OpenAPI conformanceOpenAPI() {
 		return new OpenAPI()
 				.info(new Info().title("OpenID Conformance Suite REST APIs")
-						.description("This page lists the REST APIs for the OpenID Conformance suite. You must obtain a token from the <a href='tokens.html'>token management page</a> to call APIs. There is a <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>python script that drives the API</a> available, which is used in our own CI and provides functionality like allowing known failures to be suppressed.")
+						.description("This page lists the REST APIs for the OpenID Conformance suite. You must obtain a token from the <a href='/tokens.html'>token management page</a> to call APIs. There is a <a href='https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/run-test-plan.py'>python script that drives the API</a> available, which is used in our own CI and provides functionality like allowing known failures to be suppressed.")
 						.version(version)
 						.license(new License().name("MIT License").url("https://gitlab.com/openid/conformance-suite/-/blob/master/LICENSE.txt")))
 				.externalDocs(new ExternalDocumentation()
