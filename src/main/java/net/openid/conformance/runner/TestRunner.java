@@ -3,11 +3,11 @@ package net.openid.conformance.runner;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.vdurmont.semver4j.Semver;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
@@ -74,7 +74,7 @@ import java.util.stream.Collectors;
  *
  */
 @Controller
-@Api(value = "A component that starts, stops, and manages running TestModules")
+@Tag(name = "test-runner", description = "A component that starts, stops, and manages running TestModules")
 @RequestMapping(value = "/api")
 public class TestRunner implements DataUtils {
 
@@ -178,9 +178,9 @@ public class TestRunner implements DataUtils {
 		executorService.submit(futureWatcher);
 	}
 
-	@ApiOperation(value = "Get list of available TestModule names")
+	@Operation(summary = "Get list of available TestModule names")
 	@ApiResponses({
-		@ApiResponse(code = 200, message = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
@@ -198,19 +198,19 @@ public class TestRunner implements DataUtils {
 		return new ResponseEntity<>(available, HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "Create test module instance", notes = "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
+	@Operation(summary = "Create test module instance", description = "Normally a test plan should be created first. After a test is created, use /api/info/{testid} to wait for the test to be in the WAITING state before trying to interact with the test")
 	@ApiResponses(value = {
-		@ApiResponse(code = 201, message = "Created test successfully"),
-		@ApiResponse(code = 400, message = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
-		@ApiResponse(code = 404, message = "Couldn't find configuration of plan Id you provided"),
-		@ApiResponse(code = 409, message = "There was a failure in creating the test alias"),
-		@ApiResponse(code = 500, message = "Created test failed"),
+		@ApiResponse(responseCode = "201", description = "Created test successfully"),
+		@ApiResponse(responseCode = "400", description = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
+		@ApiResponse(responseCode = "404", description = "Couldn't find configuration of plan Id you provided"),
+		@ApiResponse(responseCode = "409", description = "There was a failure in creating the test alias"),
+		@ApiResponse(responseCode = "500", description = "Created test failed"),
 	})
 	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, String>> createTest(@ApiParam(value = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
-														  @ApiParam(value = "Plan Id") @RequestParam(name = "plan", required = false) String planId,
-														  @ApiParam(value = "Kind of test variation") @RequestParam(name = "variant", required = false) VariantSelection variantFromApi,
-														  @ApiParam(value = "Configuration for running test") @RequestBody(required = false) JsonObject testConfig,
+	public ResponseEntity<Map<String, String>> createTest(@Parameter(description = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
+														  @Parameter(description = "Plan Id") @RequestParam(name = "plan", required = false) String planId,
+														  @Parameter(description = "Kind of test variation") @RequestParam(name = "variant", required = false) VariantSelection variantFromApi,
+														  @Parameter(description = "Configuration for running test") @RequestBody(required = false) JsonObject testConfig,
 														  Model m) {
 		final JsonObject config;
 		final VariantSelection testVariant;
@@ -468,13 +468,13 @@ public class TestRunner implements DataUtils {
 		support.addAlias(alias, id);
 	}
 
-	@ApiOperation(value = "Start test by id")
+	@Operation(summary = "Start test by id")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Started test successfully"),
-		@ApiResponse(code = 404, message = "The test you were trying to run is not found")
+		@ApiResponse(responseCode = "200", description = "Started test successfully"),
+		@ApiResponse(responseCode = "404", description = "The test you were trying to run is not found")
 	})
 	@RequestMapping(value = "/runner/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> startTest(@ApiParam(value = "Id of test that you want to run") @PathVariable("id") String testId) {
+	public ResponseEntity<Object> startTest(@Parameter(description = "Id of test that you want to run") @PathVariable("id") String testId) {
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
 			Map<String, Object> map = createTestStatusMap(test);
@@ -496,13 +496,13 @@ public class TestRunner implements DataUtils {
 
 	}
 
-	@ApiOperation(value = "Get test status, results, and exposed strings")
+	@Operation(summary = "Get test status, results, and exposed strings")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully"),
-		@ApiResponse(code = 404, message = "The test you were trying to retrieve is not found")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found")
 	})
 	@GetMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, Object>> getTestStatus(@ApiParam(value = "Id of test that you want to get status") @PathVariable("id") String testId, Model m) {
+	public ResponseEntity<Map<String, Object>> getTestStatus(@Parameter(description = "Id of test that you want to get status") @PathVariable("id") String testId, Model m) {
 		//logger.info("Getting status of " + testId);
 
 		TestModule test = support.getRunningTestById(testId);
@@ -516,13 +516,13 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
-	@ApiOperation(value = "Cancel test by Id")
+	@Operation(summary = "Cancel test by Id")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Cancelled test successfully"),
-		@ApiResponse(code = 404, message = "The test you were trying to cancel is not found")
+		@ApiResponse(responseCode = "200", description = "Cancelled test successfully"),
+		@ApiResponse(responseCode = "404", description = "The test you were trying to cancel is not found")
 	})
 	@DeleteMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> cancelTest(@ApiParam(value = "Id of test that you want to cancel") @PathVariable("id") String testId) {
+	public ResponseEntity<Object> cancelTest(@Parameter(description = "Id of test that you want to cancel") @PathVariable("id") String testId) {
 		// logger.info("Canceling " + testId);
 
 		TestModule test = support.getRunningTestById(testId);
@@ -543,9 +543,9 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
-	@ApiOperation(value = "Get list of running testIDs")
+	@Operation(summary = "Get list of running testIDs")
 	@ApiResponses({
-		@ApiResponse(code = 200, message = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	@RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
@@ -554,14 +554,14 @@ public class TestRunner implements DataUtils {
 		return new ResponseEntity<>(testIds, HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "Get front-channel external URLs exposed to the [BrowserControl] for a given test")
+	@Operation(summary = "Get front-channel external URLs exposed to the [BrowserControl] for a given test")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully"),
-		@ApiResponse(code = 404, message = "The test you were trying to retrieve is not found"),
-		@ApiResponse(code = 503, message = "Couldn't find Browser information")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),
+		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information")
 	})
 	@RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, Object>> getBrowserStatus(@ApiParam(value = "Id of test") @PathVariable("id") String testId,
+	public ResponseEntity<Map<String, Object>> getBrowserStatus(@Parameter(description = "Id of test") @PathVariable("id") String testId,
 																Model m) {
 		// logger.info("Getting status of " + testId);
 
@@ -584,15 +584,15 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
-	@ApiOperation(value = "Mark front-channel external URL as visited")
+	@Operation(summary = "Mark front-channel external URL as visited")
 	@ApiResponses(value = {
-		@ApiResponse(code = 204, message = "Visited url successfully"),
-		@ApiResponse(code = 404, message = "The test you were trying to retrieve is not found"),
-		@ApiResponse(code = 503, message = "Couldn't find Browser information")
+		@ApiResponse(responseCode = "204", description = "Visited url successfully"),
+		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),
+		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information")
 	})
 	@RequestMapping(value = "/runner/browser/{id}/visit", method = RequestMethod.POST)
-	public ResponseEntity<String> visitBrowserUrl(@ApiParam(value = "Id of test") @PathVariable("id") String testId,
-												  @ApiParam(value = "Url which you want to visit") @RequestParam("url") String url, Model m) {
+	public ResponseEntity<String> visitBrowserUrl(@Parameter(description = "Id of test") @PathVariable("id") String testId,
+												  @Parameter(description = "Url which you want to visit") @RequestParam("url") String url, Model m) {
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
 			BrowserControl browser = test.getBrowser();

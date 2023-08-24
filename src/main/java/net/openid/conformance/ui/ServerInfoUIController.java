@@ -1,8 +1,8 @@
 package net.openid.conformance.ui;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,9 +21,9 @@ public class ServerInfoUIController {
 	 * @return the info of server
 	 */
 	@GetMapping(value = "/api/server", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get server information")
+	@Operation(summary = "Get server information")
 	@ApiResponses({
-		@ApiResponse(code = 200, message = "Retrieved successfully")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	public ResponseEntity<Object> getServerInfo() {
 		return new ResponseEntity<>(serverInfoTemplate.getServerInfo(), HttpStatus.OK);

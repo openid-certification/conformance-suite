@@ -1,10 +1,10 @@
 package net.openid.conformance.certification;
 
 import com.google.gson.JsonObject;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
@@ -22,23 +22,23 @@ import java.io.File;
 public class CertificationApi {
 
 	@PostMapping(value = "/plan/{id}/certificationofconformance", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_PDF_VALUE)
-	@ApiOperation(value = "Get certification of conformance pdf template, with pre-populated fields")
+	@Operation(summary = "Get certification of conformance pdf template, with pre-populated fields")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully"),
-		@ApiResponse(code = 500, message = "An unexpected error occurred, the error should be reported to the developers")
+			@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+			@ApiResponse(responseCode = "500", description = "An unexpected error occurred, the error should be reported to the developers")
 	})
 	public void getCertificationOfConformancePdfTemplate(
-		HttpServletResponse response,
-		@ApiParam(value = "Id of test plan") @PathVariable("id") String id,
-		@ApiParam(value = "Name of Entity (Implementer) Making this Certification") @RequestParam(name = "nameOfImplementer", required = false) String nameOfImplementer,
-		@ApiParam(value = "Software or Service (Deployment) Name & Version #") @RequestParam(name = "deploymentVersion", required = false) String deploymentVersion,
-		@ApiParam(value = "OpenID Conformance Profile") @RequestParam(name = "conformanceProfile", required = false) String conformanceProfile,
-		@ApiParam(value = "Conformance Test Suite Software") @RequestParam(name = "suiteSoftware", required = false) String suiteSoftware,
-		@ApiParam(value = "Test Date") @RequestParam(name = "testDate", required = false) String testDate,
-		@ApiParam(value = "URL at which people interested in using your implementation can learn about it and/or obtain it") @RequestParam(name = "moreInfoUrl", required = false) String moreInfoUrl,
-		@ApiParam(value = "1-2 sentence description of the implementation") @RequestParam(name = "implementationDescription", required = false) String implementationDescription,
-		@ApiParam(value = "The programming language of the software and deployment environment for it, if applicable") @RequestParam(name = "programmingLanguage", required = false) String programmingLanguage,
-		@ApiParam(value = "Licensing terms of the software, if applicable") @RequestParam(name = "license", required = false) String license
+			HttpServletResponse response,
+			@Parameter(description = "Id of test plan") @PathVariable("id") String id,
+			@Parameter(description = "Name of Entity (Implementer) Making this Certification") @RequestParam(name = "nameOfImplementer", required = false) String nameOfImplementer,
+			@Parameter(description = "Software or Service (Deployment) Name & Version #") @RequestParam(name = "deploymentVersion", required = false) String deploymentVersion,
+			@Parameter(description = "OpenID Conformance Profile") @RequestParam(name = "conformanceProfile", required = false) String conformanceProfile,
+			@Parameter(description = "Conformance Test Suite Software") @RequestParam(name = "suiteSoftware", required = false) String suiteSoftware,
+			@Parameter(description = "Test Date") @RequestParam(name = "testDate", required = false) String testDate,
+			@Parameter(description = "URL at which people interested in using your implementation can learn about it and/or obtain it") @RequestParam(name = "moreInfoUrl", required = false) String moreInfoUrl,
+			@Parameter(description = "1-2 sentence description of the implementation") @RequestParam(name = "implementationDescription", required = false) String implementationDescription,
+			@Parameter(description = "The programming language of the software and deployment environment for it, if applicable") @RequestParam(name = "programmingLanguage", required = false) String programmingLanguage,
+			@Parameter(description = "Licensing terms of the software, if applicable") @RequestParam(name = "license", required = false) String license
 	) throws Exception {
 		File filledPdfTemplateFile = null;
 		try {
@@ -55,13 +55,13 @@ public class CertificationApi {
 			filledPdfTemplateFile = CertificationOfConformanceUtil.fillCertificationOfConformancePDFTemplate(data);
 
 			FileSystemResource fileSystemResource = new FileSystemResource(filledPdfTemplateFile);
-			response.setContentLength((int)fileSystemResource.contentLength());
+			response.setContentLength((int) fileSystemResource.contentLength());
 			response.setContentType(MediaType.APPLICATION_PDF_VALUE);
 			response.setHeader("Content-Disposition", "attachment; filename=OpenID-Certification-of-Conformance.pdf");
 
 			IOUtils.copy(fileSystemResource.getInputStream(), response.getOutputStream());
 		} finally {
-			if(filledPdfTemplateFile!=null) {
+			if (filledPdfTemplateFile != null) {
 				filledPdfTemplateFile.delete();
 			}
 		}

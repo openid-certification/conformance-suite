@@ -2,10 +2,10 @@ package net.openid.conformance.logging;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.runner.TestRunnerSupport;
@@ -55,15 +55,15 @@ public class ImageAPI {
 	private ImageService imageService;
 
 	@PostMapping(path = "/log/{id}/images")
-	@ApiOperation(value = "Upload image for a test log")
+	@Operation(summary = "Upload image for a test log")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Uploaded image successfully"),
-		@ApiResponse(code = 400, message = "Image validation failure"),
-		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "200", description = "Uploaded image successfully"),
+		@ApiResponse(responseCode = "400", description = "Image validation failure"),
+		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
 	})
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
-		@ApiParam(value = "Id of test") @PathVariable(name = "id") String testId,
-		@ApiParam(value = "Description for image") @RequestParam(name = "description", required = false) String description) throws IOException {
+		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
+		@Parameter(description = "Description for image") @RequestParam(name = "description", required = false) String description) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
@@ -103,16 +103,16 @@ public class ImageAPI {
 	}
 
 	@PostMapping(path = "/log/{id}/images/{placeholder}")
-	@ApiOperation(value = "Upload the image to existing log entry")
+	@Operation(summary = "Upload the image to existing log entry")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Uploaded image successfully"),
-		@ApiResponse(code = 400, message = "Image validation failure"),
-		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "200", description = "Uploaded image successfully"),
+		@ApiResponse(responseCode = "400", description = "Image validation failure"),
+		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
 	})
 	public ResponseEntity<Object> uploadImageToExistingLogEntry(
-		@ApiParam(value = "Image should be encoded as a string") @RequestBody String encoded,
-		@ApiParam(value = "Id of test") @PathVariable(name = "id") String testId,
-		@ApiParam(value = "Placeholder which created when the test run") @PathVariable(name = "placeholder") String placeholder) throws IOException {
+		@Parameter(description = "Image should be encoded as a string") @RequestBody String encoded,
+		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
+		@Parameter(description = "Placeholder which created when the test run") @PathVariable(name = "placeholder") String placeholder) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
@@ -142,12 +142,12 @@ public class ImageAPI {
 	}
 
 	@GetMapping(path = "/log/{id}/images", produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get all the images for a test")
+	@Operation(summary = "Get all the images for a test")
 	@ApiResponses(value = {
-		@ApiResponse(code = 200, message = "Retrieved successfully"),
-		@ApiResponse(code = 403, message = "In order to upload an image, You must be admin or test owner")
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "403", description = "In order to upload an image, You must be admin or test owner")
 	})
-	public ResponseEntity<Object> getAllImages(@ApiParam(value = "ID of test") @PathVariable(name = "id") String testId) {
+	public ResponseEntity<Object> getAllImages(@Parameter(description = "ID of test") @PathVariable(name = "id") String testId) {
 
 		//db.EVENT_LOG.find({'testId': 'zpDg24jOXl', $or: [{img: {$exists: true}}, {upload: {$exists: true}}]}).sort({'time': 1})
 
