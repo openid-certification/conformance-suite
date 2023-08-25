@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @Controller
-@SuppressWarnings("deprecation")
 public class FAPIErrorController extends AbstractErrorController {
 
 	public FAPIErrorController(ErrorAttributes errorAttributes) {
@@ -30,11 +29,5 @@ public class FAPIErrorController extends AbstractErrorController {
 		} else {
 			return new ModelAndView("error", map);
 		}
-	}
-
-
-	@Override
-	public String getErrorPath() {
-		return "/error";
 	}
 }
