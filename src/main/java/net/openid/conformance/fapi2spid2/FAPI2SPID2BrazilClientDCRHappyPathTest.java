@@ -103,7 +103,7 @@ public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2Cl
 
 			call(exec().mapKey("client_request", requestId));
 
-			callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+			callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
 
 			call(exec().unmapKey("client_request"));
 
@@ -151,7 +151,7 @@ public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2Cl
 		call(exec().startBlock("Registration endpoint").mapKey("incoming_request", requestId));
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
 
 		call(exec().unmapKey("client_request"));
 
