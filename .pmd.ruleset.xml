@@ -41,7 +41,6 @@
 
 		<!-- These are excluded just because the codebase, at the time PMD was added, raised a number of these
 		  warnings. No analysis has been done on whether they're good checks to exclude. -->
-		<exclude name="BeanMembersShouldSerialize"/>
 		<exclude name="DataflowAnomalyAnalysis"/>
 		<exclude name="AvoidDuplicateLiterals"/>
 		<exclude name="NullAssignment"/>
@@ -52,6 +51,7 @@
 		<exclude name="AvoidLiteralsInIfCondition"/>
 		<exclude name="EmptyCatchBlock"/>
 		<exclude name="NonStaticInitializer"/>
+		<exclude name="TestClassWithoutTestCases"/>
 	</rule>
 
 	<rule ref="category/java/codestyle.xml">
@@ -80,6 +80,7 @@
 		<exclude name="CallSuperInConstructor"/>
 		<exclude name="ClassNamingConventions"/>
 		<exclude name="UseUnderscoresInNumericLiterals"/>
+		<exclude name="EmptyControlStatement"/>
 	</rule>
 
 	<rule ref="category/java/bestpractices.xml">
@@ -100,6 +101,7 @@
 		 'Test' in their name, and isn't configurable enough -->
 		<exclude name="JUnit4TestShouldUseTestAnnotation"/>
 		<exclude name="ArrayIsStoredDirectly"/>
+		<exclude name="UseCollectionIsEmpty"/>
 	</rule>
 	<!--
 	   We should probably enable more rules one day
