@@ -12,19 +12,19 @@ public class StoreOriginalClient2Configuration extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = "config")
 	@PostEnvironment(required = "original_client_config")
-	public Environment evaluate(Environment in) {
+	public Environment evaluate(Environment env) {
 
-		JsonElement dynamicClientRegistrationTemplate = in.getElementFromObject("config", "client2");
+		JsonElement dynamicClientRegistrationTemplate = env.getElementFromObject("config", "client2");
 		if (dynamicClientRegistrationTemplate == null || !dynamicClientRegistrationTemplate.isJsonObject()) {
 			// we don't actually need anything; if no client_name is given we'll pick one
-			in.putObject("original_client_config", new JsonObject());
+			env.putObject("original_client_config", new JsonObject());
 			log("No client details on configuration, created an empty original_client_config object.");
 		} else {
 			// we've got a client object, put it in the environment
-			in.putObject("original_client_config", dynamicClientRegistrationTemplate.getAsJsonObject());
+			env.putObject("original_client_config", dynamicClientRegistrationTemplate.getAsJsonObject());
 
 			log("Created original_client_config object from the client configuration.", dynamicClientRegistrationTemplate.getAsJsonObject());
 		}
-		return in;
+		return env;
 	}
 }

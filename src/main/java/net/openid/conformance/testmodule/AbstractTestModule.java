@@ -900,8 +900,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				failure = error.getCause().getMessage();
 			} else {
 				failure = error.getMessage();
-				// if the root error isn't a ConditionError, set this so the UI can display the underlying error in detail
-				setFinalError(error);
 
 				Map<String, Object> event = new HashMap<>();
 				event.put("caught_at", source);
@@ -910,6 +908,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					// throw new TestFailureException(getId(), "Client has incorrectly <...>");
 					// log that message rather than 'unexpected exception caught'
 					event.put("msg", failure);
+				} else {
+					// if the root error isn't a ConditionError nor an explicit message from a test module, set this so the UI can display the underlying error in detail
+					setFinalError(error);
 				}
 				eventLog.log(getName(), ex(error, event));
 			}
@@ -961,12 +962,12 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
+		throw new TestFailureException(getId(), "Got an HTTP request to '"+path+"' that wasn't expected");
 	}
 
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		throw new TestFailureException(getId(), "Got an HTTP response we weren't expecting");
+		throw new TestFailureException(getId(), "Got an HTTP request to '"+path+"' that wasn't expected");
 	}
 
 	@Override

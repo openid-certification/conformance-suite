@@ -13,28 +13,28 @@ public abstract class AbstractCheckServerConfiguration extends AbstractCondition
 
 	@Override
 	@PreEnvironment(required = "server")
-	public Environment evaluate(Environment in) {
+	public Environment evaluate(Environment env) {
 
 		List<String> lookFor = getExpectedListEndpoint();
 
 		for (String key : lookFor) {
-			ensureString(in, key);
-			ensureUrl(in, key);
+			ensureString(env, key);
+			ensureUrl(env, key);
 		}
 
 		logSuccess("Found required server configuration keys", args("required", lookFor));
-		return in;
+		return env;
 	}
 
-	protected void ensureString(Environment in, String path) {
-		String string = in.getString("server", path);
+	protected void ensureString(Environment env, String path) {
+		String string = env.getString("server", path);
 		if (Strings.isNullOrEmpty(string)) {
 			throw error("Couldn't find required component", args("required", path));
 		}
 	}
 
-	protected void ensureUrl(Environment in, String path) {
-		String string = in.getString("server", path);
+	protected void ensureUrl(Environment env, String path) {
+		String string = env.getString("server", path);
 		try {
 			@SuppressWarnings("unused")
 			URL url = new URL(string);

@@ -8,8 +8,8 @@ public class ExpectServerDoesNotCallNotificationEndpointTwice extends AbstractCo
 
 	@Override
 	@PostEnvironment(strings = "times_server_called_notification_endpoint")
-	public Environment evaluate(Environment in) {
-		String calledTimes = in.getString("times_server_called_notification_endpoint");
+	public Environment evaluate(Environment env) {
+		String calledTimes = env.getString("times_server_called_notification_endpoint");
 
 		int times;
 		if (calledTimes == null) {
@@ -18,7 +18,7 @@ public class ExpectServerDoesNotCallNotificationEndpointTwice extends AbstractCo
 			times = Integer.valueOf(calledTimes) + 1;
 		}
 
-		in.putString("times_server_called_notification_endpoint", String.valueOf(times));
+		env.putString("times_server_called_notification_endpoint", String.valueOf(times));
 
 		if (times > 1) {
 			throw error(String.format("Server called notification endpoint %d times while it shouldn't.", times));
@@ -26,6 +26,6 @@ public class ExpectServerDoesNotCallNotificationEndpointTwice extends AbstractCo
 
 		logSuccess("Server called notification endpoint once");
 
-		return in;
+		return env;
 	}
 }
