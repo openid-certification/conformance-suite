@@ -224,8 +224,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	}
 
 	// This sets Spring Security up so that it can use the OIDC tokens etc.
-	@Autowired
-	public void configureGlobal(AuthenticationManagerBuilder auth) {
+	@Override
+	public void configure(AuthenticationManagerBuilder auth) {
 		auth.authenticationProvider(configureOIDCAuthenticationProvider());
 	}
 
