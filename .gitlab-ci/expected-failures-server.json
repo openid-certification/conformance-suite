@@ -98,7 +98,7 @@
         },
         "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
         "current-block": "DPoP reuse, Second use of the same jti, this 'should' fail",
-        "condition": "EnsureHttpStatusCodeIs401",
+        "condition": "EnsureHttpStatusCodeIs400or401",
         "expected-result": "warning",
         "comment": "Authlete doesn't support jti uniqueness"
     },
