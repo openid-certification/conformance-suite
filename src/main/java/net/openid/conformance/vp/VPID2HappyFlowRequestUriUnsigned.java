@@ -92,9 +92,14 @@ public class VPID2HappyFlowRequestUriUnsigned extends AbstractVPServerTest {
 		// FIXME: extract / verify presentation_submission
 
 		eventLog.startBlock(currentClientString() + "Verify credential JWT");
-		// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2
+		// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
+		// FIXME check iss is a valid uri
 		callAndContinueOnFailure(ValidateCredentialJWTIat.class, Condition.ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");
-
+		// FIXME nbf
+		// FIXME exp
+		// cnf is checked when holder binding is checked below
+		// FIXME type
+		// FIXME status
 
 		eventLog.startBlock(currentClientString() + "Verify holder binding JWT");
 		// https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-key-binding-jwt
@@ -111,8 +116,6 @@ public class VPID2HappyFlowRequestUriUnsigned extends AbstractVPServerTest {
 		// FIXME: verify sig on sd jwt (lissi use did:jwk though)
 
 		// FIXME: verify credential contents?
-
-		// FIXME: verify iat / exp / whatever
 
 		//setStatus(Status.WAITING);
 		fireTestFinished();
