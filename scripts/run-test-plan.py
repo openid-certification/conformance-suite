@@ -51,6 +51,7 @@ def split_name_and_variant(test_plan):
     modules = None
     op_test = None
     op_config = None
+    test_plan = test_plan.replace('+', ' ')
     if '{' in test_plan:
         (test_plan, op_test) = test_plan.split("{", 1)
         (op_test, op_config) = op_test.split("}", 1)
