@@ -17,7 +17,7 @@ import net.openid.conformance.condition.client.ExtractVpToken;
 import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateSdJwtHolderBinding;
+import net.openid.conformance.condition.client.ValidateSdJwtHolderBindingSignature;
 import net.openid.conformance.condition.common.CreateRandomRequestUri;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -64,6 +64,7 @@ public class VPID2HappyFlowRequestUriUnsigned extends AbstractVPServerTest {
 		call(exec().unmapKey("client_request"));
 
 		setStatus(Status.WAITING);
+		// FIXME add logs about the next step
 
 		if (path.equals("responseuri")) {
 			return handleDirectPost(requestId);
@@ -104,7 +105,7 @@ public class VPID2HappyFlowRequestUriUnsigned extends AbstractVPServerTest {
 		eventLog.startBlock(currentClientString() + "Verify holder binding JWT");
 		// https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-key-binding-jwt
 
-		callAndContinueOnFailure(ValidateSdJwtHolderBinding.class, Condition.ConditionResult.FAILURE, "SDJWT-5.10");
+		callAndContinueOnFailure(ValidateSdJwtHolderBindingSignature.class, Condition.ConditionResult.FAILURE, "SDJWT-5.10");
 
 		callAndContinueOnFailure(CheckTypInBindingJwt.class, Condition.ConditionResult.FAILURE, "SDJWT-5.10");
 		// alg is checked during signature validation
@@ -113,12 +114,14 @@ public class VPID2HappyFlowRequestUriUnsigned extends AbstractVPServerTest {
 		callAndContinueOnFailure(CheckAudInBindingJwt.class, Condition.ConditionResult.FAILURE, "SDJWT-5.10");
 		callAndContinueOnFailure(CheckNonceInBindingJwt.class, Condition.ConditionResult.FAILURE, "SDJWT-5.10");
 
+		// FIXME: verify disclosures have different nonces if there are multiple
+
 		// FIXME: verify sig on sd jwt (lissi use did:jwk though)
 
 		// FIXME: verify credential contents?
 
 		//setStatus(Status.WAITING);
-		fireTestFinished();
+		fireTestFinished(); // FIXME do version with and without returning redirect_uri
 
 		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
 		JsonObject response = new JsonObject();
