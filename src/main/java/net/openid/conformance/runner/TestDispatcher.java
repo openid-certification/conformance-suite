@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
@@ -128,7 +129,11 @@ public class TestDispatcher implements DataUtils {
 				if (contentType != null) {
 					if (contentType.equalsTypeAndSubtype(MediaType.APPLICATION_JSON)) {
 						// parse the body as json
-						requestParts.add("body_json", JsonParser.parseString(body));
+						try {
+							requestParts.add("body_json", JsonParser.parseString(body));
+						} catch (JsonSyntaxException e) {
+							requestParts.addProperty("body_json_parse_error", e.getMessage());
+						}
 					}
 
 					if (contentType.equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED)) {
@@ -333,7 +338,8 @@ public class TestDispatcher implements DataUtils {
 			"incoming_tls_cert", tlsCert,
 			"incoming_tls_chain", tlsChain,
 			"incoming_body", requestParts.get("body"),
-			"incoming_body_json", requestParts.get("body_json")));
+			"incoming_body_json", requestParts.get("body_json"),
+			"incoming_body_json_parse_error", requestParts.get("body_json_parse_error")));
 	}
 
 	protected void logOutgoingHttpResponse(TestModule test, String path, Object response) {
