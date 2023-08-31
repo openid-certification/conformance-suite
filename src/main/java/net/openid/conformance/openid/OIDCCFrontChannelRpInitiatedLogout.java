@@ -26,7 +26,7 @@ import javax.servlet.http.HttpSession;
 @PublishTestModule(
 	testName = "oidcc-frontchannel-rp-initiated-logout",
 	displayName = "OIDCC: Frontchannel rp initiated logout",
-	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint. It validates the OP correctly loads the frontchannel_logout_uri and sends the user to the post_logout_redirect_uri, then tries another authentication with prompt=none which must return an error (as the user has been logged out). If using static client registration you must register frontchannel_logout_uri to the same url as the redirect url, but replacing the portion after the alias with /frontchannel_logout and similarly register /post_logout_redirect as a post_logout_redirect_uri.",
+	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint. It validates the OP correctly loads the frontchannel_logout_uri and sends the user to the post_logout_redirect_uri, then tries another authentication with prompt=none which must return an error (as the user has been logged out).\n\nIf using static client registration you must register frontchannel_logout_uri to the same url as the redirect url, but replacing the portion after the alias with /frontchannel_logout and similarly register /post_logout_redirect as a post_logout_redirect_uri.",
 	profile = "OIDCC"
 )
 public class OIDCCFrontChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedLogout {
