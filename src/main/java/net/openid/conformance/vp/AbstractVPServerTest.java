@@ -16,21 +16,28 @@ import net.openid.conformance.condition.client.AddRequestUriToDynamicRegistratio
 import net.openid.conformance.condition.client.AddResponseUriAsRedirectUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
-import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
-import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
+import net.openid.conformance.condition.client.CheckAudInBindingJwt;
+import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
+import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
+import net.openid.conformance.condition.client.CheckNonceInBindingJwt;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.CheckTypInBindingJwt;
+import net.openid.conformance.condition.client.CheckUrlFragmentContainsCodeVerifier;
+import net.openid.conformance.condition.client.CheckUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
+import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
@@ -38,6 +45,8 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
+import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientAuthNone;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretBasic;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretPost;
@@ -46,6 +55,7 @@ import net.openid.conformance.condition.client.EnsureServerConfigurationSupports
 import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
@@ -53,13 +63,14 @@ import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.ExtractVpToken;
 import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
+import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
-import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
+import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPost;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToFormPost;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
@@ -67,6 +78,7 @@ import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
+import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
@@ -74,10 +86,13 @@ import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizati
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
+import net.openid.conformance.condition.client.ValidateSdJwtHolderBindingSignature;
 import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomRequestUri;
+import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
@@ -96,6 +111,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
@@ -356,19 +372,19 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
 
+		callAndStopOnFailure(CreateDirectPostResponseUri.class);
+		callAndStopOnFailure(SetClientIdToResponseUri.class);
+
+		// this is inserted by the create call above, expose it to the test environment for publication
+		exposeEnvString("response_uri");
+
 		pre_id2 = env.getBoolean("config", "pre_id2");
 		if (pre_id2 == null) {
 			pre_id2 = false;
 		}
-
-		callAndStopOnFailure(CreateDirectPostResponseUri.class);
-		callAndStopOnFailure(SetClientIdToResponseUri.class);
 		if (pre_id2) {
 			callAndContinueOnFailure(WarningAboutTestingOldSpec.class, ConditionResult.WARNING);
 		}
-
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("response_uri");
 
 		switch (getVariant(ServerMetadata.class)) {
 			case DISCOVERY:
@@ -434,6 +450,8 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
+		browser.setShowQrCodes(true);
 	}
 
 	protected void configureClient() {
@@ -498,6 +516,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
 		performRedirect();
+		eventLog.log(getName(), "The wallet should be opened via the QR code / proceed with test button, and should then fetch the request_uri");
 		eventLog.endBlock();
 	}
 
@@ -549,30 +568,113 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		return createAuthorizationRequestSteps;
 	}
 
+	protected Object handleDirectPost(String requestId) {
+
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Direct post endpoint").mapKey("incoming_request", requestId));
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.FAILURE);
+
+		callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromFormBody.class, ConditionResult.FAILURE);
+		// vp token may be an object containing multiple tokens, https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
+		// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assme only a single token here
+		callAndStopOnFailure(ExtractVpToken.class, ConditionResult.FAILURE);
+
+		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
+		callAndStopOnFailure(ParseVpTokenAsSdJwt.class, ConditionResult.FAILURE);
+
+		// FIXME: extract / verify presentation_submission
+
+		eventLog.startBlock(currentClientString() + "Verify credential JWT");
+		// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
+		// FIXME check iss is a valid uri
+		callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");
+		// FIXME nbf
+		// FIXME exp
+		// cnf is checked when holder binding is checked below
+		// FIXME type
+		// FIXME status
+
+		eventLog.startBlock(currentClientString() + "Verify holder binding JWT");
+		// https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-key-binding-jwt
+
+		callAndContinueOnFailure(ValidateSdJwtHolderBindingSignature.class, ConditionResult.FAILURE, "SDJWT-5.10");
+
+		callAndContinueOnFailure(CheckTypInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+		// alg is checked during signature validation
+
+		callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+		callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+		callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+
+		// FIXME: verify disclosures have different nonces if there are multiple
+
+		// FIXME: verify sig on sd jwt (lissi use did:jwk though)
+
+		// FIXME: verify credential contents?
+
+		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
+		JsonObject response = new JsonObject();
+		populateDirectPostResponse(response);
+
+		return ResponseEntity.ok()
+			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
+			.body(response.toString());
+	}
+
+	protected void populateDirectPostResponse(JsonObject response) {
+		// no redirect_uri in response, so the test ends after this response is received by wallet
+		fireTestFinished();
+	}
+
+	public static class CreateAuthorizationRedirectStepsUnsignedRequestUri extends AbstractConditionSequence {
+
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+
+			callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
+
+			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class);
+		}
+
+	}
+
 	protected void createAuthorizationRedirect() {
-		callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+		// alternative without request_uri
+		// callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+		call(new CreateAuthorizationRedirectStepsUnsignedRequestUri());
 	}
 
 	@Override
 	protected void processCallback() {
-		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
+		eventLog.startBlock(currentClientString() + "Verify redirect_uri called matches the one from the response_uri response");
 
-		if (formPost) {
-			env.mapKey("authorization_endpoint_response", "callback_body_form_params");
-			callAndContinueOnFailure(CheckCallbackHttpMethodIsPost.class, ConditionResult.FAILURE, "OAuth2-FP-2");
-			callAndContinueOnFailure(CheckCallbackContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE, "OAuth2-FP-2");
-			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-			callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
-		} else if (isCodeFlow()) {
-			env.mapKey("authorization_endpoint_response", "callback_query_params");
-		} else {
-			env.mapKey("authorization_endpoint_response", "callback_params");
+		callAndContinueOnFailure(CheckCallbackHttpMethodIsGet.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckUrlQueryIsEmpty.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckUrlFragmentContainsCodeVerifier.class, ConditionResult.FAILURE, "OID4VP-");
 
-			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-			callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
-		}
+		fireTestFinished();
 
-		onAuthorizationCallbackResponse();
+//		if (formPost) {
+//			env.mapKey("authorization_endpoint_response", "callback_body_form_params");
+//			callAndContinueOnFailure(CheckCallbackHttpMethodIsPost.class, ConditionResult.FAILURE, "OAuth2-FP-2");
+//			callAndContinueOnFailure(CheckCallbackContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE, "OAuth2-FP-2");
+//			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+//			callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
+//		} else if (isCodeFlow()) {
+//			env.mapKey("authorization_endpoint_response", "callback_query_params");
+//		} else {
+//			env.mapKey("authorization_endpoint_response", "callback_params");
+//
+//			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+//			callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
+//		}
+//
+//		onAuthorizationCallbackResponse();
 		eventLog.endBlock();
 	}
 
@@ -698,6 +800,24 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		setStatus(Status.RUNNING);
+
+		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+
+		env.putObject(requestId, requestParts);
+
+		call(exec().mapKey("client_request", requestId));
+
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING);
+
+		call(exec().unmapKey("client_request"));
+
+		setStatus(Status.WAITING);
+		// FIXME add logs about the next step
+
+		if (path.equals("responseuri")) {
+			return handleDirectPost(requestId);
+		}
 		if (path.equals(env.getString("request_uri", "path"))) {
 			return handleRequestUriRequest();
 		}
@@ -705,12 +825,22 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 	}
 
-	private Object handleRequestUriRequest() {
+	protected Object handleRequestUriRequest() {
+		markAuthorizationEndpointVisited();
+
 		String requestObject = env.getString("request_object");
+
+		eventLog.log(getName(), "Wallet has retrieved request_uri - waiting for it to call the response_uri");
 
 		return ResponseEntity.ok()
 			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
 			.body(requestObject);
+	}
+
+	protected void markAuthorizationEndpointVisited() {
+		// we have to manually mark this as visited as we have no way to know if/when the user scanned the qr code
+		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+		browser.urlVisited(redirectTo);
 	}
 
 
