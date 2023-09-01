@@ -501,7 +501,7 @@ public class BrowserControl implements DataUtils {
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
 							if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
 								// make a snapshot of the page available to the test log
-								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType(), updateImagePlaceHolderOptional);
+								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType(), regexp, updateImagePlaceHolderOptional);
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
@@ -796,10 +796,11 @@ public class BrowserControl implements DataUtils {
 	 * @param pageSource          the source of the page as rendered
 	 * @param responseContentType the content type last received from the server
 	 */
-	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType, boolean optional) {
+	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType, String regexp, boolean optional) {
 		Map<String, Object> update = new HashMap<>();
 		update.put("page_source", pageSource);
 		update.put("content_type", responseContentType);
+		update.put("matched_regexp", regexp);
 
 		Document document = imageService.fillPlaceholder(testId, placeholder, update, true);
 		if (document == null) {
