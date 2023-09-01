@@ -344,8 +344,11 @@ public class BrowserControl implements DataUtils {
 				logger.error(testId + ": WebRunner caught exception", e);
 				eventLog.log("WebRunner",
 					ex(e,
-						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
-							"content_type", driver.getResponseContentType(), "result", Condition.ConditionResult.FAILURE,
+						args("msg", e.getMessage(),
+							"page_source", driver.getPageSource(),
+							"url", driver.getCurrentUrl(),
+							"content_type", driver.getResponseContentType(),
+							"result", Condition.ConditionResult.FAILURE,
 							"current_dom", driver.getCurrentDomAsXml())));
 				this.lastException = e.getMessage();
 				if (e instanceof TestFailureException) {
