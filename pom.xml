@@ -154,13 +154,13 @@
 		</dependency>
 
 		<dependency>
-			<groupId>net.sourceforge.htmlunit</groupId>
+			<groupId>org.htmlunit</groupId>
 			<artifactId>htmlunit</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>htmlunit-driver</artifactId>
+			<artifactId>htmlunit3-driver</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
@@ -461,13 +461,13 @@
 				<version>4.11.0</version>
 			</dependency>
 			<dependency>
-				<groupId>net.sourceforge.htmlunit</groupId>
+				<groupId>org.htmlunit</groupId>
 				<artifactId>htmlunit</artifactId>
-				<version>2.70.0</version>
+				<version>3.5.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.seleniumhq.selenium</groupId>
-				<artifactId>htmlunit-driver</artifactId>
+				<artifactId>htmlunit3-driver</artifactId>
 				<version>4.11.0</version>
 			</dependency>
 			<dependency>
