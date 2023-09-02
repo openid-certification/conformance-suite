@@ -37,6 +37,13 @@ import javax.servlet.http.HttpSession;
 )
 
 public class VCPHappyFlowRequestUriUnsigned extends AbstractOIDCCRequestUriServerTest {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		browser.setShowQrCodes(true);
+	}
+
 	protected ConditionSequence createAuthorizationRequestSequence() {
 		return super.createAuthorizationRequestSequence().
 			replace(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class,
