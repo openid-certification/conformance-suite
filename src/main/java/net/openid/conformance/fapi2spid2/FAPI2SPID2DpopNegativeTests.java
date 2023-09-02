@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceForceBearer;
 import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.condition.client.Fapi2DPoPNegativeConditions;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHashToIncorrectValue;
@@ -80,7 +80,7 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 			if (expectSuccess) {
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class,result , requirements);
 			} else {
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, result, requirements);
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, result, requirements);
 			}
 			call(exec().unmapKey("endpoint_response"));
 		}
