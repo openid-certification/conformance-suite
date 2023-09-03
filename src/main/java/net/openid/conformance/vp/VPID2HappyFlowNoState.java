@@ -17,6 +17,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 public class VPID2HappyFlowNoState extends AbstractVPServerTest {
 
+	@Override
 	protected ConditionSequence createAuthorizationRequestSequence() {
 		ConditionSequence createAuthorizationRequestSteps = super.createAuthorizationRequestSequence();
 

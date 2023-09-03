@@ -24,6 +24,7 @@ import javax.servlet.http.HttpSession;
 
 public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 
+	@Override
 	protected ConditionSequence createAuthorizationRequestSequence() {
 		ConditionSequence createAuthorizationRequestSteps = super.createAuthorizationRequestSequence();
 
