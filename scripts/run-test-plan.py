@@ -585,6 +585,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
         module_id = module_info['id']
         info = module_info['info']
         logs = module_info['logs']
+        variant = module_info['info']['variant']
 
         if module in untested_test_modules:
             untested_test_modules.remove(module)
@@ -595,10 +596,10 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
             info['result'] = 'UNKNOWN'
 
         test_name = info['testName']
-        result = analyze_result_logs(module_id, test_name, info['result'], plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected)
+        result = analyze_result_logs(module_id, test_name, variant, info['result'], plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected)
 
         log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
-        test_result = {'test_name': test_name, 'log_detail_link': log_detail_link, 'test_result': result}
+        test_result = {'test_name': test_name, 'variant': variant, 'log_detail_link': log_detail_link, 'test_result': result}
         overall_test_results.append(test_result)
 
     detail_plan_result = {
@@ -629,7 +630,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
 #   'unexpected_warnings': list all unexpected warnings condition
 #   'expected_warnings_did_not_happen': list all expected warnings condition did not happen
 #   'counts': contains number of success condition, number of warning condition and number of failure condition
-def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected):
+def analyze_result_logs(module_id, test_name, variant, test_result, plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected):
     counts = {'SUCCESS': 0, 'WARNING': 0, 'FAILURE': 0}
     expected_failures = []
     unexpected_failures = []
@@ -645,7 +646,7 @@ def analyze_result_logs(module_id, test_name, test_result, plan_result, logs, ex
 
     test_plan = plan_result['test_plan']
     config_filename = plan_result['config_file']
-    (test_plan_name, variant, _, _, _) = split_name_and_variant(test_plan)
+    (test_plan_name, _, _, _, _) = split_name_and_variant(test_plan)
 
     def is_expected_for_this_test(obj):
         """
@@ -883,6 +884,7 @@ def output_summary_test_plan_by_unexpected_type(variant, config_filename, overal
         result = test_result['test_result']
         if result[key]:
             test_name = test_result['test_name']
+            fullvariant = test_result['variant']
             header = '\t\t{} {}'.format(test_name, test_result['log_detail_link'])
             if 'skip' in key:
                 print(failure(header))
@@ -892,7 +894,7 @@ def output_summary_test_plan_by_unexpected_type(variant, config_filename, overal
             else:
                 print(warning(header))
             print_template = 'unexpected' in key
-            print_failure_warning(result[key], unexpected_type, '\t\t\t', variant=variant, config=config_filename, test=test_name, print_template=print_template)
+            print_failure_warning(result[key], unexpected_type, '\t\t\t', variant=fullvariant, config=config_filename, test=test_name, print_template=print_template)
 
 
 def print_failure_warning(failure_warning_list, status, tab_format, variant=None, expected=False, config=None, test=None, print_template=False):
