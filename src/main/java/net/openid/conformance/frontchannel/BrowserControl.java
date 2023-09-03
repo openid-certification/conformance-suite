@@ -175,6 +175,9 @@ public class BrowserControl implements DataUtils {
 			}
 		}
 		logger.debug(testId + ": Could not find a match for url: " + url);
+		if (verboseLogging) {
+			eventLog.log("BROWSER", "asking user to visit url, no automation for found: " + url);
+		}
 		// if we couldn't find a command for this URL, leave it up to the user to do something with it
 		urls.add(url);
 	}
@@ -308,6 +311,7 @@ public class BrowserControl implements DataUtils {
 								waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
 							} catch (TimeoutException timeoutException) {
 								logger.error(testId + ": WebRunner caught exception: ", timeoutException);
+								eventLog.log("BROWSER", ex(timeoutException, Map.of("msg", "Timeout waiting for page to load")));
 							}
 
 							// execute all of the commands in this task
@@ -637,10 +641,16 @@ public class BrowserControl implements DataUtils {
 			super(true);
 			final WebConsole console = getWebClient().getWebConsole();
 			console.setLogger(new WebConsole.Logger() {
+				private void internalLog(final Object message) {
+					if (verboseLogging) {
+						eventLog.log("BROWSER", String.valueOf(message));
+					}
+					logger.info(String.valueOf(message));
+				}
 
 				@Override
 				public void warn(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
@@ -655,7 +665,7 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void trace(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
@@ -665,7 +675,7 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void info(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
@@ -675,12 +685,12 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void error(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
 				public void debug(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
