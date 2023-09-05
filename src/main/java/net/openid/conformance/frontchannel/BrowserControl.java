@@ -175,6 +175,9 @@ public class BrowserControl implements DataUtils {
 			}
 		}
 		logger.debug(testId + ": Could not find a match for url: " + url);
+		if (verboseLogging) {
+			eventLog.log("BROWSER", "asking user to visit url, no automation for found: " + url);
+		}
 		// if we couldn't find a command for this URL, leave it up to the user to do something with it
 		urls.add(url);
 	}
@@ -308,6 +311,7 @@ public class BrowserControl implements DataUtils {
 								waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
 							} catch (TimeoutException timeoutException) {
 								logger.error(testId + ": WebRunner caught exception: ", timeoutException);
+								eventLog.log("BROWSER", ex(timeoutException, Map.of("msg", "Timeout waiting for page to load")));
 							}
 
 							// execute all of the commands in this task
@@ -344,8 +348,11 @@ public class BrowserControl implements DataUtils {
 				logger.error(testId + ": WebRunner caught exception", e);
 				eventLog.log("WebRunner",
 					ex(e,
-						args("msg", e.getMessage(), "page_source", driver.getPageSource(),
-							"content_type", driver.getResponseContentType(), "result", Condition.ConditionResult.FAILURE,
+						args("msg", e.getMessage(),
+							"page_source", driver.getPageSource(),
+							"url", driver.getCurrentUrl(),
+							"content_type", driver.getResponseContentType(),
+							"result", Condition.ConditionResult.FAILURE,
 							"current_dom", driver.getCurrentDomAsXml())));
 				this.lastException = e.getMessage();
 				if (e instanceof TestFailureException) {
@@ -498,7 +505,7 @@ public class BrowserControl implements DataUtils {
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
 							if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
 								// make a snapshot of the page available to the test log
-								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType(), updateImagePlaceHolderOptional);
+								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType(), regexp, updateImagePlaceHolderOptional);
 							}
 						} else {
 							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
@@ -634,10 +641,16 @@ public class BrowserControl implements DataUtils {
 			super(true);
 			final WebConsole console = getWebClient().getWebConsole();
 			console.setLogger(new WebConsole.Logger() {
+				private void internalLog(final Object message) {
+					if (verboseLogging) {
+						eventLog.log("BROWSER", String.valueOf(message));
+					}
+					logger.info(String.valueOf(message));
+				}
 
 				@Override
 				public void warn(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
@@ -652,7 +665,7 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void trace(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
@@ -662,7 +675,7 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void info(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
@@ -672,12 +685,12 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void error(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
 				public void debug(final Object message) {
-					logger.info(String.valueOf(message));
+					internalLog(message);
 				}
 
 				@Override
@@ -793,10 +806,11 @@ public class BrowserControl implements DataUtils {
 	 * @param pageSource          the source of the page as rendered
 	 * @param responseContentType the content type last received from the server
 	 */
-	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType, boolean optional) {
+	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType, String regexp, boolean optional) {
 		Map<String, Object> update = new HashMap<>();
 		update.put("page_source", pageSource);
 		update.put("content_type", responseContentType);
+		update.put("matched_regexp", regexp);
 
 		Document document = imageService.fillPlaceholder(testId, placeholder, update, true);
 		if (document == null) {

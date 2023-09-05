@@ -21,7 +21,7 @@ import javax.servlet.http.HttpSession;
 @PublishTestModule(
 	testName = "oidcc-session-management-rp-initiated-logout",
 	displayName = "OIDCC: Session management - rp initiated logout",
-	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint, and uses check_session_iframe to check the session state before and after the logout. If using static client registration you must register a post_logout_redirect_uri, the same url as the redirect url but replacing the portion after the alias with '/post_logout_redirect'. Please note that this test may not work in some browsers.",
+	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint, and uses check_session_iframe to check the session state before and after the logout.\n\nIf using static client registration you must register a post_logout_redirect_uri, the same url as the redirect url but replacing the portion after the alias with '/post_logout_redirect'.\n\nPlease note that this test may not work in some browsers.",
 	profile = "OIDCC"
 )
 public class OIDCCSessionManagementRpInitiatedLogout extends AbstractOIDCCRpInitiatedLogout {

@@ -17,7 +17,7 @@ import javax.servlet.http.HttpSession;
 @PublishTestModule(
 	testName = "oidcc-rp-initiated-logout-no-state",
 	displayName = "OIDCC: rp initiated logout",
-	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint with no state parameter. It validates the OP correctly sends the user to the post_logout_redirect_uri with no state, then tries another authentication with prompt=none which must return an error (as the user has been logged out). If using static client registration you must register a post_logout_redirect_uri, the same url as the redirect url but replacing the portion after the alias with '/post_logout_redirect'.",
+	summary = "This test performs a normal authorization flow at the OP, then sends the user to the end_session_endpoint with no state parameter. It validates the OP correctly sends the user to the post_logout_redirect_uri with no state, then tries another authentication with prompt=none which must return an error (as the user has been logged out).\n\nIf using static client registration you must register a post_logout_redirect_uri, the same url as the redirect url but replacing the portion after the alias with '/post_logout_redirect'.",
 	profile = "OIDCC"
 )
 public class OIDCCRpInitiatedLogoutNoState extends AbstractOIDCCRpInitiatedLogout {
