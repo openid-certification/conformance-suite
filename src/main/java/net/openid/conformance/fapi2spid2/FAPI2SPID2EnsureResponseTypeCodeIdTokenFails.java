@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.DetectWhetherErrorResponseIsInQueryOrFragment;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.EnsurePARUnsupportedResponseTypeOrInvalidRequestOrUnauthorizedClientError;
 import net.openid.conformance.condition.client.EnsureUnsupportedResponseTypeOrInvalidRequestError;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
@@ -65,7 +66,11 @@ public class FAPI2SPID2EnsureResponseTypeCodeIdTokenFails extends AbstractFAPI2S
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARUnsupportedResponseTypeOrInvalidRequestOrUnauthorizedClientError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+		call(exec().mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, ConditionResult.FAILURE, "PAR-2.3");
+		// we only raise a warning here as per https://bitbucket.org/openid/fapi/issues/618/certification-conformance-strictness-of
+		callAndContinueOnFailure(EnsurePARUnsupportedResponseTypeOrInvalidRequestOrUnauthorizedClientError.class, Condition.ConditionResult.WARNING, "PAR-2.3");
+		call(exec().unmapKey("endpoint_response"));
 
 		fireTestFinished();
 	}
