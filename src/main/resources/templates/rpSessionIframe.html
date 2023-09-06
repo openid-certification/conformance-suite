@@ -19,15 +19,20 @@
     window.addEventListener("message", receiveMessage, false);
 
     function checkSession() {
+        console.log("checkSession started")
         var win = window.parent.document.getElementById("op_iframe").contentWindow;
         win.postMessage(mes, "*");
     }
 
     function receiveMessage(e) {
-        console.log("origin: " + e.origin + " expected: " + targetOrigin);
+        // when using browser automation, the log statements here can be viewed in the frontend by enabling
+        // browser_verbose as per https://gitlab.com/openid/conformance-suite/-/wikis/Design/BrowserControl
+        console.log("receiveMessage: origin: " + e.origin + " expected: " + targetOrigin);
         if (e.origin !== targetOrigin) {
+            console.log("origin & targetOrigin mismatch");
             return;
         }
+        console.log("setting window.parent.window.location.href to [[${service_url}]]?state="+e.data);
         window.parent.window.location.href = "[[${service_url}]]" + "?state=" + e.data;
     }
     setTimeout(checkSession, 500);
