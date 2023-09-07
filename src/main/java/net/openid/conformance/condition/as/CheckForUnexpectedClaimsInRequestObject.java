@@ -51,7 +51,9 @@ public class CheckForUnexpectedClaimsInRequestObject extends AbstractCondition {
 		// as per https://www.iana.org/go/rfc8707
 		"resource",
 		// as per https://www.iana.org/go/rfc9396
-		"authorization_details"
+		"authorization_details",
+		// as per https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html
+		"purpose"
 	);
 
 	// as per https://www.rfc-editor.org/rfc/rfc9101#section-4

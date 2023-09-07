@@ -51,6 +51,7 @@ import net.openid.conformance.condition.client.CheckPAREndpointResponse201WithNo
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
+import net.openid.conformance.condition.client.ConnectIdAddPurposeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateDpopClaims;
@@ -471,7 +472,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpoint.class);
 	}
 
-	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
+	private static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 
 		private boolean isSecondClient;
 		private boolean isOpenId;
@@ -531,8 +532,16 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		call(makeCreateAuthorizationRequestSteps());
 	}
 
+	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
+		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, profileAuthorizationEndpointSetupSteps);
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
+			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-5", "CID-IDA-5.2-9"));
+		}
+		return seq;
+	}
+
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		return new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, true, profileAuthorizationEndpointSetupSteps);
+		return makeCreateAuthorizationRequestSteps(true);
 	}
 
 	public static class CreateAuthorizationRequestObjectSteps extends AbstractConditionSequence {
