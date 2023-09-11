@@ -327,10 +327,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
 		} else if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
-			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CONNECTID");
-			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CONNECTID");
-			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CONNECTID");
-			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CONNECTID");
+			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CID-SP-5");
+			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CID-SP-5");
+			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CID-SP-5");
+			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CID-SP-5");
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
@@ -430,7 +430,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected void validateClientConfiguration() {
 		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
-			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "CONNECTID");
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "CID-SP-5");
 		}
 	}
 
@@ -1201,8 +1201,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 		} else {
 			if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
-				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "CONNECTID");
-				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CONNECTID");
+				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "CID-SP-5");
+				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CID-SP-5");
 				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-5", "CID-IDA-5.2-9");
 			}
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
