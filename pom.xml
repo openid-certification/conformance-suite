@@ -25,6 +25,7 @@
 		<pmdVersion>6.55.0</pmdVersion>
 		<jackson.version>2.15.1</jackson.version>
 		<logback.version>1.2.12</logback.version>
+		<esignature.version>4.3.0</esignature.version>
 	</properties>
 
 	<dependencies>
@@ -215,6 +216,12 @@
 			<artifactId>annotations</artifactId>
 			<version>3.0.1u2</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.docusign</groupId>
+			<artifactId>docusign-esign-java</artifactId>
+			<version>${esignature.version}</version>
+			<classifier>shaded</classifier>
 		</dependency>
 		<!-- introduced when migrating to springboot 2.3 -->
 		<dependency>
