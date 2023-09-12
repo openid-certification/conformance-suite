@@ -79,8 +79,11 @@ public class LogEntryHelper {
 		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-");
-		specLinks.put("DPOP-", "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-");
+		specLinks.put("DPOP-", "https://www.rfc-editor.org/rfc/rfc9449#section-");
 		specLinks.put("KSA", "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security");
+		specLinks.put("CID-SP-", "https://cdn.connectid.com.au/specifications/digitalid-fapi-profile-01.html#section");
+		specLinks.put("CID-IDA", "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-05.html#section");
+		specLinks.put("CID-PURPOSE-", "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section");
 
 	}
 

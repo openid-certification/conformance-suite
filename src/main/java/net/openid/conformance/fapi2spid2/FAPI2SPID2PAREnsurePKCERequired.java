@@ -41,11 +41,7 @@ public class FAPI2SPID2PAREnsurePKCERequired extends AbstractFAPI2SPID2Expecting
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		return new CreateAuthorizationRequestSteps(isSecondClient(),
-			isOpenId,
-			jarm,
-			false,
-			profileAuthorizationEndpointSetupSteps);
+		return makeCreateAuthorizationRequestSteps(false);
 	}
 
 	@Override
