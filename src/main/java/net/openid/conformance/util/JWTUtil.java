@@ -1,11 +1,16 @@
 package net.openid.conformance.util;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.util.JSONObjectUtils;
@@ -13,9 +18,22 @@ import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 public class JWTUtil {
@@ -164,4 +182,48 @@ public class JWTUtil {
 		}
 	}
 
+	public static String generateDocuSignJWTAssertion(
+		byte[] rsaPrivateKey, String aud, String iss, String userId, long expiresIn, String scopes)  throws Exception {
+
+		if (expiresIn <= 0L) {
+			throw new IllegalArgumentException("expiresIn should be a non-negative value");
+		}
+		if (rsaPrivateKey == null || rsaPrivateKey.length == 0) {
+			throw new IllegalArgumentException("rsaPrivateKey byte array is empty");
+		}
+		if (Strings.isNullOrEmpty(aud) || Strings.isNullOrEmpty(iss)) {
+			throw new IllegalArgumentException("One of aud or iss is null or empty");
+		}
+
+		RSAPrivateKey privateKey = readRSAPrivateKeyFromByteArray(rsaPrivateKey);
+		long now = System.currentTimeMillis();
+
+		// Create JWT claims
+		JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+			.issuer(iss)
+			.audience(aud)
+			.subject(userId)
+			.issueTime(new Date(now))
+			.claim("scope", scopes)
+			.expirationTime(new Date(System.currentTimeMillis() + expiresIn * 1000))
+			.build();
+		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
+		SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+		JWSSigner signer = new RSASSASigner(privateKey);
+		signedJWT.sign(signer);
+		return signedJWT.serialize();
+	}
+
+	private static RSAPrivateKey readRSAPrivateKeyFromByteArray(byte[] privateKeyBytes)
+		throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		try (PemReader reader = new PemReader(new StringReader(new String(privateKeyBytes)))) {
+			PemObject pemObject = reader.readPemObject();
+			byte[] bytes = pemObject.getContent();
+			RSAPrivateKey privateKey = null;
+			KeyFactory kf = KeyFactory.getInstance("RSA", "BC");
+			EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(bytes);
+			privateKey = (RSAPrivateKey) kf.generatePrivate(keySpec);
+			return privateKey;
+		}
+	}
 }

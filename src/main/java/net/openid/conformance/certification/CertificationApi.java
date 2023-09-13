@@ -1,25 +1,18 @@
 package net.openid.conformance.certification;
 
-import com.docusign.esign.api.EnvelopesApi;
-import com.docusign.esign.client.ApiClient;
-import com.docusign.esign.client.ApiException;
-import com.docusign.esign.client.auth.JWTUtils;
-import com.docusign.esign.client.auth.OAuth;
-import com.docusign.esign.model.Document;
-import com.docusign.esign.model.EnvelopeDefinition;
-import com.docusign.esign.model.EnvelopeSummary;
-import com.docusign.esign.model.Recipients;
-import com.docusign.esign.model.SignHere;
-import com.docusign.esign.model.Signer;
-import com.docusign.esign.model.Tabs;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWTUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.fluent.Content;
+import org.apache.http.client.fluent.Form;
+import org.apache.http.client.fluent.Request;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,18 +25,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
 import java.io.File;
-import java.io.FileInputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 @Controller
 @RequestMapping(value = "/api")
@@ -112,14 +98,39 @@ public class CertificationApi {
 		long expiresIn = 3600;
 		String scopes = "signature impersonation";
 		byte[] privateKey = Files.readAllBytes(Paths.get("docusign.test.private.key"));
-		String oAuthBasePath = "https://demo.docusign.net/restapi";
+		String aud = "account-d.docusign.com";
+		String apiUrl = "https://demo.docusign.net/restapi";
+		String tokenEndpoint = "https://account-d.docusign.com/oauth/token";
+		String userInfoEndpoint = "https://account-d.docusign.com/oauth/userinfo";
 
-		String jwt = JWTUtils.generateJWTAssertionFromByteArray(privateKey, oAuthBasePath, clientId, userId, expiresIn, scopes);
-		HttpClient client = HttpClientBuilder.create().useSystemProperties().build();
+		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
+
+		String responseBody = Request.Post(tokenEndpoint)
+			.bodyForm(Form.form()
+				.add("grant_type",  "urn:ietf:params:oauth:grant-type:jwt-bearer")
+				.add("assertion",  jwt).build())
+			.execute()
+			.returnContent()
+			.asString();
+		JsonObject tokenResponse = JsonParser.parseString(responseBody).getAsJsonObject();
+		String accessToken = tokenResponse.get("access_token").getAsString();
+
+		responseBody = Request.Get(userInfoEndpoint)
+			.addHeader("Authorization", "Bearer " + accessToken)
+			.execute()
+			.returnContent()
+			.asString();
+		JsonObject userInfoResponse = JsonParser.parseString(responseBody).getAsJsonObject();
+		String accountId = userInfoResponse.get("accounts").getAsJsonArray().get(0).getAsJsonObject().get("account_id").getAsString();
+
+		responseBody = Request.Get(apiUrl + "/v2.1/accounts/" + accountId + "/brands")
+			.addHeader("Authorization", "Bearer " + accessToken)
+			.execute()
+			.returnContent()
+			.asString();
 
 		String s = "";
 
-		new ApiClient();
 		/*
 		// Get information fro app.config
 		Properties prop = new Properties();
