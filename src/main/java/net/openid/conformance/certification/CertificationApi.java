@@ -1,18 +1,16 @@
 package net.openid.conformance.certification;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.entity.ContentType;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -92,7 +91,6 @@ public class CertificationApi {
 		@Parameter(description = "Id of test plan") @PathVariable("id") String id,
 		@Parameter(description = "Document data (base64 encoded PDF document)") @RequestBody JsonObject body
 	) throws Exception {
-
 		String clientId = "17fa5601-8e8e-44d7-a924-ba9e16636a8b";
 		String userId = "446dbf0e-a264-45f7-9fa6-2f8c2229be3c";
 		long expiresIn = 3600;
@@ -104,16 +102,31 @@ public class CertificationApi {
 		String userInfoEndpoint = "https://account-d.docusign.com/oauth/userinfo";
 
 		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
+		String accessToken = getAccessToken(tokenEndpoint, jwt);
+		String accountId = getAccountId(userInfoEndpoint, accessToken);
+		String envelopeId = createEnvelope(apiUrl, accessToken, accountId, body.get("documentData").getAsString());
+		String signUrl = createView(apiUrl, accessToken, accountId, envelopeId);
 
+		Map<String, Object> map = new HashMap<>();
+		map.put("id", id);
+		map.put("recipentSigningUri", signUrl);
+		return new ResponseEntity<>(map, HttpStatus.OK);
+	}
+
+	private static String getAccessToken(String tokenEndpoint, String jwt) throws IOException {
 		String responseBody = Request.Post(tokenEndpoint)
 			.bodyForm(Form.form()
 				.add("grant_type",  "urn:ietf:params:oauth:grant-type:jwt-bearer")
-				.add("assertion",  jwt).build())
+				.add("assertion", jwt).build())
 			.execute()
 			.returnContent()
 			.asString();
 		JsonObject tokenResponse = JsonParser.parseString(responseBody).getAsJsonObject();
-		String accessToken = tokenResponse.get("access_token").getAsString();
+		return tokenResponse.get("access_token").getAsString();
+	}
+
+	private static String getAccountId(String userInfoEndpoint, String accessToken) throws IOException {
+		String responseBody;
 
 		responseBody = Request.Get(userInfoEndpoint)
 			.addHeader("Authorization", "Bearer " + accessToken)
@@ -121,40 +134,72 @@ public class CertificationApi {
 			.returnContent()
 			.asString();
 		JsonObject userInfoResponse = JsonParser.parseString(responseBody).getAsJsonObject();
-		String accountId = userInfoResponse.get("accounts").getAsJsonArray().get(0).getAsJsonObject().get("account_id").getAsString();
+		return userInfoResponse.get("accounts").getAsJsonArray().get(0).getAsJsonObject().get("account_id").getAsString();
+	}
 
-		responseBody = Request.Get(apiUrl + "/v2.1/accounts/" + accountId + "/brands")
+	private static String createEnvelope(String apiUrl, String accessToken, String accountId, String documentData) throws IOException {
+		String envelope = "{\n" +
+			"    \"emailSubject\": \"Certification of Conformance signature\",\n" +
+			"    \"documents\": [\n" +
+			"        {\n" +
+			"            \"documentBase64\": \"" + documentData + "\",\n" +
+			"            \"name\": \"OpenID - Certification of Conformance\",\n" +
+			"            \"fileExtension\": \"pdf\",\n" +
+			"            \"documentId\": \"1\"\n" +
+			"        }\n" +
+			"    ],\n" +
+			"    \"recipients\": {\n" +
+			"        \"signers\": [\n" +
+			"            {\n" +
+			"                \"email\": \"marcus.almgren@oidf.org\",\n" +
+			"                \"name\": \"Marcus Almgren\",\n" +
+			"                \"recipientId\": \"1\",\n" +
+			"                \"routingOrder\": \"1\",\n" +
+			"                \"clientUserId\": \"1000\",\n" +
+			"                \"tabs\": {\n" +
+			"                    \"signHereTabs\": [\n" +
+			"                        {\n" +
+			"                            \"anchorString\": \"/Authorized Signature/\",\n" +
+			"                            \"anchorUnits\": \"pixels\",\n" +
+			"                            \"anchorXOffset\": \"20\",\n" +
+			"                            \"anchorYOffset\": \"10\"\n" +
+			"                        }\n" +
+			"                    ]\n" +
+			"                }\n" +
+			"            }\n" +
+			"        ]\n" +
+			"    },\n" +
+			"    \"status\": \"sent\"\n" +
+			"}";
+		String responseBody = Request.Post(apiUrl + "/v2.1/accounts/" + accountId + "/envelopes")
+			.bodyString(envelope, ContentType.APPLICATION_JSON)
 			.addHeader("Authorization", "Bearer " + accessToken)
 			.execute()
 			.returnContent()
 			.asString();
+		JsonObject envelopeResponse = JsonParser.parseString(responseBody).getAsJsonObject();
+		return envelopeResponse.get("envelopeId").getAsString();
+	}
 
-		String s = "";
+	private static String createView(String apiUrl, String accessToken, String accountId, String envelopeId) throws IOException {
+		String envelope = "{\n" +
+			"    \"returnUrl\": \"https://localhost:8443/static/publish.html\",\n" +
+			"    \"authenticationMethod\": \"none\",\n" +
+			"    \"email\": \"marcus.almgren@oidf.org\",\n" +
+			"    \"userName\": \"Marcus Almgren\",\n" +
+			"    \"clientUserId\": \"1000\"\n" +
+			"}";
+		String responseBody = Request.Post(apiUrl + "/v2.1/accounts/" + accountId + "/envelopes/" + envelopeId + "/views/recipient")
+			.bodyString(envelope, ContentType.APPLICATION_JSON)
+			.addHeader("Authorization", "Bearer " + accessToken)
+			.execute()
+			.returnContent()
+			.asString();
+		JsonObject viewResponse = JsonParser.parseString(responseBody).getAsJsonObject();
+		return viewResponse.get("url").getAsString();
+	}
 
-		/*
-		// Get information fro app.config
-		Properties prop = new Properties();
-		String fileName = "docusign.config";
-		FileInputStream fis = new FileInputStream(fileName);
-		prop.load(fis);
-
-		// Get access token and accountId
-		ApiClient apiClient = new ApiClient("https://demo.docusign.net/restapi");
-		apiClient.setOAuthBasePath("account-d.docusign.com");
-		ArrayList<String> scopes = new ArrayList<String>();
-		scopes.add("signature");
-		scopes.add("impersonation");
-		byte[] privateKeyBytes = Files.readAllBytes(Paths.get(prop.getProperty("rsaKeyFile")));
-		OAuth.OAuthToken oAuthToken = apiClient.requestJWTUserToken(
-			prop.getProperty("clientId"),
-			prop.getProperty("userId"),
-			scopes,
-			privateKeyBytes,
-			3600);
-		String accessToken = oAuthToken.getAccessToken();
-		OAuth.UserInfo userInfo = apiClient.getUserInfo(accessToken);
-		String accountId = userInfo.getAccounts().get(0).getAccountId();
-
+			/*
 		// Create envelopeDefinition object
 		EnvelopeDefinition envelope = new EnvelopeDefinition();
 		envelope.setEmailSubject("Please sign this document set");
@@ -192,11 +237,4 @@ public class CertificationApi {
 		EnvelopeSummary results = envelopesApi.createEnvelope(accountId, envelope);
 		String recipentSigningUri = results.getRecipientSigningUri();
 		*/
-
-		Map<String, Object> map = new HashMap<>();
-		map.put("id", id);
-		//map.put("recipentSigningUri", recipentSigningUri);
-		return new ResponseEntity<>(map, HttpStatus.OK);
-	}
-
 }
