@@ -84,8 +84,10 @@ public class TestPlanApi implements DataUtils {
 		if (config.has("alias") && config.get("alias").isJsonPrimitive()) {
 			String alias = Strings.emptyToNull(OIDFJSON.getString(config.get("alias")));
 			if(!alias.matches("^([a-zA-Z0-9_-]+)$")) {
-				throw new RuntimeException("Invalid alias value '" +alias+ "'. " +
-					"alias can only contain alphanumeric characters, _ and -.");
+				Map<String, Object> map = new HashMap<>();
+				map.put("error", "Invalid alias value '" +alias+ "'. " +
+						"alias can only contain alphanumeric characters, _ and -.");
+				return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);
 			}
 		}
 
