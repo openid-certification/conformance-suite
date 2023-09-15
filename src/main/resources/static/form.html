@@ -31,7 +31,7 @@
             width: 100%;
             height: 100%;
         }
-        .disclaimer {
+        .disclaimer, .hidden {
             display: none;
         }
 
@@ -50,13 +50,30 @@
 </div>
 <div class="clearfix"></div>
 
-
-<!-- resident DOM -->
 <div class="container-fluid">
     <div id="planDetail">
         <div class="header"></div>
         <div class="content container-fluid">
             <!-- main page is rendered here -->
+
+            <!-- 404 content -->
+            <div class="card _404 hidden">
+                <div class="card-body bg-danger bg-opacity-100 text-white">
+                    <div class="row">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    Not found.</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="d-grid gap-1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -75,9 +92,47 @@
                 </p>
             </div>
         </div>
+
         <div class="col-md-7">
             <div id="pdf-viewer-container">
-                <iframe id="pdf-viewer" src="lib/pdfjs-3.10.111-dist/web/viewer.html"></iframe>
+                <iframe id="pdf-viewer" ></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- loading modal -->
+<div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <img src="/images/spinner.gif" width="100px" height="30px" alt="" />
+                </div>
+                <div>
+                    <span id="loadingMessage"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- error modal -->
+<div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="errorLabel">Error</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Error: <span id="errorMessage"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -92,7 +147,7 @@
 
     const origin = `${document.location.protocol}//${document.location.host}`;
     const now = new Date();
-    var planId, public, profile, suite, started = '';
+    var planId, public, event, envelopeId, shouldPrefill, planLoadError, profile, suite, started, date = '';
 
     function getPlan(planId, public) {
         return fetch('/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''))
@@ -103,27 +158,83 @@
                 return response.json();
             })
             .then(data => {
-                document.querySelectorAll('.content')?.forEach(function(element) {
-                    element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_HEADER({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant)}));
-                });
+                document.querySelector('.content').insertAdjacentHTML('beforeend',
+                    FAPI_UI.logTemplates.PLAN_HEADER({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant)})
+                );
                 profile = data.certificationProfileName,
                 suite = `${document.location.host} ${data.version}`,
                 started = data.started.substring(0, 10),
                 date = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000)).toISOString().substring(0, 10);
+            })
+            .catch(ex => {
+                planLoadError = true;
+                handleSuiteError(ex);
             });
+    }
+
+    function handleSuiteError(error) {
+        if (error instanceof Response) {
+            if (error.status === 404) {
+                document.querySelector('._404').classList.remove('hidden');
+            }
+            var message = error.statusText;
+            let responseClone = error.clone();
+            error.text().then(textError => {
+                messageParsed = true;
+                try {
+                    const errorObj = JSON.parse(textError);
+                    if (errorObj.error.length != 0) {
+                        message = errorObj.error;
+                    }
+                } catch (e) { }
+                FAPI_UI.showError({code: error.status.toString(), error: message});
+            })
+            .catch(_ => {
+                responseClone.json().then(jsonError => {
+                    if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                        message = jsonError;
+                    }
+                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                })
+                .catch(_ => {
+                    FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                });
+            });
+        } else {
+            FAPI_UI.showError({code: "", error: error});
+        }
+    }
+
+    function loadDocumentInViewer(event) {
+        var redirectUrl = 'lib/pdfjs-3.10.111-dist/web/viewer.html?file=';
+        if (!planLoadError) {
+            if (event && event === 'signing_complete' && envelopeId) {
+                redirectUrl += encodeURIComponent(`/api/plan/${planId}/sign/${envelopeId}`);
+            } else {
+                shouldPrefill = true;
+                redirectUrl += encodeURIComponent('/files/OpenID-Certification-of-Conformance.pdf');
+            }
+        }
+        let viewerOptions = '#page=1&pagemode=none&zoom=100';
+        document.querySelector('#pdf-viewer').src = redirectUrl + viewerOptions;
     }
 
     document.addEventListener('DOMContentLoaded', _ => {
         let urlParams = new URLSearchParams(window.location.search);
         planId = urlParams.get('plan');
         public = Boolean(urlParams.get('public'));
+        event = urlParams.get('event');
+        envelopeId = urlParams.get('envelopeId');
 
         FAPI_UI.loadPlanTemplates()
-            .then(function() {
+            .then(_ => {
                 return FAPI_UI.getUserInfo();
-            }).then(function() {
+            }).then(_ => {
                 return getPlan(planId, public);
+            }).then(_ => {
+                loadDocumentInViewer(event);
             });
+        FAPI_UI.showBusy();
     });
 
     document.querySelector('#click-me').addEventListener('click', _ => {
@@ -135,7 +246,10 @@
 
           if(evt.data.event === 'pagesLoaded') {
             let pdfValues = { "event": "prefill", profile, suite, started, date };
-            window.frames[0].postMessage(pdfValues, origin);
+            FAPI_UI.hideBusy();
+            if(shouldPrefill) {
+                window.frames[0].postMessage(pdfValues, origin);
+            }
           }
 
           if(evt.data.event === 'documentData') {
@@ -153,29 +267,18 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log(data);
+                    document.location.href = data.recipentSigningUri;
                 })
-                .catch(error => {
-                    console.error('Fetch error:', error);
-                });
+                .catch(handleSuiteError);
           }
         }
       });
 
     document.addEventListener('webviewerloaded', _ => {
-    window.frames[0].postMessage({ "event": "viewerLoaded" }, origin)
+        window.frames[0].postMessage({ "event": "viewerLoaded" }, origin)
     });
 
-    /*
-    function saveUint8ArrayAsPDF(uint8Array) {
-        const blob = new Blob([uint8Array], { type: 'application/pdf' });
-        saveAs(blob, 'foo.pdf');
-    }
-    */
-
-
 </script>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script> -->
 
 </body>
 </html>

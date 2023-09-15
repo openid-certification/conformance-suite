@@ -12,10 +12,12 @@ import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +35,24 @@ import java.util.Map;
 @Controller
 @RequestMapping(value = "/api")
 public class CertificationApi {
+
+	private final String clientId = "17fa5601-8e8e-44d7-a924-ba9e16636a8b";
+	private final String userId = "446dbf0e-a264-45f7-9fa6-2f8c2229be3c";
+	private final long expiresIn = 3600;
+	private final String scopes = "signature impersonation";
+	private final byte[] privateKey;
+	private final String aud = "account-d.docusign.com";
+	private final String apiUrl = "https://demo.docusign.net/restapi";
+	private final String tokenEndpoint = "https://account-d.docusign.com/oauth/token";
+	private final String userInfoEndpoint = "https://account-d.docusign.com/oauth/userinfo";
+
+	public CertificationApi() {
+		try {
+			privateKey = Files.readAllBytes(Paths.get("docusign.test.private.key"));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	@PostMapping(value = "/plan/{id}/certificationofconformance", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_PDF_VALUE)
 	@Operation(summary = "Get certification of conformance pdf template, with pre-populated fields")
@@ -87,30 +107,48 @@ public class CertificationApi {
 		@ApiResponse(responseCode = "500", description = "An unexpected error occurred, the error should be reported to the developers")
 	})
 	public ResponseEntity<Object> sign(
-		HttpServletResponse response,
-		@Parameter(description = "Id of test plan") @PathVariable("id") String id,
+		@Parameter(description = "Test plan id") @PathVariable("id") String id,
 		@Parameter(description = "Document data (base64 encoded PDF document)") @RequestBody JsonObject body
 	) throws Exception {
-		String clientId = "17fa5601-8e8e-44d7-a924-ba9e16636a8b";
-		String userId = "446dbf0e-a264-45f7-9fa6-2f8c2229be3c";
-		long expiresIn = 3600;
-		String scopes = "signature impersonation";
-		byte[] privateKey = Files.readAllBytes(Paths.get("docusign.test.private.key"));
-		String aud = "account-d.docusign.com";
-		String apiUrl = "https://demo.docusign.net/restapi";
-		String tokenEndpoint = "https://account-d.docusign.com/oauth/token";
-		String userInfoEndpoint = "https://account-d.docusign.com/oauth/userinfo";
-
 		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
 		String accessToken = getAccessToken(tokenEndpoint, jwt);
 		String accountId = getAccountId(userInfoEndpoint, accessToken);
 		String envelopeId = createEnvelope(apiUrl, accessToken, accountId, body.get("documentData").getAsString());
-		String signUrl = createView(apiUrl, accessToken, accountId, envelopeId);
+		String redirectUrl = "https://localhost:8443/static/form.html?plan=" + id + "&envelopeId=" + envelopeId;
+		String signUrl = createView(apiUrl, accessToken, accountId, envelopeId, redirectUrl);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("id", id);
 		map.put("recipentSigningUri", signUrl);
 		return new ResponseEntity<>(map, HttpStatus.OK);
+	}
+
+	@GetMapping(value = "/plan/{id}/sign/{envelopeId}", produces = MediaType.APPLICATION_PDF_VALUE)
+	@Operation(summary = "")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "500", description = "An unexpected error occurred, the error should be reported to the developers")
+	})
+	public ResponseEntity<Object> getSignedDocument(
+		@Parameter(description = "Test plan id") @PathVariable("id") String id,
+		@Parameter(description = "Signed document envelopeId") @PathVariable("envelopeId") String envelopeId
+	) throws Exception {
+		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
+		String accessToken = getAccessToken(tokenEndpoint, jwt);
+		String accountId = getAccountId(userInfoEndpoint, accessToken);
+
+		byte[] responseBody = Request.Get(apiUrl + "/v2.1/accounts/" + accountId + "/envelopes/" + envelopeId + "/documents/1")
+			.addHeader("Authorization", "Bearer " + accessToken)
+			.execute()
+			.returnContent()
+			.asBytes();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentDispositionFormData("attachment", "OpenID-Certification-of-Conformance.pdf");
+		return ResponseEntity.ok()
+			.headers(headers)
+			.contentLength(responseBody.length)
+			.body(responseBody);
 	}
 
 	private static String getAccessToken(String tokenEndpoint, String jwt) throws IOException {
@@ -159,10 +197,8 @@ public class CertificationApi {
 			"                \"tabs\": {\n" +
 			"                    \"signHereTabs\": [\n" +
 			"                        {\n" +
-			"                            \"anchorString\": \"/Authorized Signature/\",\n" +
-			"                            \"anchorUnits\": \"pixels\",\n" +
-			"                            \"anchorXOffset\": \"20\",\n" +
-			"                            \"anchorYOffset\": \"10\"\n" +
+			"                            \"XPosition\": \"200\",\n" +
+			"                            \"YPosition\": \"200\"\n" +
 			"                        }\n" +
 			"                    ]\n" +
 			"                }\n" +
@@ -181,9 +217,9 @@ public class CertificationApi {
 		return envelopeResponse.get("envelopeId").getAsString();
 	}
 
-	private static String createView(String apiUrl, String accessToken, String accountId, String envelopeId) throws IOException {
+	private static String createView(String apiUrl, String accessToken, String accountId, String envelopeId, String redirectUrl) throws IOException {
 		String envelope = "{\n" +
-			"    \"returnUrl\": \"https://localhost:8443/static/publish.html\",\n" +
+			"    \"returnUrl\": \"" + redirectUrl + "\",\n" +
 			"    \"authenticationMethod\": \"none\",\n" +
 			"    \"email\": \"marcus.almgren@oidf.org\",\n" +
 			"    \"userName\": \"Marcus Almgren\",\n" +

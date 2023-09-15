@@ -1,43 +1,43 @@
         <div class="card">
             <div class="card-body bg-gradient">
-                <div class="row" id="planHeader"> <!-- main header -->
+                <div class="row" id="planHeader">
 
                     <div class="col-md-10">
 
                         <div class="row">
-                            <div class="col-md-1">Plan Name:</div>
-                            <div class="col-md-11"><%- plan.planName %></div>
+                            <div class="col-md-2">Plan Name:</div>
+                            <div class="col-md-10"><%- plan.planName %></div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-1">Variant:</div>
-                            <div class="col-md-11"><%- variant %></div>
+                            <div class="col-md-2">Variant:</div>
+                            <div class="col-md-10"><%- variant %></div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-1">Plan ID:</div>
-                            <div class="col-md-11"><%- plan._id %></div>
+                            <div class="col-md-2">Plan ID:</div>
+                            <div class="col-md-10"><%- plan._id %></div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-1">Description:</div>
-                            <div class="col-md-11"><%- plan.description %></div>
+                            <div class="col-md-2">Description:</div>
+                            <div class="col-md-10"><%- plan.description %></div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-1">Plan Version:</div>
-                            <div class="col-md-11"><%- plan.version %></div>
+                            <div class="col-md-2">Plan Version:</div>
+                            <div class="col-md-10"><%- plan.version %></div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-1">Started:</div>
-                            <div class="col-md-11"><%- plan.started %></div>
+                            <div class="col-md-2">Started:</div>
+                            <div class="col-md-10"><%- plan.started %></div>
                         </div>
 
                         <% if (!public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
                         <div class="row">
-                            <div class="col-md-1">Test Owner:</div>
-                            <div class="col-md-11">
+                            <div class="col-md-2">Test Owner:</div>
+                            <div class="col-md-10">
                                 <%= FAPI_UI.logTemplates.OWNER({owner: plan.owner}) %>
                             </div>
                         </div>
@@ -45,8 +45,8 @@
 
                         <% if (plan.certificationProfileName) { %>
                         <div class="row">
-                            <div class="col-md-1">Certification profile:</div>
-                            <div class="col-md-11"><%- plan.certificationProfileName %></div>
+                            <div class="col-md-2">Certification profile:</div>
+                            <div class="col-md-10"><%- plan.certificationProfileName %></div>
                         </div>
                         <% } %>
 
