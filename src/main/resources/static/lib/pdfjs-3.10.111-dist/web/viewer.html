@@ -445,16 +445,26 @@ See https://github.com/adobe-type-tools/cmap-resources
 
     <script src="../build/pdf.js"></script>
     <script src="viewer.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
     <script>
 
       const origin = `${document.location.protocol}//${document.location.host}`;
-
-      function getFieldValue(id) {
-          return PDFViewerApplication.pdfDocument.annotationStorage.getAll()[id].value;
-      }
+      const formFields = [
+        "Name of Entity Implementer Making this Certification",
+        "Software or Service Deployment Name  Version",
+        "OpenID Conformance Profile",
+        "Conformance Test Suite Software",
+        "Test Date",
+        "Name",
+        "Title",
+        "Date",
+        "Name_2",
+        "Title_2",
+        "Phone",
+        "Email",
+        "Address",
+        "City StateProvince Postal Code",
+        "Country"
+      ]
 
       async function getFieldObjById(id) {
         const fieldObjects = await PDFViewerApplication.pdfDocument.getFieldObjects();
@@ -463,6 +473,11 @@ See https://github.com/adobe-type-tools/cmap-resources
             return field[0];
           }
         }
+      }
+
+      function getFieldValueByName(name) {
+        let id = document.querySelector(`input[name="${name}"]`).dataset.elementId;
+        return PDFViewerApplication.pdfDocument.annotationStorage.getRawValue(id);
       }
 
       async function setFieldValueByName(name, val) {
@@ -484,7 +499,7 @@ See https://github.com/adobe-type-tools/cmap-resources
       window.addEventListener('message', async (evt) => {
         if (evt.origin === origin) {
 
-          if(evt.data.event === 'viewerLoaded') {
+          if (evt.data.event === 'viewerLoaded') {
             PDFViewerApplication.initializedPromise.then(_ => {
               PDFViewerApplication.eventBus.on('pagesloaded', _ => {
                 window.parent.postMessage({ "event": "pagesLoaded"}, origin);
@@ -492,16 +507,24 @@ See https://github.com/adobe-type-tools/cmap-resources
             });
           }
 
-          if(evt.data.event === 'prefill') {
+          if (evt.data.event === 'prefill') {
             await setFieldValueByName('OpenID Conformance Profile', evt.data.profile);
             await setFieldValueByName('Conformance Test Suite Software', evt.data.suite);
             await setFieldValueByName('Test Date', evt.data.started);
             await setFieldValueByName('Date', evt.data.date);
           }
 
-          if(evt.data.event === 'getDocument') {
+          if (evt.data.event === 'getDocument') {
             let documentData = await PDFViewerApplication.pdfDocument.saveDocument();
              window.parent.postMessage({ "event": "documentData", "documentData": documentData}, origin);
+          }
+
+          if (evt.data.event === 'getFormValues') {
+            const formValues = formFields.reduce((formValues, formField) => {
+              formValues[formField] = getFieldValueByName(formField)?.value;
+              return formValues;
+            }, {});
+            window.parent.postMessage({ "event": "formValues", formValues }, origin);
           }
 
         }
