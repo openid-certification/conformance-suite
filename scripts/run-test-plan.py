@@ -224,6 +224,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     with open(config_file) as f:
         json_config = f.read()
     json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
+    json_config = json_config.replace('{BASEURLMTLS}', os.environ['CONFORMANCE_SERVER_MTLS'])
     (test_plan_name, variant, selected_modules, op_plan, op_config) = split_name_and_variant(test_plan)
     if test_plan_name.startswith('oidcc-client-'):
         #for oidcc client tests 'variant' will contain the rp tests configuration file name
