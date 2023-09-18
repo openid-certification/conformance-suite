@@ -447,24 +447,41 @@ See https://github.com/adobe-type-tools/cmap-resources
     <script src="viewer.js"></script>
     <script>
 
-      const origin = `${document.location.protocol}//${document.location.host}`;
-      const formFields = [
-        "Name of Entity Implementer Making this Certification",
-        "Software or Service Deployment Name  Version",
-        "OpenID Conformance Profile",
-        "Conformance Test Suite Software",
-        "Test Date",
-        "Name",
-        "Title",
-        "Date",
-        "Name_2",
-        "Title_2",
-        "Phone",
-        "Email",
-        "Address",
-        "City StateProvince Postal Code",
-        "Country"
-      ]
+      const ORIGIN = `${document.location.protocol}//${document.location.host}`;
+      const FORM_FIELDS = [
+        'Name of Entity Implementer Making this Certification',
+        'Software or Service Deployment Name  Version',
+        'OpenID Conformance Profile',
+        'Conformance Test Suite Software',
+        'Test Date',
+        'Name',
+        'Title',
+        'Date',
+        'Name_2',
+        'Title_2',
+        'Phone',
+        'Email',
+        'Address',
+        'City StateProvince Postal Code',
+        'Country',
+        'Name_3',
+        'Title_3',
+        'Phone_2',
+        'Email_2',
+        'Address_2',
+        'City StateProvince Postal Code_2',
+        'Country_2',
+        'URL at which people interested in using your implementation can learn about it andor obtain it',
+        '1-2 sentence description of the implementation',
+        'JavaScript for Nodejs Binaries for iOS or Service',
+        'Licensing terms of the software if applicable eg Apache 20 or Proprietary'
+      ];
+      const NON_PERSISTED_FORM_FIELDS = [
+        'OpenID Conformance Profile',
+        'Conformance Test Suite Software',
+        'Test Date',
+        'Date'
+      ];
 
       async function getFieldObjById(id) {
         const fieldObjects = await PDFViewerApplication.pdfDocument.getFieldObjects();
@@ -476,12 +493,12 @@ See https://github.com/adobe-type-tools/cmap-resources
       }
 
       function getFieldValueByName(name) {
-        let id = document.querySelector(`input[name="${name}"]`).dataset.elementId;
+        let id = document.querySelector(`input[name="${name}"], textarea[name="${name}"]`).dataset.elementId;
         return PDFViewerApplication.pdfDocument.annotationStorage.getRawValue(id);
       }
 
       async function setFieldValueByName(name, val) {
-        let id = document.querySelector(`input[name="${name}"]`).dataset.elementId;
+        let id = document.querySelector(`input[name="${name}"], textarea[name="${name}"]`).dataset.elementId;
         setFieldValueByInternalId(id, val);
       }
 
@@ -501,8 +518,11 @@ See https://github.com/adobe-type-tools/cmap-resources
 
           if (evt.data.event === 'viewerLoaded') {
             PDFViewerApplication.initializedPromise.then(_ => {
-              PDFViewerApplication.eventBus.on('pagesloaded', _ => {
-                window.parent.postMessage({ "event": "pagesLoaded"}, origin);
+              PDFViewerApplication.eventBus.on('annotationlayerrendered', e => {
+                if (e.pageNumber === 3) {
+                  loadValuesFromLocalStorage();                  
+                  window.parent.postMessage({ "event": "pagesRendered"}, origin);
+                }
               });
             });
           }
@@ -520,7 +540,7 @@ See https://github.com/adobe-type-tools/cmap-resources
           }
 
           if (evt.data.event === 'getFormValues') {
-            const formValues = formFields.reduce((formValues, formField) => {
+            const formValues = FORM_FIELDS.reduce((formValues, formField) => {
               formValues[formField] = getFieldValueByName(formField)?.value;
               return formValues;
             }, {});
@@ -529,6 +549,29 @@ See https://github.com/adobe-type-tools/cmap-resources
 
         }
       });
+
+      function loadValuesFromLocalStorage() {
+        document.querySelectorAll('input[type=text], textarea').forEach(input => {
+          if (input.name && FORM_FIELDS.indexOf[input.name] !== -1) {
+            load(input);
+            input.addEventListener('change', save);
+          }
+        });
+      }
+
+      function save (evt) {
+        if (evt && evt.target && evt.target.name && evt.target.value && NON_PERSISTED_FORM_FIELDS.indexOf(evt.target.name) === -1) {
+          localStorage.setItem(evt.target.name, evt.target.value);
+        }
+        window.parent.postMessage({ "event": "fieldChanged", "fieldName": evt.target.name}, origin);
+      }
+
+      function load (elm) {
+        let previousValue = localStorage.getItem(elm.name);
+        if (elm && elm.name && previousValue) {
+          setFieldValueByName(elm.name, previousValue);
+        }
+      }
 
     </script>
 

@@ -88,18 +88,18 @@
             <div class="">
                 <h2 class="ps-0 mt-0"><strong>Instructions</strong></h2>
                 <p class="">1. Fill out the document on the right. Some fields have been prefilled for your convenience,
-                    however, you must add the following <strong>mandatory</strong> information:
+                    however, you must ensure that the following <strong>mandatory</strong> information is correctly filled out:
                     <ol class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field-entity-name"></i>&ldquo;Name of Entity (“Implementer”) Making this Certification&rdquo;</div>
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-entity-name"></i>&ldquo;Name of Entity (“Implementer”) Making this Certification&rdquo;</div>
                                 This is the name of the organization that's requesting the certification.
                                 <br /><em>Example:</em> Acme Corporation
                             </div>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field-software"></i>&ldquo;Software or Service (“Deployment”) Name & Version #&rdquo;</div>
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-software"></i>&ldquo;Software or Service (“Deployment”) Name & Version #&rdquo;</div>
                                 All certified software <strong>must</strong> have a name and a version. If you are certifying a service which does not have a version number
                                 then you can use an artificial version number such as &ldquo;as of June 2021&rdquo; or &ldquo;June 2021 Release&ldquo;.
                                 <br /><em>Example:</em> Acme OIDC v2.0
@@ -107,14 +107,28 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field-name-title"></i>&ldquo;Name&rdquo; and &ldquo;Title&rdquo; at the bottom of page 1</div>
-                                These fields refer to the person that will sign the document. The document can be signed by any authorized person
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-profile"></i>&ldquo;OpenID Conformance Profile&rdquo;</div>
+                                This field must contain a valid profile name, i.e. one of <a href="https://openid.net/certification/" target="oidf">the certification table</a> column labels, 
+                                e.g. &ldquo;FAPI Adv. OP w/ Private Key&rdquo;. Test plan names cannot be used instead of a profile name.
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-suite-date"></i>&ldquo;Conformance Test Suite Software&rdquo; and &ldquo;Test Date&rdquo;</div>
+                                Must contain the string &ldquo;www.certification.openid.net&rdquo; and the conformance suite version number, e.g. &ldquo;www.certification.openid.net version 5.1.18&rdquo;.
+                                The &ldquo;Test Date&rdquo; represents the date that the test plan was executed on.
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-name-title-date"></i>&ldquo;Name&rdquo;, &ldquo;Title&rdquo; and &ldquo;Date&rdquo; at the bottom of page 1</div>
+                                These fields refer to the person that will sign the document, and the date of signature. The document can be signed by any authorized person
                                 that works for the implementer, but it cannot be signed by third parties, e.g by an external consultant.
                             </div>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field-contact"></i>&ldquo;Implementer’s Authorized Contact Information&rdquo; on page 2</div>
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-contact"></i>&ldquo;Implementer’s Authorized Contact Information&rdquo; on page 2</div>
                                 All fields in this section are mandatory and refer to the contact person of the organization
                                 making the certification request.
                             </div>
@@ -259,83 +273,6 @@
         document.querySelector('#pdf-viewer').src = redirectUrl + viewerOptions;
     }
 
-    function validate(formValues) {
-        const formFields = [
-            "Name of Entity Implementer Making this Certification",
-            "Software or Service Deployment Name  Version",
-            "OpenID Conformance Profile",
-            "Conformance Test Suite Software",
-            "Test Date",
-            "Name",
-            "Title",
-            "Date",
-            "Name_2",
-            "Title_2",
-            "Phone",
-            "Email",
-            "Address",
-            "City StateProvince Postal Code",
-            "Country"
-        ];
-
-        var ok = true;
-
-        let entityElm = document.querySelector('.field-entity-name');
-        entityElm.classList.remove('opacity-20', 'bi-square');
-        if (formValues["Name of Entity Implementer Making this Certification"]) {
-            entityElm.classList.remove('text-danger', 'bi-exclamation-square-fill');
-            entityElm.classList.add('text-success', 'bi-check-square-fill');
-        } else {
-            ok = false;
-            entityElm.classList.remove('text-success', 'bi-check-square-fill');
-            entityElm.classList.add('text-danger', 'bi-exclamation-square-fill');
-        }
-
-        let softwareElm = document.querySelector('.field-software');
-        softwareElm.classList.remove('opacity-20', 'bi-square');
-        if (formValues["Software or Service Deployment Name  Version"]) {
-            softwareElm.classList.remove('text-danger', 'bi-exclamation-square-fill');
-            softwareElm.classList.add('text-success', 'bi-check-square-fill');
-        } else {
-            ok = false;
-            softwareElm.classList.remove('text-success', 'bi-check-square-fill');
-            softwareElm.classList.add('text-danger', 'bi-exclamation-square-fill');
-        }
-
-        let nameTitleElm = document.querySelector('.field-name-title');
-        nameTitleElm.classList.remove('opacity-20', 'bi-square');
-        if (formValues["Name"] && formValues["Title"]) {
-            nameTitleElm.classList.remove('text-danger', 'bi-exclamation-square-fill');
-            nameTitleElm.classList.add('text-success', 'bi-check-square-fill');
-        } else {
-            ok = false;
-            nameTitleElm.classList.remove('text-success', 'bi-check-square-fill');
-            nameTitleElm.classList.add('text-danger', 'bi-exclamation-square-fill');
-        }
-
-        let contactElm = document.querySelector('.field-contact');
-        contactElm.classList.remove('opacity-20', 'bi-square');
-        if (formValues["Name_2"] && formValues["Title_2"] && formValues["Phone"] &&
-            formValues["Email"] && formValues["Address"] &&
-            formValues["City StateProvince Postal Code"] && formValues["Country"]) {
-            contactElm.classList.remove('text-danger', 'bi-exclamation-square-fill');
-            contactElm.classList.add('text-success', 'bi-check-square-fill');
-        } else {
-            ok = false;
-            contactElm.classList.remove('text-success', 'bi-check-square-fill');
-            contactElm.classList.add('text-danger', 'bi-exclamation-square-fill');
-        }
-
-        if (ok) {
-            document.querySelector('#continue').classList.remove('disabled');
-            document.querySelector('.field-validate').classList.remove('bi-check-square', 'bi-exclamation-square-fill');
-            document.querySelector('.field-validate').classList.add('bi-check-square-fill');
-        } else {
-            document.querySelector('.field-validate').classList.remove('bi-check-square', 'bi-check-square-fill');
-            document.querySelector('.field-validate').classList.add('bi-exclamation-square-fill');
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', _ => {
         let urlParams = new URLSearchParams(window.location.search);
         planId = urlParams.get('plan');
@@ -354,8 +291,10 @@
         FAPI_UI.showBusy();
     });
 
-    document.querySelector('#validate').addEventListener('click', _ => {
+    document.querySelector('#validate').addEventListener('click', e => {
         window.frames[0].postMessage({ "event": "getFormValues" }, origin);
+        e.preventDefault();
+        return false;
     });
 
     document.querySelector('#continue').addEventListener('click', _ => {
@@ -366,7 +305,7 @@
     window.addEventListener('message', async (evt) => {
         if (evt.origin === origin) {
 
-          if (evt.data.event === 'pagesLoaded') {
+          if (evt.data.event === 'pagesRendered') {
             let pdfValues = { "event": "prefill", profile, suite, started, date };
             FAPI_UI.hideBusy();
             if(shouldPrefill) {
@@ -397,12 +336,59 @@
           if (evt.data.event === 'formValues') {
             validate(evt.data.formValues);
           }
+
+          if (evt.data.event === 'fieldChanged') {
+            console.log(evt.data);
+            resetValidation();
+          }
+
         }
       });
 
     document.addEventListener('webviewerloaded', _ => {
         window.frames[0].postMessage({ "event": "viewerLoaded" }, origin)
     });
+
+    function validate(form) {
+        let entityValid = validateElement(form, document.querySelector('.field-entity-name'), [ "Name of Entity Implementer Making this Certification" ]);
+        let softwareValid = validateElement(form, document.querySelector('.field-software'), [ "Software or Service Deployment Name  Version" ]);
+        let profileValid = validateElement(form, document.querySelector('.field-profile'), [ "Software or Service Deployment Name  Version" ]);
+        let suiteDateValid = validateElement(form, document.querySelector('.field-suite-date'), [ "Software or Service Deployment Name  Version", "Test Date" ]);
+        let nameTitleValid = validateElement(form, document.querySelector('.field-name-title-date'), [ "Name", "Title", "Date" ]);
+        let contactValid = validateElement(form, document.querySelector('.field-contact'), [ "Name_2", "Title_2", "Phone", "Email", "Address", "City StateProvince Postal Code", "Country"]);
+        let allValid = entityValid && softwareValid && profileValid && suiteDateValid && nameTitleValid && contactValid;
+
+        if (allValid) {
+            document.querySelector('#continue').classList.remove('disabled');
+            document.querySelector('.field-validate').classList.remove('bi-check-square', 'bi-exclamation-square-fill');
+            document.querySelector('.field-validate').classList.add('bi-check-square-fill');
+        } else {
+            document.querySelector('#continue').classList.add('disabled');
+            document.querySelector('.field-validate').classList.remove('bi-check-square', 'bi-check-square-fill');
+            document.querySelector('.field-validate').classList.add('bi-exclamation-square-fill');
+        }
+    }
+
+    function validateElement(form, elm, names) {
+        elm.classList.remove('opacity-20', 'bi-square');
+        let valid = names.every(name => !!form[name]);
+        if (valid) {
+            elm.classList.remove('text-danger', 'bi-exclamation-square-fill');
+            elm.classList.add('text-success', 'bi-check-square-fill');
+        } else {
+            elm.classList.remove('text-success', 'bi-check-square-fill');
+            elm.classList.add('text-danger', 'bi-exclamation-square-fill');
+        }
+        return valid;
+    }
+
+    function resetValidation() {
+        document.querySelectorAll('i.field').forEach(elm => {
+            elm.classList.add('opacity-20', 'bi-square');
+            elm.classList.remove('text-success', 'text-danger', 'bi-check-square-fill', 'bi-exclamation-square-fill');
+        });
+        document.querySelector('#continue').classList.add('disabled');
+    }
 
 </script>
 
