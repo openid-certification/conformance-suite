@@ -86,8 +86,8 @@
 
         <div class="col-md-5 wizard">
             <div class="">
-                <h2 class="ps-0 mt-0"><strong>Instructions</strong></h2>
-                <p class="">1. Fill out the document on the right. Some fields have been prefilled for your convenience,
+                <h2 class="ps-0 mt-0 mb-2"><strong>Instructions</strong></h2>
+                <p class=""><span class="fw-bold">1.</span> Fill out the document on the right. Some fields have been prefilled for your convenience,
                     however, you must ensure that the following <strong>mandatory</strong> information is correctly filled out:
                     <ol class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-start">
@@ -108,7 +108,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-profile"></i>&ldquo;OpenID Conformance Profile&rdquo;</div>
-                                This field must contain a valid profile name, i.e. one of <a href="https://openid.net/certification/" target="oidf">the certification table</a> column labels, 
+                                This field must contain a valid profile name, i.e. one of <a class="text-primary" href="https://openid.net/certification/" target="oidf">the certification table</a> column labels, 
                                 e.g. &ldquo;FAPI Adv. OP w/ Private Key&rdquo;. Test plan names cannot be used instead of a profile name.
                             </div>
                         </li>
@@ -135,7 +135,7 @@
                         </li>
                     </ol>
                 </p>
-                <p class="">2. When you've filled out the document, click the &ldquo;Validate&rdquo; button to
+                <p class=""><span class="fw-bold">2.</span> When you've filled out the document, click the &ldquo;Validate&rdquo; button to
                     validate the document and continue to the next step.
                 <ol class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-left align-items-start">
@@ -143,6 +143,7 @@
                         <button class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></button>
                     </li>
                 </ol>
+                <p id="scratchpad"></p>
             </div>
         </div>
 
@@ -328,7 +329,8 @@
                     return response.json();
                 })
                 .then(data => {
-                    document.location.href = data.recipentSigningUri;
+                    document.querySelector('#scratchpad').textContent = data.recipentSigningUri;
+                    //document.location.href = data.recipentSigningUri;
                 })
                 .catch(handleSuiteError);
           }

@@ -177,6 +177,7 @@ public class CertificationApi {
 
 	private static String createEnvelope(String apiUrl, String accessToken, String accountId, String documentData) throws IOException {
 		String envelope = "{\n" +
+			"    \"allowComments\": \"false\",\n" +
 			"    \"emailSubject\": \"Certification of Conformance signature\",\n" +
 			"    \"documents\": [\n" +
 			"        {\n" +
@@ -192,16 +193,8 @@ public class CertificationApi {
 			"                \"email\": \"marcus.almgren@oidf.org\",\n" +
 			"                \"name\": \"Marcus Almgren\",\n" +
 			"                \"recipientId\": \"1\",\n" +
-			"                \"routingOrder\": \"1\",\n" +
-			"                \"clientUserId\": \"1000\",\n" +
-			"                \"tabs\": {\n" +
-			"                    \"signHereTabs\": [\n" +
-			"                        {\n" +
-			"                            \"XPosition\": \"200\",\n" +
-			"                            \"YPosition\": \"200\"\n" +
-			"                        }\n" +
-			"                    ]\n" +
-			"                }\n" +
+			"                \"routingOrder\": \"1\"\n" +
+			"                \"clientUserId\": \"1000\"\n" +
 			"            }\n" +
 			"        ]\n" +
 			"    },\n" +
