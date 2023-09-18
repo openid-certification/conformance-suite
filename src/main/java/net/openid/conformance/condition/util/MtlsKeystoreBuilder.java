@@ -28,7 +28,6 @@ public class MtlsKeystoreBuilder {
 	public static KeyManager[] configureMtls(Environment env) throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
 		String clientCert = env.getString("mutual_tls_authentication", "cert");
 		String clientKey = env.getString("mutual_tls_authentication", "key");
-		String clientCa = env.getString("mutual_tls_authentication", "ca");
 
 		byte[] certBytes = Base64.getDecoder().decode(clientCert);
 		byte[] keyBytes = Base64.getDecoder().decode(clientKey);
@@ -36,21 +35,7 @@ public class MtlsKeystoreBuilder {
 		X509Certificate cert = generateCertificateFromDER(certBytes);
 		RSAPrivateKey key = generatePrivateKeyFromDER(keyBytes);
 
-		ArrayList<X509Certificate> chain = Lists.newArrayList(cert);
-		if (clientCa != null) {
-			byte[] caBytes = Base64.getDecoder().decode(clientCa);
-			chain.addAll(generateCertificateChainFromDER(caBytes));
-		}
-
-		KeyStore keystore = KeyStore.getInstance("JKS");
-		keystore.load(null);
-		keystore.setCertificateEntry("cert-alias", cert);
-		keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
-
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		keyManagerFactory.init(keystore, "changeit".toCharArray());
-
-		return  keyManagerFactory.getKeyManagers();
+		return new DelegatedClientKeyManager[]{new DelegatedClientKeyManager(cert, key)};
 	}
 
 	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
@@ -65,18 +50,6 @@ public class MtlsKeystoreBuilder {
 		CertificateFactory factory = CertificateFactory.getInstance("X.509");
 
 		return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certBytes));
-	}
-
-	protected static List<X509Certificate> generateCertificateChainFromDER(byte[] chainBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
-		ArrayList<X509Certificate> chain = new ArrayList<>();
-		ByteArrayInputStream in = new ByteArrayInputStream(chainBytes);
-		while (in.available() > 0) {
-			chain.add((X509Certificate) factory.generateCertificate(in));
-		}
-
-		return chain;
 	}
 
 }
