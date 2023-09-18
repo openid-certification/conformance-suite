@@ -17,13 +17,11 @@ public class DelegatedClientKeyManager extends X509ExtendedKeyManager {
 	static final String[] ALIASES = new String[]{ALIAS};
 
 	private final X509Certificate[] chain;
-	private final X509Certificate cert;
 
 	private final RSAPrivateKey key;
 
 	public DelegatedClientKeyManager(X509Certificate cert, RSAPrivateKey key) {
 		this.chain = new X509Certificate[]{cert};
-		this.cert = cert;
 		this.key = key;
 	}
 
