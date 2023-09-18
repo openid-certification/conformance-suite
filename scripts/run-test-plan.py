@@ -1039,6 +1039,17 @@ async def main():
             # make sure it ends in a / as the client tests assume that
             api_url_base += '/'
             os.environ['CONFORMANCE_SERVER'] = api_url_base
+
+        if 'CONFORMANCE_SERVER_MTLS' in os.environ:
+            mtls_url_base = os.environ['CONFORMANCE_SERVER_MTLS']
+            if mtls_url_base == "":
+                mtls_url_base = api_url_base
+            if not mtls_url_base.endswith('/'):
+                # make sure it ends in a / as the client tests assume that
+                mtls_url_base += '/'
+        else:
+            mtls_url_base = api_url_base
+        os.environ['CONFORMANCE_SERVER_MTLS'] = mtls_url_base
     else:
         # local development settings
         api_url_base = 'https://localhost.emobix.co.uk:8443/'
