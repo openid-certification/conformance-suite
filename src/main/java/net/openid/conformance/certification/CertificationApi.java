@@ -193,7 +193,7 @@ public class CertificationApi {
 			"                \"email\": \"marcus.almgren@oidf.org\",\n" +
 			"                \"name\": \"Marcus Almgren\",\n" +
 			"                \"recipientId\": \"1\",\n" +
-			"                \"routingOrder\": \"1\"\n" +
+			"                \"routingOrder\": \"1\",\n" +
 			"                \"clientUserId\": \"1000\"\n" +
 			"            }\n" +
 			"        ]\n" +

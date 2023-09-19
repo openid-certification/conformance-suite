@@ -329,6 +329,7 @@
                     return response.json();
                 })
                 .then(data => {
+                    FAPI_UI.hideBusy();
                     document.querySelector('#scratchpad').textContent = data.recipentSigningUri;
                     //document.location.href = data.recipentSigningUri;
                 })
