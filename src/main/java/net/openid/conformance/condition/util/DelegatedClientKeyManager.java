@@ -14,7 +14,7 @@ import java.security.interfaces.RSAPrivateKey;
 public class DelegatedClientKeyManager extends X509ExtendedKeyManager {
 
 	static final String ALIAS = "dummyalias";
-	static final String[] ALIASES = new String[]{ALIAS};
+	static final String[] ALIASES = {ALIAS};
 
 	private final X509Certificate[] chain;
 
