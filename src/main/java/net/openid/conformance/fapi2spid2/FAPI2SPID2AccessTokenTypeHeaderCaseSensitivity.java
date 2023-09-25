@@ -1,12 +1,12 @@
 package net.openid.conformance.fapi2spid2;
 
-import net.openid.conformance.condition.client.SetTokenRequestTokenTypeToInvertedCase;
+import net.openid.conformance.condition.client.SetAccessTokenTypeToInvertedCase;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 		testName = "fapi2-security-profile-id2-access-token-type-header-case-sensitivity",
-		displayName = "FAPI2-Security-Profile-ID2: Test whether the Token endpoint's authorization header is case sensitive for token type",
-		summary = "Tests whether the AS is case sensitive to the access token type in the token request",
+		displayName = "FAPI2-Security-Profile-ID2: Test whether the resource endpoint's authorization header is case sensitive for token type",
+		summary = "Tests whether the RS is case sensitive to the access token type in the token request.\n\nAs per https://www.rfc-editor.org/rfc/rfc9110#name-authentication-scheme the authentication scheme name must be treated as case insensitive.",
 		profile = "FAPI2-Security-Profile-ID2",
 		configurationFields = {
 			"server.discoveryUrl",
@@ -30,7 +30,7 @@ public class FAPI2SPID2AccessTokenTypeHeaderCaseSensitivity extends AbstractFAPI
 	@Override
 	protected void exchangeAuthorizationCode() {
 		super.exchangeAuthorizationCode();
-		callAndContinueOnFailure(SetTokenRequestTokenTypeToInvertedCase.class);
+		callAndStopOnFailure(SetAccessTokenTypeToInvertedCase.class, "RFC9110-11.1");
 	}
 
 }
