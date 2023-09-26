@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 public class AddUserinfoSignedResponseAlgRS256ToDynamicRegistrationRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "dynamic_registration_request", strings = "base_url")
+	@PreEnvironment(required = "dynamic_registration_request")
 	@PostEnvironment(required = "dynamic_registration_request")
 	public Environment evaluate(Environment env) {
 

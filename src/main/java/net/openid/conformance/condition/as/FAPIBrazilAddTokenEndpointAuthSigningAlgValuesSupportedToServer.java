@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 public class FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "server", strings = "base_url")
+	@PreEnvironment(required = "server")
 	@PostEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
