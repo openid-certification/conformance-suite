@@ -256,8 +256,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
+		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
 		Boolean skip = env.getBoolean("config", "skip_test");

@@ -66,10 +66,10 @@ public class FAPIRWID2DiscoveryEndpointVerification extends AbstractFAPIDiscover
 	}
 
 	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		par = getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED;
-		super.configure(config, baseUrl, externalUrlOverride);
+		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}
 
 	@Override

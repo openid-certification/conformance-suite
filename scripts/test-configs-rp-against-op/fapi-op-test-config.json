@@ -21,7 +21,7 @@
         }
     },
     "resource": {
-        "resourceUrl": "{BASEURL}test-mtls/a/oidf-fapi-rp-test/open-banking/v1.1/accounts",
+        "resourceUrl": "{BASEURLMTLS}test-mtls/a/oidf-fapi-rp-test/open-banking/v1.1/accounts",
         "institution_id": "xxx"
     },
     "client2": {
