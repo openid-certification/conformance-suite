@@ -18,6 +18,7 @@ services:
       dockerfile: Dockerfile-nodocker
     ports:
      - "8443:8443"
+     - "8444:8444"
     volumes:
      - ./src/main/resources/:/usr/local/apache2/htdocs/
     # for linux, we add a hostname mapping for host.docker.internal

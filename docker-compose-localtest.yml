@@ -27,6 +27,7 @@ services:
       context: ./httpd
     ports:
      - "8443:8443"
+     - "8444:8444"
     depends_on:
      - server
   server:
@@ -42,6 +43,7 @@ services:
       -jar /server/fapi-test-suite.jar
       -Djdk.tls.maxHandshakeMessageSize=65536
       --fintechlabs.base_url=https://httpd:8443
+      --fintechlabs.base_mtls_url=https://httpd:8444
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
     links:
@@ -62,6 +64,7 @@ services:
       context: ./test
     environment:
       CONFORMANCE_SERVER: https://httpd:8443/
+      CONFORMANCE_SERVER_MTLS: https://httpd:8444/
       CONFORMANCE_DEV_MODE: 1
     volumes:
       - "./:/conformance-suite/"

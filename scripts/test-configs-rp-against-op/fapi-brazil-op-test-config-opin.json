@@ -46,8 +46,8 @@
         }
     },
     "resource": {
-        "resourceUrl": "{BASEURL}test-mtls/a/oidf-rp-opin/open-insurance/customers/v1/personal/identifications",
-        "consentUrl": "{BASEURL}test-mtls/a/oidf-rp-opin/open-insurance/consents/v1",
+        "resourceUrl": "{BASEURLMTLS}test-mtls/a/oidf-rp-opin/open-insurance/customers/v1/personal/identifications",
+        "consentUrl": "{BASEURLMTLS}test-mtls/a/oidf-rp-opin/open-insurance/consents/v1",
         "brazilCpf": "14308086086",
         "brazilOrganizationId": "234234"
     },
