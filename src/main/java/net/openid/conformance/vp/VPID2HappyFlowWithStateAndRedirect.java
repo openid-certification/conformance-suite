@@ -21,6 +21,7 @@ public class VPID2HappyFlowWithStateAndRedirect extends AbstractVPServerTest {
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
 		callAndStopOnFailure(CreateRedirectUri.class);
+		// FIXME redirect_uri / response_uri is optional when using the redirect_uri scheme (check that's the case in the ID2 version of the spec)
 	}
 
 	@Override
