@@ -24,6 +24,7 @@ services:
       dockerfile: Dockerfile-nodocker
     ports:
      - "8443:8443"
+     - "8444:8444"
     volumes:
       # we don't use delegated here so that updates propogate promptly
      - ./src/main/resources/:/usr/local/apache2/htdocs/

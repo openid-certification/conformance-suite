@@ -37,16 +37,14 @@ public interface TestModule {
 	/**
 	 * Method is called to pass configuration parameters
 	 *
-	 * @param config
-	 *            A JSON object consisting of details that the testRunner
-	 *            doesn't need to know about
-	 * @param baseUrl
-	 *            The base of the URL that will need to be appended to any
-	 *            URL construction.
-	 * @param externalUrlOverride
-	 *            The base of the URL if any external notifications are needed
+	 * @param config              A JSON object consisting of details that the testRunner
+	 *                            doesn't need to know about
+	 * @param baseUrl             The base of the URL that will need to be appended to any
+	 *                            URL construction.
+	 * @param externalUrlOverride The base of the URL if any external notifications are needed
+	 * @param baseMtlsUrl
 	 */
-	void configure(JsonObject config, String baseUrl, String externalUrlOverride);
+	void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl);
 
 	/**
 	 * *

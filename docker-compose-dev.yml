@@ -10,6 +10,7 @@ services:
       dockerfile: Dockerfile-static
     ports:
      - "8443:8443"
+     - "8444:8444"
     volumes:
      - ./src/main/resources/:/usr/local/apache2/htdocs/
     depends_on:
@@ -27,6 +28,7 @@ services:
       -jar /server/fapi-test-suite.jar
       -Djdk.tls.maxHandshakeMessageSize=65536
       --fintechlabs.base_url=https://localhost.emobix.co.uk:8443
+      --fintechlabs.base_mtls_url=https://localhost.emobix.co.uk:8444
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
     links:

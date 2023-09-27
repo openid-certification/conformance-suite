@@ -310,8 +310,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	}
 
 	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
+		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
 		profile = getVariant(FAPI2ID2OPProfile.class);
