@@ -112,7 +112,7 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 
 		addClientAuthenticationToTokenEndpointRequest();
 
-		callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
+		callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, Condition.ConditionResult.FAILURE,  "FAPI-RW-5.2.2-6");
 
 		boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 		if (sslError) {

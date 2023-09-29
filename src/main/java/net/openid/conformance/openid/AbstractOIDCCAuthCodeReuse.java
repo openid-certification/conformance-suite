@@ -47,7 +47,7 @@ public abstract class AbstractOIDCCAuthCodeReuse extends AbstractOIDCCServerTest
 			call(sequence(generateNewClientAssertionSteps));
 		}
 
-		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING);
 		checkResponse();
 		eventLog.endBlock();
 	}
