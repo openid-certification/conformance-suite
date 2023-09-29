@@ -74,7 +74,7 @@ public class FAPI2SPID2EnsureClientIdInTokenEndpoint extends AbstractFAPI2SPID2P
 		 * - It must be a 'invalid_grant' error (assuming the check for the client_id matching the authorization code is performed first).
 		 * The specs don't appear to define an order for these two checks. It may have been preferable for this test to only trigger one possible error.
 		 */
-		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-19");
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-19");
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");

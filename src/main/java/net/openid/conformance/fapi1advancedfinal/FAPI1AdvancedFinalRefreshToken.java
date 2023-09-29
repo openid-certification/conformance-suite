@@ -125,7 +125,7 @@ public class FAPI1AdvancedFinalRefreshToken extends AbstractFAPI1AdvancedFinalMu
 
 			call(sequence(addTokenEndpointClientAuthentication));
 
-			callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI1-ADV-5.2.2-6");
+			callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI1-ADV-5.2.2-6");
 			Boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 			if (sslError != null && sslError) {
 				// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
