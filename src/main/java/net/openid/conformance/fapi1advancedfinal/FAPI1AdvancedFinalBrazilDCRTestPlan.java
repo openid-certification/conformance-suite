@@ -2,6 +2,9 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
@@ -37,7 +40,11 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksUri.class,
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class
 				),
-				List.of()
+				List.of(
+					new Variant(ClientAuthType.class, "private_key_jwt"),
+					new Variant(FAPIResponseMode.class, "plain_response"),
+					new Variant(FAPIAuthRequestMethod.class, "pushed")
+				)
 			)
 		);
 
@@ -53,7 +60,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 			case "openinsurance_brazil":
 				return "BR-OPIN Adv. OP DCR";
 			default:
-				throw new RuntimeException("This plan can only be used for Brazil OpenBanking or OpenInsurance.");
+				throw new RuntimeException("This plan can only be used for Brazil OpenBanking/OpenFinance or OpenInsurance.");
 		}
 	}
 }
