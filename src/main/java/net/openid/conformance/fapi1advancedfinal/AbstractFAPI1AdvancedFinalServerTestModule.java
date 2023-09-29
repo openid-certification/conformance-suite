@@ -89,6 +89,7 @@ import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceRespo
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.FAPI1ValidateJarmSigningAlg;
+import net.openid.conformance.condition.client.FAPIBrazilOBCheckPARResponseExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
@@ -1093,6 +1094,9 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
 
 		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, ConditionResult.FAILURE, "PAR-2.2");
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(FAPIBrazilOBCheckPARResponseExpiresIn.class, ConditionResult.FAILURE, "BrazilOBID3-5.2.2-19");
+		}
 
 		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class);
 

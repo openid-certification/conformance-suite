@@ -22,7 +22,9 @@ from conformance import Conformance
 ignored_modules = [
     # see https://gitlab.com/openid/conformance-suite/-/issues/837
     "oidcc-client-test-signing-key-rotation-just-before-signing",
-    "oidcc-client-test-signing-key-rotation"
+    "oidcc-client-test-signing-key-rotation",
+    # this module is now only used for OPIN (for which we don't have a mock provider to test against), and only until they switch to the new security profile, expected to be in summer 2024
+    "fapi1-advanced-final-brazil-ensure-encryption-required"
 ]
 
 # Wrapper that adds timestamps to the start of our output
