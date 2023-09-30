@@ -13,6 +13,17 @@ import java.util.Map;
 
 public class CheckForUnexpectedOpenIdClaims extends AbstractValidateOpenIdStandardClaims {
 
+	private List<String> standardClaimsAdditions = List.of(
+		// As per https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.5.5.1.1
+		"acr",
+		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-5.2.2.3
+		"cpf",
+		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-5.2.2.4
+		"cnpj",
+		// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#OpenBankingSecurityProfile-Implementer'sDraftv1.1.2-HybridGrantParameters
+		"openbanking_intent_id"
+	);
+
 	// For success/failure result purposes we maintain allMemberClaims/invalidMemberClaims maps
 	//
 	// eg. allMemberClaims:
@@ -58,7 +69,7 @@ public class CheckForUnexpectedOpenIdClaims extends AbstractValidateOpenIdStanda
 
 					addClaimMemberToMap(claim, member, allMemberClaims);
 
-					if (STANDARD_CLAIMS.containsKey(member)) {
+					if (STANDARD_CLAIMS.containsKey(member) || standardClaimsAdditions.contains(member)) {
 						continue;
 					}
 

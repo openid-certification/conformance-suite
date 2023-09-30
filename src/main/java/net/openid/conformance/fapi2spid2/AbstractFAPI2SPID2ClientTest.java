@@ -1111,7 +1111,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 				CheckForUnexpectedClaimsInClaimsParameter.class, ConditionResult.WARNING, "OIDCC-5.5");
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
-				CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1");
+				CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.3", "BrazilOB-5.2.2.4", "OBSP-3.4");
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 				CheckRequestObjectClaimsParameterValues.class, ConditionResult.FAILURE, "OIDCC-5.5");
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
