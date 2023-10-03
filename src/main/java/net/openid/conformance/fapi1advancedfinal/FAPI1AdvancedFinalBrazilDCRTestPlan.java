@@ -2,11 +2,9 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
@@ -41,9 +39,12 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class
 				),
 				List.of(
+					/** This plan is only used for Brazil, so when OpenInsurance switches to the new profile
+					 * we could remove the need for the user to select these variants by uncommenting these lines:
 					new Variant(ClientAuthType.class, "private_key_jwt"),
 					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(FAPIAuthRequestMethod.class, "pushed")
+					 */
 				)
 			)
 		);
@@ -53,9 +54,19 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 		Map<String, String> v = variant.getVariant();
 
 		String profile = v.get("fapi_profile");
+		String clientAuth = v.get("client_auth_type");
+		String requestMethod = v.get("fapi_auth_request_method");
+		String responseMode = v.get("fapi_response_mode");
+		boolean par = requestMethod.equals("pushed");
+		boolean jarm = responseMode.equals("jarm");
+		boolean privateKey = clientAuth.equals("private_key_jwt");
 
 		switch (profile) {
 			case "openbanking_brazil":
+				if (!par || jarm || !privateKey) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
 				return "BR-OB Adv. OP DCR";
 			case "openinsurance_brazil":
 				return "BR-OPIN Adv. OP DCR";
