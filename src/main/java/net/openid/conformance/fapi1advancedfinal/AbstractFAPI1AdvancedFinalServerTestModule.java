@@ -1054,8 +1054,22 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
 		// there's no need to pass mtls auth when using private_key_jwt (except in some of the banking
 		// profiles that explicitly require TLS client certs for all endpoints).
-		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
-			getVariant(FAPI1FinalOPProfile.class) != FAPI1FinalOPProfile.PLAIN_FAPI;
+
+		boolean profileRequiresMtls = false;
+		switch (getVariant(FAPI1FinalOPProfile.class)) {
+			case OPENINSURANCE_BRAZIL:
+			case CONSUMERDATARIGHT_AU:
+			case OPENBANKING_UK:
+			case OPENBANKING_KSA:
+				profileRequiresMtls = true;
+				break;
+
+			case OPENBANKING_BRAZIL:
+			case PLAIN_FAPI:
+				profileRequiresMtls = false;
+				break;
+		}
+		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtls;
 		JsonObject mtls = null;
 		if (!mtlsRequired) {
 			mtls = env.getObject("mutual_tls_authentication");
