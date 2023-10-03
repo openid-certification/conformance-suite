@@ -81,7 +81,7 @@ public class FAPI2SPID2AttemptReuseAuthorizationCodeAfterOneSecond extends Abstr
 		if (isDpop()) {
 			createDpopForTokenEndpoint(false);
 		}
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-5.2.2-13");
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-13");
 
 		verifyError();
 
