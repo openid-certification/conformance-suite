@@ -1,5 +1,7 @@
 package net.openid.conformance.openid.client;
 
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 /**
@@ -16,5 +18,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class OIDCCClientTest extends AbstractOIDCCClientTest {
-	//do nothing
+
+	@Override
+	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
+		super.extractNonceFromAuthorizationEndpointRequestParameters();
+
+		skipIfMissing(null, new String[] {"nonce"}, ConditionResult.INFO,
+			CheckForInvalidCharsInNonce.class, ConditionResult.WARNING);
+	}
 }
