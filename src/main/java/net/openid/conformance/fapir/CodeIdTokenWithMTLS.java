@@ -273,7 +273,7 @@ public class CodeIdTokenWithMTLS extends AbstractFapiRServerTestModule {
 
 		eventLog.endBlock();
 
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 

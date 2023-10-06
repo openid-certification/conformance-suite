@@ -107,15 +107,15 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		}
 		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, ConditionResult.FAILURE, "FAPI-R-5.2.2-16", "FAPI1-BASE-5.2.2-16");
 		callAndContinueOnFailure(EnsureAccessTokenContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "RFC6749-A.12");
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-6", "RFC6749-5.1");
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, ConditionResult.WARNING, "RFC6749-6", "RFC6749-5.1");
 		call(condition(ValidateExpiresIn.class)
 				.skipIfObjectMissing("expires_in")
 				.requirement("RFC6749-5.1")
 				.dontStopOnFailure());
 
-		callAndContinueOnFailure(EnsureAccessTokenValuesAreDifferent.class);
+		callAndContinueOnFailure(EnsureAccessTokenValuesAreDifferent.class, ConditionResult.INFO);
 
-		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class);
+		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class, ConditionResult.INFO);
 
 		// It's perfectly legal to NOT return a new refresh token; if the server didn't then
 		// 'refresh_token' in the environment will be left containing the old (still valid)

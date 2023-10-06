@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddInvalidStateToAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -24,7 +25,7 @@ public class FAPI2SPID2ClientTestEnsureAuthorizationResponseWithInvalidStateFail
 
 	@Override
 	protected void addCustomValuesToAuthorizationResponse() {
-		callAndContinueOnFailure(AddInvalidStateToAuthorizationEndpointResponseParams.class);
+		callAndContinueOnFailure(AddInvalidStateToAuthorizationEndpointResponseParams.class, Condition.ConditionResult.INFO);
 	}
 
 	@Override

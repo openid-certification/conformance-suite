@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi2spid2;
 
 import com.google.common.base.Strings;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.RemoveStateFromAuthorizationEndpointResponseParams;
@@ -41,7 +42,7 @@ public class FAPI2SPID2ClientTestEnsureAuthorizationResponseWithInvalidMissingSt
 	protected void addCustomValuesToAuthorizationResponse() {
 		String state = env.getString(CreateAuthorizationEndpointResponseParams.ENV_KEY, CreateAuthorizationEndpointResponseParams.STATE);
 		if(!Strings.isNullOrEmpty(state)) {
-			callAndContinueOnFailure(RemoveStateFromAuthorizationEndpointResponseParams.class);
+			callAndContinueOnFailure(RemoveStateFromAuthorizationEndpointResponseParams.class, Condition.ConditionResult.INFO);
 			removedState = true;
 		}
 	}

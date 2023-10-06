@@ -65,7 +65,7 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedL
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "BCP195-3.1.1");
 
 		callAndStopOnFailure(ExtractLogoutTokenFromBackchannelLogoutRequest.class, "OIDCBCL-2.5");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInBackchannelLogoutRequest.class, "OIDCBCL-2.5");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInBackchannelLogoutRequest.class, Condition.ConditionResult.WARNING, "OIDCBCL-2.5");
 		callAndContinueOnFailure(ValidateLogoutTokenSignature.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.4");
 		callAndContinueOnFailure(ValidateLogoutTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.4");
 		skipIfElementMissing("logout_token", "claims.sub",
@@ -81,7 +81,7 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedL
 
 		eventLog.startBlock("Verify frontchannel post logout redirect");
 		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCRIL-3");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, Condition.ConditionResult.WARNING, "OIDCRIL-3");
 
 		eventLog.endBlock();
 

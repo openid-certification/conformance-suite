@@ -31,7 +31,7 @@ public class EKYCTestUserinfoDefaults extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest.class);
+		callAndContinueOnFailure(AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest.class, Condition.ConditionResult.INFO);
 	}
 
 	@Override

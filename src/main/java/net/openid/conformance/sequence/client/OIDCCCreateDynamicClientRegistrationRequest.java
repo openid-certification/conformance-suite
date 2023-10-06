@@ -46,7 +46,7 @@ public class OIDCCCreateDynamicClientRegistrationRequest extends AbstractConditi
 		callAndStopOnFailure(AddResponseTypesArrayToDynamicRegistrationRequestFromEnvironment.class);
 		callAndStopOnFailure(AddRedirectUriToDynamicRegistrationRequest.class);
 
-		callAndContinueOnFailure(AddContactsToDynamicRegistrationRequest.class);
+		callAndContinueOnFailure(AddContactsToDynamicRegistrationRequest.class, Condition.ConditionResult.INFO);
 	}
 
 }

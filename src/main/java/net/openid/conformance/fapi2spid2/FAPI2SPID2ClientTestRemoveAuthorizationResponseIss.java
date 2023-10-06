@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.RemoveIssFromAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -31,7 +32,7 @@ public class FAPI2SPID2ClientTestRemoveAuthorizationResponseIss extends Abstract
 
 	@Override
 	protected void addCustomValuesToAuthorizationResponse() {
-		callAndContinueOnFailure(RemoveIssFromAuthorizationEndpointResponseParams.class);
+		callAndContinueOnFailure(RemoveIssFromAuthorizationEndpointResponseParams.class, Condition.ConditionResult.INFO);
 	}
 
 	@Override

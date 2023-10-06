@@ -620,7 +620,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
 
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
 

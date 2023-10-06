@@ -61,8 +61,8 @@ public abstract class AbstractFapiRServerTestModule extends AbstractRedirectServ
 		// Make sure we're calling the right server configuration
 		// It would be better to do this using variants as it's done in
 		// the OIDCC test modules.
-		callAndContinueOnFailure(GetDynamicServerConfiguration.class);
-		callAndContinueOnFailure(GetStaticServerConfiguration.class);
+		callAndContinueOnFailure(GetDynamicServerConfiguration.class, Condition.ConditionResult.INFO);
+		callAndContinueOnFailure(GetStaticServerConfiguration.class, Condition.ConditionResult.INFO);
 
 		supportMTLSEndpointAliases();
 

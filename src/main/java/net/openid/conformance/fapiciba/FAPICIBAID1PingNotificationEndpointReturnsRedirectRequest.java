@@ -60,7 +60,7 @@ public class FAPICIBAID1PingNotificationEndpointReturnsRedirectRequest extends A
 
 		setStatus(Status.RUNNING);
 
-		callAndContinueOnFailure(CreateInvalidCIBANotificationEndpointUri.class, "CIBA-10.2");
+		callAndContinueOnFailure(CreateInvalidCIBANotificationEndpointUri.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
 
 		String redirectUri = env.getString("invalid_notification_uri");
 

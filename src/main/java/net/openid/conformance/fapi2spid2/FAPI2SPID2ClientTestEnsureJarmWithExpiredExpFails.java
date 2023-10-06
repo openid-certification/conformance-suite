@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddInvalidExpiredExpValueToJarm;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -27,7 +28,7 @@ public class FAPI2SPID2ClientTestEnsureJarmWithExpiredExpFails extends AbstractF
 
 	@Override
 	protected void addCustomValuesToJarmResponse() {
-		callAndContinueOnFailure(AddInvalidExpiredExpValueToJarm.class);
+		callAndContinueOnFailure(AddInvalidExpiredExpValueToJarm.class, Condition.ConditionResult.INFO);
 	}
 
 	@Override

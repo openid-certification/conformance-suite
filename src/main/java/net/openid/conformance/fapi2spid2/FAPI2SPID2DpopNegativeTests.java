@@ -78,7 +78,7 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 				result = Condition.ConditionResult.WARNING;
 			}
 			if (expectSuccess) {
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class,result , requirements);
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, result, requirements);
 			} else {
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, result, requirements);
 			}

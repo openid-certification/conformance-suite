@@ -186,11 +186,11 @@ public class CodeIdTokenWithPKCE extends AbstractFapiRServerTestModule {
 		skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-4");
 
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class, Condition.ConditionResult.INFO);
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, "FAPI-R-5.2.2-16");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2-16");
 
 		// verify the access token against a protected resource
 

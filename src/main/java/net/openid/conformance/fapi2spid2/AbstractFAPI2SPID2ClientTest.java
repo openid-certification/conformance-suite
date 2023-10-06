@@ -1230,7 +1230,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected void issueAccessToken() {
 		callAndStopOnFailure(generateSenderConstrainedAccessToken);
-		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
+		callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 
@@ -1271,7 +1271,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		if(profile == FAPI2ID2OPProfile.CONNECTID_AU) {
-			callAndContinueOnFailure(LoadRequestedIdTokenClaims.class);
+			callAndContinueOnFailure(LoadRequestedIdTokenClaims.class, ConditionResult.INFO);
 		}
 
 		addCustomValuesToIdToken();

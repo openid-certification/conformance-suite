@@ -1,6 +1,7 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import com.google.gson.JsonElement;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.ekyc.condition.client.AddUserProvidedClaimsRequestToAuthorizationEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -18,7 +19,7 @@ public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCor
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddUserProvidedClaimsRequestToAuthorizationEndpointRequest.class, "IA-6");
+		callAndContinueOnFailure(AddUserProvidedClaimsRequestToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-6");
 	}
 
 	@Override
