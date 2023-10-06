@@ -1355,6 +1355,12 @@
 
                                 if (errorObj.error.length != 0) {
                                     message = errorObj.error;
+                                    if (error.status == 500) {
+                                        // We have code that throws RunTimeException for bad variant selections etc; the error message we provide only seems to appear in the trace
+                                        if (errorObj.trace != null && errorObj.trace.length > 0) {
+                                            message = errorObj.trace.split("\n")[0].replace("java.lang.RuntimeException: ", "");
+                                        }
+                                    }
                                 }
                             }
                             catch (e) {

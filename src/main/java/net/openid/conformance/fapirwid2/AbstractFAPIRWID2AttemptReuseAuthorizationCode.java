@@ -33,7 +33,7 @@ public abstract class AbstractFAPIRWID2AttemptReuseAuthorizationCode extends Abs
 			call(sequence(generateNewClientAssertionSteps));
 		}
 
-		callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "FAPI-R-5.2.2-13");
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-13");
 
 		verifyError();
 

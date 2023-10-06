@@ -155,7 +155,7 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 			call(sequence(addTokenEndpointClientAuthentication));
 
 			if (isMTLS()) {
-				callAndContinueOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI1-ADV-5.2.2-6");
+				callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI1-ADV-5.2.2-6");
 				Boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 				if (sslError != null && sslError) {
 					// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert
@@ -176,7 +176,7 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 				}
 			}
 			else {
-				callAndContinueOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+				callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 
 				callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class);
 				callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");

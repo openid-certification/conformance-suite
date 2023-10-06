@@ -17,7 +17,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-request-object-without-nonce-fails",
 	displayName = "FAPI1-Advanced-Final: ensure request object without nonce fails",
-	summary = "This test should end with the authorization server showing an error message that the request or request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with an invalid_request error (in both cases due to the missing nonce).\n\nnonce is required for all openid flows as per FAPI1-Baseline section 5.2.2.2",
+	summary = "This test includes nonce only outside the request object, where it must be ignored.\n\nThe test should end with the authorization server showing an error message that the request or request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with an invalid_request error (in both cases due to the missing nonce).\n\nnonce is required for all openid flows as per FAPI1-Baseline section 5.2.2.2",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
