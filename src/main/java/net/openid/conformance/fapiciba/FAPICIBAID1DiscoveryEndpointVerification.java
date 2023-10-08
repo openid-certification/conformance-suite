@@ -12,6 +12,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -26,9 +27,11 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
-	CIBAMode.class
+	CIBAMode.class,
+	FAPI1FinalOPProfile.class
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
 	private Class<? extends ConditionSequence> variantModeChecks;
 

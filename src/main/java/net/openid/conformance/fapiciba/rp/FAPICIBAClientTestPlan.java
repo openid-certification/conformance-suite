@@ -46,7 +46,9 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				return "Not a conformance profile. Please use 'FAPI1-Advanced-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
+				certProfile = "BR-OB";
+				break;
+
 		}
 
 		certProfile += "-CIBA RP " + cibaMode;

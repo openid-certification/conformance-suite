@@ -185,7 +185,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 	public static class OpenBankingBrazilDiscoveryEndpointChecks extends AbstractConditionSequence {
 		boolean openInsurance;
 
-		OpenBankingBrazilDiscoveryEndpointChecks(boolean openInsurance) {
+		public OpenBankingBrazilDiscoveryEndpointChecks(boolean openInsurance) {
 			this.openInsurance = openInsurance;
 		}
 

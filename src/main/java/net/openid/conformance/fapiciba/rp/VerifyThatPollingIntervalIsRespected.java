@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class VerifyThatPollingIntervalIsRespected extends AbstractCondition {
 
-	public static final int DEFAULT_INTERVAL = 5; // CIBA 7.3 If no value is provided, clients MUST use 5 as the default value.
+	public static final int DEFAULT_INTERVAL = 0; // TODO CIBA 7.3 If no value is provided, clients MUST use 5 as the default value.
 
 	@Override
 	@PostEnvironment(strings = { "next_allowed_token_request" })

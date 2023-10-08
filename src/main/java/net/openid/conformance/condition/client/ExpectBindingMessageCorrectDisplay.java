@@ -15,7 +15,7 @@ public class ExpectBindingMessageCorrectDisplay extends AbstractCondition {
 
 		if (!Strings.isNullOrEmpty(automatedApprovalUrl)) {
 
-			throw error("Automated approval url has been provided in the configuration json it is assumed this is an automated run and the display of the binding message cannot be verified.");
+			throw error("Automated approval url has been provided in the configuration json. It is assumed this is an automated run and the display of the binding message cannot be verified.");
 
 		}
 

@@ -11,8 +11,11 @@ import java.util.Map;
 	displayName = "FAPI-CIBA-ID1: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
-		// Normal well behaved client cases
+		// Discovery
 		FAPICIBAID1DiscoveryEndpointVerification.class,
+		FAPICIBABrazilDiscoveryEndpointVerification.class,
+
+		// Normal well behaved client cases
 		FAPICIBAID1.class,
 		FAPICIBAID1UserRejectsAuthentication.class,
 		FAPICIBAID1MultipleCallToTokenEndpoint.class,
@@ -90,8 +93,10 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 			case "openbanking_uk":
 				certProfile = "FAPI-CIBA";
 				break;
-			case "consumerdataright_au":
 			case "openbanking_brazil":
+				certProfile = "BR-OB-CIBA";
+				break;
+			case "consumerdataright_au":
 			default:
 				return "";	//Not a profile
 		}
@@ -102,7 +107,7 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				certProfile += " poll";
 				break;
 			case "ping":
-				certProfile += " Ping";
+				certProfile += " ping";
 				break;
 		}
 		certProfile += " w/ ";
@@ -114,7 +119,6 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				certProfile += " MTLS";
 				break;
 		}
-
 
 		return certProfile;
 	}
