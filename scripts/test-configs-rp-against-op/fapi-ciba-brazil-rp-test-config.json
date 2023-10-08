@@ -1,0 +1,78 @@
+{
+    "alias": "oidf-fapi-ciba-brazil-rp-test",
+    "description": "FAPI-CIBA BR-OB RP test config for running against OP tests",
+    "server": {
+        "jwks": {
+            "keys": [
+                {
+                    "alg": "PS256",
+                    "use": "sig",
+                    "kty": "RSA",
+                    "x5c": [
+                        "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"
+                    ],
+                    "d": "BGzRkD7H_tAlgq8wEZqE2TD6x7aOYm0tPd7weQy8Cl1bJASykwKZCaXHp_flBPV3CBYqVeuEvxz3d2ITSkDdq5-Tiu_yqujytuh3jaKX7uhwIZkH4lVcfvB2e7fnNEEyAohaNMI0a9iHxZkl_vOxRhGHGH8Qw_sRPURxLkQYmAo8q_mguWCc4if9qFaxyKrCSyK6hh3qXXP8mNkngEBDJ8lV_1w_xLYpx0kgm6aiBkFGEDoFhoAVIhypv2LyHNZVfltlcV__901fJxuhsbHKP6eumOhenoSTOcanSlUbPoHlMyCcDQEaNSOam48rhtUqhJdfQKmBmj0drCbLuBABYQ",
+                    "dp": "jpTjr6VnHuPjQmg7lZvsLXUXDpqxM2-rZoYG9nU7HztlqTj3SVr0wl3poi8zDIwLVdFq5wfgp62vmN_Zro1E6j8EOo5Yie9YPK0Tjks2o7Rw8nlzN_cI5xKIfCcHH5wwtZ5WHyXNGKoqauEUO5J8owZ4M1-UjzNtyKXhjTLX2uE",
+                    "dq": "iPFs-xkHZNzvlBtf7TqslsLILtPcGy3gvPRpyYpkTr5NCJgxfXmBjx4joNdIAhD0QJLQffWUXh2ouf9ngJspZZ-sSSFlJzBLLsobo4ec-FsU5kwJ8piI32L_jBTTOqLwnYPdQZlWA8W3caeln2sd52EV-t-xgFsT7qgSJVb-hVk",
+                    "e": "AQAB",
+                    "n": "qZxVTSIymGN2x3wOyo_zYUTLBvZoTcozNk0ojFIcdko88W2CvRMyUYV5EAciifd24xuv3Is92uA4jCvR1cB020e3gvSjBrR1deIsrrKnXVuC1m0rcvLS511Qs9MFlpsAiIBF1kn9XMuqLbQHs2U4lYrxGzLesZhs2SY4pq6nqMr4jEWJs8k0k8yLz9K5GOO9-AYbSuYZHkJ_12cQepW6ORF43cMKQqPQt42FvPw8bnfwk6Wnu0HdvHcGzx4F2aW2PUgeesNcknrvJ2EUiPhriJWpDhZbwlS1ZnomrPlzsxMRekvQ1LqAQcWgVOzK5KQDDTcvtkmKhX4_rF7xyzAYTw",
+                    "p": "6HnW-YEVnJmObkTPYoFj5-HqlexrrJ-MLOxFp2i8Fz_-mk-aNqWrfhCfeqo5dYU-fCK6ZYarYrovcIRJYrfrT4DQqCgeXnNoD_tQXaQnJkCfn96crCeEvGpb0bUVcsU_mwIBKylxvv5ohWngzxwyWY3z3101jHrZwUOBezW6k6E",
+                    "q": "usYA9jU_C7juw_wZtBBrJ9NT_gS0Mb-p9t0xk_q0HskwWNlVP_fPzK7t3As2tejONMJa6eQYkbAJrEtGmdTg9IT8cgpDLEpXwC7EgrEXP9MQOXUZ4norN32-_7QhwKf8FNKaRc4L9gEKPzOLrwZmbispFgBHbqVZBaslmUpqJe8",
+                    "qi": "1OXGalYr90TfS6kI3oP3xq01h1-rLz_D3Gh2wLj2M5KdRzGrcSJEnjezsibsn1oY3lE-MpP-gAjN4Xa8WZfpJOnxIms_ThsmrijPtFLU1TBXHVfsjI66h_nnbRYWUE6h16J1_wtzJ4oos-AFSxFBj7eNKPWaeY1PJk1cGv-q4Mw",
+                    "kid": "oeVOWpj1--wx7_sHkrttXzFAmsy0FnbcTySBQgIqi40"
+                },
+                {
+                    "p": "7qwT58cO9f9a8py8ygvTnaxYfb3LFdQ1kTR10QF-r0fZlI8gzBHwFNbc7gJCBshk7c809FAHtd82wJ9LepftrZ1g4vQxw_8UgLCzLRfFAek_wOEC7R2xP0TyJy9OEnsE1Pte7U1oCqbnXI2BEw0y5hvJETa2jElZPIXNR2E-Jkk",
+                    "kty": "RSA",
+                    "q": "orD9o9NdlSdqXZxNz7kuDvy1QhCEmXW_tqyZ0k_6-rxmDgoW2TI0ozQQq93C21oxpa_XvYHZzYbXlqjk_3apIN5YaO0y0cN2xHLrHltLUP8f6ej7wasPRjWyIcWdt1V6Dxih17MxfLtglXDTFm35pnegAzqp-_rwwSdtwjR-TEc",
+                    "d": "WFToR1vz62QvfK8M-3CRrRJxflfXbNKOAuxAIzREl-vqx6JkaIx__Xz__qci-Ah24VQX4g_zBnWQG2xD9cty-CeOYByl0RWUresAhlgLhudmdZicVWc2NE8I9FUJBkF411oeIweluaS5VCASjrUH3TtLpZDxp2WnatGesfNe6DQMSdr9FZCJlNHswe_GbKCJAKlSlfmchP1jtx-go4_E5EOyy_dheO5-hZoEQbxyq1ZZ8V7h2TfI1BLG4QurvHSbHTPCAQAaYcz67LTdH2xNlOr0iao9N2vaRKOpkUNkm8pAU88x4adZ8h8pp54s_VpQGzEYJltj9CNBNnWJ0uz5IQ",
+                    "e": "AQAB",
+                    "use": "enc",
+                    "kid": "93427954-3d12-40db-879b-12e81d9010ab",
+                    "qi": "Rwqh-KQltDcY0eC-lhscR5MUuflG4PKn4n01cFvC4QsL-16fLv9sKrkoEO0TR-oJKStGMdFyP_Cqeyq9VamsBohHirubxoNKsHLSCDLtnXJ87leuNis7OFuWFGiLS84hy4Yi2Zuc1W_EVEKKLJ8v_Z4EaK1W7Yf5dS8GdKaQDGM",
+                    "dp": "6ZeFS92pKN6plrYMl_sHPFSHr1loQI8XdmxPuyWpZcf-jcWfpdsQjHTWeiO_l3_eOFoKS-tgAILcxZ2ic_PqbXeQcc_qPReUa3eFheazrHErMo2HHadn6LKEBhHoaXH5grIbcEnIQFSmMBFWeNz8Kfabzbss4xSOwAt8pBXqi_E",
+                    "alg": "RSA-OAEP",
+                    "dq": "HzTqAjG6ArFD0t73gf_YWOGadyip9rHCa2ziOJhE4TGgNdMznMfnluKWzBDGnsLHQSvgqyYsPCNAWVLeUi5VtMtRlBbjp57huj784J7MbKXzXi_lkrmYPXRxTc8VOKR5vEmSScjCllVu6ltw8h14RLkvhU8MahwxcCt6_0SIcWM",
+                    "n": "l63nXyecIjxp_CdKYGJkyPxNHXtdEJuUjhuTOhOcirciTKKCtZ6VUrzJdyIt2OC43zF4Mz6WscD3YXaLgPtnXEyd-UkxNGifZQbfGhG_TjB25CFxfd7jkfpSCtpMn0fU6pGyoSdnuHy5_g0A-JsD3YSBs-ni_7axKakpMeCx6HE2IH6dwe3Kyc0JobkNhH_2J_1IrN5pPUe_fc_Y__6qDpvl1Sg6Vi--ERNq0DUZkJXVYDouDr4f5eYrTmCdhv3imskbgsAO7J9zg1HyxxeMQ-9rZL43PXhtOlfA2n_xkj32dQtkZ_HB1HNonWdWFUgj6-QXfAMcm4kQdLRaF4hKPw"
+                }
+            ]
+        }
+    },
+    "client": {
+        "client_id": "a201cc12-fff6-40d7-92eb-8ca5e0c7fc0a",
+        "scope": "openid payments",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "kid": "oeVOWpj1--wx7_sHkrttXzFAmsy0FnbcTySBQgIqi40",
+                    "alg": "PS256",
+                    "n": "qZxVTSIymGN2x3wOyo_zYUTLBvZoTcozNk0ojFIcdko88W2CvRMyUYV5EAciifd24xuv3Is92uA4jCvR1cB020e3gvSjBrR1deIsrrKnXVuC1m0rcvLS511Qs9MFlpsAiIBF1kn9XMuqLbQHs2U4lYrxGzLesZhs2SY4pq6nqMr4jEWJs8k0k8yLz9K5GOO9-AYbSuYZHkJ_12cQepW6ORF43cMKQqPQt42FvPw8bnfwk6Wnu0HdvHcGzx4F2aW2PUgeesNcknrvJ2EUiPhriJWpDhZbwlS1ZnomrPlzsxMRekvQ1LqAQcWgVOzK5KQDDTcvtkmKhX4_rF7xyzAYTw"
+                }
+            ]
+        },
+        "backchannel_client_notification_endpoint": "{BASEURL}/test/a/oidf-fapi-ciba-brazil-op-test/ciba-notification-endpoint",
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIHJzCCBg+gAwIBAgIUSzO4bAWau5QbW7VFmLWbwKxD2pgwDQYJKoZIhvcNAQEL\nBQAwcTELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwx\nFTATBgNVBAsTDE9wZW4gQmFua2luZzEtMCsGA1UEAxMkT3BlbiBCYW5raW5nIFNB\nTkRCT1ggSXNzdWluZyBDQSAtIEcxMB4XDTIzMDUyNjEzNTcwMFoXDTIzMTIxMTEw\nMDAwMFowggE/MQswCQYDVQQGEwJCUjELMAkGA1UECBMCQ0ExEjAQBgNVBAcTCVNh\nbiBSYW1vbjEwMC4GA1UEChMnT3BlbiBCYW5raW5nIEJyYXNpbCAtIE9wZW5JRCBG\nb3VuZGF0aW9uMSkwJwYDVQQDEyBvcGVuaWQtc2FtcGxlLW9wZW5iYW5raW5nLWNs\naWVudDESMBAGA1UEBRMJMjYwNDQ3NTAzMR4wHAYDVQQPExVOb24tQ29tbWVyY2lh\nbCBFbnRpdHkxEzARBgsrBgEEAYI3PAIBAxMCVVMxMzAxBgNVBGETKk9GQkJSLTJi\nNjAyZDg3LWQwNjEtNDcwYy04OWQ2LWVjYzhiMTYzMjYwZTE0MDIGCgmSJomT8ixk\nAQETJGEyMDFjYzEyLWZmZjYtNDBkNy05MmViLThjYTVlMGM3ZmMwYTCCASIwDQYJ\nKoZIhvcNAQEBBQADggEPADCCAQoCggEBALbOKk9wS87X8WdWSwtsChKlcCWDcdm3\nH1oWNBfmE7edbJqOnBfehlD90cZHRjR8BnoIkAjw/epB8+PisTlv9IMEAEGAglnS\n9NjlzpKy1TsTH3ffFLWqr8Lx6Kb2mthYtJfqS2d+HznY2GRN9jOm17grONzl8lpy\nAp1nkRoCTTisa7FhOKGjUvISdTFnOBFLb1oRnGMTWzvo2h/gYGpSi1oFy6NPPrnq\nS+OaIK2dDco1EN+anpirVyblGj99X42aU2/xEi06NqJlTO8YdOmB6KCccUUuqyHV\nEgYDyyE2MgBt9fXgw1kdyy/T4YxmjoEVDnO06qjdoV046Cw5hckcU5UCAwEAAaOC\nAuUwggLhMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFPR4+kzSxU0/Ix+1p1yxUDbA\nE3VVMB8GA1UdIwQYMBaAFIZ/WK0X9YK2TrQFs/uwzhFD30y+MEwGCCsGAQUFBwEB\nBEAwPjA8BggrBgEFBQcwAYYwaHR0cDovL29jc3Auc2FuZGJveC5wa2kub3BlbmJh\nbmtpbmdicmFzaWwub3JnLmJyMEsGA1UdHwREMEIwQKA+oDyGOmh0dHA6Ly9jcmwu\nc2FuZGJveC5wa2kub3BlbmJhbmtpbmdicmFzaWwub3JnLmJyL2lzc3Vlci5jcmww\nJQYDVR0RBB4wHIIad3d3LmNvbmZvcm1hbmNlLm9wZW5pZC5uZXQwDgYDVR0PAQH/\nBAQDAgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMCMIIBqAYDVR0gBIIBnzCCAZswggGX\nBgorBgEEAYO6L2QBMIIBhzCCATYGCCsGAQUFBwICMIIBKAyCASRUaGlzIENlcnRp\nZmljYXRlIGlzIHNvbGVseSBmb3IgdXNlIHdpdGggUmFpZGlhbSBTZXJ2aWNlcyBM\naW1pdGVkIGFuZCBvdGhlciBwYXJ0aWNpcGF0aW5nIG9yZ2FuaXNhdGlvbnMgdXNp\nbmcgUmFpZGlhbSBTZXJ2aWNlcyBMaW1pdGVkcyBUcnVzdCBGcmFtZXdvcmsgU2Vy\ndmljZXMuIEl0cyByZWNlaXB0LCBwb3NzZXNzaW9uIG9yIHVzZSBjb25zdGl0dXRl\ncyBhY2NlcHRhbmNlIG9mIHRoZSBSYWlkaWFtIFNlcnZpY2VzIEx0ZCBDZXJ0aWNp\nY2F0ZSBQb2xpY3kgYW5kIHJlbGF0ZWQgZG9jdW1lbnRzIHRoZXJlaW4uMEsGCCsG\nAQUFBwIBFj9odHRwOi8vcmVwb3NpdG9yeS5zYW5kYm94LnBraS5vcGVuYmFua2lu\nZ2JyYXNpbC5vcmcuYnIvcG9saWNpZXMwDQYJKoZIhvcNAQELBQADggEBAAiR9oFZ\n1FeEK6ZeEMdNIQHrpnUhWshNHMBIHVopSAuex67Zwf8JKXXEk3Kse6pec+SXsWeq\nItpfTZbzEc1+u093hbjpT05SNPWfKCjMCUE7YuzSQZaFlYtKm2ETfFq8tWVah8ob\nlnKnSiUeqU1uJNvbwoLwQS0zLi3U7t12rbNJAgn5fi1v26bgRNlTK4knVrizRwHL\n0ivifVCEBRSwjT9VcFYdem8puUYLQVDwicJyfc6cnF+Ku596upiTIXnIeRvSeihe\nL8lM/LVCH8I6pZjL0NqqgtYoaTDHXmPs+ZC12JkyqFitAbEE8aJUomU1D/9ZdvT9\nmmLJ2oUqtuKAfEA=\n-----END CERTIFICATE-----\n"
+    },
+    "client2": {
+        "client_id": "61732691006",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "kid": "fapi-jwt-assertion-20180817-2",
+                    "alg": "PS256",
+                    "n": "kne7a8IYQR6jweqpHAplq-XRGOuiVyF5Siy6_647OhOC8ppRIMV2O_wP6qK1AKCFb78Bb8qbRI3Mz-Tr9hCWm1BZQkD-HGbNowjVsOj7oB2nbNbGfqciTyT3kTG1f5PmeX2N4-f9zZM-J4Jmi9PdMjn2fkNl9oMCW9XaLHHzCU6f-vYftxdCnVQD7ZKr40HjoAeXjwdGhgzvuWSZHkhEqx_QMh8JskqP46PjsMykFWiryju9balCdS5yASf-Fno8pXMFEV1wgipy-FPlhB5FZtLwVvH9F2jAxRaWkRQzhM5hWugIUi8YobjoIwhrmJ04JTK-DGOlThJsNvS4QANDZw"
+                }
+            ]
+        },
+        "backchannel_client_notification_endpoint": "{BASEURL}test/a/oidf-fapi-ciba-brazil-op-test/ciba-notification-endpoint",
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIDhTCCAm2gAwIBAgIJAKAe4HusBvwoMA0GCSqGSIb3DQEBCwUAMFgxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX\naWRnaXRzIFB0eSBMdGQxETAPBgNVBAMMCGNsaWVudF8yMCAXDTE4MDcwMjE2MzUy\nOFoYDzIxMDYwMjExMTYzNTI4WjBYMQswCQYDVQQGEwJVUzETMBEGA1UECAwKU29t\nZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMREwDwYD\nVQQDDAhjbGllbnRfMjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANMy\n1QohUbUoyte8cYCCO1+vJ/GImvVkrb79HUTSzL3G46lDC0JYZGMpMvX9NncadCYL\nQV8fmofOouNs4AWJgf0skH5sAJcZMgj3GVqqLsx2iDye3cgqsCCzTf5gzhOVtpXg\nNoBMFckVGxI+dG9h06n71mH9dtGoD/BoWOB4FLae0Ec4olot5eROeJ3Z0J15aXPW\noQrn3J5Eoz0/c7D7+byb+XGjF/r+uJVrKqOLtnO69Ro99fowwVtVQAPHmxLQ9VvF\niLONwbOfELtBvX4MlxHDOuynDsDw/mHxkzMSxPXAd9QfIU05ySZ9eVR3UfNUeCk8\na63NSO8MZdfHFnUsEO8CAwEAAaNQME4wHQYDVR0OBBYEFFEdch1XYRpO5JXxPkBx\ndAoAt6IiMB8GA1UdIwQYMBaAFFEdch1XYRpO5JXxPkBxdAoAt6IiMAwGA1UdEwQF\nMAMBAf8wDQYJKoZIhvcNAQELBQADggEBABTTN0up/ndWCNamqrV8ik1XwUqPCAO7\nTYKmZrRilo3STxyp2aUiFf1uPSkU6WU4Eu0JoDKU46axIFzZO3Ckoq17JMde2OzE\nSlAF+hQyvg/3l+6mbBK/OuzOiC+yfU9roD6vmjsBlH0My1+CnqkZLr6YQSaCHffl\nb6zqA7+aLUEWjyVneD6jQ6CCFwCs6eDorY1eKFM7lCQ5OdJFBc2LOOXuSGRXLZDK\nF3X2SfKCld0VWIOknJk8drfrCc1ylWa7wIuXU/kTyX8Z68a8w1/6ZkGxN9tsHWVt\nSe6ggOD1AFI5OQ3c8lCUzgGeFl69hz2UduHOyWs1KXUhgSy7fViAP90=\n-----END CERTIFICATE-----\n"
+    },
+    "directory": {
+        "keystore": "https://keystore.sandbox.directory.openbankingbrasil.org.br/"
+    }
+}
