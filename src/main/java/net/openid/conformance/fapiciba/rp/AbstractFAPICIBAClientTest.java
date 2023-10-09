@@ -530,8 +530,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			int tokenPollCount = env.getInteger("token_poll_count");
 
 			if (clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
+				issueAccessToken();
+				issueRefreshToken();
 				issueIdToken();
-				callAndStopOnFailure(GenerateBearerAccessToken.class);
 
 				createFinalTokenResponse();
 				callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
