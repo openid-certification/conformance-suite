@@ -20,25 +20,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPICIBAClientBackchannelResponseWithoutExpiresInTest extends AbstractFAPICIBAClientTest {
 
 	@Override
-	protected void addCustomValuesToIdToken() {	}
-
-	@Override
 	protected void createBackchannelResponse() {
 		callAndStopOnFailure(CreateBackchannelEndpointResponseWithoutExpiresIn.class);
 	}
-
-	@Override
-	protected void backchannelEndpointCallComplete() {
-		fireTestFinished();
-	}
-
-	@Override
-	protected void createIntermediateTokenResponse() {	}
-
-	@Override
-	protected void createFinalTokenResponse() {	}
-
-	@Override
-	protected void sendPingRequestAndVerifyResponse() {	}
 
 }

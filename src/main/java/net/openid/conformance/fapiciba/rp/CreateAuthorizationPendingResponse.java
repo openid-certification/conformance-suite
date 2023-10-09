@@ -11,13 +11,6 @@ public class CreateAuthorizationPendingResponse extends AbstractCondition {
 	@PostEnvironment(required = { "token_endpoint_response" })
 	public Environment evaluate(Environment env) {
 
-		Integer pollCount = env.getInteger("token_poll_count");
-		if(pollCount == null) {
-			pollCount = 0;
-		}
-		pollCount++;
-		env.putInteger("token_poll_count", pollCount);
-
 		JsonObject tokenEndpointResponse = new JsonObject();
 		tokenEndpointResponse.addProperty("error", "authorization_pending");
 

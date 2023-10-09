@@ -200,23 +200,31 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
 	}
 
-	protected abstract void addCustomValuesToIdToken();
-
-	protected abstract void createBackchannelResponse();
-
-	protected abstract void backchannelEndpointCallComplete();
-
-	protected abstract void createIntermediateTokenResponse();
-
-	protected abstract void createFinalTokenResponse();
-
-	protected abstract void sendPingRequestAndVerifyResponse();
+	protected void addCustomValuesToIdToken() {	}
 
 	protected void addCustomSignatureOfIdToken() { }
 
 	protected void onConfigurationCompleted() { }
 
 	protected void validateClientConfiguration() { }
+
+	protected void backchannelEndpointCallComplete() {
+		setStatus(Status.WAITING);
+	}
+
+	protected void createBackchannelResponse() {
+		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
+	}
+
+	protected void createIntermediateTokenResponse() {
+		callAndStopOnFailure(CreateAuthorizationPendingResponse.class);
+	}
+
+	protected void sendPingRequestAndVerifyResponse() {
+		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
+		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
+	}
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -262,12 +270,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		exposeEnvString("issuer");
 
 		if(isBrazil()) {
-			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
-			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
-			if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
-				exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
-			}
+			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
+			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		}
@@ -350,25 +354,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().unmapKey("client_request"));
 		setStatus(Status.WAITING);
 
-		if (isBrazil()) {
-
-			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
-				return brazilHandleNewConsentRequest(requestId, false);
-			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
-				return brazilHandleGetConsentRequest(requestId, path, false);
-			}
-
-			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
-				return brazilHandleNewConsentRequest(requestId, true);
-			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
-				return brazilHandleGetConsentRequest(requestId, path, true);
-			}
-
-			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
-				return brazilHandleNewPaymentInitiationRequest(requestId);
-			}
-		}
-
 		switch (path) {
 			case "backchannel":
 				return backchannelEndpoint(requestId);
@@ -377,7 +362,19 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case ACCOUNTS_PATH:
 			case FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH:
 				return accountsEndpoint(requestId);
+			case FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH:
+				return brazilHandleNewConsentRequest(requestId, false);
+			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH:
+				return brazilHandleNewConsentRequest(requestId, true);
+			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH:
+				return brazilHandleNewPaymentInitiationRequest(requestId);
 			default:
+				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
+					return brazilHandleGetConsentRequest(requestId, path, false);
+				}
+				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
+					return brazilHandleGetConsentRequest(requestId, path, true);
+				}
 				throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
 		}
 	}
@@ -461,10 +458,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		checkMtlsCertificate();
 		call(sequence(validateTokenEndpointClientAuthenticationSteps));
 
-		return handleTokenEndpointGrantType(requestId);
+		return handleTokenEndpointGrantType();
 	}
 
-	protected Object handleTokenEndpointGrantType(String requestId){
+	protected Object handleTokenEndpointGrantType(){
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
 		if (grantType == null) {
 			throw new TestFailureException(getId(), "Token endpoint body does not contain the mandatory 'grant_type' parameter");
@@ -474,18 +471,18 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case "client_credentials":
 				if (isBrazil()) {
 					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
-					return clientCredentialsGrantType(requestId);
+					return clientCredentialsGrantType();
 				}
 				break;
 			case "refresh_token":
-				return refreshTokenGrantType(requestId);
+				return refreshTokenGrantType();
 			case "urn:openid:params:grant-type:ciba":
-				return cibaGrantType(requestId);
+				return cibaGrantType();
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
 	}
 
-	protected Object refreshTokenGrantType(String requestId) {
+	protected Object refreshTokenGrantType() {
 		callAndStopOnFailure(ValidateRefreshToken.class);
 
 		issueAccessToken();
@@ -500,7 +497,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	}
 
-	protected Object clientCredentialsGrantType(String requestId) {
+	protected Object clientCredentialsGrantType() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
@@ -513,31 +510,17 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 	}
 
-	protected Object cibaGrantType(String requestId) {
+	protected Object cibaGrantType() {
 		callAndStopOnFailure(VerifyAuthReqId.class, ConditionResult.FAILURE, "CIBA-10.1");
 
-		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
+		HttpStatus statusCode;
 
 		if(VerifyAuthReqIdExpiration.isAuthReqIdExpired(env)) {
 			callAndContinueOnFailure(VerifyAuthReqIdExpiration.class, ConditionResult.INFO);
-			// Just end it here, the auth_req_id is forever expired.
 			throw new TestFailureException(getId(), "expired_token", "The auth_req_id has expired. The client will need to make a new authentication request.");
 		} else {
-
 			callAndStopOnFailure(VerifyThatPollingIntervalIsRespected.class, ConditionResult.FAILURE, "CIBA-7.3");
-
-			createIntermediateTokenResponse();
-			int tokenPollCount = env.getInteger("token_poll_count");
-
-			if (clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
-				issueAccessToken();
-				issueRefreshToken();
-				issueIdToken();
-
-				createFinalTokenResponse();
-				callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
-				statusCode = HttpStatus.OK;
-			}
+			statusCode = createTokenEndpointResponseForCiba();
 			setStatus(Status.WAITING);
 		}
 
@@ -545,6 +528,79 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), statusCode);
 	}
+
+	private HttpStatus createTokenEndpointResponseForCiba() {
+		callAndStopOnFailure(IncrementTokenEndpointPollCount.class);
+		int tokenPollCount = env.getInteger("token_poll_count");
+		if (clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
+			issueAccessToken();
+			issueRefreshToken();
+			issueIdToken();
+
+			callAndStopOnFailure(CreateTokenEndpointResponse.class);
+			callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
+			return HttpStatus.OK;
+		} else {
+			createIntermediateTokenResponse();
+			return HttpStatus.BAD_REQUEST;
+		}
+	}
+
+	protected void issueIdToken() {
+		prepareIdTokenClaims();
+		signIdToken();
+		encryptIdToken();
+	}
+
+	protected void issueAccessToken() {
+		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+	}
+
+	protected void issueRefreshToken() {
+		callAndStopOnFailure(CreateRefreshToken.class);
+	}
+
+	protected void prepareIdTokenClaims() {
+
+		env.mapKey("authorization_request_object", "backchannel_request_object");
+
+		callAndStopOnFailure(GenerateIdTokenClaims.class);
+		if(isBrazil()) {
+			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+		}
+
+		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
+			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		addCustomValuesToIdToken();
+
+		if(isBrazil()) {
+			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
+				FAPIBrazilOBAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+		} else {
+			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
+				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+		}
+
+		env.unmapKey("authorization_request_object");
+
+	}
+
+	protected void signIdToken() {
+		callAndStopOnFailure(SignIdToken.class);
+		addCustomSignatureOfIdToken();
+	}
+
+	/**
+	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
+	 * "5.2.3.1.  ID Token as detached signature" reads:
+	 *  "5. shall support both signed and signed & encrypted ID Tokens."
+	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
+	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
+	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
+	 */
+	protected void encryptIdToken() { }
 
 	private boolean clientHasPolledEnough(int tokenPollCount) {
 		return tokenPollCount > 2;
@@ -693,7 +749,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
 				CreateEffectiveAuthorizationRequestParameters.CLIENT_ID,
 				ConditionResult.INFO, EnsureMatchingClientId.class, ConditionResult.FAILURE, "OIDCC-3.1.2.1");
-			//skipIfMissing(new String[]{"client"}, null, ConditionResult.INFO, EnsureMatchingClientId.class, ConditionResult.FAILURE, "OIDCC-3.1.2.1");
 		}
 
 		env.unmapKey("authorization_endpoint_http_request_params");
@@ -709,62 +764,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");
 	}
-
-	protected void issueIdToken() {
-		prepareIdTokenClaims();
-		signIdToken();
-		encryptIdToken();
-	}
-
-	protected void issueAccessToken() {
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
-		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
-	}
-
-	protected void issueRefreshToken() {
-		callAndStopOnFailure(CreateRefreshToken.class);
-	}
-
-	protected void prepareIdTokenClaims() {
-
-		env.mapKey("authorization_request_object", "backchannel_request_object");
-
-		callAndStopOnFailure(GenerateIdTokenClaims.class);
-		if(isBrazil()) {
-			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
-		}
-
-		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
-			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		addCustomValuesToIdToken();
-
-		if(isBrazil()) {
-			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				FAPIBrazilOBAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-		} else {
-			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-		}
-
-		env.unmapKey("authorization_request_object");
-
-	}
-
-	protected void signIdToken() {
-		callAndStopOnFailure(SignIdToken.class);
-		addCustomSignatureOfIdToken();
-	}
-
-	/**
-	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
-	 * "5.2.3.1.  ID Token as detached signature" reads:
-	 *  "5. shall support both signed and signed & encrypted ID Tokens."
-	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
-	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
-	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
-	 */
-	protected void encryptIdToken() { }
 
 	protected Object accountsEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
