@@ -33,7 +33,9 @@ public class EnsureIdTokenDoesNotContainNonRequestedClaims extends AbstractVerif
 		// as per https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
 		"at_hash",
 		// as per https://openid.net/specs/openid-financial-api-part-2-1_0.html#id-token-as-detached-signature
-		"s_hash"
+		"s_hash",
+		// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#OpenBankingSecurityProfile-Implementer'sDraftv1.1.2-HybridGrantParameters
+		"openbanking_intent_id"
 	));
 
 	@Override
