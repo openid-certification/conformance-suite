@@ -533,8 +533,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			if(isKSA()) {
-				throw new TestFailureException(getId(), "Token endpoint must be called over an mTLS secured connection " +
-						"using the token_endpoint found in mtls_endpoint_aliases.");
+				throw new TestFailureException(getId(), "User info endpoint must be called over an mTLS secured connection " +
+						"using the userinfo_endpoint found in mtls_endpoint_aliases.");
 			} else {
 				return userinfoEndpoint(requestId);
 			}

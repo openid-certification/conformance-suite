@@ -33,7 +33,7 @@ public class VerifyThatPollingIntervalIsRespected extends AbstractCondition {
 
 		nextAllowedTokenRequest = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(intervalOrDefault));
 		env.putString("next_allowed_token_request", nextAllowedTokenRequest);
-		logSuccess("Next allowed request at", Map.of("next_allowed_token_request", nextAllowedTokenRequest));
+		logSuccess("Setting time for next allowed request", Map.of("next_allowed_token_request", nextAllowedTokenRequest));
 
 		return env;
 	}
