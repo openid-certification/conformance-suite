@@ -28,7 +28,7 @@ public class OIDCCRpInitiatedLogoutNoState extends AbstractOIDCCRpInitiatedLogou
 
 		eventLog.startBlock("Verify frontchannel post logout redirect");
 		callAndContinueOnFailure(CheckNoPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCRIL-3");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, Condition.ConditionResult.WARNING, "OIDCRIL-3");
 		eventLog.endBlock();
 
 		// do the prompt=none authorization request to check logout happened

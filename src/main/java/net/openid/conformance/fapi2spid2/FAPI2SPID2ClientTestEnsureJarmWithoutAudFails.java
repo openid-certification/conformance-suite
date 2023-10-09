@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.RemoveAudFromJarm;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -27,7 +28,7 @@ public class FAPI2SPID2ClientTestEnsureJarmWithoutAudFails extends AbstractFAPI2
 
 	@Override
 	protected void addCustomValuesToJarmResponse() {
-		callAndContinueOnFailure(RemoveAudFromJarm.class);
+		callAndContinueOnFailure(RemoveAudFromJarm.class, Condition.ConditionResult.INFO);
 	}
 
 	@Override

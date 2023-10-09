@@ -35,7 +35,7 @@ public class OIDCCIdTokenUnsigned extends AbstractOIDCCServerTest {
 	protected void skipTestIfSigningAlgorithmNotSupported() {
 
 		if (serverSupportsDiscovery()) {
-			callAndContinueOnFailure(OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone.class);
+			callAndContinueOnFailure(OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone.class, Condition.ConditionResult.INFO);
 
 			Boolean idTokenSigningAlgSupportedFlag = env.getBoolean("id_token_signing_alg_not_supported_flag");
 			if (idTokenSigningAlgSupportedFlag != null && idTokenSigningAlgSupportedFlag) {

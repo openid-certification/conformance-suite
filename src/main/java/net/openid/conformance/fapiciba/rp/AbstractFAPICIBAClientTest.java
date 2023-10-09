@@ -513,7 +513,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
 
 		if(VerifyAuthReqIdExpiration.isAuthReqIdExpired(env)) {
-			callAndContinueOnFailure(VerifyAuthReqIdExpiration.class);
+			callAndContinueOnFailure(VerifyAuthReqIdExpiration.class, ConditionResult.INFO);
 			// Just end it here, the auth_req_id is forever expired.
 			throw new TestFailureException(getId(), "expired_token", "The auth_req_id has expired. The client will need to make a new authentication request.");
 		} else {
@@ -528,7 +528,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				callAndStopOnFailure(GenerateBearerAccessToken.class);
 
 				createFinalTokenResponse();
-				callAndContinueOnFailure(RedeemAuthReqId.class);
+				callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
 				statusCode = HttpStatus.OK;
 			}
 			setStatus(Status.WAITING);

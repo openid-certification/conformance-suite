@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddInvalidIssToAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -31,7 +32,7 @@ public class FAPI2SPID2ClientTestInvalidAuthorizationResponseIss extends Abstrac
 
 	@Override
 	protected void addCustomValuesToAuthorizationResponse() {
-		callAndContinueOnFailure(AddInvalidIssToAuthorizationEndpointResponseParams.class);
+		callAndContinueOnFailure(AddInvalidIssToAuthorizationEndpointResponseParams.class, Condition.ConditionResult.INFO);
 	}
 
 	@Override

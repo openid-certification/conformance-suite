@@ -32,7 +32,7 @@ public class OIDCCSessionManagementRpInitiatedLogout extends AbstractOIDCCRpInit
 
 		eventLog.startBlock("Verify frontchannel post logout redirect");
 		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCRIL-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, Condition.ConditionResult.WARNING, "OIDCRIL-2");
 		eventLog.endBlock();
 
 		checkSessionState(false);

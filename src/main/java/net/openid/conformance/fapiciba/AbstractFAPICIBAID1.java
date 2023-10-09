@@ -798,14 +798,14 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "CIBA-10.1.1", "RFC6749-5.1");
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "CIBA-10.1.1", "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 
 		// scope is not *required* to be returned as the request was not passed via the browser - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class, Condition.ConditionResult.INFO);
 
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
 			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
@@ -942,7 +942,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		env.mapKey("client_request", envKey);
 
-		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTls12.class, Condition.ConditionResult.WARNING, "FAPI-R-7.1-1");
 		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 		callAndStopOnFailure(CheckIncomingContentTypeIsApplicationJson.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
 
@@ -971,7 +971,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callTokenEndpointForCibaGrant();
 			eventLog.endBlock();
 
-			callAndContinueOnFailure(CheckTokenEndpointHttpStatusNot200.class);
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatusNot200.class, Condition.ConditionResult.INFO);
 
 			int httpStatus = env.getInteger("token_endpoint_response_http_status");
 			if(httpStatus == org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503){

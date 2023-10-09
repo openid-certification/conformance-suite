@@ -219,7 +219,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12.class, "FAPI-R-7.1-1");
+		callAndContinueOnFailure(EnsureIncomingTls12.class, ConditionResult.WARNING, "FAPI-R-7.1-1");
 		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-1");
 
 		call(exec().unmapKey("client_request"));
@@ -335,7 +335,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class);
+		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.INFO);
 
 		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI-RW-5.2.2-5");
 
@@ -453,9 +453,9 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(EnsureMatchingRedirectUriInRequestObject.class);
 
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, "OIDCC-6.1");
+		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.WARNING, "OIDCC-6.1");
 
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, "JAR-10.8");
+		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.WARNING, "JAR-10.8");
 
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI-RW-5.2.2-1");
 
@@ -574,7 +574,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class);
+		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.INFO);
 		callAndStopOnFailure(CheckForClientCertificate.class, "FAPI-RW-5.2.2-5");
 		callAndStopOnFailure(EnsureClientCertificateMatches.class);
 

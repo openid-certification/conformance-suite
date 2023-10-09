@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.SetTokenResponseTokenTypeToInvertedCase;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -23,7 +24,7 @@ public class FAPI2SPID2ClientTestTokenTypeCaseInsenstivity extends AbstractFAPI2
 	@Override
 	protected void issueAccessToken() {
 		super.issueAccessToken();
-		callAndContinueOnFailure(SetTokenResponseTokenTypeToInvertedCase.class);
+		callAndContinueOnFailure(SetTokenResponseTokenTypeToInvertedCase.class, Condition.ConditionResult.INFO);
 	}
 
 	@Override

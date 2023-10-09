@@ -19,7 +19,7 @@ public class EKYCRequestVerifiedClaimsOnlyInIdToken extends AbstractEKYCTestWith
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddOneVerifiedClaimInIdTokenOnlyToAuthorizationEndpointRequest.class, "IA-6.1");
+		callAndContinueOnFailure(AddOneVerifiedClaimInIdTokenOnlyToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-6.1");
 	}
 
 	@Override

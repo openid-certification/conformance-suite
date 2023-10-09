@@ -22,7 +22,7 @@ public class AbstractOIDCCReturnedClaimsServerTest extends AbstractOIDCCServerTe
 	@Override
 	protected void skipTestIfScopesNotSupported() {
 		if (serverSupportsDiscovery()) {
-			callAndContinueOnFailure(OIDCCCheckScopesSupportedContainScopeTest.class);
+			callAndContinueOnFailure(OIDCCCheckScopesSupportedContainScopeTest.class, Condition.ConditionResult.INFO);
 
 			Boolean scopesSupportedFlag = env.getBoolean("scopes_not_supported_flag");
 			if (scopesSupportedFlag != null && scopesSupportedFlag) {

@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.RemoveAccessTokenExpiration;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -33,7 +34,7 @@ public class FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse extends 
 	@Override
 	protected void issueAccessToken() {
 		super.issueAccessToken();
-		callAndContinueOnFailure(RemoveAccessTokenExpiration.class);
+		callAndContinueOnFailure(RemoveAccessTokenExpiration.class, Condition.ConditionResult.INFO);
 	}
 
 	@Override

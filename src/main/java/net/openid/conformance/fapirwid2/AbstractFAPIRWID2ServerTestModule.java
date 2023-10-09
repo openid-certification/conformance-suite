@@ -532,14 +532,14 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-5.1");
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, ConditionResult.WARNING, "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class);
+		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
 
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
 			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");

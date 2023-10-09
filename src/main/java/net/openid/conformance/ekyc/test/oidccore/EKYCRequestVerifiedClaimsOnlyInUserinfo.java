@@ -1,5 +1,6 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.ekyc.condition.client.AddOneVerifiedClaimInUserinfoOnlyToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.EnsureIdTokenDoesNotContainVerifiedClaims;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -18,7 +19,7 @@ public class EKYCRequestVerifiedClaimsOnlyInUserinfo extends AbstractEKYCTestWit
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddOneVerifiedClaimInUserinfoOnlyToAuthorizationEndpointRequest.class, "IA-6.1");
+		callAndContinueOnFailure(AddOneVerifiedClaimInUserinfoOnlyToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-6.1");
 	}
 
 	@Override

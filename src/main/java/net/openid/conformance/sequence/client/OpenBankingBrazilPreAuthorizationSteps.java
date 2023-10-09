@@ -112,7 +112,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, "RFC6749-4.4.3", "RFC6749-5.1");
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "RFC6749-4.4.3", "RFC6749-5.1");
 
 		call(condition(ValidateExpiresIn.class)
 				.skipIfObjectMissing("expires_in")

@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.RemoveAccessTokenExpiration;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -27,7 +28,7 @@ public class FAPI2SPID2ClientTestTokenEndpointResponseWithoutExpiresIn extends A
 	@Override
 	protected void issueAccessToken() {
 		super.issueAccessToken();
-		callAndContinueOnFailure(RemoveAccessTokenExpiration.class);
+		callAndContinueOnFailure(RemoveAccessTokenExpiration.class, Condition.ConditionResult.INFO);
 	}
 
 }

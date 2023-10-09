@@ -176,7 +176,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		call(exec().unmapKey("token_endpoint_request"));
 
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "RFC7592-2.1");
-		callAndContinueOnFailure(RequireBearerRegistrationAccessToken.class, "RFC7592-2.1");
+		callAndContinueOnFailure(RequireBearerRegistrationAccessToken.class, Condition.ConditionResult.WARNING, "RFC7592-2.1");
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
@@ -313,7 +313,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		skipIfElementMissing("client", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
 			FAPIBrazilValidateTokenEndpointAuthSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-		callAndContinueOnFailure(ValidateDefaultMaxAge.class,"OIDCR-2");
+		callAndContinueOnFailure(ValidateDefaultMaxAge.class, Condition.ConditionResult.WARNING,"OIDCR-2");
 
 		skipIfElementMissing("client", "require_auth_time", Condition.ConditionResult.INFO,
 			ValidateRequireAuthTime.class, Condition.ConditionResult.FAILURE, "OIDCR-2");

@@ -56,7 +56,7 @@ public class OIDCCFrontChannelRpInitiatedLogout extends AbstractOIDCCRpInitiated
 
 		env.mapKey("client_request", fcLogoutEnvKey);
 
-		callAndContinueOnFailure(CheckForUnexpectedParametersInFrontchannelLogoutRequest.class, "OIDCFCL-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInFrontchannelLogoutRequest.class, Condition.ConditionResult.WARNING, "OIDCFCL-2");
 		callAndContinueOnFailure(ValidateFrontchannelLogoutIss.class, Condition.ConditionResult.FAILURE, "OIDCFCL-2");
 		callAndContinueOnFailure(CheckIdTokenSidMatchesFrontChannelLogoutRequest.class, Condition.ConditionResult.FAILURE, "OIDCFCL-2", "OIDCFCL-3");
 
@@ -66,7 +66,7 @@ public class OIDCCFrontChannelRpInitiatedLogout extends AbstractOIDCCRpInitiated
 
 		eventLog.startBlock("Verify frontchannel post logout redirect");
 		callAndContinueOnFailure(CheckPostLogoutState.class, Condition.ConditionResult.FAILURE, "OIDCRIL-2");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, "OIDCRIL-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInPostLogoutRedirect.class, Condition.ConditionResult.WARNING, "OIDCRIL-2");
 
 		eventLog.endBlock();
 

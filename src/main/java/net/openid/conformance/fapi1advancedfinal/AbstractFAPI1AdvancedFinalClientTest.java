@@ -955,7 +955,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	protected Object clientCredentialsGrantType(String requestId) {
 
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
-		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
+		callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
@@ -1197,7 +1197,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected void issueAccessToken() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
-		callAndContinueOnFailure(GenerateAccessTokenExpiration.class);
+		callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 

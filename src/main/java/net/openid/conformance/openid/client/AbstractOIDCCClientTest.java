@@ -399,7 +399,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 			validateClientMetadata();
 		} else if(clientRegistrationType == ClientRegistration.DYNAMIC_CLIENT) {
 			// I am not sure the result of either of these condition calls is used
-			callAndContinueOnFailure(StoreOriginalClientConfiguration.class);
+			callAndContinueOnFailure(StoreOriginalClientConfiguration.class, ConditionResult.INFO);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
 			//for dynamic clients, jwks_uri retrieval and jwks validation will be performed after registration
 			//signing_algorithm will be also set after registration
@@ -755,7 +755,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 */
 	protected void validateRegistrationRequest() {
 		//because the python suite requires this
-		callAndContinueOnFailure(EnsureRegistrationRequestContainsAtLeastOneContact.class);
+		callAndContinueOnFailure(EnsureRegistrationRequestContainsAtLeastOneContact.class, ConditionResult.INFO);
 
 		//the following conditions are used for both static client validation and dynamic registration validation
 		//so they require "client" env entry
@@ -800,7 +800,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		skipIfElementMissing("client", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
 			ValidateTokenEndpointAuthSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-		callAndContinueOnFailure(ValidateDefaultMaxAge.class,"OIDCR-2");
+		callAndContinueOnFailure(ValidateDefaultMaxAge.class, ConditionResult.WARNING,"OIDCR-2");
 
 		skipIfElementMissing("client", "require_auth_time", Condition.ConditionResult.INFO,
 			ValidateRequireAuthTime.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
@@ -1081,8 +1081,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateRequestObjectIat.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(ValidateRequestObjectMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCC-13.3");
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, "OIDCC-6.1");
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, "JAR-10.8");
+		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.WARNING, "OIDCC-6.1");
+		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.WARNING, "JAR-10.8");
 
 		String alg = env.getString("authorization_request_object", "header.alg");
 
