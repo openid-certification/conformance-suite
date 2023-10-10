@@ -270,6 +270,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		exposeEnvString("issuer");
 
 		if(isBrazil()) {
+			expose("obtain_id_token", baseUrl + "/token/obtain");
 			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		} else {
@@ -321,6 +322,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				return discoveryEndpoint();
 			case "jwks":
 				return jwksEndpoint();
+			case "token/obtain":
+				return obtainIdToken();
 			case "backchannel":
 				if (ClientAuthType.MTLS.equals(clientAuthType)) {
 					throw new TestFailureException(
@@ -544,6 +547,22 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			createIntermediateTokenResponse();
 			return HttpStatus.BAD_REQUEST;
 		}
+	}
+
+	// To facilitate id_token_hint testing
+	private Object obtainIdToken() {
+		setStatus(Status.RUNNING);
+
+		callAndStopOnFailure(GenerateIdTokenClaims.class);
+		callAndStopOnFailure(SignIdToken.class);
+		JsonObject response = new JsonObject();
+		response.addProperty("id_token", env.getString("id_token"));
+
+		env.removeObject("id_token_claims");
+		env.removeObject("id_token");
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 
 	protected void issueIdToken() {

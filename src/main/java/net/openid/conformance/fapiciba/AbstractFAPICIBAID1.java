@@ -123,6 +123,7 @@ import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthReques
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
+import net.openid.conformance.condition.client.FetchFreshIdToken;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
@@ -332,6 +333,14 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(SetHintTypeToIdTokenHint.class);
+			// In order to address the chicken-and-problem of Brazil requiring
+			// id_token_hint and the OP vs RP test requiring a valid id_token to
+			// test with, the RP tests will expose a /token/obtain endpoint just
+			// to fetch a recently signed id token for the given environment.
+			// In the OP tests (this one), if there is a config `client.obtain_id_token`
+			// containing a URL to that endpoint, then a token will be fetched
+			// and used to replace whatever id_token is statically configured.
+			callAndStopOnFailure(FetchFreshIdToken.class);
 			callAndStopOnFailure(FAPICIBAAddAcrValuesToAuthorizationEndpointRequest.class); // TODO: Is this right?
 		}
 	}
@@ -621,6 +630,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequest.class, "CIBA-7.1");
 		callAndStopOnFailure(AddHintToAuthorizationEndpointRequest.class, "CIBA-7.1");
+
 
 		// The spec also defines these parameters that we don't currently set:
 		// binding_message
