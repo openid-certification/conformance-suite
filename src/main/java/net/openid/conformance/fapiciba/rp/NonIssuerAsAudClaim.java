@@ -24,6 +24,11 @@ public class NonIssuerAsAudClaim extends AbstractCondition {
 		String backchannelEndpoint = env.getString("server", "backchannel_authentication_endpoint");
 		Set<String> allowedAuds = ImmutableSet.of(tokenEndpoint, backchannelEndpoint);
 
+		if (aud == null || aud.isJsonNull()) {
+			throw error("The issuer identifier of the OP should be used as the value of the audience, " +
+				"but token_endpoint or backchannel_authentication_endpoint are accepted.", args("expected", issuer, "actual", aud));
+		}
+
 		if (aud.isJsonArray()) {
 			JsonArray auds = aud.getAsJsonArray();
 			if(allowedAuds.stream().anyMatch(a -> auds.contains(new JsonPrimitive(a)))) {

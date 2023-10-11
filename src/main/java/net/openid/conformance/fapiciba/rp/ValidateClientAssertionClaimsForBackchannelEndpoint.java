@@ -21,8 +21,8 @@ public class ValidateClientAssertionClaimsForBackchannelEndpoint extends Validat
 
 		String mtlsBackchannelEndpoint = env.getString("server", "mtls_endpoint_aliases.backchannel_authentication_endpoint");
 		JsonElement aud = env.getElementFromObject("client_assertion", "claims.aud");
-		if (aud == null) {
-			throw error("Missing aud");
+		if (aud == null || aud.isJsonNull()) {
+			throw error("Missing aud", args("aud", aud));
 		}
 
 		List<String> backchannelEndpoints = new ArrayList<>(List.of(backchannelEndpoint));
@@ -37,17 +37,8 @@ public class ValidateClientAssertionClaimsForBackchannelEndpoint extends Validat
 			}
 		} else {
 			String audStr = OIDFJSON.getString(aud);
-			// TODO: Not getting the /backchannel path when using the OP test plan, let's just hack it for now
-			if(!backchannelEndpoint.startsWith(audStr) &&
-				!mtlsBackchannelEndpoint.startsWith(audStr)) {
+			if(!backchannelEndpoint.startsWith(audStr) && !mtlsBackchannelEndpoint.startsWith(audStr)) {
 				throw error("aud mismatch", args("expected", backchannelEndpoints, "actual", aud));
 			}
-			// TODO: It was like this:
-			/*
-			if (!audStr.equals(backchannelEndpoint) &&
-				!audStr.equals(mtlsBackchannelEndpoint)) {
-				throw error("aud mismatch", args("expected", backchannelEndpoints, "actual", aud));
-			}
-			*/
 		}
 	}}
