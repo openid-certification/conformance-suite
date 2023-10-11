@@ -12,6 +12,8 @@ import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointRes
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-authorization-code-is-bound-to-client",
@@ -49,8 +51,15 @@ public class FAPI2SPID2EnsureAuthorizationCodeIsBoundToClient extends AbstractFA
 		createAuthorizationCodeRequest();
 
 		// Now try with the wrong certificate
-		callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+		boolean mtlsRequired =
+			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
+			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
+			profileRequiresMtlsEverywhere;
+
+		if (mtlsRequired) {
+			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
+			callAndStopOnFailure(ExtractMTLSCertificates2FromConfiguration.class);
+		}
 
 		switchToSecondClient();
 
