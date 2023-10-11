@@ -2,6 +2,7 @@ package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainName;
+import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
 import net.openid.conformance.condition.client.ExtractAtHash;
@@ -70,5 +71,15 @@ public class OIDCCServerTest extends AbstractOIDCCServerTest {
 		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
 
 		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
+	}
+
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+
+		if (!isSecondClient()) {
+			callAndContinueOnFailure(EnsureIdTokenDoesNotContainNonRequestedClaims.class, Condition.ConditionResult.WARNING);
+		}
+
+		super.onPostAuthorizationFlowComplete();
 	}
 }
