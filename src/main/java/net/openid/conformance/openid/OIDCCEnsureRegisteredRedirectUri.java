@@ -1,7 +1,7 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.CreateBadRedirectUri;
+import net.openid.conformance.condition.client.CreateBadRedirectUriByAppending;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -23,7 +23,7 @@ public class OIDCCEnsureRegisteredRedirectUri extends AbstractOIDCCServerTestExp
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
 		// create a random redirect URI
-		callAndStopOnFailure(CreateBadRedirectUri.class);
+		callAndStopOnFailure(CreateBadRedirectUriByAppending.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
