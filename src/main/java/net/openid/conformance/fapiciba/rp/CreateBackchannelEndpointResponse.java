@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter;
 
 public class CreateBackchannelEndpointResponse extends AbstractCondition {
 
-	public static final int EXPIRES_IN = 180;
+	public static final int EXPIRES_IN = 300;
 
 	@Override
 	@PreEnvironment(required = { "backchannel_endpoint_http_request", "backchannel_request_object" })
