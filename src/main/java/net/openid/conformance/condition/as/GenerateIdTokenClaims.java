@@ -43,7 +43,7 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 		}
 
 		Instant iat = Instant.now();
-		Instant exp = iat.plusSeconds(5 * 60);
+		Instant exp = getExp(iat);
 
 		claims.addProperty("iat", iat.getEpochSecond());
 		claims.addProperty("exp", exp.getEpochSecond());
@@ -54,6 +54,10 @@ public class GenerateIdTokenClaims extends AbstractCondition {
 
 		return env;
 
+	}
+
+	protected Instant getExp(Instant iat) {
+		return iat.plusSeconds(5 * 60);
 	}
 
 }

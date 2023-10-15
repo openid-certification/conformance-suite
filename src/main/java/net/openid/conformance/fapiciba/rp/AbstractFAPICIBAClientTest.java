@@ -52,6 +52,7 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
+import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
@@ -586,9 +587,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_request_object", "backchannel_request_object");
 
-		callAndStopOnFailure(GenerateIdTokenClaims.class);
 		if(isBrazil()) {
+			callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+		} else {
+			callAndStopOnFailure(GenerateIdTokenClaims.class);
 		}
 
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
