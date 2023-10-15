@@ -84,6 +84,7 @@ import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
+import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
@@ -109,6 +110,7 @@ import net.openid.conformance.condition.client.ExtractInitialAccessTokenFromStor
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
+import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRtHash;
 import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceResponse;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
@@ -179,6 +181,7 @@ import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAsser
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
+import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -901,6 +904,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class, Condition.ConditionResult.INFO);
 
+		// TODO: Required for Brazil?
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
+			ExtractRefreshTokenFromTokenResponse.class, Condition.ConditionResult.INFO);
+
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
 			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
@@ -1052,7 +1059,23 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+		if (isBrazil()) {
+
+			ConditionSequence sequence =
+				new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication)
+					.skip(EnsureAccessTokenValuesAreDifferent.class, "");
+
+			int httpStatus = env.getInteger("endpoint_response", "status");
+			for(int i = 0; i < 3 && httpStatus == 401; i++) {
+				call(sequence);
+				callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+				httpStatus = env.getInteger("endpoint_response", "status");
+			}
+		}
+
 		Optional<ConditionSequence> statusCheckingSequence = getBrazilPaymentsStatusCodeCheck();
 		call(statusCheckingSequence.orElse(
 			sequenceOf(condition(EnsureHttpStatusCodeIs200or201.class).onFail(Condition.ConditionResult.FAILURE))
