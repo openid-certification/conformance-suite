@@ -1,6 +1,7 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.testmodule.PublishTestModule;
+import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-client-no-expiresin-test",
@@ -20,8 +21,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPICIBAClientBackchannelResponseWithoutExpiresInTest extends AbstractFAPICIBAClientTest {
 
 	@Override
-	protected void createBackchannelResponse() {
+	protected HttpStatus createBackchannelResponse() {
 		callAndStopOnFailure(CreateBackchannelEndpointResponseWithoutExpiresIn.class);
+		return HttpStatus.OK;
 	}
 
 }

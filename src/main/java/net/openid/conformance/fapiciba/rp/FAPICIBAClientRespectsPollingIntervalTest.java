@@ -1,6 +1,7 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.testmodule.PublishTestModule;
+import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi-ciba-id1-client-respects-interval-test",
@@ -21,8 +22,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPICIBAClientRespectsPollingIntervalTest extends AbstractFAPICIBAClientTest {
 
 	@Override
-	protected void createBackchannelResponse() {
+	protected HttpStatus createBackchannelResponse() {
 		callAndStopOnFailure(CreateBackchannelEndpointResponseWithLongInterval.class);
+		return HttpStatus.OK;
 	}
 
 }

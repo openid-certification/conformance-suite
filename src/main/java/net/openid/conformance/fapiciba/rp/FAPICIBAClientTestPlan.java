@@ -13,10 +13,14 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPICIBAClientTest.class,
+		FAPICIBAClientRefreshTokenTest.class,
+		FAPICIBAClientRespectsPollingIntervalTest.class,
+
 		FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest.class,
 		FAPICIBAClientBackchannelResponseWithoutExpiresInTest.class,
-		FAPICIBAClientRespectsPollingIntervalTest.class,
-		FAPICIBAClientRefreshTokenTest.class,
+		FAPICIBAClientBackchannelExpiredIdTokenHintTest.class,
+
+		// Ping
 		FAPICIBAClientPingWithInvalidBearerTokenTest.class
 	}
 )

@@ -215,8 +215,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		setStatus(Status.WAITING);
 	}
 
-	protected void createBackchannelResponse() {
+	protected HttpStatus createBackchannelResponse() {
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
+		return HttpStatus.OK;
 	}
 
 	protected void createIntermediateTokenResponse() {
@@ -556,7 +557,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	private Object obtainIdToken() {
 		setStatus(Status.RUNNING);
 
-		callAndStopOnFailure(GenerateIdTokenClaims.class);
+		callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
 		callAndStopOnFailure(SignIdToken.class);
 		JsonObject response = new JsonObject();
 		response.addProperty("id_token", env.getString("id_token"));
@@ -703,7 +704,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
-		createBackchannelResponse();
+		HttpStatus httpStatus = createBackchannelResponse();
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
 			spawnThreadForPing();
@@ -712,7 +713,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
 		backchannelEndpointCallComplete();
 
-		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), httpStatus);
 	}
 
 	private void spawnThreadForPing() {
