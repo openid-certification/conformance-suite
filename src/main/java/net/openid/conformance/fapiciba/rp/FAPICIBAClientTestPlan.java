@@ -20,6 +20,7 @@ import java.util.Map;
 		FAPICIBAClientBackchannelResponseWithoutExpiresInTest.class,
 		FAPICIBAClientBackchannelExpiredIdTokenHintTest.class,
 		FAPICIBAClientBackchannelUnknownUserIdTest.class,
+		FAPICIBAClientBackchannelInvalidIdTokenHintTest.class,
 
 		// Ping
 		FAPICIBAClientPingWithInvalidBearerTokenTest.class
