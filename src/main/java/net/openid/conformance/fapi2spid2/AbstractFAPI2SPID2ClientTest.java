@@ -100,6 +100,7 @@ import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimForPAR
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
+import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
@@ -611,6 +612,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
 			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
 
 	}
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
