@@ -527,7 +527,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			throw new TestFailureException(getId(), "expired_token", "The auth_req_id has expired. The client will need to make a new authentication request.");
 		} else {
 			callAndStopOnFailure(VerifyThatPollingIntervalIsRespected.class, ConditionResult.FAILURE, "CIBA-7.3");
+
 			statusCode = createTokenEndpointResponseForCiba();
+
+			callAndStopOnFailure(SetNextAllowedTokenRequest.class);
+
 			setStatus(Status.WAITING);
 		}
 

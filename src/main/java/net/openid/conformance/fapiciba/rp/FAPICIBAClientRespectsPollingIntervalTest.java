@@ -23,7 +23,8 @@ public class FAPICIBAClientRespectsPollingIntervalTest extends AbstractFAPICIBAC
 
 	@Override
 	protected HttpStatus createBackchannelResponse() {
-		callAndStopOnFailure(CreateBackchannelEndpointResponseWithLongInterval.class);
+		callAndStopOnFailure(SetIntervalTo31Seconds.class);
+		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
 		return HttpStatus.OK;
 	}
 
