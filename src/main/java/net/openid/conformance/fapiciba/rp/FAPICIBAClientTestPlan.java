@@ -12,19 +12,29 @@ import java.util.Map;
 	displayName = "FAPI-CIBA-ID1: Relying Party (client test) (alpha - INCOMPLETE/INCORRECT, please email certification team if intererested)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
+		// Happy path test
 		FAPICIBAClientTest.class,
+
+		// Happy refresh token test
 		FAPICIBAClientRefreshTokenTest.class,
 
+		// Happy polling interval tests
 		FAPICIBAClientRespectsPollingIntervalTest.class,
 		FAPICIBAClientSlowDownTest.class,
 
+		// Negative tests for backchannel endpoint response
 		FAPICIBAClientBackchannelResponseWithoutAuthReqIdTest.class,
 		FAPICIBAClientBackchannelResponseWithoutExpiresInTest.class,
 		FAPICIBAClientBackchannelExpiredIdTokenHintTest.class,
 		FAPICIBAClientBackchannelUnknownUserIdTest.class,
 		FAPICIBAClientBackchannelInvalidIdTokenHintTest.class,
 
-		// Ping
+		// Negative tests for id_token in token endpoint response
+		FAPICIBAClientTestInvalidIssTest.class,
+		FAPICIBAClientTestInvalidAudTest.class,
+		FAPICIBAClientTestInvalidSecondaryAudTest.class,
+
+		// Negative test for ping mode
 		FAPICIBAClientPingWithInvalidBearerTokenTest.class
 	}
 )
