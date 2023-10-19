@@ -12,10 +12,28 @@ public class CreateRandomFAPIInteractionId extends AbstractCondition {
 	@PostEnvironment(strings = "fapi_interaction_id")
 	public Environment evaluate(Environment env) {
 
-		UUID interactionId = UUID.randomUUID();
-		env.putString("fapi_interaction_id", interactionId.toString());
+		String  uuid = UUID.randomUUID().toString();
+		String  interactionId = "";
+		boolean toUpper = false;
 
-		log("Created interaction ID", args("fapi_interaction_id", interactionId.toString()));
+		// Ensure the hex characters, [a-f], in the UUID are a mix of upper/lower case.
+		for (int i=0; i<uuid.length(); i++) {
+			char c = uuid.charAt(i);
+
+			if (Character.isLowerCase(c)) {
+				if (toUpper) {
+					c = Character.toUpperCase(c);
+				}
+
+				toUpper = !toUpper;
+			}
+
+			interactionId += c;
+		}
+
+		env.putString("fapi_interaction_id", interactionId);
+
+		log("Created interaction ID", args("fapi_interaction_id", interactionId));
 
 		return env;
 	}
