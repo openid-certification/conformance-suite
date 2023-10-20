@@ -251,12 +251,10 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
-/* TODO: Re-enable
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.hint_type",
 	"client.hint_value"
 })
-*/
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	// for variants to fill in by calling the setup... family of methods

@@ -731,7 +731,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	private void spawnThreadForPing() {
 		getTestExecutionManager().runInBackground(() -> {
-			int secondsUntilPing = 10; //TODO: Default 30?
+			int secondsUntilPing = 10;
 			Thread.sleep(secondsUntilPing * 1000L);
 
 			call(exec().startBlock("OP calls the client notification endpoint"));
@@ -756,7 +756,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_endpoint_http_request_params", "backchannel_endpoint_http_request_params");
 
-		// TODO: The OP tests will only send client_id as a parameter in MTLS mode. Should this be validated in some other way for private key? (such as checking the iss in the JWT)
 		if(ClientAuthType.MTLS.equals(clientAuthType)) {
 			callAndContinueOnFailure(EnsureRequiredBackchannelRequestParametersMatchRequestObject.class, ConditionResult.FAILURE, "OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
 			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
