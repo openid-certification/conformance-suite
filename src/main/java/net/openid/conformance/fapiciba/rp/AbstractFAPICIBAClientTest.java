@@ -68,6 +68,7 @@ import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenA
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.client.VerifyIdTokenValidityIsMinimum180Days;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -711,6 +712,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			env.mapKey("id_token", "id_token_hint");
 			env.mapKey("authorization_endpoint_request", "backchannel_request_object");
 			call(new PerformStandardIdTokenChecks());
+			callAndContinueOnFailure(VerifyIdTokenValidityIsMinimum180Days.class, ConditionResult.WARNING, "BrazilCIBA-5.2.2");
 			env.unmapKey("authorization_endpoint_request");
 			env.unmapKey("id_token");
 
