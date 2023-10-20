@@ -25,7 +25,7 @@ public class FAPICIBAClientInvalidValidityExpTest extends AbstractFAPI1CIBAClien
 
 	@Override
 	protected void addCustomValuesToIdToken() {
-		callAndStopOnFailure(AddExpValueOf179DaysToIdToken.class, "Brazil-CIBA-5.2.2");
+		callAndStopOnFailure(AddExpValueOf179DaysToIdToken.class, "BrazilCIBA-5.2.2");
 	}
 
 	@Override

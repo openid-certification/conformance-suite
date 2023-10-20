@@ -23,7 +23,7 @@ public class FAPICIBAClientBackchannelExpiredIdTokenHintTest extends AbstractFAP
 
 	@Override
 	protected HttpStatus createBackchannelResponse() {
-		callAndStopOnFailure(CreateBackchannelEndpointResponseWithExpiredIdTokenError.class, "Brazil-CIBA-5.2.2");
+		callAndStopOnFailure(CreateBackchannelEndpointResponseWithExpiredIdTokenError.class, "BrazilCIBA-5.2.2");
 		return HttpStatus.BAD_REQUEST;
 	}
 

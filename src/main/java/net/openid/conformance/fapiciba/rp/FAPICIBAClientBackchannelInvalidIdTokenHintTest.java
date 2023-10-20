@@ -23,7 +23,7 @@ public class FAPICIBAClientBackchannelInvalidIdTokenHintTest extends AbstractFAP
 
 	@Override
 	protected HttpStatus createBackchannelResponse() {
-		callAndStopOnFailure(CreateBackchannelEndpointResponseWithInvalidIdTokenHintError.class, "Brazil-CIBA-5.2.2");
+		callAndStopOnFailure(CreateBackchannelEndpointResponseWithInvalidIdTokenHintError.class, "BrazilCIBA-5.2.2");
 		return HttpStatus.BAD_REQUEST;
 	}
 

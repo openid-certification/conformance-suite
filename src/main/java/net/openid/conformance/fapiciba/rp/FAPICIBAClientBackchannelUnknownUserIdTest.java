@@ -23,7 +23,7 @@ public class FAPICIBAClientBackchannelUnknownUserIdTest extends AbstractFAPICIBA
 
 	@Override
 	protected HttpStatus createBackchannelResponse() {
-		callAndStopOnFailure(CreateBackchannelEndpointResponseWithUnknownUserIdError.class, "Brazil-CIBA-5.2.2");
+		callAndStopOnFailure(CreateBackchannelEndpointResponseWithUnknownUserIdError.class, "BrazilCIBA-5.2.2");
 		return HttpStatus.BAD_REQUEST;
 	}
 
