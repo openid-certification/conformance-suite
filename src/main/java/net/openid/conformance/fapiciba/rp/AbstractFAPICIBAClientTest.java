@@ -224,6 +224,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateAuthorizationPendingResponse.class);
 	}
 
+	protected void createFinalTokenResponse() {
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+	}
+
 	protected void sendPingRequestAndVerifyResponse() {
 		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
 		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
@@ -548,7 +552,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			issueRefreshToken();
 			issueIdToken();
 
-			callAndStopOnFailure(CreateTokenEndpointResponse.class);
+			createFinalTokenResponse();
+
 			callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
 			return HttpStatus.OK;
 		} else {

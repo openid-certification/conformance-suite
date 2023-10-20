@@ -18,6 +18,12 @@ import java.util.Map;
 		// Happy refresh token test
 		FAPICIBAClientRefreshTokenTest.class,
 
+		// Happy aud as array test
+		FAPICIBAClientValidAudAsArrayTest.class,
+
+		// Happy no scope in token endpoint + no access token expiration
+		FAPICIBAClientNoScopeInTokenEndpointResponseTest.class,
+
 		// Happy polling interval tests
 		FAPICIBAClientRespectsPollingIntervalTest.class,
 		FAPICIBAClientSlowDownTest.class,
