@@ -86,9 +86,9 @@ test:
 
 compare_cloud:
   <<: *compare
-  needs: ["server_test", "ciba_test", "ekyc_test", "brazil_test"]
+  needs: ["server_test", "ciba_test", "ekyc_test", "brazil_test", "panva_test"]
   script:
-    - run_compare server_test ciba_test ekyc_test brazil_test
+    - run_compare server_test ciba_test ekyc_test brazil_test panva_test
 
 compare_local:
   <<: *compare
@@ -263,6 +263,12 @@ ekyc_test:
   script:
     - set_up_for_running_test_plan
     - run_ekyc_test_plan
+
+panva_test:
+  <<: *deployment_test
+  script:
+    - set_up_for_running_test_plan
+    - run_panva_test_plan
 
 local_test:
   stage: test
@@ -584,6 +590,12 @@ local_test:
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --ekyc-tests
   }
+
+  function run_panva_test_plan() {
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ../conformance-suite/.gitlab-ci/run-tests.sh --panva-tests-only
+  }
+
 
 before_script:
   - *auto_devops

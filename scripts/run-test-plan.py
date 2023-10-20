@@ -1234,6 +1234,7 @@ async def main():
         ekyc_test = re.match(r'ekyc-server-', m)
         fapi1r = all_test_modules[m]['profile'] in ['FAPI-R']
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
+        oidcc = all_test_modules[m]['profile'] in ['OIDCC']
         fapi2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']
         brazildcr = re.match(r'.*brazil.*dcr.*', m)
         obuk = re.match(r'.*ensure-server-handles-non-matching-intent-id.*', m) or \
@@ -1258,6 +1259,10 @@ async def main():
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
             # we've not yet setup fapi2 brazil dcr or uk test runs
             if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or (fapi2 and (brazildcr or obuk)):
+                untested_test_modules.remove(m)
+                continue
+        elif show_untested == 'server-panva':
+            if ekyc_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':

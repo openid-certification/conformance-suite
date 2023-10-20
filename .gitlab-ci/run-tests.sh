@@ -402,6 +402,49 @@ makeLocalProviderTests() {
 
 }
 
+makePanvaTests() {
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=ping][client_auth_type=mtls][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=poll][client_auth_type=mtls][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=ping][client_auth_type=private_key_jwt][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=poll][client_auth_type=private_key_jwt][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
+
+    TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi-rw-id2-test-plan.json"
+    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi-rw-id2-test-plan.json"
+    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi-rw-id2-test-plan.json"
+    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi-rw-id2-test-plan.json"
+    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi-rw-id2-test-plan-privatejwt.json"
+    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi-rw-id2-test-plan-privatejwt.json"
+    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi-rw-id2-test-plan-privatejwt.json"
+    TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi-rw-id2-test-plan-privatejwt.json"
+
+    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi1-advanced-final-test-plan.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi1-advanced-final-test-plan.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi1-advanced-final-test-plan.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi1-advanced-final-test-plan.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi1-advanced-final-test-plan-privatejwt.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi1-advanced-final-test-plan-privatejwt.json"
+    #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi1-advanced-final-test-plan-privatejwt.json"
+    TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi1-advanced-final-test-plan-privatejwt.json"
+
+    TESTS="${TESTS} fapi2-message-signing-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=openid_connect][sender_constrain=dpop] panva-fapi2-message-signing-id1-test-plan-dpop.json"
+    #TESTS="${TESTS} fapi2-message-signing-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=plain_oauth][sender_constrain=dpop] panva-fapi2-message-signing-id1-test-plan-dpop-plainoauth.json"
+    #TESTS="${TESTS} fapi2-message-signing-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=openid_connect][sender_constrain=mtls] panva-fapi2-message-signing-id1-test-plan.json"
+    #TESTS="${TESTS} fapi2-message-signing-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-message-signing-id1-test-plan-plainoauth.json"
+    #TESTS="${TESTS} fapi2-message-signing-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=openid_connect][sender_constrain=dpop] panva-fapi2-message-signing-id1-test-plan-privatejwt-dpop.json"
+    #TESTS="${TESTS} fapi2-message-signing-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=plain_oauth][sender_constrain=dpop] panva-fapi2-message-signing-id1-test-plan-privatejwt-dpop-plainoauth.json"
+    #TESTS="${TESTS} fapi2-message-signing-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=openid_connect][sender_constrain=mtls] panva-fapi2-message-signing-id1-test-plan-privatejwt.json"
+    TESTS="${TESTS} fapi2-message-signing-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-message-signing-id1-test-plan-privatejwt-plainoauth.json"
+
+    TESTS="${TESTS} fapi2-security-profile-id2-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-dpop.json"
+    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-dpop-plainoauth.json"
+    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan.json"
+    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan-plainoauth.json"
+    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-privatejwt-dpop.json"
+    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-privatejwt-dpop-plainoauth.json"
+    #TESTS="${TESTS} fapi2-security-profile-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan-privatejwt.json"
+    TESTS="${TESTS} fapi2-security-profile-id2-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan-privatejwt-plainoauth.json"
+}
+
 TESTS="${TESTS} --verbose"
 if [ "$#" -eq 0 ]; then
     echo "Run all tests"
@@ -461,8 +504,14 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
+elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests-only" ]; then
+    echo "Run panva tests"
+    makePanvaTests
+    TESTS="${TESTS} --show-untested-test-modules server-panva"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
+    TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests||--ekyc-tests]"
+    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests]"
     exit 1
 fi
 
