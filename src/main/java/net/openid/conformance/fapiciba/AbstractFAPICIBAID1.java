@@ -117,6 +117,7 @@ import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourc
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
+import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenExp;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
@@ -348,12 +349,30 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		}
 	}
 
+	public static class PlainFapiProfileIdTokenValidationSteps extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6", "FAPI1-ADV-8.6");
+		}
+	}
+
 	public static class OpenBankingUkProfileIdTokenValidationSteps extends AbstractConditionSequence
 	{
 		@Override
 		public void evaluate() {
 			// FIXME: CIBA has no way to request the OB intent id...
 //			callAndContinueOnFailure(OBValidateIdTokenIntentId.class, Condition.ConditionResult.FAILURE, "OIDCC-2");
+			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6", "FAPI1-ADV-8.6");
+		}
+	}
+
+	public static class OpenBankingBrazilProfileIdTokenValidationSteps extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-1");
+			callAndContinueOnFailure(FAPIBrazilValidateIdTokenExp.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 		}
 	}
 
@@ -929,12 +948,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		performProfileIdTokenValidation();
 
-		if (isBrazil()) {
-			callAndContinueOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-1");
-		} else{
-			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.6", "FAPI1-ADV-8.6");
-		}
-
 		skipIfElementMissing("id_token", "jwe_header", Condition.ConditionResult.INFO,
 			FAPIValidateIdTokenEncryptionAlg.class, Condition.ConditionResult.FAILURE,"FAPI-RW-8.6.1-1");
 
@@ -1299,7 +1312,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalClientRegistrationSteps = null;
 		preAuthorizationSteps = null;
 		additionalProfileAuthorizationEndpointSetupSteps = null;
-		additionalProfileIdTokenValidationSteps = null;
+		additionalProfileIdTokenValidationSteps = PlainFapiProfileIdTokenValidationSteps.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
@@ -1317,7 +1330,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalClientRegistrationSteps = null;
 		preAuthorizationSteps = () -> createBrazilPreauthSteps();
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingBrazilProfileAuthorizationEndpointSetupSteps.class;
-		additionalProfileIdTokenValidationSteps = null;
+		additionalProfileIdTokenValidationSteps = OpenBankingBrazilProfileIdTokenValidationSteps.class;
 	}
 
 	protected ConditionSequence createBrazilPreauthSteps() {
