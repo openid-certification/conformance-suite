@@ -4,7 +4,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
-	testName = "fapi-ciba-id1-client-invalid-request-invalid-id-token-hint-test",
+	testName = "fapi-ciba-id1-client-invalid-id-token-hint-test",
 	displayName = "FAPI-CIBA-ID1: Client test - invalid_id_token_hint returned in backchannel response",
 	summary = "The client should perform OpenID discovery from the displayed discoveryUrl and then " +
 		"call the backchannel endpoint. The client must detect that the response is a HTTP 400 Bad Request " +

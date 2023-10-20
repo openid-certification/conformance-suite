@@ -4,8 +4,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
-	testName = "fapi-ciba-id1-client-invalid-request-unknown-user-id-test",
-	displayName = "FAPI-CIBA-ID1: Client test - expired_id_token_hint returned in backchannel response",
+	testName = "fapi-ciba-id1-client-unknown-user-id-test",
+	displayName = "FAPI-CIBA-ID1: Client test - unknown_user_id returned in backchannel response",
 	summary = "The client should perform OpenID discovery from the displayed discoveryUrl and then " +
 		"call the backchannel endpoint. The client must detect that the response is a HTTP 400 Bad Request " +
 		"with error unknown_user_id and not make further requests after that.",
