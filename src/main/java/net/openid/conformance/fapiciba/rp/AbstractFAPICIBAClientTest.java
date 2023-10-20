@@ -215,6 +215,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		setStatus(Status.WAITING);
 	}
 
+	protected void tokenEndpointCallComplete() {
+		setStatus(Status.WAITING);
+	}
+
 	protected HttpStatus createBackchannelResponse() {
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
 		return HttpStatus.OK;
@@ -535,9 +539,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			statusCode = createTokenEndpointResponseForCiba();
 
 			callAndStopOnFailure(SetNextAllowedTokenRequest.class);
-
-			setStatus(Status.WAITING);
 		}
+
+		tokenEndpointCallComplete();
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 

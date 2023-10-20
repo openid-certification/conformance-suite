@@ -35,6 +35,9 @@ import java.util.Map;
 		FAPICIBAClientBackchannelUnknownUserIdTest.class,
 		FAPICIBAClientBackchannelInvalidIdTokenHintTest.class,
 
+		// Negative tests for token endpoint response
+		FAPICIBAClientTokenInvalidRequestTest.class,
+
 		// Negative tests for id_token in token endpoint response
 		FAPICIBAClientInvalidIssTest.class,
 		FAPICIBAClientInvalidAudTest.class,
