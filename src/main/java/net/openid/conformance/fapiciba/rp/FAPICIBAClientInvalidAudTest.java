@@ -1,13 +1,13 @@
 package net.openid.conformance.fapiciba.rp;
 
-import net.openid.conformance.condition.as.AddInvalidIssValueToIdToken;
+import net.openid.conformance.condition.as.AddInvalidAudValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi-ciba-id1-client-invalid-iss-test",
-	displayName = "FAPI-CIBA-ID1: Client test - invalid iss in id_token from the token endpoint; should be rejected",
+	testName = "fapi-ciba-id1-client-invalid-aud-test",
+	displayName = "FAPI-CIBA-ID1: Client test - invalid aud in id_token from the token endpoint; should be rejected",
 	summary = "This test should end with the client displaying an error message that " +
-		"the iss value in the id_token does not match the authorization server's issuer",
+		"the aud value in the id_token does not match the client id",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.jwks",
@@ -18,16 +18,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client.jwks"
 	}
 )
-public class FAPICIBAClientTestInvalidIssTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
+public class FAPICIBAClientInvalidAudTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
-		callAndStopOnFailure(AddInvalidIssValueToIdToken.class, "OIDCC-3.1.3.7-2");
+		callAndStopOnFailure(AddInvalidAudValueToIdToken.class, "OIDCC-3.1.3.7-3");
 	}
 
 	@Override
 	protected String getIdTokenFaultErrorMessage() {
-		return "invalid iss value";
+		return "invalid aud value";
 	}
 
 }

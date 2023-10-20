@@ -30,13 +30,13 @@ import java.util.Map;
 		FAPICIBAClientBackchannelInvalidIdTokenHintTest.class,
 
 		// Negative tests for id_token in token endpoint response
-		FAPICIBAClientTestInvalidIssTest.class,
-		FAPICIBAClientTestInvalidAudTest.class,
-		FAPICIBAClientTestInvalidSecondaryAudTest.class,
-		FAPICIBAClientTestInvalidSignatureTest.class,
-		FAPICIBAClientTestInvalidNullAlgTest.class,
-		FAPICIBAClientTestInvalidAlternateAlgTest.class,
-		FAPICIBAClientTestInvalidExpiredExpTest.class,
+		FAPICIBAClientInvalidIssTest.class,
+		FAPICIBAClientInvalidAudTest.class,
+		FAPICIBAClientInvalidSecondaryAudTest.class,
+		FAPICIBAClientInvalidSignatureTest.class,
+		FAPICIBAClientInvalidNullAlgTest.class,
+		FAPICIBAClientInvalidAlternateAlgTest.class,
+		FAPICIBAClientInvalidExpiredExpTest.class,
 
 		// Negative test for ping mode
 		FAPICIBAClientPingWithInvalidBearerTokenTest.class

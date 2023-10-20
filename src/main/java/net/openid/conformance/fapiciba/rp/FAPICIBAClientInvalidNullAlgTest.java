@@ -17,7 +17,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client.jwks"
 	}
 )
-public class FAPICIBAClientTestInvalidNullAlgTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
+public class FAPICIBAClientInvalidNullAlgTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomSignatureOfIdToken(){

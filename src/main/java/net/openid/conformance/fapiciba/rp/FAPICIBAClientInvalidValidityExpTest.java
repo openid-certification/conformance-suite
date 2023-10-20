@@ -21,7 +21,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "openinsurance_brazil", "openbanking_ksa"})
-public class FAPICIBAClientTestInvalidValidityExpTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
+public class FAPICIBAClientInvalidValidityExpTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
 
 	@Override
 	protected void addCustomValuesToIdToken() {
