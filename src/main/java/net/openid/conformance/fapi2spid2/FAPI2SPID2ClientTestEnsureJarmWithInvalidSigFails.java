@@ -29,7 +29,7 @@ public class FAPI2SPID2ClientTestEnsureJarmWithInvalidSigFails extends AbstractF
 	@Override
 	protected void createJARMResponse() {
 		generateJARMResponseClaims();
-		callAndStopOnFailure(SignJARMResponse.class,"JARM-4.2");
+		callAndStopOnFailure(SignJARMResponse.class,"JARM-2.2");
 		callAndStopOnFailure(InvalidateJarmSignature.class);
 		encryptJARMResponse();
 	}

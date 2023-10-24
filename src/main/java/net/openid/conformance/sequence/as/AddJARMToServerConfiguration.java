@@ -11,7 +11,7 @@ public class AddJARMToServerConfiguration extends AbstractConditionSequence {
 	public void evaluate() {
 		callAndStopOnFailure(AddResponseTypeCodeToServerConfiguration.class, "FAPI1-ADV-5.2.2-2");
 		callAndStopOnFailure(AddJARMResponseModeToServerConfiguration.class, "FAPI1-ADV-5.2.2.2");
-		callAndStopOnFailure(AddAuthorizationSigningAlgValuesSupportedToServerConfiguration.class, "JARM-6", "FAPI1-ADV-8.6");
+		callAndStopOnFailure(AddAuthorizationSigningAlgValuesSupportedToServerConfiguration.class, "JARM-4", "FAPI1-ADV-8.6");
 		//TODO add authorization_encryption_alg_values_supported and authorization_encryption_enc_values_supported? didn't seem necessary to me
 	}
 }

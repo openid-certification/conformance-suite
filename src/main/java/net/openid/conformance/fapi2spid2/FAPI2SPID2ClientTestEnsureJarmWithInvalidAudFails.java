@@ -28,7 +28,7 @@ public class FAPI2SPID2ClientTestEnsureJarmWithInvalidAudFails extends AbstractF
 
 	@Override
 	protected void addCustomValuesToJarmResponse() {
-		callAndContinueOnFailure(AddInvalidAudValueToJarm.class, Condition.ConditionResult.WARNING, "JARM-4.1");
+		callAndContinueOnFailure(AddInvalidAudValueToJarm.class, Condition.ConditionResult.WARNING, "JARM-2.1");
 	}
 
 	@Override

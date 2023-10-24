@@ -28,7 +28,7 @@ public class FAPI2SPID2ClientTestEnsureJarmWithInvalidIssFails extends AbstractF
 
 	@Override
 	protected void addCustomValuesToJarmResponse() {
-		callAndContinueOnFailure(AddInvalidIssValueToJarm.class, Condition.ConditionResult.FAILURE, "JARM-4.1");
+		callAndContinueOnFailure(AddInvalidIssValueToJarm.class, Condition.ConditionResult.FAILURE, "JARM-2.1");
 	}
 
 	@Override

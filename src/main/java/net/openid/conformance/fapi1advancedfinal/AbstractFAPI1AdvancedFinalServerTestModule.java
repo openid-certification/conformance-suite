@@ -559,7 +559,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(ValidateSuccessfulHybridResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
 		}
 
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5", "JARM-4.4-2");
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
 
 		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2");
 
@@ -768,13 +768,13 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
 		} else {
 			// FAPI-RW only allows jarm with the code flow and hence we extract the response from the url query
-			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI1-ADV-5.2.3.2-1", "JARM-4.3.4", "JARM-4.3.1");
+			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI1-ADV-5.2.3.2-1", "JARM-2.3.4", "JARM-2.3.1");
 
-			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-4.1");
+			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-2.1");
 
 			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromJARMResponse.class);
 
-			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-4.4-3", "JARM-4.4-4", "JARM-4.4-5");
+			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-2.4-2", "JARM-2.4-3", "JARM-2.4-4");
 
 			callAndContinueOnFailure(FAPI1ValidateJarmSigningAlg.class, ConditionResult.FAILURE);
 
@@ -787,9 +787,9 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO,
 				ValidateJARMEncryptionEnc.class, ConditionResult.FAILURE);
 
-			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-4.1");
+			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-2.1");
 
-			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.FAILURE, "JARM-4.4-6");
+			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.FAILURE, "JARM-2.4-5");
 		}
 	}
 
