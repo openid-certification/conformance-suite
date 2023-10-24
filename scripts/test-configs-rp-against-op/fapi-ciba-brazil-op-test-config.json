@@ -45,7 +45,6 @@
         "acr_value": "urn:brasil:openbanking:loa2",
         "obtain_id_token": "{BASEURL}test/a/oidf-fapi-ciba-brazil-rp-test/token/obtain",
         "hint_type": "id_token_hint",
-        "hint_value": "eyJraWQiOiJvZVZPV3BqMS0td3g3X3NIa3J0dFh6RkFtc3kwRm5iY1R5U0JRZ0lxaTQwIiwiYWxnIjoiUFMyNTYifQ.eyJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo4NDQzL3Rlc3QvYS9ycC1tdGxzLXBvbGwtb3BlbmJhbmtpbmdfYnJhemlsLyIsInN1YiI6InVzZXItc3ViamVjdC0xMjM0NTMxIiwiYXVkIjoiYTIwMWNjMTItZmZmNi00MGQ3LTkyZWItOGNhNWUwYzdmYzBhIiwiZXhwIjoxNjk2NjA2MjUzLCJpYXQiOjE2OTY2MDU5NTN9.e4NMr_cyGwthly0vyviGAFdnpin0jqWLZoHqglClD6X68YWr__sCY1jXwEJtQC_v34vp4OMpWqkk_ByH6mcTEgm6jwrRIWnn1MwWlmxksbpfOoz2ynLE8_nuN79fDQNIYjdgtCkXJaHCX_XrsYfN0uTBEN_lOaleSJHxS4QthOpQLvt65EvjKhovoefY-YIg4z2nQk-hhGXlxCCq9AFFpn23VMoim46ZQt5Q3b_zZrbIZgAK4ZB62_1cJ6RKVt5hOfPD7CzdRjYCL04VyjaOPRXjOBs_x1SXQAUjsdVmU76UUjgsld6hfCdaMXhEC0fTbqpLxNS0eQxxX8EsfsG2PQ",
         "jwks": {
             "keys": [
                 {

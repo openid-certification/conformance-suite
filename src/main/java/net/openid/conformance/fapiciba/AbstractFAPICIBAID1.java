@@ -126,7 +126,7 @@ import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthReques
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FetchFreshIdToken;
+import net.openid.conformance.condition.client.FetchFreshIdTokenIfHintValueIsNotConfigured;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
@@ -251,10 +251,6 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.hint_type",
-	"client.hint_value"
-})
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	// for variants to fill in by calling the setup... family of methods
@@ -335,14 +331,12 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(SetHintTypeToIdTokenHint.class);
-			// In order to address the chicken-and-problem of Brazil requiring
-			// id_token_hint and the OP vs RP test requiring a valid id_token to
-			// test with, the RP tests will expose a /token/obtain endpoint just
-			// to fetch a recently signed id token for the given environment.
-			// In the OP tests (this one), if there is a config `client.obtain_id_token`
-			// containing a URL to that endpoint, then a token will be fetched
-			// and used to replace whatever id_token is statically configured.
-			callAndStopOnFailure(FetchFreshIdToken.class);
+			// In order to address the chicken-and-problem of requiring id_token_hint, the RP tests will expose
+			// a /token/obtain endpoint to fetch a recently signed id token for the given environment.
+			// If there is an id_token_hint configured in the hint_value, then it will be used.
+			// If not, and if there is a config `client.obtain_id_token` containing a URL to the /token/obtain endpoint,
+			// then a fresh id token will be fetched and used as the id_token_hint value.
+			callAndStopOnFailure(FetchFreshIdTokenIfHintValueIsNotConfigured.class);
 			callAndStopOnFailure(FAPICIBAAddAcrValuesToAuthorizationEndpointRequest.class); // TODO: Is this right?
 		}
 	}
