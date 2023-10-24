@@ -38,6 +38,7 @@ import java.util.Map;
 		// Negative tests for token endpoint response
 		FAPICIBAClientTokenInvalidRequestTest.class,
 		FAPICIBAClientTokenAccessDeniedTest.class,
+		FAPICIBAClientTokenExpiredTokenTest.class,
 
 		// Negative tests for id_token in token endpoint response
 		FAPICIBAClientInvalidIssTest.class,
