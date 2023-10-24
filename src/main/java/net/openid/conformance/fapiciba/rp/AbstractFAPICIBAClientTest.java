@@ -641,7 +641,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	 */
 	protected void encryptIdToken() { }
 
-	private boolean clientHasPolledEnough(int tokenPollCount) {
+	protected boolean clientHasPolledEnough(int tokenPollCount) {
 		return tokenPollCount > 2;
 	}
 
