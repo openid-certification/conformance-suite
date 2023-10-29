@@ -101,16 +101,6 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 		dataElement.addProperty("transactionFromDateTime", transactionFromDateTime);
 		dataElement.addProperty("transactionToDateTime", transactionToDateTime);
 
-		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
-		dataElement.add("links", links);
-
-		JsonObject meta = new JsonObject();
-		meta.addProperty("totalRecords", 1);
-		meta.addProperty("totalPages", 1);
-		meta.addProperty("requestDateTime", creationDateTime);
-		dataElement.add("meta", meta);
-
 		//Copy the following from the request as is
 		//creditor, loggedUser, payment
 		//businessEntity, debtorAccount
@@ -133,6 +123,16 @@ public class FAPIBrazilGenerateNewPaymentsConsentResponse extends AbstractCondit
 		}
 
 		consentResponse.add("data", dataElement);
+
+		JsonObject links = new JsonObject();
+		links.addProperty("self", env.getString("base_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
+		consentResponse.add("links", links);
+
+		JsonObject meta = new JsonObject();
+		meta.addProperty("totalRecords", 1);
+		meta.addProperty("totalPages", 1);
+		meta.addProperty("requestDateTime", creationDateTime);
+		consentResponse.add("meta", meta);
 
 		consentResponse.addProperty("aud", env.getString("client_certificate_subject", "ou"));
 		consentResponse.addProperty("iat", Instant.now().getEpochSecond());
