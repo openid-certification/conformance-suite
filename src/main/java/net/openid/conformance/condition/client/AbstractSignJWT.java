@@ -39,10 +39,14 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 		return signJWT(env, claims, jwks, false);
 	}
 
+	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp) {
+		return signJWT(env, claims, jwks, includeTyp, false);
+	}
+
 	/**
 	 * Expects only one non-encryption JWK in jwks
 	 */
-	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp) {
+	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp, boolean includeX5tS256) {
 
 		if (claims == null) {
 			throw error("Couldn't find claims");
@@ -67,6 +71,9 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 			JWSHeader.Builder builder = new JWSHeader.Builder(alg);
 			if (includeTyp) {
 				builder.type(JOSEObjectType.JWT);
+			}
+			if (includeX5tS256) {
+				builder.x509CertSHA256Thumbprint(signingJwk.computeThumbprint());
 			}
 			builder.keyID(signingJwk.getKeyID());
 			JWSHeader header = builder.build();

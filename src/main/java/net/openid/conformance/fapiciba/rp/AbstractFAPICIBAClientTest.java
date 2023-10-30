@@ -57,6 +57,7 @@ import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
@@ -67,6 +68,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectId
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
+import net.openid.conformance.condition.client.ValidateIdTokenHasRequiredBrazilHeaders;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.VerifyIdTokenValidityIsMinimum180Days;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -169,6 +171,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
+	private Class<? extends Condition> profileSpecificSignIdToken;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
@@ -186,17 +189,20 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
+		profileSpecificSignIdToken = SignIdToken.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
+		profileSpecificSignIdToken = SignIdTokenWithX5tS256.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
 	public void setupOpenInsuranceBrazil() {
 		// we might want to generate an open insurance specific response at some point
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
+		profileSpecificSignIdToken = SignIdTokenWithX5tS256.class;
 	}
 
 	protected boolean isBrazil() {
@@ -572,7 +578,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
-		callAndStopOnFailure(SignIdToken.class);
+
+		callAndStopOnFailure(profileSpecificSignIdToken);
+
 		JsonObject response = new JsonObject();
 		response.addProperty("id_token", env.getString("id_token"));
 
@@ -627,7 +635,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected void signIdToken() {
-		callAndStopOnFailure(SignIdToken.class);
+		callAndStopOnFailure(profileSpecificSignIdToken);
 		addCustomSignatureOfIdToken();
 	}
 
@@ -711,6 +719,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 			env.mapKey("id_token", "id_token_hint");
 			env.mapKey("authorization_endpoint_request", "backchannel_request_object");
+			callAndContinueOnFailure(ValidateIdTokenHasRequiredBrazilHeaders.class, ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 			call(new PerformStandardIdTokenChecks());
 			callAndContinueOnFailure(VerifyIdTokenValidityIsMinimum180Days.class, ConditionResult.WARNING, "BrazilCIBA-5.2.2");
 			env.unmapKey("authorization_endpoint_request");
