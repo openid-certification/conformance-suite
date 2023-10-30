@@ -121,7 +121,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenExp;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
-import net.openid.conformance.condition.client.FAPICIBAAddAcrValuesToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.FAPICIBABrazilAddAcrValuesToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
@@ -337,7 +337,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			// If not, and if there is a config `client.obtain_id_token` containing a URL to the /token/obtain endpoint,
 			// then a fresh id token will be fetched and used as the id_token_hint value.
 			callAndStopOnFailure(FetchFreshIdTokenIfHintValueIsNotConfigured.class);
-			callAndStopOnFailure(FAPICIBAAddAcrValuesToAuthorizationEndpointRequest.class); // TODO: Is this right?
+			callAndStopOnFailure(FAPICIBABrazilAddAcrValuesToAuthorizationEndpointRequest.class);
 		}
 	}
 
