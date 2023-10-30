@@ -40,7 +40,7 @@ Then add paymentId, consentId, creationDateTime, statusUpdateDateTime, status, a
 
 
 		JsonObject links = new JsonObject();
-		links.addProperty("self", env.getString("base_url") + FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
+		links.addProperty("self", env.getString("base_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		response.add("links", links);
 
 		JsonObject meta = new JsonObject();
