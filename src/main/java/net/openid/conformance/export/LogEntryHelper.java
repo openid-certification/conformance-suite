@@ -43,7 +43,7 @@ public class LogEntryHelper {
 		specLinks.put("FAPI2-MS-ID1-", "https://openid.net/specs/fapi-2_0-message-signing-ID1.html#section..");
 		specLinks.put("CIBA-", "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.");
 		specLinks.put("FAPI-CIBA-", "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.");
-		specLinks.put("JARM-", "https://openid.net//specs/openid-financial-api-jarm-wd-01.html#rfc.section.");
+		specLinks.put("JARM-", "https://openid.net/specs/oauth-v2-jarm.html#section-");
 		specLinks.put("OB-", "https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default#");
 		specLinks.put("OBRW-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/1077805207/Read+Write+Data+API+Specification+-+v3.1.2#");
 		specLinks.put("OIDCC-", "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.");

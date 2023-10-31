@@ -1320,7 +1320,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if(responseMode==FAPIResponseMode.JARM) {
 			createJARMResponse();
 			//send via redirect
-			callAndStopOnFailure(SendJARMResponseWitResponseModeQuery.class, "OIDCC-3.3.2.5", "JARM-4.3.1");
+			callAndStopOnFailure(SendJARMResponseWitResponseModeQuery.class, "OIDCC-3.3.2.5", "JARM-2.3.1");
 		}
 
 		exposeEnvString("authorization_endpoint_response_redirect");
@@ -1329,20 +1329,20 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	protected void createJARMResponse() {
 		generateJARMResponseClaims();
 		//authorization_signed_response_alg will not be taken into account. signing_algorithm will be used
-		callAndStopOnFailure(SignJARMResponse.class,"JARM-4.2");
+		callAndStopOnFailure(SignJARMResponse.class,"JARM-2.2");
 		encryptJARMResponse();
 	}
 
 	protected void encryptJARMResponse() {
 		skipIfElementMissing("client", "authorization_encrypted_response_alg", ConditionResult.INFO,
-			EncryptJARMResponse.class, ConditionResult.FAILURE, "JARM-5");
+			EncryptJARMResponse.class, ConditionResult.FAILURE, "JARM-3");
 
 	}
 
 	protected void addCustomValuesToJarmResponse() {}
 
 	protected void generateJARMResponseClaims() {
-		callAndStopOnFailure(GenerateJARMResponseClaims.class,"JARM-4.1.1");
+		callAndStopOnFailure(GenerateJARMResponseClaims.class,"JARM-2.1.1");
 		addCustomValuesToJarmResponse();
 	}
 
