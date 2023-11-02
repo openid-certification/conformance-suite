@@ -18,9 +18,9 @@ import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfP
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
-import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
@@ -722,6 +722,10 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
+		if (grantType == null) {
+			throw new TestFailureException(getId(), "Token endpoint body does not contain the mandatory 'grant_type' parameter");
+		}
+
 		if ("refresh_token".equals(grantType)) {
 			call(exec().startBlock("Token endpoint - Refresh Request"));
 		} else {

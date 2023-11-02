@@ -352,6 +352,9 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 
 		// dispatch based on grant type
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
+		if (grantType == null) {
+			throw new TestFailureException(getId(), "Token endpoint body does not contain the mandatory 'grant_type' parameter");
+		}
 
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
