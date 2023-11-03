@@ -55,8 +55,11 @@ def read_zipped_results():
                 test_result = json.loads(content)
                 test_info = test_result['testInfo']
                 # print(test_info['testName'], test_info['testId'], test_info['variant'])
+                desc = test_info['description']
+                if desc == None:
+                    desc = "no-description"
                 frozen_variant = frozenset(sorted(test_info['variant'].items()))
-                results.setdefault(plan_and_variant + ":" + test_info['description'], {}).setdefault(test_info['testName'], {})[
+                results.setdefault(plan_and_variant + ":" + desc, {}).setdefault(test_info['testName'], {})[
                     frozen_variant] = test_result
     return results
 
