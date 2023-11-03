@@ -465,6 +465,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected Object handleTokenEndpointGrantType(String requestId){
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
+		if (grantType == null) {
+			throw new TestFailureException(getId(), "Token endpoint body does not contain the mandatory 'grant_type' parameter");
+		}
+
 		switch (grantType) {
 			case "client_credentials":
 				if (isBrazil()) {

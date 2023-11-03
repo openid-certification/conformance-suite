@@ -519,9 +519,13 @@ local_test:
     mkdir reference
     cd reference
     for i in $*; do
-      curl --silent --show-error -L -o $i.zip https://gitlab.com/openid/conformance-suite/-/jobs/artifacts/master/download?job=$i
-      unzip $i.zip
-      rm $i.zip
+      echo "Fetching master branch latest passed pipeline results for '$*'"
+      res=0
+      curl --silent --show-error --fail -L -o $i.zip https://gitlab.com/openid/conformance-suite/-/jobs/artifacts/master/download?job=$i || res=$?
+      if [ $res -eq 0 ]; then
+        unzip $i.zip
+        rm $i.zip
+      fi
     done
     cd ..
     ./scripts/compare-results.py reference .

@@ -20,10 +20,10 @@ import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CheckForFAPIInteractionIdInResourceRequest;
-import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
+import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
@@ -917,6 +917,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		// dispatch based on grant type
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
+		if (grantType == null) {
+			throw new TestFailureException(getId(), "Token endpoint body does not contain the mandatory 'grant_type' parameter" + grantType);
+		}
 
 		if (grantType.equals("authorization_code")) {
 			// we're doing the authorization code grant for user access
