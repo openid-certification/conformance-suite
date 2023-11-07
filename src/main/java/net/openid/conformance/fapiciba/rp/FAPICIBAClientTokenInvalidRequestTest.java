@@ -42,7 +42,7 @@ public class FAPICIBAClientTokenInvalidRequestTest extends AbstractFAPICIBAClien
 		if (tokenPollCount == 3) {
 			fireTestFinished();
 		} else {
-			super.tokenEndpointCallComplete();
+			setStatus(Status.WAITING);
 		}
 	}
 

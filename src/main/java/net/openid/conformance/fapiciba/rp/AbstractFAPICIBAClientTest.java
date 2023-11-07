@@ -223,6 +223,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected void tokenEndpointCallComplete() {
+		callAndStopOnFailure(SetNextAllowedTokenRequest.class);
 		setStatus(Status.WAITING);
 	}
 
@@ -544,8 +545,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			callAndStopOnFailure(VerifyThatPollingIntervalIsRespected.class, ConditionResult.FAILURE, "CIBA-7.3");
 
 			statusCode = createTokenEndpointResponseForCiba();
-
-			callAndStopOnFailure(SetNextAllowedTokenRequest.class);
 		}
 
 		tokenEndpointCallComplete();
