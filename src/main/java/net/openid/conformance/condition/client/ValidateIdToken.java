@@ -16,7 +16,16 @@ import static java.time.temporal.ChronoUnit.DAYS;
 public class ValidateIdToken extends AbstractCondition {
 
 	// TODO: make this configurable
-	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
+	protected int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
+
+	protected void verifyIat(Instant now, Long iat) {
+		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(iat))) {
+			// as per OIDCC, the client can reasonably assume servers send iat values that match the current time:
+			// "The iat Claim can be used to reject tokens that were issued too far away from the current time, limiting
+			// the amount of time that nonces need to be stored to prevent attacks. The acceptable range is Client specific."
+			throw error("Token 'iat' more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
+		}
+	}
 
 	@Override
 	@PreEnvironment(required = { "id_token", "server", "client" } )
@@ -76,12 +85,7 @@ public class ValidateIdToken extends AbstractCondition {
 		if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
 			throw error("Token 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
 		}
-		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(iat))) {
-			// as per OIDCC, the client can reasonably assume servers send iat values that match the current time:
-			// "The iat Claim can be used to reject tokens that were issued too far away from the current time, limiting
-			// the amount of time that nonces need to be stored to prevent attacks. The acceptable range is Client specific."
-			throw error("Token 'iat' more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
-		}
+		verifyIat(now, iat);
 
 		// auth_time - optional number
 		Long authTime = env.getLong("id_token", "claims.auth_time");

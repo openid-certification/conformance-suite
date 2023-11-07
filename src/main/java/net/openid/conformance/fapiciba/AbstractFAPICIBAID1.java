@@ -931,7 +931,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
 			ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
-			
+
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6", "FAPI1-BASE-5.2.2.1-6", "OIDCC-3.3.2.5");
 
 		call(new PerformStandardIdTokenChecks());

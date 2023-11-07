@@ -68,6 +68,8 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectId
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
+import net.openid.conformance.condition.client.ValidateIdToken;
+import net.openid.conformance.condition.client.ValidateIdTokenExcludingIat;
 import net.openid.conformance.condition.client.ValidateIdTokenHasRequiredBrazilHeaders;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.VerifyIdTokenValidityIsMinimum180Days;
@@ -719,7 +721,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			env.mapKey("id_token", "id_token_hint");
 			env.mapKey("authorization_endpoint_request", "backchannel_request_object");
 			callAndContinueOnFailure(ValidateIdTokenHasRequiredBrazilHeaders.class, ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
-			call(new PerformStandardIdTokenChecks());
+			call(new PerformStandardIdTokenChecks().replace(ValidateIdToken.class, condition(ValidateIdTokenExcludingIat.class)));
 			callAndContinueOnFailure(VerifyIdTokenValidityIsMinimum180Days.class, ConditionResult.WARNING, "BrazilCIBA-5.2.2");
 			env.unmapKey("authorization_endpoint_request");
 			env.unmapKey("id_token");
