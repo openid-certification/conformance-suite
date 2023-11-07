@@ -579,6 +579,7 @@ var FAPI_UI = {
 			"BrazilOBDCR-" : "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID2.html#section-",
 			"BrazilOBDCRID3-" : "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/82051199/EN+Open+Finance+Brasil+Financial-grade+API+Dynamic+Client+Registration+1.0+Implementers+Draft+3#section-",
 			"BrazilOPIN-" : "https://br-openinsurance.github.io/areadesenvolvedor/files/Controles_técnicos_de_Segurança_da_Informação_3.0.pdf#",
+			"BrazilCIBA-" : "https://openfinancebrasil.atlassian.net/wiki/spaces/DraftOF/pages/138674330/EN+Open+Banking+Brasil+Financial-grade+CIBA+API+Security+Profile+1.0+Implementers+Draft+3",
 			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.",
 			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
 			"FAPI1-BASE-" : "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.",
