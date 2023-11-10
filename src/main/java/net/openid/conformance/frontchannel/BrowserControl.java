@@ -518,7 +518,7 @@ public class BrowserControl implements DataUtils {
 						this.lastException = timeoutException.getMessage();
 						throw new TestFailureException(testId, "Timed out waiting: " + command.toString());
 					}
-				}if (commandString.equalsIgnoreCase("wait-element-invisible")) {
+				} else if (commandString.equalsIgnoreCase("wait-element-invisible")) {
 					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 					try {
 						WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100);
@@ -528,7 +528,7 @@ public class BrowserControl implements DataUtils {
 						this.lastException = timeoutException.getMessage();
 						throw new TestFailureException(testId, "Timed out waiting for element to become invisible: " + command.toString());
 					}
-				}if (commandString.equalsIgnoreCase("wait-element-visible")) {
+				} else if (commandString.equalsIgnoreCase("wait-element-visible")) {
 					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 					try {
 						WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100);
@@ -538,7 +538,7 @@ public class BrowserControl implements DataUtils {
 						this.lastException = timeoutException.getMessage();
 						throw new TestFailureException(testId, "Timed out waiting for element visibility: " + command.toString());
 					}
-				}else {
+				} else {
 					this.lastException = "Invalid Command " + commandString;
 					throw new TestFailureException(testId, "Invalid Command: " + commandString);
 				}
