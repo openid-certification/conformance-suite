@@ -3,7 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.CreateBadRedirectUri;
+import net.openid.conformance.condition.client.CreateBadRedirectUriByAppending;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -41,7 +41,7 @@ public class FAPI1AdvancedFinalEnsureRegisteredRedirectUri extends AbstractFAPI1
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
 		// create a random redirect URI
-		callAndStopOnFailure(CreateBadRedirectUri.class);
+		callAndStopOnFailure(CreateBadRedirectUriByAppending.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
