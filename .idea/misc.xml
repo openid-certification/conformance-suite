@@ -27,11 +27,11 @@
     <option name="options">
       <map>
         <entry key="Statistics URL" value="" />
-        <entry key="Target JDK" value="11" />
+        <entry key="Target JDK" value="17" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="false" project-jdk-name="11" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="false" project-jdk-name="17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="PythonCompatibilityInspectionAdvertiser">
