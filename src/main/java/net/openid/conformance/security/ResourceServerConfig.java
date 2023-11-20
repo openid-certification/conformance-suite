@@ -30,6 +30,7 @@ import javax.ws.rs.HttpMethod;
 
 @Configuration
 @Order(1)
+@SuppressWarnings({"deprecation"})
 public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
 
 	@Value("${fintechlabs.devmode:false}")
