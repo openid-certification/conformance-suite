@@ -14,6 +14,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameter
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseModesSupportedContainsJwt;
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
+import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupportedContainsPublic;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsNotSet;
@@ -199,6 +200,9 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 			if (openInsurance) {
 				callAndContinueOnFailure(FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOPIN-page8");
 			} else {
+				// this will apply to openinsurance too when they switch to the new security profile
+				callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsPublic.class, Condition.ConditionResult.FAILURE, "BrazilOBID3-5.2.2-22");
+
 				callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOBID3-5.2.2-5");
 				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOBID3-5.2.2-6");
 			}
