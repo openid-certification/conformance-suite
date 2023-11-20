@@ -15,7 +15,7 @@ public class CheckNoErrorFromDynamicRegistrationEndpoint extends AbstractConditi
 
 		if (error != null) {
 			throw error("'error' field found in response from dynamic registration endpoint.",
-				args("error", error));
+				env.getObject("dynamic_registration_endpoint_response"));
 		}
 
 		logSuccess("Dynamic registration endpoint did not return an error.");
