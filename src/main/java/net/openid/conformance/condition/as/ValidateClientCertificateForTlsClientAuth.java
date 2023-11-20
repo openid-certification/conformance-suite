@@ -68,11 +68,11 @@ public class ValidateClientCertificateForTlsClientAuth extends AbstractCondition
 				List<Rdn> actualRDNs = actualDn.getRdns();
 				//Compare DNs independent of RDN element order. Java and Openssl order them differently so 'equals' won't work
 				if (expectedRDNs.size() == actualRDNs.size() && expectedRDNs.containsAll(actualRDNs)) {
-					logSuccess("Certificate subject dn is valid", args("subject_dn", actualDn));
+					logSuccess("Certificate subject dn is valid", args("subject_dn", actualDn.toString()));
 					return env;
 				} else {
 					throw error("Certificate subject dn in request does not match expected tls_client_auth_subject_dn",
-								args("expected", expectedDn, "actual", actualDn));
+								args("expected", expectedDn.toString(), "actual", actualDn.toString()));
 				}
 			} catch (InvalidNameException ex) {
 				throw error("Invalid subject dn", ex,
