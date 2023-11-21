@@ -3,6 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
 import net.openid.conformance.condition.as.CheckForInvalidCharsInState;
+import net.openid.conformance.condition.as.CheckNonceLength;
 import net.openid.conformance.condition.as.CheckStateLength;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -37,6 +38,8 @@ public class FAPI1AdvancedFinalClientTest extends AbstractFAPI1AdvancedFinalClie
 		if("yes".equals(isOpenIdScopeRequested)) {
 			skipIfMissing(null, new String[] {"nonce"}, ConditionResult.INFO,
 				CheckForInvalidCharsInNonce.class, ConditionResult.WARNING);
+			skipIfMissing(null, new String[] {"nonce"}, ConditionResult.INFO,
+				CheckNonceLength.class, ConditionResult.WARNING);
 		} else {
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
 				CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO,
