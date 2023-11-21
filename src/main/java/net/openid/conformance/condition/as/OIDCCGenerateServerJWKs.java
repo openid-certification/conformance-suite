@@ -5,6 +5,7 @@ import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -134,6 +135,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 			JWKGenerator<? extends JWK> jwkGenerator = null;
 			if (KeyType.EC.equals(keyType)) {
 				jwkGenerator = new ECKeyGenerator(curveForECKeys);
+				jwkGenerator.provider(BouncyCastleProviderSingleton.getInstance());
 			} else if (KeyType.RSA.equals(keyType)) {
 				jwkGenerator = new RSAKeyGenerator(rsaKeySize);
 			} else if (KeyType.OKP.equals(keyType)) {

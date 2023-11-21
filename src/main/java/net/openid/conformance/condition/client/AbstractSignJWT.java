@@ -11,6 +11,7 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -166,6 +167,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 				signer = new RSASSASigner((RSAKey) jwk);
 			} else if (KeyType.EC.equals(jwk.getKeyType())) {
 				signer = new ECDSASigner((ECKey) jwk);
+				signer.getJCAContext().setProvider(BouncyCastleProviderSingleton.getInstance());
 			} else if (KeyType.OCT.equals(jwk.getKeyType())) {
 				signer = new MACSigner((OctetSequenceKey) jwk);
 			} else if (KeyType.OKP.equals(jwk.getKeyType())) {

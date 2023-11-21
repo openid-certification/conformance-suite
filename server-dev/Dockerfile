@@ -7,6 +7,6 @@
 #
 # We install redir, and then the --fintechlabs.startredir=true option
 # to java is used to launch it
-FROM openjdk:11-jdk-slim
+FROM openjdk:17-jdk-slim
 
 RUN apt-get update && apt-get install redir

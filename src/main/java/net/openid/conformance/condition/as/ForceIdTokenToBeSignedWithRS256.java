@@ -69,7 +69,7 @@ public class ForceIdTokenToBeSignedWithRS256 extends AbstractCondition {
 
 			env.putString("id_token", invalidIdToken.serialize());
 
-			logSuccess("Signed the ID token with alg of RS256", args("id_token", invalidIdToken, "id_token serialized", invalidIdToken.serialize()));
+			logSuccess("Signed the ID token with alg of RS256", args("id_token_header", invalidIdToken.getHeader(), "id_token_claims", invalidIdToken.getJWTClaimsSet(), "id_token serialized", invalidIdToken.serialize()));
 
 			return env;
 
