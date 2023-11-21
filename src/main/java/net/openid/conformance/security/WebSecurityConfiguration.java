@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
+@SuppressWarnings({"deprecation"})
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);

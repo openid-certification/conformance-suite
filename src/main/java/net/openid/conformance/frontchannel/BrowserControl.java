@@ -43,6 +43,7 @@ import org.springframework.util.PatternMatchUtils;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -306,7 +307,7 @@ public class BrowserControl implements DataUtils {
 						if (commands != null) { // we can have zero commands to just do a check that currentUrl is what we expect
 
 							// wait for webpage to finish loading
-							WebDriverWait waiting = new WebDriverWait(driver, 10, 100);
+							WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(100));
 							try {
 								waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
 							} catch (TimeoutException timeoutException) {
@@ -493,8 +494,8 @@ public class BrowserControl implements DataUtils {
 						"regexp", regexp,
 						"action", action
 					));
-
-					WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100); // hook to wait for this condition, check every 100 milliseconds until the max seconds
+					// hook to wait for this condition, check every 100 milliseconds until the max seconds
+					WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
 					try {
 						if (elementType.equalsIgnoreCase("contains")) {
 							waiting.until(ExpectedConditions.urlContains(target));
