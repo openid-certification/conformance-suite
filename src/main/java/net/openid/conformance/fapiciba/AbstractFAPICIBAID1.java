@@ -94,6 +94,7 @@ import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ExtractInitialAccessTokenFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -187,7 +188,9 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name",
-	"client2.client_name"
+	"client2.client_name",
+	"client.initial_access_token",
+	"client2.initial_access_token"
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.jwks",
@@ -365,6 +368,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			eventLog.startBlock("First client: registering client using dynamic client registration");
 			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
+			callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
 			registerClient();
 			break;
 		}
@@ -399,6 +403,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			eventLog.startBlock("Second client: registering client using dynamic client registration");
 			callAndStopOnFailure(StoreOriginalClient2Configuration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
+			callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
 			registerClient();
 			break;
 		}

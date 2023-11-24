@@ -19,6 +19,7 @@ import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
+import io.specto.hoverfly.junit.verification.HoverflyVerificationError;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -107,6 +108,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_noError() {
+		String requestAccessToken = "mF_9.B5f-4.1JqM";
 
 		JsonObject server = JsonParser.parseString("{"
 			+ "\"registration_endpoint\":\"https://good.example.com/registration\""
@@ -115,12 +117,16 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		env.putObject("dynamic_registration_request", requestParameters);
 
+		// Optional access token to be included in the authorization header.
+		env.putString("initial_access_token", requestAccessToken);
+
 
 		cond.execute(env);
 
 		hoverfly.verify(service("good.example.com")
 			.post("/registration")
-			.body(requestParameters.toString()));
+			.body(requestParameters.toString())
+			.header("Authorization", "Bearer " + requestAccessToken));
 
 		verify(env, atLeastOnce()).getString("server", "registration_endpoint");
 
@@ -152,6 +158,38 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 
 		assertThat(env.getObject("dynamic_registration_endpoint_response")).isInstanceOf(JsonObject.class);
 		assertThat(((JsonObject)env.getElementFromObject("dynamic_registration_endpoint_response", "body_json")).entrySet()).containsAll(goodResponseNoRegistrationAPI.entrySet());
+	}
+
+	/**
+	 * Test method for {@link CallDynamicRegistrationEndpoint#evaluate(Environment)}.
+	 */
+	@Test
+	public void testEvaluate_noError_noInitialAccessToken() {
+		JsonObject server = JsonParser.parseString("{"
+			+ "\"registration_endpoint\":\"https://good.example.com/registration\""
+			+ "}").getAsJsonObject();
+		env.putObject("server", server);
+
+		env.putObject("dynamic_registration_request", requestParameters);
+
+		cond.execute(env);
+
+		/*
+		 * No initial access token was supplied.
+		 *
+		 * Verify the request did not contain an authorization header field.
+		 */
+		hoverfly.verify(service("good.example.com")
+			.post("/registration")
+			.anyBody(),
+
+			(request, data) -> {
+				data.getJournal().getEntries().stream().forEach(entry -> {
+					if (entry.getRequest().getHeaders().containsKey("Authorization")) {
+						throw new HoverflyVerificationError("Unexpected Authorization Request Header Field.");
+					}
+				});
+			});
 	}
 
 	/**
