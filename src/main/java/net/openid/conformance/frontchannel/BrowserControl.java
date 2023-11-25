@@ -521,7 +521,7 @@ public class BrowserControl implements DataUtils {
 				} else if (commandString.equalsIgnoreCase("wait-element-invisible")) {
 					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 					try {
-						WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100);
+						WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
 						waiting.until(ExpectedConditions.invisibilityOfElementLocated(getSelector(elementType, target)));
 						logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
 					} catch (TimeoutException timeoutException) {
@@ -531,7 +531,7 @@ public class BrowserControl implements DataUtils {
 				} else if (commandString.equalsIgnoreCase("wait-element-visible")) {
 					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 					try {
-						WebDriverWait waiting = new WebDriverWait(driver, timeoutSeconds, 100);
+						WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
 						waiting.until(ExpectedConditions.visibilityOfElementLocated(getSelector(elementType, target)));
 						logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now visible");
 					} catch (TimeoutException timeoutException) {
