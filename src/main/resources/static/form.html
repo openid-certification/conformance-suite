@@ -108,7 +108,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-profile"></i>&ldquo;OpenID Conformance Profile&rdquo;</div>
-                                This field must contain a valid profile name, i.e. one of <a class="text-primary" href="https://openid.net/certification/" target="oidf">the certification table</a> column labels, 
+                                This field must contain a valid profile name, i.e. one of <a class="text-primary" href="https://openid.net/certification/" target="oidf">the certification table</a> column labels,
                                 e.g. &ldquo;FAPI Adv. OP w/ Private Key&rdquo;. Test plan names cannot be used instead of a profile name.
                             </div>
                         </li>
@@ -260,7 +260,7 @@
     }
 
     function loadDocumentInViewer(event) {
-        var redirectUrl = 'lib/pdfjs-3.10.111-dist/web/viewer.html?file=';
+        var redirectUrl = 'lib/pdfjs-4.0.189-dist/web/viewer.html?file=';
         if (!planLoadError) {
             if (event && event === 'signing_complete' && envelopeId) {
                 document.querySelector('.wizard').classList.add('opacity-20');

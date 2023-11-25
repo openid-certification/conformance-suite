@@ -93,6 +93,7 @@
                                         let reader = new FileReader();
                                         reader.onload = function (e) {
                                             localStorage.setItem('cocPdf', e.target.result);
+                                            document.location.href = 'verify.html?plan=' + new URLSearchParams(window.location.search).get('plan');
                                         };
                                         reader.readAsDataURL(file);
                                     } else {
@@ -107,38 +108,6 @@
                         document.querySelector('#uploadButton').addEventListener('click', () => {
                             document.querySelector('#fileInput').click();
                         });
-
-                        function uploadPDF() {
-                            // Get the input element
-                            var inputElement = document.getElementById('pdfInput');
-
-                            // Check if a file is selected
-                            if (inputElement.files.length > 0) {
-                                // Get the selected file
-                                var file = inputElement.files[0];
-
-                                // Check if the file is a PDF
-                                if (file.type === 'application/pdf') {
-                                    // Check if the file size is less than 10 MB
-                                    if (file.size < 10 * 1024 * 1024) { // 10 MB in bytes
-                                        // Read the file content
-                                        var reader = new FileReader();
-                                        reader.onload = function (e) {
-                                            // Store the file content in localStorage
-                                            localStorage.setItem('pdfContent', e.target.result);
-                                            alert('PDF file uploaded successfully and stored in localStorage.');
-                                        };
-                                        reader.readAsDataURL(file);
-                                    } else {
-                                        alert('File size exceeds 10 MB. Please choose a smaller PDF file.');
-                                    }
-                                } else {
-                                    alert('Please choose a PDF file.');
-                                }
-                            } else {
-                                alert('No file selected.');
-                            }
-                        }
 
                     </script>
                 </p>

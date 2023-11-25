@@ -23,6 +23,7 @@
 
     <style>
         #pdf-viewer-container {
+
             width: 100%;
             height: 1200px;
             border: 1px solid #bbb;
@@ -84,66 +85,15 @@
 
     <div class="row mx-1 mt-3">
 
-        <div class="col-md-5 wizard">
+        <div class="col-md-5">
             <div class="">
-                <h2 class="ps-0 mt-0 mb-2"><strong>Instructions</strong></h2>
-                <p class=""><span class="fw-bold">1.</span> Fill out the document on the right. Some fields have been prefilled for your convenience,
-                    however, you must ensure that the following <strong>mandatory</strong> information is correctly filled out:
-                    <ol class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-entity-name"></i>&ldquo;Name of Entity (“Implementer”) Making this Certification&rdquo;</div>
-                                This is the name of the organization that's requesting the certification.
-                                <br /><em>Example:</em> Acme Corporation
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-software"></i>&ldquo;Software or Service (“Deployment”) Name & Version #&rdquo;</div>
-                                All certified software <strong>must</strong> have a name and a version. If you are certifying a service which does not have a version number
-                                then you can use an artificial version number such as &ldquo;as of June 2021&rdquo; or &ldquo;June 2021 Release&ldquo;.
-                                <br /><em>Example:</em> Acme OIDC v2.0
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-profile"></i>&ldquo;OpenID Conformance Profile&rdquo;</div>
-                                This field must contain a valid profile name, i.e. one of <a class="text-primary" href="https://openid.net/certification/" target="oidf">the certification table</a> column labels, 
-                                e.g. &ldquo;FAPI Adv. OP w/ Private Key&rdquo;. Test plan names cannot be used instead of a profile name.
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-suite-date"></i>&ldquo;Conformance Test Suite Software&rdquo; and &ldquo;Test Date&rdquo;</div>
-                                Must contain the string &ldquo;www.certification.openid.net&rdquo; and the conformance suite version number, e.g. &ldquo;www.certification.openid.net version 5.1.18&rdquo;.
-                                The &ldquo;Test Date&rdquo; represents the date that the test plan was executed on.
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-name-title-date"></i>&ldquo;Name&rdquo;, &ldquo;Title&rdquo; and &ldquo;Date&rdquo; at the bottom of page 1</div>
-                                These fields refer to the person that will sign the document, and the date of signature. The document can be signed by any authorized person
-                                that works for the implementer, but it cannot be signed by third parties, e.g by an external consultant.
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-contact"></i>&ldquo;Implementer’s Authorized Contact Information&rdquo; on page 2</div>
-                                All fields in this section are mandatory and refer to the contact person of the organization
-                                making the certification request.
-                            </div>
-                        </li>
-                    </ol>
+                <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
+                <p>
+                    Please verify that you have filled out the document correctly:
                 </p>
-                <p class=""><span class="fw-bold">2.</span> When you've filled out the document, click the &ldquo;Validate&rdquo; button to
-                    validate the document and continue to the next step.
-                <ol class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-left align-items-start">
-                        <button class="btn btn-primary me-2" id="validate">Validate <i class="bi bi-check-square field-validate"></i></button>
-                        <button class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></button>
-                    </li>
-                </ol>
-                <p id="scratchpad"></p>
+                <ul>
+                    <li>fodfsd</li>
+                </ul>
             </div>
         </div>
 
@@ -260,7 +210,7 @@
     }
 
     function loadViewerWithoutDocument(event) {
-        document.querySelector('#pdf-viewer').src = 'lib/pdfjs-3.10.111-dist/web/viewer.html';
+        document.querySelector('#pdf-viewer').src = 'lib/pdfjs-4.0.189-dist/web/viewer.html?file=#page=1&pagemode=none&zoom=100';
         FAPI_UI.hideBusy();
     }
 
