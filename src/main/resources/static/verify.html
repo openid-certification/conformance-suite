@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: Test Plan</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
+
+    <style>
+        #pdf-viewer-container {
+            width: 100%;
+            height: 1200px;
+            border: 1px solid #bbb;
+        }
+        #pdf-viewer {
+            width: 100%;
+            height: 100%;
+        }
+        .disclaimer, .hidden {
+            display: none;
+        }
+        .opacity-20 {
+            opacity: 0.2;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="pageHeader container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <a href="index.html"><img src="/images/openid.png"></a>
+        </div>
+        <div id="userInfoHolder" class="col-md-4"></div>
+    </div>
+</div>
+<div class="clearfix"></div>
+
+<div class="container-fluid">
+    <div id="planDetail">
+        <div class="header"></div>
+        <div class="content container-fluid">
+            <!-- main page is rendered here -->
+
+            <!-- 404 content -->
+            <div class="card _404 hidden">
+                <div class="card-body bg-danger bg-opacity-200 text-white">
+                    <div class="row">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    Not found.</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="d-grid gap-1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+    <div class="row mx-1 mt-3">
+
+        <div class="col-md-5 wizard">
+            <div class="">
+                <h2 class="ps-0 mt-0 mb-2"><strong>Instructions</strong></h2>
+                <p class=""><span class="fw-bold">1.</span> Fill out the document on the right. Some fields have been prefilled for your convenience,
+                    however, you must ensure that the following <strong>mandatory</strong> information is correctly filled out:
+                    <ol class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-entity-name"></i>&ldquo;Name of Entity (“Implementer”) Making this Certification&rdquo;</div>
+                                This is the name of the organization that's requesting the certification.
+                                <br /><em>Example:</em> Acme Corporation
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-software"></i>&ldquo;Software or Service (“Deployment”) Name & Version #&rdquo;</div>
+                                All certified software <strong>must</strong> have a name and a version. If you are certifying a service which does not have a version number
+                                then you can use an artificial version number such as &ldquo;as of June 2021&rdquo; or &ldquo;June 2021 Release&ldquo;.
+                                <br /><em>Example:</em> Acme OIDC v2.0
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-profile"></i>&ldquo;OpenID Conformance Profile&rdquo;</div>
+                                This field must contain a valid profile name, i.e. one of <a class="text-primary" href="https://openid.net/certification/" target="oidf">the certification table</a> column labels, 
+                                e.g. &ldquo;FAPI Adv. OP w/ Private Key&rdquo;. Test plan names cannot be used instead of a profile name.
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-suite-date"></i>&ldquo;Conformance Test Suite Software&rdquo; and &ldquo;Test Date&rdquo;</div>
+                                Must contain the string &ldquo;www.certification.openid.net&rdquo; and the conformance suite version number, e.g. &ldquo;www.certification.openid.net version 5.1.18&rdquo;.
+                                The &ldquo;Test Date&rdquo; represents the date that the test plan was executed on.
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-name-title-date"></i>&ldquo;Name&rdquo;, &ldquo;Title&rdquo; and &ldquo;Date&rdquo; at the bottom of page 1</div>
+                                These fields refer to the person that will sign the document, and the date of signature. The document can be signed by any authorized person
+                                that works for the implementer, but it cannot be signed by third parties, e.g by an external consultant.
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-contact"></i>&ldquo;Implementer’s Authorized Contact Information&rdquo; on page 2</div>
+                                All fields in this section are mandatory and refer to the contact person of the organization
+                                making the certification request.
+                            </div>
+                        </li>
+                    </ol>
+                </p>
+                <p class=""><span class="fw-bold">2.</span> When you've filled out the document, click the &ldquo;Validate&rdquo; button to
+                    validate the document and continue to the next step.
+                <ol class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-left align-items-start">
+                        <button class="btn btn-primary me-2" id="validate">Validate <i class="bi bi-check-square field-validate"></i></button>
+                        <button class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></button>
+                    </li>
+                </ol>
+                <p id="scratchpad"></p>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div id="pdf-viewer-container">
+                <iframe id="pdf-viewer" ></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- loading modal -->
+<div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <img src="/images/spinner.gif" width="100px" height="30px" alt="" />
+                </div>
+                <div>
+                    <span id="loadingMessage"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- error modal -->
+<div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="errorLabel">Error</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Error: <span id="errorMessage"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="pageFooter mt-0">
+    <span class="muted">OpenID Foundation conformance suite</span>
+</footer>
+
+
+<script>
+
+    const origin = `${document.location.protocol}//${document.location.host}`;
+    const now = new Date();
+    var planId, public, event, envelopeId, shouldPrefill, planLoadError, profile, suite, started, date = '';
+
+    function getPlan(planId, public) {
+        return fetch('/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''))
+            .then(response => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.querySelector('.content').insertAdjacentHTML('beforeend',
+                    FAPI_UI.logTemplates.PLAN_HEADER({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant)})
+                );
+                profile = data.certificationProfileName,
+                suite = `${document.location.host} ${data.version}`,
+                started = data.started.substring(0, 10),
+                date = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000)).toISOString().substring(0, 10);
+            })
+            .catch(ex => {
+                planLoadError = true;
+                handleSuiteError(ex);
+            });
+    }
+
+    function handleSuiteError(error) {
+        if (error instanceof Response) {
+            if (error.status === 404) {
+                document.querySelector('._404').classList.remove('hidden');
+            }
+            var message = error.statusText;
+            let responseClone = error.clone();
+            error.text().then(textError => {
+                messageParsed = true;
+                try {
+                    const errorObj = JSON.parse(textError);
+                    if (errorObj.error.length != 0) {
+                        message = errorObj.error;
+                    }
+                } catch (e) { }
+                FAPI_UI.showError({code: error.status.toString(), error: message});
+            })
+            .catch(_ => {
+                responseClone.json().then(jsonError => {
+                    if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                        message = jsonError;
+                    }
+                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                })
+                .catch(_ => {
+                    FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                });
+            });
+        } else {
+            FAPI_UI.showError({code: "", error: error});
+        }
+    }
+
+    function loadViewerWithoutDocument(event) {
+        document.querySelector('#pdf-viewer').src = 'lib/pdfjs-3.10.111-dist/web/viewer.html';
+        FAPI_UI.hideBusy();
+    }
+
+    document.addEventListener('webviewerloaded', _ => {
+        window.frames[0].postMessage({ "event": "loadFromLocalStorage" }, origin)
+    });
+
+    document.addEventListener('DOMContentLoaded', _ => {
+        let urlParams = new URLSearchParams(window.location.search);
+        planId = urlParams.get('plan');
+        public = Boolean(urlParams.get('public'));
+        event = urlParams.get('event');
+        envelopeId = urlParams.get('envelopeId');
+
+        FAPI_UI.loadPlanTemplates()
+            .then(_ => {
+                return FAPI_UI.getUserInfo();
+            }).then(_ => {
+                return getPlan(planId, public);
+            }).then(_ => {
+                loadViewerWithoutDocument(event);
+            });
+        FAPI_UI.showBusy();
+    });
+
+
+</script>
+
+</body>
+</html>

@@ -547,6 +547,10 @@ See https://github.com/adobe-type-tools/cmap-resources
             window.parent.postMessage({ "event": "formValues", formValues }, origin);
           }
 
+          if (evt.data.event === 'loadFromLocalStorage') {
+            loadDocumentFromLocalStorage();
+          }
+
         }
       });
 
@@ -557,6 +561,17 @@ See https://github.com/adobe-type-tools/cmap-resources
             input.addEventListener('change', save);
           }
         });
+      }
+
+      function loadDocumentFromLocalStorage() {
+        let cocPdf = localStorage.getItem('cocPdf');
+        let cocBase64 = cocPdf.split(',')[1];
+        let cocBinary = atob(cocBase64);
+        let cocUint8Array = new Uint8Array(cocBinary.length);
+        for (let i = 0; i < cocBinary.length; i++) {
+            cocUint8Array[i] = cocBinary.charCodeAt(i);
+        }
+        PDFViewerApplication.open({ data: cocUint8Array });
       }
 
       function save (evt) {

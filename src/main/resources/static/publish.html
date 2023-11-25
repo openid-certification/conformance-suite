@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: Test Plan</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script type="text/javascript" src="js/fapi.ui.js"></script>
+
+    <style>
+        .disclaimer, .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="pageHeader container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <a href="index.html"><img src="/images/openid.png"></a>
+        </div>
+        <div id="userInfoHolder" class="col-md-4"></div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+
+<div class="container-fluid">
+    <div id="planDetail">
+        <div class="header"></div>
+        <div class="content container-fluid">
+            <!-- main page is rendered here -->
+
+            <!-- 404 content -->
+            <div class="card _404 hidden">
+                <div class="card-body bg-danger bg-opacity-200 text-white">
+                    <div class="row">
+                        <div class="col-md-12">
+                            Not found.</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+
+    <div class="row mx-1 mt-3">
+
+        <div class="col-md-12">
+            <div class="">
+                <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
+                <p>
+                    In order to publish your test plan for certification, you will need to submit a filled out and
+                    signed <strong>certification of conformance</strong> document.
+                </p>
+                <p>
+                    If you already have the document, please upload it in order to continue. Otherwise, please
+                    proceed to the next step to fill it out.
+                </p>
+                <p>
+
+                    <button id="uploadButton" class="btn btn-primary">Upload <i class="bi bi-upload"></i></button>
+                    <input id="fileInput" style="display: none;" type="file" >
+                    <button id="fillOutButton" class="btn btn-primary">Fill out <i class="bi bi-chevron-right"></i></button>
+
+                    <script>
+
+                        document.querySelector('#fileInput').addEventListener('change', (evt) => {
+                            let inputElement = evt.target;
+                            if (inputElement.files.length > 0) {
+                                let file = inputElement.files[0];
+                                if (file.type === 'application/pdf') {
+                                    if (file.size < 10 * 1024 * 1024) { // 10 MB in bytes
+                                        let reader = new FileReader();
+                                        reader.onload = function (e) {
+                                            localStorage.setItem('cocPdf', e.target.result);
+                                        };
+                                        reader.readAsDataURL(file);
+                                    } else {
+                                        alert('File size exceeds 10 MB. Please choose a smaller PDF file.');
+                                    }
+                                } else {
+                                    alert('Please choose a PDF file.');
+                                }
+                            }
+                        });
+
+                        document.querySelector('#uploadButton').addEventListener('click', () => {
+                            document.querySelector('#fileInput').click();
+                        });
+
+                        function uploadPDF() {
+                            // Get the input element
+                            var inputElement = document.getElementById('pdfInput');
+
+                            // Check if a file is selected
+                            if (inputElement.files.length > 0) {
+                                // Get the selected file
+                                var file = inputElement.files[0];
+
+                                // Check if the file is a PDF
+                                if (file.type === 'application/pdf') {
+                                    // Check if the file size is less than 10 MB
+                                    if (file.size < 10 * 1024 * 1024) { // 10 MB in bytes
+                                        // Read the file content
+                                        var reader = new FileReader();
+                                        reader.onload = function (e) {
+                                            // Store the file content in localStorage
+                                            localStorage.setItem('pdfContent', e.target.result);
+                                            alert('PDF file uploaded successfully and stored in localStorage.');
+                                        };
+                                        reader.readAsDataURL(file);
+                                    } else {
+                                        alert('File size exceeds 10 MB. Please choose a smaller PDF file.');
+                                    }
+                                } else {
+                                    alert('Please choose a PDF file.');
+                                }
+                            } else {
+                                alert('No file selected.');
+                            }
+                        }
+
+                    </script>
+                </p>
+
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+
+            </div>
+        </div>
+    </div>
+
+<!-- loading modal -->
+<div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <img src="/images/spinner.gif" width="100px" height="30px" alt="" />
+                </div>
+                <div>
+                    <span id="loadingMessage"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- error modal -->
+<div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="errorLabel">Error</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Error: <span id="errorMessage"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<footer class="pageFooter mt-0">
+    <span class="muted">OpenID Foundation conformance suite</span>
+</footer>
+
+
+<script>
+
+    function getPlan(planId, public) {
+        return fetch('/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''))
+            .then(response => {
+                if (!response.ok) {
+                    return Promise.reject(response);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.querySelector('.content').insertAdjacentHTML('beforeend',
+                    FAPI_UI.logTemplates.PLAN_HEADER({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant)})
+                );
+            })
+            .catch(ex => {
+                planLoadError = true;
+                handleSuiteError(ex);
+            });
+    }
+
+    function handleSuiteError(error) {
+        console.error(error);
+        if (error instanceof Response) {
+            if (error.status === 404) {
+                document.querySelector('._404').classList.remove('hidden');
+            }
+            var message = error.statusText;
+            let responseClone = error.clone();
+            error.text().then(textError => {
+                messageParsed = true;
+                try {
+                    const errorObj = JSON.parse(textError);
+                    if (errorObj.error.length != 0) {
+                        message = errorObj.error;
+                    }
+                } catch (e) { }
+                FAPI_UI.showError({code: error.status.toString(), error: message});
+            })
+            .catch(_ => {
+                responseClone.json().then(jsonError => {
+                    if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                        message = jsonError;
+                    }
+                    FAPI_UI.showError({code: error.status.toString(), error: message});
+                })
+                .catch(_ => {
+                    FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                });
+            });
+        } else {
+            FAPI_UI.showError({code: "", error: error});
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', _ => {
+        let urlParams = new URLSearchParams(window.location.search);
+        let planId = urlParams.get('plan');
+        let public = Boolean(urlParams.get('public'));
+
+        FAPI_UI.loadPlanTemplates()
+            .then(_ => {
+                return FAPI_UI.getUserInfo();
+            }).then(_ => {
+                return getPlan(planId, public);
+            }).then(_ => {
+                FAPI_UI.hideBusy();
+            });
+        FAPI_UI.showBusy();
+    });
+
+</script>
+
+</body>
+</html>
