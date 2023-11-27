@@ -751,6 +751,19 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
 	}
 
+	protected void createDpopForParEndpoint(boolean createKey) {
+
+		if(createKey && (null == env.getElementFromObject("client", "dpop_private_jwk"))) {
+			callAndStopOnFailure(GenerateDpopKey.class);
+		}
+		callAndStopOnFailure(CreateDpopHeader.class);
+		callAndStopOnFailure(CreateDpopClaims.class);
+		callAndStopOnFailure(SetDpopHtmHtuForParEndpoint.class);
+		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
+		callAndStopOnFailure(SignDpopProof.class);
+		callAndStopOnFailure(AddDpopHeaderForParEndpointRequest.class);
+	}
+
 	@Override
 	protected void processCallback() {
 
