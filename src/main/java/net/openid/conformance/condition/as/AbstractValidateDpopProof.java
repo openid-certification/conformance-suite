@@ -20,11 +20,10 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	// Common method to validate DPoP Proofs
-	// isTokenRequest is used to indicate whether the DPoP proof is used to request an access token
-	// or whether it's used along with an constrained access token to request resource access.
-	// Token requests checks to make sure 'ath' claim in not included whereas resource requests checks
-	// to make sure 'ath' claim is included.
-	protected Environment validateDpopProof(Environment env, boolean isTokenRequest) {
+	// isResourceRequest is used to indicate whether the DPoP proof is used for a resource endpoint request
+	// Resource endpoint request checks to make sure 'ath' claim is included whereas other requests e.g.
+	// Token requests checks to make sure 'ath' claim in not included
+	protected Environment validateDpopProof(Environment env, boolean isResourceRequest) {
 		Instant now = Instant.now(); // to check timestamps
 
 		// Check Header claims
@@ -129,7 +128,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		}
 
 		JsonElement ath = env.getElementFromObject("incoming_dpop_proof", "claims.ath");
-		if(isTokenRequest) { // DPoP Request, ensure no 'ath' claim
+		if(!isResourceRequest) { // DPoP Request, ensure no 'ath' claim
 			if(ath != null) {
 				throw error("DPoP Proof request contains 'ath' claim");
 			}
@@ -139,25 +138,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 			}
 		}
 
-
-		String expectedNonce = env.getString("dpop_nonce"); // check for server side saved nonce
-
-		// check for incoming nonce
-		JsonElement incomingNonce = env.getElementFromObject("incoming_dpop_proof", "claims.nonce");
-
-		if(null == expectedNonce) { // server did not set nonce
-			if(incomingNonce  != null) {
-				throw error("DPoP proof contains unexpected nonce", args("nonce", OIDFJSON.getString(incomingNonce)));
-			}
-		} else { // server set nonce
-			if(null == incomingNonce) {
-				throw error("DPoP Proof does not contain an expected nonce", args("expected", expectedNonce));
-			} else if(!expectedNonce.equals(OIDFJSON.getString(incomingNonce))) {
-				throw error("DPoP Proof contains an invalid nonce", args("nonce", OIDFJSON.getString(incomingNonce), "expected", expectedNonce));
-			}
-		}
-
-		logSuccess("DPoP Proof type, alg, jwk, jti, htm, htu, iat, exp, nbf, nonce passed validation checks");
+		logSuccess("DPoP Proof type, alg, jwk, jti, htm, htu, iat, exp, nbf passed validation checks");
 		return env;
 	}
 }
