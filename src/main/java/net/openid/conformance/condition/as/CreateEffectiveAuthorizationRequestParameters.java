@@ -27,16 +27,25 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 	public static final String NONCE = "nonce";
 	public static final String CODE_CHALLENGE = "code_challenge";
 	public static final String CODE_CHALLENGE_METHOD = "code_challenge_method";
+	public static final String DPOP_JKT = "dpop_jkt";
 
 	//WARNING "authorization_request_object" is also used but it's not required
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_http_request_params"})
 	@PostEnvironment(required = {ENV_KEY})
 	public Environment evaluate(Environment env) {
+		return createEffectiveAuthorizationRequestParameters(env);
+	}
+
+	protected void customizeEffectiveAuthorizationRequestParams(Environment env, JsonObject jsonObject) {
+	}
+
+	protected Environment createEffectiveAuthorizationRequestParameters(Environment env) {
 
 		JsonObject authzEndpointReqParams = env.getObject("authorization_endpoint_http_request_params");
 		JsonObject effective = authzEndpointReqParams.deepCopy();
 		effective.remove("request_uri");
+		customizeEffectiveAuthorizationRequestParams(env, effective);
 
 		//override request parameters if authorization_request_object exists
 		if(env.containsObject("authorization_request_object")) {
