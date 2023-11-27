@@ -118,6 +118,8 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
+import net.openid.conformance.condition.client.SetDpopProofNonceForResourceEndpoint;
+import net.openid.conformance.condition.client.SetDpopProofNonceForTokenEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToMtlsUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -744,6 +746,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndStopOnFailure(CreateDpopHeader.class);
 		callAndStopOnFailure(CreateDpopClaims.class);
 		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
+		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
 		callAndStopOnFailure(SignDpopProof.class);
 		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
 	}
