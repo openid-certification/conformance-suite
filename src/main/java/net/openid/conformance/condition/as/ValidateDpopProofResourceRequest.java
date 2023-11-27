@@ -8,6 +8,6 @@ public class ValidateDpopProofResourceRequest extends AbstractValidateDpopProof 
 	@Override
 	@PreEnvironment(required = {"incoming_dpop_proof", "incoming_request"})
 	public Environment evaluate(Environment env) {
-		return validateDpopProof(env, false);
+		return validateDpopProof(env, true);
 	}
 }
