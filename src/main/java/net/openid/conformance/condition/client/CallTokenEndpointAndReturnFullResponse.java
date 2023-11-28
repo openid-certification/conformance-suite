@@ -34,6 +34,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 
 public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
+	protected boolean jsonObjectError = false;
+	protected boolean jsonParseError = false;
+	protected JsonParseException jsonParseException = null;
 
 	@Override
 	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })
@@ -81,16 +84,8 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 				ResponseEntity<String> response = restTemplate
 					.exchange(tokenEndpointUri, HttpMethod.POST, request, String.class);
 
-				env.putInteger("token_endpoint_response_http_status", response.getStatusCode().value());
-
-				JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
-
-				env.putObject("token_endpoint_response_headers", responseHeaders);
-
 				jsonString = response.getBody();
-
-				JsonObject fullResponse = convertJsonResponseForEnvironment("token", response, true);
-				env.putObject("token_endpoint_response_full", fullResponse);
+				addFullResponse(env, response);
 
 			} catch (RestClientResponseException e) {
 				return handleRestClientResponseException(env, e);
@@ -102,25 +97,78 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 				throw error("Missing or empty response from the token endpoint");
 			}
 
-			try {
-				JsonElement jsonRoot = JsonParser.parseString(jsonString);
-				if (jsonRoot == null || !jsonRoot.isJsonObject()) {
-					throw error("Token Endpoint did not return a JSON object");
-				}
-
-				logSuccess("Parsed token endpoint response", jsonRoot.getAsJsonObject());
-
-				env.putObject("token_endpoint_response", jsonRoot.getAsJsonObject());
-				return env;
-			} catch (JsonParseException e) {
-				return handleJsonParseException(env, e);
+			if(jsonParseError && (null != jsonParseException)) {
+				return handleJsonParseException(env, jsonParseException);
 			}
-
+			if(jsonObjectError) {
+				throw error("Token Endpoint did not return a JSON object", args("response", jsonString));
+			}
+			env.putObject("token_endpoint_response", env.getElementFromObject("token_endpoint_response_full", "body_json").getAsJsonObject());
+			logSuccess("Parsed token endpoint response", env.getObject("token_endpoint_response"));
+			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
 
 	}
+
+
+	protected void addFullResponse(Environment env, ResponseEntity<String> response) {
+		env.putInteger("token_endpoint_response_http_status", response.getStatusCode().value());
+
+		JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
+
+		env.putObject("token_endpoint_response_headers", responseHeaders);
+
+		JsonObject fullResponse = convertJsonResponseForEnvironment("token", response, true);
+		env.putObject("token_endpoint_response_full", fullResponse);
+	}
+
+	@Override
+	protected JsonObject convertJsonResponseForEnvironment(String endpointName, ResponseEntity<String> response, boolean allowParseFailure) {
+		jsonParseError = false;
+		jsonObjectError = false;
+		jsonParseException = null;
+
+		JsonObject responseInfo = convertResponseForEnvironment(endpointName, response);
+
+		String jsonString = response.getBody();
+		if (Strings.isNullOrEmpty(jsonString)) {
+			if (allowParseFailure) {
+				return responseInfo;
+			}
+			throw error("Empty response from the "+endpointName+" endpoint");
+		}
+
+		try {
+			JsonElement jsonRoot = JsonParser.parseString(jsonString);
+			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+				if (allowParseFailure) {
+					jsonObjectError = true;
+					return responseInfo;
+				}
+
+				throw error(endpointName + " endpoint did not return a JSON object.",
+					args("response", jsonString));
+			}
+
+			JsonObject bodyJson = jsonRoot.getAsJsonObject();
+
+			responseInfo.add("body_json", bodyJson);
+
+		} catch (JsonParseException e) {
+			if (allowParseFailure) {
+				jsonParseError = true;
+				jsonParseException = e; // save exception for later
+				return responseInfo;
+			}
+			throw error("Response from "+endpointName+" endpoint does not appear to be JSON.", e,
+				args("response", jsonString));
+		}
+
+		return responseInfo;
+	}
+
 
 	protected Environment handleJsonParseException(Environment env, JsonParseException e) {
 		throw error("Error parsing token endpoint response body as JSON", e);
@@ -138,5 +186,4 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 		}
 		throw error(msg, e);
 	}
-
 }
