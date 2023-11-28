@@ -169,6 +169,7 @@
          */
         function loadAvailablePlans(public) {
             return $('#plansListing').DataTable({
+                searching: false,
                 serverSide: true,
                 ajax: {
                     url: '/api/plan' + (public ? '?public=true' : ''),
