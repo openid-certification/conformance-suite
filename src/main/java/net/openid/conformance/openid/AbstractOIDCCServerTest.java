@@ -46,6 +46,7 @@ import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ExtractInitialAccessTokenFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -138,7 +139,8 @@ import java.util.function.Supplier;
 	"client.client_id"
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client.client_name"
+	"client.client_name",
+	"client.initial_access_token"
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_secret",
@@ -437,6 +439,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		case DYNAMIC_CLIENT:
 			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
+			callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
 			configureDynamicClient();
 			break;
 		}

@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -78,6 +79,16 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			/*
+			 * If there is an initial access token configured for the client include it in the authorization header.
+			 *
+			 * As per: https://openid.net/specs/openid-connect-registration-1_0.html#ClientRegistration
+			 */
+			String initialAccessToken = env.getString("initial_access_token");
+			if (! Strings.isNullOrEmpty(initialAccessToken)){
+				headers.set("Authorization", "Bearer " + initialAccessToken);
+			}
 
 			HttpEntity<?> request = new HttpEntity<>(requestObj.toString(), headers);
 

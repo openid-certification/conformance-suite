@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
+import net.openid.conformance.condition.client.ExtractInitialAccessTokenFromStoredConfig;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
@@ -49,7 +50,8 @@ import java.util.function.Supplier;
 	"mtls.ca"
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client.client_name"
+	"client.client_name",
+	"client.initial_access_token"
 })
 @VariantNotApplicable(parameter = ClientRegistration.class, values = {"static_client"})
 @VariantNotApplicable(parameter = ServerMetadata.class, values = { "static" }) // dcr requires discovery
@@ -107,6 +109,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 
 		callAndStopOnFailure(StoreOriginalClientConfiguration.class);
 		callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
+		callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);

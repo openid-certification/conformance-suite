@@ -1,6 +1,7 @@
 package net.openid.conformance.openid;
 
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
+import net.openid.conformance.condition.client.ExtractInitialAccessTokenFromStoredConfig;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
 import net.openid.conformance.variant.ClientAuthType;
@@ -29,7 +30,8 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 	"client2.client_id"
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client2.client_name"
+	"client2.client_name",
+	"client2.initial_access_token"
 })
 public abstract class AbstractOIDCCMultipleClient extends AbstractOIDCCServerTest {
 
@@ -46,6 +48,7 @@ public abstract class AbstractOIDCCMultipleClient extends AbstractOIDCCServerTes
 		case DYNAMIC_CLIENT:
 			callAndStopOnFailure(StoreOriginalClient2Configuration.class);
 			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
+			callAndStopOnFailure(ExtractInitialAccessTokenFromStoredConfig.class);
 			configureDynamicClient();
 			break;
 		}
