@@ -41,6 +41,7 @@ import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponsePa
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
+import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
@@ -897,7 +898,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected Object parEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
-		call(exec().startBlock("PAR endpoint").mapKey("par_endpoint_http_request", requestId));
+		call(exec().startBlock("PAR endpoint").mapKey("par_endpoint_http_request", requestId)
+			.mapKey("incoming_request", requestId));
 
 		authenticateParEndpointRequest(requestId);
 		setParAuthorizationEndpointRequestParamsForHttpMethod();
@@ -910,9 +912,19 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			senderConstrainTokenRequestHelper.checkParRequest();
 		}
 
-		JsonObject parResponse = createPAREndpointResponse();
+		ResponseEntity<Object> responseEntity = null;
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseEntity = new ResponseEntity<>(env.getObject("par_endpoint_response"), headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status").intValue()));
+		}  else {
+			JsonObject parResponse = createPAREndpointResponse();
+			responseEntity = new ResponseEntity<>(parResponse, HttpStatus.CREATED);
+		}
+
 		setStatus(Status.WAITING);
-		return new ResponseEntity<Object>(parResponse, HttpStatus.CREATED);
+		call(exec().unmapKey("incoming_request").unmapKey("par_endpoint_http_request"));
+
+		return responseEntity;
 	}
 
 	protected void addCustomValuesToParResponse() {}
