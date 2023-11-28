@@ -19,6 +19,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -39,6 +40,19 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
 
+		return callTokenEndpoint(env, new DefaultResponseErrorHandler() {
+			@Override
+			public boolean hasError(ClientHttpResponse response) throws IOException {
+				// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+				// status code meaning the rest of our code can handle http status codes how it likes
+				return false;
+			}
+		});
+	}
+
+
+	public Environment callTokenEndpoint(Environment env, ResponseErrorHandler errorHandler) {
+
 		// build up the form
 		JsonObject formJson = env.getObject("token_endpoint_request_form_parameters");
 		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
@@ -49,14 +63,9 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
-			restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
-				@Override
-				public boolean hasError(ClientHttpResponse response) throws IOException {
-					// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
-					// status code meaning the rest of our code can handle http status codes how it likes
-					return false;
-				}
-			});
+			if(null != errorHandler) {
+				restTemplate.setErrorHandler(errorHandler);
+			}
 
 			HttpHeaders headers = headersFromJson(env.getObject("token_endpoint_request_headers"));
 
@@ -84,8 +93,7 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 				env.putObject("token_endpoint_response_full", fullResponse);
 
 			} catch (RestClientResponseException e) {
-				throw error("RestClientResponseException occurred whilst calling token endpoint",
-					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				return handleRestClientResponseException(env, e);
 			} catch (RestClientException e) {
 				return handleClientException(env, e);
 			}
@@ -116,6 +124,11 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 
 	protected Environment handleJsonParseException(Environment env, JsonParseException e) {
 		throw error("Error parsing token endpoint response body as JSON", e);
+	}
+
+	protected Environment handleRestClientResponseException(Environment env, RestClientResponseException e) {
+		throw error("RestClientResponseException occurred whilst calling token endpoint",
+			args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 	}
 
 	protected Environment handleClientException(Environment env, RestClientException e) {
