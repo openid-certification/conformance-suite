@@ -132,6 +132,7 @@ import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCiph
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
+import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -683,24 +684,29 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE,"FAPI1-BASE-6.2.1-11");
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isPayments) {
-			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
-			callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-2");
-			String signedConsentResponse = env.getString("signed_consent_response");
-			JsonObject headerJson = env.getObject("consent_response_headers");
-
-			HttpHeaders headers = headersFromJson(headerJson);
-			if(isPayments) {
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-			}
-			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
-			callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
-			JsonObject response = env.getObject("consent_response");
-			JsonObject headerJson = env.getObject("consent_response_headers");
-			responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.CREATED);
+			if(isPayments) {
+				callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-2");
+				String signedConsentResponse = env.getString("signed_consent_response");
+				JsonObject headerJson = env.getObject("consent_response_headers");
+
+				HttpHeaders headers = headersFromJson(headerJson);
+				if(isPayments) {
+					headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
+				}
+				responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
+			} else {
+				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+				JsonObject response = env.getObject("consent_response");
+				JsonObject headerJson = env.getObject("consent_response_headers");
+				responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.CREATED);
+			}
+			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
 		}
-		callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
@@ -725,11 +731,15 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		env.putString("requested_consent_id", requestedConsentId);
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isPayments) {
-			callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
-			callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
-			String signedConsentResponse = env.getString("signed_consent_response");
-			JsonObject headerJson = env.getObject("consent_response_headers");
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			if(isPayments) {
+				callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
+				String signedConsentResponse = env.getString("signed_consent_response");
+				JsonObject headerJson = env.getObject("consent_response_headers");
 
 			HttpHeaders headers = headersFromJson(headerJson);
 			if(isPayments) {
@@ -744,7 +754,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.OK);
 		}
 
-		callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
+		}
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
@@ -787,20 +798,25 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 
 		ResponseEntity<Object> responseEntity = null;
-		callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
-		callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
-		String signedConsentResponse = env.getString("signed_payment_initiation_response");
-		JsonObject headerJson = env.getObject("payment_initiation_response_headers");
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			setStatus(Status.WAITING);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
+			callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
+			String signedConsentResponse = env.getString("signed_payment_initiation_response");
+			JsonObject headerJson = env.getObject("payment_initiation_response_headers");
 
 		HttpHeaders headers = headersFromJson(headerJson);
 		headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 		responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 
-		callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
+			resourceEndpointCallComplete();
+		}
 
 		call(exec().unmapKey("incoming_request").endBlock());
-		resourceEndpointCallComplete();
-
 		return responseEntity;
 	}
 
