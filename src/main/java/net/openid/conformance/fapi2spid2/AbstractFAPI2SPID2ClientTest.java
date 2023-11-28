@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -40,6 +41,7 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARReques
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateRefreshToken;
+import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
@@ -985,7 +987,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(sequence(validateClientAuthenticationSteps));
 
-		return handleTokenEndpointGrantType(requestId);
+		Object tokenResponseOb =  handleTokenEndpointGrantType(requestId);
+		if(isDpop()) {
+			call(exec().unmapKey("incoming_request"));
+		}
+		return tokenResponseOb;
 
 	}
 
@@ -1036,23 +1042,30 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	protected Object clientCredentialsGrantType(String requestId) {
 
 		senderConstrainTokenRequestHelper.checkTokenRequest();
-		callAndStopOnFailure(generateSenderConstrainedAccessToken);
+		ResponseEntity<Object> responseObject = null;
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
+		} else {
+
+			callAndStopOnFailure(generateSenderConstrainedAccessToken);
 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
-		// this puts the client credentials specific token into its own box for later
-		if(isMTLS()) {
-			callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
-		} else  {
-			callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
+			// this puts the client credentials specific token into its own box for later
+			if(isMTLS()) {
+				callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+			} else  {
+				callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
+			}
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
-
+		return responseObject;
 	}
 
 	protected void validateRedirectUriForAuthorizationCodeGrantType() {
@@ -1062,7 +1075,12 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	protected Object authorizationCodeGrantType(String requestId) {
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 
-		callAndStopOnFailure(ValidateAuthorizationCode.class);
+		ResponseEntity<Object> responseObject = null;
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
+		} else {
+			callAndStopOnFailure(ValidateAuthorizationCode.class);
 
 		validateRedirectUriForAuthorizationCodeGrantType();
 
@@ -1077,14 +1095,14 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			issueIdToken(false);
 		}
 
-		createTokenEndpointResponse();
+			createTokenEndpointResponse();
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
 		setStatus(Status.WAITING);
-
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
-
+		return responseObject;
 	}
 
 	protected void createTokenEndpointResponse() {
