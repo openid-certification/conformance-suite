@@ -1,0 +1,1 @@
+https://github.com/dropzone/dropzone/releases/tag/v6.0.0-beta.2

@@ -14,12 +14,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
+    <link rel="stylesheet" type="text/css" href="lib/dropzone-6.0.0b2/basic.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js" integrity="sha256-vS9J2VYhvwAfh2znnLdkhemFPEpx6YoZEhExqBPT5ys=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
     <script type="text/javascript" src="js/fapi.ui.js"></script>
+    <script type="text/javascript" src="lib/dropzone-6.0.0b2/dropzone-min.js"></script>
 
     <style>
         .disclaimer, .hidden {
@@ -65,17 +67,31 @@
 
     <div class="row mx-1 mt-3">
 
-        <div class="col-md-12">
+        <div class="col-md-9">
             <div class="">
                 <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
                 <p>
-                    In order to publish your test plan for certification, you will need to submit a filled out and
-                    signed <strong>certification of conformance</strong> document.
+                    You are creating a certification package for a relying party profile, which means that
+                    you will need to provide evidence demonstrating the behavior of the relying party for each test.
+                    This can take the form of RP log files, screen captures (image files), or both. 
+                    You must upload a zip file that contains the client data.
                 </p>
-                <p>
-                    If you already have the document, please upload it in order to continue. Otherwise, please
-                    proceed to the next step to fill it out.
-                </p>
+                <p>Please note the following conventions for the zip file:
+                    <ul>
+                        <li>Files should be named consistently using the test name as the file name prefix. 
+                            For example the log file for the test <code>fapi1-advanced-final-client-test-invalid-shash</code> should be named 
+                            <code>fapi1-advanced-final-client-test-invalid-shash.log</code> or similar.</li>
+                        <li>If more than one file needs to be included for a test then they should be named 
+                            <code>fapi1-advanced-final-client-test-invalid-shash-1.log</code>, <code>fapi1-advanced-final-client-test-invalid-shash-2.log</code> etc.</li>
+                        <li>
+                            When a test plan contains the same test multiple times, e.g for an hybrid profile, then the filenames must also contain the response type. For example for an hybrid test plan, client log files for <code>oidcc-client-test-invalid-iss</code> should be named as follows:
+                            <ul>
+                                <li><code>oidcc-client-test-invalid-iss_code-id_token.log</code></li>
+                                <li><code>oidcc-client-test-invalid-iss_code-token.log</code></li>
+                                <li><code>oidcc-client-test-invalid-iss_code-id_token-token.log</code></li>
+                            </ul>
+                        </li>
+                    </ul> 
                 <p>
 
                     <button id="uploadButton" class="btn btn-primary">Upload <i class="bi bi-upload"></i></button>
@@ -121,6 +137,28 @@
 
             </div>
         </div>
+
+        <div class="col-md-3" style="border: 1px solid red;">
+
+            <form action="/target" class="dropzone" id="client-data"></form>
+
+            <script>
+                Dropzone.options.clientData = {
+                    paramName: "client-data.zip",
+                    maxFilesize: 100, // MB
+                    accept: function(file, done) {
+                        if (file.name == "justinbieber.jpg") {
+                            done("Naha, you don't.");
+                        }
+                        else { done(); }
+                    }
+                };
+            </script>
+
+        </div>
+
+
+
     </div>
 
 <!-- loading modal -->

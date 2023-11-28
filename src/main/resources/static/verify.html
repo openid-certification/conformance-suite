@@ -38,6 +38,9 @@
         .opacity-20 {
             opacity: 0.2;
         }
+        input[type=checkbox] {
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -89,11 +92,64 @@
             <div class="">
                 <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
                 <p>
-                    Please verify that you have filled out the document correctly:
+                    Please verify that you have filled out the document correctly. Confirm by checking each of the following boxes:
                 </p>
-                <ul>
-                    <li>fodfsd</li>
-                </ul>
+                <ol class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" />&ldquo;Name of Entity (“Implementer”) Making this Certification&rdquo;</div>
+                            This field must represent the name of the organization that's requesting the certification.
+                            <br/><em>Example:</em> <strong>Acme Corporation</strong>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" />&ldquo;Software or Service (“Deployment”) Name & Version #&rdquo;</div>
+                            This field must contain the name and version of your software. All certified software <strong>must</strong> have a name and a version. If you are certifying a service which does not have a version number
+                            then you can use an artificial version number such as &ldquo;<span id="version-ex-1"></span>&rdquo; or &ldquo;<span id="version-ex-2"></span>&ldquo;.
+                            <br/><em>Example:</em> <strong>Acme OIDC v2.0</strong>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" /></i>&ldquo;OpenID Conformance Profile&rdquo;</div>
+                            Must be exactly <strong id="profile"></strong>.
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" /></i>&ldquo;Conformance Test Suite Software&rdquo;</div>
+                            Must equal <strong id="suite"></strong> (or a later version number).
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" /></i>&ldquo;Authorized signature&rdquo;</div>
+                            The document must be signed.
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" /></i>&ldquo;Name&rdquo;, &ldquo;Title&rdquo; and &ldquo;Date&rdquo; at the bottom of page 1</div>
+                            These fields refer to the person that signed the document, and the date of signature. The document can be signed by any authorized person
+                            that works for the implementer, but it cannot be signed by third parties, e.g by an external consultant.
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" /></i>&ldquo;Implementer’s Authorized Contact Information&rdquo; on page 2</div>
+                            All fields in this section are mandatory and refer to the contact person of the organization
+                            making the certification request.
+                        </div>
+                    </li>
+                </ol>
+                <ol class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-left align-items-start">
+                        <a class="btn btn-outline-primary me-2" id="back"><i class="bi bi-chevron-double-left"></i> Go back</a>
+                        <a class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></a>
+                    </li>
+                </ol>    
+
             </div>
         </div>
 
@@ -214,6 +270,42 @@
         FAPI_UI.hideBusy();
     }
 
+    function setValidationMessages() {
+        let startedDate = new Date(started);
+        let month = startedDate.toLocaleString('en-US', { month: 'short' });
+        let year = startedDate.getFullYear();
+
+        document.querySelector('#version-ex-1').textContent = `${month} ${year}`;
+        document.querySelector('#version-ex-2').textContent = `${month} ${year} Release`;
+        document.querySelector('#profile').textContent = profile;
+        document.querySelector('#suite').textContent = suite;
+    }
+
+    function setButtonNavigation() {
+        document.querySelector('#back').href = `publish.html?plan=${planId}`
+        if (profile && !profile.includes('RP-Initiated') && profile.includes(' RP')) {  
+            document.querySelector('#continue').href = `client-logs.html?plan=${planId}`
+        }
+        else {
+            document.querySelector('#continue').href = `confirm.html?plan=${planId}`
+        }
+    }
+
+    function enableContinueOnEverythingChecked() {
+        let checkboxes = document.querySelectorAll('input[type=checkbox]');
+        checkboxes.forEach(c => {
+            c.checked = false;  
+            c.addEventListener('change', () => {
+                let allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+                if (allChecked) {
+                    document.querySelector('#continue').classList.remove('disabled');
+                } else {
+                    document.querySelector('#continue').classList.add('disabled');
+                }
+            });
+        });
+    }
+
     document.addEventListener('webviewerloaded', _ => {
         window.frames[0].postMessage({ "event": "loadFromLocalStorage" }, origin)
     });
@@ -232,6 +324,9 @@
                 return getPlan(planId, public);
             }).then(_ => {
                 loadViewerWithoutDocument(event);
+                setValidationMessages();
+                setButtonNavigation();
+                enableContinueOnEverythingChecked();
             });
         FAPI_UI.showBusy();
     });
