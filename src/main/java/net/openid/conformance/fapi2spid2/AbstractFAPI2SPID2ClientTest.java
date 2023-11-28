@@ -176,6 +176,7 @@ import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationE
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.GenerateOpenBankingUkAccountsEndpointResponse;
+import net.openid.conformance.sequence.as.PerformDpopProofParRequestChecks;
 import net.openid.conformance.sequence.as.PerformDpopProofResourceRequestChecks;
 import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
@@ -820,11 +821,20 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	}
 
 	private abstract class SenderContrainTokenRequestHelper {
+		public abstract void checkParRequest();
 		public abstract void checkTokenRequest();
 		public abstract void checkResourceRequest();
 	}
 
 	private class DPopTokenRequestHelper extends SenderContrainTokenRequestHelper {
+		@Override
+		public void checkParRequest() {
+			skipIfElementMissing("incoming_request", "headers.dpop", ConditionResult.INFO, ExtractDpopProofFromHeader.class, ConditionResult.FAILURE, "DPOP-5");
+			if(env.containsObject("incoming_dpop_proof")) {
+				call(sequence(PerformDpopProofParRequestChecks.class));
+			}
+		}
+
 		@Override
 		public void checkTokenRequest() {
 			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
@@ -841,6 +851,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	}
 
 	private class MtlsTokenRequestHelper extends SenderContrainTokenRequestHelper {
+		@Override
+		public void checkParRequest() {
+
+		}
+
 		@Override
 		public void checkTokenRequest() {
 		}
@@ -888,6 +903,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		if(env.containsObject("authorization_request_object")) {
 			validateRequestObjectForPAREndpointRequest();
+		}
+		if(isDpop()) {
+			senderConstrainTokenRequestHelper.checkParRequest();
 		}
 
 		JsonObject parResponse = createPAREndpointResponse();
