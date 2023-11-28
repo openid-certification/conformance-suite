@@ -69,15 +69,6 @@ public class CallTokenEndpointAndReturnFullResponse extends AbstractCondition {
 			try {
 				final String tokenEndpointUri = env.getString("token_endpoint") != null ? env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 
-				restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
-					@Override
-					public boolean hasError(ClientHttpResponse response) throws IOException {
-						// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
-						// status code meaning the rest of our code can handle http status codes how it likes
-						return false;
-					}
-				});
-
 				ResponseEntity<String> response = restTemplate
 					.exchange(tokenEndpointUri, HttpMethod.POST, request, String.class);
 
