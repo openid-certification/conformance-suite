@@ -292,6 +292,14 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected void endTestIfRequiredParametersAreMissing(){}
 
+	protected Boolean isDpop() {
+		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP;
+	}
+
+	protected Boolean isMTLS() {
+		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
 		env.putString("base_url", baseUrl);
@@ -347,9 +355,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
 		}
 
-		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+		if (isMTLS()) {
 			callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
-		} else if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+		} else if (isDpop()) {
 			callAndStopOnFailure(AddDpopSigningAlgValuesSupportedToServerConfiguration.class, "DPOP-5.1");
 		}
 
@@ -380,7 +388,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		} else {
-			if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			if (isMTLS()) {
 				exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			} else {
 				exposePath("accounts_endpoint", ACCOUNTS_PATH);
@@ -520,7 +528,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			if (isMTLS()) {
 				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
 			}
 			return userinfoEndpoint(requestId);
@@ -548,7 +556,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 
-			if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+			if (isMTLS()) {
 				throw new TestFailureException(getId(), "The accounts endpoint must be called over an mTLS secured connection.");
 			}
 
@@ -577,7 +585,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
-			if (fapi2SenderConstrainMethod != FAPI2SenderConstrainMethod.MTLS) {
+			if (!isMTLS()) {
 				throw new TestFailureException(getId(), "The accounts endpoint must not be called over an mTLS secured connection.");
 			}
 
@@ -903,7 +911,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+		if (isMTLS() || profileRequiresMtlsEverywhere) {
 			call(exec().mapKey("token_endpoint_request", requestId));
 			checkMtlsCertificate();
 			call(exec().unmapKey("token_endpoint_request"));
@@ -952,13 +960,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
-		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP) {
+		if(isDpop()) {
 			call(exec().mapKey("incoming_request", requestId));
 		}
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		if (clientAuthType == ClientAuthType.MTLS || fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+		if (clientAuthType == ClientAuthType.MTLS || isMTLS()  || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
 		}
 
@@ -1020,7 +1028,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		// this puts the client credentials specific token into its own box for later
-		if(fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS) {
+		if(isMTLS()) {
 			callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
 		} else  {
 			callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
@@ -1400,7 +1408,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+		if (isMTLS() || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
 		}
 
