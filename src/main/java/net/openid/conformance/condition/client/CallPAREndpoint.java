@@ -17,6 +17,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -42,6 +43,18 @@ public class CallPAREndpoint extends AbstractCondition {
 	@PreEnvironment(required = {"server", "pushed_authorization_request_form_parameters"})
 	@PostEnvironment(required = {RESPONSE_KEY})
 	public Environment evaluate(Environment env) {
+		return callParEndpoint(env, new DefaultResponseErrorHandler() {
+			@Override
+			public boolean hasError(ClientHttpResponse response) throws IOException {
+				// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
+				// status code meaning the rest of our code can handle http status codes how it likes
+				return false;
+			}
+		});
+	}
+
+
+	protected Environment callParEndpoint(Environment env, ResponseErrorHandler errorHandler) {
 
 		// build up the form
 		JsonObject formJson = env.getObject("pushed_authorization_request_form_parameters");
@@ -59,7 +72,7 @@ public class CallPAREndpoint extends AbstractCondition {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 
-			HttpHeaders headers = new HttpHeaders();
+			HttpHeaders headers = headersFromJson(env.getObject("pushed_authorization_request_endpoint_request_headers"));
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -88,14 +101,9 @@ public class CallPAREndpoint extends AbstractCondition {
 					throw error("Couldn't find pushed_authorization_request_endpoint in server discovery document. This endpoint is required as you have selected to test pushed authorization requests.");
 				}
 
-				restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
-					@Override
-					public boolean hasError(ClientHttpResponse response) throws IOException {
-						// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
-						// status code meaning the rest of our code can handle http status codes how it likes
-						return false;
-					}
-				});
+				if(errorHandler != null) {
+					restTemplate.setErrorHandler(errorHandler);
+				}
 
 				ResponseEntity <String> response = restTemplate
 					.exchange(parEndpointUri, httpMethod, request, String.class);
@@ -103,8 +111,7 @@ public class CallPAREndpoint extends AbstractCondition {
 				JsonObject fullResponse = convertJsonResponseForEnvironment("pushed authorization request", response, true);
 				env.putObject(RESPONSE_KEY, fullResponse);
 			} catch (RestClientResponseException e) {
-				throw error("RestClientResponseException occurred whilst calling pushed authorization request endpoint",
-					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				return handleRestClientResponseException(env, e);
 			} catch (RestClientException e) {
 				return handleClientException(env, e);
 			}
@@ -125,6 +132,11 @@ public class CallPAREndpoint extends AbstractCondition {
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
+	}
+
+	protected Environment handleRestClientResponseException(Environment env, RestClientResponseException e) {
+		throw error("RestClientResponseException occurred whilst calling pushed authorization request endpoint",
+			args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 	}
 
 	protected Environment handleClientException(Environment env, RestClientException e) {
