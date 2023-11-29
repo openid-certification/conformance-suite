@@ -980,14 +980,21 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
-			// for ConnectID we use the userinfo endpoint as the resource endpoint, so this is the end of the test
-			resourceEndpointCallComplete();
-		} else {
+		ResponseEntity<Object> responseEntity = null;
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			setStatus(Status.WAITING);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+				// for ConnectID we use the userinfo endpoint as the resource endpoint, so this is the end of the test
+				resourceEndpointCallComplete();
+			} else {
+				setStatus(Status.WAITING);
+			}
+			responseEntity = new ResponseEntity<>(user, HttpStatus.OK);
 		}
-
-		return new ResponseEntity<Object>(user, HttpStatus.OK);
+		return responseEntity;
 
 	}
 
