@@ -46,7 +46,7 @@ public class FAPIEnsureClientJwksContainsAnEncryptionKey extends AbstractConditi
 		}
 
 		logSuccess("Found an encryption key in client jwks",
-			args("kid", (key.getKeyID()!=null?key.getKeyID():"not set"), "algorithm", key.getAlgorithm().toString()));
+			args("kid", (key.getKeyID()!=null?key.getKeyID():"not set"), "algorithm", (key.getAlgorithm()!=null?key.getAlgorithm().toString():"not set")));
 		return env;
 	}
 
