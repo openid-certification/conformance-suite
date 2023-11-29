@@ -1441,7 +1441,12 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		senderConstrainTokenRequestHelper.checkResourceRequest();
 
-		call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
+		ResponseEntity<Object> responseObject = null;
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseObject = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
 
 		// TODO: should we clear the old headers?
 		validateResourceEndpointHeaders();
@@ -1456,13 +1461,14 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		JsonObject accountRequestResponse = env.getObject("account_request_response");
 		JsonObject headerJson = env.getObject("account_request_response_headers");
 
-		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
-
+			callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+			responseObject = new ResponseEntity<>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
+		}
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
+		return responseObject;
 	}
 
 	protected Object accountsEndpoint(String requestId) {
@@ -1502,13 +1508,20 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
-		JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
+		ResponseEntity<Object> responseEntity = null;
+		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			setStatus(Status.WAITING);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
+			JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
 
-		// at this point we can assume the test is fully done
-		resourceEndpointCallComplete();
-
-		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+			// at this point we can assume the test is fully done
+			resourceEndpointCallComplete();
+			responseEntity = new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+		}
+		return responseEntity;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
