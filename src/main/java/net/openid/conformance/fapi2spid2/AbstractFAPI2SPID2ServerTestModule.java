@@ -38,6 +38,8 @@ import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -659,12 +661,40 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		call(sequence(addParEndpointClientAuthentication));
 	}
 
-	protected void exchangeAuthorizationCode() {
-		if (isDpop()) {
-			createDpopForTokenEndpoint(true);
-		}
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
+	/**
+	 * Call sender constrained token endpoint with retry for DPoP nonce error
+	 * @param fullResponse whether the full response should be returned
+	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
+	 */
+	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(boolean fullResponse, String... requirements) {
+		final int MAX_RETRY = 2;
+
+		if (isDpop()) {
+			int i = 0;
+			while(i < MAX_RETRY){
+				createDpopForTokenEndpoint(i == 0);
+				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
+				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+					break;
+				}
+				++i;
+			}
+		} else {
+			callAndStopOnFailure(fullResponse ? CallTokenEndpointAndReturnFullResponse.class : CallTokenEndpoint.class, requirements);
+		}
+	}
+
+	/**
+	 * Call sender constrained token endpoint with retry for DPoP nonce error returning full response
+	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
+	 */
+	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
+		callSenderConstrainedTokenEndpointAndStopOnFailure(true, requirements);
+	}
+
+	protected void exchangeAuthorizationCode() {
+		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 
@@ -740,7 +770,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	protected void createDpopForTokenEndpoint(boolean createKey) {
-		if (createKey) {
+		if(createKey && (null == env.getElementFromObject("client", "dpop_private_jwk"))) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
 		callAndStopOnFailure(CreateDpopHeader.class);
