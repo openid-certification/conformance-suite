@@ -13,7 +13,7 @@ import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenRespo
 import net.openid.conformance.condition.client.GenerateRS256ClientJWKs;
 import net.openid.conformance.condition.client.GenerateRS256ClientJWKsWithKeyID;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenIdOfflineAccess;
-import net.openid.conformance.condition.client.WaitFor60Seconds;
+import net.openid.conformance.condition.client.WaitForJWKSRefreshDelay;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
@@ -112,7 +112,9 @@ public class OIDCCRefreshTokenRPKeyRotation extends AbstractOIDCCServerTest {
 		eventLog.startBlock("Waiting, so that any DoS limits on retrieving the jwks_uri too often are not triggered");
 		// the python test does not have this wait, which causes the python test to fail against node oidc provider and Authlete
 		// as it hits limits on how frequently jwks_uri is retrieved - the sleep avoids this.
-		callAndStopOnFailure(WaitFor60Seconds.class);
+		//
+		// The sleep may be decreased via the 'jwks_refresh_delay' server configuration property.
+		callAndStopOnFailure(WaitForJWKSRefreshDelay.class);
 		eventLog.endBlock();
 
 		sendRefreshTokenRequestAndCheckIdTokenClaims();
