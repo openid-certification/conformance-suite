@@ -850,7 +850,7 @@
         }
 
         document.getElementById('certificationPackageForm').addEventListener("submit", function(evt){
-
+            return true;
             const filesToCheck = [ "certificationOfConformancePdfBtn", "clientSideDataBtn" ];
             const maxFileSize = 1024000;
             const fileNum = validateFileSizes(filesToCheck, maxFileSize);
