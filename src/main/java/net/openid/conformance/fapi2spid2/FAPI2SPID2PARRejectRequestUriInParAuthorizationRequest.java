@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRequestUriToAuthorizationRequest;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -46,7 +45,7 @@ public class FAPI2SPID2PARRejectRequestUriInParAuthorizationRequest extends Abst
 	@Override
 	protected void performParAuthorizationRequestFlow() {
 
-		callAndStopOnFailure(CallPAREndpoint.class);
+		callParEndpointAndStopOnFailure();
 
 		// this might be too strict, the spec mentions this error but doesn't require servers to use it
 		// the only firm requirement is for the http status code to indicate failure

@@ -34,7 +34,7 @@ public class FAPI2SPID2PARRejectInvalidHttpVerb extends AbstractFAPI2SPID2Server
 	protected void performParAuthorizationRequestFlow() {
 		env.putString(CallPAREndpoint.HTTP_METHOD_KEY, "PUT");
 
-		callAndStopOnFailure(CallPAREndpoint.class);
+		callParEndpointAndStopOnFailure();
 
 		callAndContinueOnFailure(EnsureParHTTPError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
