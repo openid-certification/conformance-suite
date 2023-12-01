@@ -39,6 +39,7 @@ import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
@@ -900,6 +901,22 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		call(makeUpdateResourceRequestSteps());
 	}
 
+	protected void requestProtectedResourceUsingDpop() {
+		if (isDpop() && (createDpopForResourceEndpointSteps != null) ) {
+			final int MAX_RETRY = 2;
+			int i = 0;
+			while(i < MAX_RETRY) {
+				call(sequence(createDpopForResourceEndpointSteps));
+				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+				if(Strings.isNullOrEmpty(env.getString("resource_server_dpop_nonce"))) {
+					break; // no nonce error so
+				}
+				// continue call with nonce
+				++i;
+			}
+		}
+	}
+
 	protected void requestProtectedResource() {
 
 		// verify the access token against a protected resource
@@ -963,9 +980,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			}
 		}
 
-		if (isDpop() && (createDpopForResourceEndpointSteps != null) ) {
-			call(sequence(createDpopForResourceEndpointSteps));
-		}
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
 			profileRequiresMtlsEverywhere;
@@ -976,7 +990,11 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			env.removeObject("mutual_tls_authentication");
 		}
 
-		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		if (isDpop() ) {
+			requestProtectedResourceUsingDpop();
+		} else  {
+			callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
 		}
