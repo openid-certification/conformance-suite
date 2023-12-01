@@ -177,6 +177,7 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 			}
 			else {
 				callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+//				callSenderConstrainedTokenEndpointAndStopOnFailure();
 
 				callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class);
 				callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
