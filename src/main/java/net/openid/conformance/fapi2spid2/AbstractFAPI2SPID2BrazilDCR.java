@@ -13,7 +13,6 @@ import net.openid.conformance.condition.client.AddSoftwareStatementToDynamicRegi
 import net.openid.conformance.condition.client.AddTlsClientAuthSubjectDnToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
@@ -77,7 +76,7 @@ public abstract class AbstractFAPI2SPID2BrazilDCR extends AbstractFAPI2SPID2Serv
 		// MTLS client auth
 		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
+		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
