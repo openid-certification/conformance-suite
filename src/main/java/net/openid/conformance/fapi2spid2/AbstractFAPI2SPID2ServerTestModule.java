@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResource
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddDpopHeaderForParEndpointRequest;
 import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
@@ -36,6 +37,7 @@ import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirect
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
+import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
@@ -118,6 +120,7 @@ import net.openid.conformance.condition.client.SetApplicationJwtContentTypeHeade
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
+import net.openid.conformance.condition.client.SetDpopHtmHtuForParEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetDpopProofNonceForResourceEndpoint;
@@ -236,6 +239,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	protected Boolean isSignedRequest;
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
 	protected Boolean profileRequiresMtlsEverywhere;
+	protected Boolean useDpopAuthCodeBinding;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -293,6 +297,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		isBrazil = getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
+		useDpopAuthCodeBinding = false;
 
 		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
 		profileRequiresMtlsEverywhere =
@@ -1162,6 +1167,29 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		performRedirect();
 	}
 
+
+	/**
+	 * Call Par endpoint with retry for DPoP nonce error
+	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallParEndpoint)
+	 */
+	protected void callParEndpointAndStopOnFailure(String... requirements) {
+		if (isDpop() && useDpopAuthCodeBinding) {
+			final int MAX_RETRY = 2;
+			int i = 0;
+			while(i < MAX_RETRY){
+				createDpopForParEndpoint(i == 0);
+				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
+				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
+					break;
+				}
+				++i;
+			}
+		} else {
+			callAndStopOnFailure(CallPAREndpoint.class, requirements);
+		}
+	}
+
+
 	protected void performParAuthorizationRequestFlow() {
 
 		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
@@ -1175,7 +1203,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			env.removeObject("mutual_tls_authentication");
 		}
 
-		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
+		callParEndpointAndStopOnFailure("PAR-2.1");
 
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
