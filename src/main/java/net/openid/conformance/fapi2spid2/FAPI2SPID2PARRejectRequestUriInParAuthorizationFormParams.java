@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRequestUriToRequestParameters;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -37,7 +36,7 @@ public class FAPI2SPID2PARRejectRequestUriInParAuthorizationFormParams extends A
 		//"pushed_authorization_request_form_parameters"
 		callAndStopOnFailure(AddBadRequestUriToRequestParameters.class);
 
-		callAndStopOnFailure(CallPAREndpoint.class);
+		callParEndpointAndStopOnFailure();
 
 		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError.class, Condition.ConditionResult.FAILURE, "PAR-2.1-2");
 
