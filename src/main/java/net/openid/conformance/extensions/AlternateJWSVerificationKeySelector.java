@@ -49,38 +49,6 @@ public class AlternateJWSVerificationKeySelector<C extends SecurityContext> exte
 		List<JWK> jwkMatches = getJWKSource().get(new JWKSelector(jwkMatcher), context);
 		// Get non-EdDSA keys from original function
 		List<JWK> sanitizedJWKs = new LinkedList<>();
-
-//		for (Key key: KeyConverter.toJavaKeys(jwkMatches)) {
-//			if (key instanceof PublicKey || key instanceof SecretKey) {
-//				sanitizedKeyList.add(key);
-//			} // skip asymmetric private keys
-//		}
-
-//		public static List<Key> toJavaKeys(final List<JWK> jwkList) {
-//
-//			if (jwkList == null) {
-//				return Collections.emptyList();
-//			}
-//
-//			List<Key> out = new LinkedList<>();
-//			for (JWK jwk: jwkList) {
-//				try {
-//					if (jwk instanceof AsymmetricJWK) {
-//						KeyPair keyPair = ((AsymmetricJWK)jwk).toKeyPair();
-//						out.add(keyPair.getPublic()); // add public
-//						if (keyPair.getPrivate() != null) {
-//							out.add(keyPair.getPrivate()); // add private if present
-//						}
-//					} else if (jwk instanceof SecretJWK) {
-//						out.add(((SecretJWK)jwk).toSecretKey());
-//					}
-//				} catch (JOSEException e) {
-//					// ignore and continue
-//				}
-//			}
-//			return out;
-//		}
-
 		for(JWK jwk: jwkMatches) {
 			if (jwk instanceof AsymmetricJWK) {
 				sanitizedJWKs.add(jwk.toPublicJWK());
