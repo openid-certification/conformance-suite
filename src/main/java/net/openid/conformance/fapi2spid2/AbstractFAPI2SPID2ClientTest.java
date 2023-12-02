@@ -64,6 +64,7 @@ import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
+import net.openid.conformance.condition.as.ExtractParAuthorizationCodeDpopBindingKey;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
@@ -856,13 +857,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		@Override
 		public void checkTokenRequest() {
-			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+			callAndContinueOnFailure(ExtractDpopProofFromHeader.class, ConditionResult.FAILURE,"DPOP-5");
 			call(sequence(PerformDpopProofTokenRequestChecks.class));
 		}
 
 		@Override
 		public void checkResourceRequest() {
-			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+			callAndContinueOnFailure(ExtractDpopProofFromHeader.class, ConditionResult.FAILURE,"DPOP-5");
 			// Need to also extract the DPoP Access token for resource requests
 			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
 			call(sequence(PerformDpopProofResourceRequestChecks.class));
@@ -926,6 +927,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		}
 		if(isDpop()) {
 			senderConstrainTokenRequestHelper.checkParRequest();
+			callAndContinueOnFailure(ExtractParAuthorizationCodeDpopBindingKey.class, ConditionResult.FAILURE, "DPOP-10");
 		}
 
 		ResponseEntity<Object> responseEntity = null;
