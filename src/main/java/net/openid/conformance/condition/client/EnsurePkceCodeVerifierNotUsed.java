@@ -5,13 +5,13 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 public class EnsurePkceCodeVerifierNotUsed extends AbstractCondition {
 
 	private static final int CACHE_SIZE = 256;
-	private static final List<String> cachedCodes = new Vector<>(CACHE_SIZE) ;
+	private static final List<String> cachedCodes = new ArrayList<>(CACHE_SIZE) ;
 
 	@Override
 	@PreEnvironment(required = "token_endpoint_request")
@@ -25,7 +25,7 @@ public class EnsurePkceCodeVerifierNotUsed extends AbstractCondition {
 				throw error("code verifier has been used", args("code verifier", codeVerifier));
 			} else {
 				if(cachedCodes.size() >= CACHE_SIZE) {
-					cachedCodes.remove(0);
+					cachedCodes.subList(0, 50).clear();
 				}
 				cachedCodes.add(codeVerifier);
 				logSuccess("Code verifier has not been used", args("code_verifier", codeVerifier));
