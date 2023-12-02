@@ -2,6 +2,7 @@ package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyType;
@@ -49,9 +50,14 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 					throw error("Unsupported curve for EdDSA alg", args("JWK", jsonJwk.toString(), "curve", ((OctetKeyPair)jwk).getCurve().getName()));
 				}
 			}
+			// compute and save jkt to avoid parsing JWK again when needed
+			env.putString("incoming_dpop_proof", "computed_dpop_jkt", jwk.computeThumbprint().toString());
 		}
 		catch(ParseException e) {
 			throw error("Invalid DPoP Proof jwk", args("jwk", jsonJwk.toString()));
+		}
+		catch(JOSEException e) {
+			throw error("DPoP JOSEException",  e);
 		}
 		JsonElement alg = env.getElementFromObject("incoming_dpop_proof", "header.alg");
 		if(alg  == null) {
