@@ -517,6 +517,23 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">DPoP Signing Alg</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-toggle="tooltip" data-placement="bottom" title="JWS algorithm for signing DPoP proofs"></span>
+                                            </div>
+                                            <select class="form-select config-form-element" data-json-target="client.dpop_signing_alg">
+                                                <option value="PS256" selected>PS256</option>
+                                                <option value="ES256">ES256</option>
+                                                <option value="EdDSA">EdDSA</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="config-form-container">
                                 <h3 class="config-form-container-header">tls_client_auth configuration (Enter <u>only one</u> of the following)</h3>
@@ -784,6 +801,21 @@
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="If this server supports acr, this should contain a valid acr value that can be requested in an authentication request, e.g. 'urn:openbanking:psd2:sca'."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="client2.acr_value"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">DPoP Signing Alg</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-toggle="tooltip" data-placement="bottom" title="JWS algorithm for signing DPoP proofs"></span>
+                                            </div>
+                                            <select class="form-select config-form-element" data-json-target="client2.dpop_signing_alg">
+                                                <option value="PS256" selected>PS256</option>
+                                                <option value="ES256">ES256</option>
+                                                <option value="EdDSA">EdDSA</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
