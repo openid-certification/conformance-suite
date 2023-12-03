@@ -38,6 +38,7 @@ import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsFie
 import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateAuthorizationServerDpopNonce;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
@@ -134,6 +135,7 @@ import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
+import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -418,7 +420,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	 * will be called at the end of configure
 	 */
 	protected void onConfigurationCompleted() {
-
+		callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+		callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.INFO);
 	}
 
 	protected void configureClients()
@@ -1239,6 +1242,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 
+		callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
 		setStatus(Status.WAITING);
 
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
