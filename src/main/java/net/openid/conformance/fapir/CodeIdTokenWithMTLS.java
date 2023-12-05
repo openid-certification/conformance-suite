@@ -60,6 +60,8 @@ import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ValidateIdTokenFromAuthorizationResponseEncryption;
+import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
@@ -210,6 +212,8 @@ public class CodeIdTokenWithMTLS extends AbstractFapiRServerTestModule {
 
 		// check the ID token from the hybrid response
 
+		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+			ValidateIdTokenFromAuthorizationResponseEncryption.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-9", "OIDCC-10.2");
 		callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
 		// save the id_token returned from the authorization endpoint
@@ -249,6 +253,8 @@ public class CodeIdTokenWithMTLS extends AbstractFapiRServerTestModule {
 
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
 
+		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+			ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-9", "OIDCC-10.2");
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6");
 
 		call(new PerformStandardIdTokenChecks());

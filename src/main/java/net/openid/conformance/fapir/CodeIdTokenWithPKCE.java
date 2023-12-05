@@ -41,6 +41,7 @@ import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlQuery;
 import net.openid.conformance.condition.client.RejectErrorInUrlQuery;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken;
+import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
 import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
@@ -175,6 +176,8 @@ public class CodeIdTokenWithPKCE extends AbstractFapiRServerTestModule {
 
 		callAndStopOnFailure(CheckForScopesInTokenResponse.class, "FAPI-R-5.2.2-15");
 
+		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+			ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-9", "OIDCC-10.2");
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6");
 
 		call(new PerformStandardIdTokenChecks());

@@ -69,6 +69,8 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
+import net.openid.conformance.condition.client.ValidateIdTokenFromAuthorizationResponseEncryption;
+import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
@@ -569,6 +571,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
 		if (responseType.includesIdToken()) {
+			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+				ValidateIdTokenFromAuthorizationResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class);
 
 			// save the id_token returned from the authorization endpoint
@@ -625,6 +629,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
 
+		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+			ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
 
 		// save the id_token returned from the token endpoint

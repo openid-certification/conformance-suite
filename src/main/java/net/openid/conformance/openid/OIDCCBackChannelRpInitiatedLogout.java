@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.CheckPostLogoutState;
 import net.openid.conformance.condition.client.CreateBackchannelLogoutUri;
 import net.openid.conformance.condition.client.ExtractLogoutTokenFromBackchannelLogoutRequest;
 import net.openid.conformance.condition.client.ValidateLogoutTokenClaims;
+import net.openid.conformance.condition.client.ValidateLogoutTokenFromBackchannelLogoutRequestEncryption;
 import net.openid.conformance.condition.client.ValidateLogoutTokenSignature;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -64,6 +65,8 @@ public class OIDCCBackChannelRpInitiatedLogout extends AbstractOIDCCRpInitiatedL
 		// This is a mixture of must & recommended in BCP195, but BCP195 is not a normative reference of OIDCC so only raise a warning
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "BCP195-3.1.1");
 
+		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+			ValidateLogoutTokenFromBackchannelLogoutRequestEncryption.class, Condition.ConditionResult.WARNING, "OIDCBCL-2.4");
 		callAndStopOnFailure(ExtractLogoutTokenFromBackchannelLogoutRequest.class, "OIDCBCL-2.5");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInBackchannelLogoutRequest.class, Condition.ConditionResult.WARNING, "OIDCBCL-2.5");
 		callAndContinueOnFailure(ValidateLogoutTokenSignature.class, Condition.ConditionResult.FAILURE, "OIDCBCL-2.4");

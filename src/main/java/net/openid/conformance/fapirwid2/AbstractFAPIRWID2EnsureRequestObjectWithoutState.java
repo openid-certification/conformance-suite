@@ -16,6 +16,7 @@ import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAutho
 import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateCHash;
+import net.openid.conformance.condition.client.ValidateIdTokenFromAuthorizationResponseEncryption;
 import net.openid.conformance.condition.client.VerifyNoSHash;
 import net.openid.conformance.condition.client.VerifyNoStateInAuthorizationResponse;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -80,6 +81,8 @@ public abstract class AbstractFAPIRWID2EnsureRequestObjectWithoutState extends A
 	@Override
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
 		if (!jarm) {
+			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+				ValidateIdTokenFromAuthorizationResponseEncryption.class, Condition.ConditionResult.WARNING, "FAPI-RW-5.2.2-9", "OIDCC-10.2");
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI-RW-5.2.2-3");
 
 			// save the id_token returned from the authorization endpoint
