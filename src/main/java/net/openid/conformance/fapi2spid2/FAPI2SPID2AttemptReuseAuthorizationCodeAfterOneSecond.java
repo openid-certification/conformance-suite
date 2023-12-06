@@ -82,8 +82,12 @@ public class FAPI2SPID2AttemptReuseAuthorizationCodeAfterOneSecond extends Abstr
 		verifyError();
 
 		eventLog.startBlock("Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)");
-		updateResourceRequest();
-		callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2");
+		if(isDpop()) {
+			updateResourceRequestAndCallProtectedResourceUsingDpop("RFC6749-4.1.2");
+		} else {
+			updateResourceRequest();
+			callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2");
+		}
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2", "RFC6750-3.1");
