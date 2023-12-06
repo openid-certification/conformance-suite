@@ -905,6 +905,22 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		call(makeUpdateResourceRequestSteps());
 	}
 
+	protected void updateResourceRequestAndCallProtectedResourceUsingDpop(String ... requirements) {
+		if (isDpop()) {
+			final int MAX_RETRY = 2;
+			int i = 0;
+			while(i < MAX_RETRY) {
+				updateResourceRequest();
+				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, requirements);
+				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+					break; // no nonce error so
+				}
+				// continue call with nonce
+				++i;
+			}
+		}
+	}
+
 	protected void requestProtectedResourceUsingDpop() {
 		if (isDpop() && (createDpopForResourceEndpointSteps != null) ) {
 			final int MAX_RETRY = 2;
