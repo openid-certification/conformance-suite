@@ -912,7 +912,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			while(i < MAX_RETRY) {
 				call(sequence(createDpopForResourceEndpointSteps));
 				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
-				if(Strings.isNullOrEmpty(env.getString("resource_server_dpop_nonce"))) {
+				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 					break; // no nonce error so
 				}
 				// continue call with nonce
