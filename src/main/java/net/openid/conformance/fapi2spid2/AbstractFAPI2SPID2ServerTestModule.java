@@ -707,7 +707,11 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
+		processTokenEndpointResponse();
+		eventLog.endBlock();
+	}
 
+	protected void processTokenEndpointResponse() {
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI1-BASE-5.2.2-14");
@@ -776,7 +780,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		else {
 			callAndStopOnFailure(ExpectNoIdTokenInTokenResponse.class);
 		}
-
 	}
 
 	protected void createDpopForTokenEndpoint(boolean createKey) {
