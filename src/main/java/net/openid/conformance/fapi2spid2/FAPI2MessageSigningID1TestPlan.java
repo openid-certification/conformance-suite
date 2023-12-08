@@ -33,6 +33,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		// DPop Authorization Code Binding negative tests
 		FAPI2SPID2EnsureMismatchedDpopJktFails.class,
 		FAPI2SPID2EnsureTokenEndpointFailsWithMismatchedDpopProofJkt.class,
+		FAPI2SPID2EnsureTokenEndpointFailsWithMismatchedDpopJkt.class,
 
 		// Possible failure case
 		FAPI2SPID2EnsureDifferentNonceInsideAndOutsideRequestObject.class,
