@@ -34,11 +34,14 @@ public abstract class AbstractGenerateKey extends AbstractCondition {
 
 		JWK key;
 		try {
-			key = generator.keyUse(KeyUse.SIGNATURE).generate();
+			key = onConfigure(generator.keyUse(KeyUse.SIGNATURE)).generate();
 		} catch (JOSEException e) {
 			throw error("Failed to generate key for alg " + alg, e);
 		}
-		JsonObject keyJson = JsonParser.parseString(key.toJSONString()).getAsJsonObject();
-		return keyJson;
+		return JsonParser.parseString(key.toJSONString()).getAsJsonObject();
+	}
+
+	protected JWKGenerator<? extends JWK> onConfigure(JWKGenerator<? extends JWK> generator) {
+		return generator;
 	}
 }
