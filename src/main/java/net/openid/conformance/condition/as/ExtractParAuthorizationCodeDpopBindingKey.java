@@ -23,6 +23,9 @@ public class ExtractParAuthorizationCodeDpopBindingKey extends AbstractCondition
 		if(!Strings.isNullOrEmpty(dpop_jkt) && !Strings.isNullOrEmpty(computed_dpop_jkt)) {
 			if(!dpop_jkt.equals(computed_dpop_jkt)) {
 				throw error("dpop_jkt in request doesn't match DPoP proof JWK thumbprint.", args("dpop_jkt", dpop_jkt, "DPoP thumbprint", computed_dpop_jkt));
+			} else {
+				env.putString("authorization_code_dpop_jkt", computed_dpop_jkt);
+				logSuccess("dpop_jkt matches computed JWK thumbprint", args("dpop_jkt", dpop_jkt));
 			}
 		} else {
 			if(!Strings.isNullOrEmpty(computed_dpop_jkt)) {
