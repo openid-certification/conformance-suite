@@ -5,6 +5,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.gen.JWKGenerator;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -36,4 +38,9 @@ public class GenerateDpopKey extends AbstractGenerateKey {
 		return env;
 	}
 
+	@Override
+	protected JWKGenerator<? extends JWK> onConfigure(JWKGenerator<? extends JWK> generator) {
+		// Generate kid using the thumbprint so that we don't have to parse the key again to get the thumbprint
+		return generator.keyIDFromThumbprint(true);
+	}
 }
