@@ -127,32 +127,69 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content pad28">
                 <div class="modal-header">
+                    <h4 class="modal-title">Prepare Certification Submission Package</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
+                    <div id="certificationPackageFormModalBody" class="modal-body">
+                        <p>
+                            In order to publish your test plan for certification, you will need to submit a filled out and
+                            signed <strong>certification of conformance</strong> document.
+                        </p>
+                        <p>
+                            If you already have the document, please upload it in order to continue. Otherwise, please
+                            proceed to the next step to fill it out.
+                        </p>
+                        <p>
+                            <button id="uploadButton" class="btn btn-primary">Upload <i class="bi bi-upload"></i></button>
+                            <input id="fileInput" style="display: none;" type="file" accept=".pdf, application/pdf"></input>
+                            <span class="mx-2">or</span>
+                            <a id="fillOutButton" class="btn btn-primary">Fill out  <i class="bi bi-chevron-right"></i></a>
+                        </p>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-sm btn-success bg-gradient border border-secondary" disabled>Continue</button>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+
+<!--
+    <div class="modal" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content pad28">
+                <div class="modal-header">
                     <h4 class="modal-title" id="errorLabel">Prepare Certification Submission Package</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
                     <div id="certificationPackageFormModalBody" class="modal-body">
-                    <div id="certificationPackageFormErrors"></div>
-                    <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
-                    <ol class="top15">
-                        <li>
-                            <strong>The test plan will be published.</strong>
-                            <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
-                        </li>
-                        <li>
-                            <strong>The test plan will be marked as immutable.</strong>
-                            <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
-                        </li>
-                        <li>
-                            <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
-                            <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
-                            to complete the certification process.</p>
-                        </li>
-                    </ol>
+                        <div id="certificationPackageFormErrors"></div>
+                        <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
+                        <ol class="top15">
+                            <li>
+                                <strong>The test plan will be published.</strong>
+                                <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
+                            </li>
+                            <li>
+                                <strong>The test plan will be marked as immutable.</strong>
+                                <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
+                            </li>
+                            <li>
+                                <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
+                                <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
+                                    to complete the certification process.</p>
+                            </li>
+                        </ol>
 
-                    <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
-                    <div>
-                        <div class="mb-3 row">
+                        <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
+                        <div>
+                            <div class="mb-3 row">
                                 <fieldset>
                                     <strong>1.</strong> A filled out and signed <strong>certification of conformance</strong> document.
                                     <label class="text-info">
@@ -163,16 +200,16 @@
                                         (as per the instructions, completed and signed by an authorized person).
                                     </p>
                                 </fieldset>
-                        </div>
-                        <div class="mb-3 row">
-                            <fieldset>
-                                <strong>2.</strong> <strong>Client data</strong> (For RP Tests Only)
-                                <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
-                                <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
-                            </fieldset>
+                            </div>
+                            <div class="mb-3 row">
+                                <fieldset>
+                                    <strong>2.</strong> <strong>Client data</strong> (For RP Tests Only)
+                                    <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
+                                    <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
+                                </fieldset>
+                            </div>
                         </div>
                     </div>
-                </div>
 
                     <div id="certificationPackageDownloaded" class="modal-body" hidden>
                         <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
@@ -191,13 +228,15 @@
             </div>
         </div>
     </div>
+-->
+
 
     <!-- Prepare certification of conformance pdf modal -->
     <div class="modal" id="certificationOfConformanceTemplateModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Prepare Certification of Conformance PDF</h4>
+                    <h4 class="modal-title">Prepare Certification of Conformance PDF</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 
                 </div>
