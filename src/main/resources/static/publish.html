@@ -22,7 +22,7 @@
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
     <style>
-        .disclaimer, .hidden {
+        .disclaimer, .hidden, .pageFooter {
             display: none;
         }
     </style>
@@ -77,47 +77,11 @@
                     proceed to the next step to fill it out.
                 </p>
                 <p>
-
                     <button id="uploadButton" class="btn btn-primary">Upload <i class="bi bi-upload"></i></button>
                     <input id="fileInput" style="display: none;" type="file" accept=".pdf, application/pdf"></input>
                     <span class="mx-2">or</span>
                     <a id="fillOutButton" class="btn btn-primary">Fill out  <i class="bi bi-chevron-right"></i></a>
-
-                    <script>
-
-                        document.querySelector('#fileInput').addEventListener('change', (evt) => {
-                            let inputElement = evt.target;
-                            if (inputElement.files.length > 0) {
-                                let file = inputElement.files[0];
-                                if (file.type === 'application/pdf') {
-                                    if (file.size < 10 * 1024 * 1024) { // 10 MB in bytes
-                                        let reader = new FileReader();
-                                        reader.onload = function (e) {
-                                            localStorage.setItem('cocPdf', e.target.result);
-                                            document.location.href = 'verify.html?plan=' + new URLSearchParams(window.location.search).get('plan');
-                                        };
-                                        reader.readAsDataURL(file);
-                                    } else {
-                                        alert('File size exceeds 10 MB. Please choose a smaller PDF file.');
-                                    }
-                                } else {
-                                    alert('Please choose a PDF file.');
-                                }
-                            }
-                        });
-
-                        document.querySelector('#uploadButton').addEventListener('click', () => {
-                            document.querySelector('#fileInput').click();
-                        });
-
-                    </script>
                 </p>
-
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
 
             </div>
         </div>
@@ -229,6 +193,31 @@
             FAPI_UI.showError({code: "", error: error});
         }
     }
+
+    document.querySelector('#fileInput').addEventListener('change', (evt) => {
+        let inputElement = evt.target;
+        if (inputElement.files.length > 0) {
+            let file = inputElement.files[0];
+            if (file.type === 'application/pdf') {
+                if (file.size < 10 * 1024 * 1024) { // 10 MB in bytes
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        localStorage.setItem('cocPdf', e.target.result);
+                        document.location.href = 'verify.html?plan=' + new URLSearchParams(window.location.search).get('plan');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('File size exceeds 10 MB. Please choose a smaller PDF file.');
+                }
+            } else {
+                alert('Please choose a PDF file.');
+            }
+        }
+    });
+
+    document.querySelector('#uploadButton').addEventListener('click', () => {
+        document.querySelector('#fileInput').click();
+    });
 
     document.addEventListener('DOMContentLoaded', _ => {
         let urlParams = new URLSearchParams(window.location.search);

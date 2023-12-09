@@ -22,7 +22,7 @@
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
     <style>
-        .disclaimer, .hidden {
+        .disclaimer, .hidden, .pageFooter {
             display: none;
         }
     </style>
@@ -62,134 +62,65 @@
 </div>
 
 <div class="container-fluid">
-
     <div class="row mx-1 mt-3">
 
         <div class="col-md-6">
+
             <div class="">
                 <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
                 <p>
                     You are creating a certification package for a relying party profile, which means that
                     you will need to provide evidence demonstrating the behavior of the relying party for each test.
                     This can take the form of RP log files, screen captures (image files), or both.
-                    You must upload a zip file that contains the client data.
+                    You must upload a zip file that contains the client data for each of the tests in the test plan.
                 </p>
-                <p>Please note the following conventions for the zip file:
-                    <ul>
-                        <li>Files should be named consistently using the test name as the file name prefix.
-                            For example the log file for the test <code>fapi1-advanced-final-client-test-invalid-shash</code> should be named
-                            <code>fapi1-advanced-final-client-test-invalid-shash.log</code> or similar.</li>
-                        <li>If more than one file needs to be included for a test then they should be named
-                            <code>fapi1-advanced-final-client-test-invalid-shash-1.log</code>, <code>fapi1-advanced-final-client-test-invalid-shash-2.log</code> etc.</li>
-                        <li>
-                            When a test plan contains the same test multiple times, e.g for an hybrid profile, then the filenames must also contain the response type. For example for an hybrid test plan, client log files for <code>oidcc-client-test-invalid-iss</code> should be named as follows:
-                            <ul>
-                                <li><code>oidcc-client-test-invalid-iss_code-id_token.log</code></li>
-                                <li><code>oidcc-client-test-invalid-iss_code-token.log</code></li>
-                                <li><code>oidcc-client-test-invalid-iss_code-id_token-token.log</code></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </p>
-
                 <div class="mt-4">
-
-                    <div>
+                    <form name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data">
                         <label for="clientSideData" class="form-label"><strong>Choose client data zip-file (max 10 MB):</strong></label>
                         <input class="form-control" id="clientSideData" name="clientSideData" accept="application/zip" type="file" accept=".zip, application/zip"></input>
-                    </div>
-
+                        <input class="hidden" type="file" id="certificationOfConformancePdf" name="certificationOfConformancePdf"></input>
+                    </form>
                     <div class="mt-3">
                         <button class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></button>
                     </div>
-
-                    <script>
-
-                        document.querySelector('#clientSideData').addEventListener('change', (evt) => {
-                            let inputElement = evt.target;
-                            if (inputElement.files.length > 0) {
-                                let file = inputElement.files[0];
-                                console.log(file);
-                                if (file.type === 'application/zip') {
-                                    if (file.size > 10 * 1024 * 1024) { // 10 MB in bytes
-                                        alert('File size exceeds 10 MB. Please optimize the zip file contents by reducing size of log files or compressing images.');
-                                        inputElement.value = '';
-                                        document.querySelector('#continue').classList.add('disabled');
-                                    } else {
-                                        document.querySelector('#continue').classList.remove('disabled');
-                                    }
-                                } else {
-                                    document.querySelector('#continue').classList.add('disabled');
-                                    alert('Please choose a zip file.');
-                                }
-                            }
-                        });
-
-                        document.querySelector('#continue').addEventListener('click', () => {
-                            let confirmationModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('certificationPackageModal'));
-                            confirmationModal.show();
-                        });
-
-                    </script>
                 </div>
-
-    <!-- Certification submission modal -->
-    <div class="modal" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content pad28">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Publish for certification</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
-                    <div id="certificationPackageFormModalBody" class="modal-body">
-                    <div id="certificationPackageFormErrors"></div>
-                    <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
-                    <ol class="top15">
-                        <li>
-                            <strong>The test plan will be published.</strong>
-                            <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
-                        </li>
-                        <li>
-                            <strong>The test plan will be marked as immutable.</strong>
-                            <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
-                        </li>
-                        <li>
-                            <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
-                            <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
-                            to complete the certification process.</p>
-                        </li>
-                    </ol>
-
-                    <div id="certificationPackageDownloaded" class="modal-body" hidden>
-                        <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
-                            is complete then you will find the zip file in your browser download directory.</p>
-                        <p>Please rename the zip file according to <a class="darkblue" href="https://openid.net/certification/op_submission/" target="instructions">the instructions</a>
-                            and then proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
-                            to submit.</p>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary" disabled>Create Certification Package</button>
-                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" hidden>Close</button>
-                    </div>
-                </form>
             </div>
+
         </div>
-    </div>
 
+        <div class="col-md-6 ps-5">
 
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-
+            <div class="alert alert-warning" >
+                <p><strong><i class="bi bi-exclamation-circle-fill"></i> Client log requirements</strong></p>
+                <p>
+                    Errors are permitted to be less precise than the test says (for example for a bad request signature, "Something went wrong" is acceptable) but <strong>must not be factually incorrect</strong>. <em>"A problem occurred on our service, try again"</em> would be factually incorrect if the problem was caused by an invalid request sent by the conformance suite.</p>                    
+                <p>The error must be factually correct from the point of view of both an end user and a relying party developer trying to integrate with the bank, so for example "please try again later" for an invalid redirect url is factually incorrect when read by a developer.
+                </p>
             </div>
+
+            <div class="alert alert-info">
+                <p><strong><i class="bi bi-info-circle-fill"></i> Zip file conventions</strong><p>
+                <ul>
+                    <li>Files should be named consistently using the test name as the file name prefix.
+                        For example the log file for the test <code>fapi1-advanced-final-client-test-invalid-shash</code> should be named
+                        <code>fapi1-advanced-final-client-test-invalid-shash.log</code> or similar.</li>
+                    <li>If more than one file needs to be included for a test then they should be named
+                        <code>fapi1-advanced-final-client-test-invalid-shash-1.log</code>, <code>fapi1-advanced-final-client-test-invalid-shash-2.log</code> etc.</li>
+                    <li>
+                        When a test plan contains the same test multiple times, e.g for an hybrid profile, then the filenames must also contain the response type. For example for an hybrid test plan, client log files for <code>oidcc-client-test-invalid-iss</code> should be named as follows:
+                        <ul>
+                            <li><code>oidcc-client-test-invalid-iss_code-id_token.log</code></li>
+                            <li><code>oidcc-client-test-invalid-iss_code-token.log</code></li>
+                            <li><code>oidcc-client-test-invalid-iss_code-id_token-token.log</code></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
         </div>
 
     </div>
+</div>
 
 <!-- loading modal -->
 <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -228,9 +159,52 @@
     </div>
 </div>
 
+<!-- create certification package modal -->
+<div class="modal" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content pad28">
+            <div class="modal-header">
+                <h4 class="modal-title" id="errorLabel">Publish for certification</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="certificationPackageFormModalBody" class="modal-body">
+
+                <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
+                <ol class="top15">
+                    <li>
+                        <strong>The test plan will be published.</strong>
+                        <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
+                    </li>
+                    <li>
+                        <strong>The test plan will be marked as immutable.</strong>
+                        <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
+                    </li>
+                    <li>
+                        <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
+                        <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
+                        to complete the certification process.</p>
+                    </li>
+                </ol>
+            </div>
+
+            <div id="certificationPackageDownloaded" class="modal-body" hidden>
+                <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
+                    is complete then you will find the zip file in your browser download directory.</p>
+                <p>Please rename the zip file according to <a class="darkblue" href="https://openid.net/certification/op_submission/" target="instructions">the instructions</a>
+                    and then proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
+                    to submit.</p>
+            </div>
+
+            <div class="modal-footer">
+                <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="certificationPackageFormSubmitBtn" type="button" class="btn btn-sm btn-primary bg-gradient border border-secondary">Create Certification Package</button>
+                <button id="closeCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" hidden>Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<footer class="pageFooter mt-0">
+<footer class="pageFooter mt-5">
     <span class="muted">OpenID Foundation conformance suite</span>
 </footer>
 
@@ -298,6 +272,70 @@
         }
     }
 
+    function attachCocPdfToForm() {
+        let pdfData = localStorage.getItem('cocPdf').split('base64,')[1];
+        const pdfDecoded = atob(pdfData);
+        const pdfBytes = new Array(pdfDecoded.length);
+        for (let i = 0; i < pdfDecoded.length; i++) {
+            pdfBytes[i] = pdfDecoded.charCodeAt(i);
+        }
+        const pdfByteArray = new Uint8Array(pdfBytes);
+        const pdfBlob = new Blob([pdfByteArray], { type: 'application/pdf' });
+        const pdfFile = new File([pdfBlob], 'OpenID-Certification-of-Conformance.pdf', { type: 'application/pdf' });
+        const pdfInput = document.getElementById('certificationOfConformancePdf');
+
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(pdfFile);
+        pdfInput.files = dataTransfer.files;
+    }
+
+    function toggleContinueBasedOnFileInput(fileInput) {
+        if (fileInput.files.length > 0) {
+            let file = fileInput.files[0];
+            if (file.type === 'application/zip') {
+                if (file.size > 10 * 1024 * 1024) { // 10 MB in bytes
+                    alert('File size exceeds 10 MB. Please optimize the zip file contents by reducing size of log files or compressing images.');
+                    inputElement.value = '';
+                    document.querySelector('#continue').classList.add('disabled');
+                } else {
+                    document.querySelector('#continue').classList.remove('disabled');
+                }
+            } else {
+                document.querySelector('#continue').classList.add('disabled');
+                alert('Please choose a zip file.');
+            }
+        }
+    }
+
+    document.querySelector('#clientSideData').addEventListener('change', (evt) => {
+        toggleContinueBasedOnFileInput(evt.target);
+    });
+
+
+    document.querySelector('#certificationPackageFormSubmitBtn').addEventListener('click', () => {
+        // Hide previous modal content and the cancel and certification package buttons
+        document.querySelector('#certificationPackageFormModalBody').hidden = true;
+        document.querySelector('#cancelCertificationPackageFormModal').hidden = true;
+        document.querySelector('#certificationPackageFormSubmitBtn').hidden = true;
+
+        // Show the file download info content in the modal and the close button
+        document.querySelector('#certificationPackageDownloaded').hidden = false;
+        document.querySelector('#closeCertificationPackageFormModal').hidden = false;
+    });
+
+    document.querySelector('#closeCertificationPackageFormModal').addEventListener('click', () => {
+        let modal = bootstrap.Modal.getInstance(document.getElementById('certificationPackageModal'));
+        if (modal != null) {
+            modal.hide();
+        }
+        window.location.reload();
+    });
+
+    document.querySelector('#continue').addEventListener('click', () => {
+        let confirmationModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('certificationPackageModal'));
+        confirmationModal.show();
+    });
+
     document.addEventListener('DOMContentLoaded', _ => {
         let urlParams = new URLSearchParams(window.location.search);
         let planId = urlParams.get('plan');
@@ -308,7 +346,10 @@
                 return FAPI_UI.getUserInfo();
             }).then(_ => {
                 return getPlan(planId, public);
-            }).then(_ => {
+            }).then(_ => {                
+                document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
+                attachCocPdfToForm();
+                toggleContinueBasedOnFileInput(document.querySelector('#clientSideData'));
                 FAPI_UI.hideBusy();
             });
         FAPI_UI.showBusy();
