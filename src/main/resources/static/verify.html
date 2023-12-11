@@ -148,7 +148,6 @@
                 </p>
                 <ol class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-left align-items-start">
-                        <a class="btn btn-outline-primary me-2" id="back"><i class="bi bi-chevron-double-left"></i> Go back</a>
                         <a class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></a>
                     </li>
                 </ol>    
@@ -285,7 +284,6 @@
     }
 
     function setButtonNavigation() {
-        document.querySelector('#back').href = `publish.html?plan=${planId}`
         if (profile && !profile.includes('RP-Initiated') && profile.includes(' RP')) {  
             document.querySelector('#continue').href = `client-logs.html?plan=${planId}`
         }
