@@ -131,6 +131,7 @@ import net.openid.conformance.condition.client.ValidateErrorResponseFromBackchan
 import net.openid.conformance.condition.client.ValidateErrorUriFromBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
+import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
 import net.openid.conformance.condition.client.ValidateIdTokenNotIncludeCHashAndSHash;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
@@ -822,6 +823,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI-R-5.2.2-16");
 
+		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+			ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI-R-5.2.2.1-6");
 
 		call(new PerformStandardIdTokenChecks());

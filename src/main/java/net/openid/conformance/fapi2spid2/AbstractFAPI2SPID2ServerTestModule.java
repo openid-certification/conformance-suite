@@ -131,9 +131,11 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDifferent;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
+import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
 import net.openid.conformance.condition.client.ValidateJARMEncryptionAlg;
 import net.openid.conformance.condition.client.ValidateJARMEncryptionEnc;
 import net.openid.conformance.condition.client.ValidateJARMExpRecommendations;
+import net.openid.conformance.condition.client.ValidateJARMFromURLQueryEncryption;
 import net.openid.conformance.condition.client.ValidateJARMResponse;
 import net.openid.conformance.condition.client.ValidateJARMSignatureUsingKid;
 import net.openid.conformance.condition.client.ValidateJARMSigningAlg;
@@ -693,7 +695,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-16");
 
 		if (isOpenId) {
-
+			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+				ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-5.2.2.1-3", "OIDCC-10.2");
 			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI1-BASE-5.2.2.1-6", "OIDCC-3.3.2.5");
 
 			call(new PerformStandardIdTokenChecks());
@@ -776,6 +779,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			//plain error response, no jarm
 			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
 		} else {
+			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+				ValidateJARMFromURLQueryEncryption.class, Condition.ConditionResult.WARNING, "JARM-2.2");
 			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI1-ADV-5.2.3.2-1", "JARM-2.3.4", "JARM-2.3.1");
 
 			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-2.1");

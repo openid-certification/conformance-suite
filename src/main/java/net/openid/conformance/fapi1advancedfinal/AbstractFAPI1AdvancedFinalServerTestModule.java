@@ -120,10 +120,13 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDifferent;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
+import net.openid.conformance.condition.client.ValidateIdTokenFromAuthorizationResponseEncryption;
+import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateJARMEncryptionAlg;
 import net.openid.conformance.condition.client.ValidateJARMEncryptionEnc;
 import net.openid.conformance.condition.client.ValidateJARMExpRecommendations;
+import net.openid.conformance.condition.client.ValidateJARMFromURLQueryEncryption;
 import net.openid.conformance.condition.client.ValidateJARMResponse;
 import net.openid.conformance.condition.client.ValidateJARMSignatureUsingKid;
 import net.openid.conformance.condition.client.ValidateJARMSigningAlg;
@@ -592,6 +595,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	protected void handleSuccessfulAuthorizationEndpointResponse() {
 
 		if (!jarm.isTrue()) {
+			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+				ValidateIdTokenFromAuthorizationResponseEncryption.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-5.2.2.1-3", "OIDCC-10.2");
 			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class, "FAPI1-ADV-5.2.2.1-4");
 
 			// save the id_token returned from the authorization endpoint
@@ -682,6 +687,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-16");
 
+		skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+			ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-5.2.2.1-3", "OIDCC-10.2");
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI1-BASE-5.2.2.1-6", "OIDCC-3.3.2.5");
 
 		call(new PerformStandardIdTokenChecks());
@@ -768,6 +775,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
 		} else {
 			// FAPI-RW only allows jarm with the code flow and hence we extract the response from the url query
+			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
+				ValidateJARMFromURLQueryEncryption.class, Condition.ConditionResult.WARNING, "JARM-2.2");
 			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI1-ADV-5.2.3.2-1", "JARM-2.3.4", "JARM-2.3.1");
 
 			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-2.1");

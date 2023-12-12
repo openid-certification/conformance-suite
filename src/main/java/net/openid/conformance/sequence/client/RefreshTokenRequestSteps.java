@@ -27,6 +27,7 @@ import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
+import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
 import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -115,6 +116,11 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 
 		callAndContinueOnFailure(EnsureAccessTokenValuesAreDifferent.class, ConditionResult.INFO);
 
+		call(condition(ValidateIdTokenFromTokenResponseEncryption.class)
+			.skipIfObjectMissing("client_jwks")
+			.onSkip(ConditionResult.INFO)
+			.onFail(ConditionResult.INFO)
+			.dontStopOnFailure());
 		callAndContinueOnFailure(ExtractIdTokenFromTokenResponse.class, ConditionResult.INFO);
 
 		// It's perfectly legal to NOT return a new refresh token; if the server didn't then
