@@ -590,6 +590,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
+		} else if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOBID3-5.2.2.2-1");
 		}
 	}
 
@@ -727,6 +729,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
 		skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOBID3-5.2.2.2-1");
+		}
 
 		if (!jarm.isTrue()) {
 			eventLog.startBlock(currentClientString() + "Verify at_hash in the authorization endpoint id_token");
