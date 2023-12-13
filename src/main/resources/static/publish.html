@@ -64,65 +64,88 @@
 <div class="container-fluid">
 
     <div class="row mx-1 mt-3">
-
-        <div class="col-md-6">
-            <div class="">
-                <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
-                <p>
-                    In order to publish your test plan for certification, you will need to submit a filled out and
-                    signed <strong>certification of conformance</strong> document.
-                </p>
-                <p>
-                    If you already have the document, please upload it in order to continue. Otherwise, please
-                    proceed to the next step to fill it out.
-                </p>
-                <p>
-                    <button id="uploadButton" class="btn btn-primary">Upload <i class="bi bi-upload"></i></button>
-                    <input id="fileInput" style="display: none;" type="file" accept=".pdf, application/pdf"></input>
-                    <span class="mx-2">or</span>
-                    <a id="fillOutButton" class="btn btn-primary">Fill out  <i class="bi bi-chevron-right"></i></a>
-                </p>
-
-            </div>
+        <div>
+            <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
         </div>
-    </div>
+        <div>
+            <form class="form" name="document-provision-form" id="document-provision-form">
+                <div id="certificationPackageFormModalBody" class="modal-body">
+                    <p>
+                        In order to publish your test plan for certification, you will need to submit a filled out and
+                        signed <strong>certification of conformance</strong> document.
+                    </p>
+                    <p>
+                        If you already have the document, please upload it in order to continue. Otherwise, please
+                        proceed to the next step to fill it out.
+                    </p>
+                    <p>
+                        <ol class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-start" style="border: none;">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold"><input id="upload-document-choice" class="form-check-input me-2" type="radio" name="document">
+                                        <label for="upload-document-choice" class="form-label">I would like to upload the document:</label>
+                                        <input class="form-control ms-4" id="certificationOfConformancePdf" name="certificationOfConformancePdf" type="file" accept=".pdf, application/pdf"></input>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">
+                                        <input id="fillout-document-choice" class="form-check-input me-2" type="radio" name="document">
+                                        <label for="fillout-document-choice" class="form-label">I would like to fill out the document online.</label>
+                                    </div>
+                                </div>
+                            </li>
+                        </ol>
+                    </p>
 
-<!-- loading modal -->
-<div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-sm" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="loadingLabel">Loading...</h4>
-            </div>
-            <div class="modal-body">
-                <div class="text-center">
-                    <img src="/images/spinner.gif" width="100px" height="30px" alt="" />
                 </div>
+
                 <div>
-                    <span id="loadingMessage"></span>
+                    <a id="certificationPackageCancel" class="btn btn-light bg-gradient border border-secondary">Cancel</a>
+                    <a id="certificationPackageContinue" class="btn btn-success bg-gradient border border-secondary disabled">Continue</a>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+
+    <!-- loading modal -->
+    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <img src="/images/spinner.gif" width="100px" height="30px" alt="" />
+                    </div>
+                    <div>
+                        <span id="loadingMessage"></span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- error modal -->
-<div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="errorLabel">Error</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Error: <span id="errorMessage"></span>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+    <!-- error modal -->
+    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="errorLabel">Error</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Error: <span id="errorMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 </div>
 
@@ -194,29 +217,41 @@
         }
     }
 
-    document.querySelector('#fileInput').addEventListener('change', (evt) => {
+    function resetDocumentSelection() {
+        document.querySelector('#document-provision-form').reset();
+        document.querySelector('#certificationPackageContinue').classList.add('disabled');
+        localStorage.removeItem('cocPdf');
+    }
+
+    document.querySelector('#fillout-document-choice').addEventListener('click', (evt) => {
+        document.querySelector('#certificationPackageContinue').href = 'form.html?plan=' + new URLSearchParams(window.location.search).get('plan');
+        document.querySelector('#certificationPackageContinue').classList.remove('disabled');
+    });
+
+    document.querySelector('#certificationOfConformancePdf').addEventListener('click', (evt) => {
+        document.querySelector('#upload-document-choice').checked = true;
+    });
+
+    document.querySelector('#certificationOfConformancePdf').addEventListener('change', (evt) => {
         let inputElement = evt.target;
         if (inputElement.files.length > 0) {
             let file = inputElement.files[0];
             if (file.type === 'application/pdf') {
-                if (file.size < 10 * 1024 * 1024) { // 10 MB in bytes
+                if (file.size < 2 * 1024 * 1024) { // 2 MB in bytes
                     let reader = new FileReader();
                     reader.onload = function (e) {
                         localStorage.setItem('cocPdf', e.target.result);
-                        document.location.href = 'verify.html?plan=' + new URLSearchParams(window.location.search).get('plan');
+                        document.querySelector('#certificationPackageContinue').href = 'verify.html?plan=' + new URLSearchParams(window.location.search).get('plan');
+                        document.querySelector('#certificationPackageContinue').classList.remove('disabled');
                     };
                     reader.readAsDataURL(file);
                 } else {
-                    alert('File size exceeds 10 MB. Please choose a smaller PDF file.');
+                    alert('File size exceeds 2 MB. Please choose a smaller PDF file.');
                 }
             } else {
                 alert('Please choose a PDF file.');
             }
         }
-    });
-
-    document.querySelector('#uploadButton').addEventListener('click', () => {
-        document.querySelector('#fileInput').click();
     });
 
     document.addEventListener('DOMContentLoaded', _ => {
@@ -230,7 +265,8 @@
             }).then(_ => {
                 return getPlan(planId, public);
             }).then(_ => {
-                document.querySelector('#fillOutButton').href = `form.html?plan=${planId}`;
+                document.querySelector('#certificationPackageCancel').href = 'plan-detail.html?plan=' + new URLSearchParams(window.location.search).get('plan');
+                resetDocumentSelection();
                 FAPI_UI.hideBusy();
             });
         FAPI_UI.showBusy();

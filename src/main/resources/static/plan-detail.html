@@ -741,7 +741,7 @@
             }).finally(function() {
                 FAPI_UI.activeTooltip();
                 FAPI_UI.hideBusy();
-                if (urlParams.get('publish')) {
+                if (urlParams.has('publish')) {
                     showCertificationPackageModal();
                 }
             });
