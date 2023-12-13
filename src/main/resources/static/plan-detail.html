@@ -127,45 +127,168 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content pad28">
                 <div class="modal-header">
-                    <h4 class="modal-title">Publish for certification</h4>
+                    <h4 class="modal-title" id="errorLabel">Prepare Certification Submission Package</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" name="document-provision-form" id="document-provision-form">
+                <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
                     <div id="certificationPackageFormModalBody" class="modal-body">
-                        <p>
-                            In order to publish your test plan for certification, you will need to submit a filled out and
-                            signed <strong>certification of conformance</strong> document.
-                        </p>
-                        <p>
-                            If you already have the document, please upload it in order to continue. Otherwise, please
-                            proceed to the next step to fill it out.
-                        </p>
-                        <p>
-                            <ol class="list-group list-group-flush">
-                                <li class="list-group-item d-flex justify-content-between align-items-start" style="border: none;">
-                                    <div class="ms-2 me-auto">
-                                        <div class="fw-bold"><input id="upload-document-choice" class="form-check-input me-2" type="radio" name="document">
-                                        <label for="clientSideData" class="form-label">I would like to upload the document:<br/>
-                                            <input class="form-control mt-1" id="certificationOfConformancePdf" name="certificationOfConformancePdf" type="file" accept=".pdf, application/pdf"></input>
-                                        </label>
-                                    </div>
-                                    </div>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-start">
-                                    <div class="ms-2 me-auto">
-                                        <div class="fw-bold"><input id="fillout-document-choice" class="form-check-input me-2" type="radio" name="document">I would like to fill out the document online.</div>
-                                    </div>
-                                </li>
-                            </ol>
-                        </p>
+                    <div id="certificationPackageFormErrors"></div>
+                    <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
+                    <ol class="top15">
+                        <li>
+                            <strong>The test plan will be published.</strong>
+                            <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
+                        </li>
+                        <li>
+                            <strong>The test plan will be marked as immutable.</strong>
+                            <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
+                        </li>
+                        <li>
+                            <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
+                            <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
+                            to complete the certification process.</p>
+                        </li>
+                    </ol>
 
+                    <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
+                    <div>
+                        <div class="mb-3 row">
+                                <fieldset>
+                                    <strong>1.</strong> A filled out and signed <strong>certification of conformance</strong> document.
+                                    <label class="text-info">
+                                        (<a class="darkblue" href="https://openid.net/wordpress-content/uploads/2021/07/OpenID-Certification-of-Conformance.pdf" target="coc">Download the template here.</a>)
+                                    </label>
+                                    <input class="top10" type="file" id="certificationOfConformancePdfBtn" name="certificationOfConformancePdf" accept="application/pdf">
+                                    <p class="form-text">Upload the signed certification of conformance document
+                                        (as per the instructions, completed and signed by an authorized person).
+                                    </p>
+                                </fieldset>
+                        </div>
+                        <div class="mb-3 row">
+                            <fieldset>
+                                <strong>2.</strong> <strong>Client data</strong> (For RP Tests Only)
+                                <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
+                                <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+
+                    <div id="certificationPackageDownloaded" class="modal-body" hidden>
+                        <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
+                            is complete then you will find the zip file in your browser download directory.</p>
+                        <p>Please rename the zip file according to <a class="darkblue" href="https://openid.net/certification/op_submission/" target="instructions">the instructions</a>
+                            and then proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
+                            to submit.</p>
                     </div>
 
                     <div class="modal-footer">
                         <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <a id="certificationPackageContinue" class="btn btn-sm btn-success bg-gradient border border-secondary disabled">Continue</a>
+                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary" disabled>Create Certification Package</button>
+                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" hidden>Close</button>
                     </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
+    <!-- Prepare certification of conformance pdf modal -->
+    <div class="modal" id="certificationOfConformanceTemplateModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="errorLabel">Prepare Certification of Conformance PDF</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                </div>
+                <form class="form-small" name="certificationOfConformanceForm" id="certificationOfConformanceForm" action="" method="post">
+                    <div class="modal-body">
+                        <div id="certificationOfConformanceFormErrors"></div>
+                        <div class="text-info">
+                            This page will help you prepare the PDF you will upload after pressing the 'Certification Package' button.
+                            Once you have generated the PDF you will need to sign it (electronic signatures are preferred).
+                            See <a href="https://openid.net/certification/instructions/" target="_blank">the submission instructions</a> for more information.
+                            <br>
+                            You will be able to edit the document after downloading, you don't need to fill all fields now.
+                            This form is provided for your convenience only, and its use is optional.
+                        </div>
+                        <div>
+                            <div>
+                                <h3 style="border-bottom:1px solid #eee;">
+                                    Required Information
+                                </h3>
+                                <div style="padding-left:1em;">
+
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            Name of Entity (“Implementer”) Making this Certification
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_nameOfImplementer" name="nameOfImplementer">
+                                    </div>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            Software or Service (&quot;Deployment&quot;) Name &amp; Version #
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_deploymentVersion" name="deploymentVersion">
+                                    </div>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            OpenID Conformance Profile
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_conformanceProfile" name="conformanceProfile" readonly>
+                                    </div>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            Conformance Test Suite Software
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_suiteSoftware" name="suiteSoftware" readonly>
+                                    </div>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            Test Date
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_testDate" name="testDate" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 style="border-bottom:1px solid #eee;">
+                                    Optional Extra Information
+                                </h3>
+                                <div style="padding-left:1em;">
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            URL at which people interested in using your implementation can learn about it and/or obtain it:
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_moreInfoUrl" name="moreInfoUrl">
+                                    </div>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            1-2 sentence description of the implementation
+                                        </label>
+                                        <textarea class="form-control" type="text" id="certificationOfConformance_implementationDescription" name="implementationDescription"></textarea>
+                                    </div>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            The programming language of the software and deployment environment for it, if applicable (e.g., “JavaScript for Node.js”, “Binaries for iOS”, or “Service”)
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_programmingLanguage" name="programmingLanguage">
+                                    </div>
+                                    <div class="mb-3 row">
+                                        <label class="form-label">
+                                            Licensing terms of the software, if applicable (e.g., “Apache 2.0” or “Proprietary”)
+                                        </label>
+                                        <input class="form-control" type="text" id="certificationOfConformance_license" name="license">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button id="certificationOfConformanceFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary">Download as PDF</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -244,6 +367,7 @@
                 return response.json();
             })
             .then((data) => {
+                document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
                 document.querySelectorAll('.content')?.forEach(function(element) {
                     element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant)}));
                 });
@@ -281,10 +405,31 @@
 
                 if (document.getElementById('certificationPackageBtn') != null) {
                     document.getElementById('certificationPackageBtn').onclick = function(evt) {
-                        evt.preventDefault();
-                        showCertificationPackageModal();
+                        if (evt.shiftKey) {
+                            evt.preventDefault();
+
+                            var myModalEl = document.getElementById('certificationPackageModal');
+                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                            modal.show();
+                        } else {
+                            document.location.href = `publish.html?plan=${encodeURIComponent(planId)}`;
+                        }
                     };
                 }
+
+                if (document.getElementById('certificationOfConformanceTemplateBtn') != null) {
+                    document.getElementById('certificationOfConformanceTemplateBtn').onclick = function(evt) {
+                        evt.preventDefault();
+
+                        var myModalEl = document.getElementById('certificationOfConformanceTemplateModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                        modal.show();
+                    };
+                }
+                document.getElementById('certificationOfConformanceForm').setAttribute('action','/api/plan/'+planId+'/certificationofconformance');
+                document.getElementById('certificationOfConformance_conformanceProfile').value = data.certificationProfileName;
+                document.getElementById('certificationOfConformance_suiteSoftware').value = 'www.certification.openid.net version ' + data.version;
+                document.getElementById('certificationOfConformance_testDate').value = data.started?data.started.substring(0,10):'';
 
                 if(document.querySelector('#deleteMutablePlanBtn')) {
                     document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
@@ -331,6 +476,8 @@
                             element1.style.display = 'inline-block';
                         });
 
+                        // fetch the test status
+                        console.log('Fetching |' + testId + '|');
                         fetch('/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''))
                         .then((response) => {
                             if (!response.ok) {
@@ -608,15 +755,6 @@
             });
         }
 
-        function showCertificationPackageModal() {
-            document.querySelector('#document-provision-form').reset();
-            document.querySelector('#certificationPackageContinue').classList.add('disabled');
-            localStorage.removeItem('cocPdf');
-
-            var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('certificationPackageModal'));
-            modal.show();
-        }
-
         function runTest(testName, testVariant, planId) {
             var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
 
@@ -695,36 +833,58 @@
                 '</button>' + error + '</div>');
         }
 
-        document.querySelector('#fillout-document-choice').addEventListener('click', (evt) => {
-            document.querySelector('#certificationPackageContinue').href = 'form.html?plan=' + new URLSearchParams(window.location.search).get('plan');
-            document.querySelector('#certificationPackageContinue').classList.remove('disabled');
-        });
-
-        document.querySelector('#certificationOfConformancePdf').addEventListener('click', (evt) => {
-            document.querySelector('#upload-document-choice').checked = true;
-        });
-
-        document.querySelector('#certificationOfConformancePdf').addEventListener('change', (evt) => {
-            let inputElement = evt.target;
-            if (inputElement.files.length > 0) {
-                let file = inputElement.files[0];
-                if (file.type === 'application/pdf') {
-                    if (file.size < 2 * 1024 * 1024) { // 2 MB in bytes
-                        let reader = new FileReader();
-                        reader.onload = function (e) {
-                            localStorage.setItem('cocPdf', e.target.result);
-                            document.querySelector('#certificationPackageContinue').href = 'verify.html?plan=' + new URLSearchParams(window.location.search).get('plan');
-                            document.querySelector('#certificationPackageContinue').classList.remove('disabled');
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        alert('File size exceeds 2 MB. Please choose a smaller PDF file.');
+        /**
+         * Checks file inputs to make sure they're within max file size limits
+         * @param filesToCheck array of file 'input' element IDs to check
+         * @param maxFileSize max file size
+         * @returns {number} -1 if all files are less than maxFileSize
+         *                   else the return value is the nth element
+         *                   in the list
+         */
+        function validateFileSizes(filesToCheck, maxFileSize) {
+            for(var i = 0; i < filesToCheck.length; i++) {
+                var file = document.getElementById(filesToCheck[i]);
+                if(file.files && file.files.length > 0) {
+                    if(file.files[0].size > maxFileSize) {
+                        return i;
                     }
-                } else {
-                    alert('Please choose a PDF file.');
                 }
             }
+            return -1;
+        }
+
+        document.getElementById('certificationPackageForm').addEventListener("submit", function(evt){
+
+            const filesToCheck = [ "certificationOfConformancePdfBtn", "clientSideDataBtn" ];
+            const maxFileSize = 1024000;
+            const fileNum = validateFileSizes(filesToCheck, maxFileSize);
+            if (fileNum >= 0) {
+                evt.preventDefault();
+                showDialogError('certificationPackageFormErrors', document.getElementById(filesToCheck[fileNum]).files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
+                return false;
+            } else {
+                // Hide previous modal content and the cancel and certification package buttons
+                document.querySelector('#certificationPackageFormModalBody').hidden = true;
+                document.querySelector('#cancelCertificationPackageFormModal').hidden = true;
+                document.querySelector('#certificationPackageFormSubmitBtn').hidden = true;
+
+                // Show the file download info content in the modal and the close button
+                document.querySelector('#certificationPackageDownloaded').hidden = false;
+                document.querySelector('#closeCertificationPackageFormModal').hidden = false;
+
+                return true;
+            }
         });
+
+        document.getElementById('closeCertificationPackageFormModal').onclick = function(evt) {
+            var myModalEl = document.getElementById('certificationPackageModal');
+            var modal     = bootstrap.Modal.getInstance(myModalEl);
+
+            if (modal != null) {
+                modal.hide();
+            }
+            window.location.reload();
+        };
 
         document.addEventListener("DOMContentLoaded", () => {
             var urlParams = new URLSearchParams(window.location.search);
@@ -741,9 +901,6 @@
             }).finally(function() {
                 FAPI_UI.activeTooltip();
                 FAPI_UI.hideBusy();
-                if (urlParams.has('publish')) {
-                    showCertificationPackageModal();
-                }
             });
 
             var clipboard = new ClipboardJS('.btn-clipboard');
@@ -752,6 +909,12 @@
             });
             clipboard.on('error', function(e) {
                 console.log(e);
+            });
+
+            document.querySelector('#certificationOfConformancePdfBtn').addEventListener('change', evt => {
+                if (evt.target.files && evt.target.files.length > 0) {
+                    document.querySelector('#certificationPackageFormSubmitBtn').disabled = false;
+                }
             });
 
             document.querySelector('#confirmDeletePlanBtn').addEventListener('click', evt => {

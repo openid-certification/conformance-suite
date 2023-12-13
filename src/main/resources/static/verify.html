@@ -98,7 +98,7 @@
                     <li class="list-group-item d-flex justify-content-between align-items-start">
                         <div class="ms-2 me-auto">
                             <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" />&ldquo;Name of Entity (“Implementer”) Making this Certification&rdquo;</div>
-                            This field must represent the name of the organization that's requesting the certification and will be the name published on 
+                            This field must represent the name of the organization that's requesting the certification and which will be the name published on 
                             <a class="darkblue" href="https://openid.net/certification/" target="openid">openid.net/certification</a>.
                             <br/><em>Example:</em> <strong>Acme Corporation</strong>
                         </div>
@@ -147,12 +147,10 @@
                 <p>
                     <a id="select-all" class="btn btn-link">Select all</a>
                 </p>
-                <ol class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-left align-items-start">
-                        <a class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></a>
-                    </li>
-                </ol>    
-
+                <div>
+                    <a id="wizard-cancel" class="btn btn-light bg-gradient border border-secondary"><i class="bi bi-chevron-double-left"></i> Go back</a>
+                    <a class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></a>
+                </div>
             </div>
         </div>
 
@@ -308,8 +306,9 @@
         });
     }
 
-    document.querySelector('#select-all').addEventListener('click', () => {
-        document.querySelectorAll('input[type=checkbox]').forEach(c => c.click());
+    document.querySelector('#select-all').addEventListener('click', (e) => {
+        document.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = true);
+        document.querySelector('#continue').classList.remove('disabled');
     });
 
     document.addEventListener('webviewerloaded', _ => {
@@ -329,6 +328,7 @@
             }).then(_ => {
                 return getPlan(planId, public);
             }).then(_ => {
+                document.querySelector('#wizard-cancel').href = `publish.html?plan=${encodeURIComponent(planId)}`; 
                 loadViewerWithoutDocument(event);
                 setValidationMessages();
                 setButtonNavigation();

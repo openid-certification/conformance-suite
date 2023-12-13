@@ -102,8 +102,8 @@
                 </div>
 
                 <div>
-                    <a id="certificationPackageCancel" class="btn btn-light bg-gradient border border-secondary">Cancel</a>
-                    <a id="certificationPackageContinue" class="btn btn-success bg-gradient border border-secondary disabled">Continue</a>
+                    <a id="wizard-cancel" class="btn btn-light bg-gradient border border-secondary"><i class="bi bi-chevron-double-left"></i> Go back</a>
+                    <a id="certificationPackageContinue" class="btn btn-success bg-gradient border border-secondary disabled">Continue <i class="bi bi-chevron-double-right"></i></a>
                 </div>
             </form>
             
@@ -265,7 +265,7 @@
             }).then(_ => {
                 return getPlan(planId, public);
             }).then(_ => {
-                document.querySelector('#certificationPackageCancel').href = 'plan-detail.html?plan=' + new URLSearchParams(window.location.search).get('plan');
+                document.querySelector('#wizard-cancel').href = `plan-detail.html?plan=${encodeURIComponent(planId)}`;
                 resetDocumentSelection();
                 FAPI_UI.hideBusy();
             });

@@ -86,14 +86,15 @@
 
         <div class="col-md-5 wizard">
             <div class="">
-                <h2 class="ps-0 mt-0 mb-2"><strong>Instructions</strong></h2>
-                <p class=""><span class="fw-bold">1.</span> Fill out the document on the right. Some fields have been prefilled for your convenience,
+                <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
+                <p class="">Fill out the document on the right. Some fields have been prefilled for your convenience,
                     however, you must ensure that the following <strong>mandatory</strong> information is correctly filled out:
                     <ol class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-start">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold"><i class="bi bi-square me-2 opacity-20 field field-entity-name"></i>&ldquo;Name of Entity (“Implementer”) Making this Certification&rdquo;</div>
-                                This is the name of the organization that's requesting the certification.
+                                This is the name of the organization that's requesting the certification and which will be the name published on 
+                                <a class="darkblue" href="https://openid.net/certification/" target="openid">openid.net/certification</a>.
                                 <br /><em>Example:</em> Acme Corporation
                             </div>
                         </li>
@@ -136,13 +137,12 @@
                     </ol>
                 </p>
                 <p class="">When you've filled out the document, click the &ldquo;Validate&rdquo; button to
-                    validate the document and continue to the next step.
-                <ol class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-left align-items-start">
-                        <button class="btn btn-primary me-2" id="validate">Validate <i class="bi bi-check-square field-validate"></i></button>
-                        <button class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></button>
-                    </li>
-                </ol>
+                    validate the document and continue to the next step.<p>
+                <div>
+                    <a id="wizard-cancel" class="btn btn-light bg-gradient border border-secondary"><i class="bi bi-chevron-double-left"></i> Go back</a>
+                    <button class="btn btn-primary" id="validate">Validate <i class="bi bi-check-square field-validate"></i></button>
+                    <button class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></button>
+                </div>
                 <p id="scratchpad"></p>
             </div>
         </div>
@@ -287,6 +287,7 @@
             }).then(_ => {
                 return getPlan(planId, public);
             }).then(_ => {
+                document.querySelector('#wizard-cancel').href = `publish.html?plan=${encodeURIComponent(planId)}`;
                 loadDocumentInViewer(event);
             });
         FAPI_UI.showBusy();
