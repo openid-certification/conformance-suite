@@ -25,6 +25,9 @@
         .disclaimer, .hidden, .pageFooter {
             display: none;
         }
+        .underline {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -68,31 +71,46 @@
             <h2 class="ps-0 mt-0 mb-2"><strong>Publish for certification</strong></h2>
         </div>
         <div>
-            <form class="form" name="document-provision-form" id="document-provision-form">
+            <form class="form" name="document-signature-form" id="document-signature-form">
                 <div id="certificationPackageFormModalBody" class="modal-body">
                     <p>
-                        In order to publish your test plan for certification, you will need to submit a filled out and
-                        signed <strong>certification of conformance</strong> document.
+                        The <strong>certification of conformance</strong> document must be signed. It can be signed by any authorized person
+                        that works for the implementer, but it cannot be signed by third parties, e.g by an external consultant.
                     </p>
                     <p>
-                        If you already have the document, please upload it in order to continue. Otherwise, please
-                        proceed to the next step to fill it out.
+                        Would you like to sign the document online, using DocuSign (no account needed)? Otherwise, you will have to download the document and 
+                        sign it in another way (handwritten or electronic).
                     </p>
                     <p>
                         <ol class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between align-items-start" style="border: none;">
                                 <div class="ms-2 me-auto">
-                                    <div class="fw-bold"><input id="upload-document-choice" class="form-check-input me-2" type="radio" name="document">
-                                        <label for="upload-document-choice" class="form-label">I would like to upload the document:</label>
-                                        <input class="form-control ms-4" id="certificationOfConformancePdf" name="certificationOfConformancePdf" type="file" accept=".pdf, application/pdf"></input>
+                                    <div class="fw-bold">
+                                        <input id="sign-online-document-choice" class="form-check-input me-2" type="radio" name="document">
+                                        <label for="sign-online-document-choice" class="form-label">I would like to sign the document online (DocuSign):</label>
+                                        <div class="input-group mb-1 ms-4">
+                                            <span class="input-group-text" style="width: 80px;">Email</span>
+                                            <input type="email" id="email" class="form-control" disabled required/>
+                                        </div>
+                                        <div class="input-group mb-1 ms-4">
+                                            <span class="input-group-text" style="width: 80px;">Name</span>
+                                            <input type="text" id="name" class="form-control" placeholder="Name" disabled required/>
+                                        </div>
                                     </div>
                                 </div>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-start">
                                 <div class="ms-2 me-auto">
                                     <div class="fw-bold">
-                                        <input id="fillout-document-choice" class="form-check-input me-2" type="radio" name="document">
-                                        <label for="fillout-document-choice" class="form-label">I would like to fill out the document online.</label>
+                                        <input id="download-document-choice" class="form-check-input me-2" type="radio" name="document">
+                                        <label for="download-document-choice" class="form-label">
+                                            I would like to 
+                                            <a id="download" class="link link-primary underline">download</a>
+                                            the document.</label>
+                                    </div>
+                                    <div class="mb-1 ms-4">
+                                        When you have signed the document, you can click the "Publish for certification" button in the test plan to submit it. 
+                                        <a id="goto-test-plan" class="link link-primary">Click here</a> to go back to the test plan.
                                     </div>
                                 </div>
                             </li>
@@ -103,7 +121,7 @@
 
                 <div>
                     <a id="wizard-cancel" class="btn btn-light bg-gradient border border-secondary"><i class="bi bi-chevron-double-left"></i> Go back</a>
-                    <a id="certificationPackageContinue" class="btn btn-success bg-gradient border border-secondary disabled">Continue <i class="bi bi-chevron-double-right"></i></a>
+                    <a id="continue" class="btn btn-success bg-gradient border border-secondary disabled">Continue <i class="bi bi-chevron-double-right"></i></a>
                 </div>
             </form>
             
@@ -176,7 +194,7 @@
                 suite = `${document.location.host} ${data.version}`,
                 started = data.started.substring(0, 10),
                 date = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000)).toISOString().substring(0, 10);
-        })
+            })
             .catch(ex => {
                 planLoadError = true;
                 handleSuiteError(ex);
@@ -219,46 +237,73 @@
 
 
     function resetDocumentSelection() {
-        document.querySelector('#document-provision-form').reset();
-        document.querySelector('#certificationPackageContinue').classList.add('disabled');
-        localStorage.removeItem('cocPdf');
+        document.querySelector('#document-signature-form').reset();
+        document.querySelector('#continue').classList.add('disabled');
     }
 
-    document.querySelector('#fillout-document-choice').addEventListener('click', (evt) => {
-        document.querySelector('#certificationPackageContinue').href = 'form.html?plan=' + new URLSearchParams(window.location.search).get('plan');
-        document.querySelector('#certificationPackageContinue').classList.remove('disabled');
-    });
-
-    document.querySelector('#certificationOfConformancePdf').addEventListener('click', (evt) => {
-        document.querySelector('#upload-document-choice').checked = true;
-    });
-
-    document.querySelector('#certificationOfConformancePdf').addEventListener('change', (evt) => {
-        let inputElement = evt.target;
-        if (inputElement.files.length > 0) {
-            let file = inputElement.files[0];
-            if (file.type === 'application/pdf') {
-                if (file.size < 2 * 1024 * 1024) { // 2 MB in bytes
-                    let reader = new FileReader();
-                    reader.onload = function (e) {
-                        localStorage.setItem('cocPdf', e.target.result);
-                        document.querySelector('#certificationPackageContinue').href = 'verify.html?plan=' + new URLSearchParams(window.location.search).get('plan');
-                        document.querySelector('#certificationPackageContinue').classList.remove('disabled');
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    alert('File size exceeds 2 MB. Please choose a smaller PDF file.');
-                }
-            } else {
-                alert('Please choose a PDF file.');
-            }
+    function enableContinueOnEmailAndName() {
+        let email = document.querySelector('#email').value;
+        let name = document.querySelector('#name').value;
+        let signOnline = document.querySelector('#sign-online-document-choice').checked;
+        if (signOnline && email && name) {
+            document.querySelector('#continue').classList.remove('disabled');
+            // Hook up to docusign
+        } else {
+            document.querySelector('#continue').classList.add('disabled');    
         }
+    }
+
+    document.querySelector('#email').addEventListener('input', enableContinueOnEmailAndName);
+    document.querySelector('#name').addEventListener('input', enableContinueOnEmailAndName);
+
+    document.querySelector('#sign-online-document-choice').addEventListener('click', (evt) => {
+        document.querySelector('#email').disabled = false;
+        document.querySelector('#name').disabled = false;
+        enableContinueOnEmailAndName();
+    });
+
+    document.querySelector('#download-document-choice').addEventListener('click', (evt) => {
+        document.querySelector('#email').disabled = true;
+        document.querySelector('#name').disabled = true;
+        document.querySelector('#continue').classList.add('disabled');
+    });
+
+    document.querySelector('#download').addEventListener('click', () => {
+        document.querySelector('#download-document-choice').click();
+    });
+
+    document.querySelector('#continue').addEventListener('click', () => {
+        let documentData = localStorage.getItem('cocPdf').split(',')[1];
+        const request = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    "documentData": documentData,
+                    "email": document.querySelector('#email').value,
+                    "name": document.querySelector('#name').value,
+                })
+            };
+
+        FAPI_UI.showBusy();
+        fetch(`/api/plan/${planId}/sign`, request)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error, status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                FAPI_UI.hideBusy();
+                document.location.href = data.recipentSigningUri;
+            })
+            .catch(handleSuiteError);
     });
 
     document.addEventListener('DOMContentLoaded', _ => {
         let urlParams = new URLSearchParams(window.location.search);
-        let planId = urlParams.get('plan');
-        let public = Boolean(urlParams.get('public'));
+        planId = urlParams.get('plan');
+        public = Boolean(urlParams.get('public'));
+        let signatory = atob(urlParams.get('signatory'));
 
         FAPI_UI.loadPlanTemplates()
             .then(_ => {
@@ -266,8 +311,12 @@
             }).then(_ => {
                 return getPlan(planId, public);
             }).then(_ => {
-                document.querySelector('#wizard-cancel').href = `plan-detail.html?plan=${encodeURIComponent(planId)}`;
                 resetDocumentSelection();
+                document.querySelector('#wizard-cancel').href = `form.html?plan=${encodeURIComponent(planId)}`;
+                document.querySelector('#goto-test-plan').href = `plan-detail.html?plan=${encodeURIComponent(planId)}`;                
+                document.querySelector('#name').value = signatory;
+                document.querySelector('#download').href = localStorage.getItem('cocPdf'); 
+                document.querySelector('#download').download = 'OpenID-Certification-of-Conformance.pdf'
                 FAPI_UI.hideBusy();
             });
         FAPI_UI.showBusy();

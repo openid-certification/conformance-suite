@@ -201,7 +201,7 @@
 
     const origin = `${document.location.protocol}//${document.location.host}`;
     const now = new Date();
-    var planId, public, event, envelopeId, signatory, shouldPrefill, planLoadError, profile, suite, started, date = '';
+    var planId, public, event, envelopeId, shouldPrefill, planLoadError, profile, suite, started, date = '';
 
     function getPlan(planId, public) {
         return fetch('/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''))
@@ -274,12 +274,6 @@
         document.querySelector('#pdf-viewer').src = redirectUrl + viewerOptions;
     }
 
-    function uint8ArrayToDataUri(array) {
-        let base64String = btoa(String.fromCharCode.apply(null, array));
-        let dataUri = `data:application/pdf;base64,${base64String}`;
-        return dataUri;
-    }
-
     document.addEventListener('DOMContentLoaded', _ => {
         let urlParams = new URLSearchParams(window.location.search);
         planId = urlParams.get('plan');
@@ -322,15 +316,29 @@
           }
 
           if (evt.data.event === 'documentData') {
-            let pdfUint8Array = evt.data.documentData;
-            let pdfDataUri = uint8ArrayToDataUri(pdfUint8Array);
-            localStorage.setItem('cocPdf', pdfDataUri);
-            document.location.href = `sign.html?plan=${encodeURIComponent(planId)}&signatory=${btoa(signatory)}`;
+            const request = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "documentData": btoa(String.fromCharCode.apply(null, evt.data.documentData ))})
+            };
+
+            fetch(`/api/plan/${planId}/sign`, request)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error, status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    FAPI_UI.hideBusy();
+                    document.querySelector('#scratchpad').textContent = data.recipentSigningUri;
+                    //document.location.href = data.recipentSigningUri;
+                })
+                .catch(handleSuiteError);
           }
 
           if (evt.data.event === 'formValues') {
             validate(evt.data.formValues);
-            signatory = evt.data.formValues["Name"];
           }
 
           if (evt.data.event === 'fieldChanged') {

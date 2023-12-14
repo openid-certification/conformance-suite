@@ -108,14 +108,18 @@ public class CertificationApi {
 	})
 	public ResponseEntity<Object> sign(
 		@Parameter(description = "Test plan id") @PathVariable("id") String id,
-		@Parameter(description = "Document data (base64 encoded PDF document)") @RequestBody JsonObject body
+		@Parameter(description = "Document data (base64 encoded PDF document) and signatory information") @RequestBody JsonObject body
 	) throws Exception {
+		String documentData = body.get("documentData").getAsString();
+		String email = body.get("email").getAsString();
+		String name = body.get("name").getAsString();
+
 		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
 		String accessToken = getAccessToken(tokenEndpoint, jwt);
 		String accountId = getAccountId(userInfoEndpoint, accessToken);
-		String envelopeId = createEnvelope(apiUrl, accessToken, accountId, body.get("documentData").getAsString());
+		String envelopeId = createEnvelope(apiUrl, accessToken, accountId, documentData, email, name);
 		String redirectUrl = "https://localhost:8443/static/form.html?plan=" + id + "&envelopeId=" + envelopeId;
-		String signUrl = createView(apiUrl, accessToken, accountId, envelopeId, redirectUrl);
+		String signUrl = createView(apiUrl, accessToken, accountId, envelopeId, redirectUrl, email, name);
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("id", id);
@@ -175,7 +179,7 @@ public class CertificationApi {
 		return userInfoResponse.get("accounts").getAsJsonArray().get(0).getAsJsonObject().get("account_id").getAsString();
 	}
 
-	private static String createEnvelope(String apiUrl, String accessToken, String accountId, String documentData) throws IOException {
+	private static String createEnvelope(String apiUrl, String accessToken, String accountId, String documentData, String email, String name) throws IOException {
 		String envelope = "{\n" +
 			"    \"allowComments\": \"false\",\n" +
 			"    \"emailSubject\": \"Certification of Conformance signature\",\n" +
@@ -190,8 +194,8 @@ public class CertificationApi {
 			"    \"recipients\": {\n" +
 			"        \"signers\": [\n" +
 			"            {\n" +
-			"                \"email\": \"marcus.almgren@oidf.org\",\n" +
-			"                \"name\": \"Marcus Almgren\",\n" +
+			"                \"email\": \"" + email + "\",\n" +
+			"                \"name\": \"" + name + "\",\n" +
 			"                \"recipientId\": \"1\",\n" +
 			"                \"routingOrder\": \"1\",\n" +
 			"                \"clientUserId\": \"1000\"\n" +
@@ -210,12 +214,12 @@ public class CertificationApi {
 		return envelopeResponse.get("envelopeId").getAsString();
 	}
 
-	private static String createView(String apiUrl, String accessToken, String accountId, String envelopeId, String redirectUrl) throws IOException {
+	private static String createView(String apiUrl, String accessToken, String accountId, String envelopeId, String redirectUrl, String email, String name) throws IOException {
 		String envelope = "{\n" +
 			"    \"returnUrl\": \"" + redirectUrl + "\",\n" +
 			"    \"authenticationMethod\": \"none\",\n" +
-			"    \"email\": \"marcus.almgren@oidf.org\",\n" +
-			"    \"userName\": \"Marcus Almgren\",\n" +
+			"    \"email\": \"" + email + "\",\n" +
+			"    \"userName\": \"" + name + "\",\n" +
 			"    \"clientUserId\": \"1000\"\n" +
 			"}";
 		String responseBody = Request.Post(apiUrl + "/v2.1/accounts/" + accountId + "/envelopes/" + envelopeId + "/views/recipient")
