@@ -64,16 +64,16 @@ public abstract class AbstractVerifyJweEncryption extends AbstractCondition {
 
 					// Multiple keys matched, including the kid hint.
 					if (headerKeyID != null && numberOfValidKeysWithKid > 1) {
-						throw error("Found multiple keys in JWKS of the correct type, with matching kid hint.", args("jwks", publicJwks, "kid", headerKeyID, "kty", headerKty, tokenName, token));
+						throw error("Found multiple keys in JWKS of the correct type and with the same kid hint.", args("jwks", publicJwks, "kid", headerKeyID, "kty", headerKty, tokenName, token));
 					}
 
 					// Multiple keys matched, no kid hint.
 					if (headerKeyID == null && numberOfValidKeys > 1) {
-						throw error("Found multiple keys in JWKS of the correct type, no kid hit in JWE header to apply.", args("jwks", publicJwks, "kty", headerKty, tokenName, token));
+						throw error("Found multiple keys in JWKS of the correct type but no kid hint in JWE header.", args("jwks", publicJwks, "kty", headerKty, tokenName, token));
 					}
 
 					// Single key matched, kid hint does not match.
-					if (headerKeyID != null && numberOfValidKeys == 1) {
+					if (headerKeyID != null && numberOfValidKeys == 1 && numberOfValidKeysWithKid==0) {
 						throw error("Single key in JWKS of the correct type, but does not match kid hint.", args("jwks", publicJwks, "kid", headerKeyID, "kty", headerKty, tokenName, token));
 					}
 
