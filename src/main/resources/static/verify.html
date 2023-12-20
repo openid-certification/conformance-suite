@@ -311,8 +311,15 @@
         document.querySelector('#continue').classList.remove('disabled');
     });
 
-    document.addEventListener('webviewerloaded', _ => {
-        window.frames[0].postMessage({ "event": "loadFromLocalStorage" }, origin)
+    document.addEventListener('webviewerloaded', e => {
+        let pdfjsFrame = e.detail.source;
+        pdfjsFrame.PDFViewerApplicationOptions.set("disablePreferences", true);
+        pdfjsFrame.PDFViewerApplicationOptions.set("annotationMode", 1);
+        pdfjsFrame.PDFViewerApplication.initializedPromise.then(_ => {
+            pdfjsFrame.postMessage({ "event": "loadFromLocalStorage" }, origin);
+        }).then(_ => {
+            pdfjsFrame.postMessage({ "event": "hideButtons" }, origin);
+        });
     });
 
     document.addEventListener('DOMContentLoaded', _ => {

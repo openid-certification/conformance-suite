@@ -25,7 +25,6 @@ See https://github.com/adobe-type-tools/cmap-resources
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="google" content="notranslate">
-    <title>OIDF Conformance: Test Plan</title>
 
 <!-- This snippet is used in production (included from viewer.html) -->
 <link rel="resource" type="application/l10n" href="locale/locale.json">
@@ -586,7 +585,14 @@ See https://github.com/adobe-type-tools/cmap-resources
           }
 
           if (evt.data.event === 'loadFromLocalStorage') {
-            loadDocumentFromLocalStorage();
+              loadDocumentFromLocalStorage();
+          }
+
+          if (evt.data.event === 'hideButtons') {
+            ['#openFile', '#editorModeButtons', '#editorModeSeparator', '#secondaryToolbarToggle', 'div#toolbarViewerRight>div.verticalToolbarSeparator'].forEach(sel => {
+              document.querySelector(sel).classList.add('hidden');
+            });
+            
           }
 
         }
@@ -609,7 +615,10 @@ See https://github.com/adobe-type-tools/cmap-resources
         for (let i = 0; i < cocBinary.length; i++) {
             cocUint8Array[i] = cocBinary.charCodeAt(i);
         }
+
         PDFViewerApplication.open({ data: cocUint8Array });
+        PDFViewerApplication.setTitle("OpenID - Certification of Conformance");
+        PDFViewerApplication.setTitleUsingUrl("OpenID-Certification-of-Conformance.pdf");
       }
 
       function save (evt) {

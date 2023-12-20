@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<iframe style="width: 80%; height: 800px;" src="https://localhost:8443/static/lib/pdfjs-4.0.189-dist/web/viewer.html?file="></iframe>
+<script>
+    const origin = `${document.location.protocol}//${document.location.host}`;
+    document.addEventListener("webviewerloaded", (e) => {
+        console.log("webviewrloaded33333!!!!")
+        e.detail.source.PDFViewerApplicationOptions.set("disablePreferences", true);
+        e.detail.source.PDFViewerApplicationOptions.set("annotationMode", 1);
+        e.detail.source.PDFViewerApplication.initializedPromise.then(_ => {
+            e.detail.source.postMessage({ "event": "loadFromLocalStorage" }, origin);
+        });
+    });
+</script>
+</body>
+</html>
