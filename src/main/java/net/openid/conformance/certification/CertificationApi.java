@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.fluent.Form;
@@ -110,9 +111,9 @@ public class CertificationApi {
 		@Parameter(description = "Test plan id") @PathVariable("id") String id,
 		@Parameter(description = "Document data (base64 encoded PDF document) and signatory information") @RequestBody JsonObject body
 	) throws Exception {
-		String documentData = body.get("documentData").getAsString();
-		String email = body.get("email").getAsString();
-		String name = body.get("name").getAsString();
+		String documentData = OIDFJSON.getString(body.get("documentData"));
+		String email = OIDFJSON.getString(body.get("email"));
+		String name = OIDFJSON.getString(body.get("name"));
 
 		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
 		String accessToken = getAccessToken(tokenEndpoint, jwt);
@@ -164,7 +165,7 @@ public class CertificationApi {
 			.returnContent()
 			.asString();
 		JsonObject tokenResponse = JsonParser.parseString(responseBody).getAsJsonObject();
-		return tokenResponse.get("access_token").getAsString();
+		return OIDFJSON.getString(tokenResponse.get("access_token"));
 	}
 
 	private static String getAccountId(String userInfoEndpoint, String accessToken) throws IOException {
@@ -176,7 +177,7 @@ public class CertificationApi {
 			.returnContent()
 			.asString();
 		JsonObject userInfoResponse = JsonParser.parseString(responseBody).getAsJsonObject();
-		return userInfoResponse.get("accounts").getAsJsonArray().get(0).getAsJsonObject().get("account_id").getAsString();
+		return OIDFJSON.getString(userInfoResponse.get("accounts").getAsJsonArray().get(0).getAsJsonObject().get("account_id"));
 	}
 
 	private static String createEnvelope(String apiUrl, String accessToken, String accountId, String documentData, String email, String name) throws IOException {
@@ -211,7 +212,7 @@ public class CertificationApi {
 			.returnContent()
 			.asString();
 		JsonObject envelopeResponse = JsonParser.parseString(responseBody).getAsJsonObject();
-		return envelopeResponse.get("envelopeId").getAsString();
+		return OIDFJSON.getString(envelopeResponse.get("envelopeId"));
 	}
 
 	private static String createView(String apiUrl, String accessToken, String accountId, String envelopeId, String redirectUrl, String email, String name) throws IOException {
@@ -229,7 +230,7 @@ public class CertificationApi {
 			.returnContent()
 			.asString();
 		JsonObject viewResponse = JsonParser.parseString(responseBody).getAsJsonObject();
-		return viewResponse.get("url").getAsString();
+		return OIDFJSON.getString(viewResponse.get("url"));
 	}
 
 			/*
