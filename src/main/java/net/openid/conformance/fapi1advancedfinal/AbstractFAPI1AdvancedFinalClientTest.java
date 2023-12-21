@@ -95,6 +95,7 @@ import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
+import net.openid.conformance.condition.as.SetParEndpointToMtlsParEndpoint;
 import net.openid.conformance.condition.as.SetRequestParameterSupportedToTrueInServerConfiguration;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
@@ -344,6 +345,12 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if(configureAuthRequestMethodSteps!=null) {
 			call(sequence(configureAuthRequestMethodSteps));
+		}
+
+		if (isBrazil() && authRequestMethod == FAPIAuthRequestMethod.PUSHED) {
+			// Brazil require the use of MTLS everywhere, so the MTLS version of the PAR endpoint must be published at the root as per
+			// https://gitlab.com/openid/conformance-suite/-/issues/1041
+			callAndStopOnFailure(SetParEndpointToMtlsParEndpoint.class);
 		}
 
 		if(configureResponseModeSteps!=null) {
