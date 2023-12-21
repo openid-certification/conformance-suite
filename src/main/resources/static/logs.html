@@ -248,18 +248,12 @@
                     {
                         title: 'Status',
                         data: 'status',
-                        defaultContent: '',
-                        createdCell: function(cell, cellData) {
-                            $(cell).addClass('testStatusResultBlock testStatus-' + (cellData ? cellData.toLowerCase() : 'testStatus-unknown'));
-                        }
+                        defaultContent: ''
                     },
                     {
                         title: 'Result',
                         data: 'result',
-                        defaultContent: '',
-                        createdCell: function(cell, cellData) {
-                            $(cell).addClass('testStatusResultBlock testResult-' + (cellData ? cellData.toLowerCase() : 'testResult-unknown'));
-                        }
+                        defaultContent: ''
                     },
                     {
                         title: 'Owner',
