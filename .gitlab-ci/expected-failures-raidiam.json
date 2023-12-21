@@ -1,0 +1,11 @@
+[
+    {
+        "test-name": "fapi1-advanced-final-brazildcr-update-client-config",
+        "variant": "*",
+        "configuration-filename": "*",
+        "current-block": "Make PUT request to client configuration endpoint to change redirect uri",
+        "condition": "CheckClientConfigurationAccessTokenFromClientConfigurationEndpointIsNotRotated",
+        "expected-result": "failure",
+        "comment": "Known non-conformance of mock bank to new security profile; should be fixed soon"
+    }
+]
