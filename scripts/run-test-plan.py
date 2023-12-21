@@ -19,12 +19,13 @@ import traceback
 from conformance import Conformance
 
 # Modules list here are deliberately not run, as they have known problems
+# Can be overriden by using the 'selected_modules' mechanism, as is done to run the dcr happy path test in the OP against RP tests
 ignored_modules = [
     # see https://gitlab.com/openid/conformance-suite/-/issues/837
     "oidcc-client-test-signing-key-rotation-just-before-signing",
     "oidcc-client-test-signing-key-rotation",
-    # this module is now only used for OPIN (for which we don't have a mock provider to test against), and only until they switch to the new security profile, expected to be in summer 2024
-    "fapi1-advanced-final-brazil-ensure-encryption-required"
+    # we have never created a test client that does the dcr process; however there is a test for it in the OP-against-RP tests
+    "fapi1-advanced-final-client-brazildcr-happypath-test"
 ]
 
 # Wrapper that adds timestamps to the start of our output
@@ -247,7 +248,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
         parallel_jobs = 1
         print("{}: Config '{}' contains alias '{}' - not running tests in parallel. If the test supports dynamic client registration and you have enabled it, you can remove the alias from your configuration file to speed up tests.".format(plan_id, config_file, parsed_config["alias"]))
     if selected_modules == None:
-        plan_modules = test_plan_info['modules']
+        plan_modules = [module for module in test_plan_info['modules'] if module['testModule'] not in ignored_modules]
     else:
         plan_modules = [module for module in test_plan_info['modules'] if get_string_name_for_module_with_variant(module) in selected_modules]
     if len(plan_modules) == 0:
@@ -469,9 +470,9 @@ def show_plan_results(plan_result, analyzed_result):
 
     for moduledict in plan_modules:
         module_name = get_string_name_for_module_with_variant(moduledict)
-        if module_name in ignored_modules:
-            continue
         if module_name not in test_info:
+            if module_name in ignored_modules:
+                continue
             print(failure('Test {} did not run'.format(module_name)))
             continue
         module_info = test_info[module_name]
@@ -577,11 +578,11 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
 
     for moduledict in plan_modules:
         module=moduledict['testModule']
-        if module in ignored_modules:
-            have_ignored_modules = True
-            continue
         module_name_with_variant = get_string_name_for_module_with_variant(moduledict)
         if module_name_with_variant not in test_info:
+            if module in ignored_modules:
+                have_ignored_modules = True
+                continue
             continue
         module_info = test_info[module_name_with_variant]
         module_id = module_info['id']
@@ -1224,6 +1225,11 @@ async def main():
 
         # We're not requiring FAPI-CIBA RP testing for the negative tests for now, just the happy one
         if re.match(r'fapi-ciba-id1-client-.+-test',m):
+            untested_test_modules.remove(m)
+            continue
+
+        if m == 'fapi1-advanced-final-brazil-ensure-encryption-required':
+            # this module is now only used for OPIN (for which we don't have a mock provider to test against), and only until they switch to the new security profile, expected to be in summer 2024
             untested_test_modules.remove(m)
             continue
 
