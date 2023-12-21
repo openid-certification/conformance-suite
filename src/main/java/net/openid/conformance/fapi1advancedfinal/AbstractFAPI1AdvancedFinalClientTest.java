@@ -33,12 +33,14 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
+import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.as.EnsureIdTokenEncryptedResponseAlgIsNotRSA1_5;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
@@ -80,6 +82,7 @@ import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInSer
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
+import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIKSAValidateConsentScope;
@@ -106,6 +109,7 @@ import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
 import net.openid.conformance.condition.as.jarm.SignJARMResponse;
@@ -399,7 +403,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	 * will be called at the end of configure
 	 */
 	protected void onConfigurationCompleted() {
-
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			switchToSecondClient();
+		}
 	}
 
 	protected void configureClients() {
@@ -408,6 +414,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		validateClientJwks(false);
 		validateClientConfiguration();
+
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			configureSecondClient();
+		}
+
 	}
 
 	protected void configureSecondClient() {
@@ -449,6 +460,13 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 
 		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI1-BASE-5.2.4-2", "FAPI1-BASE-5.2.4-3");
+
+		if(isSecondClient) {
+			//ensure that there is a key we can use for id_token encryption
+			callAndStopOnFailure(EnsureIdTokenEncryptedResponseAlgIsNotRSA1_5.class, "FAPI1-ADV-8.6.1-1");
+			callAndStopOnFailure(FAPIEnsureClientJwksContainsAnEncryptionKey.class, "FAPI1-ADV-5.2.3.1-5", "FAPI1-ADV-8.6.1-1");
+			callAndStopOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, "OIDCR-2", "FAPI1-ADV-5.2.2.1-6");
+		}
 	}
 
 	@Override
@@ -1272,6 +1290,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	 * @param isAuthorizationEndpoint
 	 */
 	protected void encryptIdToken(boolean isAuthorizationEndpoint) {
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			// encryption is always required in new Brazil security profile
+			callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADV-5.2.2.1-6");
+		}
 	}
 
 	protected void createAuthorizationEndpointResponse() {
