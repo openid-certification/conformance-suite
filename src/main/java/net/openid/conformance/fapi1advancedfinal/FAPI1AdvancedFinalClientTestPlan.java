@@ -81,11 +81,11 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 			case "openbanking_brazil":
 				certProfile = "BR-OB Adv. RP w/";
 				if (!par) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only pused request is used for KSA-OB",
+					throw new RuntimeException(String.format("Invalid configuration for %s: pushed authorization requests are required for Brazil OpenFinance",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in KSA-OB",
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used for Brazil OpenFinance",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
