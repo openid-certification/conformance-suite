@@ -2,7 +2,7 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidGrantOrRequestError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -48,7 +48,7 @@ public class FAPI2SPID2EnsureTokenEndpointFailsWithMismatchedDpopProofJkt extend
 
 	@Override
 	protected void processTokenEndpointResponse() {
-		callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "DPOP-10.1");
+		callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError.class, Condition.ConditionResult.FAILURE, "DPOP-10.1");
 		fireTestFinished();
 	}
 
