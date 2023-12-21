@@ -591,7 +591,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		} else if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOBID3-5.2.2.2-1");
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOB-5.2.2.2-1");
 		}
 	}
 
@@ -731,7 +731,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOBID3-5.2.2.2-1");
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOB-5.2.2.2-1");
 		}
 
 		if (!jarm.isTrue()) {
@@ -1101,7 +1101,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, ConditionResult.FAILURE, "PAR-2.2");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-			callAndContinueOnFailure(FAPIBrazilOBCheckPARResponseExpiresIn.class, ConditionResult.FAILURE, "BrazilOBID3-5.2.2-19");
+			callAndContinueOnFailure(FAPIBrazilOBCheckPARResponseExpiresIn.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-19");
 		}
 
 		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class);

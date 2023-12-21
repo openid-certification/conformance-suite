@@ -201,10 +201,10 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 				callAndContinueOnFailure(FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOPIN-page8");
 			} else {
 				// this will apply to openinsurance too when they switch to the new security profile
-				callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsPublic.class, Condition.ConditionResult.FAILURE, "BrazilOBID3-5.2.2-22");
+				callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsPublic.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-22");
 
-				callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOBID3-5.2.2-5");
-				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOBID3-5.2.2-6");
+				callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-5");
+				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-6");
 			}
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8", "BrazilOPIN-page8");
 		}
