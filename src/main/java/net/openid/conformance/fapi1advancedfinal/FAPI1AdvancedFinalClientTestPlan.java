@@ -45,6 +45,7 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 	public static String certificationProfileName(VariantSelection variant) {
 
 		String certProfile = null;
+		String suffix = "";
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
@@ -79,7 +80,8 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				certProfile = "BR-OB Adv. RP w/";
+				certProfile = "BR-OF ";
+				suffix = " (FAPI-BR v2)";
 				if (!par) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: pushed authorization requests are required for Brazil OpenFinance",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -146,6 +148,6 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 		}
 
 
-		return certProfile;
+		return certProfile + suffix;
 	}
 }
