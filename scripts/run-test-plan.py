@@ -1201,13 +1201,8 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        if all_test_modules[m]['profile'] in ['FAPI-RW-ID2']:
-            # skip CI for FAPI ID2 as we don't have access to a server supporting ID2
-            untested_test_modules.remove(m)
-            continue
-
         if re.match(r'(oidcc-session-management-.*)', m):
-            # The browser automation currently doesn't seem to work for the iframes/js these tests use
+            # I don't think we have access to a server that supports all these tests
             untested_test_modules.remove(m)
             continue
 
@@ -1236,7 +1231,8 @@ async def main():
         client_test = re.match(r'fapi-rw-id2-client-.*', m) or \
                       re.match(r'fapi1-advanced-final-client-.*', m) or \
                       re.match(r'fapi2-security-profile-id2-client-.*', m) or \
-                      re.match(r'oidcc-client-.*', m)
+                      re.match(r'oidcc-client-.*', m) or \
+                      re.match(r'fapi-ciba-id1-client-test.*', m)
         ciba_op_test = re.match(r'fapi-ciba-id1.*', m)
         rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
         ekyc_test = re.match(r'ekyc-server-', m)
@@ -1248,6 +1244,7 @@ async def main():
         brazildcr = re.match(r'.*brazil.*dcr.*', m)
         obuk = re.match(r'.*ensure-server-handles-non-matching-intent-id.*', m) or \
           re.match(r'.*test-essential-acr-sca-claim.*', m)
+        fapirwid2 = all_test_modules[m]['profile'] in ['FAPI-RW-ID2']
 
         if show_untested == 'client':
             # Only run client test, therefore ignore all server test
@@ -1261,17 +1258,18 @@ async def main():
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or oid4vp:
+            if fapi1r or fapirwid2 or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or oid4vp:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
             # we've not yet setup fapi2 brazil dcr or uk test runs
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or (fapi2 and (brazildcr or obuk)) or oid4vp:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or fapirwid2 or (fapi2 and (brazildcr or obuk)) or oid4vp:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':
-            if ekyc_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc:
+            if ekyc_test or fapi1r or client_test or brazildcr or fapirwid2 or fapi1 or fapi2 or oidcc or oid4vp:
+                # this does include some fapi tests, but doesn't cover any ecosystem specific fapi tests
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':
