@@ -673,7 +673,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 
 	/**
-	 * Call sender constrained token endpoint with retry for DPoP nonce error
+	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
 	 * @param fullResponse whether the full response should be returned
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
@@ -696,15 +696,22 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	/**
-	 * Call sender constrained token endpoint with retry for DPoP nonce error returning full response
+	 * Call sender constrained token endpoint returning full response
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
 	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
 		callSenderConstrainedTokenEndpointAndStopOnFailure(true, requirements);
 	}
 
-	protected void exchangeAuthorizationCode() {
+	/**
+	 * Default Call to sender constrained token endpoint with non-full response
+	 */
+	protected void callSenderConstrainedTokenEndpoint() {
 		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
+	}
+
+	protected void exchangeAuthorizationCode() {
+		callSenderConstrainedTokenEndpoint();
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();
