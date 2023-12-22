@@ -1145,10 +1145,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		if(fapiClientType== FAPIClientType.OIDC) {
 			if(isBrazil()) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
-					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
+					"OIDCC-5.5.1.1", "BrazilOB-5.2.3-5", "BrazilOB-5.2.3-6");
 			} else {
 				callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
-					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
+					 "OIDCC-5.5.1.1");
 			}
 		}
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
