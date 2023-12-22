@@ -16,6 +16,7 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.IndexInfo;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.Optional;
 
 @Service
@@ -312,8 +315,24 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Override
 	public void createIndexes(){
+		// Drop any existing wildcard text index.
+		//
+		// This is required for the migration to a more targeted compound index.
+		for (IndexInfo index: mongoTemplate.indexOps(COLLECTION).getIndexInfo()) {
+			if (index.getName().equals("$**_text")) {
+				mongoTemplate.indexOps(COLLECTION).dropIndex(index.getName());
+				break;
+			}
+		}
+
 		MongoCollection<Document> collection = mongoTemplate.getCollection(COLLECTION);
-		collection.createIndex(new Document("$**", "text"));
+
+		SortedMap<String, Object> sortedMap = new TreeMap<>();
+		sortedMap.put("planName", "text");
+		sortedMap.put("description", "text");
+		sortedMap.put("certificationProfileName", "text");
+
+		collection.createIndex(new Document(sortedMap));
 	}
 
 	@Override
