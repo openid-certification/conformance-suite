@@ -16,6 +16,7 @@ import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynam
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
+import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpointIsNotRotated;
 import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -227,7 +228,12 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
+			callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
+		} else {
+			// as per v2 security profile
+			callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpointIsNotRotated.class, Condition.ConditionResult.FAILURE, "RFC7592-3", "BrazilOBDCRID3--6.1-7");
+		}
 	}
 
 	protected void deleteClient() {

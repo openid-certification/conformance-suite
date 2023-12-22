@@ -227,4 +227,32 @@ public class ValidateIdTokenFromTokenResponseEncryption_UnitTest {
 
 		cond.execute(env);
 	}
+
+	@Test
+	public void testEvaluate_encryptedSingleMatchKidMatch() {
+		// RSA encrypted, kid = "fapi20200623"
+		String idToken = "eyJraWQiOiJmYXBpLWp3dC1hc3NlcnRpb24tMjAxODA4MTctMSIsImN0eSI6IkpXVCIsImVuYyI6IkExMjhDQkMtSFMyNTYiLCJhbGciOiJSU0EtT0FFUCJ9.3-4_q_nOo8OYK055Mt5_8kFja0DF98ZAgqJQW-OWFRgPN7CJcj3F0kOWv2y78v2CigFxk7p_uOqzagZ2xHpN17Y3REIq7bmCZXAYjCThWLONr9u7rOdaM7YuHxRk0x1twfWfNYOva2o8LgT9ljtR2DpHKdR2vathkX913ztljX6013MVAsHyFLhHNBU5-OsGYmrMrJxSR-uLz8TKr_OMx9GNZ0kuhmM15M6dcJD1LWzYnwVYyot895vHQL4zKk4ZnkUxM-UIMt6NZqo07i3iTHlbAJecmlKB7594ygSgCLJdhYJiWtaYiMb8GjcdMjrGXOm7Gz53Tm6cFv0mMRnXng.bOeq7cP1hFkGR9eWPxdq9Q.4IUGWFAWKmE8t-R2vyV0g-DJAJHVmEaXOA6ULKbTXOPZuvUo9atqjbTghkvZHwyy0NgQQ-QjYvRWhS3fvA1YGbI2Ny1jxm0_JYJ-01C44EBvD7W0Lic1Du1YPQMr51d0hDTgUAGw6HFXXJM1xxrGKowAzzFDCkjcUNLDYBlRaF4QB0dmTix527A9h1ZAC9qPNorueNea7Kh_V_yq9TwVWCwcOIGwsgGOZmLuZzZnn9hRAz7ccRKhME7krV28Oco1PD8nH-HEby6SE79rox1d_hcgE4QV-3__ny2fCZA3IszsXboRpG0ObWIvLSFmrThVD2pGQjMAZiWbMkZVORnpIsdwDFMFle1nfoDOoFHJFwjDET8eupIaZHpvla4rUuuYMQ57FsZvsqQKprrBh1cQElSVPO8v9oUQjbFk375qYRld_avOTwtQ-yRhWlhH02ZQxb11ZwK5zpA2EbBzPT0tHCmH6hS70VEtTjlXhrzKl6tdZMETgu9ZdgzXtaq-9AAFpZLqA-yFPnxSZeDCiLSiKyCTGg_gEbfeROg5LE14NZ9xwxZBkd38aSTkS5CCWNj47R8M9_NEmnQ2YU4oJl2XBBYoHqVgaQh1cn0yqMAQ1YHV-Oj_W9xmc032ZeYTiW0W3EwpkuRaZno37qciNNEzzZPQYs7mQuqThhf8uGYwHtqIqo1CX13ri6qcVTsNKdZn9hDFpv4xQLMxi1aaSfSCXLXzFL7p2u3jgKh15vVV79JoK0ip61Na4hj54Va_mVmUoWUpQ3CB86G00Jq-Uo3jB9jBFp9GovcnMxplWKb_lKs5Ez7e-oVGWg8jJMhg3vB1jtYkt1NUvwIp-9-PB2Yi_HdA4d0h2-ncND2WKk-lpZwkLywRdZCY6T50NsQ7nJP2UbzJrhYyv7E02WZ1QDTUpgk_34XwwWkmW5E0JNACcA3H3Qur7GPjQECFCI2t3vBppsrW0Op3MIxANBRJZUodKw.ZPyeMGMoebXcb_3FujDRwg";
+		String jwks =
+			"{\n" +
+				"    \"keys\": [\n" +
+				"	{\n" +
+				"	    \"kty\": \"RSA\",\n" +
+				"	    \"d\": \"ZHPB6jX2Np7cUjFu2iiYlT1YPdJ6KSyyPjEWT72TYOX6O-0a48Ez3m5OnOy_bCwD3F7_WAL0wbWXWFsRt6DmCqW-MGxG38klMQwV4dhgI6lEYyfhvBazJyQJeqHwKE5VIezgyBJyGkK9GHUqq3k3s-hsS_MLVE6BDcLNf9iPRUlQ5JJLHGMZYAW6uv3ex-LGqhLT_BWX4Y1fowAgUvDLcaLj-_tRonKF4oJRiz6oMO4KTJJofhXzptY0T_K0u8bx7Y7JN-W7fC8havmG5bnKetsLQYHcn7ddWtOA_6Qxjxb6SMIr1bNWeGVA5p15NMHcIfsNmSK03Y-Xic5eiuBhwQ\",\n" +
+				"	    \"e\": \"AQAB\",\n" +
+				"	    \"kid\": \"fapi-jwt-assertion-20180817-1\",\n" +
+				"	    \"alg\": \"PS256\",\n" +
+				"	    \"n\": \"9sLLHll-BiuwIvupyiAOaTR-ChAjuwQhThxtSD5wgL9AG2YJlamxo52ZEhTdNKomGRw3woihBRk8okPSd1YZCkFuOc7iF1sUsxDA0APbdeAzZdwGcqvPlEqoz8HsnormZFTP9tG451Z_cMd20_cCufGqi6XBpE2fOMGhn9CNEo-_3TPyrFZwmP-rqsQ3TKp5Zkb42AACsT9GuxB-Qrrpp1hkCJdSvXhAwIvX2jOxXQORJZkW2ST0DpCTbtAoPEW0aoCIkwWjV08qTSBduA14eIl9xPACfElosTDEbL1bR6BGxoILSJTe4U5Lz4Us7l8TWhO_OaQsyxSLFxXOy13KMQ\"\n" +
+				"	}\n" +
+				"    ]\n" +
+				"}\n";
+
+		JsonObject response = new JsonObject();
+		response.addProperty("id_token", idToken);
+
+		env.putObject("token_endpoint_response", response);
+		env.putObjectFromJsonString("client_jwks", jwks);
+
+		cond.execute(env);
+	}
+
 }

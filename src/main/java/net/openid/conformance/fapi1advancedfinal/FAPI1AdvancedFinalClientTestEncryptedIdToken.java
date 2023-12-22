@@ -5,6 +5,7 @@ import net.openid.conformance.condition.as.EnsureIdTokenEncryptedResponseAlgIsNo
 import net.openid.conformance.condition.as.FAPIEnsureClientJwksContainsAnEncryptionKey;
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -34,6 +35,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
+// The new Brazil security profile requires encryption to always be used, so all tests encrypt and hence this test is not necessary
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_brazil" })
 public class FAPI1AdvancedFinalClientTestEncryptedIdToken extends AbstractFAPI1AdvancedFinalClientTest {
 
 	@Override

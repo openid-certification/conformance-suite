@@ -52,6 +52,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.VariantNotApplicable;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -79,6 +80,7 @@ import javax.servlet.http.HttpSession;
 	}
 )
 
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "openbanking_ksa"})
 public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI1AdvancedFinalClientTest {
 	boolean resourceEndpointCalled = false;
 	boolean clientConfigEndpointCalled = false;
@@ -182,9 +184,11 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 
 		JsonObject clientInfo = env.getObject("client");
 
-		// rotate registration access token
-		callAndStopOnFailure(GenerateRegistrationAccessToken.class, "RFC7592-3");
-		clientInfo.addProperty("registration_access_token", env.getString("registration_access_token"));
+		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
+			// rotate registration access token
+			callAndStopOnFailure(GenerateRegistrationAccessToken.class, "RFC7592-3");
+			clientInfo.addProperty("registration_access_token", env.getString("registration_access_token"));
+		}
 
 		if (clientConfigEndpointCalled) {
 			fireTestFinished();
@@ -289,6 +293,12 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		callAndContinueOnFailure(ValidateClientTosUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
 		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			// these are needed for EncryptIdToken to succeed
+			env.putString("client", "id_token_encrypted_response_alg", "RSA-OAEP");
+			env.putString("client", "id_token_encrypted_response_enc", "A256GCM");
+		}
 
 		skipIfElementMissing("client", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
 			FAPIBrazilValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.2");

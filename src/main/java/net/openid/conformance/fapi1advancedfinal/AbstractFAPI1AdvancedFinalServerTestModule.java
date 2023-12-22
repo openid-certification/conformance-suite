@@ -89,6 +89,7 @@ import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceRespo
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.FAPI1ValidateJarmSigningAlg;
+import net.openid.conformance.condition.client.FAPIBrazilOBCheckPARResponseExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
@@ -589,6 +590,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
+		} else if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOB-5.2.2.2-1");
 		}
 	}
 
@@ -726,6 +729,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
 		skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOB-5.2.2.2-1");
+		}
 
 		if (!jarm.isTrue()) {
 			eventLog.startBlock(currentClientString() + "Verify at_hash in the authorization endpoint id_token");
@@ -1093,6 +1100,9 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
 
 		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, ConditionResult.FAILURE, "PAR-2.2");
+		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			callAndContinueOnFailure(FAPIBrazilOBCheckPARResponseExpiresIn.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-19");
+		}
 
 		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class);
 

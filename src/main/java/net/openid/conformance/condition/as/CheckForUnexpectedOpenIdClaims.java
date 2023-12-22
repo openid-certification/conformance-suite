@@ -2,8 +2,8 @@ package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AbstractValidateOpenIdStandardClaims;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.AbstractValidateOpenIdStandardClaims;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.ArrayList;
@@ -17,6 +17,7 @@ public class CheckForUnexpectedOpenIdClaims extends AbstractValidateOpenIdStanda
 		// As per https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.5.5.1.1
 		"acr",
 		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-5.2.2.3
+		// note that cpf & cnpj have been removed from the latest Brazil standard that starts in ~Apr 2024, so we can remove them once we stop issues certifications for the older profile
 		"cpf",
 		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-5.2.2.4
 		"cnpj",

@@ -37,8 +37,8 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "fapi1-advanced-final-brazil-client-test-plan",
-	displayName = "FAPI1-Advanced-Final: Open Banking/Insurance Brazil Relying Party (Client) Test Plan",
-	summary = "Open Banking Brazil specific tests. " +
+	displayName = "FAPI1-Advanced-Final: Open Insurance Brazil Relying Party (Client) Test Plan",
+	summary = "Open Insurance Brazil specific tests. " +
 		"This plan requires the client to run the same set of tests twice, once passing the request object by value and once by using PAR. " +
 		"Server jwks configured for this plan must contain one signing and one encryption key. " +
 		"This plan requires two client configurations, jwks for the second client, which will be used for encryption tests only, " +
@@ -54,14 +54,11 @@ public class BrazilOBClientTestPlan implements TestPlan {
 		String profile = v.get("fapi_profile");
 
 		switch (profile) {
-			case "openbanking_brazil":
-				certProfile = "BR-OB Adv. RP w/";
-				break;
 			case "openinsurance_brazil":
 				certProfile = "BR-OPIN Adv. RP w/";
 				break;
 			default:
-				throw new RuntimeException("This plan can only be used for Brazil OpenBanking or OpenInsurance.");
+				throw new RuntimeException("This plan can only be used for Brazil OpenInsurance.");
 		}
 
 		String clientAuth = v.get("client_auth_type");
