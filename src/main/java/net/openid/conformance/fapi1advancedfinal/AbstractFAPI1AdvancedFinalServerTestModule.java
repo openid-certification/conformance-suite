@@ -92,6 +92,7 @@ import net.openid.conformance.condition.client.FAPI1ValidateJarmSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilOBCheckPARResponseExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
+import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenACRClaim;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
@@ -155,6 +156,7 @@ import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.FAPIAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.FAPIBrV2AuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingKSAPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
@@ -592,6 +594,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
 		} else if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOB-5.2.2.2-1");
+			callAndContinueOnFailure(FAPIBrazilValidateIdTokenACRClaim.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
 		}
 	}
 
@@ -1015,7 +1018,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = this::createOBBPreauthSteps;
-		profileAuthorizationEndpointSetupSteps = null;
+		profileAuthorizationEndpointSetupSteps = FAPIBrV2AuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
 	}
 

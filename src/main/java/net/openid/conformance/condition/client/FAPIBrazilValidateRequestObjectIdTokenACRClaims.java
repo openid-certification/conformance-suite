@@ -20,11 +20,31 @@ public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCon
 	@PreEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
 
+		boolean newSecurityProfile = false;
 		String scope = env.getString("authorization_request_object", "claims.scope");
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope).iterator());
 
+		List<String> expectedValues = new ArrayList<>();
+		//Read-and-Write APIs (Transactional): shall require resource owner authentication to at least LoA3.
+
+		if (scopes.contains("accounts")) {
+			newSecurityProfile = true;
+			expectedValues.add("urn:brasil:openbanking:loa2");
+			expectedValues.add("urn:brasil:openbanking:loa3");
+		}
+		if (scopes.contains("payments")) {
+			newSecurityProfile = true;
+			expectedValues.add("urn:brasil:openbanking:loa3");
+		}
+		if (scopes.contains("resources")) {
+			expectedValues.add("urn:brasil:openinsurance:loa2");
+		}
+
 		JsonElement acrClaim = env.getElementFromObject("authorization_request_object", "claims.claims.id_token.acr");
 		if (acrClaim == null) {
+			if (newSecurityProfile) {
+				throw error("Client has not requested the acr claim");
+			}
 			log("acr claim is not requested");
 			return env;
 		}
@@ -32,9 +52,19 @@ public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCon
 			throw error("The acr claim is not a JsonObject", args("acrClaim", acrClaim));
 		}
 
+		if (newSecurityProfile) {
+			if (acrClaim.getAsJsonObject().has("essential") == false ||
+				OIDFJSON.getBoolean(acrClaim.getAsJsonObject().get("essential")) != true) {
+				throw error("Client has not requested the acr claim as an 'essential' claim", args("acrClaim", acrClaim));
+			}
+		}
+
 		// https://openid.net/specs/openid-connect-core-1_0.html#acrSemantics
 		List<String> receivedValues = new ArrayList<>();
 		if (acrClaim.getAsJsonObject().has("values")) {
+			if (newSecurityProfile) {
+				throw error("Client has requested 'values' for the acr claim", args("acrClaim", acrClaim));
+			}
 
 			JsonElement acrValues = acrClaim.getAsJsonObject().get("values");
 			if (acrValues == null || !acrValues.isJsonArray()) {
@@ -45,6 +75,9 @@ public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCon
 			receivedValues = Arrays.asList(acrValuesString);
 
 		} else if (acrClaim.getAsJsonObject().has("value")) {
+			if (newSecurityProfile) {
+				throw error("Client has requested 'value' for the acr claim", args("acrClaim", acrClaim));
+			}
 
 			JsonElement acrValue = acrClaim.getAsJsonObject().get("value");
 			if (acrValue == null) {
@@ -54,21 +87,16 @@ public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCon
 			receivedValues.add(OIDFJSON.getString(acrValue));
 
 		} else {
+			if (newSecurityProfile) {
+				// ensure we return an acr value, even though there was no request for an explicit value
+				JsonArray matchedAcrValues = new JsonArray();
+				matchedAcrValues.add("urn:brasil:openbanking:loa3");
+				env.putString("requested_id_token_acr_values", matchedAcrValues.toString());
+				logSuccess("Acr value in request object is as expected");
+				return env;
+			}
+
 			throw error("Acr values is missing in request object", args("acrClaim", acrClaim));
-		}
-
-		List<String> expectedValues = new ArrayList<>();
-		//Read-and-Write APIs (Transactional): shall require resource owner authentication to at least LoA3.
-
-		if (scopes.contains("accounts")) {
-			expectedValues.add("urn:brasil:openbanking:loa2");
-			expectedValues.add("urn:brasil:openbanking:loa3");
-		}
-		if (scopes.contains("payments")) {
-			expectedValues.add("urn:brasil:openbanking:loa3");
-		}
-		if (scopes.contains("resources")) {
-			expectedValues.add("urn:brasil:openinsurance:loa2");
 		}
 
 		JsonArray matchedAcrValues = new JsonArray();
