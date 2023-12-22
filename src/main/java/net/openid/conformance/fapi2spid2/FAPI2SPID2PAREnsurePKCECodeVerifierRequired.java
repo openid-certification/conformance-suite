@@ -40,9 +40,8 @@ public class FAPI2SPID2PAREnsurePKCECodeVerifierRequired extends AbstractFAPI2SP
 	}
 
 	@Override
-	protected void exchangeAuthorizationCode() {
+	protected void processTokenEndpointResponse() {
 		/* expect an 'invalid_grant' error */
-		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI1-BASE-5.2.2-19");
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC7636-4.6", "RFC6749-5.2");
