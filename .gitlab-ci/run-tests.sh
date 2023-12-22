@@ -32,7 +32,7 @@ makeClientTest() {
     . ./ksa-client-setup.sh
 
     #BRAZIL (note brazil_client_scope is not a variant but is used to pass scopes to tests. brazil_client_scope values use - instead of space)
-    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_client_type=oidc][brazil_client_scope=openid-payments] automated-brazil-client-test.json"
+    TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_client_type=oidc][brazil_client_scope=openid-payments] automated-brazil-client-test-payments.json"
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_client_type=oidc][brazil_client_scope=openid-accounts] automated-brazil-client-test.json"
 
     # client FAPI1-ADVANCED
