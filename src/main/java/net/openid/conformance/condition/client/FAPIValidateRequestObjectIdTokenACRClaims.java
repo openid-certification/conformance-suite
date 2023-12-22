@@ -20,13 +20,19 @@ public class FAPIValidateRequestObjectIdTokenACRClaims extends AbstractCondition
 
 		JsonElement acrClaim = env.getElementFromObject("authorization_request_object", "claims.claims.id_token.acr");
 
-		if (acrClaim == null || !acrClaim.isJsonObject()) {
-			throw error("The acr claim is missing or is not a JsonObject", args("acrClaim", acrClaim));
+		if (acrClaim == null) {
+			logSuccess("acr claim not requested");
+			return env;
+		}
+		if (!acrClaim.isJsonObject()) {
+			throw error("The acr claim is not a JsonObject", args("acrClaim", acrClaim));
 		}
 
-		Boolean validateEssential = OIDFJSON.getBoolean(acrClaim.getAsJsonObject().get("essential"));
-		if (!validateEssential) {
-			throw error("The acr claim must be requested as essential: true", args("received", validateEssential, "required", true));
+		if (acrClaim.getAsJsonObject().has("essential")) {
+			JsonElement essential = acrClaim.getAsJsonObject().get("essential");
+			if (!essential.getAsJsonPrimitive().isBoolean()) {
+				throw error("the 'essential' value is not a boolean", args("essential", essential));
+			}
 		}
 
 		// https://openid.net/specs/openid-connect-core-1_0.html#acrSemantics
@@ -51,7 +57,8 @@ public class FAPIValidateRequestObjectIdTokenACRClaims extends AbstractCondition
 			receivedValues.add(OIDFJSON.getString(acrValue));
 
 		} else {
-			throw error("Acr values is missing in request object", args("acrClaim", acrClaim));
+			logSuccess("acr claim does not request any values");
+			return env;
 		}
 
 		List<String> expectedValues = new ArrayList<>();
@@ -69,7 +76,7 @@ public class FAPIValidateRequestObjectIdTokenACRClaims extends AbstractCondition
 			env.putString("requested_id_token_acr_values", matchedAcrValues.toString());
 			logSuccess("Acr value in request object is as expected", args("received", matchedAcrValues));
 		} else {
-			throw error("An acr value in the request object does not match the defined standard", args("received", matchedAcrValues, "required", expectedValues));
+			throw error("An acr value in the request object does not match one of the expected values", args("received", matchedAcrValues, "expected", expectedValues));
 		}
 
 		return env;

@@ -129,8 +129,8 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 	}
 
 
-	@Test(expected = ConditionError.class)
-	public void testEvaluate_invalidBooleanEssential() {
+	@Test
+	public void testEvaluate_essentialFalse() {
 
 		acrObject.remove("essential");
 		acrObject.addProperty("essential", false);
@@ -174,7 +174,7 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingBothAcrValueAndValues() {
 
 		acrObject.remove("values");
@@ -198,7 +198,7 @@ public class FAPIValidateRequestObjectIdTokenACRClaims_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingAcrClaim() {
 
 		acrName.remove("acr");

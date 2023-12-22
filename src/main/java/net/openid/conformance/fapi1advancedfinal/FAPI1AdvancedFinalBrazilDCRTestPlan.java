@@ -67,7 +67,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					throw new RuntimeException(String.format("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				return "BR-OB Adv. OP DCR";
+				return "BR-OF Adv. OP DCR (FAPI-BR v2)";
 			case "openinsurance_brazil":
 				return "BR-OPIN Adv. OP DCR";
 			default:

@@ -15,8 +15,8 @@ public class EnsureMatchingFAPIInteractionId extends AbstractCondition {
 		String expected = env.getString("fapi_interaction_id");
 		String actual = env.getString("resource_endpoint_response_headers", "x-fapi-interaction-id");
 
-		if (!Strings.isNullOrEmpty(expected) && expected.equals(actual)) {
-			logSuccess("Interaction ID matched", args("fapi_interaction_id", Strings.nullToEmpty(actual)));
+		if (!Strings.isNullOrEmpty(expected) && expected.equalsIgnoreCase(actual)) {
+			logSuccess("Interaction ID matches, ignoring case", args("fapi_interaction_id", Strings.nullToEmpty(actual)));
 			return env;
 		} else {
 			throw error("Mismatch between interaction IDs", args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));

@@ -231,15 +231,17 @@ public class TestRunner implements DataUtils {
 			}
 			Semver planVersion = new Semver(testPlan.getVersion());
 			boolean recreate = false;
-			if (testPlan.getPlanName().equals("fapi1-advanced-final-test-plan"))
+			if (testPlan.getPlanName().equals("fapi1-advanced-final-test-plan") ||
+				testPlan.getPlanName().equals("fapi1-advanced-final-client-test-plan"))
 			{
-				if (planVersion.isLowerThan("4.1.24")) {
+				if (planVersion.isLowerThan("5.1.11")) {
 					recreate = true;
 				}
 			}
-			if (testPlan.getPlanName().equals("fapi1-advanced-final-brazil-dcr-test-plan"))
+			if (testPlan.getPlanName().equals("fapi1-advanced-final-brazil-dcr-test-plan") ||
+				testPlan.getPlanName().equals("fapi1-advanced-final-brazil-client-test-plan"))
 			{
-				if (planVersion.isLowerThan("4.1.32")) {
+				if (planVersion.isLowerThan("5.1.11")) {
 					recreate=true;
 				}
 			}

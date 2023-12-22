@@ -104,6 +104,7 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 	public static String certificationProfileName(VariantSelection variant) {
 
 		String certProfile = null;
+		String suffix = "";
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
@@ -133,7 +134,8 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				certProfile = "BR-OB";
+				certProfile = "BR-OF";
+				suffix = " (FAPI-BR v2)";
 				if (!par || jarm || !privateKey) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -184,6 +186,6 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 		}
 
 
-		return certProfile;
+		return certProfile + suffix;
 	}
 }

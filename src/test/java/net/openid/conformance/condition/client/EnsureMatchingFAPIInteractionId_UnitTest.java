@@ -39,9 +39,6 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link EnsureMatchingFAPIInteractionId#evaluate(Environment)}.
-	 */
 	@Test
 	public void testEvaluate_noError() {
 
@@ -53,9 +50,17 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link EnsureMatchingFAPIInteractionId#evaluate(Environment)}.
-	 */
+	@Test
+	public void testEvaluate_noErrorCaseInsensitive() {
+
+		JsonObject headers = new JsonObject();
+		headers.addProperty("x-fapi-interaction-id", interactionId.toUpperCase());
+		env.putObject("resource_endpoint_response_headers", headers);
+
+		cond.execute(env);
+
+	}
+
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_wrongId() {
 
@@ -67,9 +72,6 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 
 	}
 
-	/**
-	 * Test method for {@link EnsureMatchingFAPIInteractionId#evaluate(Environment)}.
-	 */
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_missingId() {
 
