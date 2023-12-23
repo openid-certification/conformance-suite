@@ -1,30 +1,30 @@
 package net.openid.conformance.fapi1advancedfinalfapibrv1.brazil;
 
 
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrazilClientDCRHappyPathTest;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientRefreshTokenTest;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTest;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestEncryptedIdToken;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestIatIsWeekInPast;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidAlternateAlg;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidAud;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidCHash;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidExpiredExp;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidIss;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidMissingAud;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidMissingExp;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidMissingIss;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidMissingNonce;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidMissingSHash;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidNonce;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidNullAlg;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidSHash;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidSecondaryAud;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestInvalidSignature;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestUnencryptedRequestObjectWithPAR;
-import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalClientTestValidAudAsArray;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1BrazilClientDCRHappyPathTest;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientRefreshTokenTest;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTest;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestEncryptedIdToken;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestIatIsWeekInPast;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestIdTokenEncryptedUsingRSA15;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidAlternateAlg;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidAud;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidCHash;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidExpiredExp;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidIss;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidMissingAud;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidMissingExp;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidMissingIss;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidMissingNonce;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidMissingSHash;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidNonce;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidNullAlg;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidSHash;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidSecondaryAud;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestInvalidSignature;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestNoScopeInTokenEndpointResponse;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestUnencryptedRequestObjectWithPAR;
+import net.openid.conformance.fapi1advancedfinalfapibrv1.FAPI1AdvancedFinalBrV1ClientTestValidAudAsArray;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan(
-	testPlanName = "fapi1-advanced-final-brazil-client-test-plan",
-	displayName = "FAPI1-Advanced-Final: Open Banking/Insurance Brazil Relying Party (Client) Test Plan",
+	testPlanName = "fapi1-advanced-final-br-v1-brazil-client-test-plan",
+	displayName = "FAPI1-Advanced-Final-Br-v1: Open Banking/Insurance Brazil Relying Party (Client) Test Plan",
 	summary = "Open Banking Brazil specific tests. " +
 		"This plan requires the client to run the same set of tests twice, once passing the request object by value and once by using PAR. " +
 		"Server jwks configured for this plan must contain one signing and one encryption key. " +
@@ -98,33 +98,33 @@ public class BrazilOBClientTestPlan implements TestPlan {
 
 	public static List<TestPlan.ModuleListEntry> testModulesWithVariants() {
 		List<Class<? extends TestModule>> byValueModules = List.of(
-			FAPI1AdvancedFinalClientTest.class,
-			FAPI1AdvancedFinalClientTestEncryptedIdToken.class,
-			FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15.class,
-			FAPI1AdvancedFinalClientTestInvalidSHash.class,
-			FAPI1AdvancedFinalClientTestInvalidCHash.class,
-			FAPI1AdvancedFinalClientTestInvalidNonce.class,
-			FAPI1AdvancedFinalClientTestInvalidIss.class,
-			FAPI1AdvancedFinalClientTestInvalidAud.class,
-			FAPI1AdvancedFinalClientTestInvalidSecondaryAud.class,
-			FAPI1AdvancedFinalClientTestInvalidSignature.class,
-			FAPI1AdvancedFinalClientTestInvalidNullAlg.class,
-			FAPI1AdvancedFinalClientTestInvalidAlternateAlg.class,
-			FAPI1AdvancedFinalClientTestInvalidExpiredExp.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingExp.class,
-			FAPI1AdvancedFinalClientTestIatIsWeekInPast.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingAud.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingIss.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingNonce.class,
-			FAPI1AdvancedFinalClientTestInvalidMissingSHash.class,
-			FAPI1AdvancedFinalClientTestValidAudAsArray.class,
-			FAPI1AdvancedFinalClientTestNoScopeInTokenEndpointResponse.class,
-			FAPI1AdvancedFinalClientRefreshTokenTest.class,
-			FAPI1AdvancedFinalBrazilClientDCRHappyPathTest.class
+			FAPI1AdvancedFinalBrV1ClientTest.class,
+			FAPI1AdvancedFinalBrV1ClientTestEncryptedIdToken.class,
+			FAPI1AdvancedFinalBrV1ClientTestIdTokenEncryptedUsingRSA15.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidSHash.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidCHash.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidNonce.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidIss.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidAud.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidSecondaryAud.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidSignature.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidNullAlg.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidAlternateAlg.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidExpiredExp.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidMissingExp.class,
+			FAPI1AdvancedFinalBrV1ClientTestIatIsWeekInPast.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidMissingAud.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidMissingIss.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidMissingNonce.class,
+			FAPI1AdvancedFinalBrV1ClientTestInvalidMissingSHash.class,
+			FAPI1AdvancedFinalBrV1ClientTestValidAudAsArray.class,
+			FAPI1AdvancedFinalBrV1ClientTestNoScopeInTokenEndpointResponse.class,
+			FAPI1AdvancedFinalBrV1ClientRefreshTokenTest.class,
+			FAPI1AdvancedFinalBrV1BrazilClientDCRHappyPathTest.class
 		);
 		List<Class<? extends TestModule>> parModules = new LinkedList<>();
 		parModules.addAll(byValueModules);
-		parModules.add(FAPI1AdvancedFinalClientTestUnencryptedRequestObjectWithPAR.class);
+		parModules.add(FAPI1AdvancedFinalBrV1ClientTestUnencryptedRequestObjectWithPAR.class);
 
 		List<TestPlan.Variant> variantListByValue = List.of(
 			new TestPlan.Variant(FAPIAuthRequestMethod.class, "by_value")
