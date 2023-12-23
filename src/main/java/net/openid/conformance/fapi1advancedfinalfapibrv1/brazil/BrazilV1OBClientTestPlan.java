@@ -45,7 +45,7 @@ import java.util.Map;
 		"must include a key that can be used for encryption.",
 	profile = TestPlan.ProfileNames.rptest
 )
-public class BrazilOBClientTestPlan implements TestPlan {
+public class BrazilV1OBClientTestPlan implements TestPlan {
 	public static String certificationProfileName(VariantSelection variant) {
 
 		String certProfile;
