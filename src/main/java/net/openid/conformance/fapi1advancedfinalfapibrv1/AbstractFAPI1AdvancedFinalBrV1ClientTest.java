@@ -115,7 +115,7 @@ import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNot
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
+import net.openid.conformance.condition.client.FAPIBrazilV1ValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -1119,7 +1119,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ClientTest extends AbstractT
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
 		if(fapiClientType== FAPIClientType.OIDC) {
 			if(isBrazil()) {
-				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
+				callAndContinueOnFailure(FAPIBrazilV1ValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
 					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
 			} else {
 				callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
