@@ -575,7 +575,7 @@ var FAPI_UI = {
 	    // Each url must have the fragment necessary to form a link to a particular section of document
 		// When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 		specLinks : {
-			"BrazilOB-" : "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/240648927/EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+2.0-RC1#section-",
+			"BrazilOB-" : "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/245760001/EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+1.0+Implementers+Draft+3#section-",
 			"BrazilOBDCR-" : "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID2.html#section-",
 			"BrazilOBDCRID3-" : "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/82051199/EN+Open+Finance+Brasil+Financial-grade+API+Dynamic+Client+Registration+1.0+Implementers+Draft+3#section-",
 			"BrazilOPIN-" : "https://br-openinsurance.github.io/areadesenvolvedor/files/Controles_técnicos_de_Segurança_da_Informação_3.0.pdf#",
