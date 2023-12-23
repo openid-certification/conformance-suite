@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-br-v1-client-test-plan",
-	displayName = "FAPI1-Advanced-Final-Br-v1: Relying Party (client test)",
+	displayName = "FAPI1-Advanced-Final-Br-v1: Relying Party (client test) - only available till 31st Dec 2023",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPI1AdvancedFinalBrV1ClientTest.class,

@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-br-v1-brazil-dcr-test-plan",
-	displayName = "FAPI1-Advanced-Final-Br-v1: Brazil Dynamic Client Registration Authorization server test",
+	displayName = "FAPI1-Advanced-Final-Br-v1: Brazil Dynamic Client Registration Authorization server test - only available till 31st Dec 2023",
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI1AdvancedFinalBrV1BrazilDCRTestPlan implements TestPlan {

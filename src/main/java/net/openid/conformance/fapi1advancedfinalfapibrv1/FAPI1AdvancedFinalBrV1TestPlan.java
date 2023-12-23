@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "fapi1-advanced-final-br-v1-test-plan",
-	displayName = "FAPI1-Advanced-Final-Br-v1: Authorization server test",
+	displayName = "FAPI1-Advanced-Final-Br-v1: Authorization server test - only available till 31st Dec 2023",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
