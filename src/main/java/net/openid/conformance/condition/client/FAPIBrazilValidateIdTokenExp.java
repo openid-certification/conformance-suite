@@ -24,7 +24,7 @@ public class FAPIBrazilValidateIdTokenExp extends AbstractCondition {
 		Instant expInstant = Instant.ofEpochSecond(exp);
 		Instant _180daysFromNow = Instant.now().plus(Duration.ofDays(180)).minusMillis(timeSkewMillis);
 		if (expInstant.isBefore(_180daysFromNow)) {
-			throw error("Token exp has insufficient validity", args("exp", exp, "exp_in_utc", DateTimeFormatter.ISO_INSTANT.format(expInstant)));
+			throw error("Token exp has insufficient validity. At least 180 days validity is required.", args("exp", exp, "exp_in_utc", DateTimeFormatter.ISO_INSTANT.format(expInstant)));
 		}
 
 		logSuccess("ID token exp passed validation checks", args("exp", exp, "exp_in_utc", DateTimeFormatter.ISO_INSTANT.format(expInstant)));
