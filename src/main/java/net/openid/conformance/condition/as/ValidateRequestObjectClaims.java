@@ -113,5 +113,13 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 	}
 
 	protected void validateJti(Environment env) {
+		JsonElement jti = env.getElementFromObject("authorization_request_object", "claims.jti");
+		boolean isPresent = jti != null && !jti.isJsonNull();
+		if (isPresent) {
+			boolean isString = jti.isJsonPrimitive() && jti.getAsJsonPrimitive().isString();
+			if (!isString) {
+				throw error("jti must be a string when present", args("jti", jti));
+			}
+		}
 	}
 }

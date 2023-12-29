@@ -57,6 +57,7 @@ public class ValidateBackchannelRequestObjectClaims extends ValidateRequestObjec
 		if (Strings.isNullOrEmpty(jti)) {
 			throw error("Missing jti", args("jti", jti));
 		}
+		super.validateJti(env);
 	}
 
 }
