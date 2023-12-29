@@ -36,16 +36,11 @@ public class FAPICIBABrazilAddAcrValuesToAuthorizationEndpointRequest extends Ab
 				throw error("Provided acr value is not supported by server", args("supported_acr_values", acrValuesSupported, "received_value", requestedACRs));
 			}
 
-			JsonObject claims = new JsonObject();
-			JsonObject idToken = new JsonObject();
 			JsonObject acr = new JsonObject();
 			acr.addProperty("value", requestedACRs);
 			acr.addProperty("essential", true);
-			idToken.add("acr", acr);
-			claims.add("id_token", idToken);
-			authorizationEndpointRequest.add("claims", claims);
 
-			env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+			env.putObject("authorization_endpoint_request", "claims.id_token", acr);
 
 			logSuccess(String.format("Added acr_values of '%s' to authorization endpoint request", requestedACRs), authorizationEndpointRequest);
 		}
