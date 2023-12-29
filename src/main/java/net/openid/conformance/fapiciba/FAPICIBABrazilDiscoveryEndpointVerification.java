@@ -80,7 +80,6 @@ public class FAPICIBABrazilDiscoveryEndpointVerification extends AbstractFAPI1Ad
 			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-6");
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-7");
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8", "BrazilOPIN-page8");
-			callAndContinueOnFailure(CheckDiscEndpointTokenDeliveryModeSupportedIsPollOnly.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 		}
 	}
 }
