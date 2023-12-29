@@ -22,7 +22,7 @@ public class AddExpValueOf179DaysToIdToken extends AbstractCondition {
 
 		claims.addProperty("exp", exp.getEpochSecond());
 
-		logSuccess("Added exp value to ID token claims", args("id_token_claims", claims, "exp", exp));
+		log("Added exp value to ID token claims", args("id_token_claims", claims, "exp", exp));
 
 		return env;
 
