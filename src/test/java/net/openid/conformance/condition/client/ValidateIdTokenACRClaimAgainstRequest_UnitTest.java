@@ -44,16 +44,17 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseBadEmpty() {
 		String request =
-			"{\n" +
-				"  \"claims\": {\n" +
-				"    \"id_token\": {\n" +
-				"      \"acr\": {\n" +
-				"        \"value\": \"urn:openbanking:psd2:sca\",\n" +
-				"        \"essential\": true\n" +
-				"      }\n" +
-				"    }\n" +
-				"  }\n" +
-				"}";
+				"""
+						{
+						  "claims": {
+						    "id_token": {
+						      "acr": {
+						        "value": "urn:openbanking:psd2:sca",
+						        "essential": true
+						      }
+						    }
+						  }
+						}""";
 		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
 
@@ -66,16 +67,17 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 	@Test
 	public void testEvaluate_caseSingleGood() {
 		String request =
-			"{\n" +
-				"  \"claims\": {\n" +
-				"    \"id_token\": {\n" +
-				"      \"acr\": {\n" +
-				"        \"value\": \"urn:openbanking:psd2:sca\",\n" +
-				"        \"essential\": true\n" +
-				"      }\n" +
-				"    }\n" +
-				"  }\n" +
-				"}";
+				"""
+						{
+						  "claims": {
+						    "id_token": {
+						      "acr": {
+						        "value": "urn:openbanking:psd2:sca",
+						        "essential": true
+						      }
+						    }
+						  }
+						}""";
 		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
 
@@ -89,16 +91,17 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseSingleBad() {
 		String request =
-			"{\n" +
-				"  \"claims\": {\n" +
-				"    \"id_token\": {\n" +
-				"      \"acr\": {\n" +
-				"        \"value\": \"urn:openbanking:psd2:ca\",\n" +
-				"        \"essential\": true\n" +
-				"      }\n" +
-				"    }\n" +
-				"  }\n" +
-				"}";
+				"""
+						{
+						  "claims": {
+						    "id_token": {
+						      "acr": {
+						        "value": "urn:openbanking:psd2:ca",
+						        "essential": true
+						      }
+						    }
+						  }
+						}""";
 
 		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
@@ -113,19 +116,20 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 	@Test
 	public void testEvaluate_caseArrayGood() {
 		String request =
-			"{\n" +
-				"  \"claims\": {\n" +
-				"    \"id_token\": {\n" +
-				"      \"acr\": {\n" +
-				"        \"values\": [\n" +
-				"          \"urn:openbanking:psd2:sca\",\n" +
-				"          \"urn:openbanking:psd2:ca\"\n" +
-				"        ],\n" +
-				"        \"essential\": true\n" +
-				"      }\n" +
-				"    }\n" +
-				"  }\n" +
-				"}";
+				"""
+						{
+						  "claims": {
+						    "id_token": {
+						      "acr": {
+						        "values": [
+						          "urn:openbanking:psd2:sca",
+						          "urn:openbanking:psd2:ca"
+						        ],
+						        "essential": true
+						      }
+						    }
+						  }
+						}""";
 
 		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);
@@ -140,19 +144,20 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseArrayBad() {
 		String request =
-			"{\n" +
-				"  \"claims\": {\n" +
-				"    \"id_token\": {\n" +
-				"      \"acr\": {\n" +
-				"        \"values\": [\n" +
-				"          \"urn:openbanking:psd2:sca\",\n" +
-				"          \"urn:openbanking:psd2:ca\"\n" +
-				"        ],\n" +
-				"        \"essential\": true\n" +
-				"      }\n" +
-				"    }\n" +
-				"  }\n" +
-				"}";
+				"""
+						{
+						  "claims": {
+						    "id_token": {
+						      "acr": {
+						        "values": [
+						          "urn:openbanking:psd2:sca",
+						          "urn:openbanking:psd2:ca"
+						        ],
+						        "essential": true
+						      }
+						    }
+						  }
+						}""";
 
 		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
 		env.putObject("authorization_endpoint_request", req);

@@ -43,9 +43,11 @@ public class SignFakeIdToken_UnitTest {
 
 
 		idTokenClaims = JsonParser.parseString(
-				"  {\n" +
-				"   \"foo\": \"bar\"\n" +
-				"  }")
+						"""
+								  {
+								   "foo": "bar"
+								  }\
+								""")
 			.getAsJsonObject();
 
 		jwks = JsonParser.parseString("{"

@@ -48,10 +48,11 @@ public class CreateCreateAccountRequestRequest_UnitTest {
 	@Test
 	public void testEvaluateExtra() {
 
-		env.putObjectFromJsonString("config", "{ \"server\": { \"additionalOpenBankingUkAccountRequestData\" : { \"SupplementaryData\": {\n" +
-			"      \"DesiredStatus\": \"Authorised\",\n" +
-			"      \"UserID\": \"flibble\"\n" +
-			"    } } } }");
+		env.putObjectFromJsonString("config", """
+				{ "server": { "additionalOpenBankingUkAccountRequestData" : { "SupplementaryData": {
+				      "DesiredStatus": "Authorised",
+				      "UserID": "flibble"
+				    } } } }""");
 
 		cond.execute(env);
 

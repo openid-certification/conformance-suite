@@ -106,35 +106,36 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	@Test
 	public void testEvaluate_noError2() {
 
-		userInfo = JsonParser.parseString("{\n" +
-			"  \"sub\": \"foo\",\n" +
-			"  \"address\": {\n" +
-			"    \"country\": \"000\",\n" +
-			"    \"formatted\": \"000\",\n" +
-			"    \"locality\": \"000\",\n" +
-			"    \"postal_code\": \"000\",\n" +
-			"    \"region\": \"000\",\n" +
-			"    \"street_address\": \"000\"\n" +
-			"  },\n" +
-			"  \"email\": \"johndoe@example.com\",\n" +
-			"  \"email_verified\": false,\n" +
-			"  \"phone_number\": \"+49 000 000000\",\n" +
-			"  \"phone_number_verified\": false,\n" +
-			"  \"birthdate\": \"1987-10-16\",\n" +
-			"  \"family_name\": \"Doe\",\n" +
-			"  \"gender\": \"male\",\n" +
-			"  \"given_name\": \"John\",\n" +
-			"  \"locale\": \"en-US\",\n" +
-			"  \"middle_name\": \"Middle\",\n" +
-			"  \"name\": \"John Doe\",\n" +
-			"  \"nickname\": \"Johny\",\n" +
-			"  \"picture\": \"http://lorempixel.com/400/200/\",\n" +
-			"  \"preferred_username\": \"johnny\",\n" +
-			"  \"profile\": \"https://johnswebsite.com\",\n" +
-			"  \"updated_at\": 1454704946,\n" +
-			"  \"website\": \"http://example.com\",\n" +
-			"  \"zoneinfo\": \"Europe/Berlin\"\n" +
-			"}").getAsJsonObject();
+		userInfo = JsonParser.parseString("""
+				{
+				  "sub": "foo",
+				  "address": {
+				    "country": "000",
+				    "formatted": "000",
+				    "locality": "000",
+				    "postal_code": "000",
+				    "region": "000",
+				    "street_address": "000"
+				  },
+				  "email": "johndoe@example.com",
+				  "email_verified": false,
+				  "phone_number": "+49 000 000000",
+				  "phone_number_verified": false,
+				  "birthdate": "1987-10-16",
+				  "family_name": "Doe",
+				  "gender": "male",
+				  "given_name": "John",
+				  "locale": "en-US",
+				  "middle_name": "Middle",
+				  "name": "John Doe",
+				  "nickname": "Johny",
+				  "picture": "http://lorempixel.com/400/200/",
+				  "preferred_username": "johnny",
+				  "profile": "https://johnswebsite.com",
+				  "updated_at": 1454704946,
+				  "website": "http://example.com",
+				  "zoneinfo": "Europe/Berlin"
+				}""").getAsJsonObject();
 
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);

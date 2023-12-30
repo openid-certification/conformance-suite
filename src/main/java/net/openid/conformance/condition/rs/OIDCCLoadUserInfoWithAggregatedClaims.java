@@ -19,16 +19,15 @@ public class OIDCCLoadUserInfoWithAggregatedClaims extends AbstractSignJWT {
 		user.addProperty("sub", "user-subject-1234531");
 
 		//directly copied from the example in the spec
-		String claims="{" +
-			"\"address\": {\n" +
-			"\"street_address\": \"1234 Hollywood Blvd.\",\n" +
-			"\"locality\": \"Los Angeles\",\n" +
-			"\"region\": \"CA\",\n" +
-			"\"postal_code\": \"90210\",\n" +
-			"\"country\": \"US\"" +
-			"},\n" +
-			"\"phone_number\": \"+1 (310) 123-4567\"\n" +
-			"}";
+		String claims= """
+				{"address": {
+				"street_address": "1234 Hollywood Blvd.",
+				"locality": "Los Angeles",
+				"region": "CA",
+				"postal_code": "90210",
+				"country": "US"},
+				"phone_number": "+1 (310) 123-4567"
+				}""";
 
 		//using alg none as python suite signs with alg none
 		String signedJwt = signWithAlgNone(claims);

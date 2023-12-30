@@ -846,218 +846,219 @@ public class HtmlExportRenderer_UnitTest
 	@Test
 	public void createHtmlForLogEntry()
 	{
-		String logJson = "{\n" +
-			"    \"_id\": \"BeDwk5rd8H-j5T3YDQVp943pshGM7Gp9BxgQSQMVFfj\",\n" +
-			"    \"msg\": \"Generated server configuration\",\n" +
-			"    \"result\": \"SUCCESS\",\n" +
-			"    \"server_configuration\": {\n" +
-			"        \"issuer\": \"https://localhost.emobix.co.uk:8443/test/a/openid-client/\",\n" +
-			"        \"authorization_endpoint\": \"https://localhost.emobix.co.uk:8443/test/a/openid-client/authorize\",\n" +
-			"        \"token_endpoint\": \"https://localhost.emobix.co.uk:8443/test/a/openid-client/token\",\n" +
-			"        \"jwks_uri\": \"https://localhost.emobix.co.uk:8443/test/a/openid-client/jwks\",\n" +
-			"        \"userinfo_endpoint\": \"https://localhost.emobix.co.uk:8443/test/a/openid-client/userinfo\",\n" +
-			"        \"registration_endpoint\": \"https://localhost.emobix.co.uk:8443/test/a/openid-client/register\",\n" +
-			"        \"scopes_supported\": [\n" +
-			"            \"openid\",\n" +
-			"            \"phone\",\n" +
-			"            \"profile\",\n" +
-			"            \"email\",\n" +
-			"            \"address\",\n" +
-			"            \"offline_access\"\n" +
-			"        ],\n" +
-			"        \"response_types_supported\": [\n" +
-			"            \"code\",\n" +
-			"            \"id_token code\",\n" +
-			"            \"token code id_token\",\n" +
-			"            \"id_token\",\n" +
-			"            \"token id_token\",\n" +
-			"            \"token code\",\n" +
-			"            \"token\"\n" +
-			"        ],\n" +
-			"        \"response_modes_supported\": [\n" +
-			"            \"query\",\n" +
-			"            \"fragment\",\n" +
-			"            \"form_post\"\n" +
-			"        ],\n" +
-			"        \"token_endpoint_auth_methods_supported\": [\n" +
-			"            \"client_secret_basic\",\n" +
-			"            \"client_secret_post\",\n" +
-			"            \"client_secret_jwt\",\n" +
-			"            \"private_key_jwt\"\n" +
-			"        ],\n" +
-			"        \"token_endpoint_auth_signing_alg_values_supported\": [\n" +
-			"            \"RS256\",\n" +
-			"            \"RS384\",\n" +
-			"            \"RS512\",\n" +
-			"            \"PS256\",\n" +
-			"            \"PS384\",\n" +
-			"            \"PS512\",\n" +
-			"            \"ES256\",\n" +
-			"            \"ES256K\",\n" +
-			"            \"ES384\",\n" +
-			"            \"ES512\",\n" +
-			"            \"EdDSA\"\n" +
-			"        ],\n" +
-			"        \"grant_types_supported\": [\n" +
-			"            \"authorization_code\",\n" +
-			"            \"implicit\"\n" +
-			"        ],\n" +
-			"        \"claims_parameter_supported\": true,\n" +
-			"        \"acr_values_supported\": [\n" +
-			"            \"PASSWORD\"\n" +
-			"        ],\n" +
-			"        \"subject_types_supported\": [\n" +
-			"            \"public\",\n" +
-			"            \"pairwise\"\n" +
-			"        ],\n" +
-			"        \"claim_types_supported\": [\n" +
-			"            \"normal\",\n" +
-			"            \"aggregated\",\n" +
-			"            \"distributed\"\n" +
-			"        ],\n" +
-			"        \"claims_supported\": [\n" +
-			"            \"sub\",\n" +
-			"            \"name\",\n" +
-			"            \"given_name\",\n" +
-			"            \"family_name\",\n" +
-			"            \"middle_name\",\n" +
-			"            \"nickname\",\n" +
-			"            \"gender\",\n" +
-			"            \"birthdate\",\n" +
-			"            \"preferred_username\",\n" +
-			"            \"profile\",\n" +
-			"            \"website\",\n" +
-			"            \"locale\",\n" +
-			"            \"updated_at\",\n" +
-			"            \"address\",\n" +
-			"            \"zoneinfo\",\n" +
-			"            \"phone_number\",\n" +
-			"            \"phone_number_verified\",\n" +
-			"            \"email\",\n" +
-			"            \"email_verified\"\n" +
-			"        ],\n" +
-			"        \"id_token_signing_alg_values_supported\": [\n" +
-			"            \"none\",\n" +
-			"            \"RS256\",\n" +
-			"            \"RS384\",\n" +
-			"            \"RS512\",\n" +
-			"            \"PS256\",\n" +
-			"            \"PS384\",\n" +
-			"            \"PS512\",\n" +
-			"            \"ES256\",\n" +
-			"            \"ES256K\",\n" +
-			"            \"ES384\",\n" +
-			"            \"ES512\",\n" +
-			"            \"EdDSA\"\n" +
-			"        ],\n" +
-			"        \"id_token_encryption_alg_values_supported\": [\n" +
-			"            \"RSA1_5\",\n" +
-			"            \"RSA-OAEP\",\n" +
-			"            \"RSA-OAEP-256\",\n" +
-			"            \"ECDH-ES\",\n" +
-			"            \"ECDH-ES+A128KW\",\n" +
-			"            \"ECDH-ES+A192KW\",\n" +
-			"            \"ECDH-ES+A256KW\",\n" +
-			"            \"A128KW\",\n" +
-			"            \"A192KW\",\n" +
-			"            \"A256KW\",\n" +
-			"            \"A128GCMKW\",\n" +
-			"            \"A192GCMKW\",\n" +
-			"            \"A256GCMKW\",\n" +
-			"            \"dir\"\n" +
-			"        ],\n" +
-			"        \"id_token_encryption_enc_values_supported\": [\n" +
-			"            \"A128CBC-HS256\",\n" +
-			"            \"A192CBC-HS384\",\n" +
-			"            \"A256CBC-HS512\",\n" +
-			"            \"A128GCM\",\n" +
-			"            \"A192GCM\",\n" +
-			"            \"A256GCM\"\n" +
-			"        ],\n" +
-			"        \"request_object_signing_alg_values_supported\": [\n" +
-			"            \"none\",\n" +
-			"            \"RS256\",\n" +
-			"            \"RS384\",\n" +
-			"            \"RS512\",\n" +
-			"            \"PS256\",\n" +
-			"            \"PS384\",\n" +
-			"            \"PS512\",\n" +
-			"            \"ES256\",\n" +
-			"            \"ES256K\",\n" +
-			"            \"ES384\",\n" +
-			"            \"ES512\",\n" +
-			"            \"EdDSA\"\n" +
-			"        ],\n" +
-			"        \"request_object_encryption_alg_values_supported\": [\n" +
-			"            \"RSA1_5\",\n" +
-			"            \"RSA-OAEP\",\n" +
-			"            \"RSA-OAEP-256\",\n" +
-			"            \"ECDH-ES\",\n" +
-			"            \"ECDH-ES+A128KW\",\n" +
-			"            \"ECDH-ES+A192KW\",\n" +
-			"            \"ECDH-ES+A256KW\",\n" +
-			"            \"A128KW\",\n" +
-			"            \"A192KW\",\n" +
-			"            \"A256KW\",\n" +
-			"            \"A128GCMKW\",\n" +
-			"            \"A192GCMKW\",\n" +
-			"            \"A256GCMKW\",\n" +
-			"            \"dir\"\n" +
-			"        ],\n" +
-			"        \"request_object_encryption_enc_values_supported\": [\n" +
-			"            \"A128CBC-HS256\",\n" +
-			"            \"A192CBC-HS384\",\n" +
-			"            \"A256CBC-HS512\",\n" +
-			"            \"A128GCM\",\n" +
-			"            \"A192GCM\",\n" +
-			"            \"A256GCM\"\n" +
-			"        ],\n" +
-			"        \"userinfo_signing_alg_values_supported\": [\n" +
-			"            \"RS256\",\n" +
-			"            \"RS384\",\n" +
-			"            \"RS512\",\n" +
-			"            \"PS256\",\n" +
-			"            \"PS384\",\n" +
-			"            \"PS512\",\n" +
-			"            \"ES256\",\n" +
-			"            \"ES256K\",\n" +
-			"            \"ES384\",\n" +
-			"            \"ES512\",\n" +
-			"            \"EdDSA\"\n" +
-			"        ],\n" +
-			"        \"userinfo_encryption_alg_values_supported\": [\n" +
-			"            \"RSA1_5\",\n" +
-			"            \"RSA-OAEP\",\n" +
-			"            \"RSA-OAEP-256\",\n" +
-			"            \"ECDH-ES\",\n" +
-			"            \"ECDH-ES+A128KW\",\n" +
-			"            \"ECDH-ES+A192KW\",\n" +
-			"            \"ECDH-ES+A256KW\",\n" +
-			"            \"A128KW\",\n" +
-			"            \"A192KW\",\n" +
-			"            \"A256KW\",\n" +
-			"            \"A128GCMKW\",\n" +
-			"            \"A192GCMKW\",\n" +
-			"            \"A256GCMKW\",\n" +
-			"            \"dir\"\n" +
-			"        ],\n" +
-			"        \"userinfo_encryption_enc_values_supported\": [\n" +
-			"            \"A128CBC-HS256\",\n" +
-			"            \"A192CBC-HS384\",\n" +
-			"            \"A256CBC-HS512\",\n" +
-			"            \"A128GCM\",\n" +
-			"            \"A192GCM\",\n" +
-			"            \"A256GCM\"\n" +
-			"        ]\n" +
-			"    },\n" +
-			"    \"testId\": \"BeDwk5rd8H\",\n" +
-			"    \"src\": \"OIDCCGenerateServerConfiguration\",\n" +
-			"    \"testOwner\": {\n" +
-			"        \"sub\": \"developer\",\n" +
-			"        \"iss\": \"https://developer.com\"\n" +
-			"    },\n" +
-			"    \"time\": 1590130872119\n" +
-			"}";
+		String logJson = """
+				{
+				    "_id": "BeDwk5rd8H-j5T3YDQVp943pshGM7Gp9BxgQSQMVFfj",
+				    "msg": "Generated server configuration",
+				    "result": "SUCCESS",
+				    "server_configuration": {
+				        "issuer": "https://localhost.emobix.co.uk:8443/test/a/openid-client/",
+				        "authorization_endpoint": "https://localhost.emobix.co.uk:8443/test/a/openid-client/authorize",
+				        "token_endpoint": "https://localhost.emobix.co.uk:8443/test/a/openid-client/token",
+				        "jwks_uri": "https://localhost.emobix.co.uk:8443/test/a/openid-client/jwks",
+				        "userinfo_endpoint": "https://localhost.emobix.co.uk:8443/test/a/openid-client/userinfo",
+				        "registration_endpoint": "https://localhost.emobix.co.uk:8443/test/a/openid-client/register",
+				        "scopes_supported": [
+				            "openid",
+				            "phone",
+				            "profile",
+				            "email",
+				            "address",
+				            "offline_access"
+				        ],
+				        "response_types_supported": [
+				            "code",
+				            "id_token code",
+				            "token code id_token",
+				            "id_token",
+				            "token id_token",
+				            "token code",
+				            "token"
+				        ],
+				        "response_modes_supported": [
+				            "query",
+				            "fragment",
+				            "form_post"
+				        ],
+				        "token_endpoint_auth_methods_supported": [
+				            "client_secret_basic",
+				            "client_secret_post",
+				            "client_secret_jwt",
+				            "private_key_jwt"
+				        ],
+				        "token_endpoint_auth_signing_alg_values_supported": [
+				            "RS256",
+				            "RS384",
+				            "RS512",
+				            "PS256",
+				            "PS384",
+				            "PS512",
+				            "ES256",
+				            "ES256K",
+				            "ES384",
+				            "ES512",
+				            "EdDSA"
+				        ],
+				        "grant_types_supported": [
+				            "authorization_code",
+				            "implicit"
+				        ],
+				        "claims_parameter_supported": true,
+				        "acr_values_supported": [
+				            "PASSWORD"
+				        ],
+				        "subject_types_supported": [
+				            "public",
+				            "pairwise"
+				        ],
+				        "claim_types_supported": [
+				            "normal",
+				            "aggregated",
+				            "distributed"
+				        ],
+				        "claims_supported": [
+				            "sub",
+				            "name",
+				            "given_name",
+				            "family_name",
+				            "middle_name",
+				            "nickname",
+				            "gender",
+				            "birthdate",
+				            "preferred_username",
+				            "profile",
+				            "website",
+				            "locale",
+				            "updated_at",
+				            "address",
+				            "zoneinfo",
+				            "phone_number",
+				            "phone_number_verified",
+				            "email",
+				            "email_verified"
+				        ],
+				        "id_token_signing_alg_values_supported": [
+				            "none",
+				            "RS256",
+				            "RS384",
+				            "RS512",
+				            "PS256",
+				            "PS384",
+				            "PS512",
+				            "ES256",
+				            "ES256K",
+				            "ES384",
+				            "ES512",
+				            "EdDSA"
+				        ],
+				        "id_token_encryption_alg_values_supported": [
+				            "RSA1_5",
+				            "RSA-OAEP",
+				            "RSA-OAEP-256",
+				            "ECDH-ES",
+				            "ECDH-ES+A128KW",
+				            "ECDH-ES+A192KW",
+				            "ECDH-ES+A256KW",
+				            "A128KW",
+				            "A192KW",
+				            "A256KW",
+				            "A128GCMKW",
+				            "A192GCMKW",
+				            "A256GCMKW",
+				            "dir"
+				        ],
+				        "id_token_encryption_enc_values_supported": [
+				            "A128CBC-HS256",
+				            "A192CBC-HS384",
+				            "A256CBC-HS512",
+				            "A128GCM",
+				            "A192GCM",
+				            "A256GCM"
+				        ],
+				        "request_object_signing_alg_values_supported": [
+				            "none",
+				            "RS256",
+				            "RS384",
+				            "RS512",
+				            "PS256",
+				            "PS384",
+				            "PS512",
+				            "ES256",
+				            "ES256K",
+				            "ES384",
+				            "ES512",
+				            "EdDSA"
+				        ],
+				        "request_object_encryption_alg_values_supported": [
+				            "RSA1_5",
+				            "RSA-OAEP",
+				            "RSA-OAEP-256",
+				            "ECDH-ES",
+				            "ECDH-ES+A128KW",
+				            "ECDH-ES+A192KW",
+				            "ECDH-ES+A256KW",
+				            "A128KW",
+				            "A192KW",
+				            "A256KW",
+				            "A128GCMKW",
+				            "A192GCMKW",
+				            "A256GCMKW",
+				            "dir"
+				        ],
+				        "request_object_encryption_enc_values_supported": [
+				            "A128CBC-HS256",
+				            "A192CBC-HS384",
+				            "A256CBC-HS512",
+				            "A128GCM",
+				            "A192GCM",
+				            "A256GCM"
+				        ],
+				        "userinfo_signing_alg_values_supported": [
+				            "RS256",
+				            "RS384",
+				            "RS512",
+				            "PS256",
+				            "PS384",
+				            "PS512",
+				            "ES256",
+				            "ES256K",
+				            "ES384",
+				            "ES512",
+				            "EdDSA"
+				        ],
+				        "userinfo_encryption_alg_values_supported": [
+				            "RSA1_5",
+				            "RSA-OAEP",
+				            "RSA-OAEP-256",
+				            "ECDH-ES",
+				            "ECDH-ES+A128KW",
+				            "ECDH-ES+A192KW",
+				            "ECDH-ES+A256KW",
+				            "A128KW",
+				            "A192KW",
+				            "A256KW",
+				            "A128GCMKW",
+				            "A192GCMKW",
+				            "A256GCMKW",
+				            "dir"
+				        ],
+				        "userinfo_encryption_enc_values_supported": [
+				            "A128CBC-HS256",
+				            "A192CBC-HS384",
+				            "A256CBC-HS512",
+				            "A128GCM",
+				            "A192GCM",
+				            "A256GCM"
+				        ]
+				    },
+				    "testId": "BeDwk5rd8H",
+				    "src": "OIDCCGenerateServerConfiguration",
+				    "testOwner": {
+				        "sub": "developer",
+				        "iss": "https://developer.com"
+				    },
+				    "time": 1590130872119
+				}""";
 		Document bsonDoc = Document.parse(logJson);
 		String html = renderer.createHtmlForLogEntry(bsonDoc);
 		assertNotNull(html);
