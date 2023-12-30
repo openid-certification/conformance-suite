@@ -2,6 +2,8 @@ package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.CIBAMode;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
@@ -67,7 +69,8 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
 		String cibaMode = v.get("ciba_mode");
-		boolean privateKey = clientAuth.equals("private_key_jwt");
+		boolean privateKey = ClientAuthType.PRIVATE_KEY_JWT.toString().equals(clientAuth);
+		boolean poll = CIBAMode.POLL.toString().equals(cibaMode);
 
 		switch (profile) {
 			case "plain_fapi":
@@ -85,6 +88,10 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 				break;
 			case "openbanking_brazil":
 				certProfile = "BR-OB";
+				if (!privateKey || !poll) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil OpenFinance",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
 				break;
 
 		}
