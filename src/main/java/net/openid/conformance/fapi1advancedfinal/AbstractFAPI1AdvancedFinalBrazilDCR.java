@@ -232,7 +232,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 			callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		} else {
 			// as per v2 security profile
-			callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpointIsNotRotated.class, Condition.ConditionResult.FAILURE, "RFC7592-3", "BrazilOBDCRID3--6.1-7");
+			callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpointIsNotRotated.class, Condition.ConditionResult.FAILURE, "RFC7592-3", "BrazilOBDCR--6.1-7");
 		}
 	}
 
