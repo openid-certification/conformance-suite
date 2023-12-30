@@ -3,6 +3,7 @@ package net.openid.conformance.util;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.jwk.JWK;
@@ -52,7 +53,20 @@ public class JWTUtil {
 	public static JsonObject jwtClaimsSetAsJsonObject(JWT jwt) throws ParseException {
 		//added this variable to make it obvious
 		boolean includeNullValues = true;
-		JWTClaimsSet jwtClaimsSet = jwt.getJWTClaimsSet();
+		JWTClaimsSet jwtClaimsSet;
+		if (!(jwt instanceof JOSEObject)) {
+			throw new RuntimeException("jwt is not an instance of JOSEObject");
+		}
+
+		// This code does multiple conversions to JSON; we could just call 'JsonParser.parseString' here, however
+		// that seems to result in the unit test failing as we no longer detect JSON payloads that have the same
+		// claim more than once.
+		String jsonPayload = ((JOSEObject)jwt).getPayload().toString();
+		if (jsonPayload == null) {
+			throw new ParseException("Failed to get JWT payload as a string", 0);
+		}
+
+		jwtClaimsSet = JWTClaimsSet.parse(JSONObjectUtils.parse(jsonPayload));
 		if (jwtClaimsSet == null) {
 			throw new ParseException("Failed to extract JWT claims", 0);
 		}
