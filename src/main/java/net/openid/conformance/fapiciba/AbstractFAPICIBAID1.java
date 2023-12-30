@@ -229,16 +229,6 @@ import java.util.function.Supplier;
 	"client.initial_access_token",
 	"client2.initial_access_token"
 })
-@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client.jwks",
-	"mtls.cert",
-	"mtls.key",
-	"mtls.ca",
-	"client2.jwks",
-	"mtls2.cert",
-	"mtls2.key",
-	"mtls2.ca"
-})
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.org_jwks",
 	"client.acr_value",
@@ -250,6 +240,19 @@ import java.util.function.Supplier;
 	"resource.brazilPaymentConsent",
 	"resource.brazilPixPayment",
 	"directory.keystore"
+})
+@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
+	"client.jwks",
+	"mtls.cert",
+	"mtls.key",
+	"mtls.ca",
+	"client2.jwks",
+	"mtls2.cert",
+	"mtls2.key",
+	"mtls2.ca"
+})
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.hint_type"
 })
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
