@@ -5,14 +5,14 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class FAPIBrazilCheckDiscEndpointGrantTypesSupported extends AbstractValidateJsonArray {
+public class FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "grant_types_supported";
 
-	private static final String[] SET_VALUES = { "authorization_code", "client_credentials", "refresh_token", "urn:openid:params:grant-type:ciba" };
-	private static final int minimumMatchesRequired = 3;
+	private static final String[] SET_VALUES = { "client_credentials", "refresh_token" };
+	private static final int minimumMatchesRequired = 2;
 
-	private static final String errorMessageNotEnough = "The server does not support enough of the required grant types.";
+	private static final String errorMessageNotEnough = "The server does not support client_credentials and refresh_token";
 
 	@Override
 	@PreEnvironment(required = "server")
