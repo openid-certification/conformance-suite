@@ -41,34 +41,35 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse_UnitTest
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// Example from OpenBanking spec
-		endpointResponse = JsonParser.parseString("{\n" +
-			"  \"Data\": {\n" +
-			"    \"AccountRequestId\": \"88379\",\n" +
-			"    \"Status\": \"AwaitingAuthorisation\",\n" +
-			"    \"CreationDateTime\": \"2017-05-02T00:00:00+00:00\",\n" +
-			"    \"Permissions\": [\n" +
-			"      \"ReadAccountsDetail\",\n" +
-			"      \"ReadBalances\",\n" +
-			"      \"ReadBeneficiariesDetail\",\n" +
-			"      \"ReadDirectDebits\",\n" +
-			"      \"ReadProducts\",\n" +
-			"      \"ReadStandingOrdersDetail\",\n" +
-			"      \"ReadTransactionsCredits\",\n" +
-			"      \"ReadTransactionsDebits\",\n" +
-			"      \"ReadTransactionsDetail\"\n" +
-			"    ],\n" +
-			"    \"ExpirationDateTime\": \"2017-08-02T00:00:00+00:00\",\n" +
-			"    \"TransactionFromDateTime\": \"2017-05-03T00:00:00+00:00\",\n" +
-			"    \"TransactionToDateTime\": \"2017-12-03T00:00:00+00:00\"\n" +
-			"  },\n" +
-			"  \"Risk\": {},\n" +
-			"  \"Links\": {\n" +
-			"    \"Self\": \"/account-requests/88379\"\n" +
-			"  },\n" +
-			"  \"Meta\": {\n" +
-			"    \"TotalPages\": 1\n" +
-			"  }\n" +
-			"}").getAsJsonObject();
+		endpointResponse = JsonParser.parseString("""
+				{
+				  "Data": {
+				    "AccountRequestId": "88379",
+				    "Status": "AwaitingAuthorisation",
+				    "CreationDateTime": "2017-05-02T00:00:00+00:00",
+				    "Permissions": [
+				      "ReadAccountsDetail",
+				      "ReadBalances",
+				      "ReadBeneficiariesDetail",
+				      "ReadDirectDebits",
+				      "ReadProducts",
+				      "ReadStandingOrdersDetail",
+				      "ReadTransactionsCredits",
+				      "ReadTransactionsDebits",
+				      "ReadTransactionsDetail"
+				    ],
+				    "ExpirationDateTime": "2017-08-02T00:00:00+00:00",
+				    "TransactionFromDateTime": "2017-05-03T00:00:00+00:00",
+				    "TransactionToDateTime": "2017-12-03T00:00:00+00:00"
+				  },
+				  "Risk": {},
+				  "Links": {
+				    "Self": "/account-requests/88379"
+				  },
+				  "Meta": {
+				    "TotalPages": 1
+				  }
+				}""").getAsJsonObject();
 
 	}
 

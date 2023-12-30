@@ -33,15 +33,16 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 	@Test
 	public void testEvalutate_isGood() {
 		// Define claims object
-		JsonObject claims = JsonParser.parseString("{\n" +
-			"  \"at_hash\": \"SzqRJ7WtQMjkoDyPMXnpvA\",\n" +
-			"  \"sub\": \"1001\",\n" +
-			"  \"aud\": \"21541757519\",\n" +
-			"  \"auth_time\": 1553590905,\n" +
-			"  \"iss\": \"https://fapidev-as.authlete.net/\",\n" +
-			"  \"exp\": 1553591207,\n" +
-			"  \"iat\": 1553590907\n" +
-			"}").getAsJsonObject();
+		JsonObject claims = JsonParser.parseString("""
+				{
+				  "at_hash": "SzqRJ7WtQMjkoDyPMXnpvA",
+				  "sub": "1001",
+				  "aud": "21541757519",
+				  "auth_time": 1553590905,
+				  "iss": "https://fapidev-as.authlete.net/",
+				  "exp": 1553591207,
+				  "iat": 1553590907
+				}""").getAsJsonObject();
 
 		JsonObject o = new JsonObject();
 		o.add("claims", claims);
@@ -54,16 +55,17 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvalutate_isBad() {
 		// Define claims object
-		JsonObject claims = JsonParser.parseString("{\n" +
-			"  \"at_hash\": \"SzqRJ7WtQMjkoDyPMXnpvA\",\n" +
-			"  \"sub\": \"1001\",\n" +
-			"  \"aud\": \"21541757519\",\n" +
-			"  \"auth_time\": 1553590905,\n" +
-			"  \"iss\": \"https://fapidev-as.authlete.net/\",\n" +
-			"  \"exp\": 1553591207,\n" +
-			"  \"iat\": 1553590907,\n" +
-			"  \"s_hash\": \"1553590907\"\n" +
-			"}").getAsJsonObject();
+		JsonObject claims = JsonParser.parseString("""
+				{
+				  "at_hash": "SzqRJ7WtQMjkoDyPMXnpvA",
+				  "sub": "1001",
+				  "aud": "21541757519",
+				  "auth_time": 1553590905,
+				  "iss": "https://fapidev-as.authlete.net/",
+				  "exp": 1553591207,
+				  "iat": 1553590907,
+				  "s_hash": "1553590907"
+				}""").getAsJsonObject();
 
 		JsonObject o = new JsonObject();
 		o.add("claims", claims);

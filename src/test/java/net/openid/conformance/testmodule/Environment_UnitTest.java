@@ -62,30 +62,33 @@ public class Environment_UnitTest {
 
 		mappedKey = "mapped";
 
-		testObject = JsonParser.parseString("{\n" +
-			"	\"long\": 123465478745287987,\n" +
-			"	\"string\": \"value\",\n" +
-			"	\"stringint\": \"3\",\n" +
-			"	\"stringbool\": \"true\",\n" +
-			"	\"array\": [1, 2, \"a\", \"b\"],\n" +
-			"	\"object\": {\n" +
-			"		\"int\": 1234,\n" +
-			"		\"foo\": \"bar\",\n" +
-			"		\"baz\": {\n" +
-			"			\"qux\": \"batman\"\n" +
-			"		}\n" +
-			"	}\n" +
-			"}").getAsJsonObject();
+		testObject = JsonParser.parseString("""
+				{
+					"long": 123465478745287987,
+					"string": "value",
+					"stringint": "3",
+					"stringbool": "true",
+					"array": [1, 2, "a", "b"],
+					"object": {
+						"int": 1234,
+						"foo": "bar",
+						"baz": {
+							"qux": "batman"
+						}
+					}
+				}""").getAsJsonObject();
 
 		subArray = JsonParser.parseString("[1, 2, \"a\", \"b\"]").getAsJsonArray();
 
-		subObject = JsonParser.parseString("{\n" +
-			"		\"int\": 1234,\n" +
-			"		\"foo\": \"bar\",\n" +
-			"		\"baz\": {\n" +
-			"			\"qux\": \"batman\"\n" +
-			"		}\n" +
-			"	}\n").getAsJsonObject();
+		subObject = JsonParser.parseString("""
+				{
+						"int": 1234,
+						"foo": "bar",
+						"baz": {
+							"qux": "batman"
+						}
+					}
+				""").getAsJsonObject();
 
 		path = "object.baz.qux";
 
@@ -95,17 +98,18 @@ public class Environment_UnitTest {
 
 		pathNotFound = "apple.banana.republic";
 
-		altObject = JsonParser.parseString("{\n" +
-			"	\"number\": 9876,\n" +
-			"	\"thing\": \"evaluation\",\n" +
-			"	\"list\": [10, 20, \"z\", \"w\"],\n" +
-			"	\"box\": {\n" +
-			"		\"bat\": \"man\",\n" +
-			"		\"man\": {\n" +
-			"			\"batman\": \"yes\"\n" +
-			"		}\n" +
-			"	}\n" +
-			"}").getAsJsonObject();
+		altObject = JsonParser.parseString("""
+				{
+					"number": 9876,
+					"thing": "evaluation",
+					"list": [10, 20, "z", "w"],
+					"box": {
+						"bat": "man",
+						"man": {
+							"batman": "yes"
+						}
+					}
+				}""").getAsJsonObject();
 
 
 		testStringKey = "test_string";
