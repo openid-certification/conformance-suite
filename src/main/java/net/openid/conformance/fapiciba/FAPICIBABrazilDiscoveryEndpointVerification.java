@@ -7,7 +7,6 @@ import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterS
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsCiba;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken;
@@ -76,7 +75,6 @@ public class FAPICIBABrazilDiscoveryEndpointVerification extends AbstractFAPI1Ad
 		public void evaluate() {
 			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "BrazilOB-5.2.2-3", "BrazilOPIN-page8");
 			callAndContinueOnFailure(CheckDiscEndpointAcrClaimSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6", "BrazilOPIN-page8");
-			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-3", "BrazilOB-5.2.2-4", "BrazilOB-5.2.2-5", "BrazilOPIN-page8");
 			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsCiba.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-6");
