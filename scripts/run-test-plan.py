@@ -1229,7 +1229,7 @@ async def main():
             continue
 
         # We're not requiring FAPI-CIBA RP testing for the negative tests for now, just the happy one
-        if re.match(r'fapi-ciba-id1-client-.+-test',m) or m == 'fapi1-ciba-brazil-discovery-end-point-verification':
+        if re.match(r'fapi-ciba-id1-client-.+-test',m):
             untested_test_modules.remove(m)
             continue
 

@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
-	testName = "fapi1-ciba-brazil-discovery-end-point-verification",
+	testName = "fapi-ciba-id1-brazil-discovery-end-point-verification",
 	displayName = "FAPI-CIBA-BR: Discovery Endpoint Verification",
 	summary = "This test ensures that the server's configuration (including scopes, response_types, grant_types etc) contains values required by the specification",
 	profile = "FAPI-CIBA-BR",
