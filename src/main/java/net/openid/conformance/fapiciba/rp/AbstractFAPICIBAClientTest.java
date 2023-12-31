@@ -64,7 +64,6 @@ import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported;
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -805,13 +804,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
-		if(isBrazil()) {
-			callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
-				"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
-		} else {
-			callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
-				"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
-		}
+		callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO, "FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
 		callAndContinueOnFailure(NonIssuerAsAudClaim.class, ConditionResult.WARNING, "CIBA-7.1");
