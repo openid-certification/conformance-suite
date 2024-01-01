@@ -16,7 +16,7 @@ public class CreateBackchannelEndpointResponseWithoutAuthReqId extends CreateBac
 		addExpiresIn(env, backchannelResponse);
 
 		env.putObject("backchannel_endpoint_response", backchannelResponse);
-		logSuccess("Created backchannel response", backchannelResponse);
+		logSuccess("Created backchannel response without auth_req_id", args("backchannel_endpoint_response", backchannelResponse));
 
 		return env;
 	}

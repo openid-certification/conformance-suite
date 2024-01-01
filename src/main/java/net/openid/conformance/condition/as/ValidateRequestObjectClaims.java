@@ -14,7 +14,7 @@ import java.util.Date;
 public class ValidateRequestObjectClaims extends AbstractCondition {
 
 	// TODO: make this configurable
-	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
+	protected int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
 	@PreEnvironment(required = {"authorization_request_object", "client"})
@@ -50,14 +50,7 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 			}
 		}
 
-		Long iat = env.getLong("authorization_request_object", "claims.iat");
-		if (iat == null) {
-			log(args("msg", "Missing issuance time", "result", ConditionResult.INFO));
-		} else {
-			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-				throw error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
-			}
-		}
+		validateIat(env, now);
 
 		Long nbf = env.getLong("authorization_request_object", "claims.nbf");
 		if (nbf != null) {
@@ -82,6 +75,8 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 			}
 		}
 
+		validateJti(env);
+
 		logSuccess("Request object claims passed all validation checks");
 		return env;
 	}
@@ -101,6 +96,29 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 		} else {
 			if (!issuer.equals(OIDFJSON.getString(aud))) {
 				throw error("Audience mismatch", args("expected", issuer, "actual", aud));
+			}
+		}
+	}
+
+	protected void validateIat(Environment env, Instant now) {
+		Long iat = env.getLong("authorization_request_object", "claims.iat");
+		if (iat == null) {
+			log(args("msg", "Missing issuance time", "result", ConditionResult.INFO));
+		} else {
+
+			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
+				throw error("Token issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+			}
+		}
+	}
+
+	protected void validateJti(Environment env) {
+		JsonElement jti = env.getElementFromObject("authorization_request_object", "claims.jti");
+		boolean isPresent = jti != null && !jti.isJsonNull();
+		if (isPresent) {
+			boolean isString = jti.isJsonPrimitive() && jti.getAsJsonPrimitive().isString();
+			if (!isString) {
+				throw error("jti must be a string when present", args("jti", jti));
 			}
 		}
 	}

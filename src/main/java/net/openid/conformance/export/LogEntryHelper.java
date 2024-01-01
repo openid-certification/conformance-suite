@@ -35,6 +35,7 @@ public class LogEntryHelper {
 		specLinks.put("BrazilOB-", "https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-");
 		specLinks.put("BrazilOBDCR-","https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-dynamic-client-registration-1_ID2.html#section-");
 		specLinks.put("BrazilOPIN-", "https://br-openinsurance.github.io/areadesenvolvedor/files/Controles_técnicos_de_Segurança_da_Informação_3.0.pdf#");
+		specLinks.put("BrazilCIBA-", "https://openfinancebrasil.atlassian.net/wiki/spaces/DraftOF/pages/138674330/EN+Open+Banking+Brasil+Financial-grade+CIBA+API+Security+Profile+1.0+Implementers+Draft+3");
 		specLinks.put("FAPI-R-", "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.");
 		specLinks.put("FAPI-RW-", "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.");
 		specLinks.put("FAPI1-BASE-", "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.");

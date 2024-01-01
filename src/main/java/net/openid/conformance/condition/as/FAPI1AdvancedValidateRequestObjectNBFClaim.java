@@ -11,6 +11,7 @@ import java.time.Instant;
  */
 public class FAPI1AdvancedValidateRequestObjectNBFClaim extends AbstractCondition {
 
+	private int TIME_SKEW = 5 * 60 * 1000; // 5 minute allowable skew for testing
 	private int SIXTY_MINUTES = 60 * 60 * 1000;
 
 	@Override
@@ -26,6 +27,10 @@ public class FAPI1AdvancedValidateRequestObjectNBFClaim extends AbstractConditio
 		Instant nbfInstant = Instant.ofEpochSecond(nbf);
 		if (nbfInstant.isBefore(now.minusMillis(SIXTY_MINUTES))) {
 			throw error("nbf claim is more than 60 minutes in the past", args("nbf", nbfInstant, "now", now));
+		}
+
+		if(nbfInstant.isAfter(now.plusMillis(TIME_SKEW))) {
+			throw error("nbf claim is in the future", args("nbf", nbfInstant, "now", now, "time_skew", TIME_SKEW));
 		}
 
 		logSuccess("nbf claim is valid", args("nbf", nbfInstant, "now", now));

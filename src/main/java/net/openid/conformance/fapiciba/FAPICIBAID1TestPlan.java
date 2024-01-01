@@ -2,8 +2,11 @@ package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.CIBAMode;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Map;
 
 @PublishTestPlan (
@@ -11,8 +14,11 @@ import java.util.Map;
 	displayName = "FAPI-CIBA-ID1: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
-		// Normal well behaved client cases
+		// Discovery
 		FAPICIBAID1DiscoveryEndpointVerification.class,
+		FAPICIBABrazilDiscoveryEndpointVerification.class,
+
+		// Normal well behaved client cases
 		FAPICIBAID1.class,
 		FAPICIBAID1UserRejectsAuthentication.class,
 		FAPICIBAID1MultipleCallToTokenEndpoint.class,
@@ -84,14 +90,22 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
 		String cibaMode = v.get("ciba_mode");
+		boolean privateKey = ClientAuthType.PRIVATE_KEY_JWT.toString().equals(clientAuth);
+		boolean poll = CIBAMode.POLL.toString().equals(cibaMode);
 
 		switch (profile) {
 			case "plain_fapi":
 			case "openbanking_uk":
 				certProfile = "FAPI-CIBA";
 				break;
-			case "consumerdataright_au":
 			case "openbanking_brazil":
+				certProfile = "BR-OB-CIBA";
+				if (!privateKey || !poll) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil OpenFinance",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
+			case "consumerdataright_au":
 			default:
 				return "";	//Not a profile
 		}
@@ -102,7 +116,7 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				certProfile += " poll";
 				break;
 			case "ping":
-				certProfile += " Ping";
+				certProfile += " ping";
 				break;
 		}
 		certProfile += " w/ ";
@@ -114,7 +128,6 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				certProfile += " MTLS";
 				break;
 		}
-
 
 		return certProfile;
 	}

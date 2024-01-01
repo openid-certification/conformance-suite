@@ -25,29 +25,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPICIBAClientPingWithInvalidBearerTokenTest extends AbstractFAPICIBAClientTest {
 
 	@Override
-	protected void addCustomValuesToIdToken() {	}
-
-	@Override
-	protected void createBackchannelResponse() {
-		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
-	}
-
-	@Override
-	protected void backchannelEndpointCallComplete() {
-		setStatus(Status.WAITING);
-	}
-
-	@Override
-	protected void createIntermediateTokenResponse() {
-		callAndStopOnFailure(CreateAuthorizationPendingResponse.class);
-	}
-
-	@Override
-	protected void createFinalTokenResponse() {
-		callAndStopOnFailure(CreateTokenEndpointResponse.class);
-	}
-
-	@Override
 	protected void sendPingRequestAndVerifyResponse() {
 		callAndStopOnFailure(PingClientNotificationEndpointWithBadBearerToken.class, Condition.ConditionResult.FAILURE, "CIBA");
 		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs401.class, Condition.ConditionResult.WARNING, "CIBA-10.2");

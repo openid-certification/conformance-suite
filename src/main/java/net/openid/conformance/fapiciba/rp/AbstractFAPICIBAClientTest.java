@@ -10,6 +10,7 @@ import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfigur
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
+import net.openid.conformance.condition.as.CheckCIBAModeIsPoll;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
@@ -51,17 +52,26 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
+import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported;
+import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
+import net.openid.conformance.condition.client.ValidateIdToken;
+import net.openid.conformance.condition.client.ValidateIdTokenExcludingIat;
+import net.openid.conformance.condition.client.ValidateIdTokenHasRequiredBrazilHeaders;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.client.VerifyIdTokenValidityIsMinimum180Days;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -105,6 +115,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
+import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
@@ -133,7 +144,7 @@ import javax.servlet.http.HttpSession;
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-	"openbanking_uk", "consumerdataright_au", "openinsurance_brazil"
+	"openbanking_uk", "consumerdataright_au", "openinsurance_brazil", "openbanking_ksa"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"
@@ -142,12 +153,6 @@ import javax.servlet.http.HttpSession;
 	"client.scope"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"directory.keystore"
-})
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
-	"client.scope"
-})
-@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
 	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
@@ -167,6 +172,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
+	private Class<? extends Condition> profileSpecificSignIdToken;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
@@ -184,17 +190,20 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
+		profileSpecificSignIdToken = SignIdToken.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
+		profileSpecificSignIdToken = SignIdTokenWithX5tS256.class;
 	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
 	public void setupOpenInsuranceBrazil() {
 		// we might want to generate an open insurance specific response at some point
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
+		profileSpecificSignIdToken = SignIdTokenWithX5tS256.class;
 	}
 
 	protected boolean isBrazil() {
@@ -202,23 +211,41 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
 	}
 
-	protected abstract void addCustomValuesToIdToken();
-
-	protected abstract void createBackchannelResponse();
-
-	protected abstract void backchannelEndpointCallComplete();
-
-	protected abstract void createIntermediateTokenResponse();
-
-	protected abstract void createFinalTokenResponse();
-
-	protected abstract void sendPingRequestAndVerifyResponse();
+	protected void addCustomValuesToIdToken() {	}
 
 	protected void addCustomSignatureOfIdToken() { }
 
 	protected void onConfigurationCompleted() { }
 
 	protected void validateClientConfiguration() { }
+
+	protected void backchannelEndpointCallComplete() {
+		setStatus(Status.WAITING);
+	}
+
+	protected void tokenEndpointCallComplete() {
+		callAndStopOnFailure(SetNextAllowedTokenRequest.class);
+		setStatus(Status.WAITING);
+	}
+
+	protected HttpStatus createBackchannelResponse() {
+		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
+		return HttpStatus.OK;
+	}
+
+	protected void createIntermediateTokenResponse() {
+		callAndStopOnFailure(CreateAuthorizationPendingResponse.class);
+	}
+
+	protected void createFinalTokenResponse() {
+		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+	}
+
+	protected void sendPingRequestAndVerifyResponse() {
+		callAndStopOnFailure(PingClientNotificationEndpoint.class, Condition.ConditionResult.FAILURE, "CIBA");
+		callAndStopOnFailure(VerifyPingHttpResponseStatusCodeIsNot3XX.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
+		callAndContinueOnFailure(VerifyPingHttpResponseStatusCodeIs204.class, Condition.ConditionResult.WARNING, "CIBA-10.2");
+	}
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
@@ -236,11 +263,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
+		callAndStopOnFailure(AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported.class);
 		if(isBrazil()) {
+			callAndStopOnFailure(CheckCIBAModeIsPoll.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
 		} else {
+			callAndStopOnFailure(AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported.class);
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
 
@@ -261,12 +291,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		exposeEnvString("issuer");
 
 		if(isBrazil()) {
-			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
-			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
-			if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
-				exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
-				exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
-			}
+			expose("obtain_id_token", baseUrl + "/token/obtain");
+			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
+			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		}
@@ -316,6 +343,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				return discoveryEndpoint();
 			case "jwks":
 				return jwksEndpoint();
+			case "token/obtain":
+				return obtainIdToken();
 			case "backchannel":
 				if (ClientAuthType.MTLS.equals(clientAuthType)) {
 					throw new TestFailureException(
@@ -349,25 +378,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().unmapKey("client_request"));
 		setStatus(Status.WAITING);
 
-		if (isBrazil()) {
-
-			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
-				return brazilHandleNewConsentRequest(requestId, false);
-			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
-				return brazilHandleGetConsentRequest(requestId, path, false);
-			}
-
-			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
-				return brazilHandleNewConsentRequest(requestId, true);
-			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
-				return brazilHandleGetConsentRequest(requestId, path, true);
-			}
-
-			if(FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
-				return brazilHandleNewPaymentInitiationRequest(requestId);
-			}
-		}
-
 		switch (path) {
 			case "backchannel":
 				return backchannelEndpoint(requestId);
@@ -376,7 +386,19 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case ACCOUNTS_PATH:
 			case FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH:
 				return accountsEndpoint(requestId);
+			case FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH:
+				return brazilHandleNewConsentRequest(requestId, false);
+			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH:
+				return brazilHandleNewConsentRequest(requestId, true);
+			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH:
+				return brazilHandleNewPaymentInitiationRequest(requestId);
 			default:
+				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
+					return brazilHandleGetConsentRequest(requestId, path, false);
+				}
+				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
+					return brazilHandleGetConsentRequest(requestId, path, true);
+				}
 				throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
 		}
 	}
@@ -460,10 +482,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		checkMtlsCertificate();
 		call(sequence(validateTokenEndpointClientAuthenticationSteps));
 
-		return handleTokenEndpointGrantType(requestId);
+		return handleTokenEndpointGrantType();
 	}
 
-	protected Object handleTokenEndpointGrantType(String requestId){
+	protected Object handleTokenEndpointGrantType(){
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
 		if (grantType == null) {
 			throw new TestFailureException(getId(), "Token endpoint body does not contain the mandatory 'grant_type' parameter");
@@ -473,18 +495,18 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case "client_credentials":
 				if (isBrazil()) {
 					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
-					return clientCredentialsGrantType(requestId);
+					return clientCredentialsGrantType();
 				}
 				break;
 			case "refresh_token":
-				return refreshTokenGrantType(requestId);
+				return refreshTokenGrantType();
 			case "urn:openid:params:grant-type:ciba":
-				return cibaGrantType(requestId);
+				return cibaGrantType();
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
 	}
 
-	protected Object refreshTokenGrantType(String requestId) {
+	protected Object refreshTokenGrantType() {
 		callAndStopOnFailure(ValidateRefreshToken.class);
 
 		issueAccessToken();
@@ -499,7 +521,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	}
 
-	protected Object clientCredentialsGrantType(String requestId) {
+	protected Object clientCredentialsGrantType() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
@@ -512,39 +534,122 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 	}
 
-	protected Object cibaGrantType(String requestId) {
+	protected Object cibaGrantType() {
 		callAndStopOnFailure(VerifyAuthReqId.class, ConditionResult.FAILURE, "CIBA-10.1");
 
-		HttpStatus statusCode = HttpStatus.BAD_REQUEST;
+		HttpStatus statusCode;
 
 		if(VerifyAuthReqIdExpiration.isAuthReqIdExpired(env)) {
 			callAndContinueOnFailure(VerifyAuthReqIdExpiration.class, ConditionResult.INFO);
-			// Just end it here, the auth_req_id is forever expired.
 			throw new TestFailureException(getId(), "expired_token", "The auth_req_id has expired. The client will need to make a new authentication request.");
 		} else {
-
 			callAndStopOnFailure(VerifyThatPollingIntervalIsRespected.class, ConditionResult.FAILURE, "CIBA-7.3");
 
-			createIntermediateTokenResponse();
-			int tokenPollCount = env.getInteger("token_poll_count");
-
-			if (clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
-				issueIdToken();
-				callAndStopOnFailure(GenerateBearerAccessToken.class);
-
-				createFinalTokenResponse();
-				callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
-				statusCode = HttpStatus.OK;
-			}
-			setStatus(Status.WAITING);
+			statusCode = createTokenEndpointResponseForCiba();
 		}
+
+		tokenEndpointCallComplete();
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
 		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), statusCode);
 	}
 
-	private boolean clientHasPolledEnough(int tokenPollCount) {
+	private HttpStatus createTokenEndpointResponseForCiba() {
+		callAndStopOnFailure(IncrementTokenEndpointPollCount.class);
+		int tokenPollCount = env.getInteger("token_poll_count");
+		if (clientWasPinged() || clientHasPolledEnough(tokenPollCount)) {
+			issueAccessToken();
+			issueRefreshToken();
+			issueIdToken();
+
+			createFinalTokenResponse();
+
+			callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
+			return HttpStatus.OK;
+		} else {
+			createIntermediateTokenResponse();
+			return HttpStatus.BAD_REQUEST;
+		}
+	}
+
+	// To facilitate id_token_hint testing
+	private Object obtainIdToken() {
+		setStatus(Status.RUNNING);
+
+		callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
+
+		callAndStopOnFailure(profileSpecificSignIdToken);
+
+		JsonObject response = new JsonObject();
+		response.addProperty("id_token", env.getString("id_token"));
+
+		env.removeObject("id_token_claims");
+		env.removeObject("id_token");
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<Object>(response, HttpStatus.OK);
+	}
+
+	protected void issueIdToken() {
+		prepareIdTokenClaims();
+		signIdToken();
+		encryptIdToken();
+	}
+
+	protected void issueAccessToken() {
+		callAndStopOnFailure(GenerateBearerAccessToken.class);
+		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
+	}
+
+	protected void issueRefreshToken() {
+		callAndStopOnFailure(CreateRefreshToken.class);
+	}
+
+	protected void prepareIdTokenClaims() {
+
+		env.mapKey("authorization_request_object", "backchannel_request_object");
+
+		if(isBrazil()) {
+			callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
+			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+		} else {
+			callAndStopOnFailure(GenerateIdTokenClaims.class);
+		}
+
+		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
+			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+
+		addCustomValuesToIdToken();
+
+		if(isBrazil()) {
+			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
+				FAPIBrazilOBAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+		} else {
+			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
+				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+		}
+
+		env.unmapKey("authorization_request_object");
+
+	}
+
+	protected void signIdToken() {
+		callAndStopOnFailure(profileSpecificSignIdToken);
+		addCustomSignatureOfIdToken();
+	}
+
+	/**
+	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
+	 * "5.2.3.1.  ID Token as detached signature" reads:
+	 *  "5. shall support both signed and signed & encrypted ID Tokens."
+	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
+	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
+	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
+	 */
+	protected void encryptIdToken() { }
+
+	protected boolean clientHasPolledEnough(int tokenPollCount) {
 		return tokenPollCount > 2;
 	}
 
@@ -605,16 +710,25 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		env.unmapKey("authorization_request_object");
 
 		callAndContinueOnFailure(EnsureBackchannelRequestParametersDoNotAppearOutsideJwt.class, ConditionResult.FAILURE, "CIBA-7.1.1");
+		callAndContinueOnFailure(BackchannelRequestHasExactlyOneOfTheHintParameters.class, ConditionResult.FAILURE, "CIBA-7.1");
+		callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1", "CIBA-7.1.1");
 
+		skipIfElementMissing("backchannel_request_object", "claims.id_token_hint", ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
 		if(isBrazil()) {
+			callAndStopOnFailure(ExtractIdTokenHintFromBackchannelEndpointRequest.class, ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+
+			env.mapKey("id_token", "id_token_hint");
+			env.mapKey("authorization_endpoint_request", "backchannel_request_object");
+			callAndContinueOnFailure(ValidateIdTokenHasRequiredBrazilHeaders.class, ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+			call(new PerformStandardIdTokenChecks().replace(ValidateIdToken.class, condition(ValidateIdTokenExcludingIat.class)));
+			callAndContinueOnFailure(VerifyIdTokenValidityIsMinimum180Days.class, ConditionResult.WARNING, "BrazilCIBA-5.2.2");
+			env.unmapKey("authorization_endpoint_request");
+			env.unmapKey("id_token");
+
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
-		callAndContinueOnFailure(BackchannelRequestHasExactlyOneOfTheHintParameters.class, ConditionResult.FAILURE, "CIBA-7.1");
-		skipIfMissing(null, new String[]{ "id_token_hint"}, ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1", "CIBA-7.1.1");
-
-		createBackchannelResponse();
+		HttpStatus httpStatus = createBackchannelResponse();
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
 			spawnThreadForPing();
@@ -623,12 +737,12 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
 		backchannelEndpointCallComplete();
 
-		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), httpStatus);
 	}
 
 	private void spawnThreadForPing() {
 		getTestExecutionManager().runInBackground(() -> {
-			int secondsUntilPing = 10; //TODO: Default 30?
+			int secondsUntilPing = 10;
 			Thread.sleep(secondsUntilPing * 1000L);
 
 			call(exec().startBlock("OP calls the client notification endpoint"));
@@ -653,7 +767,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_endpoint_http_request_params", "backchannel_endpoint_http_request_params");
 
-		// TODO: The OP tests will only send client_id as a parameter in MTLS mode. Should this be validated in some other way for private key? (such as checking the iss in the JWT)
 		if(ClientAuthType.MTLS.equals(clientAuthType)) {
 			callAndContinueOnFailure(EnsureRequiredBackchannelRequestParametersMatchRequestObject.class, ConditionResult.FAILURE, "OIDCC-6.1", "FAPI1-ADV-5.2.3-9");
 			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
@@ -684,7 +797,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
 				CreateEffectiveAuthorizationRequestParameters.CLIENT_ID,
 				ConditionResult.INFO, EnsureMatchingClientId.class, ConditionResult.FAILURE, "OIDCC-3.1.2.1");
-			//skipIfMissing(new String[]{"client"}, null, ConditionResult.INFO, EnsureMatchingClientId.class, ConditionResult.FAILURE, "OIDCC-3.1.2.1");
 		}
 
 		env.unmapKey("authorization_endpoint_http_request_params");
@@ -692,6 +804,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPIValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
+		callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO, "FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
 		callAndContinueOnFailure(NonIssuerAsAudClaim.class, ConditionResult.WARNING, "CIBA-7.1");
@@ -700,62 +813,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");
 	}
-
-	protected void issueIdToken() {
-		prepareIdTokenClaims();
-		signIdToken();
-		encryptIdToken();
-	}
-
-	protected void issueAccessToken() {
-		callAndStopOnFailure(GenerateBearerAccessToken.class);
-		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
-	}
-
-	protected void issueRefreshToken() {
-		callAndStopOnFailure(CreateRefreshToken.class);
-	}
-
-	protected void prepareIdTokenClaims() {
-
-		env.mapKey("authorization_request_object", "backchannel_request_object");
-
-		callAndStopOnFailure(GenerateIdTokenClaims.class);
-		if(isBrazil()) {
-			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
-		}
-
-		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
-			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		addCustomValuesToIdToken();
-
-		if(isBrazil()) {
-			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				FAPIBrazilOBAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-		} else {
-			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-		}
-
-		env.unmapKey("authorization_request_object");
-
-	}
-
-	protected void signIdToken() {
-		callAndStopOnFailure(SignIdToken.class);
-		addCustomSignatureOfIdToken();
-	}
-
-	/**
-	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
-	 * "5.2.3.1.  ID Token as detached signature" reads:
-	 *  "5. shall support both signed and signed & encrypted ID Tokens."
-	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
-	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
-	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
-	 */
-	protected void encryptIdToken() { }
 
 	protected Object accountsEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
@@ -805,7 +862,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
 			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
-		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+
+		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+			ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
 	}
 
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {

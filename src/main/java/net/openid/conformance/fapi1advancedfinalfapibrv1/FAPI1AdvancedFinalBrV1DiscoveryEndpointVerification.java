@@ -3,10 +3,10 @@ package net.openid.conformance.fapi1advancedfinalfapibrv1;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointAuthSignAlgValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptAlgValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptEncValuesIsJsonArray;
+import net.openid.conformance.condition.client.CheckDiscEndpointAuthSignAlgValuesIsJsonArray;
+import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointPARSupported;
@@ -21,9 +21,10 @@ import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBanking
 import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectSigningAlgValuesSupported;
@@ -198,7 +199,8 @@ public class FAPI1AdvancedFinalBrV1DiscoveryEndpointVerification extends Abstrac
 				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6", "BrazilOPIN-page8");
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported.class, Condition.ConditionResult.FAILURE,
 				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-4", "BrazilOB-5.2.2-5", "BrazilOPIN-page8");
-			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken.class, Condition.ConditionResult.FAILURE);
 			if (openInsurance) {
 				callAndContinueOnFailure(FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOPIN-page8");
 			} else {

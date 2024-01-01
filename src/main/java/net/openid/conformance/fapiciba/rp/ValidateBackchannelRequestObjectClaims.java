@@ -1,5 +1,6 @@
 package net.openid.conformance.fapiciba.rp;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -8,6 +9,8 @@ import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 
 public class ValidateBackchannelRequestObjectClaims extends ValidateRequestObjectClaims {
@@ -35,4 +38,26 @@ public class ValidateBackchannelRequestObjectClaims extends ValidateRequestObjec
 			}
 		}
 	}
+
+	@Override
+	protected void validateIat(Environment env, Instant now) {
+		Long iat = env.getLong("authorization_request_object", "claims.iat");
+		if (iat == null) {
+			throw error("Missing iat", args("iat", iat));
+		} else {
+			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
+				throw error("Token issued in the future", args("iat", new Date(iat * 1000L), "now", now));
+			}
+		}
+	}
+
+	@Override
+	protected void validateJti(Environment env) {
+		String jti = env.getString("authorization_request_object", "claims.jti");
+		if (Strings.isNullOrEmpty(jti)) {
+			throw error("Missing jti", args("jti", jti));
+		}
+		super.validateJti(env);
+	}
+
 }

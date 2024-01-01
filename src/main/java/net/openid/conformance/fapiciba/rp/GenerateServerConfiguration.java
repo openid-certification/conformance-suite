@@ -40,8 +40,6 @@ public class GenerateServerConfiguration extends AbstractCondition {
 		server.add("grant_types_supported", grantTypes);
 
 		final JsonArray cibaModes = new JsonArray();
-		cibaModes.add("poll");
-		cibaModes.add("ping");
 		server.add("backchannel_token_delivery_modes_supported", cibaModes);
 
 		server.addProperty("request_parameter_supported", true);
