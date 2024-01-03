@@ -1,7 +1,7 @@
 image: alpine:latest
 
 variables:
-  LM_JAVA_VERSION: 11
+  LM_JAVA_VERSION: 17
 
 stages:
   - build
@@ -21,7 +21,7 @@ stages:
 #  - template: Security/License-Scanning.gitlab-ci.yml
 
 .maven: &maven
-  image: maven:3-jdk-11
+  image: maven:3-openjdk-17
   interruptible: true
   variables:
     MAVEN_CONFIG: $CI_PROJECT_DIR/.m2

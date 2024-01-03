@@ -41,14 +41,15 @@ public class CheckForSubjectInIdToken_UnitTest {
 
 		// Good sample from OpenID Connect Core spec
 
-		JsonObject goodClaims = JsonParser.parseString("{\n" +
-			" \"iss\": \"http://server.example.com\",\n" +
-			" \"sub\": \"248289761001\",\n" +
-			" \"aud\": \"s6BhdRkqt3\",\n" +
-			" \"nonce\": \"n-0S6_WzA2Mj\",\n" +
-			" \"exp\": 1311281970,\n" +
-			" \"iat\": 1311280970\n" +
-			"}").getAsJsonObject();
+		JsonObject goodClaims = JsonParser.parseString("""
+				{
+				 "iss": "http://server.example.com",
+				 "sub": "248289761001",
+				 "aud": "s6BhdRkqt3",
+				 "nonce": "n-0S6_WzA2Mj",
+				 "exp": 1311281970,
+				 "iat": 1311280970
+				}""").getAsJsonObject();
 
 		goodToken = new JsonObject();
 		goodToken.add("claims", goodClaims);
@@ -96,14 +97,15 @@ public class CheckForSubjectInIdToken_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_valueNull() {
 
-		JsonObject nullClaims = JsonParser.parseString("{\n" +
-			" \"iss\": \"http://server.example.com\",\n" +
-			" \"sub\": null,\n" +
-			" \"aud\": \"s6BhdRkqt3\",\n" +
-			" \"nonce\": \"n-0S6_WzA2Mj\",\n" +
-			" \"exp\": 1311281970,\n" +
-			" \"iat\": 1311280970\n" +
-			"}").getAsJsonObject();
+		JsonObject nullClaims = JsonParser.parseString("""
+				{
+				 "iss": "http://server.example.com",
+				 "sub": null,
+				 "aud": "s6BhdRkqt3",
+				 "nonce": "n-0S6_WzA2Mj",
+				 "exp": 1311281970,
+				 "iat": 1311280970
+				}""").getAsJsonObject();
 
 		var tokenWithNull = new JsonObject();
 		tokenWithNull.add("claims", nullClaims);

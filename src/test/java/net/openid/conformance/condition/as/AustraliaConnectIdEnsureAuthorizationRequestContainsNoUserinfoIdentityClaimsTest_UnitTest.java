@@ -42,31 +42,33 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdent
 
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		String requestStr =
-			"    {\n" +
-				"      \"client_id\": \"52480754053\",\n" +
-				"      \"redirect_uri\": \"https://example.com:8443/test/a/oidf-fapi2-op-test/callback\",\n" +
-				"      \"scope\": \"openid\",\n" +
-				"      \"response_type\": \"code\",\n" +
-				"      \"code_challenge\": \"5RXriS_3zf4ASe_cX4LqerLGvNN1rGfUu5_EsqE99lg\",\n" +
-				"      \"code_challenge_method\": \"S256\",\n" +
-				"      \"claims\": {\n" +
-				"        \"id_token\": {\n" +
-				"          \"name\": null,\n" +
-				"          \"given_name\": {},\n" +
-				"          \"family_name\": {\n" +
-				"            \"essential\": true\n" +
-				"          },\n" +
-				"          \"email\": {\n" +
-				"            \"7EimPyJ0oq\": \"eRpxS9SF3u\"\n" +
-				"          },\n" +
-				"          \"birthdate\": {\n" +
-				"            \"essential\": false\n" +
-				"          },\n" +
-				"          \"phone_number\": null,\n" +
-				"          \"address\": {}\n" +
-				"        }\n" +
-				"      }\n" +
-				"    }";
+				"""
+						    {
+						      "client_id": "52480754053",
+						      "redirect_uri": "https://example.com:8443/test/a/oidf-fapi2-op-test/callback",
+						      "scope": "openid",
+						      "response_type": "code",
+						      "code_challenge": "5RXriS_3zf4ASe_cX4LqerLGvNN1rGfUu5_EsqE99lg",
+						      "code_challenge_method": "S256",
+						      "claims": {
+						        "id_token": {
+						          "name": null,
+						          "given_name": {},
+						          "family_name": {
+						            "essential": true
+						          },
+						          "email": {
+						            "7EimPyJ0oq": "eRpxS9SF3u"
+						          },
+						          "birthdate": {
+						            "essential": false
+						          },
+						          "phone_number": null,
+						          "address": {}
+						        }
+						      }
+						    }\
+						""";
 
 		JsonObject requestObj = (JsonObject) JsonParser.parseString(requestStr);
 		addRequestClaims(env, requestObj);
@@ -82,21 +84,22 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdent
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_userinfoClaims() {
 		String userinfoRequestStr =
-			"{\n" +
-			"  \"name\": null,\n" +
-			"  \"given_name\": {},\n" +
-			"  \"family_name\": {\n" +
-			"    \"essential\": true\n" +
-			"  },\n" +
-			"  \"email\": {\n" +
-			"    \"7G53NBuCSL\": \"jR8hZ8SOcr\"\n" +
-			"  },\n" +
-			"  \"birthdate\": {\n" +
-			"    \"essential\": false\n" +
-			"  },\n" +
-			"  \"phone_number\": null,\n" +
-			"  \"address\": {}\n" +
-			"}";
+				"""
+						{
+						  "name": null,
+						  "given_name": {},
+						  "family_name": {
+						    "essential": true
+						  },
+						  "email": {
+						    "7G53NBuCSL": "jR8hZ8SOcr"
+						  },
+						  "birthdate": {
+						    "essential": false
+						  },
+						  "phone_number": null,
+						  "address": {}
+						}""";
 		JsonObject userinfoRequestObj = (JsonObject) JsonParser.parseString(userinfoRequestStr);
 		addRequestClaims(env,request);
 		addUserinfoClaims(env, userinfoRequestObj);
@@ -128,9 +131,10 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdent
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_singleUserinfoclaim() {
 		String userinfoRequestStr =
-			"{\n" +
-				"  \"name\": null\n" +
-			"}";
+				"""
+						{
+						  "name": null
+						}""";
 		JsonObject userinfoRequestObj = (JsonObject) JsonParser.parseString(userinfoRequestStr);
 		addRequestClaims(env,request);
 		addUserinfoClaims(env, userinfoRequestObj);
