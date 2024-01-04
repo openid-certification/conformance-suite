@@ -53,9 +53,10 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 		String requestMethod = v.get("fapi_auth_request_method");
 		String responseMode = v.get("fapi_response_mode");
 		String fapiClientType = v.get("fapi_client_type");
-		boolean par = requestMethod.equals("pushed");
-		boolean jarm = responseMode.equals("jarm");
-		boolean privateKey = clientAuth.equals("private_key_jwt");
+		boolean par = "pushed".equals(requestMethod);
+		boolean jarm = "jarm".equals(responseMode);
+		boolean privateKey = "private_key_jwt".equals(clientAuth);
+		boolean oidc = "oidc".equals(fapiClientType);
 
 		switch (profile) {
 			case "plain_fapi":
@@ -82,6 +83,14 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 			case "openbanking_brazil":
 				certProfile = "BR-OF ";
 				suffix = " (FAPI-BR v2)";
+				if (!privateKey) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for Brazil OpenFinance",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!oidc) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only client type OIDC is used for Brazil OpenFinance",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
 				if (!par) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: pushed authorization requests are required for Brazil OpenFinance",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -97,7 +106,7 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 			case "openbanking_ksa":
 				certProfile = "KSA-OB";
 				if (!par) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only pused request is used for KSA-OB",
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only pushed request is used for KSA-OB",
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
