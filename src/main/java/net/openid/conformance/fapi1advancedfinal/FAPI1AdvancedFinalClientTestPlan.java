@@ -138,7 +138,12 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 		}
 		switch (responseMode) {
 			case "plain_response":
-				// nothing
+				// nothing, but if you're not using JARM you must use oidc as the front channel id token is a required
+				// part of FAPI1
+				if (!fapiClientType.equals("oidc")) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: If 'plain_response' is selected, 'oidc' must be selected as the client type",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
 				break;
 			case "jarm":
 				certProfile += ", JARM";
