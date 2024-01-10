@@ -953,7 +953,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		if (fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
+		if (clientAuthType == ClientAuthType.MTLS || fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
 		}
 
