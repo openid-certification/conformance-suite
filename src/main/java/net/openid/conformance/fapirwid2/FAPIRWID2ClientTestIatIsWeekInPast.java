@@ -4,6 +4,8 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddIatValueIsWeekInPastToIdToken;
 import net.openid.conformance.condition.as.ClientContinuedAfterReceivingIdTokenIssuedInPast;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantNotApplicable;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
