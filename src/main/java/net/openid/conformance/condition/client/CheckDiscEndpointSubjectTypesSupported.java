@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
-public class OIDCCCheckDiscEndpointSubjectTypesSupported extends AbstractValidateJsonArray {
+public class CheckDiscEndpointSubjectTypesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "subject_types_supported";
 

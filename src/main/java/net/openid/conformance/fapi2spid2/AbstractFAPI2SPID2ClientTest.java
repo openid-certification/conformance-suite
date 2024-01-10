@@ -16,6 +16,7 @@ import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfigurat
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfiguration;
 import net.openid.conformance.condition.as.AddSubjectTypesSupportedPairwiseToServerConfiguration;
+import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedToServerConfiguration;
@@ -320,6 +321,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-SP-ID2-4.3.1-13"));
 		if (fapiClientType == FAPIClientType.OIDC) {
 			call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
+
+			if (profile != FAPI2ID2OPProfile.CONNECTID_AU) {
+				call(condition(AddSubjectTypesSupportedToServerConfiguration.class).requirement("OIDCD-3"));
+			}
 		}
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {

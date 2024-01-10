@@ -12,6 +12,7 @@ import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointRespons
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
@@ -318,6 +319,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
 			callAndStopOnFailure(SetRequestParameterSupportedToTrueInServerConfiguration.class);
+		}
+
+		if (fapiClientType == FAPIClientType.OIDC) {
+			call(condition(AddSubjectTypesSupportedToServerConfiguration.class).requirement("OIDCD-3"));
 		}
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
