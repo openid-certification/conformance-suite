@@ -3,6 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.as.AddIatValueIsWeekInPastToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.FAPIResponseMode;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-test-iat-is-week-in-past",
