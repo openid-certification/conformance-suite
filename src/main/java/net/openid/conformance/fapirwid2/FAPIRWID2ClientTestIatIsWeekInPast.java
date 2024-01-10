@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 
+@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
 public class FAPIRWID2ClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Override

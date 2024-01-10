@@ -18,6 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
+@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
 public class FAPI1AdvancedFinalClientTestIatIsWeekInPast extends AbstractFAPI1AdvancedFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
