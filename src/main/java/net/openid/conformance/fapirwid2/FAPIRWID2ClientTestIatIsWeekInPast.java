@@ -4,8 +4,6 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddIatValueIsWeekInPastToIdToken;
 import net.openid.conformance.condition.as.ClientContinuedAfterReceivingIdTokenIssuedInPast;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.variant.FAPIResponseMode;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPIResponseMode.class, values = {"jarm"})
 public class FAPIRWID2ClientTestIatIsWeekInPast extends AbstractFAPIRWID2ClientExpectNothingAfterAuthorizationEndpoint {
 
 	@Override
