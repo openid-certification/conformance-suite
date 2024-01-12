@@ -299,11 +299,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected void endTestIfRequiredParametersAreMissing(){}
 
-	protected Boolean isDpop() {
+	protected Boolean isDpopConstrain() {
 		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP;
 	}
 
-	protected Boolean isMTLS() {
+	protected Boolean isMTLSConstrain() {
 		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS;
 	}
 
@@ -358,9 +358,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
 		}
 
-		if (isMTLS()) {
+		if (isMTLSConstrain()) {
 			callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
-		} else if (isDpop()) {
+		} else if (isDpopConstrain()) {
 			callAndStopOnFailure(AddDpopSigningAlgValuesSupportedToServerConfiguration.class, "DPOP-5.1");
 		}
 
@@ -391,7 +391,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		} else {
-			if (isMTLS()) {
+			if (isMTLSConstrain()) {
 				exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			} else {
 				exposePath("accounts_endpoint", ACCOUNTS_PATH);
@@ -532,7 +532,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if (isMTLS()) {
+			if (isMTLSConstrain()) {
 				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
 			}
 			return userinfoEndpoint(requestId);
@@ -560,7 +560,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 
-			if (isMTLS()) {
+			if (isMTLSConstrain()) {
 				throw new TestFailureException(getId(), "The accounts endpoint must be called over an mTLS secured connection.");
 			}
 
@@ -589,7 +589,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if (path.equals("token")) {
 			return tokenEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH) || path.equals(FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH)) {
-			if (!isMTLS()) {
+			if (!isMTLSConstrain()) {
 				throw new TestFailureException(getId(), "The accounts endpoint must not be called over an mTLS secured connection.");
 			}
 
@@ -683,7 +683,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE,"FAPI1-BASE-6.2.1-11");
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
@@ -730,7 +730,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		env.putString("requested_consent_id", requestedConsentId);
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
@@ -797,7 +797,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
@@ -923,13 +923,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if(env.containsObject("authorization_request_object")) {
 			validateRequestObjectForPAREndpointRequest();
 		}
-		if(isDpop()) {
+		if(isDpopConstrain()) {
 			senderConstrainTokenRequestHelper.checkParRequest();
 			callAndContinueOnFailure(ExtractParAuthorizationCodeDpopBindingKey.class, ConditionResult.FAILURE, "DPOP-10");
 		}
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("par_endpoint_response"), headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status").intValue()));
 		}  else {
@@ -959,7 +959,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		call(exec().startBlock("Userinfo endpoint")
 			.mapKey("incoming_request", requestId));
 
-		if (isMTLS() || profileRequiresMtlsEverywhere) {
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
 			call(exec().mapKey("token_endpoint_request", requestId));
 			checkMtlsCertificate();
 			call(exec().unmapKey("token_endpoint_request"));
@@ -981,7 +981,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
@@ -1015,20 +1015,20 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
-		if(isDpop()) {
+		if(isDpopConstrain()) {
 			call(exec().mapKey("incoming_request", requestId));
 		}
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		if (clientAuthType == ClientAuthType.MTLS || isMTLS()  || profileRequiresMtlsEverywhere) {
+		if (clientAuthType == ClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
 		}
 
 		call(sequence(validateClientAuthenticationSteps));
 
 		Object tokenResponseOb =  handleTokenEndpointGrantType(requestId);
-		if(isDpop()) {
+		if(isDpopConstrain()) {
 			call(exec().unmapKey("incoming_request"));
 		}
 		return tokenResponseOb;
@@ -1083,7 +1083,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 		ResponseEntity<Object> responseObject = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
 		} else {
@@ -1093,7 +1093,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 			// this puts the client credentials specific token into its own box for later
-			if(isMTLS()) {
+			if(isMTLSConstrain()) {
 				callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
 			} else  {
 				callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
@@ -1116,7 +1116,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 
 		ResponseEntity<Object> responseObject = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
 		} else {
@@ -1450,7 +1450,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		senderConstrainTokenRequestHelper.checkResourceRequest();
 
 		ResponseEntity<Object> responseObject = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
@@ -1486,7 +1486,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		if (isMTLS() || profileRequiresMtlsEverywhere) {
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
 		}
 
@@ -1517,7 +1517,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpop() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
