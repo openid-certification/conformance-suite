@@ -79,6 +79,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		FAPI2SPID2EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
 		FAPI2SPID2EnsureClientAssertionWithWrongAudFails.class,
 		FAPI2SPID2EnsureClientAssertionWithNoSubFails.class,
+		FAPI2SPID2EnsureClientAssertionWithIssAudSucceeds.class,
 
 		FAPI2SPID2DpopNegativeTests.class,
 
