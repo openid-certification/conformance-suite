@@ -3,7 +3,6 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
@@ -68,11 +67,10 @@ public class FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails extends
 	}
 
 	@Override
-	protected void requestAuthorizationCode() {
+	protected void processTokenEndpointResponse() {
 		/* If we get an error back from the token endpoint server:
 		 * - It must be a 'invalid_client' error
 		 */
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-19");
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClient.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
