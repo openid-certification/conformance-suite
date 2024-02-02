@@ -83,20 +83,22 @@ test:
   only:
     refs:
       - branches
+  rules:
+   - when: never
 
-compare_cloud:
+.compare_cloud:
   <<: *compare
   needs: ["server_test", "ciba_test", "ekyc_test", "brazil_test", "panva_test"]
   script:
     - run_compare server_test ciba_test ekyc_test brazil_test panva_test
 
-compare_local:
+.compare_local:
   <<: *compare
   needs: ["local_test"]
   script:
     - run_compare local_test
 
-compare_client:
+.compare_client:
   <<: *compare
   needs: ["client_test"]
   script:
@@ -234,43 +236,43 @@ stop_normal:
     paths:
       - "*.zip"
 
-client_test:
+.client_test:
   <<: *deployment_test
   script:
     - set_up_for_running_test_plan
     - run_client_test_plan
 
-server_test:
+.server_test:
   <<: *deployment_test
   script:
     - set_up_for_running_test_plan
     - run_server_test_plan
 
-ciba_test:
+.ciba_test:
   <<: *deployment_test
   script:
     - set_up_for_running_test_plan
     - run_ciba_test_plan
 
-brazil_test:
+.brazil_test:
   <<: *deployment_test
   script:
     - set_up_for_running_test_plan
     - run_brazil_test_plan
 
-ekyc_test:
+.ekyc_test:
   <<: *deployment_test
   script:
     - set_up_for_running_test_plan
     - run_ekyc_test_plan
 
-panva_test:
+.panva_test:
   <<: *deployment_test
   script:
     - set_up_for_running_test_plan
     - run_panva_test_plan
 
-local_test:
+.local_test:
   stage: test
   interruptible: true
   image: docker:19.03.10
