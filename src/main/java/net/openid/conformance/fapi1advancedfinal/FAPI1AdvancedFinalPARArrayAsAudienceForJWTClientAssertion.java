@@ -13,6 +13,7 @@ import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnothe
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-test-array-as-audience-for-client-JWT-assertion",
+	summary = "This test sets the audience in client assertion claims at the PAR and token endpoints to be an array containing the authorization server issuer and another dummy value. The authorization server is expected to accept both requests as per discussion at https://gitlab.com/openid/conformance-suite/-/issues/1187",
 	displayName = "Try to use an array containing the issuer and another value as the audience for Client JWT Assertions at the PAR and token endpoints",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
