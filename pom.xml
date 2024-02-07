@@ -11,6 +11,14 @@
 	<name>Conformance Suite</name>
 	<description>Network based protocol tester for OpenID Foundation specifications etc.</description>
 
+	<repositories>
+		<repository>
+			<id>gmaven</id>
+			<name>gmaven</name>
+			<url>https://maven.google.com</url>
+		</repository>
+	</repositories>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -181,6 +189,12 @@
 			<groupId>com.vdurmont</groupId>
 			<artifactId>semver4j</artifactId>
 			<version>3.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.android.identity</groupId>
+			<artifactId>identity-credential</artifactId>
+			<version>20231002</version>
 		</dependency>
 
 		<dependency>
