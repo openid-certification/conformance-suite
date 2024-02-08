@@ -1,5 +1,9 @@
 image: alpine:latest
 
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
 variables:
   LM_JAVA_VERSION: 17
 
