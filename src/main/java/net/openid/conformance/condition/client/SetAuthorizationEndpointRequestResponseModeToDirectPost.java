@@ -14,7 +14,8 @@ public class SetAuthorizationEndpointRequestResponseModeToDirectPost extends Abs
 	public Environment evaluate(Environment env) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		authorizationEndpointRequest.addProperty("response_mode", "direct_post");
+		authorizationEndpointRequest.addProperty("response_mode", "direct_post.jwt");
+		authorizationEndpointRequest.addProperty("client_id_scheme", "x509_san_uri"); // FIXME: use x509_san_dns instead, as per the only one that's supported B.3.1.3.1B.3.1.3.1	Static set of Wallet Metadata in IOS 18013-7
 
 		logSuccess("Added response_mode parameter to request", authorizationEndpointRequest);
 

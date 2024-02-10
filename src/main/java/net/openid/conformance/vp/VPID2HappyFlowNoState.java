@@ -11,7 +11,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Expects the wallet to correctly process a request without state",
 	profile = "OID4VP-ID2",
 	configurationFields = {
-		"client.presentation_definition"
+		"client.presentation_definition",
+		"client.jwks"
 	}
 )
 

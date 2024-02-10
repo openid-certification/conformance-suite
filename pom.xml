@@ -196,6 +196,13 @@
 			<artifactId>identity-credential</artifactId>
 			<version>20231002</version>
 		</dependency>
+		<!-- without adding an explicit dependency on cbor a call to CborUtil.toDiagnostics failed with
+		the error 'class file for co.nstant.in.cbor.model.DataItem not found' -->
+		<dependency>
+			<groupId>co.nstant.in</groupId>
+			<artifactId>cbor</artifactId>
+			<version>0.9</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>

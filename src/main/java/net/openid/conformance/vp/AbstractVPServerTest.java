@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddFormBasedClientIdAuthenticationParameters;
@@ -43,6 +44,7 @@ import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointR
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
@@ -68,6 +70,7 @@ import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
+import net.openid.conformance.condition.client.ParseVpTokenAsMdoc;
 import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
@@ -75,6 +78,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToFormPost;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
+import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -372,6 +376,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
 
+		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
+		env.putInteger("requested_nonce_length", 16);
+
 		callAndStopOnFailure(CreateDirectPostResponseUri.class);
 		callAndStopOnFailure(SetClientIdToResponseUri.class);
 
@@ -577,44 +584,58 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.FAILURE);
 
-		callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromFormBody.class, ConditionResult.FAILURE);
+		if (true) {
+			// FIXME: verify no parameters other than response
+			callAndStopOnFailure(DecryptResponse.class);
+			// FIXME: need to validate jwe header
+		} else {
+			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromFormBody.class, ConditionResult.FAILURE);
+		}
+
 		// vp token may be an object containing multiple tokens, https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
 		// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assme only a single token here
 		callAndStopOnFailure(ExtractVpToken.class, ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
-		callAndStopOnFailure(ParseVpTokenAsSdJwt.class, ConditionResult.FAILURE);
-
 		// FIXME: extract / verify presentation_submission
 
-		eventLog.startBlock(currentClientString() + "Verify credential JWT");
-		// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
-		// FIXME check iss is a valid uri
-		callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");
-		// FIXME nbf
-		// FIXME exp
-		// cnf is checked when holder binding is checked below
-		// FIXME type
-		// FIXME status
+		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
+		if (true) {
+			// mdoc
+			// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure  as defined in ISO/IEC 18013-5.
+			callAndStopOnFailure(ParseVpTokenAsMdoc.class);
+		} else {
+			// SD-JWT
+			callAndStopOnFailure(ParseVpTokenAsSdJwt.class, ConditionResult.FAILURE);
 
-		eventLog.startBlock(currentClientString() + "Verify holder binding JWT");
-		// https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-key-binding-jwt
+			eventLog.startBlock(currentClientString() + "Verify credential JWT");
+			// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
+			// FIXME check iss is a valid uri
+			callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");
+			// FIXME nbf
+			// FIXME exp
+			// cnf is checked when holder binding is checked below
+			// FIXME type
+			// FIXME status
 
-		callAndContinueOnFailure(ValidateSdJwtHolderBindingSignature.class, ConditionResult.FAILURE, "SDJWT-5.10");
+			eventLog.startBlock(currentClientString() + "Verify holder binding JWT");
+			// https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-key-binding-jwt
 
-		callAndContinueOnFailure(CheckTypInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
-		// alg is checked during signature validation
+			callAndContinueOnFailure(ValidateSdJwtHolderBindingSignature.class, ConditionResult.FAILURE, "SDJWT-5.10");
 
-		callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
-		callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
-		callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+			callAndContinueOnFailure(CheckTypInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+			// alg is checked during signature validation
 
-		// FIXME: verify disclosures have different nonces if there are multiple
+			callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+			callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+			callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
 
-		// FIXME: verify sig on sd jwt (lissi use did:jwk though)
+			// FIXME: verify disclosures have different nonces if there are multiple
 
-		// FIXME: verify credential contents?
+			// FIXME: verify sig on sd jwt (lissi use did:jwk though)
+
+			// FIXME: verify credential contents?
+		}
 
 		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
 		JsonObject response = new JsonObject();
@@ -636,7 +657,13 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-			callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
+			if (true) {
+				callAndStopOnFailure(AddAudToRequestObject.class);
+				callAndStopOnFailure(SignRequestObject.class);
+			} else {
+				// unsigned
+				callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
+			}
 
 			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class);
 		}
@@ -833,7 +860,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		eventLog.log(getName(), "Wallet has retrieved request_uri - waiting for it to call the response_uri");
 
 		return ResponseEntity.ok()
-			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
+			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_OAUTH_OAUTHZ_REQ_JWT)
 			.body(requestObject);
 	}
 

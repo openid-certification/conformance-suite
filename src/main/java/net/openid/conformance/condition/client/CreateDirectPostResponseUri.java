@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -15,6 +16,11 @@ public class CreateDirectPostResponseUri extends AbstractCondition {
 
 		if (baseUrl.isEmpty()) {
 			throw error("Base URL is empty");
+		}
+
+		String externalUrlOverride = env.getString("external_url_override");
+		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
+			baseUrl = externalUrlOverride;
 		}
 
 		String responseUri = baseUrl + "/responseuri";

@@ -75,6 +75,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 			if (includeX5tS256) {
 				builder.x509CertSHA256Thumbprint(signingJwk.computeThumbprint());
 			}
+			builder.x509CertChain(signingJwk.getX509CertChain());//FIXME
 			builder.keyID(signingJwk.getKeyID());
 			JWSHeader header = builder.build();
 
