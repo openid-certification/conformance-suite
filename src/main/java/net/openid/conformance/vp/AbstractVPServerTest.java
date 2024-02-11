@@ -75,7 +75,7 @@ import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPost;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToFormPost;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPostJwt;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SignRequestObject;
@@ -91,6 +91,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateSdJwtHolderBindingSignature;
+import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -108,9 +109,11 @@ import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.ResponseMode;
+import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VPRequestObject;
+import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -124,10 +127,12 @@ import javax.servlet.http.HttpSession;
 import java.util.function.Supplier;
 
 @VariantParameters({
+	CredentialFormat.class,
 	ServerMetadata.class,
 	ClientAuthType.class,
 	ResponseType.class,
-	ResponseMode.class,
+	VPResponseMode.class,
+	VPRequestObject.class,
 	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
@@ -166,18 +171,11 @@ import java.util.function.Supplier;
 	"client2.client_secret",
 	"client2.jwks"
 })
-@VariantHidesConfigurationFields(parameter = ResponseType.class, value = "id_token", configurationFields = {
-	"server.token_endpoint"
-	/* we don't exclude "server.userinfo_endpoint" as this would prevent it appearing in the 'implicit' configuration
-	* form - see comment in TestPlanModuleWithVariant's constructor */
-})
-@VariantHidesConfigurationFields(parameter = ResponseType.class, value = "id_token token", configurationFields = {
-	"server.token_endpoint"
-})
 public abstract class AbstractVPServerTest extends AbstractRedirectServerTestModule {
 
 	protected ResponseType responseType;
-	protected boolean formPost;
+	protected VPResponseMode responseMode;
+	protected CredentialFormat credentialFormat;
 	protected Boolean pre_id2 = null;
 	private boolean serverSupportsDiscovery;
 
@@ -367,7 +365,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			fireTestFinished();
 			return;
 		}
-		formPost = getVariant(ResponseMode.class) == ResponseMode.FORM_POST;
 		serverSupportsDiscovery = getVariant(ServerMetadata.class) == ServerMetadata.DISCOVERY;
 
 		ClientAuthType clientAuthType = getVariant(ClientAuthType.class);
@@ -375,6 +372,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
+
+		responseMode = getVariant(VPResponseMode.class);
+		credentialFormat = getVariant(CredentialFormat.class);
 
 		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
 		env.putInteger("requested_nonce_length", 16);
@@ -528,10 +528,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
-		protected boolean formPost;
+		private VPResponseMode responseMode;
 
-		public CreateAuthorizationRequestSteps(boolean formPost) {
-			this.formPost = formPost;
+		public CreateAuthorizationRequestSteps(VPResponseMode responseMode) {
+			this.responseMode = responseMode;
 		}
 		@Override
 		public void evaluate() {
@@ -548,13 +548,16 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			call(exec().exposeEnvironmentString("nonce"));
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-//			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeFromEnvironment.class);
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToVpToken.class);
 			callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
 
-			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPost.class);
-			if (formPost) {
-				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToFormPost.class);
+			switch (responseMode) {
+				case DIRECT_POST:
+					callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPost.class);
+					break;
+				case DIRECT_POST_JWT:
+					callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPostJwt.class);
+					break;
 			}
 		}
 	}
@@ -564,7 +567,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected ConditionSequence createAuthorizationRequestSequence() {
-		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(formPost);
+		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(responseMode);
 
 		if (pre_id2) {
 			createAuthorizationRequestSteps = createAuthorizationRequestSteps.
@@ -584,12 +587,17 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.FAILURE);
 
-		if (true) {
-			// FIXME: verify no parameters other than response
-			callAndStopOnFailure(DecryptResponse.class);
-			// FIXME: need to validate jwe header
-		} else {
-			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromFormBody.class, ConditionResult.FAILURE);
+		switch (responseMode) {
+			case DIRECT_POST:
+				callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromFormBody.class, ConditionResult.FAILURE);
+				break;
+			case DIRECT_POST_JWT:
+				// currently only supports encrypted-not-signed as used by mdl
+				// FIXME: verify no parameters other than response
+				callAndStopOnFailure(DecryptResponse.class);
+				// FIXME: need to validate jwe header
+				// FIXME iss, exp and aud MUST be omitted in the JWT Claims Set of the JWE
+				break;
 		}
 
 		// vp token may be an object containing multiple tokens, https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
@@ -600,41 +608,45 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
-		if (true) {
-			// mdoc
-			// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure  as defined in ISO/IEC 18013-5.
-			callAndStopOnFailure(ParseVpTokenAsMdoc.class);
-		} else {
-			// SD-JWT
-			callAndStopOnFailure(ParseVpTokenAsSdJwt.class, ConditionResult.FAILURE);
 
-			eventLog.startBlock(currentClientString() + "Verify credential JWT");
-			// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
-			// FIXME check iss is a valid uri
-			callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");
-			// FIXME nbf
-			// FIXME exp
-			// cnf is checked when holder binding is checked below
-			// FIXME type
-			// FIXME status
+		switch (credentialFormat) {
+			case ISO_MDL:
+				// mdoc
+				callAndContinueOnFailure(ValidateVpTokenIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
+				callAndStopOnFailure(ParseVpTokenAsMdoc.class);
+				break;
 
-			eventLog.startBlock(currentClientString() + "Verify holder binding JWT");
-			// https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-key-binding-jwt
+			case SD_JWT_VC:
+				callAndStopOnFailure(ParseVpTokenAsSdJwt.class, ConditionResult.FAILURE);
 
-			callAndContinueOnFailure(ValidateSdJwtHolderBindingSignature.class, ConditionResult.FAILURE, "SDJWT-5.10");
+				eventLog.startBlock(currentClientString() + "Verify credential JWT");
+				// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
+				// FIXME check iss is a valid uri
+				callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");
+				// FIXME nbf
+				// FIXME exp
+				// cnf is checked when holder binding is checked below
+				// FIXME type
+				// FIXME status
 
-			callAndContinueOnFailure(CheckTypInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
-			// alg is checked during signature validation
+				eventLog.startBlock(currentClientString() + "Verify holder binding JWT");
+				// https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-key-binding-jwt
 
-			callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
-			callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
-			callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+				callAndContinueOnFailure(ValidateSdJwtHolderBindingSignature.class, ConditionResult.FAILURE, "SDJWT-5.10");
 
-			// FIXME: verify disclosures have different nonces if there are multiple
+				callAndContinueOnFailure(CheckTypInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+				// alg is checked during signature validation
 
-			// FIXME: verify sig on sd jwt (lissi use did:jwk though)
+				callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+				callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
+				callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
 
-			// FIXME: verify credential contents?
+				// FIXME: verify disclosures have different nonces if there are multiple
+
+				// FIXME: verify sig on sd jwt (lissi use did:jwk though)
+
+				// FIXME: verify credential contents?
+				break;
 		}
 
 		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
@@ -657,7 +669,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 
-			if (true) {
+			if (tffrue) {
 				callAndStopOnFailure(AddAudToRequestObject.class);
 				callAndStopOnFailure(SignRequestObject.class);
 			} else {

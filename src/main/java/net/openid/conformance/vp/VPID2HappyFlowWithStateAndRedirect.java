@@ -1,7 +1,7 @@
 package net.openid.conformance.vp;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AddRandomParameterAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -33,7 +33,7 @@ public class VPID2HappyFlowWithStateAndRedirect extends AbstractVPServerTest {
 		ConditionSequence createAuthorizationRequestSteps = super.createAuthorizationRequestSequence();
 
 		createAuthorizationRequestSteps = createAuthorizationRequestSteps.
-			then(condition(AddRandomParameterAuthorizationEndpointRequest.class));
+			then(condition(AddRandomParameterToAuthorizationEndpointRequest.class));
 
 		return createAuthorizationRequestSteps;
 	}

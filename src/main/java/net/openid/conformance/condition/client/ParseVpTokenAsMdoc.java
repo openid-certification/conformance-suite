@@ -12,6 +12,7 @@ public class ParseVpTokenAsMdoc extends AbstractCondition {
 	@PreEnvironment(strings = "vp_token")
 	//@PostEnvironment(required = "sdjwt")
 	public Environment evaluate(Environment env) {
+		// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure as defined in ISO/IEC 18013-5.
 		String mdocBase64 = env.getString("vp_token");
 
 		byte[] bytes = new Base64URL(mdocBase64).decode();

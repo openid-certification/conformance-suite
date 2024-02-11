@@ -7,7 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
 
-public class AddRandomParameterAuthorizationEndpointRequest extends AbstractCondition {
+public class AddRandomParameterToAuthorizationEndpointRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_request"})
