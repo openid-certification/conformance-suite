@@ -23,7 +23,8 @@ import javax.servlet.http.HttpSession;
 )
 
 public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
-
+// FIXME for x509 dns the client id we try needs to be on a different hostname; but even this is permitted by the specs in some cases:
+// "If the Wallet can establish trust in the Client Identifier authenticated through the certificate, e.g. because the Client Identifier is contained in a list of trusted Client Identifiers, it may allow the client to freely choose the redirect_uri value."
 	@Override
 	protected ConditionSequence createAuthorizationRequestSequence() {
 		ConditionSequence createAuthorizationRequestSteps = super.createAuthorizationRequestSequence();

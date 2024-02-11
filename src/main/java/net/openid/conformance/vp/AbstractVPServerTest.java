@@ -76,10 +76,13 @@ import net.openid.conformance.condition.client.ParseVpTokenAsMdoc;
 import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPost;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPostJwt;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
+import net.openid.conformance.condition.client.SetClientIdToResponseUriHostname;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
@@ -114,6 +117,7 @@ import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VPClientIdScheme;
 import net.openid.conformance.variant.VPRequestMethod;
 import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -130,6 +134,7 @@ import java.util.function.Supplier;
 
 @VariantParameters({
 	CredentialFormat.class,
+	VPClientIdScheme.class,
 	ServerMetadata.class,
 	ClientAuthType.class,
 	ResponseType.class,
@@ -179,6 +184,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	protected VPResponseMode responseMode;
 	protected VPRequestMethod requestMethod;
 	protected CredentialFormat credentialFormat;
+	protected VPClientIdScheme clientIdScheme;
 	protected Boolean pre_id2 = null;
 	private boolean serverSupportsDiscovery;
 
@@ -379,12 +385,27 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		responseMode = getVariant(VPResponseMode.class);
 		credentialFormat = getVariant(CredentialFormat.class);
 		requestMethod = getVariant(VPRequestMethod.class);
+		clientIdScheme = getVariant(VPClientIdScheme.class);
 
 		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
 		env.putInteger("requested_nonce_length", 16);
 
-		callAndStopOnFailure(CreateDirectPostResponseUri.class);
-		callAndStopOnFailure(SetClientIdToResponseUri.class);
+		switch (responseMode) {
+			case DIRECT_POST:
+			case DIRECT_POST_JWT:
+				callAndStopOnFailure(CreateDirectPostResponseUri.class);
+				break;
+		}
+
+		switch (clientIdScheme) {
+			case REDIRECT_URI:
+				callAndStopOnFailure(SetClientIdToResponseUri.class);
+				break;
+			case X509_SAN_DNS:
+				// FIXME: verify that hostname is actually in the certificate
+				callAndStopOnFailure(SetClientIdToResponseUriHostname.class);
+				break;
+		}
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("response_uri");
@@ -533,10 +554,15 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 		private VPResponseMode responseMode;
+		private CredentialFormat credentialFormat;
+		private VPClientIdScheme clientIdScheme;
 
-		public CreateAuthorizationRequestSteps(VPResponseMode responseMode) {
+		public CreateAuthorizationRequestSteps(VPResponseMode responseMode, CredentialFormat credentialFormat, VPClientIdScheme clientIdScheme) {
 			this.responseMode = responseMode;
+			this.credentialFormat = credentialFormat;
+			this.clientIdScheme = clientIdScheme;
 		}
+
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
@@ -552,8 +578,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			call(exec().exposeEnvironmentString("nonce"));
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-			// FIXME: mdl only? or signed only?
-			callAndStopOnFailure(AddIsoMdocClientMetadataToAuthorizationRequest.class);
+			if (credentialFormat == CredentialFormat.ISO_MDL) {
+				callAndStopOnFailure(AddIsoMdocClientMetadataToAuthorizationRequest.class);
+			}
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToVpToken.class);
 			callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
@@ -566,6 +593,17 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 					callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPostJwt.class);
 					break;
 			}
+
+			switch (clientIdScheme) {
+				case REDIRECT_URI:
+					callAndStopOnFailure(SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri.class, "OID4VP-5.7");
+					break;
+				case X509_SAN_DNS:
+					// use x509_san_dns as per the only one that's supported B.3.1.3.1	Static set of Wallet Metadata in IOS 18013-7
+					callAndStopOnFailure(SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns.class, "OID4VP-5.7");
+					break;
+			}
+
 		}
 	}
 
@@ -574,7 +612,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected ConditionSequence createAuthorizationRequestSequence() {
-		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(responseMode);
+		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(responseMode, credentialFormat, clientIdScheme);
 
 		if (pre_id2) {
 			createAuthorizationRequestSteps = createAuthorizationRequestSteps.

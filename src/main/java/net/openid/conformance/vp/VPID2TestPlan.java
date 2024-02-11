@@ -7,6 +7,7 @@ import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VPClientIdScheme;
 import net.openid.conformance.variant.VPRequestMethod;
 import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantSelection;
@@ -40,7 +41,7 @@ public class VPID2TestPlan implements TestPlan {
 					// sending invalid client_id_scheme should cause an error?
 					// flow without nonce
 					// for signed requests, bad signature
-					// for x509 client id scheme, check rules, but try a client_id that's not permitted by the cert?
+					// for x509 client id scheme, try a client_id that's not permitted by the cert?
 				),
 				List.of(
 					// a hack; not actually id_token we'll hardwire vp token
@@ -59,6 +60,7 @@ public class VPID2TestPlan implements TestPlan {
 		String responseMode = v.get("response_mode");
 		String credentialFormat = v.get("credential_format");
 		String requestMethod = v.get("request_method");
+		String clientIDScheme = v.get("client_id_scheme");
 
 		String certProfile = "OID4VPID2";
 
@@ -69,6 +71,10 @@ public class VPID2TestPlan implements TestPlan {
 			}
 			if (!requestMethod.equals(VPRequestMethod.REQUEST_URI_SIGNED.toString())) {
 				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires signed request uri",
+					MethodHandles.lookup().lookupClass().getSimpleName()));
+			}
+			if (!clientIDScheme.equals(VPClientIdScheme.X509_SAN_DNS.toString())) {
+				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires client_id_scheme x509_san_dns",
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			}
 		}

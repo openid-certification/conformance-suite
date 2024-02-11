@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class SetAuthorizationEndpointRequestResponseModeToDirectPostJwt extends AbstractCondition {
+public class SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_request")
@@ -14,9 +14,8 @@ public class SetAuthorizationEndpointRequestResponseModeToDirectPostJwt extends 
 	public Environment evaluate(Environment env) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		authorizationEndpointRequest.addProperty("response_mode", "direct_post.jwt");
-
-		log("Added response_mode parameter to request", authorizationEndpointRequest);
+		authorizationEndpointRequest.addProperty("client_id_scheme", "x509_san_dns");
+		log("Added client_id_scheme parameter to request", authorizationEndpointRequest);
 
 		return env;
 	}
