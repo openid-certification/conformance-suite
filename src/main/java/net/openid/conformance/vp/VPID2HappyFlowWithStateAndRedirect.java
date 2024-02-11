@@ -25,6 +25,10 @@ public class VPID2HappyFlowWithStateAndRedirect extends AbstractVPServerTest {
 		callAndStopOnFailure(CreateRedirectUri.class);
 		// try a longer nonce
 		env.putInteger("requested_nonce_length", 32);
+
+		// also use a longer state value than is used by default
+		env.putInteger("requested_state_length", 64);
+
 		// FIXME: is response_uri is optional when using the redirect_uri scheme; if so we should omit it in this test: https://github.com/openid/OpenID4VP/issues/93
 	}
 

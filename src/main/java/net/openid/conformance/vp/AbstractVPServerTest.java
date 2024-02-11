@@ -6,17 +6,19 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddFormBasedClientIdAuthenticationParameters;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
+import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddRequestUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddResponseUriAsRedirectUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
@@ -112,7 +114,7 @@ import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
-import net.openid.conformance.variant.VPRequestObject;
+import net.openid.conformance.variant.VPRequestMethod;
 import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -132,7 +134,7 @@ import java.util.function.Supplier;
 	ClientAuthType.class,
 	ResponseType.class,
 	VPResponseMode.class,
-	VPRequestObject.class,
+	VPRequestMethod.class,
 	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
@@ -175,6 +177,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 	protected ResponseType responseType;
 	protected VPResponseMode responseMode;
+	protected VPRequestMethod requestMethod;
 	protected CredentialFormat credentialFormat;
 	protected Boolean pre_id2 = null;
 	private boolean serverSupportsDiscovery;
@@ -375,6 +378,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 		responseMode = getVariant(VPResponseMode.class);
 		credentialFormat = getVariant(CredentialFormat.class);
+		requestMethod = getVariant(VPRequestMethod.class);
 
 		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
 		env.putInteger("requested_nonce_length", 16);
@@ -548,6 +552,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			call(exec().exposeEnvironmentString("nonce"));
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
+			// FIXME: mdl only? or signed only?
+			callAndStopOnFailure(AddIsoMdocClientMetadataToAuthorizationRequest.class);
+
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToVpToken.class);
 			callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
 
@@ -664,28 +671,37 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	public static class CreateAuthorizationRedirectStepsUnsignedRequestUri extends AbstractConditionSequence {
-
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-
-			if (tffrue) {
-				callAndStopOnFailure(AddAudToRequestObject.class);
-				callAndStopOnFailure(SignRequestObject.class);
-			} else {
-				// unsigned
-				callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
-			}
-
+			callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class);
 		}
+	}
 
+	public static class CreateAuthorizationRedirectStepsSignedRequestUri extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+			callAndStopOnFailure(AddSelfIssuedMeV2AudToRequestObject.class);
+			callAndStopOnFailure(SignRequestObject.class);
+			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class);
+		}
 	}
 
 	protected void createAuthorizationRedirect() {
 		// alternative without request_uri
-		// callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
-		call(new CreateAuthorizationRedirectStepsUnsignedRequestUri());
+		switch (requestMethod) {
+			case URL_QUERY:
+				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+				break;
+			case REQUEST_URI_UNSIGNED:
+				call(new CreateAuthorizationRedirectStepsUnsignedRequestUri());
+				break;
+			case REQUEST_URI_SIGNED:
+				call(new CreateAuthorizationRedirectStepsSignedRequestUri());
+				break;
+		}
 	}
 
 	@Override

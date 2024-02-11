@@ -7,6 +7,7 @@ import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VPRequestMethod;
 import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
@@ -57,12 +58,17 @@ public class VPID2TestPlan implements TestPlan {
 		Map<String, String> v = variant.getVariant();
 		String responseMode = v.get("response_mode");
 		String credentialFormat = v.get("credential_format");
+		String requestMethod = v.get("request_method");
 
 		String certProfile = "OID4VPID2";
 
 		if (credentialFormat.equals(CredentialFormat.ISO_MDL.toString())) {
 			if (!responseMode.equals(VPResponseMode.DIRECT_POST_JWT.toString())) {
 				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires direct_post.jwt",
+					MethodHandles.lookup().lookupClass().getSimpleName()));
+			}
+			if (!requestMethod.equals(VPRequestMethod.REQUEST_URI_SIGNED.toString())) {
+				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires signed request uri",
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			}
 		}
