@@ -44,8 +44,10 @@ import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkippe
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
+import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
@@ -455,6 +457,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 		// Set up the resource endpoint configuration
 //		callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class);
+		if (credentialFormat == CredentialFormat.ISO_MDL) {
+			// ISO spec always creates a redirect returned from response_uri
+			callAndStopOnFailure(CreateRedirectUri.class);
+		}
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -703,7 +709,15 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
 		JsonObject response = new JsonObject();
-		populateDirectPostResponse(response);
+		switch (credentialFormat) {
+			case ISO_MDL:
+				// iso mdl spec requires that redirect uri is always returned
+				populateDirectPostResponseWithRedirectUri(response);
+				break;
+			default:
+				populateDirectPostResponse(response);
+				break;
+		}
 
 		return ResponseEntity.ok()
 			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
@@ -714,6 +728,15 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		// no redirect_uri in response, so the test ends after this response is received by wallet
 		fireTestFinished();
 	}
+
+	protected void populateDirectPostResponseWithRedirectUri(JsonObject response) {
+		callAndStopOnFailure(CreateRandomCodeVerifier.class);
+		response.addProperty("redirect_uri", env.getString("redirect_uri") + "#" + env.getString("code_verifier"));
+
+		eventLog.log(getName(), "The response_uri is returning 'redirect_uri', so the wallet should send the user to that redirect_uri next");
+		setStatus(Status.WAITING);
+	}
+
 
 	public static class CreateAuthorizationRedirectStepsUnsignedRequestUri extends AbstractConditionSequence {
 		@Override

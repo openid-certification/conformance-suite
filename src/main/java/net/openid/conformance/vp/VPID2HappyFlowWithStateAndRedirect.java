@@ -2,7 +2,6 @@ package net.openid.conformance.vp;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -44,10 +43,6 @@ public class VPID2HappyFlowWithStateAndRedirect extends AbstractVPServerTest {
 
 	@Override
 	protected void populateDirectPostResponse(JsonObject response) {
-		callAndStopOnFailure(CreateRandomCodeVerifier.class);
-		response.addProperty("redirect_uri", env.getString("redirect_uri") + "#" + env.getString("code_verifier"));
-
-		eventLog.log(getName(), "The response_uri is returning 'redirect_uri', so the wallet should send the user to that redirect_uri next");
-		setStatus(Status.WAITING);
+		super.populateDirectPostResponseWithRedirectUri(response);
 	}
 }
