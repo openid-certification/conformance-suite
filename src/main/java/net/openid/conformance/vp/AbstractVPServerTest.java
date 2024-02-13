@@ -924,11 +924,14 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected Object handleRequestUriRequest() {
+		setStatus(Status.RUNNING);
 		markAuthorizationEndpointVisited();
 
 		String requestObject = env.getString("request_object");
 
 		eventLog.log(getName(), "Wallet has retrieved request_uri - waiting for it to call the response_uri");
+
+		setStatus(Status.WAITING);
 
 		return ResponseEntity.ok()
 			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_OAUTH_OAUTHZ_REQ_JWT)

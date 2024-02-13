@@ -45,8 +45,10 @@ public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 	@Override
 	protected Object handleRequestUriRequest() {
 		Object o = super.handleRequestUriRequest();
+		setStatus(Status.RUNNING);
 		createPlaceholder();
 		waitForPlaceholders();
+		setStatus(Status.WAITING);
 		return o;
 	}
 
