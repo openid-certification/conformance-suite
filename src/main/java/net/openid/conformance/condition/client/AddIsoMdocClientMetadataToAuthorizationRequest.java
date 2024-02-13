@@ -19,17 +19,17 @@ public class AddIsoMdocClientMetadataToAuthorizationRequest extends AbstractCond
 
 		var clientMetaData = (JsonObject) JsonParser.parseString("""
 {
-    "authorization_encrypted_response_alg": "ECDH-ES",
-    "authorization_encrypted_response_enc": "A256GCM",
-    "require_signed_request_object": true,
-    "vp_formats": {
-      "mso_mdoc": {
-        "alg": [
-          "ES256"
-        ]
-      }
-    }
-  }
+	"authorization_encrypted_response_alg": "ECDH-ES",
+	"authorization_encrypted_response_enc": "A256GCM",
+	"require_signed_request_object": true,
+	"vp_formats": {
+	  "mso_mdoc": {
+		"alg": [
+		  "ES256"
+		]
+	  }
+	}
+}
 """);
 
 		JsonObject publicJwks = env.getObject("client_public_jwks");
