@@ -16,6 +16,7 @@ import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthor
 import net.openid.conformance.condition.client.AddRequestUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddResponseUriAsRedirectUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
@@ -579,8 +580,13 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			call(exec().exposeEnvironmentString("nonce"));
 			callAndStopOnFailure(AddNonceToAuthorizationEndpointRequest.class);
 
-			if (credentialFormat == CredentialFormat.ISO_MDL) {
-				callAndStopOnFailure(AddIsoMdocClientMetadataToAuthorizationRequest.class);
+			switch (credentialFormat) {
+				case ISO_MDL:
+					callAndStopOnFailure(AddIsoMdocClientMetadataToAuthorizationRequest.class);
+					break;
+				case SD_JWT_VC:
+					callAndStopOnFailure(AddSdJwtClientMetadataToAuthorizationRequest.class);
+					break;
 			}
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToVpToken.class);
