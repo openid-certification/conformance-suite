@@ -1,15 +1,18 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class AddIsoMdocClientMetadataToAuthorizationRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "authorization_endpoint_request"})
+	@PreEnvironment(required = { "authorization_endpoint_request", "client_public_jwks"})
 	public Environment evaluate(Environment env) {
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
@@ -29,37 +32,31 @@ public class AddIsoMdocClientMetadataToAuthorizationRequest extends AbstractCond
   }
 """);
 
-		var encPrivateJwks = JsonParser.parseString("""
-{
-    "keys": [
-        {
-            "kty": "EC",
-            "d": "7N8jd8HvUp3vHC7a-xitehRnYuyZLy3kqkxG7KmpfMY",
-            "use": "enc",
-            "crv": "P-256",
-            "kid": "A541J5yUqazgE8WBFkIyeh2OtK-udqUR_OC0kB7l3oU",
-            "x": "cwYyuS94hcOtcPlrMMtGtflCfbZUwz5Mf1Gfa2m0AM8",
-            "y": "KB7sJkFQyB8jZHO9vmWS5LNECL4id3OJO9HX9ChNonA",
-            "alg": "ECDH-ES"
-        }
-    ]
-}
-""");
-		// FIXME: get this from the client jwks?
-		var encPubJwks = JsonParser.parseString("""
-{
-    "keys": [
-        {
-            "kty": "EC",
-            "use": "enc",
-            "crv": "P-256",
-            "x": "cwYyuS94hcOtcPlrMMtGtflCfbZUwz5Mf1Gfa2m0AM8",
-            "y": "KB7sJkFQyB8jZHO9vmWS5LNECL4id3OJO9HX9ChNonA"
-        }
-    ]
-}
-""");
-		clientMetaData.add("jwks", encPubJwks);
+		JsonObject publicJwks = env.getObject("client_public_jwks");
+		JsonArray keys = publicJwks.getAsJsonArray("keys");
+		JsonObject encKey = null;
+		for (JsonElement jwkEl: keys) {
+			JsonObject jwk = jwkEl.getAsJsonObject();
+			if (!jwk.has("use")) {
+				continue;
+			}
+			String use = OIDFJSON.getString(jwk.get("use"));
+			if (use.equals("enc")) {
+				if (encKey != null) {
+					throw error("client jwks contains more than one key with 'use': 'enc'", args("clientjwks", publicJwks));
+				}
+				encKey = jwk;
+			}
+		}
+		if (encKey == null) {
+			throw error("The client jwks does not contain a key with 'use': 'enc'", args("clientjwks", publicJwks));
+		}
+		JsonArray keysArray = new JsonArray();
+		keysArray.add(encKey);
+		JsonObject jwks = new JsonObject();
+		jwks.add("keys", keysArray);
+
+		clientMetaData.add("jwks", jwks);
 
 		authorizationEndpointRequest.add("client_metadata", clientMetaData);
 

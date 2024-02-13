@@ -19,7 +19,8 @@ public class SignIdTokenWithX5tS256 extends AbstractSignJWT {
 		JsonObject jwks = env.getObject("server_jwks");
 		boolean includeTyp = false;
 		boolean includeX5tS256 = true;
-		return signJWT(env, claims, jwks, includeTyp, includeX5tS256);
+		boolean includeX5c = false;
+		return signJWT(env, claims, jwks, includeTyp, includeX5tS256, includeX5c);
 	}
 
 	@Override

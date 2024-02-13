@@ -84,6 +84,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostname;
 import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -737,7 +738,11 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				call(new CreateAuthorizationRedirectStepsUnsignedRequestUri());
 				break;
 			case REQUEST_URI_SIGNED:
-				call(new CreateAuthorizationRedirectStepsSignedRequestUri());
+				ConditionSequence seq = new CreateAuthorizationRedirectStepsSignedRequestUri();
+				if (credentialFormat == CredentialFormat.ISO_MDL) {
+					seq.replace(SignRequestObject.class, condition(SignRequestObjectIncludeX5cHeader.class));
+				}
+				call(seq);
 				break;
 		}
 	}
