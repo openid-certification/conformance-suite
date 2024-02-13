@@ -16,18 +16,21 @@ public class ParseVpTokenAsMdoc extends AbstractCondition {
 		String mdocBase64 = env.getString("vp_token");
 
 		byte[] bytes = new Base64URL(mdocBase64).decode();
-		byte[] sessionTranscript = new byte[]{ 0 }; // FIXME need to calculate this properly otherwise deviceSignedAuthenticated will be false
+		byte[] sessionTranscript = { 0 }; // FIXME need to calculate this properly otherwise deviceSignedAuthenticated will be false
 
 		DeviceResponseParser parser = new DeviceResponseParser();
 		parser.setDeviceResponse(bytes);
 		parser.setSessionTranscript(sessionTranscript);
 
-		DeviceResponseParser.DeviceResponse response = parser.parse();
+		{
+			@SuppressWarnings("unused")
+			DeviceResponseParser.DeviceResponse response = parser.parse();
+		}
+
 
 		String diagnostics = CborUtil.toDiagnostics(bytes,
 			CborUtil.DIAGNOSTICS_FLAG_PRETTY_PRINT | CborUtil.DIAGNOSTICS_FLAG_EMBEDDED_CBOR);
-		//response.getDocuments()
-System.out.println(diagnostics);
+//System.out.println(diagnostics);
 		logSuccess("Parsed mdoc", args("cbor_diagnostic", diagnostics));
 
 

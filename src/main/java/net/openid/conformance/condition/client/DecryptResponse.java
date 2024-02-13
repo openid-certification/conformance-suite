@@ -41,7 +41,6 @@ public class DecryptResponse extends AbstractCondition {
 		JsonObject clientJwks = env.getObject("client_jwks");
 
 		try {
-			JsonObject jwtAsJsonObject;
 			JWT token = JWTUtil.parseJWT(tokenString);
 			if(!(token instanceof EncryptedJWT)) {
 				throw error("'response' parameter does not contain an encrypted JWT");
