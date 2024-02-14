@@ -1201,11 +1201,6 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        if all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final-Br-v1']:
-            # skip CI brazil v1 as it's deprecated and due to be remoeved 31 Dec 2023
-            untested_test_modules.remove(m)
-            continue
-
         if all_test_modules[m]['profile'] in ['FAPI-RW-ID2']:
             # skip CI for FAPI ID2 as we don't have access to a server supporting ID2
             untested_test_modules.remove(m)

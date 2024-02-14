@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.rs;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractExtractJWT;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -15,7 +16,8 @@ public class ExtractDpopProofFromHeader extends AbstractExtractJWT {
 		String dpop = env.getString("incoming_request", "headers.dpop");
 
 		if (!Strings.isNullOrEmpty(dpop)) {
-			return extractJWT(env, "incoming_request", "headers.dpop", "incoming_dpop_proof", null, null);
+			JsonObject privateJwksWithEncKeys = null; // we deliberately don't pass any decryption keys as dpop proofs must not be encrypted
+			return extractJWT(env, "incoming_request", "headers.dpop", "incoming_dpop_proof", null, privateJwksWithEncKeys);
 		} else {
 			throw error("Couldn't find DPoP Proof header");
 		}

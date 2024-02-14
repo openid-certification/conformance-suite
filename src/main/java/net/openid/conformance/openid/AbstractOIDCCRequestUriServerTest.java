@@ -45,7 +45,7 @@ public abstract class AbstractOIDCCRequestUriServerTest extends AbstractOIDCCSer
 		String requestObject = env.getString("request_object");
 
 		return ResponseEntity.ok()
-			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
+			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT)
 			.body(requestObject);
 	}
 

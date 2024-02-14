@@ -9,7 +9,8 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi-rw-id2-test-plan",
-	displayName = "FAPI-RW-ID2 (and OpenBankingUK / CDR): Authorization server test (latest version)",
+	displayName = "FAPI-RW-ID2 (and OpenBankingUK / CDR): Authorization server test - DEPRECATED; will be removed December 2024",
+	summary = "Implementer's draft 2 of FAPI1 was superceded by FAPI1 Advanced Final in March 2021. The tests will be removed in December 2024 and all implementers should switch to using the FAPI1 Advanced Final tests before then. See https://bitbucket.org/openid/fapi/issues/570/deprecation-removal-of-fapi-1-implementers",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
