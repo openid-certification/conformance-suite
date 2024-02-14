@@ -1234,6 +1234,8 @@ async def main():
                       re.match(r'oidcc-client-.*', m) or \
                       re.match(r'fapi-ciba-id1-client-test.*', m)
         ciba_op_test = re.match(r'fapi-ciba-id1.*', m)
+        ciba_rp = re.match(r'fapi-ciba-id1-client-test.*', m)
+        ciba_op_brazil = re.match(r'fapi-ciba-id1-brazil.*', m)
         rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
         ekyc_test = re.match(r'ekyc-server-', m)
         fapi1r = all_test_modules[m]['profile'] in ['FAPI-R']
@@ -1256,6 +1258,10 @@ async def main():
                 # no tests for FAPI1-Final / FAPI2 yet
                 untested_test_modules.remove(m)
                 continue
+            if ciba_rp:
+                # the only test for CIBA rp is a OP-against-RP one run in server_test
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
             if fapi1r or fapirwid2 or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or oid4vp:
@@ -1268,8 +1274,8 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':
-            if ekyc_test or fapi1r or client_test or brazildcr or fapirwid2 or fapi1 or fapi2 or oidcc or oid4vp:
-                # this does include some fapi tests, but doesn't cover any ecosystem specific fapi tests
+            if ekyc_test or fapi1r or client_test or brazildcr or ciba_op_brazil or fapirwid2 or fapi1 or fapi2 or oidcc or oid4vp:
+                # this does include some fapi1 tests, but doesn't cover any ecosystem specific fapi tests
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':
