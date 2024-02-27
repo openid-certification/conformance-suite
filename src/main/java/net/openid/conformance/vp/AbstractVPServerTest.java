@@ -129,6 +129,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
@@ -721,7 +722,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		}
 
 		return ResponseEntity.ok()
-			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_JOSE)
+			.contentType(MediaType.APPLICATION_JSON)
 			.body(response.toString());
 	}
 
