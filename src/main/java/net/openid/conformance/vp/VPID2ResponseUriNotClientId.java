@@ -37,6 +37,7 @@ public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 
 	@Override
 	protected void createPlaceholder() {
+		// FIXME use a better placeholder with a better message
 		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OID4VP-6.2");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));

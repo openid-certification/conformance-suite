@@ -67,7 +67,7 @@ public class CreateRandomRequestUri extends AbstractCondition {
 
 		// actual content of request object not used as it's not available prior to client registration
 		String fragment = base64UrlEncodedSha256(RandomStringUtils.randomAlphanumeric(64));
-
+// FIXME remove fragment at least for VCI; it's only in OIDC, not in JAR
 		JsonObject o = new JsonObject();
 		o.addProperty("path", path);
 		String fullUrl = baseUrl + "/" + path + "#" + fragment;

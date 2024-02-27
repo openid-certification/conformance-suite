@@ -280,6 +280,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		public void evaluate() {
 			// for auth types other than private_key_jwt we might still need a jwks if the server is returning
 			// encrypted id_tokens; extract one if it's there.
+			// FIXME these are required for isomdl
 			call(condition(ValidateClientJWKsPrivatePart.class)
 				.skipIfElementMissing("client", "jwks")
 				.onSkip(ConditionResult.INFO)
