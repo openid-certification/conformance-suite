@@ -11,13 +11,13 @@ import java.util.List;
 public class FAPIKSAValidateConsentScope extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = {"scope", "account_request_id"})
+	@PreEnvironment(strings = {"scope"})
 	public Environment evaluate(Environment env) {
 
 		String scope = env.getString("scope");
 		String consentId = env.getString("account_request_id");
 		if (consentId == null) {
-			throw error("You must create an account consent.");
+			throw error("You must create an account consent first by calling the account request endpoint.");
 		}
 		String consentScope = "accounts:" + consentId;
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope).iterator());
