@@ -15,7 +15,7 @@ import javax.servlet.http.HttpSession;
 @PublishTestModule(
 	testName = "oid4vp-happy-flow-response-uri-not-client-id",
 	displayName = "OID4VP: Unsigned request_uri",
-	summary = "Makes a request where the response_uri is not the client_id. The wallet should display an error, a screenshot of which should be uploaded.",
+	summary = "Makes a request where the response_uri is not the client_id. The wallet should display an error, a screenshot of which must be uploaded.",
 	profile = "OID4VP-ID2",
 	configurationFields = {
 		"client.presentation_definition"
