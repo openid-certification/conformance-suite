@@ -6,6 +6,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.HttpStatus;
 
+import java.util.List;
+
 public class CheckBackchannelAuthenticationEndpointErrorHttpStatus extends AbstractCondition {
 
 	@Override
@@ -41,17 +43,17 @@ public class CheckBackchannelAuthenticationEndpointErrorHttpStatus extends Abstr
 			}
 		} else if (error.equals("invalid_client")) {
 
-			httpStatusExpected = HttpStatus.SC_UNAUTHORIZED;
-			if (httpStatus != HttpStatus.SC_UNAUTHORIZED) {
+			List<Integer> httpStatusesExpected = List.of(HttpStatus.SC_UNAUTHORIZED, HttpStatus.SC_BAD_REQUEST);
+			if (!httpStatusesExpected.contains(httpStatus)) {
 
-				throw error("Invalid http status with error invalid_client", args("actual", httpStatus, "expected", httpStatusExpected));
+				throw error("Invalid http status with error invalid_client", args("actual", httpStatus, "expected", httpStatusesExpected));
 			}
 		} else {
 
 			throw error("http status was not matching 400 or 403 or 401", args("actual", httpStatus));
 		}
 
-		logSuccess("Backchannel authentication endpoint http status code was " + httpStatusExpected);
+		logSuccess("Backchannel authentication endpoint http status code was " + httpStatus);
 
 		return env;
 	}

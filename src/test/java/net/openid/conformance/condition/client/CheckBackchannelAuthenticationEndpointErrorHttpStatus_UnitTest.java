@@ -46,7 +46,15 @@ public class CheckBackchannelAuthenticationEndpointErrorHttpStatus_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_caseInvalidClient() {
+	public void testEvaluate_caseInvalidClientWith400() {
+		env.putInteger("backchannel_authentication_endpoint_response_http_status", 400);
+		env.putObject("backchannel_authentication_endpoint_response", JsonParser.parseString("{\"error\":\"invalid_client\"}").getAsJsonObject());
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_caseInvalidClientWith401() {
 		env.putInteger("backchannel_authentication_endpoint_response_http_status", 401);
 		env.putObject("backchannel_authentication_endpoint_response", JsonParser.parseString("{\"error\":\"invalid_client\"}").getAsJsonObject());
 
@@ -63,7 +71,7 @@ public class CheckBackchannelAuthenticationEndpointErrorHttpStatus_UnitTest {
 
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_caseBadHttpStatusInvalidClient() {
-		env.putInteger("backchannel_authentication_endpoint_response_http_status", 400);
+		env.putInteger("backchannel_authentication_endpoint_response_http_status", 403);
 		env.putObject("backchannel_authentication_endpoint_response", JsonParser.parseString("{\"error\":\"invalid_client\"}").getAsJsonObject());
 
 		cond.execute(env);
