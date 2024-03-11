@@ -10,6 +10,8 @@ import java.util.List;
 
 public class CheckForUnexpectedParametersInVpAuthorizationResponse extends AbstractCondition {
 
+	// FIXME need to split this - for directpost.jwt with jwe only: iss, exp and aud MUST be omitted in the JWT Claims Set of the JWE, and the processing rules as per [JARM] Section 2.4 related to these claims do not apply.
+	// so those should be errors, but anything else should be a warning.
 	// https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
 	private static final List<String> EXPECTED_PARAMS = ImmutableList.of(
 		"vp_token",

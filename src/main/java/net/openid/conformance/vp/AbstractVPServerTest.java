@@ -763,7 +763,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		// alternative without request_uri
 		switch (requestMethod) {
 			case URL_QUERY:
-				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class); // FIXME: doesn't work, Caught exception from test framework: [openid4vp://] is not a valid HTTP URL
 				break;
 			case REQUEST_URI_UNSIGNED:
 				call(new CreateAuthorizationRedirectStepsUnsignedRequestUri());
