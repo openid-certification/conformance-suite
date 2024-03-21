@@ -98,7 +98,7 @@
                     <li class="list-group-item d-flex justify-content-between align-items-start">
                         <div class="ms-2 me-auto">
                             <div class="fw-bold"><input class="form-check-input me-2" type="checkbox" />&ldquo;Name of Entity (“Implementer”) Making this Certification&rdquo;</div>
-                            This field must represent the name of the organization that's requesting the certification and which will be the name published on 
+                            This field must represent the name of the organization that's requesting the certification and which will be the name published on
                             <a class="darkblue" href="https://openid.net/certification/" target="openid">openid.net/certification</a>.
                             <br/><em>Example:</em> <strong>Acme Corporation</strong>
                         </div>
@@ -283,7 +283,7 @@
     }
 
     function setButtonNavigation() {
-        if (profile && !profile.includes('RP-Initiated') && profile.includes(' RP')) {  
+        if (profile && !profile.includes('RP-Initiated') && profile.includes(' RP')) {
             document.querySelector('#continue').href = `client-logs.html?plan=${planId}`
         }
         else {
@@ -294,7 +294,7 @@
     function enableContinueOnEverythingChecked() {
         let checkboxes = document.querySelectorAll('input[type=checkbox]');
         checkboxes.forEach(c => {
-            c.checked = false;  
+            c.checked = false;
             c.addEventListener('change', () => {
                 let allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
                 if (allChecked) {
@@ -335,7 +335,7 @@
             }).then(_ => {
                 return getPlan(planId, public);
             }).then(_ => {
-                document.querySelector('#wizard-cancel').href = `publish.html?plan=${encodeURIComponent(planId)}`; 
+                document.querySelector('#wizard-cancel').href = `publish.html?plan=${encodeURIComponent(planId)}`;
                 loadViewerWithoutDocument(event);
                 setValidationMessages();
                 setButtonNavigation();

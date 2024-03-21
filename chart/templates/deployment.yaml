@@ -79,6 +79,21 @@ spec:
             secretKeyRef:
               name: oidc-gitlab-credentials
               key: secret
+        - name: DOCUSIGN_USER_ID
+          valueFrom:
+              secretKeyRef:
+                  name: docusign-credentials
+                  key: userid
+        - name: DOCUSIGN_CLIENT_ID
+          valueFrom:
+              secretKeyRef:
+                  name: docusign-credentials
+                  key: clientid
+        - name: DOCUSIGN_PRIVATE_KEY
+          valueFrom:
+              secretKeyRef:
+                  name: docusign-credentials
+                  key: privatekey
         volumeMounts:
             - name: dump-volume
               mountPath:

@@ -12,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,8 +29,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+//import java.nio.file.Files;
+//import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,23 +38,31 @@ import java.util.Map;
 @RequestMapping(value = "/api")
 public class CertificationApi {
 
-	private final String clientId = "17fa5601-8e8e-44d7-a924-ba9e16636a8b";
-	private final String userId = "446dbf0e-a264-45f7-9fa6-2f8c2229be3c";
+	@Value("${docusign.userid}")
+	private String userId; // = "446dbf0e-a264-45f7-9fa6-2f8c2229be3c";
+
+	@Value("${docusign.clientid}")
+	private String clientId; // = "17fa5601-8e8e-44d7-a924-ba9e16636a8b";
+
+	@Value("${docusign.privatekey}")
+	private String rsaPrivateKey;
+
 	private final long expiresIn = 3600;
 	private final String scopes = "signature impersonation";
-	private final byte[] privateKey;
 	private final String aud = "account-d.docusign.com";
 	private final String apiUrl = "https://demo.docusign.net/restapi";
 	private final String tokenEndpoint = "https://account-d.docusign.com/oauth/token";
 	private final String userInfoEndpoint = "https://account-d.docusign.com/oauth/userinfo";
 
+	/*
 	public CertificationApi() {
 		try {
-			privateKey = Files.readAllBytes(Paths.get("docusign.test.private.key"));
+			rsaPrivateKey = Files.readString(Paths.get("docusign.test.private.key"));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
+	*/
 
 	@PostMapping(value = "/plan/{id}/certificationofconformance", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_PDF_VALUE)
 	@Operation(summary = "Get certification of conformance pdf template, with pre-populated fields")
@@ -115,7 +124,7 @@ public class CertificationApi {
 		String email = OIDFJSON.getString(body.get("email"));
 		String name = OIDFJSON.getString(body.get("name"));
 
-		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
+		String jwt = JWTUtil.generateDocuSignJWTAssertion(rsaPrivateKey, aud, clientId, userId, expiresIn, scopes);
 		String accessToken = getAccessToken(tokenEndpoint, jwt);
 		String accountId = getAccountId(userInfoEndpoint, accessToken);
 		String envelopeId = createEnvelope(apiUrl, accessToken, accountId, documentData, email, name);
@@ -138,7 +147,7 @@ public class CertificationApi {
 		@Parameter(description = "Test plan id") @PathVariable("id") String id,
 		@Parameter(description = "Signed document envelopeId") @PathVariable("envelopeId") String envelopeId
 	) throws Exception {
-		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
+		String jwt = JWTUtil.generateDocuSignJWTAssertion(rsaPrivateKey, aud, clientId, userId, expiresIn, scopes);
 		String accessToken = getAccessToken(tokenEndpoint, jwt);
 		String accountId = getAccountId(userInfoEndpoint, accessToken);
 

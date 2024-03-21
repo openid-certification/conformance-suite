@@ -418,6 +418,9 @@ local_test:
     kubectl delete secret oidc-google-credentials \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true
+    kubectl delete secret docusign-credentials \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
     kubectl create secret generic oidc-gitlab-credentials \
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=clientid="$OIDC_GITLAB_CLIENTID" \
@@ -426,6 +429,11 @@ local_test:
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
       --from-literal=secret="$OIDC_GOOGLE_SECRET"
+    kubectl create secret generic docusign-credentials \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=userid="$DOCUSIGN_USER_ID" \
+      --from-literal=clientid="$DOCUSIGN_CLIENT_ID" \
+      --from-literal=privatekey="DOCUSIGN_PRIVATE_KEY"
 
     helm upgrade --install \
       --wait \

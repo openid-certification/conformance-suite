@@ -1,5 +1,6 @@
 FROM openjdk:17-jdk-slim
 COPY target/fapi-test-suite.jar /server/
+RUN echo 'application/javascript js es mjs' > /etc/mime.types
 ENV BASE_URL https://localhost:8443
 ENV MONGODB_HOST mongodb
 ENV JAVA_EXTRA_ARGS=
@@ -13,6 +14,9 @@ ENTRYPOINT java \
   -D"oidc.google.secret=${OIDC_GOOGLE_SECRET}" \
   -D"oidc.gitlab.clientid=${OIDC_GITLAB_CLIENTID}" \
   -D"oidc.gitlab.secret=${OIDC_GITLAB_SECRET}" \
+  -D"docusign.userid=${DOCUSIGN_USER_ID}" \
+  -D"docusign.clientid=${DOCUSIGN_CLIENT_ID}" \
+  -D"docusign.privatekey=${DOCUSIGN_PRIVATE_KEY}" \
   $JAVA_EXTRA_ARGS \
  -jar /server/fapi-test-suite.jar \
  -Djdk.tls.maxHandshakeMessageSize=65536

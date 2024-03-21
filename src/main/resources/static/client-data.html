@@ -93,7 +93,7 @@
             <div class="alert alert-warning" >
                 <p><strong><i class="bi bi-exclamation-circle-fill"></i> Client log requirements</strong></p>
                 <p>
-                    Errors are permitted to be less precise than the test says (for example for a bad request signature, "Something went wrong" is acceptable) but <strong>must not be factually incorrect</strong>. <em>"A problem occurred on our service, try again"</em> would be factually incorrect if the problem was caused by an invalid request sent by the conformance suite.</p>                    
+                    Errors are permitted to be less precise than the test says (for example for a bad request signature, "Something went wrong" is acceptable) but <strong>must not be factually incorrect</strong>. <em>"A problem occurred on our service, try again"</em> would be factually incorrect if the problem was caused by an invalid request sent by the conformance suite.</p>
                 <p>The error must be factually correct from the point of view of both an end user and a relying party developer trying to integrate with the bank, so for example "please try again later" for an invalid redirect url is factually incorrect when read by a developer.
                 </p>
             </div>
@@ -346,7 +346,7 @@
                 return FAPI_UI.getUserInfo();
             }).then(_ => {
                 return getPlan(planId, public);
-            }).then(_ => {                
+            }).then(_ => {
                 document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
                 attachCocPdfToForm();
                 toggleContinueBasedOnFileInput(document.querySelector('#clientSideData'));

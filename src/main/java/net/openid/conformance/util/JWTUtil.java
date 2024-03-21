@@ -183,19 +183,19 @@ public class JWTUtil {
 	}
 
 	public static String generateDocuSignJWTAssertion(
-		byte[] rsaPrivateKey, String aud, String iss, String userId, long expiresIn, String scopes)  throws Exception {
+		String rsaPrivateKey, String aud, String iss, String userId, long expiresIn, String scopes)  throws Exception {
 
 		if (expiresIn <= 0L) {
 			throw new IllegalArgumentException("expiresIn should be a non-negative value");
 		}
-		if (rsaPrivateKey == null || rsaPrivateKey.length == 0) {
+		if (Strings.isNullOrEmpty(rsaPrivateKey)) {
 			throw new IllegalArgumentException("rsaPrivateKey byte array is empty");
 		}
 		if (Strings.isNullOrEmpty(aud) || Strings.isNullOrEmpty(iss)) {
 			throw new IllegalArgumentException("One of aud or iss is null or empty");
 		}
 
-		RSAPrivateKey privateKey = readRSAPrivateKeyFromByteArray(rsaPrivateKey);
+		RSAPrivateKey privateKey = toRSAPrivateKey(rsaPrivateKey);
 		long now = System.currentTimeMillis();
 
 		// Create JWT claims
@@ -214,9 +214,9 @@ public class JWTUtil {
 		return signedJWT.serialize();
 	}
 
-	private static RSAPrivateKey readRSAPrivateKeyFromByteArray(byte[] privateKeyBytes)
+	private static RSAPrivateKey toRSAPrivateKey(String rsaPrivateKey)
 		throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-		try (PemReader reader = new PemReader(new StringReader(new String(privateKeyBytes)))) {
+		try (PemReader reader = new PemReader(new StringReader(rsaPrivateKey))) {
 			PemObject pemObject = reader.readPemObject();
 			byte[] bytes = pemObject.getContent();
 			RSAPrivateKey privateKey = null;
