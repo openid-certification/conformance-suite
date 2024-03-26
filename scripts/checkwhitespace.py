@@ -36,6 +36,10 @@ config_ignore = [
     '.idea/'
 ]
 
+directories_to_ignore = [
+    'src/main/resources/static/lib/'
+]
+
 extensions_no_tabs = [
     'html',
     'py',
@@ -64,6 +68,10 @@ errors = False
 for f in files.split('\n'):
     if len(f) == 0:
         continue
+
+    if any(f.startswith(dir) for dir in directories_to_ignore):
+        continue
+
     path, extension = os.path.splitext(f)
     extension = extension[1:]
 

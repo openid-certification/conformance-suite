@@ -78,7 +78,7 @@
                         that works for the implementer, but it cannot be signed by third parties, e.g by an external consultant.
                     </p>
                     <p>
-                        Would you like to sign the document online, using DocuSign (no account needed)? Otherwise, you will have to download the document and 
+                        Would you like to sign the document online, using DocuSign (no account needed)? Otherwise, you will have to download the document and
                         sign it in another way (handwritten or electronic).
                     </p>
                     <p>
@@ -104,12 +104,12 @@
                                     <div class="fw-bold">
                                         <input id="download-document-choice" class="form-check-input me-2" type="radio" name="document">
                                         <label for="download-document-choice" class="form-label">
-                                            I would like to 
+                                            I would like to
                                             <a id="download" class="link link-primary underline">download</a>
                                             the document.</label>
                                     </div>
                                     <div class="mb-1 ms-4">
-                                        When you have signed the document, you can click the "Publish for certification" button in the test plan to submit it. 
+                                        When you have signed the document, you can click the "Publish for certification" button in the test plan to submit it.
                                         <a id="goto-test-plan" class="link link-primary">Click here</a> to go back to the test plan.
                                     </div>
                                 </div>
@@ -124,7 +124,7 @@
                     <a id="continue" class="btn btn-success bg-gradient border border-secondary disabled">Continue <i class="bi bi-chevron-double-right"></i></a>
                 </div>
             </form>
-            
+
         </div>
     </div>
 
@@ -249,7 +249,7 @@
             document.querySelector('#continue').classList.remove('disabled');
             // Hook up to docusign
         } else {
-            document.querySelector('#continue').classList.add('disabled');    
+            document.querySelector('#continue').classList.add('disabled');
         }
     }
 
@@ -277,7 +277,7 @@
         const request = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     "documentData": documentData,
                     "email": document.querySelector('#email').value,
                     "name": document.querySelector('#name').value,
@@ -313,9 +313,9 @@
             }).then(_ => {
                 resetDocumentSelection();
                 document.querySelector('#wizard-cancel').href = `form.html?plan=${encodeURIComponent(planId)}`;
-                document.querySelector('#goto-test-plan').href = `plan-detail.html?plan=${encodeURIComponent(planId)}`;                
+                document.querySelector('#goto-test-plan').href = `plan-detail.html?plan=${encodeURIComponent(planId)}`;
                 document.querySelector('#name').value = signatory;
-                document.querySelector('#download').href = localStorage.getItem('cocPdf'); 
+                document.querySelector('#download').href = localStorage.getItem('cocPdf');
                 document.querySelector('#download').download = 'OpenID-Certification-of-Conformance.pdf'
                 FAPI_UI.hideBusy();
             });

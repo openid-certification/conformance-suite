@@ -28,8 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,12 +39,13 @@ public class CertificationApi {
 	private final String userId = "446dbf0e-a264-45f7-9fa6-2f8c2229be3c";
 	private final long expiresIn = 3600;
 	private final String scopes = "signature impersonation";
-	private final byte[] privateKey;
+	private final byte[] privateKey = null;
 	private final String aud = "account-d.docusign.com";
 	private final String apiUrl = "https://demo.docusign.net/restapi";
 	private final String tokenEndpoint = "https://account-d.docusign.com/oauth/token";
 	private final String userInfoEndpoint = "https://account-d.docusign.com/oauth/userinfo";
 
+	/*
 	public CertificationApi() {
 		try {
 			privateKey = Files.readAllBytes(Paths.get("docusign.test.private.key"));
@@ -54,6 +53,7 @@ public class CertificationApi {
 			throw new RuntimeException(e);
 		}
 	}
+	*/
 
 	@PostMapping(value = "/plan/{id}/certificationofconformance", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_PDF_VALUE)
 	@Operation(summary = "Get certification of conformance pdf template, with pre-populated fields")

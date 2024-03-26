@@ -234,7 +234,7 @@ var FAPI_UI = {
 
 		loadPlanTemplates: function() {
 			var pathPrefix = `//${document.location.host}/`;
-			if(document.location.href.indexOf('/static/' != -1)) {
+			if(document.location.href.indexOf('/static/') != -1) {
 				pathPrefix += 'static/';
 			}
 			const p1 = fetch(pathPrefix + 'templates/userinfo.html')
