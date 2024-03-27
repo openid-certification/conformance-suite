@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,21 +40,10 @@ public class CertificationApi {
 	private final String userId = "446dbf0e-a264-45f7-9fa6-2f8c2229be3c";
 	private final long expiresIn = 3600;
 	private final String scopes = "signature impersonation";
-	private final byte[] privateKey = null;
 	private final String aud = "account-d.docusign.com";
 	private final String apiUrl = "https://demo.docusign.net/restapi";
 	private final String tokenEndpoint = "https://account-d.docusign.com/oauth/token";
 	private final String userInfoEndpoint = "https://account-d.docusign.com/oauth/userinfo";
-
-	/*
-	public CertificationApi() {
-		try {
-			privateKey = Files.readAllBytes(Paths.get("docusign.test.private.key"));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	*/
 
 	@PostMapping(value = "/plan/{id}/certificationofconformance", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_PDF_VALUE)
 	@Operation(summary = "Get certification of conformance pdf template, with pre-populated fields")
@@ -114,12 +104,13 @@ public class CertificationApi {
 		String documentData = OIDFJSON.getString(body.get("documentData"));
 		String email = OIDFJSON.getString(body.get("email"));
 		String name = OIDFJSON.getString(body.get("name"));
+		byte[] key = Base64.getDecoder().decode(OIDFJSON.getString(body.get("key")));
 
-		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
+		String jwt = JWTUtil.generateDocuSignJWTAssertion(key, aud, clientId, userId, expiresIn, scopes);
 		String accessToken = getAccessToken(tokenEndpoint, jwt);
 		String accountId = getAccountId(userInfoEndpoint, accessToken);
 		String envelopeId = createEnvelope(apiUrl, accessToken, accountId, documentData, email, name);
-		String redirectUrl = "https://localhost:8443/static/form.html?plan=" + id + "&envelopeId=" + envelopeId;
+		String redirectUrl = "https://review-app-dev-branch-5.certification.openid.net/form.html?plan=" + id + "&envelopeId=" + envelopeId;
 		String signUrl = createView(apiUrl, accessToken, accountId, envelopeId, redirectUrl, email, name);
 
 		Map<String, Object> map = new HashMap<>();
@@ -128,7 +119,7 @@ public class CertificationApi {
 		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 
-	@GetMapping(value = "/plan/{id}/sign/{envelopeId}", produces = MediaType.APPLICATION_PDF_VALUE)
+	@GetMapping(value = "/plan/{id}/sign/{envelopeId}/{k}", produces = MediaType.APPLICATION_PDF_VALUE)
 	@Operation(summary = "")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
@@ -136,9 +127,11 @@ public class CertificationApi {
 	})
 	public ResponseEntity<Object> getSignedDocument(
 		@Parameter(description = "Test plan id") @PathVariable("id") String id,
-		@Parameter(description = "Signed document envelopeId") @PathVariable("envelopeId") String envelopeId
+		@Parameter(description = "Signed document envelopeId") @PathVariable("envelopeId") String envelopeId,
+		@Parameter(description = "") @PathVariable("k") String k
 	) throws Exception {
-		String jwt = JWTUtil.generateDocuSignJWTAssertion(privateKey, aud, clientId, userId, expiresIn, scopes);
+		byte[] key = Base64.getDecoder().decode(k);
+		String jwt = JWTUtil.generateDocuSignJWTAssertion(key, aud, clientId, userId, expiresIn, scopes);
 		String accessToken = getAccessToken(tokenEndpoint, jwt);
 		String accountId = getAccountId(userInfoEndpoint, accessToken);
 

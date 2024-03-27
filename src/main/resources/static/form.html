@@ -143,7 +143,10 @@
                     <button class="btn btn-primary" id="validate">Validate <i class="bi bi-check-square field-validate"></i></button>
                     <button class="btn btn-success me-2 disabled" id="continue">Continue <i class="bi bi-chevron-double-right"></i></button>
                 </div>
-                <p id="scratchpad"></p>
+                <p>&nbsp;</p>
+                <p class="back-from-signing hidden">
+                    <a class="confirm-html-link" href="confirm.html">confirm.html</a>
+                </p>
             </div>
         </div>
 
@@ -264,7 +267,11 @@
         if (!planLoadError) {
             if (event && event === 'signing_complete' && envelopeId) {
                 document.querySelector('.wizard').classList.add('opacity-20');
-                redirectUrl += encodeURIComponent(`/api/plan/${planId}/sign/${envelopeId}`);
+
+                document.querySelector('.confirm-html-link').href = `confirm.html?plan=${planId}`;
+                document.querySelector('.back-from-signing').classList.remove('hidden');
+
+                redirectUrl += encodeURIComponent(`/api/plan/${planId}/sign/${envelopeId}/${localStorage.getItem('k')}`);
             } else {
                 shouldPrefill = true;
                 redirectUrl += encodeURIComponent('/files/OpenID-Certification-of-Conformance.pdf');
