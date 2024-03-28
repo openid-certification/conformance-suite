@@ -852,6 +852,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	private class DPopTokenRequestHelper extends SenderContrainTokenRequestHelper {
 		@Override
 		public void checkParRequest() {
+			env.removeObject("incoming_dpop_proof");
 			skipIfElementMissing("incoming_request", "headers.dpop", ConditionResult.INFO, ExtractDpopProofFromHeader.class, ConditionResult.FAILURE, "DPOP-5");
 			if(env.containsObject("incoming_dpop_proof")) {
 				call(sequence(PerformDpopProofParRequestChecks.class));
