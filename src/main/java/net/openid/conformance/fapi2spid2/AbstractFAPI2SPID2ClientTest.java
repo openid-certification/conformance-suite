@@ -420,8 +420,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	 * will be called at the end of configure
 	 */
 	protected void onConfigurationCompleted() {
-		callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
-		callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.INFO);
+		if(isDpopConstrain()) {
+			callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+			callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.INFO);
+		}
 	}
 
 	protected void configureClients()
@@ -992,6 +994,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
+			if(isDpopConstrain()) {
+				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+			}
 			if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
 				// for ConnectID we use the userinfo endpoint as the resource endpoint, so this is the end of the test
 				resourceEndpointCallComplete();
@@ -1105,6 +1110,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
 			}
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+			// Create a new DPoP nonce
+			if(isDpopConstrain()) {
+				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
+			}
 		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
@@ -1143,6 +1152,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 			createTokenEndpointResponse();
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+
+			// Create a new DPoP nonce
+			if(isDpopConstrain()) {
+				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
+			}
 		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
@@ -1243,7 +1257,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 
-		callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
+		if(isDpopConstrain()) {
+			callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
+		}
 		setStatus(Status.WAITING);
 
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
@@ -1477,6 +1493,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 			callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 			responseObject = new ResponseEntity<>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
+			if(isDpopConstrain()) {
+				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+			}
 		}
 		call(exec().unmapKey("incoming_request").endBlock());
 
@@ -1531,6 +1550,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
 			JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
 
+			if(isDpopConstrain()) {
+				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+			}
 			// at this point we can assume the test is fully done
 			resourceEndpointCallComplete();
 			responseEntity = new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
