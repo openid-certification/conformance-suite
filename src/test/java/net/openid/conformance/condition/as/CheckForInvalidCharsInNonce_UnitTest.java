@@ -39,7 +39,7 @@ public class CheckForInvalidCharsInNonce_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_noErrors() {
-		env.putString("nonce", "aB3-_.~!*'();:@&=+$,/?%#[]");
+		env.putString("nonce", "aZB3-_.~");
 		cond.execute(env);
 	}
 
@@ -49,7 +49,7 @@ public class CheckForInvalidCharsInNonce_UnitTest {
 	@Test(expected = ConditionError.class)
 	public void testEvaluate_invalidCharacter() {
 		// The '^' and '!' character are not URL safe and thus invalid.
-		env.putString("nonce", "aB3-_.~!*'();:@&=+$,/?%#[]^|^");
+		env.putString("nonce", "aZB3-_.~^!");
 		cond.execute(env);
 	}
 }

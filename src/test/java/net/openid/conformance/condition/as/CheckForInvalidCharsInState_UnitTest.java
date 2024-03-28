@@ -40,7 +40,7 @@ public class CheckForInvalidCharsInState_UnitTest {
 	@Test
 	public void testEvaluate_noErrors() {
 		env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
-			CreateEffectiveAuthorizationRequestParameters.STATE, "aB3-_.~!*'();:@&=+$,/?%#[]");
+			CreateEffectiveAuthorizationRequestParameters.STATE, "aZB3-_.~");
 
 		cond.execute(env);
 	}
@@ -52,7 +52,7 @@ public class CheckForInvalidCharsInState_UnitTest {
 	public void testEvaluate_invalidCharacters() {
 		// The '^' and '!' character are not URL safe and thus invalid.
 		env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
-			CreateEffectiveAuthorizationRequestParameters.STATE, "aB3-_.~!*'();:@&=+$,/?%#[]^|^");
+			CreateEffectiveAuthorizationRequestParameters.STATE, "aZB3-_.~^!");
 
 		cond.execute(env);
 	}
