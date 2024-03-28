@@ -80,9 +80,8 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		String jtiStr = OIDFJSON.getString(jti);
 		if(jtiStr.isEmpty()) {
 			throw error("'jti' claim in DPoP Proof is blank");
-		} else {
-			// TODO check jti unique across requests
 		}
+		// check jti unique across requests in EnsureDpopProofJtiNotUsed
 
 		JsonElement htm = env.getElementFromObject("incoming_dpop_proof", "claims.htm");
 		if(htm  == null) {
@@ -110,12 +109,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		// Validate iat values in ValidateDpopProofIat
 
 		// nbf - not actually part of spec; but JWT defines known behaviour that really should be followed
-		Long nbf = env.getLong("incoming_dpop_proof", "claims.nbf");
-		if (nbf != null) {
-			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
-				throw error("DPoP Proof has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
-			}
-		}
+		// Validate nbf in ValidateDpopProofNbf
 
 		// exp - not actually part of spec; but JWT defines known behaviour that really should be followed
 		Long exp = env.getLong("incoming_dpop_proof", "claims.exp");
