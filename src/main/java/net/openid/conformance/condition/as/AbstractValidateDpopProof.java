@@ -18,7 +18,7 @@ import java.util.Date;
 public abstract class AbstractValidateDpopProof extends AbstractCondition {
 
 	// TODO: make this configurable
-	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
+	public static final int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	// Common method to validate DPoP Proofs
 	// isResourceRequest is used to indicate whether the DPoP proof is used for a resource endpoint request
@@ -107,15 +107,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 			throw error("'iat' claim in DPoP Proof is missing");
 		}
 
-		if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-			throw error("DPoP Proof 'iat' is in the future", args("issued-at", new Date(iat * 1000L), "now", now));
-		}
-		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(iat))) {
-			// as per OIDCC, the client can reasonably assume servers send iat values that match the current time:
-			// "The iat Claim can be used to reject tokens that were issued too far away from the current time, limiting
-			// the amount of time that nonces need to be stored to prevent attacks. The acceptable range is Client specific."
-			throw error("DPoP Proof  'iat' is more than 5 minutes in the past", args("issued-at", new Date(iat * 1000L), "now", now));
-		}
+		// Validate iat values in ValidateDpopProofIat
 
 		// nbf - not actually part of spec; but JWT defines known behaviour that really should be followed
 		Long nbf = env.getLong("incoming_dpop_proof", "claims.nbf");
