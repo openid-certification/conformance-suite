@@ -1084,7 +1084,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(ValidateRefreshToken.class);
 
 			issueAccessToken();
-			issueRefreshToken(); // rotate refresh token
+			// Don't rotate refresh token per FAPI2-SP-ID2-5.3.2.1-10
 			env.removeNativeValue("id_token");
 			callAndStopOnFailure(CreateTokenEndpointResponse.class);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
