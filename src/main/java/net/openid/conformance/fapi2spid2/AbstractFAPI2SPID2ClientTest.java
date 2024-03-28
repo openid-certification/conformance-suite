@@ -1074,20 +1074,32 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	}
 
 	protected Object refreshTokenGrantType(String requestId) {
+		senderConstrainTokenRequestHelper.checkTokenRequest();
+		ResponseEntity<Object> responseObject = null;
 
-		callAndStopOnFailure(ValidateRefreshToken.class);
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
+		} else {
+			callAndStopOnFailure(ValidateRefreshToken.class);
 
-		issueAccessToken();
-		issueRefreshToken(); // rotate refresh token
-		env.removeNativeValue("id_token");
-		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+			issueAccessToken();
+			issueRefreshToken(); // rotate refresh token
+			env.removeNativeValue("id_token");
+			callAndStopOnFailure(CreateTokenEndpointResponse.class);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+
+			// Create a new DPoP nonce
+			if(isDpopConstrain()) {
+				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
+			}
+		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
-
+		return responseObject;
 	}
 
 	protected Object clientCredentialsGrantType(String requestId) {
