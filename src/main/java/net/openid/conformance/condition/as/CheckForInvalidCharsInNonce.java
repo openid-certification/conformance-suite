@@ -22,7 +22,7 @@ public class CheckForInvalidCharsInNonce extends AbstractCondition {
 			for (int i = 0; i < nonce.length(); i++) {
 				String charAsString = String.valueOf(nonce.charAt(i));
 
-				if (! charAsString.matches("[A-Za-z0-9\\-_\\.~!\\*'();:@&=+\\$,/?%#\\[\\]]")) {
+				if (! charAsString.matches("[A-Za-z0-9\\-_\\.~]")) {
 					if (! invalidCharacters.contains(charAsString)) {
 						invalidCharacters.add(charAsString);
 					}
