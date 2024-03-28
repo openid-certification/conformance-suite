@@ -1481,20 +1481,16 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		call(exec().startBlock("Account request endpoint")
 			.mapKey("incoming_request", requestId));
 
-		senderConstrainTokenRequestHelper.checkResourceRequest();
+		checkResourceEndpointRequest(true);
 
 		ResponseEntity<Object> responseObject = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
-			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
-
-		// TODO: should we clear the old headers?
-		validateResourceEndpointHeaders();
-
-		callAndStopOnFailure(GenerateAccountRequestId.class);
-		exposeEnvString("account_request_id");
+			// TODO: should we clear the old headers?
+			callAndStopOnFailure(GenerateAccountRequestId.class);
+			exposeEnvString("account_request_id");
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 
