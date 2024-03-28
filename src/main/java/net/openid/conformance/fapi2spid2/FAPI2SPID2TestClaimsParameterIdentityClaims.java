@@ -88,19 +88,26 @@ public class FAPI2SPID2TestClaimsParameterIdentityClaims extends AbstractFAPI2SP
 			eventLog.startBlock(currentClientString() + "Call userinfo endpoint");
 			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
+			String responseKeyMap = "userinfo_endpoint_response_full";
 			if (isDpop()) {
 				callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class); // so the 'htu' value is correct
-				call(sequence(CreateDpopSteps.class));
+				requestProtectedResourceUsingDpop();
+				responseKeyMap = "resource_endpoint_response_full";
+				call(exec().mapKey("userinfo_endpoint_response_full", responseKeyMap));
+			} else {
+				callAndStopOnFailure(CallUserInfoEndpoint.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 			}
 
-			callAndStopOnFailure(CallUserInfoEndpoint.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 
-			call(exec().mapKey("endpoint_response", "userinfo_endpoint_response_full"));
+			call(exec().mapKey("endpoint_response", responseKeyMap));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDCC-5.3.2");
 			call(exec().unmapKey("endpoint_response"));
 
 			callAndStopOnFailure(ExtractUserInfoFromUserInfoEndpointResponse.class);
+			if(isDpop()) {
+				call(exec().unmapKey("userinfo_endpoint_response_full"));
+			}
 
 			callAndContinueOnFailure(ValidateUserInfoStandardClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.1");
 			callAndContinueOnFailure(CheckForUnexpectedClaimsInUserinfo.class, Condition.ConditionResult.WARNING, "OIDCC-5.1");
