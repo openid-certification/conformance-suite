@@ -643,8 +643,11 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		// call the token endpoint and complete the flow
 		createAuthorizationCodeRequest();
 		exchangeAuthorizationCode();
-		requestProtectedResource();
-		onPostAuthorizationFlowComplete();
+
+		if(getStatus() == Status.RUNNING) {
+			requestProtectedResource();
+			onPostAuthorizationFlowComplete();
+		}
 	}
 
 	protected void onPostAuthorizationFlowComplete() {
