@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 public class FAPIBrazilGenerateGetConsentResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"consent_response"}, strings = {"fapi_interaction_id", "requested_consent_id"})
+	@PreEnvironment(strings = {"fapi_interaction_id", "requested_consent_id"})
 	@PostEnvironment(required = {"get_consent_response", "get_consent_response_headers"})
 	public Environment evaluate(Environment env) {
 		String requestedConsentId = env.getString("requested_consent_id");
@@ -24,6 +24,9 @@ public class FAPIBrazilGenerateGetConsentResponse extends AbstractCondition {
 		}
 
 		JsonObject existingConsent = env.getObject("consent_response");
+		if (existingConsent == null) {
+			throw error("Get consent endpoint called before a consent has been created");
+		}
 
 		JsonObject consentResponse = new JsonObject();
 		consentResponse.add("data", existingConsent.get("data"));
