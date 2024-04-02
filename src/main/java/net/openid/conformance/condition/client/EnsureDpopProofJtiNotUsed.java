@@ -22,13 +22,13 @@ public class EnsureDpopProofJtiNotUsed extends AbstractCondition {
 		}
 		synchronized (jtiCache) {
 			if(jtiCache.contains(jti)) {
-				throw error("DPoP Proof jti has been used", args("jti", jti));
+				throw error("Proof jti is the same as one that was already presented to the conformance suite. jti must be unique in every DPoP Proof.", args("jti", jti));
 			} else {
 				if(jtiCache.size() >= CACHE_SIZE) {
 					jtiCache.subList(0, 50).clear();
 				}
 				jtiCache.add(jti);
-				logSuccess("DPoP Proof jti has not been used", args("jti", jti));
+				logSuccess("Proof jti seems to be unique to this request", args("jti", jti));
 			}
 		}
 		return env;
