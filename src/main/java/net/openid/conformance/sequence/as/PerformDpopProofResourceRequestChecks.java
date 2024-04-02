@@ -15,7 +15,7 @@ public class PerformDpopProofResourceRequestChecks extends AbstractConditionSequ
 	public void evaluate() {
 		callAndContinueOnFailure(ValidateDpopProofResourceRequest.class, Condition.ConditionResult.FAILURE, "DPOP-4.3");
 		callAndContinueOnFailure(ValidateDpopProofIat.class, Condition.ConditionResult.WARNING, "DPOP-11.1", "FAPI2-SP-ID2-5.3.2.1-14");
-		callAndContinueOnFailure(ValidateDpopProofNbf.class, Condition.ConditionResult.WARNING, "FAPI2-SP-ID2-5.3.2.1-14");
+		callAndContinueOnFailure(ValidateDpopProofNbf.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.2.1-14");
 		callAndContinueOnFailure(EnsureDpopProofJtiNotAlreadyUsed.class, Condition.ConditionResult.FAILURE, "DPOP-4.2", "DPOP-11");
 		callAndContinueOnFailure(ValidateResourceEndpointDpopProofNonce.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(ValidateDpopProofSignature.class, Condition.ConditionResult.FAILURE, "DPOP-4.3-6");
