@@ -863,13 +863,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		@Override
 		public void checkTokenRequest() {
-			callAndContinueOnFailure(ExtractDpopProofFromHeader.class, ConditionResult.FAILURE,"DPOP-5");
+			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
 			call(sequence(PerformDpopProofTokenRequestChecks.class));
 		}
 
 		@Override
 		public void checkResourceRequest() {
-			callAndContinueOnFailure(ExtractDpopProofFromHeader.class, ConditionResult.FAILURE,"DPOP-5");
+			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
 			// Need to also extract the DPoP Access token for resource requests
 			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
 			call(sequence(PerformDpopProofResourceRequestChecks.class));
