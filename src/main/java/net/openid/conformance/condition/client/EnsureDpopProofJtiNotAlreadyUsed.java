@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnsureDpopProofJtiNotUsed extends AbstractCondition {
+public class EnsureDpopProofJtiNotAlreadyUsed extends AbstractCondition {
 
 	private static final int CACHE_SIZE = 256;
 	private static final List<String> jtiCache = new ArrayList<>(CACHE_SIZE);
