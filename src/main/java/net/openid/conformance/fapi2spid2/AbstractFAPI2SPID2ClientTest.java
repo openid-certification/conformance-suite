@@ -931,8 +931,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if(env.containsObject("authorization_request_object")) {
 			validateRequestObjectForPAREndpointRequest();
 		}
+		senderConstrainTokenRequestHelper.checkParRequest();
 		if(isDpopConstrain()) {
-			senderConstrainTokenRequestHelper.checkParRequest();
 			callAndContinueOnFailure(ExtractParAuthorizationCodeDpopBindingKey.class, ConditionResult.FAILURE, "DPOP-10");
 		}
 
