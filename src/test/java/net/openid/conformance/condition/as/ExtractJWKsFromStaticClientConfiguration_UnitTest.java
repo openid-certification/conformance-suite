@@ -32,9 +32,6 @@ public class ExtractJWKsFromStaticClientConfiguration_UnitTest {
 
 	private ExtractJWKsFromStaticClientConfiguration cond;
 
-	/**
-	 * @throws java.lang.Exception
-	 */
 	@Before
 	public void setUp() throws Exception {
 
@@ -57,7 +54,7 @@ public class ExtractJWKsFromStaticClientConfiguration_UnitTest {
 				  ]
 				}""").getAsJsonObject();
 
-		jwks = JsonParser.parseString("""
+		publicJwks = JsonParser.parseString("""
 				{
 				  "keys": [
 				    {
@@ -86,6 +83,6 @@ public class ExtractJWKsFromStaticClientConfiguration_UnitTest {
 		cond.execute(env);
 
 		assertEquals(jwks, env.getObject("client_jwks"));
-		assertEquals(publicJwks, env.getObject("public_client_jwks"));
+		assertEquals(publicJwks, env.getObject("client_public_jwks"));
 	}
 }
