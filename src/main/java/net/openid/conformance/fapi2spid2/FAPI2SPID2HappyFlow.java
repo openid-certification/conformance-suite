@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResource
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
@@ -22,6 +23,8 @@ import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 
@@ -60,6 +63,27 @@ public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments.class, Condition.ConditionResult.FAILURE);
 			}
 		}
+	}
+
+	@Override
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		if (isOpenId) {
+			Command cmd = new Command();
+
+			if (isSecondClient()) {
+				cmd.putInteger("requested_nonce_length", 43);
+			}
+			else {
+				cmd.removeNativeValue("requested_nonce_length");
+			}
+
+			ConditionSequence conditionSequence = super.makeCreateAuthorizationRequestSteps()
+				.insertBefore(CreateRandomNonceValue.class, cmd);
+
+			return conditionSequence;
+		}
+
+		return super.makeCreateAuthorizationRequestSteps();
 	}
 
 	protected void checkResourceEndpointTLS() {

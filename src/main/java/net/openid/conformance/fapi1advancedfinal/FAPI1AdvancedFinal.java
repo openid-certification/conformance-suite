@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToRes
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
@@ -23,6 +24,8 @@ import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
@@ -61,6 +64,23 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments.class, Condition.ConditionResult.FAILURE);
 			}
 		}
+	}
+
+	@Override
+	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		Command cmd = new Command();
+
+		if (isSecondClient()) {
+			cmd.putInteger("requested_nonce_length", 43);
+		}
+		else {
+			cmd.removeNativeValue("requested_nonce_length");
+		}
+
+		ConditionSequence conditionSequence = super.makeCreateAuthorizationRequestSteps()
+			.insertBefore(CreateRandomNonceValue.class, cmd);
+
+		return conditionSequence;
 	}
 
 	@Override
