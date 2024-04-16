@@ -73,7 +73,7 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 						}
 					}
 				} catch (JsonParseException parseException) {
-//					return handleJsonParseException(env, parseException);
+					// response will be reparsed and handled in convertJsonResponseForEnvironment
 				}
 			}
 		}

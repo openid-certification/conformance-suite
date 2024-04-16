@@ -77,7 +77,7 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extend
 						}
 					}
 				} catch (JsonParseException parseException) {
-//					return handleJsonParseException(env, parseException);
+					// response will be reparsed and handled in convertJsonResponseForEnvironment called in addFullResponse depending on allowParseFailure
 				}
 			}
 		}
