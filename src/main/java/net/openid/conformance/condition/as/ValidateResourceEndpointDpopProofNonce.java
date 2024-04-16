@@ -16,8 +16,9 @@ public class ValidateResourceEndpointDpopProofNonce extends AbstractValidateDpop
 			logSuccess("Resource endpoint DPoP nonce matches expected value", args("expected", expectedNonce));
 		} else {
 			if(null != expectedNonce) {
+				// saves expected nonce to be used by CreateResourceEndpointDpopErrorResponse to return DPoP nonce error
 				env.putString(ERROR_KEY, expectedNonce);
-				log("Resource endpoint DPoP nonce is invalid");
+				log("Resource endpoint DPoP nonce is invalid", args("expected", expectedNonce));
 			}
 		}
 		return env;

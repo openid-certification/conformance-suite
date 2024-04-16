@@ -16,8 +16,9 @@ public class ValidateParEndpointDpopProofNonce extends AbstractValidateDpopProof
 			logSuccess("PAR endpoint DPoP nonce matches expected value", args("expected", expectedNonce));
 		} else {
 			if(null != expectedNonce) {
+				// saves expected nonce to be used by CreatePAREndpointDpopErrorResponse to return DPoP nonce error
 				env.putString(ERROR_KEY, expectedNonce);
-				log("PAR endpoint DPoP nonce is invalid");
+				log("PAR endpoint DPoP nonce is invalid", args("expected", expectedNonce));
 			}
 		}
 		return env;

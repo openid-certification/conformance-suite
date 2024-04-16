@@ -16,8 +16,9 @@ public class ValidateTokenEndpointDpopProofNonce extends AbstractValidateDpopPro
 			logSuccess("Token endpoint DPoP nonce matches expected value", args("expected", expectedNonce));
 		} else {
 			if(null != expectedNonce) {
+				// saves expected nonce to be used by CreateTokenEndpointDpopErrorResponse to return DPoP nonce error
 				env.putString(ERROR_KEY, expectedNonce);
-				log("Token endpoint DPoP nonce is invalid");
+				log("Token endpoint DPoP nonce is invalid", args("expected", expectedNonce));
 			}
 		}
 		return env;
