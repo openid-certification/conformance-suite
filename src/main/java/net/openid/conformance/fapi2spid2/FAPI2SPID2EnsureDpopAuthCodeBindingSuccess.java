@@ -10,7 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-dpop-auth-code-binding-success",
-	displayName = "FAPI2-Security-Profile-ID2: ensure authorization request with mismatched DPoP authorization code binding fails",
+	displayName = "FAPI2-Security-Profile-ID2: ensure authorization request with a 'dpop_jkt' value that  matches the DPoP proof sent with the PAR and token endpoint requests succeeds",
 	summary = "This test makes an authentication request that includes a 'dpop_jkt' which matches the DPOP proof's JWK sent with the PAR and token endpoints to ensure authorization code binding is working correctly.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {

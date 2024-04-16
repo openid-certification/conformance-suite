@@ -11,7 +11,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-mismatched-dpop-jkt-fails",
-	displayName = "FAPI2-Security-Profile-ID2: ensure authorization request with mismatched DPoP authorization code binding fails",
+	displayName = "FAPI2-Security-Profile-ID2: ensure authorization request with mismatched DPoP authorization code binding fails at the PAR endpoint",
 	summary = "This test makes an authentication request that includes a 'dpop_jkt' that does not match the DPOP proof's JWK sent with the PAR request. The PAR endpoint must reject the request.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {

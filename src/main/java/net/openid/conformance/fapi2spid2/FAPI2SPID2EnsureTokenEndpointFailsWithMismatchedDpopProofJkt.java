@@ -10,8 +10,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-token-endpoint-fails-with-mismatched-dpop-proof-jkt",
-	displayName = "FAPI2-Security-Profile-ID2: ensure authorization request with mismatched DPoP authorization code binding fails",
-	summary = "This test makes an authentication request that sends DPOP proofs with different keys to the PAR and Token endpoint. The Token endpoint must reject the request.",
+	displayName = "FAPI2-Security-Profile-ID2: ensure authorization request with mismatched DPoP authorization code binding proof keys fails at the token endpoint",
+	summary = "This test makes an authentication request that sends DPOP proofs signed with different keys to the PAR and Token endpoint. The Token endpoint must reject the request.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
