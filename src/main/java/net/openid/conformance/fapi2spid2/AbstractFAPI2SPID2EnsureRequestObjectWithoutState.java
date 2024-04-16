@@ -20,7 +20,7 @@ public abstract class AbstractFAPI2SPID2EnsureRequestObjectWithoutState extends 
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectMissingStateErrorPage.class, "FAPI1-ADV-5.2.3-8");
+		callAndStopOnFailure(ExpectRequestObjectMissingStateErrorPage.class, "RFC6749-4.1.1");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}

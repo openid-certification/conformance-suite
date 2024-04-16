@@ -105,7 +105,7 @@ public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2Cl
 
 			call(exec().mapKey("client_request", requestId));
 
-			callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+			callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI2-SP-ID2-5.2.1-1", "FAPI2-SP-ID2-5.2.1-2");
 
 			call(exec().unmapKey("client_request"));
 
@@ -153,7 +153,7 @@ public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2Cl
 		call(exec().startBlock("Registration endpoint").mapKey("incoming_request", requestId));
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI2-SP-ID2-5.2.1-1", "FAPI2-SP-ID2-5.2.1-2");
 		callAndContinueOnFailure(FAPIBrazilValidateRegistrationClientUriQueryParams.class, Condition.ConditionResult.WARNING, "OIDCR-3.2", "OIDCR-4.1");
 
 
@@ -271,7 +271,7 @@ public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2Cl
 		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
 		skipIfElementMissing("client", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.2");
+			FAPIBrazilValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
@@ -279,7 +279,7 @@ public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2Cl
 		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
 			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.2");
+			FAPIBrazilValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 

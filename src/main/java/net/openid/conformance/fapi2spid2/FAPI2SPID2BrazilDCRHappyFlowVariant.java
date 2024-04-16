@@ -34,6 +34,6 @@ public class FAPI2SPID2BrazilDCRHappyFlowVariant extends AbstractFAPI2SPID2Brazi
 
 		super.callRegistrationEndpoint();
 
-		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedScopes.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-", "RFC7591-2", "RFC7591-3.2.1");
+		callAndContinueOnFailure(CheckScopesFromDynamicRegistrationEndpointDoNotExceedRequestedScopes.class, Condition.ConditionResult.FAILURE, "RFC7591-2", "RFC7591-3.2.1");
 	}
 }

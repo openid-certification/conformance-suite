@@ -46,7 +46,7 @@ public class FAPI2SPID2EnsureUnsignedRequestAtParEndpointFails extends AbstractF
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectAuthorizationRequestWithoutRequestObjectErrorPage.class, "FAPI1-ADV-5.2.3-8"); // FIXME
+		callAndStopOnFailure(ExpectAuthorizationRequestWithoutRequestObjectErrorPage.class, "FAPI2-MS-ID1-5.3.2-1");
 
 		env.putString("error_callback_placeholder", env.getString("request_unverifiable_error"));
 	}

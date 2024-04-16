@@ -49,7 +49,7 @@ public class FAPI2SPID2EnsureClientIdInTokenEndpoint extends AbstractFAPI2SPID2P
 		eventLog.startBlock("Swapping to Client2");
 		env.mapKey("client", "client2");
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class, "FAPI1-BASE-5.2.2-19");
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class, "RFC6749-5.2");
 
 		// For this test, we explicitly add the client ID - so don't do it twice
 		if (getVariant(ClientAuthType.class) != ClientAuthType.MTLS) {

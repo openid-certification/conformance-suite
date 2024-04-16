@@ -62,7 +62,7 @@ public class FAPI2SPID2BrazilDCRClientDeletion extends AbstractFAPI2SPID2BrazilD
 
 
 		eventLog.startBlock("Deleting client then expecting GET / DELETE on configuration endpoint to fail");
-		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
+		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClient.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-9.3.2-4", "RFC7592-2.3");
 
 		callAndStopOnFailure(CallClientConfigurationEndpoint.class, "OIDCD-4.2");
 
@@ -73,7 +73,7 @@ public class FAPI2SPID2BrazilDCRClientDeletion extends AbstractFAPI2SPID2BrazilD
 
 		call(exec().unmapKey("endpoint_response"));
 
-		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClientExpectingFailure.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
+		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClientExpectingFailure.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-9.3.2-4", "RFC7592-2.3");
 
 		call(exec().startBlock("Verify that client_credentials grant fails now client has been deleted"));
 
