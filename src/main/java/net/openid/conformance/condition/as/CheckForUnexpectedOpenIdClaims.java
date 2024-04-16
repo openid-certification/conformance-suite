@@ -16,10 +16,10 @@ public class CheckForUnexpectedOpenIdClaims extends AbstractValidateOpenIdStanda
 	private List<String> standardClaimsAdditions = List.of(
 		// As per https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.5.5.1.1
 		"acr",
-		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-5.2.2.3
+		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-7.2.2-8
 		// note that cpf & cnpj have been removed from the latest Brazil standard that starts in ~Apr 2024, so we can remove them once we stop issues certifications for the older profile
 		"cpf",
-		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-5.2.2.4
+		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-7.2.2-10
 		"cnpj",
 		// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#OpenBankingSecurityProfile-Implementer'sDraftv1.1.2-HybridGrantParameters
 		"openbanking_intent_id"

@@ -36,7 +36,7 @@ public class FAPI2SPID2PAREnsurePlainPKCERejected extends AbstractFAPI2SPID2Expe
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectPlainPkceErrorPage.class, "FAPI1-ADV-5.2.2-18");
+		callAndStopOnFailure(ExpectPlainPkceErrorPage.class, "FAPI2-SP-ID2-5.3.1.2-5");
 
 		env.putString("error_callback_placeholder", env.getString("plain_pkce_error"));
 	}

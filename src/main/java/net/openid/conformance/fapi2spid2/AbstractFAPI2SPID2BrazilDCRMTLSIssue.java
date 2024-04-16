@@ -77,7 +77,7 @@ public abstract class AbstractFAPI2SPID2BrazilDCRMTLSIssue extends AbstractFAPI2
 		}
 
 
-		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClientExpectingFailure.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-7.1", "RFC7592-2.3");
+		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClientExpectingFailure.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-9.3.2-4", "RFC7592-2.3");
 
 		env.unmapKey("mutual_tls_authentication");
 

@@ -51,7 +51,7 @@ public class FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends Ab
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI1-ADV-5.2.3.1-3");
+		callAndStopOnFailure(ExpectRequestObjectUnverifiableErrorPage.class, "FAPI2-MS-ID1-5.4.2-2");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}

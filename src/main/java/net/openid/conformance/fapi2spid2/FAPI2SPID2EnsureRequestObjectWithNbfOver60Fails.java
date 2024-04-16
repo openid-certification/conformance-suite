@@ -52,7 +52,7 @@ public class FAPI2SPID2EnsureRequestObjectWithNbfOver60Fails extends AbstractFAP
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddNbfToRequestObject.class,
-						condition(AddNbfValueIs70MinutesInPastToRequestObject.class).requirements("FAPI1-ADV-5.2.2-17"));
+						condition(AddNbfValueIs70MinutesInPastToRequestObject.class).requirements("FAPI2-MS-ID1-5.3.1-3"));
 	}
 
 	@Override

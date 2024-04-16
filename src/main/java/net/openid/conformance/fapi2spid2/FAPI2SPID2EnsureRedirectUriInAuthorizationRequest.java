@@ -32,7 +32,7 @@ public class FAPI2SPID2EnsureRedirectUriInAuthorizationRequest extends AbstractF
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI1-BASE-5.2.2-9");
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI2-SP-ID2-5.3.1.2-6");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_missing_error"));
 	}

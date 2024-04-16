@@ -99,7 +99,7 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 			}
 			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				// this will always fail & stop
-				callAndStopOnFailure(FAPIBrazilRefreshTokenRequired.class, "BrazilOB-5.2.2-12");
+				callAndStopOnFailure(FAPIBrazilRefreshTokenRequired.class, "BrazilOB-5.2.2-11");
 			}
 			callAndContinueOnFailure(FAPIEnsureServerConfigurationDoesNotSupportRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 			// This throws an exception: the test will stop here
@@ -111,7 +111,7 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop());
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
-				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-17").dontStopOnFailure());
+				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-15").dontStopOnFailure());
 		}
 
 		if (! isOpenId) {
@@ -155,7 +155,7 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 			call(sequence(addTokenEndpointClientAuthentication));
 
 			if (isMTLS()) {
-				callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI1-ADV-5.2.2-6");
+				callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI2-SP-ID2-5.3.1.1-6");
 				Boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
 				if (sslError != null && sslError) {
 					// the ssl connection was dropped; that's an acceptable way for a server to indicate that a TLS client cert

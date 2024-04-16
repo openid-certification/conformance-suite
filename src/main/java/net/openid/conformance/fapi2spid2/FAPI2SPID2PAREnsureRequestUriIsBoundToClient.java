@@ -50,7 +50,7 @@ public class FAPI2SPID2PAREnsureRequestUriIsBoundToClient extends AbstractFAPI2S
 		eventLog.startBlock("Attempting to send client2's clientId with request_uri to AS and expect it returns error in callback");
 
 		switchToSecondClient();
-		callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class, "PAR-2.2.1");
+		callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class, "PAR-4");
 
 		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class);
 
