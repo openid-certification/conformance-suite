@@ -60,13 +60,12 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 		boolean par = requestMethod.equals("pushed");
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
-
+		if (!par || jarm || !privateKey) {
+			throw new RuntimeException(String.format("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used",
+					MethodHandles.lookup().lookupClass().getSimpleName()));
+		}
 		switch (profile) {
 			case "openbanking_brazil":
-				if (!par || jarm || !privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
 				return "BR-OF Adv. OP DCR (FAPI-BR v2)";
 			case "openinsurance_brazil":
 				return "BR-OPIN Adv. OP DCR";

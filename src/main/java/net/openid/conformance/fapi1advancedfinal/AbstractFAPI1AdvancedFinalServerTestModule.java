@@ -210,10 +210,12 @@ import java.util.function.Supplier;
 	"directory.keystore"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
+	"client.org_jwks",
 	"consent.productType",
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
+	"resource.brazilOrganizationId",
 	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_ksa", configurationFields = {
@@ -1026,7 +1028,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	public void setupOpenInsuranceBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = this::createOBBPreauthSteps;
-		profileAuthorizationEndpointSetupSteps = null;
+		profileAuthorizationEndpointSetupSteps = FAPIBrV2AuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
 	}
 
