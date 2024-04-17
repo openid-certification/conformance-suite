@@ -415,7 +415,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	 * will be called at the end of configure
 	 */
 	protected void onConfigurationCompleted() {
-		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			switchToSecondClient();
 		}
 	}
@@ -427,7 +427,9 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		validateClientJwks(false);
 		validateClientConfiguration();
 
-		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
+			// we always use the second client in Brazil, as that's the one that has configuration
+			// for id_token encryption which is mandatory in the Brazil v2 security profile
 			configureSecondClient();
 		}
 
@@ -1302,7 +1304,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	 * @param isAuthorizationEndpoint
 	 */
 	protected void encryptIdToken(boolean isAuthorizationEndpoint) {
-		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			// encryption is always required in new Brazil security profile
 			callAndStopOnFailure(EncryptIdToken.class, "OIDCC-10.2", "FAPI1-ADV-5.2.2.1-6");
 		}
