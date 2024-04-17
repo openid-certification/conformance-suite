@@ -20,12 +20,35 @@ public class RFC6749AppendixASyntaxUtils {
 			puncts = new RandomStringGenerator.Builder().
 				withinRange(pairs).build().generate(punctuationCount);
 		}
-		String numbers = "";
-		if(numberCount>0) {
-			numbers = new RandomStringGenerator.Builder().
-				withinRange(48, 57).    //0 to 9
-				build().generate(numberCount);
+		String numbers = generateNumberChar(numberCount);
+		String alphas = generateAlphaChar(alphaCount);
+		return alphas + numbers + puncts;
+	}
+
+	/**
+	 * NQCHAR     = %x21 / %x23-5B / %x5D-7E
+	 * @return random NQCHAR String
+	 */
+	public static String generateNQChar(int alphaCount, int numberCount, int punctuationCount) {
+		String puncts = "";
+		if(punctuationCount>0) {
+			char[][] pairs = {
+				{'!', '!'},
+				{'#', '/'},
+				{':', '@'},
+				{'[', '['},
+				{']', '`'},
+				{'{', '~'},
+			};
+			puncts = new RandomStringGenerator.Builder().
+				withinRange(pairs).build().generate(punctuationCount);
 		}
+		String numbers = generateNumberChar(numberCount);
+		String alphas = generateAlphaChar(alphaCount);
+		return alphas + numbers + puncts;
+	}
+
+	private static String generateAlphaChar(int alphaCount) {
 		String alphas = "";
 		if(alphaCount>0) {
 			char[][] pairs = {
@@ -35,6 +58,16 @@ public class RFC6749AppendixASyntaxUtils {
 			alphas = new RandomStringGenerator.Builder().
 				withinRange(pairs).build().generate(alphaCount);
 		}
-		return alphas + numbers + puncts;
+		return alphas ;
+	}
+
+	private static String generateNumberChar(int numberCount) {
+		String numbers = "";
+		if(numberCount>0) {
+			numbers = new RandomStringGenerator.Builder().
+				withinRange(48, 57).    //0 to 9
+				build().generate(numberCount);
+		}
+		return numbers;
 	}
 }
