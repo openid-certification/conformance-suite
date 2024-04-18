@@ -11,6 +11,7 @@ import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonCon
 import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
+import net.openid.conformance.condition.client.EnsureDpopNonceContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetDpopProofNonceForTokenEndpoint;
 import net.openid.conformance.condition.client.SignDpopProof;
@@ -48,6 +49,7 @@ public class RefreshTokenRequestExpectingErrorSteps extends AbstractConditionSeq
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 			callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
+			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
 			callAndStopOnFailure(SignDpopProof.class);
 			callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
 			callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
@@ -66,6 +68,12 @@ public class RefreshTokenRequestExpectingErrorSteps extends AbstractConditionSeq
 			call(condition(SetDpopProofNonceForTokenEndpoint.class)
 				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
 				.onSkip(ConditionResult.INFO)
+				.dontStopOnFailure());
+			call(condition(EnsureDpopNonceContainsAllowedCharactersOnly.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO)
+				.requirement("DPOP-8.1")
+				.onFail(ConditionResult.WARNING)
 				.dontStopOnFailure());
 			call(condition(SignDpopProof.class)
 				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")

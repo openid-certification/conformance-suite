@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointR
 import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.CreateDpopClaims;
 import net.openid.conformance.condition.client.CreateDpopHeader;
+import net.openid.conformance.condition.client.EnsureDpopNonceContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
 import net.openid.conformance.condition.client.SetDpopExpToFiveMinutesInFuture;
@@ -59,6 +60,9 @@ public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTest
 			callAndStopOnFailure(CreateDpopHeader.class);
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndContinueOnFailure(SetDpopProofNonceForResourceEndpoint.class, Condition.ConditionResult.INFO);
+			call(exec().mapKey("resource_server_dpop_nonce", "authorization_server_dpop_nonce"));
+			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, Condition.ConditionResult.WARNING, "DPOP-8.1");
+			call(exec().unmapKey("resource_server_dpop_nonce"));
 			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
 			callAndStopOnFailure(SetDpopAccessTokenHash.class);
 			callAndStopOnFailure(SetDpopNbfToNow.class);
@@ -77,6 +81,7 @@ public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTest
 		callAndStopOnFailure(CreateDpopHeader.class);
 		callAndStopOnFailure(CreateDpopClaims.class);
 		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, Condition.ConditionResult.INFO);
+		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, Condition.ConditionResult.WARNING, "DPOP-8.1");
 		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 		callAndStopOnFailure(SetDpopNbfToNow.class);
 		callAndStopOnFailure(SetDpopExpToFiveMinutesInFuture.class);
