@@ -2,7 +2,7 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddRandomDpopJktToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddInvalidDpopJktToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -41,7 +41,7 @@ public class FAPI2SPID2EnsureMismatchedDpopJktFails extends AbstractFAPI2SPID2Se
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		return super.makeCreateAuthorizationRequestSteps()
-				.then(condition(AddRandomDpopJktToAuthorizationEndpointRequest.class));
+				.then(condition(AddInvalidDpopJktToAuthorizationEndpointRequest.class));
 	}
 
 

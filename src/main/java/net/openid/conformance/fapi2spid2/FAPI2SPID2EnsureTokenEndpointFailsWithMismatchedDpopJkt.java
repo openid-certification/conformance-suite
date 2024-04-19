@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddRandomDpopJktToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddInvalidDpopJktToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -36,7 +36,7 @@ public class FAPI2SPID2EnsureTokenEndpointFailsWithMismatchedDpopJkt extends Abs
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		return super.makeCreateAuthorizationRequestSteps()
-				.then(condition(AddRandomDpopJktToAuthorizationEndpointRequest.class));
+				.then(condition(AddInvalidDpopJktToAuthorizationEndpointRequest.class));
 	}
 
 	@Override
