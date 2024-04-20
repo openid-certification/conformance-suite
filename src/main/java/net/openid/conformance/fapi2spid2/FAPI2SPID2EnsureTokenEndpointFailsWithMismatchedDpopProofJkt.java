@@ -39,10 +39,10 @@ public class FAPI2SPID2EnsureTokenEndpointFailsWithMismatchedDpopProofJkt extend
 	}
 
 	@Override
-	protected void createDpopForTokenEndpoint(boolean createKey) {
+	protected void createDpopForTokenEndpoint() {
 		// Generate a new key to overwrite the key created during the PAR endpoint
 		callAndStopOnFailure(GenerateDpopKey.class);
-		super.createDpopForTokenEndpoint(createKey);
+		super.createDpopForTokenEndpoint();
 	}
 
 

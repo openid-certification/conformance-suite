@@ -684,7 +684,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		if (isDpop()) {
 			int i = 0;
 			while(i < MAX_RETRY){
-				createDpopForTokenEndpoint(i == 0);
+				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 					break;
@@ -790,8 +790,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 	}
 
-	protected void createDpopForTokenEndpoint(boolean createKey) {
-		if(createKey && (null == env.getElementFromObject("client", "dpop_private_jwk"))) {
+	protected void createDpopForTokenEndpoint() {
+		if(null == env.getElementFromObject("client", "dpop_private_jwk")) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
 		callAndStopOnFailure(CreateDpopHeader.class);
@@ -803,9 +803,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
 	}
 
-	protected void createDpopForParEndpoint(boolean createKey) {
+	protected void createDpopForParEndpoint() {
 
-		if(createKey && (null == env.getElementFromObject("client", "dpop_private_jwk"))) {
+		if(null == env.getElementFromObject("client", "dpop_private_jwk")) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
 		callAndStopOnFailure(CreateDpopHeader.class);
@@ -1231,7 +1231,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			final int MAX_RETRY = 2;
 			int i = 0;
 			while(i < MAX_RETRY){
-				createDpopForParEndpoint(i == 0);
+				createDpopForParEndpoint();
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
 				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 					break;

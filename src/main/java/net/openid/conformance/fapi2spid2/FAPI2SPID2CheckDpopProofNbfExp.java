@@ -74,8 +74,8 @@ public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTest
 
 
 	@Override
-	protected void createDpopForTokenEndpoint(boolean createKey) {
-		if (createKey) {
+	protected void createDpopForTokenEndpoint() {
+		if (null == env.getElementFromObject("client", "dpop_private_jwk")) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
 		callAndStopOnFailure(CreateDpopHeader.class);
