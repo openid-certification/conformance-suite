@@ -97,7 +97,16 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		if(htu  == null) {
 			throw error("'htu' claim in DPoP Proof is missing");
 		}
-		if(!expectedUrl.equals(OIDFJSON.getString(htu))) {
+		String htuStr = OIDFJSON.getString(htu);
+		int index = htuStr.indexOf('?'); // look for '?' query and chop off
+		if( index != -1) {
+			htuStr = htuStr.substring(0, index);
+		}
+		index = htuStr.indexOf('#'); // look for '#' fragment and chop off
+		if( index != -1) {
+			htuStr = htuStr.substring(0, index);
+		}
+		if(!expectedUrl.equals(htuStr)) {
 			throw error("Unexpected 'htu' in DPoP Proof", args("expected", expectedUrl, "actual", OIDFJSON.getString(htu)));
 		}
 
