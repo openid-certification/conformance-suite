@@ -8,7 +8,10 @@ package net.openid.conformance.variant;
 public enum VPResponseMode
 {
 	DIRECT_POST("direct_post"),
-	DIRECT_POST_JWT("direct_post.jwt");
+	DIRECT_POST_JWT("direct_post.jwt"),
+
+	W3C_DC_API("w3c_dc_api"),
+	W3C_DC_API_JWT("w3c_dc_api.jwt");
 
 	private final String modeValue;
 

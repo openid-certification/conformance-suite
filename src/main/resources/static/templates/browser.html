@@ -8,6 +8,7 @@
                             <% }); %>
                         </form>
                         <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-primary bg-gradient border border-secondary visitBtn" data-method="<%- val.method %>" data-url="<%- val.originalUrl %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test <span class="bi bi-send-fill"></span></button></dt>
+                        <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-primary bg-gradient border border-secondary visitBrowserApiBtn" data-url="<%- val.originalUrl %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test via browser API (unstable) <span class="bi bi-send-fill"></span></button></dt>
                         <% if (val.method === 'POST') { %>
                             <dd class="col-sm-9 wrapLongStrings">
                                     <pre style="border: 1px solid #ddd; padding: 10px;"><code style="word-break: break-all;">POST <%- val.url %> HTTP 1.1

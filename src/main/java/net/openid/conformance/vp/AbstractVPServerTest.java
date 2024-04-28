@@ -188,6 +188,8 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		switch (responseMode) {
 			case DIRECT_POST:
 			case DIRECT_POST_JWT:
+			case W3C_DC_API_JWT:
+			case W3C_DC_API:
 				callAndStopOnFailure(CreateDirectPostResponseUri.class);
 				break;
 		}
@@ -317,9 +319,13 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			}
 			switch (responseMode) {
 				case DIRECT_POST:
+				case W3C_DC_API:
 					break;
 				case DIRECT_POST_JWT:
 					// assume response is encrypted so a key is required
+					jwksRequired = true;
+					break;
+				case W3C_DC_API_JWT:
 					jwksRequired = true;
 					break;
 			}
@@ -367,7 +373,16 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
-		performRedirect();
+		switch (responseMode) {
+			case W3C_DC_API:
+			case W3C_DC_API_JWT:
+//				browser.requestCredential(); FIXME finish writing
+//				break;
+			case DIRECT_POST_JWT:
+			case DIRECT_POST:
+				performRedirect();
+				break;
+		}
 		eventLog.log(getName(), "The wallet should be opened via the QR code / proceed with test button, and should then fetch the request_uri");
 		eventLog.endBlock();
 	}
@@ -416,6 +431,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 					break;
 				case DIRECT_POST_JWT:
 					callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPostJwt.class);
+					break;
+				case W3C_DC_API:
+				case W3C_DC_API_JWT:
+					// FIXME : set response mode
 					break;
 			}
 
@@ -471,6 +490,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				callAndStopOnFailure(DecryptResponse.class);
 				// FIXME: need to validate jwe header
 				// FIXME iss, exp and aud MUST be omitted in the JWT Claims Set of the JWE
+				break;
+			case W3C_DC_API:
+			case W3C_DC_API_JWT:
+				// FIXME do stuff
 				break;
 		}
 

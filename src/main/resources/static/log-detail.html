@@ -1109,6 +1109,110 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                         updateTestInfoStickiness(testId);
 
+                        if (document.querySelector('#runningTestBrowser .visitBrowserApiBtn') !== null) {
+                            document.querySelector('#runningTestBrowser .visitBrowserApiBtn').onclick = async function (evt) {
+                                evt.preventDefault();
+                                var testRequest = `
+{
+  "client_id": "digital-credentials.dev",
+  "client_id_scheme": "web-origin",
+  "response_type": "vp_token",
+  "nonce": "7PS5izuMXIi1ZTmFN60EKyvwSMJz-dpzICkDvRhz-tA=",
+  "presentation_definition": {
+    "id": "mDL-request-demo",
+    "input_descriptors": [
+      {
+        "id": "org.iso.18013.5.1.mDL",
+        "format": {
+          "mso_mdoc": {
+            "alg": [
+              "ES256"
+            ]
+          }
+        },
+        "constraints": {
+          "limit_disclosure": "required",
+          "fields": [
+            {
+              "path": [
+                "$['org.iso.18013.5.1']['family_name']"
+              ],
+              "intent_to_retain": false
+            },
+            {
+              "path": [
+                "$['org.iso.18013.5.1']['given_name']"
+              ],
+              "intent_to_retain": false
+            },
+            {
+              "path": [
+                "$['org.iso.18013.5.1']['birth_date']"
+              ],
+              "intent_to_retain": false
+            },
+            {
+              "path": [
+                "$['org.iso.18013.5.1']['portrait']"
+              ],
+              "intent_to_retain": false
+            },
+            {
+              "path": [
+                "$['org.iso.18013.5.1']['age_over_21']"
+              ],
+              "intent_to_retain": false
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+`;
+                                // const responseUrl = 'https://review-app-dev-branch-3.certification.openid.net/test/a/jhtest/responseuri';
+                                const responseUrl = 'https://localhost.emobix.co.uk:8443/test/a/changeme-my-company-name-vp-test/responseuri';
+                                const xhr = new XMLHttpRequest();
+                                xhr.open('POST', responseUrl, true);
+                                xhr.responseType = "json";
+                                xhr.onload = function () {
+                                    console.log('XMLHttpRequest call succeeded. Response:' + JSON.stringify(this.response));
+                                };
+                                xhr.onerror = function (error) {
+                                    console.log('Error from XMLHttpRequest');
+                                };
+                                try {
+                                    // or could use navigator.identity.get().then((credentialResponse) => {}, (error) => {})
+                                    const credentialResponse = await navigator.identity.get({
+                                        digital: {
+                                            providers: [{
+                                                protocol: "openid4vp",
+                                                request: testRequest
+                                            }]
+                                        },
+                                    })
+                                    console.log("credential response");
+                                    console.log(credentialResponse);
+                                    if (credentialResponse.constructor.name == 'DigitalCredential') {
+                                        const data = credentialResponse.data
+                                        const protocol = credentialResponse.protocol
+                                        console.log("Response Data: " + data + " Protocol: " + protocol)
+                                        xhr.send(JSON.stringify({"data": data, "protocol": protocol}));
+                                    } else {
+                                        xhr.send(JSON.stringify({"bad_response_type" : credentialResponse.constructor.name}));
+                                        throw new Error("Unknown response type")
+                                    }
+
+                                } catch (err) {
+                                    console.log("Exception");
+                                    console.log(err);
+                                    xhr.send(JSON.stringify({"exception": err}));
+                                    alert(err)
+                                }
+                            }
+                        }
+
+
                         if (document.querySelector('#runningTestBrowser .visitBtn') !== null) {
                             document.querySelector('#runningTestBrowser .visitBtn').onclick = function(evt) {
                                 evt.preventDefault();
