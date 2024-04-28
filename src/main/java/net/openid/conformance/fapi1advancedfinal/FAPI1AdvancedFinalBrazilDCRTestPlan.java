@@ -68,7 +68,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 			case "openbanking_brazil":
 				return "BR-OF Adv. OP DCR (FAPI-BR v2)";
 			case "openinsurance_brazil":
-				return "BR-OPIN Adv. OP DCR";
+				return "BR-OPIN Adv. OP DCR (FAPI-BR v2)";
 			default:
 				throw new RuntimeException("This plan can only be used for Brazil OpenBanking/OpenFinance or OpenInsurance.");
 		}

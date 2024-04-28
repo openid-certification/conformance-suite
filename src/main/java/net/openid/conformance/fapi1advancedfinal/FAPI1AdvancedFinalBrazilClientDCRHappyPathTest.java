@@ -186,12 +186,6 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 
 		JsonObject clientInfo = env.getObject("client");
 
-		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
-			// rotate registration access token
-			callAndStopOnFailure(GenerateRegistrationAccessToken.class, "RFC7592-3");
-			clientInfo.addProperty("registration_access_token", env.getString("registration_access_token"));
-		}
-
 		if (clientConfigEndpointCalled) {
 			fireTestFinished();
 		} else {
