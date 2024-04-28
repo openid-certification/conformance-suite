@@ -11,7 +11,7 @@ import java.net.URISyntaxException;
 public class SetClientIdToResponseUriHostnameIfUnset extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = "response_uri", required = "config")
+	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
 		String client_id = env.getString("config", "client.client_id");
@@ -21,6 +21,9 @@ public class SetClientIdToResponseUriHostnameIfUnset extends AbstractCondition {
 		}
 
 		String responseUri = env.getString("response_uri");
+		if (Strings.isNullOrEmpty(responseUri)) {
+			throw error("response_uri is not in use, please set a client_id in test configuration.");
+		}
 		String hostname;
 
 		try {

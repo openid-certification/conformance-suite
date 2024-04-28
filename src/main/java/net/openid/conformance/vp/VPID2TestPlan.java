@@ -62,6 +62,11 @@ public class VPID2TestPlan implements TestPlan {
 
 		String certProfile = "OID4VPID2";
 
+		if (responseMode.equals(VPResponseMode.W3C_DC_API_JWT.toString())) {
+			throw new RuntimeException(String.format("Invalid configuration for %s: Encrypted w3c responses not supported yet - please email certification@openid.org if you have a wallet that supports it",
+				MethodHandles.lookup().lookupClass().getSimpleName()));
+		}
+
 		if (credentialFormat.equals(CredentialFormat.ISO_MDL.toString())) {
 			if (!responseMode.equals(VPResponseMode.DIRECT_POST_JWT.toString())) {
 				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires direct_post.jwt",

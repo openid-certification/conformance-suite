@@ -24,6 +24,10 @@ Content-Type: application/x-www-form-urlencoded
                             <% } %>
                         <% } %>
                     <% }); %>
+                    <% _.each(browser.browserApiRequests, function(val) { %>
+                        <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-primary bg-gradient border border-secondary visitBrowserApiBtn" data-browserapirequest="<%- JSON.stringify(val.request) %>" data-browserapisubmiturl="<%- val.submitUrl %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test via browser API (preview) <span class="bi bi-send-fill"></span></button></dt>
+                        <dd class="col-sm-9 wrapLongStrings"><i><%- JSON.stringify(val.request) %></i></dd>
+                    <% }); %>
                     <% _.each(browser.visitedUrlsWithMethod, function(val) { %>
                         <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-light bg-gradient border border-secondary" disabled >Visited <span class="bi bi-send-fill"></span></button></dt>
                         <% if (val.method === 'POST') { %>
