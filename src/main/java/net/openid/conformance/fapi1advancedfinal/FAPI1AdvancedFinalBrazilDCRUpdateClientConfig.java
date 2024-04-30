@@ -7,7 +7,6 @@ import net.openid.conformance.condition.client.AddRedirectUriToClientConfigurati
 import net.openid.conformance.condition.client.AddSoftwareStatementToClientConfigurationRequest;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpointAllowingTLSFailure;
-import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientConfigurationAccessTokenFromClientConfigurationEndpointIsNotRotated;
 import net.openid.conformance.condition.client.CheckClientConfigurationUriFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
@@ -26,7 +25,6 @@ import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContai
 import net.openid.conformance.condition.client.GenerateFakeMTLSCertificate;
 import net.openid.conformance.condition.client.InvalidateSoftwareStatementSignature;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-brazildcr-update-client-config",
@@ -70,12 +68,9 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfig extends AbstractFAPI1
 		callAndContinueOnFailure(CheckClientIdFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckRedirectUrisFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 		callAndContinueOnFailure(CheckClientConfigurationUriFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
-			callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		} else {
-			// as per v2 security profile
-			callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpointIsNotRotated.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
-		}
+
+		// as per v2 security profile
+		callAndContinueOnFailure(CheckClientConfigurationAccessTokenFromClientConfigurationEndpointIsNotRotated.class, Condition.ConditionResult.FAILURE, "RFC7592-3");
 	}
 
 	@Override

@@ -12,6 +12,9 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client2.org_jwks"
 })
+@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
+		"client2.org_jwks"
+})
 public abstract class AbstractFAPI1AdvancedFinalMultipleClient extends AbstractFAPI1AdvancedFinalServerTestModule {
 
 	@Override
