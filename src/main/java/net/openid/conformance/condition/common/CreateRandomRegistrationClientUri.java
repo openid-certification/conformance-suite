@@ -32,10 +32,12 @@ public class CreateRandomRegistrationClientUri extends AbstractCondition {
 		// form for this uri - we use a random one (rather than one, say, containing the client_id) to
 		// ensure the client does not try to construct the url itself.
 		String path = "clienturi/" + RandomStringUtils.randomAlphanumeric(64);
+		String queryVar = RandomStringUtils.randomAlphanumeric(16);
+		String queryVal = RandomStringUtils.randomAlphanumeric(16);
 
 		JsonObject o = new JsonObject();
 		o.addProperty("path", path);
-		String fullUrl = baseUrl + "/" + path;
+		String fullUrl = baseUrl + "/" + path + "?" + queryVar + "=" + queryVal;
 		o.addProperty("fullUrl", fullUrl);
 
 		env.putObject("registration_client_uri", o);

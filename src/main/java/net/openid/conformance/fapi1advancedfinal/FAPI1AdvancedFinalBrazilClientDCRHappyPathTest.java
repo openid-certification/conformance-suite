@@ -23,6 +23,7 @@ import net.openid.conformance.condition.as.dynregistration.FAPIBrazilRegisterCli
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateClientAuthenticationMethods;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateDefaultAcrValues;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateIdTokenSignedResponseAlg;
+import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRegistrationClientUriQueryParams;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRequestObjectEncryption;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.FAPIBrazilValidateSSASignature;
@@ -170,6 +171,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 		call(exec().mapKey("client_request", requestId));
 
 		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+		callAndContinueOnFailure(FAPIBrazilValidateRegistrationClientUriQueryParams.class, Condition.ConditionResult.WARNING, "OIDCR-3.2", "OIDCR-4.1");
 
 		call(exec().unmapKey("client_request"));
 
