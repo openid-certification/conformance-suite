@@ -290,7 +290,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 
 		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
-		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			// these are needed for EncryptIdToken to succeed
 			env.putString("client", "id_token_encrypted_response_alg", "RSA-OAEP");
 			env.putString("client", "id_token_encrypted_response_enc", "A256GCM");
