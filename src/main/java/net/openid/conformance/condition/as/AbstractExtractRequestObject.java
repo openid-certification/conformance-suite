@@ -32,7 +32,7 @@ public abstract class AbstractExtractRequestObject extends AbstractCondition {
 			return env;
 
 		} catch (ParseException e) {
-			throw error("Couldn't parse request object", e, args("request", requestObjectString));
+			throw error("Couldn't parse request object: " + e.getMessage(), e, args("request", requestObjectString));
 		} catch (JOSEException e) {
 			throw error("Request object decryption failed", e, args("request", requestObjectString));
 		}

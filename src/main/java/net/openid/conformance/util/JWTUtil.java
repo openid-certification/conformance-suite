@@ -138,12 +138,12 @@ public class JWTUtil {
 										alg, encryptedJWT.getHeader().getEncryptionMethod(), null);
 			} else {
 				if (privateJwksWithEncKeys == null) {
-					throw new ParseException("A JWKS is required to decrypt this JWT", 0);
+					throw new ParseException("No suitable key for decrypting this JWT was provided in the test configuration. A private key of the correct key type with 'use': 'enc' and other matching properties is required.", 0);
 				}
 				JWKSet jwkSet = JWKUtil.parseJWKSet(privateJwksWithEncKeys.toString());
 				decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
 				if (decryptionKey == null) {
-					throw new ParseException("No suitable key for decrypting this JWT was provided in the test configuration.", 0);
+					throw new ParseException("No suitable key for decrypting this JWT was provided in the test configuration. A private key of the correct key type with 'use': 'enc' and other matching properties is required.", 0);
 				}
 			}
 			JWEDecrypter decrypter = JWEUtil.createDecrypter(alg, decryptionKey);

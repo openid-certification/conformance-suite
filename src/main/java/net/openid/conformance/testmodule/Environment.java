@@ -255,7 +255,7 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()) {
 			return OIDFJSON.getString(e);
 		} else {
-			throw new UnexpectedTypeException(String.format("A string is required for %s %s but %s was found",
+			throw new UnexpectedTypeException(String.format("If present, a string is expected for %s %s but %s was found",
 				key, path, e.getClass().getSimpleName()));
 		}
 	}
