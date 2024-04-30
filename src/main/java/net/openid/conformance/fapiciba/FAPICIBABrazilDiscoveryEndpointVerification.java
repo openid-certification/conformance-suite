@@ -47,11 +47,6 @@ public class FAPICIBABrazilDiscoveryEndpointVerification extends AbstractFAPI1Ad
 		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(false);
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
-	public void setupOpenInsuranceBrazil() {
-		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(false);
-	}
-
 	@Override
 	protected void performEndpointVerification() {
 		super.performEndpointVerification();
