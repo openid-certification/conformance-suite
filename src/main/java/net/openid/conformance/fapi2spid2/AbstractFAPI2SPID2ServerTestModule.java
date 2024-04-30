@@ -1062,9 +1062,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
 			callAndStopOnFailure(SetDpopAccessTokenHash.class);
 			callAndContinueOnFailure(SetDpopProofNonceForResourceEndpoint.class, ConditionResult.INFO);
-			call(exec().mapKey("resource_server_dpop_nonce", "authorization_server_dpop_nonce"));
 			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
-			call(exec().unmapKey("resource_server_dpop_nonce"));
 			callAndStopOnFailure(SignDpopProof.class);
 			callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
 		}
