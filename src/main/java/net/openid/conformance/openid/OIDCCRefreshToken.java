@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import net.openid.conformance.condition.client.AddRefreshTokenGrantTypeToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureServerConfigurationDoesNotSupportRefreshToken;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsRefreshToken;
@@ -14,6 +15,7 @@ import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOp
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.RefreshTokenRequestExpectingErrorSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -51,7 +53,17 @@ public class OIDCCRefreshToken extends AbstractOIDCCMultipleClient {
 
 	@Override
 	protected ConditionSequence createAuthorizationRequestSequence() {
+		Command cmd = new Command();
+
+		if (isSecondClient()) {
+			cmd.putInteger("requested_nonce_length", 43);
+		}
+		else {
+			cmd.removeNativeValue("requested_nonce_length");
+		}
+
 		return super.createAuthorizationRequestSequence()
+			.insertBefore(CreateRandomNonceValue.class, cmd)
 			.then(condition(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class).requirement("OIDCC-11"));
 	}
 
