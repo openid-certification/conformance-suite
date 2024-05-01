@@ -240,16 +240,6 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
-@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
-		"client.org_jwks",
-		"client.acr_value",
-		"consent.productType",
-		"resource.consentUrl",
-		"resource.brazilCpf",
-		"resource.brazilCnpj",
-		"resource.brazilOrganizationId",
-		"directory.keystore"
-})
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.jwks",
 	"mtls.cert",
@@ -1336,14 +1326,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalProfileIdTokenValidationSteps = OpenBankingBrazilProfileIdTokenValidationSteps.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
-	public void setupOpenInsuranceBrazil() {
-		resourceConfiguration = FAPIResourceConfiguration.class;
-		additionalClientRegistrationSteps = null;
-		preAuthorizationSteps = () -> createBrazilPreauthSteps();
-		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingBrazilProfileAuthorizationEndpointSetupSteps.class;
-		additionalProfileIdTokenValidationSteps = OpenBankingBrazilProfileIdTokenValidationSteps.class;
-	}
 	protected ConditionSequence createBrazilPreauthSteps() {
 		boolean isSecondClient = isSecondClient();
 		boolean isDpop = false;

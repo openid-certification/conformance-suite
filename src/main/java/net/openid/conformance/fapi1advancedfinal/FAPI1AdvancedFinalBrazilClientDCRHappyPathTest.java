@@ -186,6 +186,12 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 
 		JsonObject clientInfo = env.getObject("client");
 
+		if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
+			// rotate registration access token
+			callAndStopOnFailure(GenerateRegistrationAccessToken.class, "RFC7592-3");
+			clientInfo.addProperty("registration_access_token", env.getString("registration_access_token"));
+		}
+
 		if (clientConfigEndpointCalled) {
 			fireTestFinished();
 		} else {
@@ -290,7 +296,7 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 
 		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
-		if (isBrazil()) {
+		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			// these are needed for EncryptIdToken to succeed
 			env.putString("client", "id_token_encrypted_response_alg", "RSA-OAEP");
 			env.putString("client", "id_token_encrypted_response_enc", "A256GCM");
