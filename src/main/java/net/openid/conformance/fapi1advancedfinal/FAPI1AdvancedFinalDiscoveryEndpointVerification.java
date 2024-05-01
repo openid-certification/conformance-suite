@@ -14,6 +14,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameter
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseModesSupportedContainsJwt;
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
+import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupportedContainsPublic;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
@@ -135,12 +136,21 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 
+		call(sequence(OidcDiscoveryEndpointChecks.class));
+
 		call(profileSpecificChecks);
 
 		if (brazil && !par) {
 			// encrypted request object support is only required for redirect based flows
 			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1.1-1");
 			callAndContinueOnFailure(FAPICheckDiscEndpointRequestObjectEncryptionEncValuesSupportedContainsA256gcm.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1.1-1");
+		}
+	}
+
+	public static class OidcDiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		}
 	}
 

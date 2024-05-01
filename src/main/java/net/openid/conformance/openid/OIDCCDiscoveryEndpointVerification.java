@@ -13,6 +13,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSig
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
+import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
@@ -26,7 +27,6 @@ import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesS
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
@@ -90,7 +90,7 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 
-		callAndContinueOnFailure(OIDCCCheckDiscEndpointSubjectTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
 		// Includes verify-id_token_signing-algorithm-is-supported assertion (OIDC test)
 		callAndContinueOnFailure(OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
