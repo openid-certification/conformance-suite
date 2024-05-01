@@ -22,7 +22,7 @@ public class CheckForInvalidCharsInState extends AbstractCondition {
 			for (int i = 0; i < state.length(); i++) {
 				String charAsString = String.valueOf(state.charAt(i));
 
-				if (! charAsString.matches("[A-Za-z0-9\\-_\\.~!\\*'();:@&=+\\$,/?%#\\[\\]]")) {
+				if (! charAsString.matches("[A-Za-z0-9\\-_\\.~]")) {
 					if (! invalidCharacters.contains(charAsString)) {
 						invalidCharacters.add(charAsString);
 					}
