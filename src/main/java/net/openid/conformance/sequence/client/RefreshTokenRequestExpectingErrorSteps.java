@@ -89,7 +89,6 @@ public class RefreshTokenRequestExpectingErrorSteps extends AbstractConditionSeq
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		}
 
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class);
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
