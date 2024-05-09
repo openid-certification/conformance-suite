@@ -60,8 +60,6 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 			} else {
 				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 			}
-
-			// todo Check
 			if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 				break; // no nonce error so
 			}
@@ -71,6 +69,47 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		Condition.ConditionResult result = Condition.ConditionResult.FAILURE;
+		if (!shouldFail) {
+			result = Condition.ConditionResult.WARNING;
+		}
+		if (expectSuccess) {
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, result, requirements);
+		} else {
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, result, requirements);
+		}
+		call(exec().unmapKey("endpoint_response"));
+	}
+
+
+	// Special method to handle tests for iat
+	// Results will depend on whether the server required the use of DPOP nonce
+	void callResourceEndpointStepsForIatAndNonceTests(Supplier <? extends ConditionSequence> seq, boolean expectSuccess, boolean shouldFail, String... requirements) {
+		final int MAX_RETRY = 2;
+		int i = 0;
+		boolean usedNonce = false;
+		// Remove any previous stored nonces that may affect outcome
+		env.removeNativeValue("resource_server_dpop_nonce");
+		while(i < MAX_RETRY) {
+			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+			call(sequence(seq));
+			callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+			if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+				break; // no nonce error so
+			} else {
+				usedNonce = true;
+			}
+			// continue call with nonce
+			++i;
+		}
+
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		Condition.ConditionResult result = Condition.ConditionResult.FAILURE;
+		// If server required nonce, it should succeed
+		if(usedNonce) {
+			shouldFail = false;
+			expectSuccess = true;
+		}
+
 		if (!shouldFail) {
 			result = Condition.ConditionResult.WARNING;
 		}
@@ -197,13 +236,14 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 		// iat is expected to be within seconds/minutes of current time as per https://mailarchive.ietf.org/arch/msg/oauth/CC0ZlExBdZFOjO2ltgkJ3w6VioI/
 		// This might need to be changed when we support nonces if the server is using nonce; there's been discussion on the IETF OAuth list about the nonce check replacing the iat check
 		// https://mailarchive.ietf.org/arch/msg/oauth/T4stTh9mQRExvZTdEC30OF541p0/
+		// Tests will expect failure ONLY when nonce is not used
 		eventLog.startBlock("Try DPoP proof where 'iat' is one hour in the future");
-		callResourceEndpointSteps(() -> makeUpdateResourceRequestSteps()
+		callResourceEndpointStepsForIatAndNonceTests(() -> makeUpdateResourceRequestSteps()
 			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
 				condition(SetDpopIatToOneHourInFuture.class)), false, true, "DPOP-7.1");
 
 		eventLog.startBlock("Try DPoP proof where 'iat' is one hour in the past");
-		callResourceEndpointSteps(() -> makeUpdateResourceRequestSteps()
+		callResourceEndpointStepsForIatAndNonceTests(() -> makeUpdateResourceRequestSteps()
 			.insertAfter(SetDpopHtmHtuForResourceEndpoint.class,
 				condition(SetDpopIatToOneHourInPast.class)), false, true, "DPOP-7.1");
 
