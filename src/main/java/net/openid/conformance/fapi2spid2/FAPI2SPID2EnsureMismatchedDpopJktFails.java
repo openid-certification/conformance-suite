@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddInvalidDpopJktToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
+import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -36,6 +37,8 @@ public class FAPI2SPID2EnsureMismatchedDpopJktFails extends AbstractFAPI2SPID2Se
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		useDpopAuthCodeBinding = true;
+		// Generate DPOP key for use by AddInvalidDpopJktToAuthorizationEndpointRequest
+		callAndStopOnFailure(GenerateDpopKey.class);
 	}
 
 	@Override

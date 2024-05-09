@@ -1,8 +1,10 @@
 package net.openid.conformance.fapi2spid2;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddInvalidDpopJktToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError;
+import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -32,6 +34,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = { "mtls" })
 public class FAPI2SPID2EnsureTokenEndpointFailsWithMismatchedDpopJkt extends AbstractFAPI2SPID2PerformTokenEndpoint {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		// Generate DPOP key for use by AddInvalidDpopJktToAuthorizationEndpointRequest
+		callAndStopOnFailure(GenerateDpopKey.class);
+	}
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
