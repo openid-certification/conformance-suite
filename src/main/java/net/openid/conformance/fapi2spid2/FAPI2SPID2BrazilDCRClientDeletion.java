@@ -3,7 +3,6 @@ package net.openid.conformance.fapi2spid2;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallClientConfigurationEndpoint;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -47,7 +46,7 @@ public class FAPI2SPID2BrazilDCRClientDeletion extends AbstractFAPI2SPID2BrazilD
 			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
 		}
 		call(sequence(addTokenEndpointClientAuthentication));
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callSenderConstrainedTokenEndpointAndStopOnFailure();
 	}
 
 	@Override

@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResource;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
@@ -78,16 +77,17 @@ public class FAPI2SPID2AttemptReuseAuthorizationCodeAfterOneSecond extends Abstr
 			call(sequence(generateNewClientAssertionSteps));
 		}
 
-		if (isDpop()) {
-			createDpopForTokenEndpoint(false);
-		}
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-13");
+		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI1-BASE-5.2.2-13");
 
 		verifyError();
 
 		eventLog.startBlock("Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)");
-		updateResourceRequest();
-		callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2");
+		if(isDpop()) {
+			updateResourceRequestAndCallProtectedResourceUsingDpop("RFC6749-4.1.2");
+		} else {
+			updateResourceRequest();
+			callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "RFC6749-4.1.2");
+		}
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, Condition.ConditionResult.WARNING, "RFC6749-4.1.2", "RFC6750-3.1");

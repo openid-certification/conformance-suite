@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
@@ -45,15 +44,10 @@ public class FAPI2SPID2EnsureClientAssertionInTokenEndpoint extends AbstractFAPI
 	}
 
 	@Override
-	protected void exchangeAuthorizationCode() {
-		if (isDpop()) {
-			createDpopForTokenEndpoint(true);
-		}
-
+	protected void processTokenEndpointResponse() {
 		/* If we get an error back from the token endpoint server:
 		 * - It must be a 'invalid_client' or 'invalid_request' error
 		 */
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-19");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(ValidateErrorFromTokenEndpointResponseError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB.class, Condition.ConditionResult.WARNING, "RFC6749-5.2");

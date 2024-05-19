@@ -134,7 +134,13 @@ public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 		} else {
 			callAndStopOnFailure(SetUtf8JsonAcceptHeadersForResourceEndpointRequest.class);
 		}
-		callAndStopOnFailure(CallProtectedResource.class, "RFC7231-5.3.2");
+
+		if (isDpop() ) {
+			requestProtectedResourceUsingDpop();
+		} else  {
+			callAndStopOnFailure(CallProtectedResource.class, "RFC7231-5.3.2");
+		}
+
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
@@ -144,7 +150,11 @@ public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 
 		updateResourceRequest();
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
-		callAndStopOnFailure(CallProtectedResource.class, Condition.ConditionResult.FAILURE, "RFC7231-5.3.2");
+		if (isDpop() ) {
+			requestProtectedResourceUsingDpop();
+		} else  {
+			callAndStopOnFailure(CallProtectedResource.class, "RFC7231-5.3.2");
+		}
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));

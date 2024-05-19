@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.text.ParseException;
 
-public class ValidateDpopAccessTokenfJkt extends AbstractCondition {
+public class ValidateDpopAccessTokenJkt extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"dpop_access_token", "incoming_dpop_proof"})

@@ -3,6 +3,7 @@ package net.openid.conformance.sequence.client;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckTokenEndpointCacheHeaders;
@@ -16,6 +17,7 @@ import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
+import net.openid.conformance.condition.client.EnsureDpopNonceContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
@@ -25,6 +27,7 @@ import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
+import net.openid.conformance.condition.client.SetDpopProofNonceForTokenEndpoint;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
@@ -89,11 +92,48 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 			callAndStopOnFailure(CreateDpopHeader.class);
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
+			callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
+			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
 			callAndStopOnFailure(SignDpopProof.class);
 			callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+			callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+
+			// retry request if token_endpoint_dpop_nonce_error is found
+			exec().startBlock("Token endpoint DPoP nonce retry");
+			call(condition(CreateDpopHeader.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO));
+			call(condition(CreateDpopClaims.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO));
+			call(condition(SetDpopHtmHtuForTokenEndpoint.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO));
+			call(condition(SetDpopProofNonceForTokenEndpoint.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO)
+				.dontStopOnFailure());
+			call(condition(EnsureDpopNonceContainsAllowedCharactersOnly.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO)
+				.requirement("DPOP-8.1")
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure());
+			call(condition(SignDpopProof.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO));
+			call(condition(AddDpopHeaderForTokenEndpointRequest.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO));
+			call(condition(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class)
+				.skipIfStringsMissing("token_endpoint_dpop_nonce_error")
+				.onSkip(ConditionResult.INFO));
+			exec().endBlock();
+
+		} else {
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		}
 
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, ConditionResult.FAILURE, "RFC6749-5.1");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "RFC6749-5.1");
 		callAndContinueOnFailure(CheckTokenEndpointCacheHeaders.class, ConditionResult.FAILURE,  "RFC6749-5.1");

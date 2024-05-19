@@ -15,6 +15,7 @@ import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResource
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddDpopHeaderForParEndpointRequest;
 import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
@@ -36,8 +37,12 @@ import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirect
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
+import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -65,6 +70,7 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
+import net.openid.conformance.condition.client.EnsureDpopNonceContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
@@ -116,8 +122,11 @@ import net.openid.conformance.condition.client.SetApplicationJwtContentTypeHeade
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
+import net.openid.conformance.condition.client.SetDpopHtmHtuForParEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
+import net.openid.conformance.condition.client.SetDpopProofNonceForResourceEndpoint;
+import net.openid.conformance.condition.client.SetDpopProofNonceForTokenEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToMtlsUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -213,6 +222,10 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
+@VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {
+	"client.dpop_signing_alg",
+	"client2.dpop_signing_alg",
+})
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
@@ -232,6 +245,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	protected Boolean isSignedRequest;
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
 	protected Boolean profileRequiresMtlsEverywhere;
+	protected Boolean useDpopAuthCodeBinding;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -289,6 +303,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		isBrazil = getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
+		useDpopAuthCodeBinding = false;
 
 		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
 		profileRequiresMtlsEverywhere =
@@ -657,15 +672,54 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		call(sequence(addParEndpointClientAuthentication));
 	}
 
-	protected void exchangeAuthorizationCode() {
-		if (isDpop()) {
-			createDpopForTokenEndpoint(true);
-		}
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
+	/**
+	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
+	 * @param fullResponse whether the full response should be returned
+	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
+	 */
+	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(boolean fullResponse, String... requirements) {
+		final int MAX_RETRY = 2;
+
+		if (isDpop()) {
+			int i = 0;
+			while(i < MAX_RETRY){
+				createDpopForTokenEndpoint();
+				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
+				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+					break;
+				}
+				++i;
+			}
+		} else {
+			callAndStopOnFailure(fullResponse ? CallTokenEndpointAndReturnFullResponse.class : CallTokenEndpoint.class, requirements);
+		}
+	}
+
+	/**
+	 * Call sender constrained token endpoint returning full response
+	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
+	 */
+	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
+		callSenderConstrainedTokenEndpointAndStopOnFailure(true, requirements);
+	}
+
+	/**
+	 * Default Call to sender constrained token endpoint with non-full response
+	 */
+	protected void callSenderConstrainedTokenEndpoint() {
+		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
+	}
+
+	protected void exchangeAuthorizationCode() {
+		callSenderConstrainedTokenEndpoint();
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
+		processTokenEndpointResponse();
+		eventLog.endBlock();
+	}
 
+	protected void processTokenEndpointResponse() {
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "FAPI1-BASE-5.2.2-14");
@@ -734,18 +788,33 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		else {
 			callAndStopOnFailure(ExpectNoIdTokenInTokenResponse.class);
 		}
-
 	}
 
-	protected void createDpopForTokenEndpoint(boolean createKey) {
-		if (createKey) {
+	protected void createDpopForTokenEndpoint() {
+		if(null == env.getElementFromObject("client", "dpop_private_jwk")) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
 		callAndStopOnFailure(CreateDpopHeader.class);
 		callAndStopOnFailure(CreateDpopClaims.class);
 		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
+		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
+		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
 		callAndStopOnFailure(SignDpopProof.class);
 		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+	}
+
+	protected void createDpopForParEndpoint() {
+
+		if(null == env.getElementFromObject("client", "dpop_private_jwk")) {
+			callAndStopOnFailure(GenerateDpopKey.class);
+		}
+		callAndStopOnFailure(CreateDpopHeader.class);
+		callAndStopOnFailure(CreateDpopClaims.class);
+		callAndStopOnFailure(SetDpopHtmHtuForParEndpoint.class);
+		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
+		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
+		callAndStopOnFailure(SignDpopProof.class);
+		callAndStopOnFailure(AddDpopHeaderForParEndpointRequest.class);
 	}
 
 	@Override
@@ -849,6 +918,38 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		call(makeUpdateResourceRequestSteps());
 	}
 
+	protected void updateResourceRequestAndCallProtectedResourceUsingDpop(String ... requirements) {
+		if (isDpop()) {
+			final int MAX_RETRY = 2;
+			int i = 0;
+			while(i < MAX_RETRY) {
+				updateResourceRequest();
+				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, requirements);
+				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+					break; // no nonce error so
+				}
+				// continue call with nonce
+				++i;
+			}
+		}
+	}
+
+	protected void requestProtectedResourceUsingDpop() {
+		if (isDpop() && (createDpopForResourceEndpointSteps != null) ) {
+			final int MAX_RETRY = 2;
+			int i = 0;
+			while(i < MAX_RETRY) {
+				call(sequence(createDpopForResourceEndpointSteps));
+				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+					break; // no nonce error so
+				}
+				// continue call with nonce
+				++i;
+			}
+		}
+	}
+
 	protected void requestProtectedResource() {
 
 		// verify the access token against a protected resource
@@ -912,9 +1013,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			}
 		}
 
-		if (isDpop() && (createDpopForResourceEndpointSteps != null) ) {
-			call(sequence(createDpopForResourceEndpointSteps));
-		}
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
 			profileRequiresMtlsEverywhere;
@@ -925,7 +1023,11 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			env.removeObject("mutual_tls_authentication");
 		}
 
-		callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		if (isDpop() ) {
+			requestProtectedResourceUsingDpop();
+		} else  {
+			callAndStopOnFailure(CallProtectedResource.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
 		}
@@ -959,6 +1061,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
 			callAndStopOnFailure(SetDpopAccessTokenHash.class);
+			callAndContinueOnFailure(SetDpopProofNonceForResourceEndpoint.class, ConditionResult.INFO);
+			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
 			callAndStopOnFailure(SignDpopProof.class);
 			callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
 		}
@@ -1115,6 +1219,29 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		performRedirect();
 	}
 
+
+	/**
+	 * Call Par endpoint with retry for DPoP nonce error
+	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallParEndpoint)
+	 */
+	protected void callParEndpointAndStopOnFailure(String... requirements) {
+		if (isDpop() && useDpopAuthCodeBinding) {
+			final int MAX_RETRY = 2;
+			int i = 0;
+			while(i < MAX_RETRY){
+				createDpopForParEndpoint();
+				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
+				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
+					break;
+				}
+				++i;
+			}
+		} else {
+			callAndStopOnFailure(CallPAREndpoint.class, requirements);
+		}
+	}
+
+
 	protected void performParAuthorizationRequestFlow() {
 
 		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
@@ -1128,7 +1255,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			env.removeObject("mutual_tls_authentication");
 		}
 
-		callAndStopOnFailure(CallPAREndpoint.class, "PAR-2.1");
+		callParEndpointAndStopOnFailure("PAR-2.1");
 
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
