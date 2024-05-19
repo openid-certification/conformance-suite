@@ -9,6 +9,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.Iterator;
 
@@ -105,10 +106,25 @@ public class OIDCCGenerateServerConfiguration extends GenerateServerConfiguratio
 	}
 
 	protected void addTokenEndpointAuthSigningAlgValuesSupported(JsonObject server) {
+		JsonArray clientAuthTypes = server.get("token_endpoint_auth_methods_supported").getAsJsonArray();
 		JsonArray algValues = new JsonArray();
-		for (JWSAlgorithm alg : JWSAlgorithm.Family.SIGNATURE) {
-			algValues.add(alg.getName());
+
+		for (int i=0; i<clientAuthTypes.size(); i++) {
+			String authType = OIDFJSON.getString(clientAuthTypes.get(i));
+
+			if (authType.equals("private_key_jwt")) {
+				for (JWSAlgorithm alg : JWSAlgorithm.Family.SIGNATURE) {
+					algValues.add(alg.getName());
+				}
+			}
+
+			if (authType.equals("client_secret_jwt")) {
+				for (JWSAlgorithm alg : JWSAlgorithm.Family.HMAC_SHA) {
+					algValues.add(alg.getName());
+				}
+			}
 		}
+
 		server.add("token_endpoint_auth_signing_alg_values_supported", algValues);
 	}
 
