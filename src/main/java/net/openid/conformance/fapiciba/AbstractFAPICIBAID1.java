@@ -825,7 +825,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			verifyTokenEndpointResponseIsPendingOrSlowDown();
 
 			if (delaySeconds < 60) {
-				delaySeconds *= 1.5;
+				delaySeconds = Math.round(delaySeconds * 1.5);
 			}
 		}
 
