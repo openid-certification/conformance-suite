@@ -24,6 +24,7 @@ import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsS
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported;
+import net.openid.conformance.condition.client.FAPIBrazilOpinCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointRequestObjectEncryptionAlgValuesSupportedContainsRsaOaep;
@@ -83,7 +84,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(false);
+		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks();
 		brazil = true;
 	}
 
@@ -95,7 +96,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
 	public void setupOpenInsuranceBrazil() {
-		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(true);
+		profileSpecificChecks = new OpenInsuranceBrazilDiscoveryEndpointChecks();
 		brazil = true;
 	}
 
@@ -193,31 +194,45 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 		}
 	}
 
-	public static class OpenBankingBrazilDiscoveryEndpointChecks extends AbstractConditionSequence {
-		boolean openInsurance;
+	public static class OpenBankingBrazilDiscoveryEndpointChecks extends OpenDataBrazilDiscoveryEndpointChecks {
 
-		public OpenBankingBrazilDiscoveryEndpointChecks(boolean openInsurance) {
-			this.openInsurance = openInsurance;
+		@Override
+		public void checkACR() {
+			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-5");
+			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-6");
 		}
+
+	}
+
+	public static class OpenInsuranceBrazilDiscoveryEndpointChecks extends OpenDataBrazilDiscoveryEndpointChecks {
+
+		@Override
+		public void checkACR() {
+			callAndContinueOnFailure(FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-5");
+			callAndContinueOnFailure(FAPIBrazilOpinCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-6");
+		}
+
+	}
+
+	public abstract static class OpenDataBrazilDiscoveryEndpointChecks extends AbstractConditionSequence {
+
+		public abstract void checkACR();
 
 		@Override
 		public void evaluate() {
 			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE,
-				"OIDCD-3", "BrazilOB-5.2.2-3", "BrazilOPIN-page8");
+					"OIDCD-3", "BrazilOB-5.2.2-3", "BrazilOPIN-page8");
 
 			callAndContinueOnFailure(CheckDiscEndpointAcrClaimSupported.class, Condition.ConditionResult.FAILURE,
-				"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6", "BrazilOPIN-page8");
+					"BrazilOB-5.2.2-3", "BrazilOB-5.2.2-6", "BrazilOPIN-page8");
 			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken.class, Condition.ConditionResult.FAILURE);
-			if (openInsurance) {
-				callAndContinueOnFailure(FAPIBrazilOpenInsuranceCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOPIN-page8");
-			} else {
-				// this will apply to openinsurance too when they switch to the new security profile
-				callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsPublic.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-22");
 
-				callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-5");
-				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-6");
-			}
+			// this will apply to openinsurance too when they switch to the new security profile
+			callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsPublic.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-22");
+
+			checkACR();
+
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8", "BrazilOPIN-page8");
 		}
 	}

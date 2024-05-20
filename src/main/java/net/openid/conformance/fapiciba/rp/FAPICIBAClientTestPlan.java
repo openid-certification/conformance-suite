@@ -93,6 +93,13 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
+			case "openinsurance_brazil":
+				certProfile = "BR-OPIN";
+				if (!privateKey || !poll) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil OpenFinance",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
 
 		}
 
