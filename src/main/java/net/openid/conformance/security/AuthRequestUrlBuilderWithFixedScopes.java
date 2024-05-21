@@ -4,9 +4,9 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.apache.http.client.utils.URIBuilder;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
-import org.mitre.openid.connect.config.ServerConfiguration;
+import net.openid.conformance.support.mitre.compat.model.RegisteredClient;
+import net.openid.conformance.support.mitre.compat.oidc.auth.AuthRequestUrlBuilder;
+import net.openid.conformance.support.mitre.compat.clients.ServerConfiguration;
 import org.springframework.security.authentication.AuthenticationServiceException;
 
 import java.net.URISyntaxException;

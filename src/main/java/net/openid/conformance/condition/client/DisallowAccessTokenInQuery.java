@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -49,10 +50,11 @@ public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 	@Override
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
 
-		if (e.getRawStatusCode() == HttpStatus.SC_BAD_REQUEST ||
-			e.getRawStatusCode() == HttpStatus.SC_UNAUTHORIZED ||
-			e.getRawStatusCode() == HttpStatus.SC_REQUEST_URI_TOO_LONG) {
-			logSuccess("Resource server refused request", args("code", e.getRawStatusCode(), "status", e.getStatusText()));
+		HttpStatusCode statusCode = e.getStatusCode();
+		if (statusCode.value() == HttpStatus.SC_BAD_REQUEST ||
+			statusCode.value() == HttpStatus.SC_UNAUTHORIZED ||
+			statusCode.value() == HttpStatus.SC_REQUEST_URI_TOO_LONG) {
+			logSuccess("Resource server refused request", args("code", statusCode.value(), "status", e.getStatusText()));
 			return env;
 		} else {
 			return super.handleClientResponseException(env, e);

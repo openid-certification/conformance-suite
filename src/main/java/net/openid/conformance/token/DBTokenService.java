@@ -12,9 +12,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Base64Utils;
 
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +49,7 @@ public class DBTokenService implements TokenService {
 				.append("_id", id)
 				.append("owner", authenticationFacade.getPrincipal())
 				.append("info", Document.parse(jsonObject.toString()))
-				.append("token", Base64Utils.encodeToString(tokenBytes))
+				.append("token", Base64.getEncoder().encodeToString(tokenBytes))
 				.append("expires", permanent ? null : System.currentTimeMillis() + DEFAULT_TTL_MS);
 
 		mongoTemplate.insert(token, COLLECTION);

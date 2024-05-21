@@ -37,9 +37,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Iterator;
@@ -349,7 +349,7 @@ public class TestDispatcher implements DataUtils {
 				"msg", "Response to HTTP request to test instance " + test.getId(),
 				"http", "outgoing",
 				"outgoing_path", path,
-				"outgoing_status_code", responseEntity.getStatusCodeValue(),
+				"outgoing_status_code", responseEntity.getStatusCode().value(),
 				"outgoing_headers", responseEntity.getHeaders(),
 				"outgoing_body", responseEntity.getBody()));
 		} else {

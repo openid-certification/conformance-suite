@@ -1,33 +1,27 @@
 package net.openid.conformance.security;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
-import org.mitre.openid.connect.client.OIDCAuthenticationProvider;
-import org.mitre.openid.connect.client.service.RegisteredClientService;
-import org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService;
-import org.mitre.openid.connect.client.service.impl.HybridClientConfigurationService;
-import org.mitre.openid.connect.client.service.impl.HybridIssuerService;
-import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsService;
+import net.openid.conformance.support.mitre.compat.clients.DynamicServerConfigurationService;
+import net.openid.conformance.support.mitre.compat.clients.HybridClientConfigurationService;
+import net.openid.conformance.support.mitre.compat.clients.RegisteredClientService;
+import net.openid.conformance.support.mitre.compat.issuer.HybridIssuerService;
+import net.openid.conformance.support.mitre.compat.model.RegisteredClient;
+import net.openid.conformance.support.mitre.compat.spring.ClientDetailsEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
@@ -37,19 +31,17 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
-@EnableWebSecurity
+@Order(2)
 @SuppressWarnings({"deprecation"})
-public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class WebSecurityOidcLoginConfig
+//	extends WebSecurityConfigurerAdapter
+{
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 
@@ -68,7 +60,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	private String redirectURI;
 
 
-	private ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
+	private final ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
 	// Specifics for setting up a Static Client for Google
 	@Value("${oidc.google.clientid}")
@@ -182,91 +174,97 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		return new AuthRequestUrlBuilderWithFixedScopes();
 	}
 
+//	@Bean
+//	public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() throws Exception {
+//		OIDCAuthenticationFilter oidcaf = new OIDCAuthenticationFilter();
+//		oidcaf.setIssuerService(issuerService());
+//		oidcaf.setServerConfigurationService(serverConfigurationService());
+//		oidcaf.setClientConfigurationService(clientConfigurationService());
+//		oidcaf.setAuthRequestOptionsService(new StaticAuthRequestOptionsService());
+//		oidcaf.setAuthRequestUrlBuilder(authRequestUrlBuilder());
+//		oidcaf.setAuthenticationManager(authenticationManager());
+//		oidcaf.setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
+//			@Override
+//			public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+//				String newUrl = new DefaultUriBuilderFactory()
+//					.uriString("/login.html")
+//					.queryParam("error", exception.getMessage())
+//					.build()
+//					.toString();
+//
+//				response.sendRedirect(newUrl);
+//			}
+//		});
+//
+//		return oidcaf;
+//	}
+
+//	@Bean
+//	public AuthenticationProvider configureOIDCAuthenticationProvider() {
+//		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
+//
+//		if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
+//			// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
+//			// Google account's userInfo. hd = Hosted Domain. Use this to filter to
+//			// any users of a specific domain
+//			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss));
+//		} else if (!Strings.isNullOrEmpty(adminGroup)) {
+//			// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
+//			authenticationProvider.setAuthoritiesMapper(new GroupsAdminAuthoritiesMapper(adminGroup, adminIss));
+//		}
+//
+//		return authenticationProvider;
+//	}
+
+//	// This sets Spring Security up so that it can use the OIDC tokens etc.
+//	@Override
+//	public void configure(AuthenticationManagerBuilder auth) {
+//		auth.authenticationProvider(configureOIDCAuthenticationProvider());
+//	}
+
 	@Bean
-	public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() throws Exception {
-		OIDCAuthenticationFilter oidcaf = new OIDCAuthenticationFilter();
-		oidcaf.setIssuerService(issuerService());
-		oidcaf.setServerConfigurationService(serverConfigurationService());
-		oidcaf.setClientConfigurationService(clientConfigurationService());
-		oidcaf.setAuthRequestOptionsService(new StaticAuthRequestOptionsService());
-		oidcaf.setAuthRequestUrlBuilder(authRequestUrlBuilder());
-		oidcaf.setAuthenticationManager(authenticationManager());
-		oidcaf.setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
-			@Override
-			public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-				String newUrl = new DefaultUriBuilderFactory()
-					.uriString("/login.html")
-					.queryParam("error", exception.getMessage())
-					.build()
-					.toString();
-
-				response.sendRedirect(newUrl);
-			}
-		});
-
-		return oidcaf;
-	}
-
-	@Bean
-	public AuthenticationProvider configureOIDCAuthenticationProvider() {
-		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
-
-		if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
-			// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
-			// Google account's userInfo. hd = Hosted Domain. Use this to filter to
-			// any users of a specific domain
-			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss));
-		} else if (!Strings.isNullOrEmpty(adminGroup)) {
-			// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
-			authenticationProvider.setAuthoritiesMapper(new GroupsAdminAuthoritiesMapper(adminGroup, adminIss));
-		}
-
-		return authenticationProvider;
-	}
-
-	// This sets Spring Security up so that it can use the OIDC tokens etc.
-	@Override
-	public void configure(AuthenticationManagerBuilder auth) {
-		auth.authenticationProvider(configureOIDCAuthenticationProvider());
-	}
-
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+	public SecurityFilterChain filterChainOidc(HttpSecurity http) throws Exception {
 
 		// @formatter:off
 
-		http.csrf().disable()
-				.authorizeRequests()
-					.antMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/robots.txt", "/.well-known/**")
-					.permitAll()
-				.and().authorizeRequests()
-					.requestMatchers(publicRequestMatcher("/log-detail.html", "/logs.html", "/plan-detail.html", "/plans.html"))
-					.permitAll()
-				.anyRequest()
-					.authenticated()
-				.and()
-					.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
-				.exceptionHandling()
-					.authenticationEntryPoint(authenticationEntryPoint())
-				.and()
-					.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-				.and()
-					.logout()
-					.logoutSuccessUrl("/login.html")
-				.and()
+		http.csrf(AbstractHttpConfigurer::disable)
+				.authorizeHttpRequests(httpRequests -> {
+					httpRequests //
+						.requestMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/robots.txt", "/.well-known/**") //
+						.permitAll();
+
+					httpRequests.requestMatchers(publicRequestMatcher("/log-detail.html", "/logs.html", "/plan-detail.html", "/plans.html"))
+						.permitAll();
+
+					// for other requests we require authentication
+					httpRequests.anyRequest().authenticated();
+				}) //
+//					.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
+				.exceptionHandling(Customizer.withDefaults())
+			.oauth2Client(oauth2Client -> {
+				// TODO configure oauth2 client login
+			})
+//					.authenticationEntryPoint(authenticationEntryPoint())
+//				.and()
+					.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+					.logout(logout -> logout.logoutSuccessUrl("/login.html"))
 					//added to disable x-frame-options only for certain paths
-					.headers().frameOptions().disable()
-				.and()
-					.headers().addHeaderWriter(getXFrameOptionsHeaderWriter())
-				.and()
-					.cors().configurationSource(getCorsConfigurationSource());
+					.headers(headers -> {
+						headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable);
+						headers.addHeaderWriter(getXFrameOptionsHeaderWriter());
+						}
+					)
+					.cors(cors -> cors.configurationSource(getCorsConfigurationSource()));
 
 		// @formatter:on
 
 		if (devmode) {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
-			http.addFilterBefore(dummyUserFilter, OIDCAuthenticationFilter.class);
+			// TODO FIXME add filter
+//			http.addFilterBefore(dummyUserFilter, OIDCAuthenticationFilter.class);
 		}
+
+		return http.build();
 	}
 
 	protected HeaderWriter getXFrameOptionsHeaderWriter() {
@@ -288,7 +286,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	protected AdditiveUrlBasedCorsConfigurationSource getCorsConfigurationSource() {
 
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("*"));
+		configuration.setAllowedOrigins(List.of("*"));
 		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
 
 		AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();

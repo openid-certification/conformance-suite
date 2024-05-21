@@ -2,7 +2,7 @@ package net.openid.conformance.security;
 
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class PublicRequestMatcher implements RequestMatcher {
 

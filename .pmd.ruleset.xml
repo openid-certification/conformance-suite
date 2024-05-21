@@ -9,6 +9,9 @@
 		Custom rules used for conformance suite java
 	</description>
 
+	<!-- Ignore temporary compat package for Spring Boot 3 migration -->
+	<exclude-pattern>.*/net/openid/conformance/support/mitre/compat/.*</exclude-pattern>
+
 	<rule ref="category/java/multithreading.xml">
 		<!-- UseConcurrentHashMap is quite noisy, and PMD developers don't necessarily recommend
 		 using it - https://github.com/pmd/pmd/issues/1022#issuecomment-378687539 -->
