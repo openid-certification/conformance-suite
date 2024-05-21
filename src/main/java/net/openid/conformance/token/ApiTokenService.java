@@ -4,28 +4,28 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import net.openid.conformance.support.mitre.compat.introspect.ResourceServerTokenServices;
+import net.openid.conformance.support.mitre.compat.oidc.DefaultUserInfo;
+import net.openid.conformance.support.mitre.compat.oidc.UserInfo;
+import net.openid.conformance.support.mitre.compat.spring.OIDCAuthenticationToken;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.mitre.openid.connect.model.DefaultUserInfo;
-import org.mitre.openid.connect.model.OIDCAuthenticationToken;
-import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 
+import java.io.Serial;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("deprecation")
 public class ApiTokenService implements ResourceServerTokenServices {
 
 	@Autowired
@@ -50,15 +50,15 @@ public class ApiTokenService implements ResourceServerTokenServices {
 		OAuth2AccessToken token = new LocalOAuth2AccessToken(tokenInfoObj);
 
 		OAuth2Request request = new OAuth2Request(
-				Collections.emptyMap(),
-				"",
-				null,
-				!token.isExpired(),
-				Collections.emptySet(),
-				null,
-				null,
-				null,
-				null);
+			Collections.emptyMap(),
+			"",
+			null,
+			!token.getExpiresAt().isBefore(Instant.now()),
+			Collections.emptySet(),
+			null,
+			null,
+			null,
+			null);
 
 		OAuth2Authentication auth = new OAuth2Authentication(request, createAuth(tokenInfoObj));
 
@@ -113,59 +113,18 @@ public class ApiTokenService implements ResourceServerTokenServices {
 		}
 	}
 
-	private static class LocalOAuth2AccessToken implements OAuth2AccessToken {
+	private static class LocalOAuth2AccessToken extends OAuth2AccessToken {
 
-		private String tokenString;
-		private Date expireDate;
+		@Serial
+		private static final long serialVersionUID = 1L;
 
 		public LocalOAuth2AccessToken(JsonObject info) {
-			this.tokenString = OIDFJSON.getString(info.get("token"));
+			super(TokenType.BEARER, OIDFJSON.getString(info.get("token")), null, extractExpiresAt(info));
+		}
 
+		private static Instant extractExpiresAt(JsonObject info) {
 			JsonPrimitive expires = info.getAsJsonPrimitive("expires");
-			this.expireDate = expires != null ? new Date(OIDFJSON.getLong(expires)) : null;
-		}
-
-		@Override
-		public Map<String, Object> getAdditionalInformation() {
-			return null;
-		}
-
-		@Override
-		public Set<String> getScope() {
-			return Collections.emptySet();
-		}
-
-		@Override
-		public OAuth2RefreshToken getRefreshToken() {
-			return null;
-		}
-
-		@Override
-		public String getTokenType() {
-			return BEARER_TYPE;
-		}
-
-		@Override
-		public boolean isExpired() {
-			return expireDate != null && expireDate.before(new Date());
-		}
-
-		@Override
-		public Date getExpiration() {
-			return expireDate;
-		}
-
-		@Override
-		public int getExpiresIn() {
-			if (expireDate != null) {
-				return (int)TimeUnit.MILLISECONDS.toSeconds(expireDate.getTime() - (new Date()).getTime());
-			}
-			return 0;
-		}
-
-		@Override
-		public String getValue() {
-			return tokenString;
+			return expires != null ? Instant.ofEpochMilli(OIDFJSON.getLong(expires)) : null;
 		}
 
 	}

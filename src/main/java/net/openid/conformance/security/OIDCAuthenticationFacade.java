@@ -2,8 +2,8 @@ package net.openid.conformance.security;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import org.mitre.openid.connect.model.OIDCAuthenticationToken;
-import org.mitre.openid.connect.model.UserInfo;
+import net.openid.conformance.support.mitre.compat.spring.OIDCAuthenticationToken;
+import net.openid.conformance.support.mitre.compat.oidc.UserInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+@SuppressWarnings("deprecation")
 @Component
 public class OIDCAuthenticationFacade implements AuthenticationFacade {
 

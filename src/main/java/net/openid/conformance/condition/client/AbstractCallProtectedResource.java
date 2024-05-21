@@ -108,7 +108,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			}
 
-			if (method == HttpMethod.POST && headers.getContentType() == null) {
+			if (HttpMethod.POST.equals(method) && headers.getContentType() == null) {
 				// See https://bitbucket.org/openid/connect/issues/1137/is-content-type-application-x-www-form
 				headers.setContentType(getContentType(env));
 			}
@@ -117,7 +117,7 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 
 			ResponseEntity<String> response = restTemplate.exchange(uri, method, request, String.class);
 			JsonObject responseCode = new JsonObject();
-			responseCode.addProperty("code", response.getStatusCodeValue());
+			responseCode.addProperty("code", response.getStatusCode().value());
 			String responseBody = response.getBody();
 			JsonObject responseHeaders = mapToJsonObject(response.getHeaders(), true);
 			JsonObject fullResponse;
@@ -149,6 +149,6 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 	protected abstract Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse);
 
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
-		throw error("Unexpected error from the resource endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText()));
+		throw error("Unexpected error from the resource endpoint", args("code", e.getStatusCode().value(), "status", e.getStatusText()));
 	}
 }

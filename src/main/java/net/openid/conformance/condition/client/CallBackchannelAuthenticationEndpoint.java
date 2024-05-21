@@ -83,7 +83,7 @@ public class CallBackchannelAuthenticationEndpoint extends AbstractCondition {
 
 				jsonString = response.getBody();
 			} catch (RestClientResponseException e) {
-				throw error("Error from the backchannel authentication endpoint", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error from the backchannel authentication endpoint", args("code", e.getStatusCode().value(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				String msg = "Call to backchannel authentication endpoint " + bcAuthEndpoint + " failed";
 				if (e.getCause() != null) {

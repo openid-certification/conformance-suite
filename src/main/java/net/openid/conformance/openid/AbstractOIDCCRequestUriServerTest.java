@@ -7,9 +7,9 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParame
 import net.openid.conformance.condition.common.CreateRandomRequestUri;
 import org.springframework.http.ResponseEntity;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  * Generic behaviour required when testing request_uri behaviours

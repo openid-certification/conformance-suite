@@ -60,7 +60,7 @@ public class CallRPBackChannelLogoutEndpoint extends AbstractCondition {
 				logSuccess("Called backchannel_logout_uri", args("backchannel_logout_endpoint_response", responseInfo));
 			} catch (RestClientResponseException e) {
 				throw error("RestClientResponseException occurred whilst calling logout endpoint",
-					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+					args("code", e.getStatusCode().value(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				return handleClientException(env, e);
 			}

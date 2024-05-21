@@ -32,7 +32,8 @@ public class ArchUnit_UnitTest {
 		JavaClasses importedClasses = new ClassFileImporter().importPackages("net.openid.conformance");
 
 		// see https://gitlab.com/openid/conformance-suite/-/issues/398 for more explanation
-		JavaClasses allExceptOIDFJSON = importedClasses.that(DescribedPredicate.not(nameContaining("OIDFJSON")));
+		JavaClasses allExceptOIDFJSON = importedClasses.that(DescribedPredicate.not(nameContaining("OIDFJSON") //
+			.or(nameContaining("net.openid.conformance.support.mitre.compat"))));
 
 		ArchRule rule = noClasses().should().callMethodWhere(
 			target(nameMatching("getAs[^J].*")) // ignores getAsJsonObject/getAsJsonPrimitive/etc which are fine
