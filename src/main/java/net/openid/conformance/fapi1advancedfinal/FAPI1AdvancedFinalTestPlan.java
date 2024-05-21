@@ -143,6 +143,11 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 				break;
 			case "openinsurance_brazil":
 				certProfile = "BR-OPIN";
+				suffix = " (FAPI-BR v2)";
+				if (!par || jarm || !privateKey) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
 				break;
 			case "openbanking_ksa":
 				if (!par) {
