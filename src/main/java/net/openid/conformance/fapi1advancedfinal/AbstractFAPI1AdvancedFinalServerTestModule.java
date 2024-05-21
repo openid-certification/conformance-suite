@@ -210,10 +210,12 @@ import java.util.function.Supplier;
 	"directory.keystore"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
+	"client.org_jwks",
 	"consent.productType",
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
+	"resource.brazilOrganizationId",
 	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_ksa", configurationFields = {
@@ -592,9 +594,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			FAPIValidateIdTokenEncryptionAlg.class, ConditionResult.FAILURE,"FAPI1-ADV-8.6.1-1");
 		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.CONSUMERDATARIGHT_AU) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "CDR-tokens");
-		} else if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		} else if (isBrazil()) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOB-5.2.2.2-1");
-			callAndContinueOnFailure(FAPIBrazilValidateIdTokenACRClaim.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
+			if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+				// we should probably have an OPIN version of this acr check too
+				callAndContinueOnFailure(FAPIBrazilValidateIdTokenACRClaim.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
+			}
 		}
 	}
 
@@ -733,7 +738,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
 			ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			callAndContinueOnFailure(ValidateIdTokenEncrypted.class, ConditionResult.FAILURE, "BrazilOB-5.2.2.2-1");
 		}
 
@@ -1026,7 +1031,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	public void setupOpenInsuranceBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = this::createOBBPreauthSteps;
-		profileAuthorizationEndpointSetupSteps = null;
+		profileAuthorizationEndpointSetupSteps = FAPIBrV2AuthorizationEndpointSetup.class;
 		profileIdTokenValidationSteps = null;
 	}
 
@@ -1103,7 +1108,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
 
 		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, ConditionResult.FAILURE, "PAR-2.2");
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (isBrazil()) {
 			callAndContinueOnFailure(FAPIBrazilOBCheckPARResponseExpiresIn.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-19");
 		}
 

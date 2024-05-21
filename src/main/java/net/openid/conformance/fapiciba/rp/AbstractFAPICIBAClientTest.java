@@ -144,13 +144,17 @@ import javax.servlet.http.HttpSession;
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-	"openbanking_uk", "consumerdataright_au", "openinsurance_brazil", "openbanking_ksa"
+	"openbanking_uk", "consumerdataright_au", "openbanking_ksa"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"
 })
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.scope"
+})
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
+		"client.scope",
+		"directory.keystore"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"

@@ -31,7 +31,7 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPI1FinalOPProfile.class
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_brazil" })
+@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_brazil", "openinsurance_brazil" })
 public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
 	private Class<? extends ConditionSequence> variantModeChecks;
 
