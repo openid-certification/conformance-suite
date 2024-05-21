@@ -45,13 +45,22 @@ public class FAPI1AdvancedFinalBrV1BrazilDCRTestPlan implements TestPlan {
 	public static String certificationProfileName(VariantSelection variant) {
 		Map<String, String> v = variant.getVariant();
 
-		String profile = v.get("fapi_profile");
 
+		String responseMode = v.get("fapi_response_mode");
+		switch (responseMode) {
+			case "plain_response":
+				// nothing
+				break;
+			case "jarm":
+				throw new RuntimeException("Brazil OpenInsurance has dropped support for JARM based certification profiles.");
+		}
+		String profile = v.get("fapi_profile");
 		switch (profile) {
 			case "openinsurance_brazil":
 				return "BR-OPIN Adv. OP DCR";
 			default:
 				throw new RuntimeException("This plan can only be used for Brazil OpenInsurance.");
 		}
+
 	}
 }

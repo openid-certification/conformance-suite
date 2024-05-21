@@ -121,6 +121,11 @@ public class FAPI1AdvancedFinalBrV1TestPlan implements TestPlan {
 				throw new RuntimeException("This plan can only be used for Brazil OpenInsurance.");
 		}
 
+
+		if (jarm) {
+			throw new RuntimeException("Brazil OpenInsurance has dropped support for JARM based certification profiles.");
+		}
+
 		switch (profile) {
 			case "plain_fapi":
 				certProfile = "FAPI";

@@ -55,11 +55,16 @@ public class FAPI1AdvancedFinalBrV1ClientTestPlan implements TestPlan {
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 
+
 		switch (profile) {
 			case "openinsurance_brazil":
 				break;
 			default:
 				throw new RuntimeException("This plan can only be used for Brazil OpenInsurance.");
+		}
+
+		if (jarm) {
+			throw new RuntimeException("Brazil OpenInsurance has dropped support for JARM based certification profiles.");
 		}
 
 		switch (profile) {
