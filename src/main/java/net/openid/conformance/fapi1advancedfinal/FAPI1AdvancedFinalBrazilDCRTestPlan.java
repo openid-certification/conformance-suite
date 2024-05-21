@@ -65,8 +65,6 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		switch (profile) {
-			case "openbanking_brazil":
-				return "BR-OF Adv. OP DCR (FAPI-BR v2)";
 			case "openinsurance_brazil":
 				return "BR-OPIN Adv. OP DCR (FAPI-BR v2)";
 			default:

@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-br-v1-client-test-plan",
-	displayName = "FAPI1-Advanced-Final-Br-v1: Relying Party (client test) - only available till 31st Dec 2023",
+	displayName = "FAPI1-Advanced-Final-Br-v1: Relying Party (client test) - v1 security profile tests during transition period",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		FAPI1AdvancedFinalBrV1ClientTest.class,
@@ -54,6 +54,13 @@ public class FAPI1AdvancedFinalBrV1ClientTestPlan implements TestPlan {
 		boolean par = requestMethod.equals("pushed");
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
+
+		switch (profile) {
+			case "openinsurance_brazil":
+				break;
+			default:
+				throw new RuntimeException("This plan can only be used for Brazil OpenInsurance.");
+		}
 
 		switch (profile) {
 			case "plain_fapi":

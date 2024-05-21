@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-br-v1-brazil-dcr-test-plan",
-	displayName = "FAPI1-Advanced-Final-Br-v1: Brazil Dynamic Client Registration Authorization server test - only available till 31st Dec 2023",
+	displayName = "FAPI1-Advanced-Final-Br-v1: Brazil Dynamic Client Registration Authorization server test - v1 security profile tests during transition period",
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI1AdvancedFinalBrV1BrazilDCRTestPlan implements TestPlan {
@@ -48,12 +48,10 @@ public class FAPI1AdvancedFinalBrV1BrazilDCRTestPlan implements TestPlan {
 		String profile = v.get("fapi_profile");
 
 		switch (profile) {
-			case "openbanking_brazil":
-				return "BR-OB Adv. OP DCR";
 			case "openinsurance_brazil":
 				return "BR-OPIN Adv. OP DCR";
 			default:
-				throw new RuntimeException("This plan can only be used for Brazil OpenBanking or OpenInsurance.");
+				throw new RuntimeException("This plan can only be used for Brazil OpenInsurance.");
 		}
 	}
 }
