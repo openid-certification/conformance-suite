@@ -340,13 +340,13 @@ public class TestRunner implements DataUtils {
 				support.removeRunningTest(id);
 				return new ResponseEntity<>(stringMap("error", e.getMessage()), HttpStatus.CONFLICT);
 			}
-			path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+			path = "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 
 		} else {
-			path = TestDispatcher.TEST_PATH + id;
+			path = id;
 		}
-		String url = baseUrl + path;
-		String mtlsUrl = baseMtlsUrl + path.replaceAll(TestDispatcher.TEST_PATH,TestDispatcher.TEST_MTLS_PATH);
+		String url = baseUrl + TestDispatcher.TEST_PATH + path;
+		String mtlsUrl = baseMtlsUrl + TestDispatcher.TEST_MTLS_PATH + path;
 		String externalOverrideUrlWithPath = Strings.isNullOrEmpty(externalUrlOverride) ? "" : externalUrlOverride + path;
 
 		String description = null;
