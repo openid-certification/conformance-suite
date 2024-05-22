@@ -17,14 +17,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
+public final class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
 
 	/**
 	 *
 	 */
 	public CollapsingGsonHttpMessageConverter() {
 		super();
-		setGson(getDbObjectCollapsingGson());
+		this.setGson(getDbObjectCollapsingGson());
 	}
 
 	/* (non-Javadoc)

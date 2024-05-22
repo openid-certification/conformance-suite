@@ -83,7 +83,7 @@ public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 			// otherwise the response was pending/slowdown - try again
 
 			if (delaySeconds < 60) {
-				delaySeconds *= 1.5;
+				delaySeconds = Math.round(delaySeconds * 1.5);
 			}
 		}
 
