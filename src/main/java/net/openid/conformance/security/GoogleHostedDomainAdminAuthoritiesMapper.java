@@ -1,16 +1,12 @@
 package net.openid.conformance.security;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.support.mitre.compat.oidc.UserInfo;
-import net.openid.conformance.support.mitre.compat.spring.OIDCAuthoritiesMapper;
 import net.openid.conformance.support.mitre.compat.spring.SubjectIssuerGrantedAuthority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,30 +25,28 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 	private String ADMIN_ISSUER;
 
 	@Override
-	public Collection<? extends GrantedAuthority> mapAuthorities(JWT idToken, UserInfo userInfo) {
+	public Collection<? extends GrantedAuthority> mapAuthorities(OidcIdToken idToken, OidcUserInfo userInfo) {
 
 		Set<GrantedAuthority> out = new HashSet<>();
 
-		try {
-			JWTClaimsSet claims = idToken.getJWTClaimsSet();
-			SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
-			out.add(authority);
-			if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER)
-				&& userInfo.getSource().has("hd"))
-			{
-				String[] adminDomainArray = ADMIN_DOMAINS.split(",");
+		var claims = idToken.getClaims();
+		String subject = idToken.getSubject();
+		String issuer = idToken.getIssuer().toString();
+		SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(subject, issuer);
+		out.add(authority);
+		if (issuer.equalsIgnoreCase(ADMIN_ISSUER)
+			&& userInfo.hasClaim("hd"))
+		{
+			String[] adminDomainArray = ADMIN_DOMAINS.split(",");
 
-				for (String domain : adminDomainArray) {
-					if (OIDFJSON.getString(userInfo.getSource().get("hd")).equals(domain)) {
-						out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
-						break;
-					}
+			for (String domain : adminDomainArray) {
+				if (userInfo.getClaimAsString("hd").equals(domain)) {
+					out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
+					break;
 				}
 			}
-			out.add(OIDCAuthenticationFacade.ROLE_USER);
-		} catch (ParseException e) {
-			logger.error("Unable to parse ID Token inside of authorities mapper", e);
 		}
+		out.add(OIDCAuthenticationFacade.ROLE_USER);
 		return out;
 	}
 

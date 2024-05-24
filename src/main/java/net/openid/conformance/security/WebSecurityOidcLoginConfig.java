@@ -1,5 +1,6 @@
 package net.openid.conformance.security;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import net.openid.conformance.support.mitre.compat.clients.DynamicServerConfigurationService;
@@ -15,11 +16,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.header.HeaderWriter;
@@ -31,15 +41,17 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Configuration
 @Order(2)
 @SuppressWarnings({"deprecation"})
-public class WebSecurityOidcLoginConfig
+class WebSecurityOidcLoginConfig
 //	extends WebSecurityConfigurerAdapter
 {
 
@@ -223,45 +235,134 @@ public class WebSecurityOidcLoginConfig
 //	}
 
 	@Bean
-	public SecurityFilterChain filterChainOidc(HttpSecurity http) throws Exception {
+	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
 
-		// @formatter:off
+		http.csrf(AbstractHttpConfigurer::disable);
+		http.authorizeHttpRequests(httpRequests -> {
+			httpRequests //
+				.requestMatchers( //
+					"/login.html",  //
+					"/css/**",  //
+					"/js/**",  //
+					"/images/**", //
+					"/templates/**", //
+					"/favicon.ico",  //
+					"/test-mtls/**",  //
+					"/test/**",  //
+					"/jwks**",  //
+					"/logout.html", //
+					"/robots.txt",  //
+					"/.well-known/**" //
+				) //
+				.permitAll();
 
-		http.csrf(AbstractHttpConfigurer::disable)
-				.authorizeHttpRequests(httpRequests -> {
-					httpRequests //
-						.requestMatchers("/login.html", "/css/**", "/js/**", "/images/**", "/templates/**", "/favicon.ico", "/test-mtls/**", "/test/**", "/jwks**", "/logout.html", "/robots.txt", "/.well-known/**") //
-						.permitAll();
+			httpRequests.requestMatchers( //
+					publicRequestMatcher( //
+						"/log-detail.html", //
+						"/logs.html",  //
+						"/plan-detail.html", //
+						"/plans.html" //
+					)) //
+				.permitAll();
 
-					httpRequests.requestMatchers(publicRequestMatcher("/log-detail.html", "/logs.html", "/plan-detail.html", "/plans.html"))
-						.permitAll();
+			// for other requests we require authentication
+			httpRequests.anyRequest() //
+				.authenticated();
+		}); //
 
-					// for other requests we require authentication
-					httpRequests.anyRequest().authenticated();
-				}) //
-//					.addFilterBefore(openIdConnectAuthenticationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
-				.exceptionHandling(Customizer.withDefaults())
-			.oauth2Client(oauth2Client -> {
-				// TODO configure oauth2 client login
-			})
-//					.authenticationEntryPoint(authenticationEntryPoint())
-//				.and()
-					.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-					.logout(logout -> logout.logoutSuccessUrl("/login.html"))
-					//added to disable x-frame-options only for certain paths
-					.headers(headers -> {
-						headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable);
-						headers.addHeaderWriter(getXFrameOptionsHeaderWriter());
+		// we use oauth2 client login support instead of openIdConnectAuthenticationFilter
+		http.oauth2Client(oauth2Client -> {
+			// TODO configure oauth2 client login
+			oauth2Client.authorizationCodeGrant(codeGrantCustomizer -> {
+
+			});
+
+			// the following is to enable PKCE support for auth-code flow
+			var oauth2AuthRequestResolver = new DefaultOAuth2AuthorizationRequestResolver( //
+				clientRegistrationRepository, //
+				OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI //
+			);
+			Consumer<OAuth2AuthorizationRequest.Builder> authorizationRequestCustomizer = OAuth2AuthorizationRequestCustomizers.withPkce()
+				.andThen(authzUrlBuilder -> {
+					authzUrlBuilder.attributes(attrs -> {
+
+						// TODO handle custom client parameters here as previously in AuthRequestUrlBuilderWithFixedScopes
+						// registration_id -> indicator for custom client registration
+						String registrationId = (String)attrs.get("registration_id");
+						ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
+
+
+						System.out.println(attrs);
+					});
+				});
+			oauth2AuthRequestResolver.setAuthorizationRequestCustomizer(authorizationRequestCustomizer);
+			oauth2Client.authorizationCodeGrant(custom -> {
+				custom.authorizationRequestResolver(oauth2AuthRequestResolver);
+			});
+		});
+
+		http.oauth2Login(oauth2Login -> {
+			oauth2Login.failureHandler((request, response, exception) -> {
+				String newUrl = new DefaultUriBuilderFactory()
+					.uriString("/login.html")
+					.queryParam("error", exception.getMessage())
+					.build()
+					.toString();
+
+				response.sendRedirect(newUrl);
+			});
+			oauth2Login.userInfoEndpoint(userInfoCustomization -> {
+				userInfoCustomization.userAuthoritiesMapper(authorities -> {
+
+					authorities.forEach(authority -> {
+						if (authority instanceof OidcUserAuthority oidcUserAuthority) {
+
+							OidcIdToken idToken = oidcUserAuthority.getIdToken();
+							OidcUserInfo userInfo = oidcUserAuthority.getUserInfo();
+
+							if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
+								// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
+								// Google account's userInfo. hd = Hosted Domain. Use this to filter to
+								// any users of a specific domain
+								new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss).mapAuthorities(idToken, userInfo);
+							} else if (!Strings.isNullOrEmpty(adminGroup)) {
+								// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
+								new GroupsAdminAuthoritiesMapper(adminGroup, adminIss).mapAuthorities(idToken, userInfo);
+							}
 						}
-					)
-					.cors(cors -> cors.configurationSource(getCorsConfigurationSource()));
+					});
 
-		// @formatter:on
+					return authorities;
+				});
+			});
+		});
+
+		http.exceptionHandling(exceptions -> {
+			exceptions.authenticationEntryPoint(authenticationEntryPoint());
+		});
+
+		http.sessionManagement(sessions -> {
+			sessions.sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
+		});
+
+		http.logout(logout -> {
+			logout.logoutSuccessUrl("/login.html");
+		});
+
+		//added to disable x-frame-options only for certain paths
+		http.headers(headers -> {
+			headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable);
+			headers.addHeaderWriter(getXFrameOptionsHeaderWriter());
+		});
+
+		http.cors(cors -> {
+			cors.configurationSource(getCorsConfigurationSource());
+		});
 
 		if (devmode) {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
 			// TODO FIXME add filter
-//			http.addFilterBefore(dummyUserFilter, OIDCAuthenticationFilter.class);
+			http.addFilterBefore(dummyUserFilter, OAuth2LoginAuthenticationFilter.class);
 		}
 
 		return http.build();
@@ -287,7 +388,7 @@ public class WebSecurityOidcLoginConfig
 
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(List.of("*"));
-		configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+		configuration.setAllowedMethods(Arrays.asList("GET", "POST"));
 
 		AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
@@ -302,13 +403,7 @@ public class WebSecurityOidcLoginConfig
 
 	private RequestMatcher publicRequestMatcher(String... patterns) {
 
-		return new AndRequestMatcher(
-				new OrRequestMatcher(
-						Arrays.asList(patterns)
-								.stream()
-								.map(AntPathRequestMatcher::new)
-								.collect(Collectors.toList())),
-				new PublicRequestMatcher());
+		return new AndRequestMatcher(new OrRequestMatcher(Arrays.asList(patterns).stream().map(AntPathRequestMatcher::new).collect(Collectors.toList())), new PublicRequestMatcher());
 	}
 
 }
