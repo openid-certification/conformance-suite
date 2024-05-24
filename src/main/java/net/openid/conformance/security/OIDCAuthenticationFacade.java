@@ -1,16 +1,16 @@
 package net.openid.conformance.security;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import net.openid.conformance.support.mitre.compat.spring.OIDCAuthenticationToken;
-import net.openid.conformance.support.mitre.compat.oidc.UserInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
@@ -41,7 +41,7 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	/**
 	 * If the security context has an Authentication object, return it.
-	 *
+	 * <p>
 	 * If not, return anything saved in the thread-local localAuthentication since
 	 * we might be running in a background task.
 	 *
@@ -56,18 +56,10 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		}
 	}
 
-	private OIDCAuthenticationToken getOIDC() {
+	private OAuth2AuthenticationToken getOAuth() {
 		Authentication a = getAuthentication();
-		if (a instanceof OIDCAuthenticationToken) {
-			return (OIDCAuthenticationToken) a;
-		}
-		return null;
-	}
-
-	private OAuth2Authentication getOAuth() {
-		Authentication a = getAuthentication();
-		if (a instanceof OAuth2Authentication) {
-			return (OAuth2Authentication) a;
+		if (a instanceof OAuth2AuthenticationToken) {
+			return (OAuth2AuthenticationToken) a;
 		}
 		return null;
 	}
@@ -95,44 +87,41 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	@Override
 	public ImmutableMap<String, String> getPrincipal() {
-		OIDCAuthenticationToken token = getOIDC();
-		OAuth2Authentication auth = getOAuth();
-		if (token != null) {
-			@SuppressWarnings("unchecked")
-			ImmutableMap<String, String> prinicipal = (ImmutableMap<String, String>) token.getPrincipal();
-
-			return prinicipal;
-		} else if (auth != null) {
+		OAuth2AuthenticationToken auth = getOAuth();
+		if (auth != null) {
 			// TODO: we might be able to build this off of other properties instead
-			@SuppressWarnings("unchecked")
-			ImmutableMap<String, String> prinicipal = (ImmutableMap<String, String>) auth.getPrincipal();
 
-			return prinicipal;
+			OidcUser principal = (OidcUser)auth.getPrincipal();
+			OidcUserInfo userInfo = principal.getUserInfo();
+			@SuppressWarnings("unchecked")
+			ImmutableMap<String, String> data = ImmutableMap.of(
+				"iss", userInfo.getClaimAsString("iss"),
+				"sub", userInfo.getSubject(),
+				"principal", principal.getName()
+			);
+
+			return data;
 		}
 		return null;
 	}
 
 	@Override
 	public String getDisplayName() {
-		OIDCAuthenticationToken token = getOIDC();
-		OAuth2Authentication auth = getOAuth();
-		if (token != null) {
-			Map<String, String> principal = getPrincipal();
-			if (principal != null) {
-				String displayName = principal.toString();
-				UserInfo userInfo = getUserInfo();
-				if (userInfo != null) {
-					if (!Strings.isNullOrEmpty(userInfo.getEmail())) {
-						displayName = userInfo.getEmail();
-					} else if (!Strings.isNullOrEmpty(userInfo.getPreferredUsername())) {
-						displayName = userInfo.getPreferredUsername();
-					} else if (!Strings.isNullOrEmpty(userInfo.getName())) {
-						displayName = userInfo.getName();
-					}
-					return displayName;
+		OAuth2AuthenticationToken auth = getOAuth();
+		if (auth != null && auth.getPrincipal() instanceof OidcUser oidcUser) {
+			String displayName = oidcUser.getName();
+			OidcUserInfo userInfo = oidcUser.getUserInfo();
+			if (userInfo != null) {
+				if (StringUtils.hasLength(userInfo.getEmail())) {
+					displayName = userInfo.getEmail();
+				} else if (StringUtils.hasLength((userInfo.getPreferredUsername()))) {
+					displayName = userInfo.getPreferredUsername();
+				} else if (StringUtils.hasLength((userInfo.getFullName()))) {
+					displayName = userInfo.getFullName();
 				}
 				return displayName;
 			}
+			return displayName;
 		} else if (auth != null) {
 			return auth.getName();
 		}
@@ -140,14 +129,14 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	}
 
 	@Override
-	public UserInfo getUserInfo() {
-		OIDCAuthenticationToken token = getOIDC();
+	public OidcUserInfo getUserInfo() {
+		OAuth2AuthenticationToken token = getOAuth();
 
-		if (token != null) {
-			return token.getUserInfo();
-		} else {
+		if (token == null || !(token.getPrincipal() instanceof OidcUser oidcUser)) {
 			return null;
 		}
 
+		OidcUserInfo userInfo = oidcUser.getUserInfo();
+		return userInfo;
 	}
 }

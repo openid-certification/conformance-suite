@@ -1,8 +1,8 @@
-package net.openid.conformance.support.mitre.compat.spring;
+package net.openid.conformance.security;
 
-import com.nimbusds.jwt.JWT;
-import net.openid.conformance.support.mitre.compat.oidc.UserInfo;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 
 import java.util.Collection;
 
@@ -13,6 +13,6 @@ public interface OIDCAuthoritiesMapper {
 	 * @param userInfo userInfo of the current user (could be @null)
 	 * @return the set of authorities to map to this user
 	 */
-	Collection<? extends GrantedAuthority> mapAuthorities(JWT idToken, UserInfo userInfo);
+	Collection<? extends GrantedAuthority> mapAuthorities(OidcIdToken idToken, OidcUserInfo userInfo);
 
 }
