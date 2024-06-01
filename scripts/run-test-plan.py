@@ -220,12 +220,16 @@ async def run_queue(q, parallel_jobs):
     await asyncio.gather(*workers, return_exceptions=True)
     print("workers gathered")
 
-async def run_test_plan(test_plan, config_file, output_dir):
+async def run_test_plan(test_plan, config_file, output_dir, client_certs):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     start_section(test_plan, "Results", True)
     with open(config_file) as f:
         json_config = f.read()
     json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
+
+    for k,v in client_certs.items():
+        json_config = json_config.replace('{'+ k + '}', v)
+
     (test_plan_name, variant, selected_modules, op_plan, op_config) = split_name_and_variant(test_plan)
     if test_plan_name.startswith('oidcc-client-'):
         #for oidcc client tests 'variant' will contain the rp tests configuration file name
@@ -263,7 +267,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
     queue = asyncio.Queue()
     for moduledict in plan_modules:
-        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config))
+        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config, client_certs))
     await run_queue(queue, parallel_jobs)
 
     overall_time = time.time() - overall_start_time
@@ -285,7 +289,7 @@ async def run_test_plan(test_plan, config_file, output_dir):
     return plan_results
 
 
-async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config):
+async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config, client_certs):
     module=moduledict['testModule']
     module_with_variants = get_string_name_for_module_with_variant(moduledict)
     test_start_time = time.time()
@@ -315,7 +319,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
             # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
             if op_plan != None:
                 # the 'client' is our own OP tests
-                plan_results.extend(await run_test_plan(op_plan, op_config, output_dir))
+                plan_results.extend(await run_test_plan(op_plan, op_config, output_dir, client_certs))
             elif re.match(r'fapi-rw-id2-client-.*', module) or \
                 re.match(r'fapi1-advanced-final-client-.*', module):
                 print("FAPI client test: " + module + " " + json.dumps(variant))
@@ -1011,8 +1015,8 @@ def end_section(name):
     sys.stdout.flush()
     sys.stderr.flush()
 
-async def run_test_plan_wrapper(plan_name, config_json, export_dir):
-    result = await run_test_plan(plan_name, config_json, export_dir)
+async def run_test_plan_wrapper(plan_name, config_json, export_dir, client_certs):
+    result = await run_test_plan(plan_name, config_json, export_dir, client_certs)
     if isinstance(result, list):
         results.extend(result)
     else:
@@ -1042,6 +1046,16 @@ async def main():
         dev_mode = True
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
+
+    client_certs = {}
+    key_directory = os.path.dirname(os.path.abspath(__file__)) + '/certs-keys/'
+    key_files = os.listdir(key_directory )
+
+    for a_file in key_files:
+        print('Loading '+ a_file)
+        with open(key_directory + a_file) as f:
+            cnt = f.read()
+            client_certs[a_file] = cnt.replace("\n", " ")
 
     if dev_mode:
         token = None
@@ -1111,7 +1125,7 @@ async def main():
             print("Creating queue for "+str(alias)+" parallel="+str(parallel_jobs))
             workers.extend([asyncio.create_task(queue_worker(queues[alias])) for _ in range(parallel_jobs)])
         print("Adding {} {} to queue {}".format(plan_name, config_json, alias))
-        queues[alias].put_nowait(run_test_plan_wrapper(plan_name, config_json, args.export_dir))
+        queues[alias].put_nowait(run_test_plan_wrapper(plan_name, config_json, args.export_dir, client_certs))
 
     for q in queues:
         print("plan: joining "+str(q))
