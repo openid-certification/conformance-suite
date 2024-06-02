@@ -79,9 +79,7 @@ public class BrazilV1OBClientTestPlan implements TestPlan {
 				// nothing
 				break;
 			case "jarm":
-				certProfile += ", JARM";
-
-				break;
+				throw new RuntimeException("Brazil OpenInsurance has dropped support for JARM based certification profiles.");
 		}
 
 		switch(fapiClientType) {
