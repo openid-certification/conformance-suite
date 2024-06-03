@@ -12,8 +12,6 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.Map;
-
 @SuppressWarnings("deprecation")
 @Component
 public class OIDCAuthenticationFacade implements AuthenticationFacade {

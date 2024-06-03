@@ -25,7 +25,7 @@ import java.util.Set;
 //	@NamedQuery(name = ClientDetailsEntity.QUERY_ALL, query = "SELECT c FROM ClientDetailsEntity c"),
 //	@NamedQuery(name = ClientDetailsEntity.QUERY_BY_CLIENT_ID, query = "select c from ClientDetailsEntity c where c.clientId = :" + ClientDetailsEntity.PARAM_CLIENT_ID)
 //})
-	@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation","serial"})
 public class ClientDetailsEntity implements ClientDetails {
 
 	public static final String QUERY_BY_CLIENT_ID = "ClientDetailsEntity.getByClientId";

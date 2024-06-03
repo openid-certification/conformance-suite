@@ -1,5 +1,6 @@
 package net.openid.conformance.support.mitre.compat.oidc;
 
+
 public class DefaultAddress implements Address {
 
 	private static final long serialVersionUID = -1304880008685206811L;
@@ -23,6 +24,7 @@ public class DefaultAddress implements Address {
 	 * Copy constructor from an existing address.
 	 * @param address
 	 */
+	@SuppressWarnings("this-escape")
 	public DefaultAddress(Address address) {
 		setFormatted(address.getFormatted());
 		setStreetAddress(address.getStreetAddress());

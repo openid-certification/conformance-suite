@@ -29,7 +29,7 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 			@Override
 			public boolean hasError(ClientHttpResponse response) throws IOException {
 
-				if(response.getRawStatusCode() == 400) {
+				if(response.getStatusCode().value() == 400) {
 					String body = new String(this.getResponseBody(response));
 					// Look for "error": "use_dpop_nonce" in body
 					Pattern pattern = Pattern.compile(".*\"error\"\\s*:\\s*\"use_dpop_nonce\".*");
@@ -45,7 +45,7 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 
 	@Override
 	protected Environment handleRestClientResponseException(Environment env, RestClientResponseException e) {
-		if(e.getRawStatusCode() == 400) {
+		if(e.getStatusCode().value() == 400) {
 			String jsonString = e.getResponseBodyAsString();
 			if (!Strings.isNullOrEmpty(e.getResponseBodyAsString())) {
 				try {
@@ -79,7 +79,7 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 		}
 		// Can't find what we needed, so put full response into Env instead of throwing in super.handleRestClientResponseException
 
-		ResponseEntity<String> responseEntity = new ResponseEntity<>(e.getResponseBodyAsString(), e.getResponseHeaders(), e.getRawStatusCode());
+		ResponseEntity<String> responseEntity = new ResponseEntity<>(e.getResponseBodyAsString(), e.getResponseHeaders(), e.getStatusCode().value());
 		JsonObject fullResponse = convertJsonResponseForEnvironment("pushed authorization request", responseEntity, true);
 		env.putObject(RESPONSE_KEY, fullResponse);
 		return env;

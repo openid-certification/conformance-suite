@@ -38,6 +38,7 @@ public class OIDCAuthenticationToken extends AbstractAuthenticationToken {
 	 * @param authorities
 	 * @param idToken
 	 */
+	@SuppressWarnings("this-escape")
 	public OIDCAuthenticationToken(String subject, String issuer,
 			UserInfo userInfo, Collection<? extends GrantedAuthority> authorities,
 			JWT idToken, String accessTokenValue, String refreshTokenValue) {
@@ -124,11 +125,15 @@ public class OIDCAuthenticationToken extends AbstractAuthenticationToken {
 			out.writeObject(idToken.serialize());
 		}
 	}
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException, ParseException {
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 		Object o = in.readObject();
 		if (o != null) {
-			idToken = JWTParser.parse((String)o);
+			try {
+				idToken = JWTParser.parse((String) o);
+			} catch (ParseException pe) {
+				throw new IOException(pe);
+			}
 		}
 	}
 

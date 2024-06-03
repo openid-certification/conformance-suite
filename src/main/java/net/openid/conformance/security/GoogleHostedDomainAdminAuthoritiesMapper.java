@@ -1,8 +1,6 @@
 package net.openid.conformance.security;
 
 import net.openid.conformance.support.mitre.compat.spring.SubjectIssuerGrantedAuthority;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
@@ -18,7 +16,6 @@ import java.util.Set;
  *
  */
 public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
-	private static final Logger logger = LoggerFactory.getLogger(GoogleHostedDomainAdminAuthoritiesMapper.class);
 
 	private String ADMIN_DOMAINS;
 
@@ -29,7 +26,7 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 
 		Set<GrantedAuthority> out = new HashSet<>();
 
-		var claims = idToken.getClaims();
+//		var claims = idToken.getClaims();
 		String subject = idToken.getSubject();
 		String issuer = idToken.getIssuer().toString();
 		SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(subject, issuer);

@@ -9,6 +9,7 @@ import java.io.Serial;
 import java.time.Instant;
 import java.util.Set;
 
+@SuppressWarnings("serial")
 public class OAuth2AccessTokenImpl extends OAuth2AccessToken {
 
 	@Serial
@@ -16,9 +17,10 @@ public class OAuth2AccessTokenImpl extends OAuth2AccessToken {
 
 	private JsonObject introspectionResponse;
 
+	@SuppressWarnings("this-escape")
 	public OAuth2AccessTokenImpl(JsonObject introspectionResponse, String tokenString) {
 		super(TokenType.BEARER, tokenString, issuedAt(introspectionResponse), extractExpiresAt(introspectionResponse), extractScopes(introspectionResponse));
-		this.setIntrospectionResponse(introspectionResponse);
+		setIntrospectionResponse(introspectionResponse);
 	}
 
 	private static Instant extractExpiresAt(JsonObject introspectionResponse) {
