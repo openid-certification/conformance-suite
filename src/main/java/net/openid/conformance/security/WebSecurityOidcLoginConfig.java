@@ -20,7 +20,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
@@ -289,10 +288,10 @@ class WebSecurityOidcLoginConfig
 						// TODO handle custom client parameters here as previously in AuthRequestUrlBuilderWithFixedScopes
 						// registration_id -> indicator for custom client registration
 						String registrationId = (String)attrs.get("registration_id");
-						ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
+//						ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
 
 
-						System.out.println(attrs);
+						logger.debug("configure authorizationRequest for {}", registrationId);
 					});
 				});
 			oauth2AuthRequestResolver.setAuthorizationRequestCustomizer(authorizationRequestCustomizer);
