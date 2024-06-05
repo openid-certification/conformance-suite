@@ -1,4 +1,4 @@
-package net.openid.conformance.support.mitre.compat.spring;
+package net.openid.conformance.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
@@ -22,7 +22,7 @@ public class SubjectIssuerGrantedAuthority implements GrantedAuthority {
 	 * @param issuer
 	 */
 	public SubjectIssuerGrantedAuthority(String subject, String issuer) {
-		if (StringUtils.hasLength(subject) || StringUtils.hasLength(issuer)) {
+		if (!StringUtils.hasLength(subject) || !StringUtils.hasLength(issuer)) {
 			throw new IllegalArgumentException("Neither subject nor issuer may be null or empty");
 		}
 		this.subject = subject;
