@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-@SuppressWarnings("deprecation")
 @Component
 public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
@@ -86,21 +85,31 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	@Override
 	public ImmutableMap<String, String> getPrincipal() {
 		OAuth2AuthenticationToken auth = getOAuth();
-		if (auth != null) {
-			// TODO: we might be able to build this off of other properties instead
-
-			OidcUser principal = (OidcUser)auth.getPrincipal();
-			OidcUserInfo userInfo = principal.getUserInfo();
-			@SuppressWarnings("unchecked")
-			ImmutableMap<String, String> data = ImmutableMap.of(
-				"iss", userInfo.getClaimAsString("iss"),
-				"sub", userInfo.getSubject(),
-				"principal", principal.getName()
-			);
-
-			return data;
+		if (auth == null) {
+			return null;
 		}
-		return null;
+
+		// TODO: we might be able to build this off of other properties instead
+
+		OidcUser principal = (OidcUser) auth.getPrincipal();
+		String issuer = principal.getIssuer().toString();
+		String subject;
+		String username;
+		OidcUserInfo userInfo = principal.getUserInfo();
+		if (userInfo != null) {
+			subject = userInfo.getSubject();
+			username = userInfo.getPreferredUsername() != null ? userInfo.getPreferredUsername() : principal.getName();
+		} else {
+			subject = principal.getSubject();
+			username = principal.getName();
+		}
+		ImmutableMap<String, String> data = ImmutableMap.of(
+			"iss", issuer,
+			"sub", subject,
+			"principal", username
+		);
+
+		return data;
 	}
 
 	@Override

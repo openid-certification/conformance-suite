@@ -1,6 +1,5 @@
 package net.openid.conformance.security;
 
-import net.openid.conformance.support.mitre.compat.spring.SubjectIssuerGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;

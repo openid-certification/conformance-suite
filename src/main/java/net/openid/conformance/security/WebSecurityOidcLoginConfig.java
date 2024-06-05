@@ -3,6 +3,7 @@ package net.openid.conformance.security;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import jakarta.servlet.Filter;
 import net.openid.conformance.support.mitre.compat.clients.DynamicServerConfigurationService;
 import net.openid.conformance.support.mitre.compat.clients.HybridClientConfigurationService;
 import net.openid.conformance.support.mitre.compat.clients.RegisteredClientService;
@@ -13,8 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -74,20 +78,20 @@ class WebSecurityOidcLoginConfig
 	private final ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
 	// Specifics for setting up a Static Client for Google
-	@Value("${oidc.google.clientid}")
+	@Value("${spring.security.oauth2.client.registration.google.client-id}")
 	private String googleClientId;
 
-	@Value("${oidc.google.secret}")
+	@Value("${spring.security.oauth2.client.registration.google.client-secret}")
 	private String googleClientSecret;
 
 	@Value("${oidc.google.iss:https://accounts.google.com}")
 	private String googleIss;
 
 	// Static Client for gitlab
-	@Value("${oidc.gitlab.clientid}")
+	@Value("${spring.security.oauth2.client.registration.gitlab.client-id}")
 	private String gitlabClientId;
 
-	@Value("${oidc.gitlab.secret}")
+	@Value("${spring.security.oauth2.client.registration.gitlab.client-secret")
 	private String gitlabClientSecret;
 
 	@Value("${oidc.gitlab.iss:https://gitlab.com}")
@@ -170,7 +174,7 @@ class WebSecurityOidcLoginConfig
 
 	@Bean
 	public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
-		return new LoginUrlAuthenticationEntryPoint(baseURL + "/openid_connect_login");
+		return new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html");
 	}
 
 	@Bean
@@ -184,54 +188,6 @@ class WebSecurityOidcLoginConfig
 	public AuthRequestUrlBuilderWithFixedScopes authRequestUrlBuilder() {
 		return new AuthRequestUrlBuilderWithFixedScopes();
 	}
-
-//	@Bean
-//	public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() throws Exception {
-//		OIDCAuthenticationFilter oidcaf = new OIDCAuthenticationFilter();
-//		oidcaf.setIssuerService(issuerService());
-//		oidcaf.setServerConfigurationService(serverConfigurationService());
-//		oidcaf.setClientConfigurationService(clientConfigurationService());
-//		oidcaf.setAuthRequestOptionsService(new StaticAuthRequestOptionsService());
-//		oidcaf.setAuthRequestUrlBuilder(authRequestUrlBuilder());
-//		oidcaf.setAuthenticationManager(authenticationManager());
-//		oidcaf.setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
-//			@Override
-//			public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-//				String newUrl = new DefaultUriBuilderFactory()
-//					.uriString("/login.html")
-//					.queryParam("error", exception.getMessage())
-//					.build()
-//					.toString();
-//
-//				response.sendRedirect(newUrl);
-//			}
-//		});
-//
-//		return oidcaf;
-//	}
-
-//	@Bean
-//	public AuthenticationProvider configureOIDCAuthenticationProvider() {
-//		OIDCAuthenticationProvider authenticationProvider = new OIDCAuthenticationProvider();
-//
-//		if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
-//			// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
-//			// Google account's userInfo. hd = Hosted Domain. Use this to filter to
-//			// any users of a specific domain
-//			authenticationProvider.setAuthoritiesMapper(new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss));
-//		} else if (!Strings.isNullOrEmpty(adminGroup)) {
-//			// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
-//			authenticationProvider.setAuthoritiesMapper(new GroupsAdminAuthoritiesMapper(adminGroup, adminIss));
-//		}
-//
-//		return authenticationProvider;
-//	}
-
-//	// This sets Spring Security up so that it can use the OIDC tokens etc.
-//	@Override
-//	public void configure(AuthenticationManagerBuilder auth) {
-//		auth.authenticationProvider(configureOIDCAuthenticationProvider());
-//	}
 
 	@Bean
 	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
@@ -271,10 +227,6 @@ class WebSecurityOidcLoginConfig
 
 		// we use oauth2 client login support instead of openIdConnectAuthenticationFilter
 		http.oauth2Client(oauth2Client -> {
-			// TODO configure oauth2 client login
-			oauth2Client.authorizationCodeGrant(codeGrantCustomizer -> {
-
-			});
 
 			// the following is to enable PKCE support for auth-code flow
 			var oauth2AuthRequestResolver = new DefaultOAuth2AuthorizationRequestResolver( //
@@ -290,13 +242,12 @@ class WebSecurityOidcLoginConfig
 						String registrationId = (String)attrs.get("registration_id");
 //						ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
 
-
 						logger.debug("configure authorizationRequest for {}", registrationId);
 					});
 				});
 			oauth2AuthRequestResolver.setAuthorizationRequestCustomizer(authorizationRequestCustomizer);
-			oauth2Client.authorizationCodeGrant(custom -> {
-				custom.authorizationRequestResolver(oauth2AuthRequestResolver);
+			oauth2Client.authorizationCodeGrant(codeGrant -> {
+				codeGrant.authorizationRequestResolver(oauth2AuthRequestResolver);
 			});
 		});
 
@@ -360,11 +311,24 @@ class WebSecurityOidcLoginConfig
 
 		if (devmode) {
 			logger.warn("\n***\n*** Starting application in Dev Mode, injecting dummy user into requests.\n***\n");
-			// TODO FIXME add filter
 			http.addFilterBefore(dummyUserFilter, OAuth2LoginAuthenticationFilter.class);
 		}
 
 		return http.build();
+	}
+
+	@Bean
+	@Lazy(false)
+	@Profile("dev")
+	public ApplicationRunner printFilterChainOidc(SecurityFilterChain filterChainOidc) {
+		return args -> {
+			List<Filter> filters = filterChainOidc.getFilters();
+			logger.debug("### OIDC Filter chain");
+			for (int i = 0; i < filters.size(); i++) {
+				Filter filter = filters.get(i);
+				logger.debug("FilterChain entry [{}] {}", i, filter.getClass());
+			}
+		};
 	}
 
 	protected HeaderWriter getXFrameOptionsHeaderWriter() {
@@ -402,7 +366,7 @@ class WebSecurityOidcLoginConfig
 
 	private RequestMatcher publicRequestMatcher(String... patterns) {
 
-		return new AndRequestMatcher(new OrRequestMatcher(Arrays.asList(patterns).stream().map(AntPathRequestMatcher::new).collect(Collectors.toList())), new PublicRequestMatcher());
+		return new AndRequestMatcher(new OrRequestMatcher(Arrays.stream(patterns).map(AntPathRequestMatcher::new).collect(Collectors.toList())), new PublicRequestMatcher());
 	}
 
 }
