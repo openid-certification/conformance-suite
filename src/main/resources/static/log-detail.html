@@ -1062,6 +1062,33 @@
 
                 // display the browser control data
                 if (data.browser) {
+
+                    try {
+                        data.browser.urlsWithMethod = data.browser.urlsWithMethod.map((url) => {
+                            let formData = parseUrl(url);
+                            return {
+                                url: formData.url,
+                                originalUrl: url.url,
+                                params: formData.params,
+                                queryParams: formData.queryParams,
+                                method: url.method
+                            };
+                        });
+                        data.browser.visitedUrlsWithMethod = data.browser.visitedUrlsWithMethod.map((url) => {
+                            let formData = parseUrl(url);
+                            return {
+                                url: formData.url,
+                                originalUrl: url.url,
+                                params: formData.params,
+                                queryParams: formData.queryParams,
+                                method: url.method
+                            }
+                        });
+                    } catch (err) {
+                        FAPI_UI.showError({ error: `${err.message}` });
+                        throw err;
+                    }
+
                     var newBrowserJson = JSON.stringify(data.browser);
                     var currentBrowserJson = document.body.dataset.currentBrowserJson;
                     if(currentBrowserJson != newBrowserJson) {
@@ -1080,7 +1107,10 @@
 
                                 FAPI_UI.showBusy('Opening target URL', 'Opening: ' + url);
 
-                                var win = window.open(url, '_blank');
+                                var win = {
+                                    focus: () => {}
+                                };
+                                document.querySelector('form.redirect').submit();
 
                                 if (win) {
                                     win.focus();
@@ -1361,6 +1391,25 @@
                 console.log(e);
             });
         });
+
+        function parseUrl(urlWithMethod) {
+            let urlString = urlWithMethod.url;
+            let url = new URL(urlString);
+            let baseUrl = url.origin + url.pathname;
+            let queryParams = url.searchParams || '';
+            let params = Array.from(queryParams.entries()).map(function(pair) {
+                let param = {
+                  name: pair[0],
+                  value: pair[1]
+                }
+                return param;
+            });
+            return {
+                url: baseUrl,
+                queryParams: queryParams.toString(),
+                params: params
+            };
+        }
     </script>
 
 

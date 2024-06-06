@@ -35,16 +35,25 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 	}
 
+	protected void redirect(String redirectTo) {
+		browser.goToUrl(redirectTo);
+	}
+
 	protected void performRedirect() {
+		performRedirect("GET");
+	}
+
+	protected void performRedirect(String method) {
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
 			"redirect_to", redirectTo,
+			"method", method,
 			"http", "redirect"));
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo);
+		redirect(redirectTo);
 	}
 
 	protected final void performRedirectAndWaitForPlaceholdersOrCallback() {

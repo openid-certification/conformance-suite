@@ -1,13 +1,36 @@
             <fieldset>
                 <legend>Browser Interaction:</legend>
                 <dl class="row">
-                    <% _.each(browser.urls, function(val) { %>
-                        <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-primary bg-gradient border border-secondary  visitBtn" data-url="<%- val %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test <span class="bi bi-send-fill"></span></button></dt>
-                        <dd class="col-sm-9 wrapLongStrings"><i><%- val %></i></dd>
+                    <% _.each(browser.urlsWithMethod, function(val) { %>
+                        <form class="redirect" method="<%- val.method %>" target="_blank" action="<%- val.url %>">
+                            <% _.each(val.params, function(param) { %>
+                            <input type="hidden" name="<%- param.name %>" value="<%- param.value %>" />
+                            <% }); %>
+                        </form>
+                        <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-primary bg-gradient border border-secondary visitBtn" data-url="<%- val.originalUrl %>" title="To continue the test, click here to open the url to be visited in a new tab">Proceed with test <span class="bi bi-send-fill"></span></button></dt>
+                        <% if (val.method === 'POST') { %>
+                            <dd class="col-sm-9 wrapLongStrings">
+                                    <pre style="border: 1px solid #ddd; padding: 10px;"><code style="word-break: break-all;">POST <%- val.url %> HTTP 1.1
+Content-Type: application/x-www-form-urlencoded
+
+<%- val.queryParams %></code></pre></dd>
+                        <% }
+                        else { %>
+                            <dd class="col-sm-9 wrapLongStrings"><i><%- val.originalUrl %></i></dd>
+                        <% } %>
                     <% }); %>
-                    <% _.each(browser.visited, function(val) { %>
-                        <dt class="col-sm-3"><button class="btn btn-sm btn-light bg-gradient border border-secondary" disabled >Visited <span class="bi bi-send-fill"></span></button></dt>
-                        <dd class="col-sm-9 wrapLongStrings"><i><%- val %></i></dd>
+                    <% _.each(browser.visitedUrlsWithMethod, function(val) { %>
+                        <dt class="col-sm-3 text-end"><button class="btn btn-sm btn-light bg-gradient border border-secondary" disabled >Visited <span class="bi bi-send-fill"></span></button></dt>
+                        <% if (val.method === 'POST') { %>
+                        <dd class="col-sm-9 wrapLongStrings">
+                            <pre style="border: 1px solid #ddd; padding: 10px;"><code style="word-break: break-all;">POST <%- val.url %> HTTP 1.1
+Content-Type: application/x-www-form-urlencoded
+
+<%- val.queryParams %></code></pre></dd>
+                        <% }
+                        else { %>
+                        <dd class="col-sm-9 wrapLongStrings"><i><%- val.originalUrl %></i></dd>
+                        <% } %>
                     <% }); %>
                     <% _.each(browser.runners, function(val) { %>
                         <dt class="col-sm-3">Selenium Instance</dt>

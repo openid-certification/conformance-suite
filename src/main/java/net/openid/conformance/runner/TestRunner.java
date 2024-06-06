@@ -655,7 +655,9 @@ public class TestRunner implements DataUtils {
 		if (browser != null) {
 			Map<String, Object> bmap = new HashMap<>();
 			bmap.put("urls", browser.getUrls());
+			bmap.put("urlsWithMethod", browser.getUrlsWithMethod());
 			bmap.put("visited", browser.getVisited());
+			bmap.put("visitedUrlsWithMethod", browser.getVisitedUrlsWithMethod());
 			bmap.put("runners", browser.getWebRunners());
 			map.put("browser", bmap);
 		}

@@ -15,6 +15,7 @@ import org.bson.Document;
 import org.htmlunit.BrowserVersion;
 import org.htmlunit.CookieManager;
 import org.htmlunit.DefaultPageCreator;
+import org.htmlunit.HttpMethod;
 import org.htmlunit.HttpWebConnection;
 import org.htmlunit.Page;
 import org.htmlunit.ScriptException;
@@ -48,6 +49,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -103,7 +106,9 @@ public class BrowserControl implements DataUtils {
 	private boolean verboseLogging;
 
 	private List<String> urls = new ArrayList<>();
+	private List<UrlWithMethod> urlsWithMethod = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
+	private List<UrlWithMethod> visitedUrlsWithMethod = new ArrayList<>();
 	private Queue<WebRunner> runners = new ConcurrentLinkedQueue<>();
 
 	private ImageService imageService;
@@ -140,6 +145,10 @@ public class BrowserControl implements DataUtils {
 		goToUrl(url, null);
 	}
 
+	public void goToUrl(String url, String placeholder) {
+		goToUrl(url, placeholder, "GET");
+	}
+
 	/**
 	 * Tell the front-end control that a url needs to be visited. If there is a matching
 	 * browser configuration element, this will execute automatically. If there is no
@@ -148,8 +157,9 @@ public class BrowserControl implements DataUtils {
 	 * @param url         the url to be visited
 	 * @param placeholder the placeholder in the log that is expecting the results of
 	 *                    the transaction, usually as a screenshot, can be null
+	 * @param method	  the HTTP method to be used
 	 */
-	public void goToUrl(String url, String placeholder) {
+	public void goToUrl(String url, String placeholder, String method) {
 		// find the first matching command set based on the url pattern in 'match'
 		logger.debug(testId + ": goToUrl called for " + url);
 		for (JsonElement commandsEl : browserCommands) {
@@ -166,7 +176,7 @@ public class BrowserControl implements DataUtils {
 					limit--;
 					commands.addProperty("match-limit", limit);
 				}
-				WebRunner wr = new WebRunner(url, commands.getAsJsonArray("tasks"), placeholder);
+				WebRunner wr = new WebRunner(url, commands.getAsJsonArray("tasks"), placeholder, method);
 				executionManager.runInBackground(wr);
 				logger.debug(testId + ": WebRunner submitted to task executor for: " + url);
 
@@ -181,6 +191,7 @@ public class BrowserControl implements DataUtils {
 		}
 		// if we couldn't find a command for this URL, leave it up to the user to do something with it
 		urls.add(url);
+		urlsWithMethod.add(new UrlWithMethod(url, method));
 	}
 
 	/**
@@ -193,6 +204,12 @@ public class BrowserControl implements DataUtils {
 
 		urls.remove(url);
 		visited.add(url);
+
+		Optional<UrlWithMethod> urlWithMethod = urlsWithMethod.stream().filter(u -> Objects.equals(url, u.getUrl())).findFirst();
+		if (urlWithMethod.isPresent()) {
+			urlsWithMethod.remove(urlWithMethod.get());
+			visitedUrlsWithMethod.add(urlWithMethod.get());
+		}
 	}
 
 	/**
@@ -207,15 +224,17 @@ public class BrowserControl implements DataUtils {
 		private String currentCommand;
 		private String lastException;
 		private String placeholder;
+		private String method;
 
 		/**
 		 * @param url   url to go to
 		 * @param tasks {@link JsonArray} of commands to perform once we get to the page
 		 */
-		private WebRunner(String url, JsonArray tasks, String placeholder) {
+		private WebRunner(String url, JsonArray tasks, String placeholder, String method) {
 			this.url = url;
 			this.tasks = tasks;
 			this.placeholder = placeholder;
+			this.method = method;
 
 			// each WebRunner gets it's own driver... that way two could run at the same time for the same test.
 			this.driver = new ResponseCodeHtmlUnitDriver();
@@ -226,16 +245,42 @@ public class BrowserControl implements DataUtils {
 			try {
 				logger.info(testId + ": Sending BrowserControl to: " + url);
 
-				eventLog.log("WebRunner", args(
-					"msg", "Scripted browser HTTP request",
-					"http", "request",
-					"request_uri", url,
-					"request_method", "GET",
-					"browser", "goToUrl"
-				));
+				if (Objects.equals(method, "POST")) {
 
-				// do the actual HTTP GET
-				driver.get(url);
+					URL urlWithQueryString = new URL(url);
+					URL urlWithoutQuery = new URL(urlWithQueryString.getProtocol(), urlWithQueryString.getHost(), urlWithQueryString.getPort(), urlWithQueryString.getPath());
+					String params = urlWithQueryString.getQuery();
+					WebClient client = driver.getWebClient();
+					WebRequest request = new WebRequest(urlWithoutQuery, HttpMethod.POST);
+					request.setAdditionalHeader("Content-Type", "application/x-www-form-urlencoded");
+					request.setRequestBody(params);
+
+					eventLog.log("WebRunner", args(
+						"msg", "Scripted browser HTTP request",
+						"http", "request",
+						"request_uri", urlWithoutQuery.toString(),
+						"parameters", params,
+						"request_method", method,
+						"browser", "goToUrl"
+					));
+
+					// do the actual HTTP POST
+					client.getPage(request);
+
+				} else {
+
+					eventLog.log("WebRunner", args(
+						"msg", "Scripted browser HTTP request",
+						"http", "request",
+						"request_uri", url,
+						"request_method", method,
+						"browser", "goToUrl"
+					));
+
+					// do the actual HTTP GET
+					driver.get(url);
+
+				}
 
 				eventLog.log("WebRunner", args(
 					"msg", "Scripted browser HTTP response",
@@ -820,6 +865,14 @@ public class BrowserControl implements DataUtils {
 		return urls;
 	}
 
+	public List<UrlWithMethod> getUrlsWithMethod() {
+		return urlsWithMethod;
+	}
+
+	public List<UrlWithMethod> getVisitedUrlsWithMethod() {
+		return visitedUrlsWithMethod;
+	}
+
 	/**
 	 * Publish the given page content to fulfill the placeholder.
 	 *
@@ -887,5 +940,4 @@ public class BrowserControl implements DataUtils {
 	public boolean runnersActive() {
 		return !runners.isEmpty();
 	}
-
 }
