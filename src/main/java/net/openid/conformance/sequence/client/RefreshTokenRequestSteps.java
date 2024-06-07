@@ -93,7 +93,7 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 			callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
-			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
+			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "DPOP-8.1");
 			callAndStopOnFailure(SignDpopProof.class);
 			callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
 			callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);

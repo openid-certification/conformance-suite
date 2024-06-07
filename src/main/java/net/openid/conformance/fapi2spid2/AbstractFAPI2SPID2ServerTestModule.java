@@ -798,7 +798,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndStopOnFailure(CreateDpopClaims.class);
 		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
-		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
+		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "DPOP-8.1");
 		callAndStopOnFailure(SignDpopProof.class);
 		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
 	}
@@ -812,7 +812,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndStopOnFailure(CreateDpopClaims.class);
 		callAndStopOnFailure(SetDpopHtmHtuForParEndpoint.class);
 		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
-		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
+		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "DPOP-8.1");
 		callAndStopOnFailure(SignDpopProof.class);
 		callAndStopOnFailure(AddDpopHeaderForParEndpointRequest.class);
 	}
@@ -1062,7 +1062,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
 			callAndStopOnFailure(SetDpopAccessTokenHash.class);
 			callAndContinueOnFailure(SetDpopProofNonceForResourceEndpoint.class, ConditionResult.INFO);
-			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.WARNING, "DPOP-8.1");
+			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "DPOP-8.1");
 			callAndStopOnFailure(SignDpopProof.class);
 			callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
 		}
