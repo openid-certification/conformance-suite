@@ -753,7 +753,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         }
 
         function runTest(testName, testVariant, planId) {
-            var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
+            var runTestUrl = '/api/runner?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
 
             if (testVariant !== null && testVariant !== undefined) {
                 runTestUrl += '&variant=' + encodeURIComponent(testVariant);
