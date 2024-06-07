@@ -752,7 +752,7 @@
         }
 
         function runTest(testName, testVariant, planId) {
-            var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
+            var runTestUrl = '/api/runner?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
 
             if (testVariant !== null && testVariant !== undefined) {
                 runTestUrl += '&variant=' + encodeURIComponent(testVariant);
