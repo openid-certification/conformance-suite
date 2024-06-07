@@ -16,6 +16,7 @@ public abstract class AbstractValidateDpopProofNonce extends AbstractCondition {
 			if(null != incomingNonce) {
 				log("DPoP Proof nonce supplied where none is expected");
 				// Spec is unclear whether supplying a nonce when none is requested is an error
+				// Treat this as an error by default
 			} else {
 				isValid = true;
 				logSuccess("DPoP nonce not required");
