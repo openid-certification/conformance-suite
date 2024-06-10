@@ -193,6 +193,11 @@ class WebSecurityOidcLoginConfig
 	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
 
 		http.csrf(AbstractHttpConfigurer::disable);
+
+		http.securityMatcher(request -> {
+			// only handle NON-API requests with this filter chain
+			return !request.getRequestURI().startsWith("/api/");
+		});
 		http.authorizeHttpRequests(httpRequests -> {
 			httpRequests //
 				.requestMatchers( //
@@ -208,6 +213,8 @@ class WebSecurityOidcLoginConfig
 					"/logout.html", //
 					"/robots.txt",  //
 					"/.well-known/**" //
+					,"/api/**"
+					,"/hello"
 				) //
 				.permitAll();
 

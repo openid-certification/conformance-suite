@@ -54,6 +54,11 @@ public class WebSecurityResourceServerConfig {
 	protected SecurityFilterChain filterChainResourceServer(HttpSecurity http) throws Exception {
 
 		http.csrf(AbstractHttpConfigurer::disable);
+		http.securityMatcher(request -> {
+			// only handle API requests with this filter chain
+			return request.getRequestURI().startsWith("/api/");
+		});
+
 		http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.NEVER));
 
 		http.authorizeHttpRequests(requests -> {
