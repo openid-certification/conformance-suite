@@ -29,6 +29,7 @@ public class FAPI2SPID2TestPlan implements TestPlan {
 		modules.remove(FAPI2SPID2EnsureRequestObjectWithBadAudFails.class);
 		modules.remove(FAPI2SPID2EnsureRequestObjectWithExpOver60Fails.class);
 		modules.remove(FAPI2SPID2EnsureRequestObjectWithNbfOver60Fails.class);
+		modules.remove(FAPI2SPID2EnsureRequestObjectWithNbf8SecondsInTheFutureIsAccepted.class);
 		modules.remove(FAPI2SPID2EnsureSignedRequestObjectWithRS256Fails.class);
 		modules.remove(FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone.class);
 		modules.remove(FAPI2SPID2EnsureRequestObjectWithInvalidSignatureFails.class);
