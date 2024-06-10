@@ -26,6 +26,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		FAPI2SPID2EnsureOtherScopeOrderSucceeds.class,
 		FAPI2SPID2TestClaimsParameterIdentityClaims.class,
 		FAPI2SPID2AccessTokenTypeHeaderCaseSensitivity.class,
+		FAPI2SPID2EnsureRequestObjectWithNbf8SecondsInTheFutureIsAccepted.class,
 
 		// DPoP tests
 		FAPI2SPID2CheckDpopProofNbfExp.class,
