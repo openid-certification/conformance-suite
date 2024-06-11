@@ -8,6 +8,7 @@ import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
+import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
@@ -319,6 +320,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		if(authRequestMethod == FAPIAuthRequestMethod.BY_VALUE) {
 			callAndStopOnFailure(SetRequestParameterSupportedToTrueInServerConfiguration.class);
+		} else {
+			call(condition(AddCodeChallengeMethodToServerConfiguration.class).requirement("FAPI1-ADV-5.2.2-18"));
 		}
 
 		if (fapiClientType == FAPIClientType.OIDC) {
