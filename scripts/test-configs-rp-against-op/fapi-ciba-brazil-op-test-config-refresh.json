@@ -107,8 +107,8 @@
         }
     },
     "resource": {
-        "resourceUrl": "{BASEURLMTLS}test-mtls/a/oidf-fapi-ciba-brazil-rp-test/payments/v1/pix/payments",
-        "consentUrl": "{BASEURLMTLS}test-mtls/a/oidf-fapi-ciba-brazil-rp-test/payments/v1/consents",
+        "resourceUrl": "{BASEURLMTLS}test-mtls/a/oidf-fapi-ciba-brazil-rp-test/payments/v4/pix/payments",
+        "consentUrl": "{BASEURLMTLS}test-mtls/a/oidf-fapi-ciba-brazil-rp-test/payments/v4/consents",
         "brazilCpf": "48847377765",
         "brazilOrganizationId": "2b602d87-d061-470c-89d6-ecc8b163260e",
         "brazilPaymentConsent": {

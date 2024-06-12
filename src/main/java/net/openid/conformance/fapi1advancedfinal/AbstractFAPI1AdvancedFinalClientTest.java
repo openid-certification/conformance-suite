@@ -805,7 +805,6 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
 		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
 
-
 		ResponseEntity<Object> responseEntity = null;
 		callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
 		callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
