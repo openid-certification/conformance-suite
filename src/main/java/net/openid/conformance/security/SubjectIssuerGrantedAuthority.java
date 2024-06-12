@@ -7,8 +7,7 @@ import org.springframework.util.StringUtils;
  *
  * Simple authority representing a user at an issuer.
  *
- * @author jricher
- *
+ * author jricher
  */
 public class SubjectIssuerGrantedAuthority implements GrantedAuthority {
 
