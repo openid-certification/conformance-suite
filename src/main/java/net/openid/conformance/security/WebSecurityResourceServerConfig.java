@@ -89,7 +89,7 @@ public class WebSecurityResourceServerConfig {
 	@Bean
 	public JwkSetUriJwtDecoderBuilderCustomizer jwtDecoderBuilderCustomizer() {
 		return builder -> {
-			System.out.println("Customize JWT Decoder here");
+			logger.debug("Customize JWT Decoder here");
 		};
 	}
 

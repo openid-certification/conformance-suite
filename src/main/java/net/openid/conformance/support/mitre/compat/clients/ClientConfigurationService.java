@@ -3,7 +3,7 @@ package net.openid.conformance.support.mitre.compat.clients;
 import net.openid.conformance.support.mitre.compat.model.RegisteredClient;
 
 /**
- * @author jricher
+ * author jricher
  *
  */
 public interface ClientConfigurationService {
