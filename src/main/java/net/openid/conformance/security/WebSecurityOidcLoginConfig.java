@@ -1,15 +1,7 @@
 package net.openid.conformance.security;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import jakarta.servlet.Filter;
-import net.openid.conformance.support.mitre.compat.clients.DynamicServerConfigurationService;
-import net.openid.conformance.support.mitre.compat.clients.HybridClientConfigurationService;
-import net.openid.conformance.support.mitre.compat.clients.RegisteredClientService;
-import net.openid.conformance.support.mitre.compat.issuer.HybridIssuerService;
-import net.openid.conformance.support.mitre.compat.model.RegisteredClient;
-import net.openid.conformance.support.mitre.compat.spring.ClientDetailsEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +45,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @Order(2)
-@SuppressWarnings({"deprecation"})
 class WebSecurityOidcLoginConfig
-//	extends WebSecurityConfigurerAdapter
 {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
@@ -66,36 +56,8 @@ class WebSecurityOidcLoginConfig
 	@Value("${fintechlabs.base_url}")
 	private String baseURL;
 
-	// Client name to use when dynamically registering as a client
-	@Value("${oidc.clientname}")
-	private String clientName;
-
-	// Redirect URI to use
-	@Value("${oidc.redirecturi}")
-	private String redirectURI;
-
-
-	private final ClientDetailsEntity.AuthMethod authMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC;
-
-	// Specifics for setting up a Static Client for Google
-	@Value("${spring.security.oauth2.client.registration.google.client-id}")
-	private String googleClientId;
-
-	@Value("${spring.security.oauth2.client.registration.google.client-secret}")
-	private String googleClientSecret;
-
 	@Value("${oidc.google.iss:https://accounts.google.com}")
 	private String googleIss;
-
-	// Static Client for gitlab
-	@Value("${spring.security.oauth2.client.registration.gitlab.client-id}")
-	private String gitlabClientId;
-
-	@Value("${spring.security.oauth2.client.registration.gitlab.client-secret")
-	private String gitlabClientSecret;
-
-	@Value("${oidc.gitlab.iss:https://gitlab.com}")
-	private String gitlabIss;
 
 	// Config for the admin role
 	@Value("${oidc.admin.domains:}")
@@ -117,82 +79,9 @@ class WebSecurityOidcLoginConfig
 	@Autowired(required = false)
 	private CorsConfigurable additionalCorsConfiguration;
 
-	private RegisteredClient googleClientConfig() {
-		RegisteredClient rc = new RegisteredClient();
-		rc.setClientId(googleClientId);
-		rc.setClientSecret(googleClientSecret);
-		rc.setScope(ImmutableSet.of("openid", "email", "profile"));
-		rc.setRedirectUris(ImmutableSet.of(redirectURI));
-		return rc;
-	}
-
-	private RegisteredClient gitlabClientConfig() {
-		RegisteredClient rc = new RegisteredClient();
-		rc.setClientId(gitlabClientId);
-		rc.setClientSecret(gitlabClientSecret);
-		// email is only asked for to make it clear to the user which account they're logged into, if they have multiple gitlab ones
-		rc.setScope(ImmutableSet.of("openid", "email"));
-		rc.setRedirectUris(ImmutableSet.of(redirectURI));
-		return rc;
-	}
-
-	// Create a partially filled in RegisteredClient to use as a template when performing Dynamic Registration
-	private RegisteredClient getClientTemplate() {
-		RegisteredClient clientTemplate = new RegisteredClient();
-		clientTemplate.setClientName(clientName);
-		clientTemplate.setScope(AuthRequestUrlBuilderWithFixedScopes.SCOPES);
-		clientTemplate.setTokenEndpointAuthMethod(authMethod);
-		clientTemplate.setRedirectUris(ImmutableSet.of(redirectURI));
-		return clientTemplate;
-	}
-
-	// Bean to set up the server configuration service. We're only doing dynamic setup.
-	@Bean
-	public DynamicServerConfigurationService serverConfigurationService() {
-		return new DynamicServerConfigurationService();
-	}
-
-	// Service to store/retrieve persisted information for dynamically registered clients.
-	@Bean
-	public RegisteredClientService registeredClientService() {
-
-		MongoDBRegisteredClientService registeredClientService = new MongoDBRegisteredClientService();
-		return registeredClientService;
-	}
-
-	// Client Configuration Service. We're using a Hybrid one to allow statically defined clients (i.e. Google)
-	//   and dynamically registered clients.
-	@Bean
-	public HybridClientConfigurationService clientConfigurationService() {
-		HybridClientConfigurationService clientConfigService = new HybridClientConfigurationService();
-
-		// set up the static clients. (i.e. Google)
-		clientConfigService.setClients(ImmutableMap.of(googleIss, googleClientConfig(), gitlabIss, gitlabClientConfig()));
-
-		// Setup template for dynamic registration
-		clientConfigService.setTemplate(getClientTemplate());
-
-		// set the RegisteredClientService for storing/retriving Dynamically created clients
-		clientConfigService.setRegisteredClientService(registeredClientService());
-
-		return clientConfigService;
-	}
-
 	@Bean
 	public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
 		return new LoginUrlAuthenticationEntryPoint(baseURL + "/login.html");
-	}
-
-	@Bean
-	public HybridIssuerService issuerService() {
-		HybridIssuerService his = new HybridIssuerService();
-		his.setLoginPageUrl(baseURL + "/login.html");
-		return his;
-	}
-
-	@Bean
-	public AuthRequestUrlBuilderWithFixedScopes authRequestUrlBuilder() {
-		return new AuthRequestUrlBuilderWithFixedScopes();
 	}
 
 	@Bean
@@ -218,9 +107,9 @@ class WebSecurityOidcLoginConfig
 					"/jwks**",  //
 					"/logout.html", //
 					"/robots.txt",  //
-					"/.well-known/**" //
-					,"/api/**"
-					,"/hello"
+					"/.well-known/**", //
+					"/api/**", //
+					"/hello" //
 				) //
 				.permitAll();
 
@@ -246,18 +135,17 @@ class WebSecurityOidcLoginConfig
 				clientRegistrationRepository, //
 				OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI //
 			);
-			Consumer<OAuth2AuthorizationRequest.Builder> authorizationRequestCustomizer = OAuth2AuthorizationRequestCustomizers.withPkce()
-				.andThen(authzUrlBuilder -> {
-					authzUrlBuilder.attributes(attrs -> {
+			Consumer<OAuth2AuthorizationRequest.Builder> authorizationRequestCustomizer = OAuth2AuthorizationRequestCustomizers.withPkce().andThen(authzUrlBuilder -> {
+				authzUrlBuilder.attributes(attrs -> {
 
-						// TODO handle custom client parameters here as previously in AuthRequestUrlBuilderWithFixedScopes
-						// registration_id -> indicator for custom client registration
-						String registrationId = (String)attrs.get("registration_id");
+					// TODO handle custom client parameters here as previously in AuthRequestUrlBuilderWithFixedScopes
+					// registration_id -> indicator for custom client registration
+					String registrationId = (String) attrs.get("registration_id");
 //						ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
 
-						logger.debug("configure authorizationRequest for {}", registrationId);
-					});
+					logger.debug("configure authorizationRequest for {}", registrationId);
 				});
+			});
 			oauth2AuthRequestResolver.setAuthorizationRequestCustomizer(authorizationRequestCustomizer);
 			oauth2Client.authorizationCodeGrant(codeGrant -> {
 				codeGrant.authorizationRequestResolver(oauth2AuthRequestResolver);
