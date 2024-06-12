@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootVersion;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -121,8 +120,6 @@ public class Application {
 	public static void main(String[] args) {
 
 		Security.addProvider(new BouncyCastleProvider());
-
-		logger.info("SpringBoot Version: {}", SpringBootVersion.getVersion());
 
 		SpringApplication springApplication = new SpringApplication(Application.class);
 		springApplication.addListeners(new PreparedEventListener());
