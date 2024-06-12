@@ -15,9 +15,13 @@ import java.util.Set;
  */
 public class GroupsAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 
-	private String ADMIN_GROUP;
+	private final String adminGroup;
 
-	private String ADMIN_ISSUER;
+	private final String adminIssuer;
+
+	private final String adminGroupClaimName;
+
+	private final String adminGroupClaimValue;
 
 	@Override
 	public Collection<? extends GrantedAuthority> mapAuthorities(OidcIdToken idToken, OidcUserInfo userInfo) {
@@ -28,7 +32,7 @@ public class GroupsAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 		String issuer = idToken.getIssuer().toString();
 		SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(subject, issuer);
 		out.add(authority);
-		if (issuer.equalsIgnoreCase(ADMIN_ISSUER))
+		if (issuer.equalsIgnoreCase(adminIssuer))
 		{
 			List<String> groupsEl = null;
 			if (userInfo != null) {
@@ -39,7 +43,15 @@ public class GroupsAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 				groupsEl = idToken.getClaimAsStringList("groups");
 			}
 			if (groupsEl != null) {
-				if (groupsEl.contains(ADMIN_GROUP)) {
+				if (groupsEl.contains(adminGroup)) {
+					out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
+				}
+			}
+
+			// Determine ADMIN Role based on gitlab project GL-1328
+			if (userInfo != null && adminGroupClaimName != null && adminGroupClaimValue != null) {
+				List<String> gitlabAdminProjectRole = userInfo.getClaimAsStringList(adminGroupClaimName);
+				if (gitlabAdminProjectRole != null && gitlabAdminProjectRole.contains(adminGroupClaimValue)) {
 					out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
 				}
 			}
@@ -48,9 +60,11 @@ public class GroupsAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 		return out;
 	}
 
-	public GroupsAdminAuthoritiesMapper(String adminGroup, String adminIss) {
+	public GroupsAdminAuthoritiesMapper(String adminGroup, String adminIss, String adminGroupClaimName, String adminGroupClaimValue) {
 
-		this.ADMIN_GROUP = adminGroup;
-		this.ADMIN_ISSUER = adminIss;
+		this.adminGroup = adminGroup;
+		this.adminIssuer = adminIss;
+		this.adminGroupClaimName = adminGroupClaimName;
+		this.adminGroupClaimValue = adminGroupClaimValue;
 	}
 }

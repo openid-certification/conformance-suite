@@ -105,6 +105,12 @@ class WebSecurityOidcLoginConfig
 	@Value("${oidc.admin.issuer}")
 	private String adminIss;
 
+	// Config for deducing admin role by gitlab project role
+	@Value("${oidc.gitlab.admin-group-claim-name}")
+	private String gitlabAdminGroupClaimName;
+	@Value("${oidc.gitlab.admin-group-claim-value}")
+	private String gitlabAdminGroupClaimValue;
+
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
@@ -284,7 +290,7 @@ class WebSecurityOidcLoginConfig
 								new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss).mapAuthorities(idToken, userInfo);
 							} else if (!Strings.isNullOrEmpty(adminGroup)) {
 								// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
-								new GroupsAdminAuthoritiesMapper(adminGroup, adminIss).mapAuthorities(idToken, userInfo);
+								new GroupsAdminAuthoritiesMapper(adminGroup, adminIss, gitlabAdminGroupClaimName, gitlabAdminGroupClaimValue).mapAuthorities(idToken, userInfo);
 							}
 						}
 					});
