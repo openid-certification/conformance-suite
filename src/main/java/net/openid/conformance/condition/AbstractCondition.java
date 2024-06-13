@@ -606,12 +606,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
 			.setSslContext(sc)
-			/*
-		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
-		(restrictAllowedTLSVersions ? new String[] { "TLSv1.2" } : null),
-		null,
-		NoopHostnameVerifier.INSTANCE);
-			 */
 			.setTlsVersions(restrictAllowedTLSVersions ? new String[]{"TLSv1.2"} : null)
 			.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
 			.build();
@@ -619,9 +613,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
 		builder.setDefaultRequestConfig(RequestConfig.custom().build());
 
-		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create() //
-			.register("https", sslConnectionFactory) //
-			.register("http", new PlainConnectionSocketFactory()) //
+		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+			.register("https", sslConnectionFactory)
+			.register("http", new PlainConnectionSocketFactory())
 			.build();
 
 		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
