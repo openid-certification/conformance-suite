@@ -138,7 +138,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 	}
 
 	private void exposeMtlsPath(String name, String path) {
-		String baseUrlMtls = env.getString("base_mtls_url").replaceFirst(TestDispatcher.TEST_PATH, TestDispatcher.TEST_MTLS_PATH);
+		String baseUrlMtls = env.getString("base_mtls_url");
 		env.putString(name, baseUrlMtls + "/" + path);
 		exposeEnvString(name);
 	}
