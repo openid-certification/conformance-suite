@@ -615,7 +615,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		builder.setSSLContext(sc);
 
 		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
-			(restrictAllowedTLSVersions ? new String[] { "TLSv1.2" } : null),
+			(restrictAllowedTLSVersions ? new String[] { "TLSv1.2", "TLSv1.3" } : null),
 			null,
 			NoopHostnameVerifier.INSTANCE);
 
