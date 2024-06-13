@@ -4,6 +4,9 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Matches if the current request URI contains a {@code public} query parameter.
+ */
 public class PublicRequestMatcher implements RequestMatcher {
 
 	@Override
