@@ -59,6 +59,11 @@ public class WebSecurityResourceServerConfig {
 			return request.getRequestURI().startsWith("/api/");
 		});
 
+		// enforce https
+		http.requiresChannel(channelRequest -> {
+			channelRequest.anyRequest().requiresSecure();
+		});
+
 		http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.NEVER));
 
 		http.authorizeHttpRequests(requests -> {
