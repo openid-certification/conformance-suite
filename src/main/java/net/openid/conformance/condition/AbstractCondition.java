@@ -635,15 +635,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		builder.setConnectionManager(ccm);
 
-//		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory> create()
-//			.register("https", sslConnectionSocketFactory)
-//			.register("http", new PlainConnectionSocketFactory())
-//			.build();
-
-//		HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-//		builder.setConnectionManager(ccm);
-
-
 		builder.disableRedirectHandling();
 
 		builder.disableAutomaticRetries();
