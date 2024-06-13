@@ -25,7 +25,6 @@ public class GoogleHostedDomainAdminAuthoritiesMapper implements OIDCAuthorities
 
 		Set<GrantedAuthority> out = new HashSet<>();
 
-//		var claims = idToken.getClaims();
 		String subject = idToken.getSubject();
 		String issuer = idToken.getIssuer().toString();
 		SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(subject, issuer);

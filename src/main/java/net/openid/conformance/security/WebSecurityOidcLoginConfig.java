@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
@@ -35,11 +36,15 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -67,11 +72,9 @@ class WebSecurityOidcLoginConfig
 	@Value("${oidc.admin.issuer}")
 	private String adminIss;
 
-	// Config for deducing admin role by gitlab project role
-	@Value("${oidc.gitlab.admin-group-claim-name}")
-	private String gitlabAdminGroupClaimName;
-	@Value("${oidc.gitlab.admin-group-claim-value}")
-	private String gitlabAdminGroupClaimValue;
+	// Allows to deduce ROLE_ADMIN by gitlab project role
+	@Value("#{${oidc.gitlab.admin-group-indicator-claims}}")
+	private Map<String, Set<String>> gitlabAdminGroupIndicatorClaims;
 
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
@@ -165,6 +168,8 @@ class WebSecurityOidcLoginConfig
 			oauth2Login.userInfoEndpoint(userInfoCustomization -> {
 				userInfoCustomization.userAuthoritiesMapper(authorities -> {
 
+					Set<GrantedAuthority> extendedAuthorities = new HashSet<>(authorities);
+
 					authorities.forEach(authority -> {
 						if (authority instanceof OidcUserAuthority oidcUserAuthority) {
 
@@ -175,15 +180,26 @@ class WebSecurityOidcLoginConfig
 								// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
 								// Google account's userInfo. hd = Hosted Domain. Use this to filter to
 								// any users of a specific domain
-								new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss).mapAuthorities(idToken, userInfo);
+								var authoritiesByGoogleClaim = new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss).mapAuthorities(idToken, userInfo);
+								if (!CollectionUtils.isEmpty(authoritiesByGoogleClaim)) {
+									extendedAuthorities.addAll(authoritiesByGoogleClaim);
+								}
 							} else if (!Strings.isNullOrEmpty(adminGroup)) {
 								// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
-								new GroupsAdminAuthoritiesMapper(adminGroup, adminIss, gitlabAdminGroupClaimName, gitlabAdminGroupClaimValue).mapAuthorities(idToken, userInfo);
+								var authoritiesByGroupsClaim = new GroupsAdminAuthoritiesMapper(adminGroup, adminIss).mapAuthorities(idToken, userInfo);
+								if (!CollectionUtils.isEmpty(authoritiesByGroupsClaim)) {
+									extendedAuthorities.addAll(authoritiesByGroupsClaim);
+								}
+								// use gitlab specific project role claims to determine admin role
+								var authoritiesByGitlabProject = new GitlabProjectAdminAuthoritiesMapper(adminIss, gitlabAdminGroupIndicatorClaims).mapAuthorities(idToken, userInfo);
+								if (!CollectionUtils.isEmpty(authoritiesByGitlabProject)) {
+									extendedAuthorities.addAll(authoritiesByGitlabProject);
+								}
 							}
 						}
 					});
 
-					return authorities;
+					return extendedAuthorities;
 				});
 			});
 		});
