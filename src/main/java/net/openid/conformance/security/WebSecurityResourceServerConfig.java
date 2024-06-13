@@ -125,16 +125,16 @@ public class WebSecurityResourceServerConfig {
 	}
 
 	private RequestMatcher getPublicMatcher() {
-		return new AndRequestMatcher(
-			new OrRequestMatcher(
+		return new OrRequestMatcher(
+				new AntPathRequestMatcher("/api/server", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/info/?*", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/log", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/plan", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET),
-				new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET)),
-			new PublicRequestMatcher());
+				new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET),
+				new PublicRequestMatcher());
 	}
 
 	@Bean
