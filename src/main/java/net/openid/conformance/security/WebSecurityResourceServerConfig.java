@@ -69,6 +69,8 @@ public class WebSecurityResourceServerConfig {
 		http.authorizeHttpRequests(requests -> {
 			requests.requestMatchers(getPublicMatcher()).permitAll();
 			requests.requestMatchers(getApiMatcher()).authenticated();
+			// deny access for any unmatched API routes
+			requests.anyRequest().denyAll();
 		});
 
 		http.oauth2ResourceServer(oauthResourceServer -> {
@@ -114,6 +116,7 @@ public class WebSecurityResourceServerConfig {
 
 	private RequestMatcher getApiMatcher() {
 		return new OrRequestMatcher(
+			new AntPathRequestMatcher("/api/server"),
 			new AntPathRequestMatcher("/api/currentuser"),
 			new AntPathRequestMatcher("/api/runner/**"),
 			new AntPathRequestMatcher("/api/log/**"),
@@ -125,16 +128,17 @@ public class WebSecurityResourceServerConfig {
 	}
 
 	private RequestMatcher getPublicMatcher() {
-		return new OrRequestMatcher(
-				new AntPathRequestMatcher("/api/server", HttpMethod.GET),
+		// Matches following paths IIF the ?public query parameter is present
+		return	new AndRequestMatcher(
+			new OrRequestMatcher(
 				new AntPathRequestMatcher("/api/info/?*", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/log", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/plan", HttpMethod.GET),
 				new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET),
-				new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET),
-				new PublicRequestMatcher());
+				new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET)),
+			new PublicRequestMatcher());
 	}
 
 	@Bean
