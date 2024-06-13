@@ -19,10 +19,6 @@ public class GroupsAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 
 	private final String adminIssuer;
 
-	private final String adminGroupClaimName;
-
-	private final String adminGroupClaimValue;
-
 	@Override
 	public Collection<? extends GrantedAuthority> mapAuthorities(OidcIdToken idToken, OidcUserInfo userInfo) {
 
@@ -47,24 +43,14 @@ public class GroupsAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 					out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
 				}
 			}
-
-			// Determine ADMIN Role based on gitlab project GL-1328
-			if (userInfo != null && adminGroupClaimName != null && adminGroupClaimValue != null) {
-				List<String> gitlabAdminProjectRole = userInfo.getClaimAsStringList(adminGroupClaimName);
-				if (gitlabAdminProjectRole != null && gitlabAdminProjectRole.contains(adminGroupClaimValue)) {
-					out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
-				}
-			}
 		}
 		out.add(OIDCAuthenticationFacade.ROLE_USER);
 		return out;
 	}
 
-	public GroupsAdminAuthoritiesMapper(String adminGroup, String adminIss, String adminGroupClaimName, String adminGroupClaimValue) {
+	public GroupsAdminAuthoritiesMapper(String adminGroup, String adminIss) {
 
 		this.adminGroup = adminGroup;
 		this.adminIssuer = adminIss;
-		this.adminGroupClaimName = adminGroupClaimName;
-		this.adminGroupClaimValue = adminGroupClaimValue;
 	}
 }
