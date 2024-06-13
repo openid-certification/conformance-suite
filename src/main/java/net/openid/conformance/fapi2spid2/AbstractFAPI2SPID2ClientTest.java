@@ -8,6 +8,7 @@ import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
+import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
@@ -335,6 +336,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-SP-ID2-4.3.1-2"));
 		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-SP-ID2-4.3.1-13"));
+		call(condition(AddCodeChallengeMethodToServerConfiguration.class).requirement("FAPI2-SP-ID2-5.3.1.2"));
 		if (fapiClientType == FAPIClientType.OIDC) {
 			call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
 
@@ -383,7 +385,6 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
-
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
