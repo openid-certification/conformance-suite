@@ -268,7 +268,7 @@ class WebSecurityOidcLoginConfig
 
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(List.of("*"));
-		configuration.setAllowedMethods(Arrays.asList("GET", "POST"));
+		configuration.setAllowedMethods(List.of("GET", "POST"));
 
 		AdditiveUrlBasedCorsConfigurationSource source = new AdditiveUrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**/check_session_iframe", configuration);
@@ -283,7 +283,10 @@ class WebSecurityOidcLoginConfig
 
 	private RequestMatcher publicRequestMatcher(String... patterns) {
 
-		return new AndRequestMatcher(new OrRequestMatcher(Arrays.stream(patterns).map(AntPathRequestMatcher::new).collect(Collectors.toList())), new PublicRequestMatcher());
+		return new AndRequestMatcher(
+				new OrRequestMatcher(
+					Arrays.stream(patterns).map(AntPathRequestMatcher::new).collect(Collectors.toList())),
+				new PublicRequestMatcher());
 	}
 
 }
