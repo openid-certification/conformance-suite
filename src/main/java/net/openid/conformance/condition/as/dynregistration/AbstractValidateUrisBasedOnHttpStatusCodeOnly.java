@@ -41,7 +41,7 @@ public abstract class AbstractValidateUrisBasedOnHttpStatusCodeOnly extends Abst
 				String uri = clientUris.get(lang);
 				try {
 					//Please note: restTemplate will follow redirects
-					ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, HttpEntity.EMPTY, String.class);
+					ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, null, String.class);
 					//rest template will throw an exception in case of 40x
 					clientUriStatusCodes.add(uri + " : " + response.getStatusCode());
 				} catch (RestClientException ex) {
