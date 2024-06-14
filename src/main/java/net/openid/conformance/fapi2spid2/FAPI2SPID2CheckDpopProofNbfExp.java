@@ -61,7 +61,7 @@ public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTest
 			callAndStopOnFailure(CreateDpopClaims.class);
 			callAndContinueOnFailure(SetDpopProofNonceForResourceEndpoint.class, Condition.ConditionResult.INFO);
 			call(exec().mapKey("resource_server_dpop_nonce", "authorization_server_dpop_nonce"));
-			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, Condition.ConditionResult.WARNING, "DPOP-8.1");
+			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "DPOP-8.1");
 			call(exec().unmapKey("resource_server_dpop_nonce"));
 			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
 			callAndStopOnFailure(SetDpopAccessTokenHash.class);
@@ -81,7 +81,7 @@ public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTest
 		callAndStopOnFailure(CreateDpopHeader.class);
 		callAndStopOnFailure(CreateDpopClaims.class);
 		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, Condition.ConditionResult.INFO);
-		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, Condition.ConditionResult.WARNING, "DPOP-8.1");
+		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "DPOP-8.1");
 		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
 		callAndStopOnFailure(SetDpopNbfToNow.class);
 		callAndStopOnFailure(SetDpopExpToFiveMinutesInFuture.class);

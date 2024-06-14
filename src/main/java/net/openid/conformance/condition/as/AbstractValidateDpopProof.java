@@ -11,8 +11,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
@@ -108,14 +106,11 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		if( index != -1) {
 			htuStr = htuStr.substring(0, index);
 		}
-		try {
-			URI expectedURI = new URI(expectedUrl);
-			URI htuURI = new URI(htuStr);
-			if(!expectedURI.equals(htuURI)) {
-				throw error("Unexpected 'htu' in DPoP Proof", args("expected", expectedUrl, "actual", OIDFJSON.getString(htu)));
-			}
-		} catch(URISyntaxException e) {
-			throw error("Invalid URI", e);
+		if(!expectedUrl.equals(htuStr)) {
+			// https://datatracker.ietf.org/doc/html/rfc9449#section-4.3
+			// Will not perform normalization comparison since
+			// Servers SHOULD try URL syntax normalization
+			throw error("Unexpected 'htu' in DPoP Proof", args("expected", expectedUrl, "actual", OIDFJSON.getString(htu)));
 		}
 
 		Long iat = env.getLong("incoming_dpop_proof", "claims.iat");

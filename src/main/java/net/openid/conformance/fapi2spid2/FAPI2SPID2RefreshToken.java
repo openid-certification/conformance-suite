@@ -176,8 +176,9 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 				}
 			}
 			else {
+				// call token endpoint without DPOP since this part tests response to ensure error was returned
+				// see comment at top of outer block
 				callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
-//				callSenderConstrainedTokenEndpointAndStopOnFailure();
 
 				callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class);
 				callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
