@@ -176,7 +176,6 @@ import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToke
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
-import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;

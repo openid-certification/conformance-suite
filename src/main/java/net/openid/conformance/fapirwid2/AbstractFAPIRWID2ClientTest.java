@@ -81,7 +81,6 @@ import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
-import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
