@@ -69,9 +69,10 @@ public class OIDCCBasicTestPlan implements TestPlan {
 					OIDCCAuthCodeReuseAfter30Seconds.class, // OP-OAuth-2nd-30s
 					// OP-OAuth-2nd-Revokes covered by oidcc-codereuse-30seconds
 					// OP-OAuth-2nd-30s is already covered
-					OIDCCEnsureRegisteredRedirectUri.class // OP-redirect_uri-NotReg
+					OIDCCEnsureRegisteredRedirectUri.class, // OP-redirect_uri-NotReg
 					// OP-ClientAuth-Basic-Dynamic covered by OIDCServerTest
 					// OP-ClientAuth-Basic-Static covered by OIDCServerTest
+					OIDCCEnsurePostRequestSucceeds.class
 				),
 				variantCodeBasic
 			),
