@@ -2,6 +2,7 @@ package net.openid.conformance.condition.as.dynregistration;
 
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -40,7 +41,8 @@ public abstract class AbstractValidateUrisBasedOnHttpStatusCodeOnly extends Abst
 				String uri = clientUris.get(lang);
 				try {
 					//Please note: restTemplate will follow redirects
-					ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.HEAD, null, String.class);
+					HttpEntity<String> body = new HttpEntity<>(" ");
+					ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, body, String.class);
 					//rest template will throw an exception in case of 40x
 					clientUriStatusCodes.add(uri + " : " + response.getStatusCode());
 				} catch (RestClientException ex) {
