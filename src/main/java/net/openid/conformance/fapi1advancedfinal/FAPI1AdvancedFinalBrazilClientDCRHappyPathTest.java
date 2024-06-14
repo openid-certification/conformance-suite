@@ -95,6 +95,21 @@ public class FAPI1AdvancedFinalBrazilClientDCRHappyPathTest extends AbstractFAPI
 	protected void onConfigurationCompleted() {
 		if (profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
+
+			//check if uri is valid
+			JsonObject client = new JsonObject();
+			client.addProperty("client_uri", "https://www.geru.com.br/");
+			env.putObject("client", client);
+			callAndContinueOnFailure(ValidateClientUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+			/*
+			//check if logo is image
+			callAndContinueOnFailure(ValidateClientLogoUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+			//check if uri is valid
+			callAndContinueOnFailure(ValidateClientPolicyUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+			//check if uri is valid
+			callAndContinueOnFailure(ValidateClientTosUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
+			*/
+
 		} else if (profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
 			callAndContinueOnFailure(FAPIBrazilOpinCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
 		}
