@@ -325,12 +325,15 @@ local_test:
   function find_deploy_url() {
     if [ "$CI_COMMIT_BRANCH" = "master" ]; then
       CI_ENVIRONMENT_URL=https://staging.$KUBE_INGRESS_BASE_DOMAIN
+      CI_ENVIRONMENT_MTLS_URL=https://mtls-staging.$KUBE_INGRESS_BASE_DOMAIN
       return
     elif [ "$CI_COMMIT_BRANCH" = "production" ]; then
       CI_ENVIRONMENT_URL=https://www.$KUBE_INGRESS_BASE_DOMAIN
+      CI_ENVIRONMENT_MTLS_URL=https://mtls-www.$KUBE_INGRESS_BASE_DOMAIN
       return
     elif [ "$CI_COMMIT_BRANCH" = "demo" ]; then
       CI_ENVIRONMENT_URL=https://demo.$KUBE_INGRESS_BASE_DOMAIN
+      CI_ENVIRONMENT_MTLS_URL=https://mtls-demo.$KUBE_INGRESS_BASE_DOMAIN
       return
     fi
     # not one of the fixed branches - find a review app to use
@@ -369,8 +372,10 @@ local_test:
         fi
       done
       echo "Found a free environment: $CI_ENVIRONMENT_URL"
+      CI_ENVIRONMENT_MTLS_URL=`echo $CI_ENVIRONMENT_URL | sed  's/review/mtls-review/'`
     else
       echo "This branch is already using environment: $CI_ENVIRONMENT_URL"
+      CI_ENVIRONMENT_MTLS_URL=`echo $CI_ENVIRONMENT_URL | sed  's/review/mtls-review/'`
     fi
   }
 
@@ -438,6 +443,7 @@ local_test:
       --set image.pullPolicy=IfNotPresent \
       --set application.track="$track" \
       --set service.url="$CI_ENVIRONMENT_URL" \
+      --set service.mtls="$CI_ENVIRONMENT_MTLS_URL" \
       --set replicaCount="$replicas" \
       $mongo_settings \
       --namespace="$KUBE_NAMESPACE" \
@@ -470,6 +476,7 @@ local_test:
 
     # This passes these two variables to the test jobs
     echo "CONFORMANCE_SERVER=$CI_ENVIRONMENT_URL" >> deploy.env
+    echo "CONFORMANCE_SERVER_MTLS=$CI_ENVIRONMENT_MTLS_URL" >> deploy.env
     # Note that this means the token is available to download from the pipeline artifacts - this isn't great, but equally the token doesn't give access to anything really important
     echo "CONFORMANCE_TOKEN=$CI_TOKEN" >> deploy.env
   }

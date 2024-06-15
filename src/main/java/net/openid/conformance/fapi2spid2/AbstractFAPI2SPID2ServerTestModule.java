@@ -280,8 +280,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	@Override
-	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
+		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
 		Boolean skip = env.getBoolean("config", "skip_test");

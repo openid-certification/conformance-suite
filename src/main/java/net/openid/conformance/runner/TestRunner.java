@@ -81,6 +81,9 @@ public class TestRunner implements DataUtils {
 	@Value("${fintechlabs.base_url:http://localhost:8080}")
 	private String baseUrl;
 
+	@Value("${fintechlabs.base_mtls_url:http://localhost:8080}")
+	private String baseMtlsUrl;
+
 	/**
 	 * Override url for external URLs
 	 *
@@ -337,12 +340,13 @@ public class TestRunner implements DataUtils {
 				support.removeRunningTest(id);
 				return new ResponseEntity<>(stringMap("error", e.getMessage()), HttpStatus.CONFLICT);
 			}
-			path = TestDispatcher.TEST_PATH + "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+			path = "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
 
 		} else {
-			path = TestDispatcher.TEST_PATH + id;
+			path = id;
 		}
-		String url = baseUrl + path;
+		String url = baseUrl + TestDispatcher.TEST_PATH + path;
+		String mtlsUrl = baseMtlsUrl + TestDispatcher.TEST_MTLS_PATH + path;
 		String externalOverrideUrlWithPath = Strings.isNullOrEmpty(externalUrlOverride) ? "" : externalUrlOverride + path;
 
 		String description = null;
@@ -372,6 +376,7 @@ public class TestRunner implements DataUtils {
 			args("msg", "Test instance " + id + " created",
 				"result", Condition.ConditionResult.INFO,
 				"baseUrl", url,
+				"baseMtlsUrl", mtlsUrl,
 				"config", config,
 				"alias", alias,
 				"planId", planId,
@@ -380,7 +385,7 @@ public class TestRunner implements DataUtils {
 				"variant", testVariant));
 
 		test.getTestExecutionManager().runInBackground(() -> {
-			test.configure(config, url, externalOverrideUrlWithPath);
+			test.configure(config, url, externalOverrideUrlWithPath, mtlsUrl);
 
 			if (test.getStatus() == TestModule.Status.CONFIGURED && test.autoStart()) {
 				test.start();

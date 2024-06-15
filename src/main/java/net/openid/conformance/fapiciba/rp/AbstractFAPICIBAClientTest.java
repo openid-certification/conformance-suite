@@ -110,7 +110,6 @@ import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
 import net.openid.conformance.condition.rs.RequireOpenIDScope;
-import net.openid.conformance.runner.TestDispatcher;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
@@ -252,8 +251,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
+		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
 		profile = getVariant(FAPI1FinalOPProfile.class);
@@ -408,7 +408,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	private void exposeMtlsPath(String name, String path) {
-		String baseUrlMtls = env.getString("base_url").replaceFirst(TestDispatcher.TEST_PATH, TestDispatcher.TEST_MTLS_PATH);
+		String baseUrlMtls = env.getString("base_mtls_url");
 		env.putString(name, baseUrlMtls + "/" + path);
 		exposeEnvString(name);
 	}

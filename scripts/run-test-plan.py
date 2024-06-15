@@ -226,6 +226,7 @@ async def run_test_plan(test_plan, config_file, output_dir, client_certs):
     with open(config_file) as f:
         json_config = f.read()
     json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
+    json_config = json_config.replace('{BASEURLMTLS}', os.environ['CONFORMANCE_SERVER_MTLS'])
 
     for k,v in client_certs.items():
         json_config = json_config.replace('{'+ k + '}', v)
@@ -336,7 +337,8 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                                          "--transportKey", "./model_bank/transport.key",
                                          "--signingKey", "./model_bank/signing.key",
                                          "--encryptionKey", "./model_bank/encryption.key",
-                                         "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"] ], cwd="./ksa-rp-client/")
+                                         "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"],
+                                         "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"]], cwd="./ksa-rp-client/")
                     else:
                         subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
                                          "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
@@ -345,6 +347,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                                          "--signingKey", "./model_bank/signing.key",
                                          "--encryptionKey", "./model_bank/encryption.key",
                                          "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"],
+                                         "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"],
                                          "--privateKeyAuth"], cwd="./ksa-rp-client/")
                 else:
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
@@ -1040,12 +1043,24 @@ async def main():
             # make sure it ends in a / as the client tests assume that
             api_url_base += '/'
             os.environ['CONFORMANCE_SERVER'] = api_url_base
+
+        if 'CONFORMANCE_SERVER_MTLS' in os.environ:
+            mtls_url_base = os.environ['CONFORMANCE_SERVER_MTLS']
+            if mtls_url_base == "":
+                mtls_url_base = api_url_base
+            if not mtls_url_base.endswith('/'):
+                # make sure it ends in a / as the client tests assume that
+                mtls_url_base += '/'
+        else:
+            mtls_url_base = api_url_base
+        os.environ['CONFORMANCE_SERVER_MTLS'] = mtls_url_base
     else:
         # local development settings
         api_url_base = 'https://localhost.emobix.co.uk:8443/'
         dev_mode = True
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
+        os.environ["CONFORMANCE_SERVER_MTLS"] = 'https://localhost.emobix.co.uk:8444/'
 
     client_certs = {}
     key_directory = os.path.dirname(os.path.abspath(__file__)) + '/certs-keys/'
