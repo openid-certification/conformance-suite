@@ -6,21 +6,22 @@
 #
 # It is run in our gitlab CI in the 'compare' job to compare MR against the latest master results.
 
-import zipfile
-import tempfile
-import os
-import subprocess
 import fnmatch
 import json
+import os
+import subprocess
 import sys
+import tempfile
+import zipfile
 
-def load_results(artifacts_zip):
+
+def load_results(artifacts_zip, is_master):
     print(artifacts_zip)
     if os.path.isdir(artifacts_zip):
         # gitlab CI gives us all the downloaded zipfiles
         owd = os.getcwd()
         os.chdir(artifacts_zip)
-        results = read_zipped_results()
+        results = read_zipped_results(is_master)
         os.chdir(owd)
         return results
 
@@ -30,11 +31,11 @@ def load_results(artifacts_zip):
         os.chdir(tmp_dir_name)
         with zipfile.ZipFile(artifacts_zip, "r") as zip_ref:
             zip_ref.extractall(".")
-        results = read_zipped_results()
+        results = read_zipped_results(is_master)
         os.chdir("..")
     return results
 
-def read_zipped_results():
+def read_zipped_results(is_master):
     results = {}
     for results_zip_filename in sorted(os.listdir(".")):
         if not results_zip_filename.endswith(".zip"):
@@ -59,6 +60,25 @@ def read_zipped_results():
                 if desc == None:
                     desc = "no-description"
                 frozen_variant = frozenset(sorted(test_info['variant'].items()))
+                if results.get(plan_and_variant + ":" + desc, {}).get(test_info['testName'], {}).get(
+                    frozen_variant, None) != None:
+                    # a list of existing problems that maybe we should fix sometime - don't add to this list, you
+                    # can just create an extra test configuration file that has a different description so that
+                    # this script can differentiate the runs
+                    # If you add to the list, we may start getting random diffs in the CI compare jobs
+                    ignore = [
+                        "fapi-ciba-id1-brazil-discovery-end-point-verification",
+                        "fapi2-security-profile-id2-discovery-end-point-verification",
+                        "fapi2-security-profile-id2-client-test-happy-path",
+                        "fapi2-security-profile-id2-ensure-request-object-with-multiple-aud-succeeds"
+                    ]
+                    if test_info['testName'] not in ignore:
+                        print("More than one result for:\n{}\n{}\n{}\n".
+                              format(plan_and_variant + ":" + desc, test_info['testName'], frozen_variant))
+                        if not is_master:
+                            # only fail if the new generated results from the new code are bad
+                            sys.exit(1)
+
                 results.setdefault(plan_and_variant + ":" + desc, {}).setdefault(test_info['testName'], {})[
                     frozen_variant] = test_result
     return results
@@ -169,8 +189,8 @@ if len(sys.argv) < 3:
 master_artifacts_zip = sys.argv[1]
 new_artifacts_zip = sys.argv[2]
 
-master_results = load_results(master_artifacts_zip)
-new_results = load_results(new_artifacts_zip)
+master_results = load_results(master_artifacts_zip, True)
+new_results = load_results(new_artifacts_zip, False)
 
 differences=False
 for test_plan,modules in sorted(new_results.items()):
