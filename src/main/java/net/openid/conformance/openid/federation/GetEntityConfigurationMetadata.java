@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -58,12 +59,14 @@ public class GetEntityConfigurationMetadata extends AbstractCondition {
 
 			if (!Strings.isNullOrEmpty(jwtString)) {
 				try {
-					JWT jwt = JWTUtil.parseJWT(jwtString);
+					SignedJWT jwt = SignedJWT.parse(jwtString);
 					JsonObject entityConfig = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
 					logSuccess("Successfully parsed entity configuration", entityConfig);
 					env.putObject("server", entityConfig);
 					return env;
-				} catch (ParseException | JsonSyntaxException e) {
+				} catch (ParseException e) {
+					throw error("Failed to parse entity configuration as a signed JWT", e, args("jwt", jwtString));
+				} catch (JsonSyntaxException e) {
 					throw error(e, args("json", jwtString));
 				}
 			} else {
@@ -71,7 +74,7 @@ public class GetEntityConfigurationMetadata extends AbstractCondition {
 			}
 
 		} else {
-			throw error("Couldn't find or construct a discovery URL");
+			throw error("Couldn't find or construct an entity configuration metadata URL");
 		}
 
 	}
