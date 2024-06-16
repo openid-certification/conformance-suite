@@ -339,10 +339,11 @@ local_test:
     # not one of the fixed branches - find a review app to use
     apk add jq
     url="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments?states=available&per_page=100&search=review/"
-    curl -o env-list.js --silent --show-error --header "PRIVATE-TOKEN: ${GITLAB_API_KEY_OIDF_BOT}" "$url"
-    res=$?
+    res=0
+    curl -o env-list.js --silent --show-error --fail-with-body --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "$url" || res=$?
     if [ $res -ne 0 ]; then
       echo "curl of $url failed: $res"
+      cat env-list.js
       exit 1
     fi
     echo "Active review apps:"
