@@ -37,12 +37,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
-	testName = "openid-federation-discovery-endpoint-verification",
-	displayName = "OpenID Federation: Discovery Endpoint Verification",
-	summary = "This test ensures that the server's configurations contains values required by the specifications",
+	testName = "openid-federation-entity-configuration-endpoint-verification",
+	displayName = "OpenID Federation: Entity Configuration Endpoint Verification",
+	summary = "This test ensures that the server's entity configuration metadata is according to the specifications",
 	profile = "OIDFED",
 	configurationFields = {
-		"server.discoveryUrl",
+		"server.entityConfigurationUrl",
 	}
 )
 @VariantParameters({
@@ -50,19 +50,19 @@ import net.openid.conformance.variant.VariantParameters;
 	ClientRegistration.class
 })
 @VariantNotApplicable(parameter = ServerMetadata.class, values = { "static"} )
-public class OpenIDFederationDiscoveryEndpointVerification extends AbstractTestModule {
+public class OpenIDFederationEntityConfigurationEndpointVerification extends AbstractTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
-
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		// Includes check-http-response assertion (OIDC test)
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
-		callAndContinueOnFailure(CheckDiscoveryEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
+		callAndStopOnFailure(GetEntityConfigurationMetadata.class);
+		env.mapKey("discovery_endpoint_response", "entity_configuration_endpoint_response");
+		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+		env.unmapKey("discovery_endpoint_response");
+		callAndContinueOnFailure(CheckEntityConfigurationEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -70,17 +70,13 @@ public class OpenIDFederationDiscoveryEndpointVerification extends AbstractTestM
 
 	@Override
 	public void start() {
-
 		setStatus(Status.RUNNING);
-
 		performEndpointVerification();
-
 		fireTestFinished();
 	}
 
 	protected void performEndpointVerification() {
-
-
+		/*
 		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
 			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupportedDynamic.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-15.2");
 		} else {
@@ -160,6 +156,7 @@ public class OpenIDFederationDiscoveryEndpointVerification extends AbstractTestM
 		// I'm not convinced the standards actually says every endpoint (including ones not defined by OIDC) must be https,
 		// but equally it seems reasonable.
 		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class, Condition.ConditionResult.FAILURE);
+		 */
 	}
 
 }
