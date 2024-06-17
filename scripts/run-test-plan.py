@@ -353,10 +353,10 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                     os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
                     os.environ['ACCOUNTS'] = 'test-mtls/a/' + alias + '/open-banking/v1.1/accounts'
                     os.environ['ACCOUNT_REQUEST'] = 'test/a/' + alias + '/open-banking/v1.1/account-requests'
-                    os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/consents/v1/consents'
-                    os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/payments/v1/consents'
-                    os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/accounts/v1/accounts'
-                    os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/payments/v1/pix/payments'
+                    os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/open-banking/consents/v3/consents'
+                    os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/open-banking/payments/v4/consents'
+                    os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/open-banking/accounts/v2/accounts'
+                    os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/open-banking/payments/v4/pix/payments'
 
                     os.environ['FAPI_PROFILE'] = profile
                     if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
