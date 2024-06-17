@@ -18,11 +18,6 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	public static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
 	public static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
 
-	// used for the OAuth layer's issuer
-	@Value("${oauth.introspection_url}")
-	@SuppressWarnings("unused")
-	private String introspectionUrl;
-
 	// this gets set by the test runners and used later on
 	private ThreadLocal<Authentication> localAuthentication = new ThreadLocal<>();
 
