@@ -4,13 +4,13 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckEntityConfigurationEndpointReturnedCorrectContentType extends AbstractCheckEndpointContentTypeReturned {
+public class CheckEntityStatementEndpointReturnedCorrectContentType extends AbstractCheckEndpointContentTypeReturned {
 
 	@Override
-	@PreEnvironment(required = "entity_configuration_endpoint_response")
+	@PreEnvironment(required = "entity_statement_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		env = checkContentType(env, "entity_configuration_endpoint_response", "headers.", "application/entity-statement+jwt");
+		env = checkContentType(env, "entity_statement_endpoint_response", "headers.", "application/entity-statement+jwt");
 
 		return env;
 	}

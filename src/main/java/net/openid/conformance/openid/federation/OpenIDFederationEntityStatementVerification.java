@@ -16,11 +16,9 @@ import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedC
 import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
-import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupportedDynamic;
@@ -42,8 +40,7 @@ import net.openid.conformance.variant.VariantParameters;
 	summary = "This test ensures that the server's entity configuration metadata is according to the specifications",
 	profile = "OIDFED",
 	configurationFields = {
-		"server.entityConfigurationUrl",
-		"server.entityConfigurationIssuer",
+		"server.entityStatementUrl",
 	}
 )
 @VariantParameters({
@@ -51,7 +48,7 @@ import net.openid.conformance.variant.VariantParameters;
 	ClientRegistration.class
 })
 @VariantNotApplicable(parameter = ServerMetadata.class, values = { "static"} )
-public class OpenIDFederationEntityConfigurationEndpointVerification extends AbstractTestModule {
+public class OpenIDFederationEntityStatementVerification extends AbstractTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -59,11 +56,13 @@ public class OpenIDFederationEntityConfigurationEndpointVerification extends Abs
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		callAndStopOnFailure(GetEntityConfigurationMetadata.class);
-		env.mapKey("discovery_endpoint_response", "entity_configuration_endpoint_response");
+		callAndStopOnFailure(GetEntityStatement.class);
+
+		env.mapKey("discovery_endpoint_response", "entity_statement_endpoint_response");
 		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		env.unmapKey("discovery_endpoint_response");
-		callAndContinueOnFailure(CheckEntityConfigurationEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+
+		callAndContinueOnFailure(CheckEntityStatementEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -77,6 +76,7 @@ public class OpenIDFederationEntityConfigurationEndpointVerification extends Abs
 	}
 
 	protected void performEndpointVerification() {
+
 
 	}
 
