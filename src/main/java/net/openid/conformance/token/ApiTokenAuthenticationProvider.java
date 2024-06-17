@@ -14,11 +14,13 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import java.io.Serial;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,7 +46,8 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 			return null;
 		}
 
-		Set<GrantedAuthority> authorities = Set.of(new SimpleGrantedAuthority("ROLE_USER"));
+		Set<GrantedAuthority> authorities = new HashSet<>();
+		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 		@SuppressWarnings("unchecked")
 		OidcUser oidcUser = createOidcUserFromApiToken(tokenInfoMap, authorities);
 		return new ApiTokenAuthenticationToken(token, oidcUser, authorities);
@@ -68,8 +71,9 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 		JsonPrimitive expires = tokenInfo.getAsJsonPrimitive("expires");
 		Instant expiresAt = expires != null ? Instant.ofEpochMilli(OIDFJSON.getLong(tokenInfo.getAsJsonPrimitive("expires"))) : null;
 		Map<String, Object> idTokenClaims = Map.of("iss", iss, "sub", sub);
-		OidcUser oidcUser = new DefaultOidcUser(authorities, new OidcIdToken("dummy", instantAt, expiresAt, idTokenClaims), oidcUserInfo);
-
+		OidcIdToken idToken = new OidcIdToken("dummy", instantAt, expiresAt, idTokenClaims);
+		OidcUser oidcUser = new DefaultOidcUser(authorities, idToken, oidcUserInfo);
+		authorities.add(new OidcUserAuthority(idToken, oidcUserInfo));
 		return oidcUser;
 	}
 
