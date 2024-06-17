@@ -3,6 +3,7 @@ package net.openid.conformance.security;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.servlet.Filter;
 import jakarta.ws.rs.HttpMethod;
+import net.openid.conformance.token.ApiTokenAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -30,7 +31,6 @@ import java.util.List;
 
 @Configuration
 @Order(1)
-@SuppressWarnings({"deprecation"})
 public class WebSecurityResourceServerConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSecurityResourceServerConfig.class);
@@ -49,9 +49,8 @@ public class WebSecurityResourceServerConfig {
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
-	//	@Override
 	@Bean
-	protected SecurityFilterChain filterChainResourceServer(HttpSecurity http) throws Exception {
+	protected SecurityFilterChain filterChainResourceServer(HttpSecurity http, ApiTokenAuthenticationProvider apiTokenAuthenticationProvider) throws Exception {
 
 		http.csrf(AbstractHttpConfigurer::disable);
 		http.securityMatcher(request -> {
@@ -74,7 +73,9 @@ public class WebSecurityResourceServerConfig {
 		});
 
 		http.oauth2ResourceServer(oauthResourceServer -> {
-			oauthResourceServer.jwt(Customizer.withDefaults());
+			oauthResourceServer.opaqueToken(opaqueTokenConfigurer -> {
+				opaqueTokenConfigurer.authenticationManager(new ProviderManager(List.of(apiTokenAuthenticationProvider)));
+			});
 		});
 
 		http.exceptionHandling(exceptions -> {
@@ -115,30 +116,12 @@ public class WebSecurityResourceServerConfig {
 	}
 
 	private RequestMatcher getApiMatcher() {
-		return new OrRequestMatcher(
-			new AntPathRequestMatcher("/api/server"),
-			new AntPathRequestMatcher("/api/currentuser"),
-			new AntPathRequestMatcher("/api/runner/**"),
-			new AntPathRequestMatcher("/api/log/**"),
-			new AntPathRequestMatcher("/api/info/**"),
-			new AntPathRequestMatcher("/api/plan/**"),
-			new AntPathRequestMatcher("/api/token/**"),
-			new AntPathRequestMatcher("/api/lastconfig")
-		);
+		return new OrRequestMatcher(new AntPathRequestMatcher("/api/server"), new AntPathRequestMatcher("/api/currentuser"), new AntPathRequestMatcher("/api/runner/**"), new AntPathRequestMatcher("/api/log/**"), new AntPathRequestMatcher("/api/info/**"), new AntPathRequestMatcher("/api/plan/**"), new AntPathRequestMatcher("/api/token/**"), new AntPathRequestMatcher("/api/lastconfig"));
 	}
 
 	private RequestMatcher getPublicMatcher() {
 		// Matches following paths IIF the ?public query parameter is present
-		return	new AndRequestMatcher(
-			new OrRequestMatcher(
-				new AntPathRequestMatcher("/api/info/?*", HttpMethod.GET),
-				new AntPathRequestMatcher("/api/log", HttpMethod.GET),
-				new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET),
-				new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET),
-				new AntPathRequestMatcher("/api/plan", HttpMethod.GET),
-				new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET),
-				new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET)),
-			new PublicRequestMatcher());
+		return new AndRequestMatcher(new OrRequestMatcher(new AntPathRequestMatcher("/api/info/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/log", HttpMethod.GET), new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/plan", HttpMethod.GET), new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET)), new PublicRequestMatcher());
 	}
 
 	@Bean
