@@ -37,14 +37,6 @@ public class WebSecurityResourceServerConfig {
 	@Value("${fintechlabs.devmode:false}")
 	private boolean devmode;
 
-	// Config for the OAuth introspection filters
-	@Value("${oauth.introspection_url}")
-	private String introspectionUrl;
-	@Value("${oauth.resource_id}")
-	private String resourceId;
-	@Value("${oauth.resource_secret}")
-	private String resourceSecret;
-
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
