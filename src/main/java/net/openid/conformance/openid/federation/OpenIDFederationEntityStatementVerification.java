@@ -76,8 +76,8 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 	}
 
 	protected void performEndpointVerification() {
-
-
+		callAndContinueOnFailure(CheckEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?"); // Spec doesn't explicitly say so?
+		callAndContinueOnFailure(CheckEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?"); // Spec doesn't explicitly say so?
 	}
 
 	protected void performEndpointVerification2() {
