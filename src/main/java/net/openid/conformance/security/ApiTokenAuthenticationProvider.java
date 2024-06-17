@@ -49,11 +49,11 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 
 		Set<GrantedAuthority> authorities = new HashSet<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-		@SuppressWarnings("unchecked") OidcUser oidcUser = createOidcUserFromApiToken(tokenInfoMap, authorities);
-		return new ApiTokenAuthenticationToken(token, oidcUser, authorities);
+		@SuppressWarnings("unchecked") DefaultOidcUser oidcUser = createOidcUserFromApiToken(tokenInfoMap, authorities);
+		return new ApiTokenAuthenticationToken(oidcUser, authorities);
 	}
 
-	private OidcUser createOidcUserFromApiToken(Map<String, Object> tokenInfoMap, Set<GrantedAuthority> authorities) {
+	private DefaultOidcUser createOidcUserFromApiToken(Map<String, Object> tokenInfoMap, Set<GrantedAuthority> authorities) {
 
 		JsonObject tokenInfo = (JsonObject) new Gson().toJsonTree(tokenInfoMap);
 		var oidcUserInfoBuilder = OidcUserInfo.builder();
@@ -79,7 +79,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 			oidcUserInfo = new OidcUserInfo(idTokenClaims);
 		}
 
-		OidcUser oidcUser = new DefaultOidcUser(authorities, idToken, oidcUserInfo);
+		DefaultOidcUser oidcUser = new DefaultOidcUser(authorities, idToken, oidcUserInfo);
 		authorities.add(new OidcUserAuthority(idToken, oidcUserInfo));
 		return oidcUser;
 	}
@@ -94,13 +94,10 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 		@Serial
 		private static final long serialVersionUID = 1L;
 
-		private final String token;
+		private final DefaultOidcUser oidcUser;
 
-		private final OidcUser oidcUser;
-
-		public ApiTokenAuthenticationToken(String token, OidcUser oidcUser, Set<GrantedAuthority> authorities) {
+		public ApiTokenAuthenticationToken(DefaultOidcUser oidcUser, Set<GrantedAuthority> authorities) {
 			super(oidcUser,authorities, "dummy");
-			this.token = token;
 			this.oidcUser = oidcUser;
 		}
 
