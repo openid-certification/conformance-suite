@@ -1,7 +1,6 @@
 package net.openid.conformance.security;
 
 import com.google.common.collect.ImmutableMap;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
