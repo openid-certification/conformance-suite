@@ -48,8 +48,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 
 		Set<GrantedAuthority> authorities = new HashSet<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-		@SuppressWarnings("unchecked")
-		OidcUser oidcUser = createOidcUserFromApiToken(tokenInfoMap, authorities);
+		@SuppressWarnings("unchecked") OidcUser oidcUser = createOidcUserFromApiToken(tokenInfoMap, authorities);
 		return new ApiTokenAuthenticationToken(token, oidcUser, authorities);
 	}
 
@@ -57,21 +56,28 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 
 		JsonObject tokenInfo = (JsonObject) new Gson().toJsonTree(tokenInfoMap);
 		var oidcUserInfoBuilder = OidcUserInfo.builder();
-		JsonObject userInfoObject = tokenInfo.getAsJsonObject("info");
-		for (var entry : userInfoObject.entrySet()) {
-			oidcUserInfoBuilder.claim(entry.getKey(), entry.getValue());
-		}
-		OidcUserInfo oidcUserInfo = oidcUserInfoBuilder.build();
 
 		JsonObject ownerClaims = tokenInfo.getAsJsonObject("owner");
 		String iss = OIDFJSON.getString(ownerClaims.get("iss"));
 		String sub = OIDFJSON.getString(ownerClaims.get("sub"));
-
+		Map<String, Object> idTokenClaims = Map.of("iss", iss, "sub", sub);
 		Instant instantAt = Instant.now();
 		JsonPrimitive expires = tokenInfo.getAsJsonPrimitive("expires");
 		Instant expiresAt = expires != null ? Instant.ofEpochMilli(OIDFJSON.getLong(tokenInfo.getAsJsonPrimitive("expires"))) : null;
-		Map<String, Object> idTokenClaims = Map.of("iss", iss, "sub", sub);
 		OidcIdToken idToken = new OidcIdToken("dummy", instantAt, expiresAt, idTokenClaims);
+
+		OidcUserInfo oidcUserInfo;
+		JsonObject userInfoObject = tokenInfo.getAsJsonObject("info");
+		if (userInfoObject != null && !userInfoObject.isEmpty()) {
+			for (var entry : userInfoObject.entrySet()) {
+				oidcUserInfoBuilder.claim(entry.getKey(), entry.getValue());
+			}
+			oidcUserInfo = oidcUserInfoBuilder.build();
+		} else {
+			// in the CI environment, we don't have an IDToken, so we fallback to the owner claims
+			oidcUserInfo = new OidcUserInfo(idTokenClaims);
+		}
+
 		OidcUser oidcUser = new DefaultOidcUser(authorities, idToken, oidcUserInfo);
 		authorities.add(new OidcUserAuthority(idToken, oidcUserInfo));
 		return oidcUser;
