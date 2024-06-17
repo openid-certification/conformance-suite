@@ -3,7 +3,6 @@ package net.openid.conformance.security;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.servlet.Filter;
 import jakarta.ws.rs.HttpMethod;
-import net.openid.conformance.token.ApiTokenAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

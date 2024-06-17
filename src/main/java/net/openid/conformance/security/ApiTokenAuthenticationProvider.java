@@ -1,15 +1,16 @@
-package net.openid.conformance.token;
+package net.openid.conformance.security;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import net.openid.conformance.token.TokenService;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -88,7 +89,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 		return BearerTokenAuthenticationToken.class.isAssignableFrom(authentication);
 	}
 
-	public static class ApiTokenAuthenticationToken extends AbstractAuthenticationToken {
+	public static class ApiTokenAuthenticationToken extends OAuth2AuthenticationToken {
 
 		@Serial
 		private static final long serialVersionUID = 1L;
@@ -98,19 +99,9 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 		private final OidcUser oidcUser;
 
 		public ApiTokenAuthenticationToken(String token, OidcUser oidcUser, Set<GrantedAuthority> authorities) {
-			super(authorities);
+			super(oidcUser,authorities, "dummy");
 			this.token = token;
 			this.oidcUser = oidcUser;
-		}
-
-		@Override
-		public Object getPrincipal() {
-			return oidcUser;
-		}
-
-		@Override
-		public Object getCredentials() {
-			return token;
 		}
 
 		@Override
