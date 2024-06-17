@@ -37,7 +37,25 @@ public class GetEntityConfigurationMetadata extends AbstractCondition {
 			throw error("Couldn't find a configuration");
 		}
 
+		String staticIssuer = env.getString("config", "server.issuer");
+
+		if (!Strings.isNullOrEmpty(staticIssuer)) {
+			throw error("Test set to use dynamic server configuration but test configuration contains static server configuration", args("issuer", staticIssuer));
+		}
+
 		String entityConfigurationUrl = env.getString("config", "server.entityConfigurationUrl");
+
+		if (Strings.isNullOrEmpty(entityConfigurationUrl)) {
+
+			String iss = env.getString("config", "server.entityConfigurationIssuer");
+			entityConfigurationUrl = iss + "/.well-known/openid-federation";
+
+			if (Strings.isNullOrEmpty(iss)) {
+				throw error("Couldn't find entityConfigurationUrl or entityConfigurationIssuer field for discovery purposes");
+			}
+
+		}
+
 		if (!Strings.isNullOrEmpty(entityConfigurationUrl)) {
 
 			String jwtString;

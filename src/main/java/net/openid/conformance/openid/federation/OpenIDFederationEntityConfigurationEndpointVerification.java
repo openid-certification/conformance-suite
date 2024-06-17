@@ -76,8 +76,10 @@ public class OpenIDFederationEntityConfigurationEndpointVerification extends Abs
 	}
 
 	protected void performEndpointVerification() {
-		
-		/*
+
+	}
+
+	protected void performEndpointVerification2() {
 		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
 			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupportedDynamic.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-15.2");
 		} else {
@@ -157,7 +159,6 @@ public class OpenIDFederationEntityConfigurationEndpointVerification extends Abs
 		// I'm not convinced the standards actually says every endpoint (including ones not defined by OIDC) must be https,
 		// but equally it seems reasonable.
 		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class, Condition.ConditionResult.FAILURE);
-		 */
 	}
 
 }
