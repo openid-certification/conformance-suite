@@ -43,6 +43,7 @@ import net.openid.conformance.variant.VariantParameters;
 	profile = "OIDFED",
 	configurationFields = {
 		"server.entityConfigurationUrl",
+		"server.entityConfigurationIssuer",
 	}
 )
 @VariantParameters({
