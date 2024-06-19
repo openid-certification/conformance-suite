@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -124,12 +125,17 @@ public class TestDispatcher implements DataUtils {
 			requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
 			requestParts.addProperty("request_url", req.getRequestURL().toString());
 
-			if (contentType != null && contentType.equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED) && body == null) {
-				// workaround for changed request body parsing in Spring Boot 3, sometimes the request body for a FORM POST was empty,
-				// but requestParams properly captured the form parameter (including query parameter) values.
-				// This ensures that the body is properly populated
-				requestParams.keySet().removeIf(queryParams::containsKey); // remove query parameters
-				body = String.join("&", requestParams.entrySet().stream().map(nameValue -> nameValue.getKey() + "=" + nameValue.getValue()).toList());
+			if (contentType != null
+				&& body == null
+				&& contentType.equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED)
+				&& !CollectionUtils.isEmpty(requestParams)) {
+				// workaround for changes in request body parsing when migrating from Spring Boot V2 to Spring Boot V3.
+				// Sometimes the request body for a FORM POST was empty, but `requestParams` properly captured the form parameter and query parameter values.
+				// The following ensures that the body is properly populated.
+				requestParams.keySet().removeIf(queryParams::containsKey); // remove query parameters as they are already captured in `queryParams`
+				body = String.join("&", requestParams.entrySet().stream()
+					.map(nameValue -> nameValue.getKey() + "=" + nameValue.getValue())
+					.toList());
 			}
 
 			if (body != null) {
