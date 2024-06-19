@@ -72,7 +72,8 @@ public class TestDispatcher implements DataUtils {
 		HttpSession session,
 		@RequestHeader MultiValueMap<String, String> headers,
 		@RequestBody(required = false) String body,
-		@RequestHeader(name = "Content-type", required = false) MediaType contentType) {
+		@RequestHeader(name = "Content-type", required = false) MediaType contentType,
+		@RequestParam(required=false) Map<String,String> requestParams) {
 
 		/*
 		 * We have to parse the path by hand so that we can match the substrings that apply
@@ -118,9 +119,18 @@ public class TestDispatcher implements DataUtils {
 			// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
 			JsonObject requestParts = new JsonObject();
 			requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
-			requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(req.getQueryString()), false));
+			MultiValueMap<String, String> queryParams = convertQueryStringParamsToMap(req.getQueryString());
+			requestParts.add("query_string_params", mapToJsonObject(queryParams, false));
 			requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
 			requestParts.addProperty("request_url", req.getRequestURL().toString());
+
+			if (contentType != null && contentType.equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED) && body == null) {
+				// workaround for changed request body parsing in Spring Boot 3, sometimes the request body for a FORM POST was empty,
+				// but requestParams properly captured the form parameter (including query parameter) values.
+				// This ensures that the body is properly populated
+				requestParams.keySet().removeIf(queryParams::containsKey); // remove query parameters
+				body = String.join("&", requestParams.entrySet().stream().map(nameValue -> nameValue.getKey() + "=" + nameValue.getValue()).toList());
+			}
 
 			if (body != null) {
 				requestParts.addProperty("body", body);
