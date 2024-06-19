@@ -35,6 +35,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		FAPI2SPID2EnsureMismatchedDpopJktFails.class,
 		FAPI2SPID2EnsureTokenEndpointFailsWithMismatchedDpopProofJkt.class,
 		FAPI2SPID2EnsureTokenEndpointFailsWithMismatchedDpopJkt.class,
+		FAPI2SPID2EnsureDpopProofAtParEndpointBindingSuccess.class,
 		FAPI2SPID2EnsureDpopAuthCodeBindingSuccess.class,
 
 		// Possible failure case
