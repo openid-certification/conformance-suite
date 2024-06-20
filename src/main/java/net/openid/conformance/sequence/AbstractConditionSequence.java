@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
 
-	private static Function<TestExecutionUnit, Class<? extends Condition>> actionToConditionClass = action -> {
+	protected static Function<TestExecutionUnit, Class<? extends Condition>> actionToConditionClass = action -> {
 		if (action instanceof ConditionCallBuilder) {
 			return ((ConditionCallBuilder) action).getConditionClass();
 		} else if (action instanceof Condition) {
