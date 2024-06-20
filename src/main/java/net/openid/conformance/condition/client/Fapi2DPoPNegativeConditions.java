@@ -19,6 +19,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.common.AbstractInvalidateJwsSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -420,12 +421,7 @@ public class Fapi2DPoPNegativeConditions {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(RenameDPoPProof.class);
-			callAndStopOnFailure(CreateDpopHeader.class);
-			callAndStopOnFailure(CreateDpopClaims.class);
-			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
-			callAndStopOnFailure(SetDpopAccessTokenHash.class);
-			callAndStopOnFailure(SignDpopProof.class);
-			callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
+			call(CreateDpopProofSteps.createResourceEndpointDpopSteps());
 		}
 	}
 
