@@ -391,7 +391,7 @@ public class Fapi2DPoPNegativeConditions {
 		}
 
 	}
-	public static class AddDpopHeaderForResourceEndpointRequest extends AbstractCondition {
+	public static class AddMultipleDpopHeaderForResourceEndpointRequest extends AbstractCondition {
 
 		@Override
 		@PreEnvironment(required = "resource_endpoint_request_headers", strings = {"dpop_proof", "dpop_proof2"})
@@ -421,7 +421,7 @@ public class Fapi2DPoPNegativeConditions {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(RenameDPoPProof.class);
-			call(CreateDpopProofSteps.createResourceEndpointDpopSteps());
+			call(CreateDpopProofSteps.createResourceEndpointDpopSteps().replace(AddDpopHeaderForResourceEndpointRequest.class, condition(AddMultipleDpopHeaderForResourceEndpointRequest.class)));
 		}
 	}
 
