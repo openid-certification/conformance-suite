@@ -31,6 +31,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		// DPoP tests
 		FAPI2SPID2CheckDpopProofNbfExp.class,
 		FAPI2SPID2EnsureDpopProofWithIat10SecondsBeforeSucceeds.class,
+		FAPI2SPID2EnsureDpopProofWithIat10SecondsAfterSucceeds.class,
 
 		// DPop Authorization Code Binding negative tests
 		FAPI2SPID2EnsureMismatchedDpopJktFails.class,
