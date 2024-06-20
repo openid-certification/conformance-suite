@@ -2,8 +2,6 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAudAsPaymentConsentUriToRequestObject;
-import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
@@ -15,8 +13,6 @@ import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CreateDpopClaims;
-import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
@@ -45,11 +41,9 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateResourceRespons
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
-import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForConsentEndpoint;
-import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
+import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
 import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
-import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateOrganizationJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims;
@@ -95,11 +89,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 		if (dpop) {
 			callAndStopOnFailure(GenerateDpopKey.class);
-			callAndStopOnFailure(CreateDpopHeader.class);
-			callAndStopOnFailure(CreateDpopClaims.class);
-			callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
-			callAndStopOnFailure(SignDpopProof.class);
-			callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+			call(CreateDpopProofSteps.createTokenEndpointDpopSteps());
 		}
 
 		/* get access token */
@@ -164,12 +154,8 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(ValidateOrganizationJWKsPrivatePart.class);
 
 			if (dpop) {
-				callAndStopOnFailure(CreateDpopHeader.class);
-				callAndStopOnFailure(CreateDpopClaims.class);
-				callAndStopOnFailure(SetDpopHtmHtuForConsentEndpoint.class);
-				callAndStopOnFailure(SetDpopAccessTokenHash.class);
-				callAndStopOnFailure(SignDpopProof.class);
-				callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
+				call(CreateDpopProofSteps.createResourceEndpointDpopSteps()
+					.replace(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopHtmHtuForConsentEndpoint.class)));
 			}
 
 			callAndStopOnFailure(FAPIBrazilSignPaymentConsentRequest.class);
@@ -221,12 +207,8 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
 
 			if (dpop) {
-				callAndStopOnFailure(CreateDpopHeader.class);
-				callAndStopOnFailure(CreateDpopClaims.class);
-				callAndStopOnFailure(SetDpopHtmHtuForConsentEndpoint.class);
-				callAndStopOnFailure(SetDpopAccessTokenHash.class);
-				callAndStopOnFailure(SignDpopProof.class);
-				callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
+				call(CreateDpopProofSteps.createResourceEndpointDpopSteps()
+					.replace(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopHtmHtuForConsentEndpoint.class)));
 			}
 
 			callAndStopOnFailure(CallConsentEndpointWithBearerToken.class);
