@@ -108,8 +108,7 @@ public class CallPAREndpoint extends AbstractCondition {
 				ResponseEntity <String> response = restTemplate
 					.exchange(parEndpointUri, httpMethod, request, String.class);
 
-				JsonObject fullResponse = convertJsonResponseForEnvironment("pushed authorization request", response, true);
-				env.putObject(RESPONSE_KEY, fullResponse);
+				addFullResponse(env, response);
 			} catch (RestClientResponseException e) {
 				return handleRestClientResponseException(env, e);
 			} catch (RestClientException e) {
@@ -132,6 +131,11 @@ public class CallPAREndpoint extends AbstractCondition {
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException | KeyStoreException | IOException | UnrecoverableKeyException e) {
 			throw error("Error creating HTTP Client", e);
 		}
+	}
+
+	protected void addFullResponse(Environment env, ResponseEntity<String> response) {
+		JsonObject fullResponse = convertJsonResponseForEnvironment("pushed authorization request", response, true);
+		env.putObject(RESPONSE_KEY, fullResponse);
 	}
 
 	protected Environment handleRestClientResponseException(Environment env, RestClientResponseException e) {
