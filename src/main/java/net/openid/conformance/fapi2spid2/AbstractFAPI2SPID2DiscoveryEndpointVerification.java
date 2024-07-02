@@ -11,6 +11,7 @@ import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJso
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsCodeChallengeMethodS256;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported;
@@ -113,6 +114,8 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 		);
 
 		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+
+		callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.2-5");
 
 		call(sequence(variantAuthChecks));
 	}
