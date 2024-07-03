@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
+import net.openid.conformance.condition.common.CheckForAllowedButInsecureFAPICiphers;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
@@ -61,6 +62,7 @@ public class FAPIRWID2 extends AbstractFAPIRWID2MultipleClient {
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
+		callAndContinueOnFailure(CheckForAllowedButInsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5");
 	}
 
 	protected void verifyAccessTokenWithResourceEndpoint() {

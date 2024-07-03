@@ -65,6 +65,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenFromAuthorizationR
 import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
 import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CheckForAllowedButInsecureFAPICiphers;
 import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
@@ -130,6 +131,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(CheckForAllowedButInsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5");
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
@@ -151,6 +153,7 @@ public class CodeIdTokenWithPrivateKey extends AbstractFapiRServerTestModule {
 		callAndContinueOnFailure(DisallowTLS10.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowTLS11.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
 		callAndContinueOnFailure(DisallowInsecureCipher.class, ConditionResult.FAILURE, "FAPI-RW-8.5-2");
+		callAndContinueOnFailure(CheckForAllowedButInsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5");
 
 		eventLog.endBlock();
 		env.unmapKey("tls");
