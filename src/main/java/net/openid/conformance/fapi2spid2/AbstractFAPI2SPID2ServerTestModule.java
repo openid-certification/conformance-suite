@@ -1173,6 +1173,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			addTokenEndpointClientAuthentication,
 			brazilPayments,
 			false, // open insurance not yet supported in fapi2
+			false,
 			false);
 		return steps;
 	}

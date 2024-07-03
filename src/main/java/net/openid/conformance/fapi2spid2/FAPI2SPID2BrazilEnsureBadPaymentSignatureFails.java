@@ -51,7 +51,8 @@ public class FAPI2SPID2BrazilEnsureBadPaymentSignatureFails extends AbstractFAPI
 			addTokenEndpointClientAuthentication,
 			brazilPayments,
 			false, // open insurance not yet supported in fapi2
-			true);
+			true,
+			false);
 
 		steps.insertAfter(FAPIBrazilSignPaymentConsentRequest.class,
 			condition(InvalidateConsentEndpointRequestSignature.class));

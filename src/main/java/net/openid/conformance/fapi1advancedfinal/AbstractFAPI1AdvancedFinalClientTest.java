@@ -289,6 +289,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected abstract void addCustomValuesToIdToken();
 
+	protected void addCustomAudToPaymentsConsentResponse(){}
+
 	protected void addCustomSignatureOfIdToken(){}
 
 	protected void endTestIfRequiredParametersAreMissing(){}
@@ -684,7 +686,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
 			callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
 			//ensure aud equals endpoint url	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
+			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE,"RFC7519-4.1.3", "BrazilOB-6.1-3");
 			//ensure ISS equals TLS certificate organizational unit
 			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
 			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
@@ -707,6 +709,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		ResponseEntity<Object> responseEntity = null;
 		if(isPayments) {
 			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+			addCustomAudToPaymentsConsentResponse();
 			callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-2");
 			String signedConsentResponse = env.getString("signed_consent_response");
 			JsonObject headerJson = env.getObject("consent_response_headers");

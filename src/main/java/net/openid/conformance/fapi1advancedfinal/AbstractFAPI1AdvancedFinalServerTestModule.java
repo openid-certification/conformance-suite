@@ -1064,6 +1064,10 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndStopOnFailure(FAPIBrazilSetPaymentDateToToday.class);
 	}
 
+	protected boolean paymentsConsentRequestAudAsArray() {
+		return false;
+	}
+
 	protected ConditionSequence createOBBPreauthSteps() {
 		if (brazilPayments.isTrue()) {
 			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
@@ -1074,7 +1078,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			addTokenEndpointClientAuthentication,
 			brazilPayments.isTrue(),
 			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL,
-			false);
+			false,
+			paymentsConsentRequestAudAsArray());
 		return steps;
 	}
 

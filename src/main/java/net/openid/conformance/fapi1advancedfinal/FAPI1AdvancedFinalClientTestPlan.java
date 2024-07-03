@@ -38,7 +38,8 @@ import java.util.Map;
 		FAPI1AdvancedFinalClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
 		FAPI1AdvancedFinalClientRefreshTokenTest.class,
-		FAPI1AdvancedFinalBrazilClientDCRHappyPathTest.class
+		FAPI1AdvancedFinalBrazilClientDCRHappyPathTest.class,
+		FAPI1AdvancedFinalClientTestPaymentConsentRepsonseValidAudAsArray.class
 	}
 )
 public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {

@@ -1356,7 +1356,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			updatePaymentConsent();
 		}
 		return new OpenBankingBrazilPreAuthorizationSteps(
-			isSecondClient, isDpop, addTokenEndpointClientAuthentication, isBrazil(), isBrazilOpenInsurance, stopAfterConsentEndpoint
+			isSecondClient, isDpop, addTokenEndpointClientAuthentication, isBrazil(), isBrazilOpenInsurance, stopAfterConsentEndpoint, false
 		);
 	}
 
