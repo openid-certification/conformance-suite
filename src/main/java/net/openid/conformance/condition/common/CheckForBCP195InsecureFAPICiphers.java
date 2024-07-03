@@ -20,16 +20,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Some cipher suites that are officially allowed by FAPI are considered insecure.
+ * Cipher suites that are not recommended in the <a href="https://www.rfc-editor.org/info/bcp195">BCP195</a> are considered insecure for FAPI usage.
  * See <a href="https://bitbucket.org/openid/fapi/issues/685/use-of-tls-12-ciphers#comment-66826146">Vulnerability in TLS_DHE_RSA_WITH_AES_128_GCM_SHA256</a>
  */
 @SuppressWarnings("deprecation")
-public class CheckForAllowedButInsecureFAPICiphers extends AbstractCondition {
+public class CheckForBCP195InsecureFAPICiphers extends AbstractCondition {
 
 	/**
-	 * This map contains the cipher suites  which should produce a warning when detected.
+	 * This map contains the cipher suites, which should produce a warning when detected.
 	 */
-	private static final Map<Integer, String> ALLOWED_BUT_INSECURE_CIPHERS = Map.ofEntries(
+	private static final Map<Integer, String> INSECURE_CIPHERS = Map.ofEntries(
 		Map.entry(CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256, "DHE_RSA_WITH_AES_128_GCM_SHA256"),
 		Map.entry(CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384, "DHE_RSA_WITH_AES_256_GCM_SHA384")
 	);
@@ -54,7 +54,7 @@ public class CheckForAllowedButInsecureFAPICiphers extends AbstractCondition {
 		// Unfortunately there is no easy way to query the server for supported cipher suites.
 		// Therefore we attempt to connect with an insecure cipher - if it succeeds the server supports the cipher
 		// and we can generate a warning.
-		for (var cipherEntry : ALLOWED_BUT_INSECURE_CIPHERS.entrySet()) {
+		for (var cipherEntry : INSECURE_CIPHERS.entrySet()) {
 			try (Socket socket = setupSocket(tlsTestHost, tlsTestPort)) {
 
 				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream(), new SecureRandom());
@@ -85,9 +85,9 @@ public class CheckForAllowedButInsecureFAPICiphers extends AbstractCondition {
 		}
 
 		if (detectedUnwantedCypherSuites.isEmpty()) {
-			logSuccess("The TLS peer uses none of the allowed but insecure ciphers.", args("host", tlsTestHost, "port", tlsTestPort, "insecureCiphers", ALLOWED_BUT_INSECURE_CIPHERS.values()));
+			logSuccess("The TLS peer uses none of the insecure ciphers.", args("host", tlsTestHost, "port", tlsTestPort, "insecureCiphers", INSECURE_CIPHERS.values()));
 		} else {
-			logFailure("The TLS peer uses some allowed but insecure ciphers.", args("host", tlsTestHost, "port", tlsTestPort, "insecureCiphers", detectedUnwantedCypherSuites));
+			logFailure("The TLS peer uses some insecure ciphers according to BCP195. The used ciphers are vulnerable to a denial of service attack as per RFC9325 Appendix A. Differences from RFC 7525", args("host", tlsTestHost, "port", tlsTestPort, "insecureCiphers", detectedUnwantedCypherSuites));
 		}
 
 		return env;
