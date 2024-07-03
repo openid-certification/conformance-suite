@@ -1057,6 +1057,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ServerTestModule extends Abs
 			addTokenEndpointClientAuthentication,
 			brazilPayments.isTrue(),
 			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL,
+			false,
 			false);
 		return steps;
 	}

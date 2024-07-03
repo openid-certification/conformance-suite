@@ -642,7 +642,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ClientTest extends AbstractT
 			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
 			callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
 			//ensure aud equals endpoint url	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
+			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE,"RFC7519-4.1.3", "BrazilOB-6.1-3");
 			//ensure ISS equals TLS certificate organizational unit
 			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
 			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");

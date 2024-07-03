@@ -2,6 +2,7 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAudAsPaymentConsentUriToRequestObject;
+import net.openid.conformance.condition.client.AddAudAsArrayAsPaymentConsentUriToRequestObject;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
@@ -57,11 +58,12 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 	private boolean openInsurance;
 	private boolean dpop;
 	private boolean stopAfterConsentEndpointCall;
+	private boolean audAsArray;
 	private boolean secondClient;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
-	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, boolean dpop, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean openInsurance, boolean stopAfterConsentEndpointCall) {
+	public OpenBankingBrazilPreAuthorizationSteps(boolean secondClient, boolean dpop, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean payments, boolean openInsurance, boolean stopAfterConsentEndpointCall, boolean audAsArray) {
 		this.secondClient = secondClient;
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.dpop = dpop;
@@ -69,6 +71,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 		this.payments = payments;
 		this.openInsurance = openInsurance;
 		this.stopAfterConsentEndpointCall = stopAfterConsentEndpointCall;
+		this.audAsArray = audAsArray;
 	}
 
 		@Override
@@ -138,7 +141,12 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			call(exec().mapKey("request_object_claims", "consent_endpoint_request"));
 
 			// aud (in the JWT request): the Resource Provider (eg the institution holding the account) must validate if the value of the aud field matches the endpoint being triggered;
-			callAndStopOnFailure(AddAudAsPaymentConsentUriToRequestObject.class, "BrazilOB-6.1");
+			if (audAsArray) {
+				callAndStopOnFailure(AddAudAsArrayAsPaymentConsentUriToRequestObject.class, "BrazilOB-6.1", "RFC7519-4.1.3");
+			}
+			else {
+				callAndStopOnFailure(AddAudAsPaymentConsentUriToRequestObject.class, "BrazilOB-6.1");
+			}
 
 			//iss (in the JWT request and in the JWT response): the receiver of the message shall validate if the value of the iss field matches the organisationId of the sender;
 			callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
