@@ -612,6 +612,8 @@ var FAPI_UI = {
 			"RFC8707-" :  "https://tools.ietf.org/html/rfc8707#section-",
 			"RFC8485-" :  "https://tools.ietf.org/html/rfc8485#section-",
 			"RFC9396-" :  "https://tools.ietf.org/html/rfc9396#section-",
+			"RFC9325-": "https://tools.ietf.org/html/rfc9325.html#section-",
+			"RFC9325A-": "https://tools.ietf.org/html/rfc9325.html#appendix-",
 			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#",
 			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.",
 			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.",
