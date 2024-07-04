@@ -62,7 +62,7 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		env.unmapKey("discovery_endpoint_response");
 
-		callAndContinueOnFailure(CheckEntityStatementEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+		callAndContinueOnFailure(ValidateEntityStatementEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -76,8 +76,9 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 	}
 
 	protected void performEndpointVerification() {
-		callAndContinueOnFailure(CheckEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?"); // Spec doesn't explicitly say so?
-		callAndContinueOnFailure(CheckEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?"); // Spec doesn't explicitly say so?
+		callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?"); // Spec doesn't explicitly say so?
+		callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?"); // Spec doesn't explicitly say so?
+		callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
 
 	protected void performEndpointVerification2() {
