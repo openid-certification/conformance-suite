@@ -29,7 +29,8 @@ import org.springframework.http.ResponseEntity;
 		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
-		"client.jwks"
+		"client.jwks",
+		"waitTimeoutSeconds"
 	}
 )
 @VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "connectid_au"})

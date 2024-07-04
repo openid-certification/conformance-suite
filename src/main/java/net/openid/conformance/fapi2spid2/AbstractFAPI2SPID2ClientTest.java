@@ -189,6 +189,7 @@ import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.ClientAuthType;
@@ -275,6 +276,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected Boolean profileRequiresMtlsEverywhere;
 
+	protected long waitTimeoutSeconds = 5;
+
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
 	 *
@@ -313,6 +316,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
+
+		if (config.has("waitTimeoutSeconds")) {
+			waitTimeoutSeconds = OIDFJSON.getLong(config.get("waitTimeoutSeconds"));
+		}
 
 		profile = getVariant(FAPI2ID2OPProfile.class);
 		responseMode = getVariant(FAPIResponseMode.class);
@@ -1656,7 +1663,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	protected void startWaitingForTimeout() {
 		this.startingShutdown = true;
 		getTestExecutionManager().runInBackground(() -> {
-			Thread.sleep(5 * 1000);
+			Thread.sleep(waitTimeoutSeconds * 1000);
 			if (getStatus().equals(Status.WAITING)) {
 				setStatus(Status.RUNNING);
 				//As the client hasn't called the token endpoint after 5 seconds, assume it has correctly detected the error and aborted.

@@ -17,7 +17,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
-		"client.jwks"
+		"client.jwks",
+		"waitTimeoutSeconds"
 	}
 )
 @VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
