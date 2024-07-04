@@ -3,15 +3,16 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 public class ValidateEntityStatementSub extends AbstractCondition {
 
 	@Override
-	@PostEnvironment(required = { "server", "config" } )
+	@PreEnvironment(required = { "entity_statement", "config" } )
 	public Environment evaluate(Environment env) {
-		JsonElement sub = env.getElementFromObject("server", "sub");
+		JsonElement sub = env.getElementFromObject("entity_statement", "sub");
 
 		if (sub == null || sub.isJsonObject()) {
 			throw error("sub is missing from entity statement");
@@ -30,7 +31,7 @@ public class ValidateEntityStatementSub extends AbstractCondition {
 			throw error("sub listed in the entity statement is not consistent with the location the entity statement was retrieved from. These must match to prevent impersonation attacks.", args("entity_statement_url", entityStatementUrl, "sub", subUrl));
 		}
 
-		logSuccess("sub is consistent with the entity statement endpoint URL");
+		logSuccess("sub is consistent with the entity statement endpoint URL", args("sub", sub));
 
 		return env;
 	}

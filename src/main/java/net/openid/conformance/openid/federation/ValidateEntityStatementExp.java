@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -9,25 +8,22 @@ import net.openid.conformance.testmodule.Environment;
 import java.time.Instant;
 import java.util.Date;
 
-public class ValidateEntityStatementIat extends AbstractCondition {
+public class ValidateEntityStatementExp extends AbstractCondition {
 
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
 	@PreEnvironment(required = { "entity_statement" } )
 	public Environment evaluate(Environment env) {
+
 		Instant now = Instant.now();
 
-		Long iat = env.getLong("entity_statement", "iat");
-		if (iat == null) {
-			throw error("Entity statement does not contain an 'iat' claim");
-		} else {
-			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
-				throw error("Entity statement issued in the future, 'iat' claim value is in the future",
-					args("issued-at", new Date(iat * 1000L), "now", now));
-			}
+		Long exp = env.getLong("entity_statement", "exp");
+
+		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
+			throw error("Entity statement expired", args("exp", new Date(exp * 1000L), "now", now));
 		}
-		logSuccess("iat claim is valid", args("iat", iat));
+		logSuccess("Entity statement contains a valid exp claim, expiry time", args("exp", new Date(exp * 1000L)));
 		return env;
 	}
 }

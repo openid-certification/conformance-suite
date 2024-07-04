@@ -3,15 +3,16 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 public class ValidateEntityStatementIss extends AbstractCondition {
 
 	@Override
-	@PostEnvironment(required = { "server", "config" } )
+	@PreEnvironment(required = { "entity_statement", "config" } )
 	public Environment evaluate(Environment env) {
-		JsonElement iss = env.getElementFromObject("server", "iss");
+		JsonElement iss = env.getElementFromObject("entity_statement", "iss");
 
 		if (iss == null || iss.isJsonObject()) {
 			throw error("iss is missing from entity statement");
@@ -30,7 +31,7 @@ public class ValidateEntityStatementIss extends AbstractCondition {
 			throw error("iss listed in the entity statement is not consistent with the location the entity statement was retrieved from. These must match to prevent impersonation attacks.", args("entity_statement_url", entityStatementUrl, "iss", issuerUrl));
 		}
 
-		logSuccess("iss is consistent with the entity statement endpoint URL");
+		logSuccess("iss is consistent with the entity statement endpoint URL", args("iss", iss));
 
 		return env;
 	}
