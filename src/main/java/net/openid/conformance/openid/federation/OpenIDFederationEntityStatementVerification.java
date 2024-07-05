@@ -2,30 +2,7 @@ package net.openid.conformance.openid.federation;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
-import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
-import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
-import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
-import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
-import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
-import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupportedDynamic;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -84,7 +61,8 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ValidateServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
-		callAndContinueOnFailure(ValidateEntityStatementMetadataClaim.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(ValidateAndExtractEntityStatementMetadataClaim.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(ValidateFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
 
 }

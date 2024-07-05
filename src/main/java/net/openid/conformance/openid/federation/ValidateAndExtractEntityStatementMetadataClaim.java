@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ValidateEntityStatementMetadataClaim extends AbstractCondition {
+public class ValidateAndExtractEntityStatementMetadataClaim extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "entity_statement_body" } )
@@ -32,6 +32,14 @@ public class ValidateEntityStatementMetadataClaim extends AbstractCondition {
 			"oauth_client",
 			"oauth_resource"
 		);
+		/*
+		validTopLevelKeys.stream().forEach(key -> {
+			if (metadata.has(key)) {
+				env.putObject(key, metadata.getAsJsonObject(key));
+			}
+		});
+	 	*/
+
 		Set<String> keys = metadata.keySet();
 		Set<String> difference = new HashSet<>(keys);
 		difference.removeAll(validTopLevelKeys);
