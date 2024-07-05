@@ -14,11 +14,11 @@ public class ValidateEntityStatementIat extends AbstractCondition {
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
-	@PreEnvironment(required = { "entity_statement" } )
+	@PreEnvironment(required = { "entity_statement_body" } )
 	public Environment evaluate(Environment env) {
 		Instant now = Instant.now();
 
-		Long iat = env.getLong("entity_statement", "iat");
+		Long iat = env.getLong("entity_statement_body", "iat");
 		if (iat == null) {
 			throw error("Entity statement does not contain an 'iat' claim");
 		} else {

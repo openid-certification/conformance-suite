@@ -10,9 +10,9 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class ValidateEntityStatementIss extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "entity_statement", "config" } )
+	@PreEnvironment(required = { "entity_statement_body", "config" } )
 	public Environment evaluate(Environment env) {
-		JsonElement iss = env.getElementFromObject("entity_statement", "iss");
+		JsonElement iss = env.getElementFromObject("entity_statement_body", "iss");
 
 		if (iss == null || iss.isJsonObject()) {
 			throw error("iss is missing from entity statement");

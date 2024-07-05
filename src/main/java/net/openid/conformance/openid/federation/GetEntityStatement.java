@@ -27,7 +27,7 @@ public class GetEntityStatement extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = { "entity_statement_endpoint_response", "entity_statement" } )
+	@PostEnvironment(required = { "entity_statement_endpoint_response", "entity_statement_body", "entity_statement_header" } )
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObject("config")) {
@@ -69,9 +69,11 @@ public class GetEntityStatement extends AbstractCondition {
 			if (!Strings.isNullOrEmpty(jwtString)) {
 				try {
 					SignedJWT jwt = SignedJWT.parse(jwtString);
-					JsonObject entityConfig = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
-					logSuccess("Successfully parsed entity statement", entityConfig);
-					env.putObject("entity_statement", entityConfig);
+					JsonObject entityStatementBody = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
+					JsonObject entityStatementHeader = JsonParser.parseString(jwt.getHeader().toString()).getAsJsonObject();
+					logSuccess("Successfully parsed entity statement", entityStatementBody);
+					env.putObject("entity_statement_body", entityStatementBody);
+					env.putObject("entity_statement_header", entityStatementHeader);
 					return env;
 				} catch (ParseException e) {
 					throw error("Failed to parse entity statement as a signed JWT", e, args("jwt", jwtString));

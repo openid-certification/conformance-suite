@@ -10,9 +10,9 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class ValidateEntityStatementSub extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "entity_statement", "config" } )
+	@PreEnvironment(required = { "entity_statement_body", "config" } )
 	public Environment evaluate(Environment env) {
-		JsonElement sub = env.getElementFromObject("entity_statement", "sub");
+		JsonElement sub = env.getElementFromObject("entity_statement_body", "sub");
 
 		if (sub == null || sub.isJsonObject()) {
 			throw error("sub is missing from entity statement");
