@@ -3,11 +3,9 @@ package net.openid.conformance.openid.federation;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class ValidateFederationEntityMetadata extends AbstractValidateMetadata {
@@ -17,12 +15,14 @@ public class ValidateFederationEntityMetadata extends AbstractValidateMetadata {
 	public Environment evaluate(Environment env) {
 
 		String metadataName = "federation_entity";
-		JsonObject metadata = env.getElementFromObject("entity_statement_body", "metadata." + metadataName).getAsJsonObject();
+		JsonElement metadataElement = env.getElementFromObject("entity_statement_body", "metadata." + metadataName);
 
-		if (metadata == null) {
+		if (metadataElement == null) {
 			logSuccess(String.format("Entity statement does not contain the %s metadata claim", metadataName));
 			return env;
 		}
+
+		JsonObject metadata = metadataElement.getAsJsonObject();
 
 		Set<String> federationEntityUrlKeys = ImmutableSet.of(
 			"federation_fetch_endpoint",

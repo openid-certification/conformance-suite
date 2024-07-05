@@ -27,13 +27,13 @@ public class ValidateEntityMetadataClaims_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ValidateAndExtractEntityStatementMetadataClaim validateAndExtractEntityStatementMetadataClaimCond;
+	private ValidateEntityStatementMetadataClaim validateEntityStatementMetadataClaimCond;
 	private ValidateFederationEntityMetadata validateFederationEntityMetadataCond;
 
 	@Before
 	public void setUp() throws Exception {
-		validateAndExtractEntityStatementMetadataClaimCond = new ValidateAndExtractEntityStatementMetadataClaim();
-		validateAndExtractEntityStatementMetadataClaimCond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		validateEntityStatementMetadataClaimCond = new ValidateEntityStatementMetadataClaim();
+		validateEntityStatementMetadataClaimCond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 
 		validateFederationEntityMetadataCond = new ValidateFederationEntityMetadata();
 		validateFederationEntityMetadataCond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -43,7 +43,7 @@ public class ValidateEntityMetadataClaims_UnitTest {
 	public void test_evaluate_happy_path() throws Exception {
 		String entityStatementBody = IOUtils.resourceToString("federation/entity-statement-authlete-1.json", StandardCharsets.UTF_8, getClass().getClassLoader());
 		env.putObjectFromJsonString("entity_statement_body", entityStatementBody);
-		validateAndExtractEntityStatementMetadataClaimCond.execute(env);
+		validateEntityStatementMetadataClaimCond.execute(env);
 	}
 
 	@Test
@@ -51,9 +51,9 @@ public class ValidateEntityMetadataClaims_UnitTest {
 		String entityStatementBody = IOUtils.resourceToString("federation/entity-statement-invalid-entity-1.json", StandardCharsets.UTF_8, getClass().getClassLoader());
 		env.putObjectFromJsonString("entity_statement_body", entityStatementBody);
 
-		ConditionError exception = assertThrows(ConditionError.class, () -> validateAndExtractEntityStatementMetadataClaimCond.execute(env));
+		ConditionError exception = assertThrows(ConditionError.class, () -> validateEntityStatementMetadataClaimCond.execute(env));
 
-		assertEquals("ValidateAndExtractEntityStatementMetadataClaim: The metadata claim contains invalid entity types", exception.getMessage());
+		assertEquals("ValidateEntityStatementMetadataClaim: The metadata claim contains invalid entity types", exception.getMessage());
 	}
 
 	@Test

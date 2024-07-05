@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ValidateAndExtractEntityStatementMetadataClaim extends AbstractCondition {
+public class ValidateEntityStatementMetadataClaim extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "entity_statement_body" } )
