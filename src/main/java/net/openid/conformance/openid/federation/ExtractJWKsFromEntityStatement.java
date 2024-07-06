@@ -10,7 +10,7 @@ public class ExtractJWKsFromEntityStatement extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "entity_statement_body")
-	@PostEnvironment(required = {"server_jwks" })
+	@PostEnvironment(required = { "server_jwks" })
 	public Environment evaluate(Environment env) {
 
 		JsonObject jwks = env.getElementFromObject("entity_statement_body", "jwks").getAsJsonObject();
