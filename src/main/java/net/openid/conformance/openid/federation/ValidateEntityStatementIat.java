@@ -5,6 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class ValidateEntityStatementIat extends AbstractCondition {
@@ -23,6 +24,9 @@ public class ValidateEntityStatementIat extends AbstractCondition {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
 				throw error("Entity statement issued in the future, 'iat' claim value is in the future",
 					args("issued-at", new Date(iat * 1000L), "now", now));
+			}
+			if (now.minus(5 * 365, ChronoUnit.DAYS).isAfter(Instant.ofEpochSecond(iat))) {
+				throw error("Entity statement was issued more than five years ago", args("issued-at", new Date(iat * 1000L)));
 			}
 		}
 		logSuccess("iat claim is valid", args("iat", iat));

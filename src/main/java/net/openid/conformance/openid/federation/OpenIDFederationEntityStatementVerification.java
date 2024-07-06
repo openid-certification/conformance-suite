@@ -20,8 +20,6 @@ import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSigne
 import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
-import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
@@ -46,6 +44,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
@@ -64,6 +63,7 @@ import net.openid.conformance.variant.VariantParameters;
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
 	"server.entityStatement"
 })
+@VariantNotApplicable(parameter = ClientRegistration.class, values={ "static_client" })
 public class OpenIDFederationEntityStatementVerification extends AbstractTestModule {
 
 	@Override
@@ -120,6 +120,9 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 			callAndContinueOnFailure(ValidateOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			env.unmapKey("server");
 		}
+		callAndContinueOnFailure(ValidateOAuthAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(ValidateOAuthClientMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
 
 	// This is the validateClientRegistrationMetadata() methods found in various FAPI classes
@@ -201,8 +204,8 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 
 		/*
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
-		*/
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
+		*/
 
 		callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 

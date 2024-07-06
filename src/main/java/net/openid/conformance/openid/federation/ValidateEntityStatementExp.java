@@ -5,6 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class ValidateEntityStatementExp extends AbstractCondition {
@@ -21,6 +22,9 @@ public class ValidateEntityStatementExp extends AbstractCondition {
 
 		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 			throw error("Entity statement expired", args("exp", new Date(exp * 1000L), "now", now));
+		}
+		if (now.plus(5 * 365, ChronoUnit.DAYS).isBefore(Instant.ofEpochSecond(exp))) {
+			throw error("Entity statement is set to expire more than five years in the future", args("exp", new Date(exp * 1000L)));
 		}
 		logSuccess("Entity statement contains a valid exp claim, expiry time", args("exp", new Date(exp * 1000L)));
 		return env;
