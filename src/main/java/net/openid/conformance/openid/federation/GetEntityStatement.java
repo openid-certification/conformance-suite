@@ -30,62 +30,44 @@ public class GetEntityStatement extends AbstractCondition {
 	@PostEnvironment(required = { "entity_statement_endpoint_response", "entity_statement_body", "entity_statement_header" } )
 	public Environment evaluate(Environment env) {
 
-		if (!env.containsObject("config")) {
-			throw error("Couldn't find a configuration");
-		}
-
 		String entityStatementUrl = env.getString("config", "server.entityStatementUrl");
-
 		if (Strings.isNullOrEmpty(entityStatementUrl)) {
-
-			String iss = env.getString("config", "server.entityStatementIssuer");
-			entityStatementUrl = iss + "/.well-known/openid-federation";
-
-			if (Strings.isNullOrEmpty(iss)) {
-				throw error("Couldn't find entityStatementUrl or entityStatementIssuer field for discovery purposes");
-			}
-
+			throw error("Couldn't find entityStatementUrl in configuration");
 		}
 
-		if (!Strings.isNullOrEmpty(entityStatementUrl)) {
+		String jwtString;
+		try {
+			RestTemplate restTemplate = createRestTemplate(env);
+			ResponseEntity<String> response = restTemplate.exchange(entityStatementUrl, HttpMethod.GET, null, String.class);
+			JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
+			env.putObject("entity_statement_endpoint_response", responseInfo);
+			jwtString = response.getBody();
+		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+			throw error("Error creating HTTP client", e);
+		} catch (RestClientException e) {
+			String msg = "Unable to fetch entity statement from " + entityStatementUrl;
+			if (e.getCause() != null) {
+				msg += " - " + e.getCause().getMessage();
+			}
+			throw error(msg, e);
+		}
 
-			String jwtString;
+		if (!Strings.isNullOrEmpty(jwtString)) {
 			try {
-				RestTemplate restTemplate = createRestTemplate(env);
-				ResponseEntity<String> response = restTemplate.exchange(entityStatementUrl, HttpMethod.GET, null, String.class);
-				JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
-				env.putObject("entity_statement_endpoint_response", responseInfo);
-				jwtString = response.getBody();
-			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-				throw error("Error creating HTTP client", e);
-			} catch (RestClientException e) {
-				String msg = "Unable to fetch entity statement from " + entityStatementUrl;
-				if (e.getCause() != null) {
-					msg += " - " +e.getCause().getMessage();
-				}
-				throw error(msg, e);
+				SignedJWT jwt = SignedJWT.parse(jwtString);
+				JsonObject entityStatementBody = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
+				JsonObject entityStatementHeader = JsonParser.parseString(jwt.getHeader().toString()).getAsJsonObject();
+				logSuccess("Successfully parsed entity statement", entityStatementBody);
+				env.putObject("entity_statement_body", entityStatementBody);
+				env.putObject("entity_statement_header", entityStatementHeader);
+				return env;
+			} catch (ParseException e) {
+				throw error("Failed to parse entity statement as a signed JWT", e, args("jwt", jwtString));
+			} catch (JsonSyntaxException e) {
+				throw error(e, args("json", jwtString));
 			}
-
-			if (!Strings.isNullOrEmpty(jwtString)) {
-				try {
-					SignedJWT jwt = SignedJWT.parse(jwtString);
-					JsonObject entityStatementBody = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
-					JsonObject entityStatementHeader = JsonParser.parseString(jwt.getHeader().toString()).getAsJsonObject();
-					logSuccess("Successfully parsed entity statement", entityStatementBody);
-					env.putObject("entity_statement_body", entityStatementBody);
-					env.putObject("entity_statement_header", entityStatementHeader);
-					return env;
-				} catch (ParseException e) {
-					throw error("Failed to parse entity statement as a signed JWT", e, args("jwt", jwtString));
-				} catch (JsonSyntaxException e) {
-					throw error(e, args("json", jwtString));
-				}
-			} else {
-				throw error("empty entity statement");
-			}
-
 		} else {
-			throw error("Couldn't find or construct an entity statement metadata URL");
+			throw error("Empty entity statement", args("entity_statement", jwtString));
 		}
 
 	}
