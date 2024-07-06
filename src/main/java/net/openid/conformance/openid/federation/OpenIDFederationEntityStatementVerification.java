@@ -124,6 +124,9 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 		callAndContinueOnFailure(ValidateOAuthAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ValidateOAuthClientMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+		skipIfElementMissing("entity_statement_body", "authority_hints", Condition.ConditionResult.INFO,
+			ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
 
 	// This is the validateClientRegistrationMetadata() methods found in various FAPI classes
