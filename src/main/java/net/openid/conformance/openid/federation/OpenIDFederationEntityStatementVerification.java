@@ -114,8 +114,8 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 			env.mapKey("client", "openid_relying_party_metadata");
 			call(sequence(ValidateClientRegistrationMetadataSequence.class));
 			callAndContinueOnFailure(ValidateOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-			env.removeObject("openid_relying_party_metadata");
 			env.unmapKey("client");
+			env.removeObject("openid_relying_party_metadata");
 		}
 	}
 
@@ -124,8 +124,8 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 			env.mapKey("server", "openid_provider_metadata");
 			call(new ValidateDiscoveryMetadataSequence(getVariant(ClientRegistration.class)));
 			callAndContinueOnFailure(ValidateOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-			env.removeObject("openid_provider_metadata");
 			env.unmapKey("server");
+			env.removeObject("openid_provider_metadata");
 		}
 	}
 
