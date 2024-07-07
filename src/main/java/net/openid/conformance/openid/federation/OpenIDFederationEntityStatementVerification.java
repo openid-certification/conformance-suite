@@ -2,43 +2,7 @@ package net.openid.conformance.openid.federation;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientGrantTypes;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientLogoUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientSubjectType;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientTosUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge;
-import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLoginUri;
-import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
-import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
-import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
-import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
-import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
-import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
-import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
-import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointGrantTypesSupportedDynamic;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
-import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;
@@ -72,18 +36,16 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
+		eventLog.startBlock("Fetch Entity Statement");
 		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
-			// This case is actually not valid, I believe, but it's here for testing purposes
+			// This case is actually not valid, I believe, but it's here for testing purposes atm
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
 		} else {
-			callAndStopOnFailure(GetEntityStatement.class);
-
-			env.mapKey("discovery_endpoint_response", "entity_statement_endpoint_response");
-			callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-			env.unmapKey("discovery_endpoint_response");
-
-			callAndContinueOnFailure(ValidateEntityStatementEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+			callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
+			validateEntityStatementResponse();
 		}
+		eventLog.endBlock();
+
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
@@ -114,22 +76,12 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 
 		eventLog.startBlock("Validate OpenID Relying Party metadata");
 		callAndContinueOnFailure(ExtractOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		if (env.containsObject("openid_relying_party_metadata")) {
-			env.mapKey("client", "openid_relying_party_metadata");
-			validateClientRegistrationMetadata();
-			callAndContinueOnFailure(ValidateOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-			env.unmapKey("client");
-		}
+		validateOpenIdRelyingPartyMetadata();
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate OpenID Provider metadata");
 		callAndContinueOnFailure(ExtractOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		if (env.containsObject("openid_provider_metadata")) {
-			env.mapKey("server", "openid_provider_metadata");
-			performEndpointVerification();
-			callAndContinueOnFailure(ValidateOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-			env.unmapKey("server");
-		}
+		validateOpenIdProviderMetadata();
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate OAuth Authorization Server metadata");
@@ -150,158 +102,31 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 		eventLog.endBlock();
 	}
 
-	// This is the validateClientRegistrationMetadata() methods found in various FAPI classes
-	public void validateClientRegistrationMetadata() {
-		//check response type - grant type consistency
-		callAndContinueOnFailure(ValidateClientGrantTypes.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-
-		//basic checks like fragments, https etc
-		callAndContinueOnFailure(OIDCCValidateClientRedirectUris.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-
-		//check if logo is image
-		callAndContinueOnFailure(ValidateClientLogoUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-		//check if uri is valid
-		callAndContinueOnFailure(ValidateClientUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-		//check if uri is valid
-		callAndContinueOnFailure(ValidateClientPolicyUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-		//check if uri is valid
-		callAndContinueOnFailure(ValidateClientTosUris.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-
-		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-
-		/*
-		skipIfElementMissing("client", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.2");
-		*/
-
-		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-
-		//userinfo
-		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
-			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-		/*
-		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.2");
-		*/
-
-		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-
-		//request object
-		/*
-		skipIfElementMissing("client", "request_object_signing_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateRequestObjectSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-		*/
-		callAndContinueOnFailure(EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
-
-		/*
-		skipIfElementMissing("client", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateTokenEndpointAuthSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-		*/
-		callAndContinueOnFailure(ValidateDefaultMaxAge.class, Condition.ConditionResult.WARNING,"OIDCR-2");
-
-		skipIfElementMissing("client", "require_auth_time", Condition.ConditionResult.INFO,
-			ValidateRequireAuthTime.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-
-		/*
-		skipIfElementMissing("client", "default_acr_values", Condition.ConditionResult.INFO,
-			FAPIBrazilValidateDefaultAcrValues.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-		*/
-
-		skipIfElementMissing("client", "initiate_login_uri", Condition.ConditionResult.INFO,
-			ValidateInitiateLoginUri.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-
-		//TODO not allow request_uris?
-		/*
-		skipIfElementMissing("client", "request_uris", Condition.ConditionResult.INFO,
-			ValidateRequestUris.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-		 */
-
+	private void validateEntityStatementResponse() {
+		env.mapKey("discovery_endpoint_response", "entity_statement_endpoint_response");
+		call(sequence(ValidateEntityStatementResponseSequence.class));
+		env.unmapKey("discovery_endpoint_response");
+		env.removeObject("entity_statement_endpoint_response");
 	}
 
-	// This is the performEndpointVerification() methods found in OIDCCDiscoveryEndpointVerification
-	protected void performEndpointVerification() {
-
-		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
-			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupportedDynamic.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-15.2");
-		} else {
-			callAndContinueOnFailure(OIDCCCheckDiscEndpointResponseTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "OIDCC-3");
+	private void validateOpenIdRelyingPartyMetadata() {
+		if (env.containsObject("openid_relying_party_metadata")) {
+			env.mapKey("client", "openid_relying_party_metadata");
+			call(sequence(ValidateClientRegistrationMetadataSequence.class));
+			callAndContinueOnFailure(ValidateOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			env.removeObject("openid_relying_party_metadata");
+			env.unmapKey("client");
 		}
+	}
 
-		/*
-		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
-		*/
-
-		callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-
-		// Includes verify-id_token_signing-algorithm-is-supported assertion (OIDC test)
-		callAndContinueOnFailure(OIDCCCheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-
-		call(condition(OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
-			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
-			.onFail(Condition.ConditionResult.FAILURE)
-			.onSkip(Condition.ConditionResult.INFO)
-			.requirement("OIDCD-3")
-			.dontStopOnFailure()
-		);
-
-		// Includes verify-op-endpoints-use-https assertion (OIDC test) for each endpoint tested
-		callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		call(condition(CheckDiscEndpointUserinfoEndpoint.class)
-			.skipIfElementMissing("server", "userinfo_endpoint")
-			.onFail(Condition.ConditionResult.FAILURE)
-			.onSkip(Condition.ConditionResult.WARNING) // userinfo endpoint is recommended in the spec
-			.requirement("OIDCD-3")
-			.dontStopOnFailure());
-
-		// Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#verify_op_has_registration_endpoint
-		call(condition(CheckDiscEndpointRegistrationEndpoint.class)
-			.skipIfElementMissing("server", "registration_endpoint")
-			.onFail(Condition.ConditionResult.FAILURE)
-			.onSkip(Condition.ConditionResult.INFO)
-			.requirement("OIDCD-3")
-			.dontStopOnFailure());
-
-		// Includes providerinfo-has-jwks_uri
-		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		callAndStopOnFailure(FetchServerKeys.class);
-		callAndContinueOnFailure(ValidateServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
-
-		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.INFO);
-		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.INFO);
-		call(condition(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedIncludesRS256.class)
-			.skipIfElementMissing("server", "request_object_signing_alg_values_supported")
-			.onFail(Condition.ConditionResult.WARNING)
-			.onSkip(Condition.ConditionResult.INFO)
-			.requirement("OIDCD-3")
-			.dontStopOnFailure());
-
-		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.INFO, "OIDCD-3");
-
-		// Includes providerinfo-has-claims_supported assertion (OIDC test)
-		// claims_supported is recommended to be present, but not required
-		callAndContinueOnFailure(OIDCCCheckDiscEndpointClaimsSupported.class, Condition.ConditionResult.WARNING, "OIDCD-3");
-
-		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
-			callAndContinueOnFailure(OIDCCCheckDiscEndpointGrantTypesSupportedDynamic.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		} else {
-			callAndContinueOnFailure(OIDCCCheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+	private void validateOpenIdProviderMetadata() {
+		if (env.containsObject("openid_provider_metadata")) {
+			env.mapKey("server", "openid_provider_metadata");
+			call(new ValidateDiscoveryMetadataSequence(getVariant(ClientRegistration.class)));
+			callAndContinueOnFailure(ValidateOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			env.removeObject("openid_provider_metadata");
+			env.unmapKey("server");
 		}
-
-		call(condition(CheckDiscEndpointScopesSupportedContainsOpenId.class)
-			.skipIfElementMissing("server", "scopes_supported")
-			.onFail(Condition.ConditionResult.FAILURE)
-			.onSkip(Condition.ConditionResult.WARNING)
-			.requirement("OIDCD-3")
-			.dontStopOnFailure());
-
-		// Equivalent of VerifyOPEndpointsUseHTTPS
-		// https://github.com/rohe/oidctest/blob/a306ff8ccd02da456192b595cf48ab5dcfd3d15a/src/oidctest/op/check.py#L1714
-		// I'm not convinced the standards actually says every endpoint (including ones not defined by OIDC) must be https,
-		// but equally it seems reasonable.
-		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class, Condition.ConditionResult.FAILURE);
 	}
 
 }

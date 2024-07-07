@@ -13,10 +13,10 @@ import java.util.Set;
 public class ValidateOpenIDRelyingPartyMetadata extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "openid_relying_party_metadata" } )
+	@PreEnvironment(required = { "client" } )
 	public Environment evaluate(Environment env) {
 
-		JsonElement clientRegistrationTypesElement = env.getElementFromObject("openid_relying_party_metadata", "client_registration_types");
+		JsonElement clientRegistrationTypesElement = env.getElementFromObject("client", "client_registration_types");
 
 		if (!clientRegistrationTypesElement.isJsonArray()) {
 			throw error("client_registration_types must be an array of strings", args("client_registration_types", clientRegistrationTypesElement));
