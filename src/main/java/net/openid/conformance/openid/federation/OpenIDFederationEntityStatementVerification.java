@@ -96,17 +96,23 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 	}
 
 	protected void validateEntityStatement() {
-		callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?"); // Spec doesn't explicitly say so?
-		callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?"); // Spec doesn't explicitly say so?
-		callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		callAndContinueOnFailure(ValidateEntityStatementExp.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.startBlock("Validate basic claims in Entity Statement");
+		call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
+		eventLog.endBlock();
 
-		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		callAndContinueOnFailure(ValidateServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		callAndContinueOnFailure(VerifyEntityStatmentSignature.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.startBlock("Validate JWKs and signature in Entity Statement");
+		call(sequence(ValidateEntityStatementSignatureSequence.class));
+		eventLog.endBlock();
 
+		eventLog.startBlock("Validate metadata in Entity Statement");
 		callAndContinueOnFailure(ValidateEntityStatementMetadataClaim.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
+
+		eventLog.startBlock("Validate Federation Entity metadata");
 		callAndContinueOnFailure(ValidateFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
+
+		eventLog.startBlock("Validate OpenID Relying Party metadata");
 		callAndContinueOnFailure(ExtractOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		if (env.containsObject("openid_relying_party_metadata")) {
 			env.mapKey("client", "openid_relying_party_metadata");
@@ -114,6 +120,9 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 			callAndContinueOnFailure(ValidateOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			env.unmapKey("client");
 		}
+		eventLog.endBlock();
+
+		eventLog.startBlock("Validate OpenID Provider metadata");
 		callAndContinueOnFailure(ExtractOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		if (env.containsObject("openid_provider_metadata")) {
 			env.mapKey("server", "openid_provider_metadata");
@@ -121,12 +130,24 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 			callAndContinueOnFailure(ValidateOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			env.unmapKey("server");
 		}
-		callAndContinueOnFailure(ValidateOAuthAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		callAndContinueOnFailure(ValidateOAuthClientMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
 
+		eventLog.startBlock("Validate OAuth Authorization Server metadata");
+		callAndContinueOnFailure(ValidateOAuthAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
+
+		eventLog.startBlock("Validate OAuth Client metadata");
+		callAndContinueOnFailure(ValidateOAuthClientMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
+
+		eventLog.startBlock("Validate OAuth Protected Resource metadata");
+		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
+
+		eventLog.startBlock("Validate authority hints in Entity Statement");
 		skipIfElementMissing("entity_statement_body", "authority_hints", Condition.ConditionResult.INFO,
 			ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
 	}
 
 	// This is the validateClientRegistrationMetadata() methods found in various FAPI classes
