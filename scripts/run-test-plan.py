@@ -673,8 +673,7 @@ def analyze_result_logs(module_id, test_name, variant, test_result, plan_result,
         """
         if obj['test-name'] != test_name:
             return False
-        expected_configuration_filename = obj['configuration-filename']
-        if expected_configuration_filename != "*" and not fnmatch.fnmatch(config_filename, expected_configuration_filename):
+        if config_filename != "*" and not fnmatch.fnmatch(config_filename, obj['configuration-filename']):
             return False
         expected_variant = obj.get('variant', None)
         if expected_variant == "*":
