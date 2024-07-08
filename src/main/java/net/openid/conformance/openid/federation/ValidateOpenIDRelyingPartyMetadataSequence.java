@@ -12,10 +12,6 @@ import net.openid.conformance.condition.as.dynregistration.ValidateClientSubject
 import net.openid.conformance.condition.as.dynregistration.ValidateClientTosUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge;
-import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLoginUri;
-import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
-import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 // This mostly correlates to validateClientRegistrationMetadata() methods found in various FAPI classes,

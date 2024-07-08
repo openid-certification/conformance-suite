@@ -2,18 +2,6 @@ package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.OIDCCValidateClientRedirectUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientGrantTypes;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientLogoUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientSubjectType;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientTosUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge;
-import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
