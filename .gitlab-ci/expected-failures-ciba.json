@@ -46,6 +46,15 @@
         "comment": "The testing environment currently supports insecure cipher suites, this will be resolved once the FAPI implementation catches up. See https://gitlab.com/openid/conformance-suite/-/issues/1347"
     },
     {
+        "test-name": "fapi-ciba-id1",
+        "variant": "*",
+        "configuration-filename": "*",
+        "current-block": "Accounts resource endpoint TLS test",
+        "condition": "CheckForBCP195InsecureFAPICiphers",
+        "expected-result": "warning",
+        "comment": "The testing environment currently supports insecure cipher suites, this will be resolved once the FAPI implementation catches up. See https://gitlab.com/openid/conformance-suite/-/issues/1347"
+    },
+    {
         "test-name": "fapi-ciba-id1-ensure-mtls-holder-of-key-required",
         "variant": "*",
         "configuration-filename": "*",
