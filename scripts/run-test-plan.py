@@ -641,6 +641,22 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
 #   'expected_warnings_did_not_happen': list all expected warnings condition did not happen
 #   'counts': contains number of success condition, number of warning condition and number of failure condition
 def analyze_result_logs(module_id, test_name, variant, test_result, plan_result, logs, expected_failures_list, expected_skips_list, counts_unexpected):
+
+    testdata = {
+        "module_id" : module_id,
+        "test_name" : test_name,
+        "variant" : variant,
+        "test_result" : test_result,
+        "plan_result" : plan_result,
+        "logs" : logs,
+        "expected_failures_list" : expected_failures_list,
+        "expected_skips_list" : expected_skips_list,
+        "counts_unexpected" : counts_unexpected
+    }
+
+    # import pydevd_pycharm
+    # pydevd_pycharm.settrace('localhost', port=32111, stdoutToServer=True, stderrToServer=True)
+
     counts = {'SUCCESS': 0, 'WARNING': 0, 'FAILURE': 0}
     expected_failures = []
     unexpected_failures = []
@@ -764,8 +780,11 @@ def analyze_result_logs(module_id, test_name, variant, test_result, plan_result,
             counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] += 1
 
         elif expected_result == 'warning':
-            expected_warnings_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
-            counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
+            if expected_failure_obj.get("fail_on_unnecessary_warning", True):
+                expected_warnings_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
+                counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
+            else:
+                print(f"Ignored unnecessary warning for 'test_plan': {test_plan_name} 'current_block': {expected_block}, 'src': {expected_condition}")
 
     for expected_skip_obj in test_expected_skips:
         if test_result == 'SKIPPED' or test_result == 'FAILED':

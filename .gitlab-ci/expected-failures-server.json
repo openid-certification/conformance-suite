@@ -145,7 +145,8 @@
         "current-block": "Accounts request endpoint TLS test",
         "condition": "CheckForBCP195InsecureFAPICiphers",
         "expected-result": "warning",
-        "comment": "The testing environment currently supports insecure cipher suites, this will be resolved once the FAPI implementation catches up. See https://gitlab.com/openid/conformance-suite/-/issues/1347"
+        "comment": "The testing environment currently supports insecure cipher suites, this will be resolved once the FAPI implementation catches up. See https://gitlab.com/openid/conformance-suite/-/issues/1347",
+        "fail_on_unnecessary_warning": false
     },
     {
         "test-name": "fapi2-security-profile-id2-happy-flow",
@@ -154,7 +155,8 @@
         "current-block": "Accounts resource endpoint TLS test",
         "condition": "CheckForBCP195InsecureFAPICiphers",
         "expected-result": "warning",
-        "comment": "The testing environment currently supports insecure cipher suites, this will be resolved once the FAPI implementation catches up. See https://gitlab.com/openid/conformance-suite/-/issues/1347"
+        "comment": "The testing environment currently supports insecure cipher suites, this will be resolved once the FAPI implementation catches up. See https://gitlab.com/openid/conformance-suite/-/issues/1347",
+        "fail_on_unnecessary_warning": false
     },
     {
         "test-name": "fapi2-security-profile-id2-ensure-holder-of-key-required",
