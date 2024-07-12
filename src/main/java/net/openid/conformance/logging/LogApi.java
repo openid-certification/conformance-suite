@@ -425,7 +425,7 @@ public class LogApi {
 		if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
 			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 		}
-		return exportPlanAsZip(id, false, true, certificationOfConformancePdf, clientSideData.orElse(null));
+		return exportPlanAsZip(id, true, false, true, certificationOfConformancePdf, clientSideData.orElse(null));
 	}
 
 
@@ -439,11 +439,11 @@ public class LogApi {
 		HttpServletRequest httpRequest,
 		@Parameter(description = "Id of plan") @PathVariable("id") String id,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
-		return exportPlanAsZip(id, publicOnly, false, null, null);
+		return exportPlanAsZip(id, false, publicOnly, false, null, null);
 	}
 
 
-	protected ResponseEntity<StreamingResponseBody> exportPlanAsZip(String planId, boolean publicOnly, boolean addFolderForHtmlFiles,
+	protected ResponseEntity<StreamingResponseBody> exportPlanAsZip(String planId, boolean forCertification, boolean publicOnly, boolean addFolderForHtmlFiles,
 																	MultipartFile certificationOfConformancePdf,
 																	MultipartFile clientSideData) {
 
@@ -506,7 +506,7 @@ public class LogApi {
 
 				try {
 					ZipArchiveOutputStream archiveOutputStream = new ZipArchiveOutputStream(out);
-					addPlanHTMLToZip(archiveOutputStream, testPlan, planExportInfo, htmlExportRenderer, addFolderForHtmlFiles);
+					addPlanHTMLToZip(archiveOutputStream, testPlan, planExportInfo, htmlExportRenderer, addFolderForHtmlFiles, forCertification);
 
 					// add all test logs file of a test plan to zip
 					for (PlanExportInfo.TestExportInfoHolder testLogInfoExport : planExportInfo.getTestLogExports()) {
@@ -559,13 +559,18 @@ public class LogApi {
 									Object plan,
 									PlanExportInfo planExportInfo,
 									HtmlExportRenderer htmlExportRenderer,
-									boolean addLogsFolder) throws Exception {
+									boolean addLogsFolder,
+									boolean forCertification) throws Exception {
 
 		String indexFilename = "index.html";
 		String indexSigFilename = "index.html.sig";
+		String indexJsonFilename = "index.json";
+		String indexJsonSigFilename = "index.json.sig";
 		if(addLogsFolder) {
 			indexFilename = "test-logs/" + indexFilename;
 			indexSigFilename = "test-logs/" + indexSigFilename;
+			indexJsonFilename = "test-logs/" + indexJsonFilename;
+			indexJsonSigFilename = "test-logs/" + indexJsonSigFilename;
 		}
 		ZipArchiveEntry testLog = new ZipArchiveEntry(indexFilename);
 
@@ -597,6 +602,38 @@ public class LogApi {
 		archiveOutputStream.write(encodedSignature.getBytes());
 
 		archiveOutputStream.closeArchiveEntry();
+
+		if(!forCertification){
+			return;
+		}
+		//serializing the PlanInfo as json
+		ZipArchiveEntry testJson = new ZipArchiveEntry(indexJsonFilename);
+
+		String json = gson.toJson(planExportInfo.getPlanInfo());
+		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
+
+		testJson.setSize(jsonBytes.length);
+
+		archiveOutputStream.putArchiveEntry(testJson);
+
+		Signature jsonSignature = Signature.getInstance("SHA1withRSA");
+		jsonSignature.initSign(keyManager.getSigningPrivateKey());
+		SignatureOutputStream jsonSignatureOutputStream = new SignatureOutputStream(archiveOutputStream, jsonSignature);
+		jsonSignatureOutputStream.write(jsonBytes);
+		jsonSignatureOutputStream.flush();
+		jsonSignatureOutputStream.close();
+		archiveOutputStream.closeArchiveEntry();
+
+		//Serializing the signature of the json file
+
+		ZipArchiveEntry jsonSignatureFile = new ZipArchiveEntry(indexJsonSigFilename);
+		encodedSignature = Base64Utils.encodeToUrlSafeString(jsonSignature.sign());
+		jsonSignatureFile.setSize(encodedSignature.getBytes().length);
+		archiveOutputStream.putArchiveEntry(jsonSignatureFile);
+		archiveOutputStream.write(encodedSignature.getBytes());
+		archiveOutputStream.closeArchiveEntry();
+
+
 	}
 
 	protected void addHTMLFileToZip(ZipArchiveOutputStream archiveOutputStream, String htmlFileName, String sigFileName,
