@@ -780,11 +780,8 @@ def analyze_result_logs(module_id, test_name, variant, test_result, plan_result,
             counts_unexpected['EXPECTED_FAILURES_NOT_HAPPEN'] += 1
 
         elif expected_result == 'warning':
-            if expected_failure_obj.get("fail_on_unnecessary_warning", True):
-                expected_warnings_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
-                counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
-            else:
-                print(f"Ignored unnecessary warning for 'test_plan': {test_plan_name} 'current_block': {expected_block}, 'src': {expected_condition}")
+            expected_warnings_did_not_happen.append({'current_block': expected_block, 'src': expected_condition})
+            counts_unexpected['EXPECTED_WARNINGS_NOT_HAPPEN'] += 1
 
     for expected_skip_obj in test_expected_skips:
         if test_result == 'SKIPPED' or test_result == 'FAILED':
