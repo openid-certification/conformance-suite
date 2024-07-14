@@ -19,7 +19,7 @@ public class VerifyAuthReqIdExpiration extends AbstractCondition {
 			tokenEndpointResponse.addProperty("error", "expired_token");
 			env.putObject("token_endpoint_response", tokenEndpointResponse);
 
-			logFailure("auth_req_id is expired", args("expired", env.getString("auth_req_id_expiration")));
+			throw error("auth_req_id is expired", args("expired", env.getString("auth_req_id_expiration")));
 		}
 
 		logSuccess("auth_req_id is valid");
