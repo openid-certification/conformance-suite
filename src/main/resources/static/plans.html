@@ -170,7 +170,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
          */
         function loadAvailablePlans(public) {
             return $('#plansListing').DataTable({
-                searching: false,
                 serverSide: true,
                 ajax: {
                     url: '/api/plan' + (public ? '?public=true' : ''),
