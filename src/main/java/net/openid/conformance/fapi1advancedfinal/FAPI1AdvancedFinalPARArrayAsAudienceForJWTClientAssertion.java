@@ -1,19 +1,19 @@
 package net.openid.conformance.fapi1advancedfinal;
 
+import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.UpdateClientAuthenticationAssertionClaimsWithISSAud;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims;
 
 
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-test-array-as-audience-for-client-JWT-assertion",
-	summary = "This test sets the audience in client assertion claims at the PAR and token endpoints to be an array containing the authorization server issuer and another dummy value. The authorization server is expected to accept both requests as per discussion at https://gitlab.com/openid/conformance-suite/-/issues/1187",
+	summary = "This test sets the audience in client assertion claims at the PAR and token endpoints to be an array containing the authorization server issuer and another dummy value. The authorization server is expected to accept both requests as per discussion at https://gitlab.com/openid/conformance-suite/-/issues/1187 - in particular as per RFC7523 section 3 the aud value is only required to contain a value that identifies the authorization server as an intended audience.",
 	displayName = "Try to use an array containing the issuer and another value as the audience for Client JWT Assertions at the PAR and token endpoints",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
