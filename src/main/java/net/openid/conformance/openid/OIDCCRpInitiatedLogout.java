@@ -6,6 +6,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInPostLogoutRedirect;
 import net.openid.conformance.condition.client.CheckPostLogoutState;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +48,10 @@ public class OIDCCRpInitiatedLogout extends AbstractOIDCCRpInitiatedLogout {
 	protected Object handlePostLogoutRedirect(JsonObject requestParts) {
 		getTestExecutionManager().runInBackground(() -> {
 			setStatus(Status.RUNNING);
+			if (!expectingLogoutConfirmation) {
+				throw new TestFailureException(getId(), "post_logout_redirect called when not expected");
+			}
+			expectingLogoutConfirmation = false;
 			validateLogoutResults(requestParts);
 			return "done";
 		});

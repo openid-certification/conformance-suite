@@ -12,6 +12,7 @@ import net.openid.conformance.condition.client.CreateRandomEndSessionState;
 
 public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServerTest {
 	protected boolean firstTime = true;
+	protected boolean expectingLogoutConfirmation = false;
 
 	@Override
 	protected String currentClientString() {
@@ -91,6 +92,8 @@ public abstract class AbstractOIDCCRpInitiatedLogout extends AbstractOIDCCServer
 		eventLog.log(getName(), args("msg", "Redirecting to end session endpoint",
 			"redirect_to", redirectTo,
 			"http", "redirect"));
+
+		expectingLogoutConfirmation = true;
 
 		setStatus(Status.WAITING);
 
