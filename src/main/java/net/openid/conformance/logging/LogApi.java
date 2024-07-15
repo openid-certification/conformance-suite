@@ -629,7 +629,7 @@ public class LogApi {
 		//Serializing the signature of the json file
 
 		ZipArchiveEntry jsonSignatureFile = new ZipArchiveEntry(indexJsonSigFilename);
-		encodedSignature = Base64Utils.encodeToUrlSafeString(jsonSignature.sign());
+		encodedSignature = Base64.getUrlEncoder().encodeToString(jsonSignature.sign());
 		jsonSignatureFile.setSize(encodedSignature.getBytes().length);
 		archiveOutputStream.putArchiveEntry(jsonSignatureFile);
 		archiveOutputStream.write(encodedSignature.getBytes());
