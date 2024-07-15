@@ -1,15 +1,16 @@
 package net.openid.conformance.pagination;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class PaginationRequest {
 
@@ -67,25 +68,28 @@ public class PaginationRequest {
 	}
 
 	public <T> PaginationResponse<T> getResponse(
-			Function<Pageable, Page<T>> queryAll,
-			BiFunction<String, Pageable, Page<T>> querySearch) {
+			Supplier<Long> countQueryAll,
+			Function<Pageable, Slice<T>> queryAll,
+			Function<String, Long> countQuerySearch,
+			BiFunction<String, Pageable, Slice<T>> querySearch) {
 
-		Page<T> allResults = queryAll.apply(getPageable());
-		Page<T> filteredResults = Strings.isNullOrEmpty(search) ? allResults : querySearch.apply('\"' + search + '\"', getPageable());
+		Pageable pageable = getPageable();
+		Slice<T> filteredResults = Strings.isNullOrEmpty(search) ? queryAll.apply(pageable) : querySearch.apply('\"' + search + '\"', pageable);
 
-		return new PaginationResponse<T>(draw,
-				allResults.getTotalElements(),
-				filteredResults.getTotalElements(),
-				Lists.newArrayList(filteredResults));
+		long totalElementCount = countQueryAll.get();
+		long filteredElementCount = Strings.isNullOrEmpty(search) ? totalElementCount : countQuerySearch.apply(search);
+
+		List<T> data = List.copyOf(filteredResults.getContent());
+		return new PaginationResponse<>(draw, totalElementCount, filteredElementCount, data);
 	}
 
 	private Pageable getPageable() {
-		int l = length;
-		if (l == 0) {
-			l = 10;
+		int pageSize = length;
+		if (pageSize == 0) {
+			pageSize = 10;
 		}
 
-		return PageRequest.of(start / l, l, getSort());
+		return PageRequest.of(start / pageSize, pageSize, getSort());
 	}
 
 	private Sort getSort() {

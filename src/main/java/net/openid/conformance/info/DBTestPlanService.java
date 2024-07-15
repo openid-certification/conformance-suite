@@ -163,11 +163,15 @@ public class DBTestPlanService implements TestPlanService {
 		if (!authenticationFacade.isAdmin()) {
 			Map<String, String> owner = authenticationFacade.getPrincipal();
 			return page.getResponse(
+					() -> plans.countAllByOwner(owner),
 					p -> plans.findAllByOwner(owner, p),
+					s -> plans.countAllByOwnerSearch(owner, s),
 					(s, p) -> plans.findAllByOwnerSearch(owner, s, p));
 		} else {
 			return page.getResponse(
-					p -> plans.findAll(p),
+					() -> plans.count(),
+					p -> plans.findAllBy(p),
+					s -> plans.countAllSearch(s),
 					(s, p) -> plans.findAllSearch(s, p));
 		}
 	}
@@ -176,7 +180,9 @@ public class DBTestPlanService implements TestPlanService {
 	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page) {
 
 		return page.getResponse(
+			() -> plans.countAllPublic(),
 				p -> plans.findAllPublic(p),
+				s -> plans.countAllPublicSearch(s),
 				(s, p) -> plans.findAllPublicSearch(s, p));
 	}
 

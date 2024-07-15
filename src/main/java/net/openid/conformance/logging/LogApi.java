@@ -112,16 +112,22 @@ public class LogApi {
 
 		if (publicOnly) {
 			response = page.getResponse(
+					() -> testInfos.countAllPublic(),
 					p -> testInfos.findAllPublic(p),
+				s -> testInfos.countAllPublicSearch(s),
 					(s, p) -> testInfos.findAllPublicSearch(s, p));
 		} else if (authenticationFacade.isAdmin()) {
 			response = page.getResponse(
-					p -> testInfos.findAll(p),
+					() -> testInfos.count(),
+					p -> testInfos.findAllBy(p),
+					s -> testInfos.countAllSearch(s),
 					(s, p) -> testInfos.findAllSearch(s, p));
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 			response = page.getResponse(
+					() -> testInfos.countAllByOwner(owner),
 					p -> testInfos.findAllByOwner(owner, p),
+					s -> testInfos.countAllByOwnerSearch(owner, s),
 					(s, p) -> testInfos.findAllByOwnerSearch(owner, s, p));
 		}
 
