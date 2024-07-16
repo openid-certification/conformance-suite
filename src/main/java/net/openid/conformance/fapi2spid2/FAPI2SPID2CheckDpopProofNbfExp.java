@@ -42,11 +42,9 @@ public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTest
 		super.setupCreateDpopForEndpointSteps();
 
 		createDpopForTokenEndpointSteps = () -> CreateDpopProofSteps.createTokenEndpointDpopSteps()
-			.insertBefore(SignDpopProof.class, condition(SetDpopNbfToNow.class))
-			.insertBefore(SignDpopProof.class, condition(SetDpopExpToFiveMinutesInFuture.class));
+			.insertBefore(SignDpopProof.class, sequenceOf(condition(SetDpopNbfToNow.class), condition(SetDpopExpToFiveMinutesInFuture.class)));
 
 		createDpopForResourceEndpointSteps = ()-> CreateDpopProofSteps.createResourceEndpointDpopSteps()
-			.insertBefore(SignDpopProof.class, condition(SetDpopNbfToNow.class))
-			.insertBefore(SignDpopProof.class, condition(SetDpopExpToFiveMinutesInFuture.class));
+			.insertBefore(SignDpopProof.class, sequenceOf(condition(SetDpopNbfToNow.class), condition(SetDpopExpToFiveMinutesInFuture.class)));
 	}
 }
