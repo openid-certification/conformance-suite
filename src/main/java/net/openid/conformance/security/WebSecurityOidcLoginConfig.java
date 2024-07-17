@@ -110,9 +110,7 @@ class WebSecurityOidcLoginConfig
 					"/jwks**",  //
 					"/logout.html", //
 					"/robots.txt",  //
-					"/.well-known/**", //
-					"/api/**", //
-					"/hello" //
+					"/.well-known/**" //
 				) //
 				.permitAll();
 
@@ -138,17 +136,7 @@ class WebSecurityOidcLoginConfig
 				clientRegistrationRepository, //
 				OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI //
 			);
-			Consumer<OAuth2AuthorizationRequest.Builder> authorizationRequestCustomizer = OAuth2AuthorizationRequestCustomizers.withPkce().andThen(authzUrlBuilder -> {
-				authzUrlBuilder.attributes(attrs -> {
-
-					// TODO handle custom client parameters here as previously in AuthRequestUrlBuilderWithFixedScopes
-					// registration_id -> indicator for custom client registration
-					String registrationId = (String) attrs.get("registration_id");
-//						ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
-
-					logger.debug("configure authorizationRequest for {}", registrationId);
-				});
-			});
+			Consumer<OAuth2AuthorizationRequest.Builder> authorizationRequestCustomizer = OAuth2AuthorizationRequestCustomizers.withPkce();
 			oauth2AuthRequestResolver.setAuthorizationRequestCustomizer(authorizationRequestCustomizer);
 			oauth2Client.authorizationCodeGrant(codeGrant -> {
 				codeGrant.authorizationRequestResolver(oauth2AuthRequestResolver);

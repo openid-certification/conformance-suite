@@ -83,8 +83,6 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 			return null;
 		}
 
-		// TODO: we might be able to build this off of other properties instead
-
 		OidcUser principal = (OidcUser) auth.getPrincipal();
 		String issuer = principal.getIssuer().toString();
 		String subject;
