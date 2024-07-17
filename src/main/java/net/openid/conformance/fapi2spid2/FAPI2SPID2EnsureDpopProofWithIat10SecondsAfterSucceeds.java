@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi2spid2;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.SetDpopIatTo10SecondsAfter;
+import net.openid.conformance.condition.client.SetDpopIatTo8SecondsInFuture;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -42,11 +42,11 @@ public class FAPI2SPID2EnsureDpopProofWithIat10SecondsAfterSucceeds extends Abst
 	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
 	public void setupCreateDpopForEndpointSteps() {
 		createDpopForParEndpointSteps = () -> CreateDpopProofSteps.createParEndpointDpopSteps()
-			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo10SecondsAfter.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
+			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
 		createDpopForTokenEndpointSteps = () -> CreateDpopProofSteps.createTokenEndpointDpopSteps()
-			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo10SecondsAfter.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
+			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
 		createDpopForResourceEndpointSteps = () -> CreateDpopProofSteps.createResourceEndpointDpopSteps()
-			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo10SecondsAfter.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
+			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
 	}
 
 
