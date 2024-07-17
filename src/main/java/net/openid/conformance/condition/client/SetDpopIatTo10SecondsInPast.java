@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.time.Instant;
 
-public class SetDpopIatTo10SecondsBefore extends AbstractCondition {
+public class SetDpopIatTo10SecondsInPast extends AbstractCondition {
 
 	@Override
 
