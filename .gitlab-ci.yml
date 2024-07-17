@@ -187,6 +187,34 @@ deploy-staging:
   only:
     - master
 
+scale up env:
+  <<: *deploy
+  dependencies: ["deploy-review"]
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+  when: manual
+  script:
+    - scale_up
+  except:
+    - master
+    - production
+    - demo
+
+scale down env:
+  extends: .auto-deploy
+  stage: cleanup
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+  script:
+    - auto-deploy use_kube_context || true
+    - auto-deploy ensure_namespace
+    - scale_down
+  except:
+    - master
+    - production
+    - demo
+  when: always
+
 stop_review:
   extends: .auto-deploy
   stage: cleanup
@@ -612,6 +640,13 @@ local_test:
     ../conformance-suite/.gitlab-ci/run-tests.sh --panva-tests-only
   }
 
+  function scale_down(){
+    kubectl scale deploy -n $KUBE_NAMESPACE --replicas=0 --all
+  }
+
+  function scale_up(){
+    kubectl scale deploy -n $KUBE_NAMESPACE --replicas=1 --all
+  }
 
 before_script:
   - *auto_devops
