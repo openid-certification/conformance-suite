@@ -12,7 +12,7 @@ import net.openid.conformance.condition.client.SetDpopHtmHtuForParEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
 import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetDpopProofNonceForResourceEndpoint;
-import net.openid.conformance.condition.client.SetDpopProofNonceForTokenEndpoint;
+import net.openid.conformance.condition.client.SetDpopProofNonceForAuthorizationServer;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -49,12 +49,12 @@ public class CreateDpopProofSteps extends AbstractConditionSequence {
 		switch (proofType) {
 			case TOKEN:
 				callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
-				callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
+				callAndContinueOnFailure(SetDpopProofNonceForAuthorizationServer.class, ConditionResult.INFO);
 				break;
 
 			case PAR:
 				callAndStopOnFailure(SetDpopHtmHtuForParEndpoint.class);
-				callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
+				callAndContinueOnFailure(SetDpopProofNonceForAuthorizationServer.class, ConditionResult.INFO);
 				break;
 
 			case RESOURCE:

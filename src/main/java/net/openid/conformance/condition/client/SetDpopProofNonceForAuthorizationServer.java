@@ -6,7 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class SetDpopProofNonceForTokenEndpoint extends AbstractCondition {
+public class SetDpopProofNonceForAuthorizationServer extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"dpop_proof_claims"})
