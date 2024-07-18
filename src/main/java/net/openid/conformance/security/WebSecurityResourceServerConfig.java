@@ -43,15 +43,16 @@ public class WebSecurityResourceServerConfig {
 	@Bean
 	protected SecurityFilterChain filterChainResourceServer(HttpSecurity http, ApiTokenAuthenticationProvider apiTokenAuthenticationProvider) throws Exception {
 
-		http.csrf(AbstractHttpConfigurer::disable);
 		http.securityMatcher(request -> {
 			// only handle API requests with this filter chain
 			return request.getRequestURI().startsWith("/api/");
 		});
 
+		http.csrf(AbstractHttpConfigurer::disable);
+
 		// enforce https
 		http.requiresChannel(channelRequest -> {
-			channelRequest.anyRequest().requiresSecure();
+			channelRequest.anyRequest().requiresSecure().channelProcessors(List.of(new RejectPlainHttpTrafficChannelProcessor()));
 		});
 
 		http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.NEVER));

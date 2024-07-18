@@ -90,12 +90,18 @@ class WebSecurityOidcLoginConfig
 	@Bean
 	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
 
-		http.csrf(AbstractHttpConfigurer::disable);
-
 		http.securityMatcher(request -> {
 			// only handle NON-API requests with this filter chain
 			return !request.getRequestURI().startsWith("/api/");
 		});
+
+		http.csrf(AbstractHttpConfigurer::disable);
+
+		// enforce https
+		http.requiresChannel(channelRequest -> {
+			channelRequest.anyRequest().requiresSecure().channelProcessors(List.of(new RejectPlainHttpTrafficChannelProcessor()));
+		});
+
 		http.authorizeHttpRequests(httpRequests -> {
 			httpRequests //
 				.requestMatchers( //
