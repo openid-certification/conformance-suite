@@ -87,7 +87,7 @@ public class CheckForBCP195InsecureFAPICiphers extends AbstractCondition {
 		if (detectedUnwantedCypherSuites.isEmpty()) {
 			logSuccess("The TLS peer uses none of the insecure ciphers.", args("host", tlsTestHost, "port", tlsTestPort, "insecureCiphers", INSECURE_CIPHERS.values()));
 		} else {
-			logFailure("The TLS peer uses some insecure ciphers according to BCP195. The used ciphers are vulnerable to a denial of service attack as per \"RFC9325 Appendix A. Differences from RFC 7525\"", args("host", tlsTestHost, "port", tlsTestPort, "insecureCiphers", detectedUnwantedCypherSuites));
+			throw error("The TLS peer uses some insecure ciphers according to BCP195. The used ciphers are vulnerable to a denial of service attack as per \"RFC9325 Appendix A. Differences from RFC 7525\"", args("host", tlsTestHost, "port", tlsTestPort, "insecureCiphers", detectedUnwantedCypherSuites));
 		}
 
 		return env;
