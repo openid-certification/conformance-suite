@@ -26,6 +26,8 @@ mongo
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/inspectionProfiles/
+.idea/jarRepositories.xml
 
 # Sensitive or high-churn files
 .idea/**/dataSources/
