@@ -1,6 +1,5 @@
 package net.openid.conformance.fapi2spid2;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
@@ -60,7 +59,7 @@ public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaim
 
 		callAndContinueOnFailure(EnsureIdTokenContainsRequestedClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5");
 
-		callAndContinueOnFailure(EnsureIdTokenContainsMandatoryFAPI2Claims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2.9");
+		callAndContinueOnFailure(EnsureIdTokenContainsMandatoryFAPI2Claims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2.6");
 
 		// We don't include this check in the more general PerformStandardIdTokenChecks as it could be pretty noisy
 		callAndContinueOnFailure(CheckForUnexpectedClaimsInIdToken.class, Condition.ConditionResult.WARNING, "OIDCC-5.1");
