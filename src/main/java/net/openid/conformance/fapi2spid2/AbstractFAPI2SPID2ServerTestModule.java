@@ -15,9 +15,6 @@ import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResource
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AddDpopHeaderForParEndpointRequest;
-import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
@@ -59,8 +56,6 @@ import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkippe
 import net.openid.conformance.condition.client.ConnectIdAddPurposeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
-import net.openid.conformance.condition.client.CreateDpopClaims;
-import net.openid.conformance.condition.client.CreateDpopHeader;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
@@ -70,7 +65,6 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
-import net.openid.conformance.condition.client.EnsureDpopNonceContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
@@ -121,18 +115,11 @@ import net.openid.conformance.condition.client.SetApplicationJwtAcceptHeaderForR
 import net.openid.conformance.condition.client.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
-import net.openid.conformance.condition.client.SetDpopHtmHtuForParEndpoint;
-import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
-import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
-import net.openid.conformance.condition.client.SetDpopProofNonceForResourceEndpoint;
-import net.openid.conformance.condition.client.SetDpopProofNonceForTokenEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToMtlsUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
-import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
@@ -169,6 +156,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
+import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
@@ -256,7 +244,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	private Class <? extends ConditionSequence> profileIdTokenValidationSteps;
 	private Class <? extends ConditionSequence> supportMTLSEndpointAliases;
 	protected Class <? extends ConditionSequence> addParEndpointClientAuthentication;
-	protected Class <? extends ConditionSequence> createDpopForResourceEndpointSteps;
+	protected Supplier <? extends ConditionSequence> createDpopForParEndpointSteps;
+	protected Supplier <? extends ConditionSequence> createDpopForTokenEndpointSteps;
+	protected Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -797,13 +787,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		if(null == env.getElementFromObject("client", "dpop_private_jwk")) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
-		callAndStopOnFailure(CreateDpopHeader.class);
-		callAndStopOnFailure(CreateDpopClaims.class);
-		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
-		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
-		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "DPOP-8.1");
-		callAndStopOnFailure(SignDpopProof.class);
-		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+		if (null != createDpopForTokenEndpointSteps) {
+			call(sequence(createDpopForTokenEndpointSteps));
+		}
 	}
 
 	protected void createDpopForParEndpoint() {
@@ -811,13 +797,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		if(null == env.getElementFromObject("client", "dpop_private_jwk")) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
-		callAndStopOnFailure(CreateDpopHeader.class);
-		callAndStopOnFailure(CreateDpopClaims.class);
-		callAndStopOnFailure(SetDpopHtmHtuForParEndpoint.class);
-		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, ConditionResult.INFO);
-		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "DPOP-8.1");
-		callAndStopOnFailure(SignDpopProof.class);
-		callAndStopOnFailure(AddDpopHeaderForParEndpointRequest.class);
+		if (null != createDpopForParEndpointSteps) {
+			call(sequence(createDpopForParEndpointSteps));
+		}
 	}
 
 	@Override
@@ -887,10 +869,10 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 	public static class UpdateResourceRequestSteps extends AbstractConditionSequence {
 
-		protected Class <? extends ConditionSequence> createDpopForResourceEndpointSteps;
+		protected Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps;
 		protected boolean brazilPayments;
 
-		public UpdateResourceRequestSteps(Class <? extends ConditionSequence> createDpopForResourceEndpointSteps, boolean brazilPayments) {
+		public UpdateResourceRequestSteps(Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps, boolean brazilPayments) {
 			this.createDpopForResourceEndpointSteps = createDpopForResourceEndpointSteps;
 			this.brazilPayments = brazilPayments;
 		}
@@ -1057,20 +1039,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		eventLog.endBlock();
 	}
 
-	public static class CreateDpopSteps extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(CreateDpopHeader.class);
-			callAndStopOnFailure(CreateDpopClaims.class);
-			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
-			callAndStopOnFailure(SetDpopAccessTokenHash.class);
-			callAndContinueOnFailure(SetDpopProofNonceForResourceEndpoint.class, ConditionResult.INFO);
-			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, ConditionResult.FAILURE, "DPOP-8.1");
-			callAndStopOnFailure(SignDpopProof.class);
-			callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
-		}
-	}
-
 	protected void validateBrazilPaymentInitiationSignedResponse() {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
@@ -1184,8 +1152,10 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
-	public void setupCreateDpopForResourceEndpointSteps() {
-		createDpopForResourceEndpointSteps = CreateDpopSteps.class;
+	public void setupCreateDpopForEndpointSteps() {
+		createDpopForParEndpointSteps = () -> CreateDpopProofSteps.createParEndpointDpopSteps();
+		createDpopForTokenEndpointSteps = () -> CreateDpopProofSteps.createTokenEndpointDpopSteps();
+		createDpopForResourceEndpointSteps = () -> CreateDpopProofSteps.createResourceEndpointDpopSteps();
 	}
 
 	protected boolean scopeContains(String requiredScope) {

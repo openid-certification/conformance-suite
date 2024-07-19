@@ -1,21 +1,9 @@
 package net.openid.conformance.fapi2spid2;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddDpopHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddDpopHeaderForTokenEndpointRequest;
-import net.openid.conformance.condition.client.CreateDpopClaims;
-import net.openid.conformance.condition.client.CreateDpopHeader;
-import net.openid.conformance.condition.client.EnsureDpopNonceContainsAllowedCharactersOnly;
-import net.openid.conformance.condition.client.GenerateDpopKey;
-import net.openid.conformance.condition.client.SetDpopAccessTokenHash;
 import net.openid.conformance.condition.client.SetDpopExpToFiveMinutesInFuture;
-import net.openid.conformance.condition.client.SetDpopHtmHtuForResourceEndpoint;
-import net.openid.conformance.condition.client.SetDpopHtmHtuForTokenEndpoint;
 import net.openid.conformance.condition.client.SetDpopNbfToNow;
-import net.openid.conformance.condition.client.SetDpopProofNonceForResourceEndpoint;
-import net.openid.conformance.condition.client.SetDpopProofNonceForTokenEndpoint;
 import net.openid.conformance.condition.client.SignDpopProof;
-import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -50,42 +38,13 @@ public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTest
 
 	@Override
 	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
-	public void setupCreateDpopForResourceEndpointSteps() {
-		createDpopForResourceEndpointSteps = CreateDpopWithNbfExpForResourceEndpointSteps.class;
-	}
+	public void setupCreateDpopForEndpointSteps() {
+		super.setupCreateDpopForEndpointSteps();
 
-	public static class CreateDpopWithNbfExpForResourceEndpointSteps extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(CreateDpopHeader.class);
-			callAndStopOnFailure(CreateDpopClaims.class);
-			callAndContinueOnFailure(SetDpopProofNonceForResourceEndpoint.class, Condition.ConditionResult.INFO);
-			call(exec().mapKey("resource_server_dpop_nonce", "authorization_server_dpop_nonce"));
-			callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "DPOP-8.1");
-			call(exec().unmapKey("resource_server_dpop_nonce"));
-			callAndStopOnFailure(SetDpopHtmHtuForResourceEndpoint.class);
-			callAndStopOnFailure(SetDpopAccessTokenHash.class);
-			callAndStopOnFailure(SetDpopNbfToNow.class);
-			callAndStopOnFailure(SetDpopExpToFiveMinutesInFuture.class);
-			callAndStopOnFailure(SignDpopProof.class);
-			callAndStopOnFailure(AddDpopHeaderForResourceEndpointRequest.class);
-		}
-	}
+		createDpopForTokenEndpointSteps = () -> CreateDpopProofSteps.createTokenEndpointDpopSteps()
+			.insertBefore(SignDpopProof.class, sequenceOf(condition(SetDpopNbfToNow.class), condition(SetDpopExpToFiveMinutesInFuture.class)));
 
-
-	@Override
-	protected void createDpopForTokenEndpoint() {
-		if (null == env.getElementFromObject("client", "dpop_private_jwk")) {
-			callAndStopOnFailure(GenerateDpopKey.class);
-		}
-		callAndStopOnFailure(CreateDpopHeader.class);
-		callAndStopOnFailure(CreateDpopClaims.class);
-		callAndContinueOnFailure(SetDpopProofNonceForTokenEndpoint.class, Condition.ConditionResult.INFO);
-		callAndContinueOnFailure(EnsureDpopNonceContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "DPOP-8.1");
-		callAndStopOnFailure(SetDpopHtmHtuForTokenEndpoint.class);
-		callAndStopOnFailure(SetDpopNbfToNow.class);
-		callAndStopOnFailure(SetDpopExpToFiveMinutesInFuture.class);
-		callAndStopOnFailure(SignDpopProof.class);
-		callAndStopOnFailure(AddDpopHeaderForTokenEndpointRequest.class);
+		createDpopForResourceEndpointSteps = ()-> CreateDpopProofSteps.createResourceEndpointDpopSteps()
+			.insertBefore(SignDpopProof.class, sequenceOf(condition(SetDpopNbfToNow.class), condition(SetDpopExpToFiveMinutesInFuture.class)));
 	}
 }
