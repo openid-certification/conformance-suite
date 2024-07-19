@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.util.StringUtils;
 
 public class EnsureIdTokenContainsMandatoryFAPI2Claims extends AbstractCondition {
@@ -17,7 +18,7 @@ public class EnsureIdTokenContainsMandatoryFAPI2Claims extends AbstractCondition
 		if (!txnValuePresent) {
 			throw error("id_token does not contain txn claim.");
 		}
-		String txnValue = idTokenClaims.get("txn").getAsString();
+		String txnValue = OIDFJSON.getString(idTokenClaims.get("txn"));
 		if (!StringUtils.hasText(txnValue)) {
 			throw error("id_token contains an empty txn claim.");
 		}
