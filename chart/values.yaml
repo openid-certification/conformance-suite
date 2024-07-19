@@ -54,7 +54,7 @@ mongodb:
     requests:
       cpu: 100m
   persistence:
-    size: 3Gi
+    size: 250Gi
     storageClass: premium-rwo
   updateStrategy:
     type: Recreate
