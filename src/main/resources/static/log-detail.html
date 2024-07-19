@@ -667,7 +667,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                                         FAPI_UI.showBusy('Creating a new test for ' + nextModule.testModule + '...');
 
-                                        var runTestUrl = '/api/runner/?test=' + encodeURIComponent(nextModule.testModule) + '&plan=' + encodeURIComponent(data.planId);
+                                        var runTestUrl = '/api/runner?test=' + encodeURIComponent(nextModule.testModule) + '&plan=' + encodeURIComponent(data.planId);
                                         var testVariant = nextModule.variant;
                                         if (testVariant !== null && testVariant !== undefined) {
                                             runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
@@ -1262,7 +1262,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         }
 
         function runTest(testName, testVariant, planId, config, oldTestId) {
-            var runTestUrl = '/api/runner/?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : '');
+            var runTestUrl = '/api/runner?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : '');
 
             if (testVariant !== null && testVariant !== undefined) {
                 runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));

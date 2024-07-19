@@ -34,7 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
 	"client.post_logout_redirect_uri"

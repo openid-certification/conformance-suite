@@ -1,22 +1,12 @@
 package net.openid.conformance.security;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import org.mitre.openid.connect.client.OIDCAuthoritiesMapper;
-import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
-import org.mitre.openid.connect.model.UserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,50 +14,43 @@ import java.util.Set;
  * plus adds ROLE_ADMIN if the userInfo or id_token 'groups' member (provided by gitlab or Azure) contains a specific group name.
  */
 public class GroupsAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
-	private static final Logger logger = LoggerFactory.getLogger(GroupsAdminAuthoritiesMapper.class);
 
-	private String ADMIN_GROUP;
+	private final String adminGroup;
 
-	private String ADMIN_ISSUER;
+	private final String adminIssuer;
 
 	@Override
-	public Collection<? extends GrantedAuthority> mapAuthorities(JWT idToken, UserInfo userInfo) {
+	public Collection<? extends GrantedAuthority> mapAuthorities(OidcIdToken idToken, OidcUserInfo userInfo) {
 
 		Set<GrantedAuthority> out = new HashSet<>();
 
-		try {
-			JWTClaimsSet claims = idToken.getJWTClaimsSet();
-			SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
-			out.add(authority);
-			if (claims.getIssuer().equalsIgnoreCase(ADMIN_ISSUER))
-			{
-				JsonElement groupsEl = null;
-				if (userInfo != null) {
-					groupsEl = userInfo.getSource().get("groups");
-				}
-				if (groupsEl == null) {
-					// if not in userinfo, check in id_token instead (azure can only put it here)
-					JsonObject idTokenClaims = JsonParser.parseString(claims.toString()).getAsJsonObject();
-					groupsEl = idTokenClaims.get("groups");
-				}
-				if (groupsEl.isJsonArray()) {
-					JsonArray groups = (JsonArray) groupsEl;
-					JsonElement adminGroup = new JsonPrimitive(ADMIN_GROUP);
-					if (groups.contains(adminGroup)) {
-						out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
-					}
+		String subject = idToken.getSubject();
+		String issuer = idToken.getIssuer().toString();
+		SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(subject, issuer);
+		out.add(authority);
+		if (issuer.equalsIgnoreCase(adminIssuer))
+		{
+			List<String> groupsEl = null;
+			if (userInfo != null) {
+				groupsEl = userInfo.getClaim("groups");
+			}
+			if (groupsEl == null) {
+				// if not in userinfo, check in id_token instead (azure can only put it here)
+				groupsEl = idToken.getClaimAsStringList("groups");
+			}
+			if (groupsEl != null) {
+				if (groupsEl.contains(adminGroup)) {
+					out.add(OIDCAuthenticationFacade.ROLE_ADMIN);
 				}
 			}
-			out.add(OIDCAuthenticationFacade.ROLE_USER);
-		} catch (ParseException e) {
-			logger.error("Unable to parse ID Token inside of authorities mapper", e);
 		}
+		out.add(OIDCAuthenticationFacade.ROLE_USER);
 		return out;
 	}
 
 	public GroupsAdminAuthoritiesMapper(String adminGroup, String adminIss) {
 
-		this.ADMIN_GROUP = adminGroup;
-		this.ADMIN_ISSUER = adminIss;
+		this.adminGroup = adminGroup;
+		this.adminIssuer = adminIss;
 	}
 }

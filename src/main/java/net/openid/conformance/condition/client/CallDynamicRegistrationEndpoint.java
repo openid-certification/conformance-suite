@@ -106,7 +106,7 @@ public class CallDynamicRegistrationEndpoint extends AbstractCondition {
 
 			} catch (RestClientResponseException e) {
 				throw error("RestClientResponseException occurred whilst calling registration endpoint",
-					args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+					args("code", e.getStatusCode().value(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				return handleClientException(env, e);
 			}

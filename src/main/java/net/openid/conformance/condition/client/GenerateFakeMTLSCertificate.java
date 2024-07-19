@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.bouncycastle.asn1.DERObjectIdentifier;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
@@ -82,7 +82,7 @@ public class GenerateFakeMTLSCertificate extends AbstractFAPIBrazilExtractCertif
 			for (String oid : critExts) {
 				if(!clientCertOidsNeverToCopy.contains(oid)
 					&& !extensionOidsNotToCopy.contains(oid)) {
-						v3CertGen.copyAndAddExtension(new DERObjectIdentifier(oid), true, originalCert);
+						v3CertGen.copyAndAddExtension(new ASN1ObjectIdentifier(oid), true, originalCert);
 				}
 			}
 		}
@@ -92,7 +92,7 @@ public class GenerateFakeMTLSCertificate extends AbstractFAPIBrazilExtractCertif
 			for(String oid: nonCritExs) {
 				if(!clientCertOidsNeverToCopy.contains(oid)
 					&& !extensionOidsNotToCopy.contains(oid)){
-					v3CertGen.copyAndAddExtension(new DERObjectIdentifier(oid), false, originalCert);
+					v3CertGen.copyAndAddExtension(new ASN1ObjectIdentifier(oid), false, originalCert);
 				}
 			}
 		}

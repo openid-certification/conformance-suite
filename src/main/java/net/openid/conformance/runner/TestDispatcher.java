@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -37,9 +38,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Iterator;
@@ -72,7 +73,8 @@ public class TestDispatcher implements DataUtils {
 		HttpSession session,
 		@RequestHeader MultiValueMap<String, String> headers,
 		@RequestBody(required = false) String body,
-		@RequestHeader(name = "Content-type", required = false) MediaType contentType) {
+		@RequestHeader(name = "Content-type", required = false) MediaType contentType,
+		@RequestParam(required=false) Map<String,String> requestParams) {
 
 		/*
 		 * We have to parse the path by hand so that we can match the substrings that apply
@@ -118,9 +120,23 @@ public class TestDispatcher implements DataUtils {
 			// convert the parameters and headers into a JSON object to make it easier for the test modules to ingest
 			JsonObject requestParts = new JsonObject();
 			requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
-			requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(req.getQueryString()), false));
+			MultiValueMap<String, String> queryParams = convertQueryStringParamsToMap(req.getQueryString());
+			requestParts.add("query_string_params", mapToJsonObject(queryParams, false));
 			requestParts.addProperty("method", req.getMethod().toUpperCase()); // method is always uppercase
 			requestParts.addProperty("request_url", req.getRequestURL().toString());
+
+			if (contentType != null
+				&& body == null
+				&& contentType.equalsTypeAndSubtype(MediaType.APPLICATION_FORM_URLENCODED)
+				&& !CollectionUtils.isEmpty(requestParams)) {
+				// workaround for changes in request body parsing when migrating from Spring Boot V2 to Spring Boot V3.
+				// Sometimes the request body for a FORM POST was empty, but `requestParams` properly captured the form parameter and query parameter values.
+				// The following ensures that the body is properly populated.
+				requestParams.keySet().removeIf(queryParams::containsKey); // remove query parameters as they are already captured in `queryParams`
+				body = String.join("&", requestParams.entrySet().stream()
+					.map(nameValue -> nameValue.getKey() + "=" + nameValue.getValue())
+					.toList());
+			}
 
 			if (body != null) {
 				requestParts.addProperty("body", body);
@@ -349,7 +365,7 @@ public class TestDispatcher implements DataUtils {
 				"msg", "Response to HTTP request to test instance " + test.getId(),
 				"http", "outgoing",
 				"outgoing_path", path,
-				"outgoing_status_code", responseEntity.getStatusCodeValue(),
+				"outgoing_status_code", responseEntity.getStatusCode().value(),
 				"outgoing_headers", responseEntity.getHeaders(),
 				"outgoing_body", responseEntity.getBody()));
 		} else {

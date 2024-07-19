@@ -14,17 +14,19 @@ import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -572,16 +574,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException,
 				KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
 
-		HttpClientBuilder builder = HttpClientBuilder.create()
-			.useSystemProperties();
-
-		int timeout = 60; // seconds
-		RequestConfig config = RequestConfig.custom()
-			.setConnectTimeout(timeout * 1000)
-			.setConnectionRequestTimeout(timeout * 1000)
-			.setSocketTimeout(timeout * 1000).build();
-		builder.setDefaultRequestConfig(config);
-
 		KeyManager[] km = null;
 
 		// initialize MTLS if it's available
@@ -600,11 +592,11 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 				}
 
 				@Override
-				public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				public void checkServerTrusted(X509Certificate[] chain, String authType) {
 				}
 
 				@Override
-				public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				public void checkClientTrusted(X509Certificate[] chain, String authType) {
 				}
 			}
 		};
@@ -612,21 +604,29 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		SSLContext sc = SSLContext.getInstance("TLS");
 		sc.init(km, trustAllCerts, new java.security.SecureRandom());
 
-		builder.setSSLContext(sc);
+		SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
+			.setSslContext(sc)
+			.setTlsVersions(restrictAllowedTLSVersions ? new String[]{"TLSv1.2"} : null)
+			.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+			.build();
 
-		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sc,
-			(restrictAllowedTLSVersions ? new String[] { "TLSv1.2" } : null),
-			null,
-			NoopHostnameVerifier.INSTANCE);
+		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
+		builder.setDefaultRequestConfig(RequestConfig.custom().build());
 
-		builder.setSSLSocketFactory(sslConnectionSocketFactory);
-
-		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory> create()
-			.register("https", sslConnectionSocketFactory)
+		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+			.register("https", sslConnectionFactory)
 			.register("http", new PlainConnectionSocketFactory())
 			.build();
 
-		HttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+		int timeout = 60; // seconds
+		ccm.setConnectionConfig(ConnectionConfig.custom()
+			.setConnectTimeout(Timeout.ofSeconds(timeout))
+			.setSocketTimeout(Timeout.ofSeconds(timeout))
+			.setTimeToLive(Timeout.ofSeconds(timeout))
+			.build());
+
+
 		builder.setConnectionManager(ccm);
 
 		builder.disableRedirectHandling();

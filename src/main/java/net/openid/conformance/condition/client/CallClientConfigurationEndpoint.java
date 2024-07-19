@@ -85,7 +85,7 @@ public class CallClientConfigurationEndpoint extends AbstractCondition {
 				logSuccess("Called registration_client_uri", responseInfo);
 
 			} catch (RestClientResponseException e) {
-				throw error("Error from registration_client_uri", args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+				throw error("Error from registration_client_uri", args("code", e.getStatusCode().value(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 			} catch (RestClientException e) {
 				return handleClientException(env, registrationClientUri, e);
 			}

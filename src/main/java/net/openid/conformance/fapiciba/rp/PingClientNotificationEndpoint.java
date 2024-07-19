@@ -64,7 +64,7 @@ public class PingClientNotificationEndpoint extends AbstractCondition {
 
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
 		throw error("RestClientResponseException occurred whilst calling token endpoint",
-			args("code", e.getRawStatusCode(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
+			args("code", e.getStatusCode().value(), "status", e.getStatusText(), "body", e.getResponseBodyAsString()));
 	}
 
 	protected Environment handleClientException(Environment env, RestClientException e) {

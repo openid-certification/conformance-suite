@@ -3,12 +3,13 @@ package net.openid.conformance.info;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.Map;
 import java.util.Optional;
 
-public interface TestInfoRepository extends PagingAndSortingRepository<TestInfo, String> {
+public interface TestInfoRepository extends PagingAndSortingRepository<TestInfo, String>, CrudRepository<TestInfo, String> {
 
 	@Query("{ $text: { $search: ?0 } }")
 	Page<TestInfo> findAllSearch(String search, Pageable pageable);

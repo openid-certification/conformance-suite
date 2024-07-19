@@ -45,8 +45,8 @@ public class PathMatchingTest {
 	@Test
 	public void the_exclusion_pattern_does_not_exclude_paths_that_do_not_end_with_authorize() throws Exception {
 
-		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/b/"));
-		Assert.assertTrue(pathMatcher.match(patternWithExclusions, "/test/a/b/"));
+		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/b"));
+		Assert.assertTrue(pathMatcher.match(patternWithExclusions, "/test/a/b"));
 
 		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/fintech-clienttest/.well-known/openid-configuration"));
 		Assert.assertTrue(pathMatcher.match(patternWithExclusions, "/test/a/fintech-clienttest/.well-known/openid-configuration"));
@@ -55,8 +55,8 @@ public class PathMatchingTest {
 	@Test
 	public void the_exclusion_pattern_does_not_exclude_paths_that_contain_authorize_as_a_proper_substring() throws Exception {
 
-		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/authorize/b/"));
-		Assert.assertTrue(pathMatcher.match(patternWithExclusions, "/test/authorize/b/"));
+		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/authorize/b"));
+		Assert.assertTrue(pathMatcher.match(patternWithExclusions, "/test/authorize/b"));
 
 		Assert.assertTrue(pathMatcher.match(originalPattern, "/test/a/fintech-authorize/.well-known/openid-configuration"));
 		Assert.assertTrue(pathMatcher.match(patternWithExclusions, "/test/a/fintech-authorize/.well-known/openid-configuration"));

@@ -12,7 +12,7 @@ public class PingClientNotificationEndpointWithBadBearerToken extends PingClient
 
 	@Override
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
-		env.putInteger("client_notification_endpoint_response_http_status", e.getRawStatusCode());
+		env.putInteger("client_notification_endpoint_response_http_status", e.getStatusCode().value());
 		env.putBoolean("client_was_pinged", true);
 
 		return env;

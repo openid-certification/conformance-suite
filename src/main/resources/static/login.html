@@ -35,33 +35,9 @@
                 <p id="error" class="bg-danger collapse">There was an error logging you in: <span id="error-details"></span></p>
                 <p id="logout" class="bg-info collapse">You have been logged out.</p>
                 <p class="text-center">
-                    <a class="btn btn-lg btn-danger bg-gradient border border-secondary" href="/openid_connect_login?iss=https://accounts.google.com">Log in with Google</a>
-                    <a class="btn btn-lg btn-primary bg-gradient border border-secondary" href="/openid_connect_login?iss=https://gitlab.com">Log in with gitlab</a>
+                    <a class="btn btn-lg btn-danger bg-gradient border border-secondary" href="/oauth2/authorization/google">Log in with Google</a>
+                    <a class="btn btn-lg btn-primary bg-gradient border border-secondary" href="/oauth2/authorization/gitlab">Log in with gitlab</a>
                 </p>
-                <div>
-                    <h4 class="lead text-center">Or use another OpenID Connect provider that supports <a href="https://openid.net/specs/openid-connect-discovery-1_0.html#IssuerDiscovery">'webfinger'</a>.</h4>
-                    <p><small>WebFinger support in the conformance suite is deprecated and likely to be removed in the future, if you are using it please retrieve any configurations/test results etc you are using as they will not be accessible once webfinger support is removed.</small></p>
-                    <form action="/openid_connect_login" method="post" id="login_form" onsubmit="addAcctToIdentifierValue()">
-                        <div class="mb-3 mt-3">
-                            <label for="identifier" class="form-label">User Name :</label>
-                            <input type="text" class="form-control" id="identifier" name="identifier" placeholder="user@example.com" />
-                        </div>
-                        <div class="mb-3">
-                            <input type="submit" class="btn btn-sm btn-light bg-gradient border border-secondary" value="Sign In" />
-                        </div>
-                    </form>
-                    <script>
-                        function addAcctToIdentifierValue(){
-                            var input = document.getElementById('identifier');
-                            if(input){
-                                var inputValue = input.value;
-                                if(inputValue.indexOf('@')!==-1 && inputValue.indexOf('acct:')!==0){
-                                    input.value = 'acct:' + input.value;
-                                }
-                            }
-                        }
-                    </script>
-                </div>
             </div>
         </div>
         <div class="row">

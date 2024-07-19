@@ -1,8 +1,8 @@
 package net.openid.conformance.security;
 
 import com.google.common.collect.ImmutableMap;
-import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 
 public interface AuthenticationFacade {
 
@@ -14,7 +14,7 @@ public interface AuthenticationFacade {
 
 	String getDisplayName();
 
-	UserInfo getUserInfo();
+	OidcUserInfo getUserInfo();
 
 	void setLocalAuthentication(Authentication a);
 
