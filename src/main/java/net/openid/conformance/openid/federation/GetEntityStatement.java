@@ -26,11 +26,11 @@ import java.text.ParseException;
 public class GetEntityStatement extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "config")
+	@PreEnvironment(strings = "entity_statement_url")
 	@PostEnvironment(required = { "entity_statement_endpoint_response", "entity_statement_body", "entity_statement_header" } )
 	public Environment evaluate(Environment env) {
 
-		String entityStatementUrl = env.getString("config", "server.entityStatementUrl");
+		String entityStatementUrl = env.getString("entity_statement_url");
 		if (Strings.isNullOrEmpty(entityStatementUrl)) {
 			throw error("Couldn't find entityStatementUrl in configuration");
 		}

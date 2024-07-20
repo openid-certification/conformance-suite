@@ -1,5 +1,7 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.AbstractTestModule;
@@ -40,8 +42,10 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 			// This case is actually not valid, I believe, but it's here for testing purposes atm
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
 		} else {
+			callAndStopOnFailure(ExtractEntityStatmentUrlFromConfig.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
 			validateEntityStatementResponse();
+			env.unmapKey("entity_statement_url");
 		}
 		eventLog.endBlock();
 
@@ -98,7 +102,9 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 		eventLog.startBlock("Validate authority hints in Entity Statement");
 		skipIfElementMissing("entity_statement_body", "authority_hints", Condition.ConditionResult.INFO,
 			ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		validateAuthorityHints();
 		eventLog.endBlock();
+
 	}
 
 	private void validateEntityStatementResponse() {
@@ -125,6 +131,19 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 			callAndContinueOnFailure(ValidateOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			env.unmapKey("server");
 			env.removeObject("openid_provider_metadata");
+		}
+	}
+
+	private void validateAuthorityHints() {
+		JsonElement authorityHintsElement = env.getElementFromObject("entity_statement_body", "authority_hints");
+		if (authorityHintsElement != null) {
+			JsonArray authorityHints = authorityHintsElement.getAsJsonArray();
+			for (JsonElement authorityHintElement : authorityHints) {
+				String authorityHint = authorityHintElement.getAsString();
+				String authorityHintUrl = authorityHint + ".well-known/openid-federation";
+				eventLog.log("authority_hint_url", authorityHintUrl);
+			}
+			env.removeObject("authority_hints");
 		}
 	}
 
