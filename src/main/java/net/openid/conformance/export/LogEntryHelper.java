@@ -85,7 +85,7 @@ public class LogEntryHelper {
 		specLinks.put("DPOP-", "https://www.rfc-editor.org/rfc/rfc9449#section-");
 		specLinks.put("KSA", "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security");
 		specLinks.put("CID-SP-", "https://cdn.connectid.com.au/specifications/digitalid-fapi-profile-01.html#section");
-		specLinks.put("CID-IDA", "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html#section");
+		specLinks.put("CID-IDA-", "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html#section");
 		specLinks.put("CID-PURPOSE-", "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section");
 
 	}
