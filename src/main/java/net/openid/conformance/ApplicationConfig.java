@@ -13,6 +13,9 @@ import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
@@ -49,6 +52,17 @@ public class ApplicationConfig {
 		converters.addAll(VariantConverters.getConverters());
 		return new MongoCustomConversions(converters);
 	}
+
+
+	@Bean
+	public MongoTemplate mongoTemplate(MongoDatabaseFactory factory, MongoConverter converter) {
+		MongoTemplate mongoTemplate = new MongoTemplate(factory, converter);
+		// Enable faster estimatedCount operations  for count queries without filters.
+		// See: https://docs.spring.io/spring-data/mongodb/reference/mongodb/template-document-count.html
+		mongoTemplate.useEstimatedCount(true);
+		return mongoTemplate;
+	}
+
 
 	@Bean
 	public KeyManager keyManager() {
