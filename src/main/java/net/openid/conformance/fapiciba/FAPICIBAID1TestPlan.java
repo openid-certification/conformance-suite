@@ -120,19 +120,19 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 		certProfile += " OP ";
 		switch (cibaMode) {
 			case "poll":
-				certProfile += " poll";
+				certProfile += "poll";
 				break;
 			case "ping":
-				certProfile += " ping";
+				certProfile += "ping";
 				break;
 		}
 		certProfile += " w/ ";
 		switch (clientAuth) {
 			case "private_key_jwt":
-				certProfile += " Private Key";
+				certProfile += "Private Key";
 				break;
 			case "mtls":
-				certProfile += " MTLS";
+				certProfile += "MTLS";
 				break;
 		}
 

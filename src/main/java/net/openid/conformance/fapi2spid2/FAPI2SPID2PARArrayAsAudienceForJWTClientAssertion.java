@@ -13,7 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-test-array-as-audience-for-client-JWT-assertion",
 	displayName = "Try to use an array containing the issuer and another value as the audience for Client JWT Assertions at the PAR and token endpoints",
-	summary = "This test tries to use an array containing the issuer and another value as audience for Client JWT Assertion, the authorization server is expected to accept it as per discussion at https://gitlab.com/openid/conformance-suite/-/issues/1187",
+	summary = "This test sets the audience in client assertion claims at the PAR and token endpoints to be an array containing the authorization server issuer and another dummy value. The authorization server is expected to accept both requests as per discussion at https://gitlab.com/openid/conformance-suite/-/issues/1187 - in particular as per RFC7523 section 3 the aud value is only required to contain a value that identifies the authorization server as an intended audience.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
