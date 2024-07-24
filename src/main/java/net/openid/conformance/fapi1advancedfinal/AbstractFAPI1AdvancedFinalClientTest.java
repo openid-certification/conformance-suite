@@ -302,6 +302,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		return profile == FAPI1FinalOPProfile.OPENBANKING_KSA;
 	}
 
+	protected boolean isOpenInsurance() {
+		return profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
@@ -669,8 +673,11 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		checkResourceEndpointRequest(true);
 
-		if(isPayments) {
+		if (!isOpenInsurance()) {
 			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
+		}
+
+		if(isPayments) {
 			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
@@ -732,7 +739,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
 
-		if (isPayments) {
+		if (!isOpenInsurance()) {
 			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
 		}
 

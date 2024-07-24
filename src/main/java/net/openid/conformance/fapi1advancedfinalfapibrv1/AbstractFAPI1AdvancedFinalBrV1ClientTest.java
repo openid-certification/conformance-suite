@@ -291,6 +291,10 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ClientTest extends AbstractT
 			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
 	}
 
+	protected boolean isOpenInsurance() {
+		return profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
+	}
+
 	protected boolean isKSA() {
 		return profile == FAPI1FinalOPProfile.OPENBANKING_KSA;
 	}
@@ -634,8 +638,11 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ClientTest extends AbstractT
 
 		checkResourceEndpointRequest(true);
 
-		if(isPayments) {
+		if (!isOpenInsurance()) {
 			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
+		}
+
+		if(isPayments) {
 			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
@@ -697,7 +704,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ClientTest extends AbstractT
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
 
-		if (isPayments) {
+		if (!isOpenInsurance()) {
 			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
 		}
 
