@@ -3,7 +3,7 @@ package net.openid.conformance.fapi2spid2;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddInvalidDpopJktToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidDpopProof;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -51,7 +51,7 @@ public class FAPI2SPID2EnsureMismatchedDpopJktFails extends AbstractFAPI2SPID2Se
 	@Override
 	protected void processParResponse() {
 		env.mapKey("endpoint_response", "pushed_authorization_endpoint_response");
-		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "DPOP-10.1");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidDpopProof.class, Condition.ConditionResult.FAILURE, "DPOP-10.1");
 		fireTestFinished();
 	}
 }
