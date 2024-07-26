@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class EnsureIdTokenDoesNotContainNonRequestedClaims extends AbstractVerifyScopesReturnedInClaims {
+	// This is a list of claims that might be expected to appear in an id_token even if they were not explicitly requested
 	public static List<String> idTokenValidClaims = new ArrayList<>(Arrays.asList(
 		// as per https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 		"iss",
@@ -35,7 +36,9 @@ public class EnsureIdTokenDoesNotContainNonRequestedClaims extends AbstractVerif
 		// as per https://openid.net/specs/openid-financial-api-part-2-1_0.html#id-token-as-detached-signature
 		"s_hash",
 		// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#OpenBankingSecurityProfile-Implementer'sDraftv1.1.2-HybridGrantParameters
-		"openbanking_intent_id"
+		"openbanking_intent_id",
+		// txn must be returned according to https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html
+		"txn"
 	));
 
 	@Override
