@@ -41,4 +41,12 @@ public class FAPICIBAID1EnsureRequestObjectBadIssFails extends AbstractFAPICIBAI
 		super.createAuthorizationRequestObject();
 		callAndStopOnFailure(AddIssForSecondClientToRequestObject.class, "CIBA-7.1.1");
 	}
+
+	@Override
+	public void cleanup() {
+		unregisterClient1();
+
+		unregisterClient2();
+	}
+
 }

@@ -37,7 +37,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "fapi1-advanced-final-br-v1-brazil-client-test-plan",
-	displayName = "FAPI1-Advanced-Final-Br-v1: Open Banking/Insurance Brazil Relying Party (Client) Test Plan - v1 security profile tests during transition period",
+	displayName = "FAPI1-Advanced-Final-Br-v1: Open Banking/Insurance Brazil Relying Party (Client) Test Plan - v1 security profile tests during transition period, , will be removed at end of transition period (mid-Oct 2024)",
 	summary = "Open Banking Brazil specific tests. " +
 		"This plan requires the client to run the same set of tests twice, once passing the request object by value and once by using PAR. " +
 		"Server jwks configured for this plan must contain one signing and one encryption key. " +
