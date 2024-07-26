@@ -9,7 +9,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "fapi1-advanced-final-br-v1-test-plan",
-	displayName = "FAPI1-Advanced-Final-Br-v1: Authorization server test - v1 security profile tests during transition period",
+	displayName = "FAPI1-Advanced-Final-Br-v1: Authorization server test - v1 security profile tests during transition period, will be removed at end of transition period (mid-Oct 2024)",
 	profile = TestPlan.ProfileNames.optest,
 	testModules = {
 		// Normal well behaved client cases
