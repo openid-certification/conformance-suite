@@ -86,19 +86,15 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		OidcUser principal = (OidcUser) auth.getPrincipal();
 		String issuer = principal.getIssuer().toString();
 		String subject;
-		String username;
 		OidcUserInfo userInfo = principal.getUserInfo();
 		if (userInfo != null) {
 			subject = userInfo.getSubject();
-			username = userInfo.getPreferredUsername() != null ? userInfo.getPreferredUsername() : principal.getName();
 		} else {
 			subject = principal.getSubject();
-			username = principal.getName();
 		}
 		ImmutableMap<String, String> data = ImmutableMap.of(
-			"iss", issuer,
 			"sub", subject,
-			"principal", username
+			"iss", issuer
 		);
 
 		return data;
