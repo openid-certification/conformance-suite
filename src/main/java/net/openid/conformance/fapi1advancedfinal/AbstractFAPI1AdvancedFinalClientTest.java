@@ -1,6 +1,9 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AbstractBrazilAddACRClaimToIdTokenClaims;
@@ -203,9 +206,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.Arrays;
 import java.util.List;
 
@@ -1446,6 +1446,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		call(exec().mapKey("token_endpoint_request", requestId));
 		checkMtlsCertificate();
 		call(exec().unmapKey("token_endpoint_request"));
+
+		if (!isOpenInsurance()) {
+			callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE);
+		}
 
 		call(exec().mapKey("incoming_request", requestId));
 		checkResourceEndpointRequest(false);
