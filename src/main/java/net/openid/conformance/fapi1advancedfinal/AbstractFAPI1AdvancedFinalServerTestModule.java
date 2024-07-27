@@ -860,7 +860,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			}
 		}
 
-		if (!isSecondClient() || brazilPayments.isTrue()) {
+		if (!isSecondClient() || profile != FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL) {
 			// Brazil payments APIs always require x-fapi-interaction id; see
 			// https://gitlab.com/openid/conformance-suite/-/issues/1220 and https://gitlab.com/openid/conformance-suite/-/issues/1224
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
