@@ -214,6 +214,9 @@ scale down env:
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_down
+  only:
+    refs:
+      - branches
   except:
     - master
     - production
