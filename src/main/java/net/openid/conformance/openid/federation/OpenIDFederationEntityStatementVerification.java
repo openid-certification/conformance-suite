@@ -1,16 +1,20 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
+
+import java.util.Set;
 
 @PublishTestModule(
 	testName = "openid-federation-entity-configuration-endpoint-verification",
@@ -30,6 +34,8 @@ import net.openid.conformance.variant.VariantParameters;
 })
 @VariantNotApplicable(parameter = ClientRegistration.class, values={ "static_client" })
 public class OpenIDFederationEntityStatementVerification extends AbstractTestModule {
+
+	private static Set<String> AUTHORITY_HINT_IGNORE_LIST = ImmutableSet.of("https://trust-anchor.oidc-federation.online/");
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -57,6 +63,20 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 	public void start() {
 		setStatus(Status.RUNNING);
 		validateEntityStatement();
+
+		JsonArray authorityHints = env.getElementFromObject("entity_statement_body", "authority_hints").getAsJsonArray();
+		for (JsonElement authorityHintElement : authorityHints) {
+			String authorityHint = OIDFJSON.getString(authorityHintElement);
+			if (AUTHORITY_HINT_IGNORE_LIST.contains(authorityHint)) {
+				continue;
+			}
+			String authorityHintUrl = authorityHint + ".well-known/openid-federation";
+			env.putString("entity_statement_url", authorityHintUrl);
+			callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
+			validateEntityStatementResponse();
+			validateEntityStatement();
+		}
+
 		fireTestFinished();
 	}
 
@@ -104,7 +124,6 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 			ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		validateAuthorityHints();
 		eventLog.endBlock();
-
 	}
 
 	private void validateEntityStatementResponse() {
@@ -139,11 +158,10 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 		if (authorityHintsElement != null) {
 			JsonArray authorityHints = authorityHintsElement.getAsJsonArray();
 			for (JsonElement authorityHintElement : authorityHints) {
-				String authorityHint = authorityHintElement.getAsString();
+				String authorityHint = OIDFJSON.getString(authorityHintElement);
 				String authorityHintUrl = authorityHint + ".well-known/openid-federation";
 				eventLog.log("authority_hint_url", authorityHintUrl);
 			}
-			env.removeObject("authority_hints");
 		}
 	}
 

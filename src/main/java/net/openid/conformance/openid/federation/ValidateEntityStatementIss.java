@@ -17,7 +17,7 @@ public class ValidateEntityStatementIss extends AbstractCondition {
 			throw error("iss is missing from entity statement");
 		}
 
-		String entityStatementUrl = env.getString("config", "server.entityStatementUrl");
+		String entityStatementUrl = env.getString("entity_statement_url");
 
 		String issuerUrl = OIDFJSON.getString(iss);
 

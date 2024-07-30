@@ -34,7 +34,8 @@ public class ValidateFederationEntityMetadata extends AbstractValidateMetadata {
 			"federation_historical_keys_endpoint"
 		);
 		for (String key : federationEntityUrlKeys) {
-			if(!validateUrl(metadata, key)) {
+			boolean isOptional = true;
+			if(!validateUrl(metadata, key, isOptional)) {
 				throw error("This URL MUST use the https scheme and MAY contain port, path, " +
 					"and query parameter components encoded in application/x-www-form-urlencoded format; " +
 					"it MUST NOT contain a fragment component.", args("metadata", metadata));

@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -16,11 +17,12 @@ public abstract class AbstractValidateMetadata extends AbstractCondition {
 	}
 
 	public boolean validateUrl(JsonObject parent, String key, boolean optional) {
-		String urlString = OIDFJSON.getString(parent.get(key));
-		if (urlString == null && optional) {
+		JsonElement value = parent.get(key);
+		if (value == null && optional) {
 			return true;
 		}
 
+		String urlString = OIDFJSON.getString(value);
 		try {
 			URL url = new URL(urlString);
 

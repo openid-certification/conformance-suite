@@ -17,7 +17,7 @@ public class ValidateEntityStatementSub extends AbstractCondition {
 			throw error("sub is missing from entity statement");
 		}
 
-		String entityStatementUrl = env.getString("config", "server.entityStatementUrl");
+		String entityStatementUrl = env.getString("entity_statement_url");
 
 		String subUrl = OIDFJSON.getString(sub);
 
