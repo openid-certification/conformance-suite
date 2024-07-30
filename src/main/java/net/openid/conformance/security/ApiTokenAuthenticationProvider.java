@@ -55,7 +55,6 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 	private DefaultOidcUser createOidcUserFromApiToken(Map<String, Object> tokenInfoMap, Set<GrantedAuthority> authorities) {
 
 		JsonObject tokenInfo = (JsonObject) new Gson().toJsonTree(tokenInfoMap);
-		var oidcUserInfoBuilder = OidcUserInfo.builder();
 
 		JsonObject ownerClaims = tokenInfo.getAsJsonObject("owner");
 		String iss = OIDFJSON.getString(ownerClaims.get("iss"));
@@ -66,17 +65,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 		Instant expiresAt = expires != null ? Instant.ofEpochMilli(OIDFJSON.getLong(tokenInfo.getAsJsonPrimitive("expires"))) : null;
 		OidcIdToken idToken = new OidcIdToken("dummy", instantAt, expiresAt, idTokenClaims);
 
-		OidcUserInfo oidcUserInfo;
-		JsonObject userInfoObject = tokenInfo.getAsJsonObject("info");
-		if (userInfoObject != null && !userInfoObject.isEmpty()) {
-			for (var entry : userInfoObject.entrySet()) {
-				oidcUserInfoBuilder.claim(entry.getKey(), entry.getValue());
-			}
-			oidcUserInfo = oidcUserInfoBuilder.build();
-		} else {
-			// in the CI environment, we don't have an IDToken, so we fallback to the owner claims
-			oidcUserInfo = new OidcUserInfo(idTokenClaims);
-		}
+		OidcUserInfo oidcUserInfo = new OidcUserInfo(idTokenClaims);
 
 		DefaultOidcUser oidcUser = new DefaultOidcUser(authorities, idToken, oidcUserInfo);
 		authorities.add(new OidcUserAuthority(idToken, oidcUserInfo));
