@@ -17,7 +17,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
@@ -227,19 +226,6 @@ class WebSecurityOidcLoginConfig
 		}
 
 		return http.build();
-	}
-
-	@Bean
-	public OidcUserService oidcUserService() {
-		// This custom bean is required to ensure user info is fetched when Google is used as IdP
-		OidcUserService oidcUserService = new OidcUserService();
-		oidcUserService.setAccessibleScopes(Set.of(
-			// default scopes required for querying userinfo endpoint
-			"profile", "email", "address", "phone",
-			// google specific scopes required for querying userinfo endpoint
-			"https://www.googleapis.com/auth/userinfo.email"
-		));
-		return oidcUserService;
 	}
 
 	@Bean
