@@ -234,9 +234,9 @@ class WebSecurityOidcLoginConfig
 		// This custom bean is required to ensure user info is fetched when Google is used as IdP
 		OidcUserService oidcUserService = new OidcUserService();
 		oidcUserService.setAccessibleScopes(Set.of(
-			// default scopes
-			"profile","email","address", "phone",
-			// google specific scopes
+			// default scopes required for querying userinfo endpoint
+			"profile", "email", "address", "phone",
+			// google specific scopes required for querying userinfo endpoint
 			"https://www.googleapis.com/auth/userinfo.email"
 		));
 		return oidcUserService;
