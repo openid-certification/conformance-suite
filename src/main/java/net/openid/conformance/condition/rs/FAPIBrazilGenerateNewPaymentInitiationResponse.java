@@ -1,6 +1,8 @@
 package net.openid.conformance.condition.rs;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -15,49 +17,24 @@ import java.util.UUID;
 public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCondition {
 	/*
 	{
-	  "data": [
-		{
-		  "paymentId": "TXpRMU9UQTROMWhZV2xSU1FUazJSMDl",
-		  "endToEndId": "E9040088820210128000800123873170",
-		  "consentId": "urn:bancoex:C1DD33123",
-		  "creationDateTime": "2020-07-21T08:30:00Z",
-		  "statusUpdateDateTime": "2020-07-21T08:30:00Z",
-		  "proxy": "12345678901",
-		  "ibgeTownCode": "5300108",
-		  "status": "PDNG",
-		  "rejectionReason": {
-			"code": "SALDO_INSUFICIENTE",
-			"detail": "string"
-		  },
-		  "localInstrument": "DICT",
-		  "cnpjInitiator": "50685362000135",
-		  "payment": {
-			"amount": "100000.12",
-			"currency": "BRL"
-		  },
-		  "transactionIdentification": "E00038166201907261559y6j6",
-		  "remittanceInformation": "Pagamento da nota RSTO035-002.",
-		  "creditorAccount": {
-			"ispb": "12345678",
-			"issuer": "1774",
-			"number": "1234567890",
-			"accountType": "CACC"
-		  },
-		  "debtorAccount": {
-			"ispb": "12345678",
-			"issuer": "1774",
-			"number": "1234567890",
-			"accountType": "CACC"
-		  },
-		  "authorisationFlow": "HYBRID_FLOW"
-		}
-	  ],
-	  "links": {
-		"self": "https://api.banco.com.br/open-banking/api/v1/resource"
-	  },
-	  "meta": {
-		"requestDateTime": "2021-05-21T08:30:00Z"
-	  }
+		"data": [{
+			"localInstrument": "DICT",
+			"payment": {
+				"amount": "100000.12",
+				"currency": "BRL"
+			},
+			"creditorAccount": {
+				"ispb": "12345678",
+				"issuer": "1774",
+				"number": "1234567890",
+				"accountType": "CACC"
+			},
+			"remittanceInformation": "Pagamento da nota XPTO035-002.",
+			"qrCode": "00020104141234567890123426660014BR.GOV.BCB.PIX014466756C616E6F32303139406578616D706C652E636F6D27300012  \nBR.COM.OUTRO011001234567895204000053039865406123.455802BR5915NOMEDORECEBEDOR6008BRASILIA61087007490062  \n530515RP12345678-201950300017BR.GOV.BCB.BRCODE01051.0.080450014BR.GOV.BCB.PIX0123PADRAO.URL.PIX/0123AB  \nCD81390012BR.COM.OUTRO01190123.ABCD.3456.WXYZ6304EB76\n",
+			"proxy": "12345678901",
+			"cnpjInitiator": "61820817000109",
+			"endToEndId": "E00000000202407311248Nqa8UwJVdye"
+		}]
 	}
 
 	COPY data from request as is.
@@ -69,20 +46,25 @@ public class FAPIBrazilGenerateNewPaymentInitiationResponse extends AbstractCond
 	public Environment evaluate(Environment env) {
 
 		String consentId = env.getString("consent_id");
-		JsonObject requestData = env.getElementFromObject("payment_initiation_request", "claims.data").getAsJsonObject();
-		JsonObject response = new JsonObject();
-		requestData.addProperty("paymentId", UUID.randomUUID().toString());
-		requestData.addProperty("consentId", consentId);
-
 		Instant baseDate = Instant.now().truncatedTo(ChronoUnit.SECONDS);
 		String creationDateTime = DateTimeFormatter.ISO_INSTANT.format(baseDate);
 
-		requestData.addProperty("creationDateTime", creationDateTime);
-		requestData.addProperty("statusUpdateDateTime", creationDateTime);
+		JsonArray requestDataArray = env.getElementFromObject("payment_initiation_request", "claims.data").getAsJsonArray();
+		JsonArray responseDataArray = new JsonArray();
+		for (JsonElement requestDataElement : requestDataArray) {
+			JsonObject requestData = requestDataElement.getAsJsonObject();
 
-		requestData.addProperty("status", "ACSP");
+			requestData.addProperty("creationDateTime", creationDateTime);
+			requestData.addProperty("statusUpdateDateTime", creationDateTime);
+			requestData.addProperty("paymentId", UUID.randomUUID().toString());
+			requestData.addProperty("consentId", consentId);
+			requestData.addProperty("status", "ACSP");
 
-		response.add("data", requestData);
+			responseDataArray.add(requestData);
+		}
+
+		JsonObject response = new JsonObject();
+		response.add("data", responseDataArray);
 
 		JsonObject links = new JsonObject();
 		links.addProperty("self", env.getString("base_url") + "/" + FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
