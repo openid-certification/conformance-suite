@@ -104,7 +104,7 @@
             }
         },
         "brazilPixPayment": {
-            "data": {
+            "data": [{
                 "localInstrument": "DICT",
                 "payment": {
                     "amount": "100.12",
@@ -119,7 +119,7 @@
                 "cnpjInitiator": "60545350000165",
                 "remittanceInformation": "Pagamento da nota XPTO035-002.",
                 "proxy": "12345678901"
-            }
+            }]
         }
     },
     "directory": {
