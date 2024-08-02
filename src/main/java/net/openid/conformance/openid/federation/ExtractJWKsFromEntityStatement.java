@@ -16,6 +16,8 @@ public class ExtractJWKsFromEntityStatement extends AbstractCondition {
 		JsonObject jwks = env.getElementFromObject("entity_statement_body", "jwks").getAsJsonObject();
 		env.putObject("server_jwks", jwks);
 
+		logSuccess("Extracted JKWS from entity statement", args("server_jwks", jwks));
+
 		return env;
 	}
 

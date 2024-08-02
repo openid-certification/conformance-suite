@@ -33,9 +33,9 @@ import java.util.Set;
 	"server.entityStatement"
 })
 @VariantNotApplicable(parameter = ClientRegistration.class, values={ "static_client" })
-public class OpenIDFederationEntityStatementVerification extends AbstractTestModule {
+public class OpenIDFederationEntityStatementVerificationTest extends AbstractTestModule {
 
-	private static Set<String> AUTHORITY_HINT_IGNORE_LIST = ImmutableSet.of("https://trust-anchor.oidc-federation.online/");
+	private static Set<String> AUTHORITY_HINT_IGNORE_LIST = ImmutableSet.of();
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -43,7 +43,7 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		eventLog.startBlock("Fetch Entity Statement");
+		eventLog.startBlock("Fetch Entity Statement from");
 		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
 			// This case is actually not valid, I believe, but it's here for testing purposes atm
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
@@ -62,64 +62,54 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		validateEntityStatement();
 
-		JsonArray authorityHints = env.getElementFromObject("entity_statement_body", "authority_hints").getAsJsonArray();
-		for (JsonElement authorityHintElement : authorityHints) {
-			String authorityHint = OIDFJSON.getString(authorityHintElement);
-			if (AUTHORITY_HINT_IGNORE_LIST.contains(authorityHint)) {
-				continue;
-			}
-			String authorityHintUrl = authorityHint + ".well-known/openid-federation";
-			env.putString("entity_statement_url", authorityHintUrl);
-			callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
-			validateEntityStatementResponse();
-			validateEntityStatement();
-		}
+		validateEntityStatement();
 
 		fireTestFinished();
 	}
 
 	protected void validateEntityStatement() {
-		eventLog.startBlock("Validate basic claims in Entity Statement");
+		String entity = env.getString("entity_statement_url");
+
+		eventLog.startBlock("Validate basic claims in Entity Statement for %s".formatted(entity));
 		call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate JWKs and signature in Entity Statement");
+		eventLog.startBlock("Validate JWKs and signature in Entity Statement for %s".formatted(entity));
 		call(sequence(ValidateEntityStatementSignatureSequence.class));
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate metadata in Entity Statement");
+		eventLog.startBlock("Validate metadata in Entity Statement for %s".formatted(entity));
 		callAndContinueOnFailure(ValidateEntityStatementMetadataClaim.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate Federation Entity metadata");
+		eventLog.startBlock("Validate Federation Entity metadata for %s".formatted(entity));
 		callAndContinueOnFailure(ValidateFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OpenID Relying Party metadata");
+		eventLog.startBlock("Validate OpenID Relying Party metadata for %s".formatted(entity));
 		callAndContinueOnFailure(ExtractOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		validateOpenIdRelyingPartyMetadata();
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OpenID Provider metadata");
+		eventLog.startBlock("Validate OpenID Provider metadata for %s".formatted(entity));
 		callAndContinueOnFailure(ExtractOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		validateOpenIdProviderMetadata();
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OAuth Authorization Server metadata");
+		eventLog.startBlock("Validate OAuth Authorization Server metadata for %s".formatted(entity));
 		callAndContinueOnFailure(ValidateOAuthAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OAuth Client metadata");
+		eventLog.startBlock("Validate OAuth Client metadata for %s".formatted(entity));
 		callAndContinueOnFailure(ValidateOAuthClientMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OAuth Protected Resource metadata");
+		eventLog.startBlock("Validate OAuth Protected Resource metadata for %s".formatted(entity));
 		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate authority hints in Entity Statement");
+		eventLog.startBlock("Validate authority hints in Entity Statement for %s".formatted(entity));
 		skipIfElementMissing("entity_statement_body", "authority_hints", Condition.ConditionResult.INFO,
 			ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		validateAuthorityHints();
@@ -161,8 +151,12 @@ public class OpenIDFederationEntityStatementVerification extends AbstractTestMod
 				String authorityHint = OIDFJSON.getString(authorityHintElement);
 				String authorityHintUrl = authorityHint + ".well-known/openid-federation";
 				eventLog.log("authority_hint_url", authorityHintUrl);
+
+				env.putString("entity_statement_url", authorityHintUrl);
+				callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
+				validateEntityStatementResponse();
+				validateEntityStatement();
 			}
 		}
 	}
-
 }
