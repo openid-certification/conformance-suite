@@ -24,9 +24,9 @@ public class FAPIBrazilOPINRegisterClient extends AbstractCondition {
 
 		if (!client.has("scope")) {
 			// we don't know what scope the client will want, but the OB Brazil DCR spec requires us to fill in scope.
-			// we could check the regulator role in the SSA to see what scopes the client is entitled too, but that seems
+			// we could check the regulator role in the SSA to see what scopes the client is entitled to, but that seems
 			// like overkill.
-			client.addProperty("scope", "openid customers");
+			client.addProperty("scope", "openid customers consents");
 		}
 		env.putObject("client", client);
 		logSuccess("Registered client", args("client", client));
