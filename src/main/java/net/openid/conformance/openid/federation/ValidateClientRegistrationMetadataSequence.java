@@ -11,10 +11,18 @@ import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyU
 import net.openid.conformance.condition.as.dynregistration.ValidateClientSubjectType;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientTosUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateDefaultAcrValues;
 import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge;
+import net.openid.conformance.condition.as.dynregistration.ValidateIdTokenSignedResponseAlg;
+import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLoginUri;
+import net.openid.conformance.condition.as.dynregistration.ValidateRequestObjectSigningAlg;
+import net.openid.conformance.condition.as.dynregistration.ValidateRequestUris;
+import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
+import net.openid.conformance.condition.as.dynregistration.ValidateTokenEndpointAuthSigningAlg;
 import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
+// This corresponds to AbstractOIDCCClientTest.validateClientMetadata()
 public class ValidateClientRegistrationMetadataSequence extends AbstractConditionSequence {
 
 	@Override
@@ -36,10 +44,12 @@ public class ValidateClientRegistrationMetadataSequence extends AbstractConditio
 
 		callAndContinueOnFailure(ValidateClientSubjectType.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-			/*
-			skipIfElementMissing("client", "id_token_signed_response_alg", Condition.ConditionResult.INFO,
-				FAPIBrazilValidateIdTokenSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.2");
-			*/
+		call(condition(ValidateIdTokenSignedResponseAlg.class)
+			.skipIfElementMissing("client", "id_token_signed_response_alg")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("OIDCR-2")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
 
 		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
@@ -50,49 +60,53 @@ public class ValidateClientRegistrationMetadataSequence extends AbstractConditio
 			.requirements("OIDCR-2")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.dontStopOnFailure());
-			/*
-			skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
-				FAPIBrazilValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.2");
-			*/
-
 		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
 		//request object
-			/*
-			skipIfElementMissing("client", "request_object_signing_alg", Condition.ConditionResult.INFO,
-				FAPIBrazilValidateRequestObjectSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-			*/
+		call(condition(ValidateRequestObjectSigningAlg.class)
+			.skipIfElementMissing("client", "request_object_signing_alg")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("OIDCR-2")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
 		callAndContinueOnFailure(EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
 
-			/*
-			skipIfElementMissing("client", "token_endpoint_auth_signing_alg", Condition.ConditionResult.INFO,
-				FAPIBrazilValidateTokenEndpointAuthSigningAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-			*/
+		call(condition(ValidateTokenEndpointAuthSigningAlg.class)
+			.skipIfElementMissing("client", "token_endpoint_auth_signing_alg")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("OIDCR-2")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
+
 		callAndContinueOnFailure(ValidateDefaultMaxAge.class, Condition.ConditionResult.WARNING, "OIDCR-2");
 
-		call(condition(ValidateUserinfoSignedResponseAlg.class)
+		call(condition(ValidateRequireAuthTime.class)
 			.skipIfElementMissing("client", "require_auth_time")
 			.onSkip(Condition.ConditionResult.INFO)
 			.requirements("OIDCR-2")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.dontStopOnFailure());
-			/*
-			skipIfElementMissing("client", "default_acr_values", Condition.ConditionResult.INFO,
-				FAPIBrazilValidateDefaultAcrValues.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-			*/
 
-		call(condition(ValidateUserinfoSignedResponseAlg.class)
+		call(condition(ValidateDefaultAcrValues.class)
+			.skipIfElementMissing("client", "require_auth_time")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("OIDCR-2")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
+
+		call(condition(ValidateInitiateLoginUri.class)
 			.skipIfElementMissing("client", "initiate_login_uri")
 			.onSkip(Condition.ConditionResult.INFO)
 			.requirements("OIDCR-2")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.dontStopOnFailure());
 
-		//TODO not allow request_uris?
-			/*
-			skipIfElementMissing("client", "request_uris", Condition.ConditionResult.INFO,
-				ValidateRequestUris.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-			 */
+		call(condition(ValidateRequestUris.class)
+			.skipIfElementMissing("client", "initiate_login_uri")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("OIDCR-2")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
 	}
 
 }

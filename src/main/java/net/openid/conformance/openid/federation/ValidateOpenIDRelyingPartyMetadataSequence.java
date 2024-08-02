@@ -12,6 +12,9 @@ import net.openid.conformance.condition.as.dynregistration.ValidateClientSubject
 import net.openid.conformance.condition.as.dynregistration.ValidateClientTosUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateClientUris;
 import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge;
+import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLoginUri;
+import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
+import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 // This mostly correlates to validateClientRegistrationMetadata() methods found in various FAPI classes,
@@ -40,10 +43,12 @@ public class ValidateOpenIDRelyingPartyMetadataSequence extends AbstractConditio
 		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
 		//userinfo
-		/*
-		skipIfElementMissing("client", "userinfo_signed_response_alg", Condition.ConditionResult.INFO,
-			ValidateUserinfoSignedResponseAlg.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-		*/
+		call(condition(ValidateUserinfoSignedResponseAlg.class)
+			.skipIfElementMissing("client", "userinfo_signed_response_alg")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("OIDCR-2")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
 
 		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class, Condition.ConditionResult.FAILURE,"OIDCR-2");
 
@@ -52,12 +57,18 @@ public class ValidateOpenIDRelyingPartyMetadataSequence extends AbstractConditio
 
 		callAndContinueOnFailure(ValidateDefaultMaxAge.class, Condition.ConditionResult.WARNING,"OIDCR-2");
 
-		/*
-		skipIfElementMissing("client", "require_auth_time", Condition.ConditionResult.INFO,
-			ValidateRequireAuthTime.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
+		call(condition(ValidateRequireAuthTime.class)
+			.skipIfElementMissing("client", "require_auth_time")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("OIDCR-2")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
 
-		skipIfElementMissing("client", "initiate_login_uri", Condition.ConditionResult.INFO,
-			ValidateInitiateLoginUri.class, Condition.ConditionResult.FAILURE, "OIDCR-2");
-		*/
+		call(condition(ValidateInitiateLoginUri.class)
+			.skipIfElementMissing("client", "initiate_login_uri")
+			.onSkip(Condition.ConditionResult.INFO)
+			.requirements("OIDCR-2")
+			.onFail(Condition.ConditionResult.FAILURE)
+			.dontStopOnFailure());
 	}
 }
