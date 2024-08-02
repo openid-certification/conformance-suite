@@ -1172,10 +1172,24 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return loadScheduleTestPage();
             }).then(function() {
                 return loadServerInfo();
+            }).then(function() {
+                return applyConfigPreset();
             }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
         });
+
+        function applyConfigPreset() {
+            let searchParams = new URLSearchParams(window.location.search);
+            let testPlanName = searchParams.get("test_plan");
+            if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
+                let planSelect = document.getElementById("planSelect");
+                planSelect.value = testPlanName;
+
+                // trigger change event to update variant and config field visibility
+                planSelect.dispatchEvent(new Event('change'));
+            }
+        }
 
         function loadAvailableTests() {
             return fetch('/api/runner/available')
@@ -1620,6 +1634,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             display: value
                         }));
                     });
+
+                    // update param presets from query parameter
+                    let searchParams = new URLSearchParams(window.location.search);
+                    let paramValue = searchParams.get(parameter);
+                    if (paramValue) {
+                        let variantSelect = document.getElementById(id);
+                        variantSelect.value = paramValue;
+                        variantSelect.dispatchEvent(new Event('change'));
+                    }
                 });
 
                 document.getElementById('variantSelectors').style.display = '';
