@@ -97,6 +97,11 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	public String getDisplayName() {
 		OAuth2AuthenticationToken auth = getOAuth();
 		if (auth != null && auth.getPrincipal() instanceof OidcUser oidcUser) {
+
+			if (oidcUser.getEmail() != null) {
+				return oidcUser.getEmail();
+			}
+
 			return oidcUser.getName();
 		} else if (auth != null) {
 			return auth.getName();
