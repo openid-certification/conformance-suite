@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,13 +37,11 @@ public class UserInfoUIController {
 
 		Map<String, String> principal = authenticationFacade.getPrincipal();
 		String displayName = authenticationFacade.getDisplayName();
-		OidcUserInfo userInfo = authenticationFacade.getUserInfo();
 		map.put("iss", principal.get("iss"));
 		map.put("sub", principal.get("sub"));
 		map.put("principal", principal.toString());
 		map.put("displayName", displayName);
 		map.put("isAdmin", authenticationFacade.isAdmin());
-		map.put("userInfo", userInfo);
 		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 }

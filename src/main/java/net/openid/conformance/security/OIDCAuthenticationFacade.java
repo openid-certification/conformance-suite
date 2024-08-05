@@ -6,10 +6,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 @Component
 public class OIDCAuthenticationFacade implements AuthenticationFacade {
@@ -85,13 +83,8 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 		OidcUser principal = (OidcUser) auth.getPrincipal();
 		String issuer = principal.getIssuer().toString();
-		String subject;
-		OidcUserInfo userInfo = principal.getUserInfo();
-		if (userInfo != null) {
-			subject = userInfo.getSubject();
-		} else {
-			subject = principal.getSubject();
-		}
+		String subject = principal.getSubject();
+
 		ImmutableMap<String, String> data = ImmutableMap.of(
 			"sub", subject,
 			"iss", issuer
@@ -104,34 +97,15 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	public String getDisplayName() {
 		OAuth2AuthenticationToken auth = getOAuth();
 		if (auth != null && auth.getPrincipal() instanceof OidcUser oidcUser) {
-			String displayName = oidcUser.getName();
-			OidcUserInfo userInfo = oidcUser.getUserInfo();
-			if (userInfo != null) {
-				if (StringUtils.hasLength(userInfo.getEmail())) {
-					displayName = userInfo.getEmail();
-				} else if (StringUtils.hasLength((userInfo.getPreferredUsername()))) {
-					displayName = userInfo.getPreferredUsername();
-				} else if (StringUtils.hasLength((userInfo.getFullName()))) {
-					displayName = userInfo.getFullName();
-				}
-				return displayName;
+
+			if (oidcUser.getEmail() != null) {
+				return oidcUser.getEmail();
 			}
-			return displayName;
+
+			return oidcUser.getName();
 		} else if (auth != null) {
 			return auth.getName();
 		}
 		return "";
-	}
-
-	@Override
-	public OidcUserInfo getUserInfo() {
-		OAuth2AuthenticationToken token = getOAuth();
-
-		if (token == null || !(token.getPrincipal() instanceof OidcUser oidcUser)) {
-			return null;
-		}
-
-		OidcUserInfo userInfo = oidcUser.getUserInfo();
-		return userInfo;
 	}
 }

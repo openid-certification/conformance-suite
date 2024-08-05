@@ -1,8 +1,6 @@
 package net.openid.conformance.token;
 
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
 import net.openid.conformance.security.AuthenticationFacade;
@@ -12,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -43,16 +40,10 @@ public class DBTokenService implements TokenService {
 		byte[] tokenBytes = new byte[TOKEN_BYTES];
 		new SecureRandom().nextBytes(tokenBytes);
 
-		OidcUserInfo userInfo = authenticationFacade.getUserInfo();
-
-		JsonObject jsonObject = new Gson().toJsonTree(userInfo.getClaims()).getAsJsonObject();
-		// gitlab includes this in it's userinfo, but this keyname is not valid in mongodb. We don't need the data
-		// contained here currently, so just remove it.
-		jsonObject.remove("https://gitlab.org/claims/groups/owner");
 		Document token = new Document()
 				.append("_id", id)
 				.append("owner", authenticationFacade.getPrincipal())
-				.append("info", Document.parse(jsonObject.toString()))
+				.append("info", null)
 				.append("token", Base64.getEncoder().encodeToString(tokenBytes))
 				.append("expires", permanent ? null : System.currentTimeMillis() + DEFAULT_TTL_MS);
 
