@@ -117,5 +117,37 @@
         "condition": "CheckRequestObjectClaimsParameterMemberValues",
         "expected-result": "failure",
         "comment": "allow intentional unknown value in authorization request object"
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-client-test-happy-path",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_client_type": "oidc",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-au-connectid-rp-test-config.json",
+        "current-block": "Authorization endpoint",
+        "condition": "AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject",
+        "expected-result": "failure",
+        "comment": "Ignore missing txn claim in CI environment"
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-client-test-happy-path",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_client_type": "oidc",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-au-connectid-rp-test-config-1.json",
+        "current-block": "Authorization endpoint",
+        "condition": "AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject",
+        "expected-result": "failure",
+        "comment": "Ignore missing txn claim in CI environment"
     }
 ]

@@ -29,6 +29,7 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
+import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
@@ -1253,6 +1254,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
 			CheckForUnexpectedClaimsInRequestObject.class, ConditionResult.WARNING, "RFC6749-4.1.1", "OIDCC-3.1.2.1", "RFC7636-4.3", "OAuth2-RT-2.1", "RFC7519-4.1", "DPOP-10", "RFC8485-4.1", "RFC8707-2.1", "RFC9396-2");
+
+		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+			skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
+				AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class, ConditionResult.FAILURE, "CID-IDA-5.2-2.7");
+		}
 
 		if (fapiClientType == FAPIClientType.OIDC) {
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,

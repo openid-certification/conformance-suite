@@ -59,6 +59,8 @@ public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaim
 
 		callAndContinueOnFailure(EnsureIdTokenContainsRequestedClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5");
 
+		callAndContinueOnFailure(EnsureIdTokenContainsMandatoryFAPI2Claims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2.6");
+
 		// We don't include this check in the more general PerformStandardIdTokenChecks as it could be pretty noisy
 		callAndContinueOnFailure(CheckForUnexpectedClaimsInIdToken.class, Condition.ConditionResult.WARNING, "OIDCC-5.1");
 	}
