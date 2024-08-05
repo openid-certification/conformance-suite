@@ -11,7 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Checks if the given authorization_request_object contains the expectzed claims
+ * Checks if the given authorization_request_object contains the expected claims
  */
 public class AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject extends AbstractCondition {
 

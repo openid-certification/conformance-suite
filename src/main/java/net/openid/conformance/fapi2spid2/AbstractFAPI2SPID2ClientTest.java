@@ -1257,7 +1257,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
 			skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
-				AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class,ConditionResult.FAILURE, "CID-IDA-5.2-2.7");
+				AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class, ConditionResult.FAILURE, "CID-IDA-5.2-2.7");
 		}
 
 		if (fapiClientType == FAPIClientType.OIDC) {
