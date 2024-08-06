@@ -384,7 +384,7 @@ local_test:
     CI_ENVIRONMENT_URL=`jq -r ".[] | select(.slug==\"${CI_ENVIRONMENT_SLUG}\") | .external_url" < env-list.js`
     if [ -z "$CI_ENVIRONMENT_URL" ] || [ "$CI_ENVIRONMENT_URL" == "null" ]; then
       echo "None found; trying to find a free environment"
-      x=1
+      x=15
       while :; do
         FAKE_BRANCH_NAME=dev-branch-$x
         CI_ENVIRONMENT_URL=https://review-app-$FAKE_BRANCH_NAME.$KUBE_INGRESS_BASE_DOMAIN
