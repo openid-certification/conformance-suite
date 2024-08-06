@@ -137,11 +137,9 @@ check-trailing-whitespace:
   # there's a race condition between 'find_deploy_url' and the actual deploy where we could end up with multiple
   # deployments to the same url - use a resource_group to avoid multiple deploy jobs running at the same time
   resource_group: deploy
-  variables:
-    KUBE_CONTEXT: openid/conformance-suite:alert-acrobat-222615-agent
   script:
     - kubectl config get-contexts
-    - kubectl config use-context openid/conformance-suite:alert-acrobat-222615-agent
+    - kubectl config use-context $KUBE_CONTEXT
     - kubectl get pods
     - find_deploy_url
     - echo "DYNAMIC_ENVIRONMENT_URL=$CI_ENVIRONMENT_URL" >> deploy.env
