@@ -43,13 +43,14 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		eventLog.startBlock("Fetch Entity Statement from");
+		eventLog.startBlock("Fetch primary Entity Statement");
 		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
 			// This case is actually not valid, I believe, but it's here for testing purposes atm
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
 		} else {
 			callAndStopOnFailure(ExtractEntityStatmentUrlFromConfig.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 			validateEntityStatementResponse();
 			env.unmapKey("entity_statement_url");
 		}
@@ -150,12 +151,15 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 			for (JsonElement authorityHintElement : authorityHints) {
 				String authorityHint = OIDFJSON.getString(authorityHintElement);
 				String authorityHintUrl = authorityHint + ".well-known/openid-federation";
-				eventLog.log("authority_hint_url", authorityHintUrl);
+				eventLog.log("authority_hint", authorityHint);
 
 				env.putString("entity_statement_url", authorityHintUrl);
 				callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
 				validateEntityStatementResponse();
 				validateEntityStatement();
+
+				callAndContinueOnFailure(FederationFetchCondition.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
 			}
 		}
 	}
