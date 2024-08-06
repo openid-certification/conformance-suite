@@ -126,7 +126,7 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 	private void validateOpenIdRelyingPartyMetadata() {
 		if (env.containsObject("openid_relying_party_metadata")) {
 			env.mapKey("client", "openid_relying_party_metadata");
-			call(sequence(ValidateClientRegistrationMetadataSequence.class));
+			call(sequence(ValidateOpenIDRelyingPartyMetadataSequence.class));
 			callAndContinueOnFailure(ValidateOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			env.unmapKey("client");
 			env.removeObject("openid_relying_party_metadata");
