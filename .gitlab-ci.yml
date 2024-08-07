@@ -131,7 +131,7 @@ check-trailing-whitespace:
 .auto-deploy:
   image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.28.2"
   variables:
-    KUBE_NAMESPACE: ${CI_PROJECT_NAME}-${CI_PROJECT_ID}-${CI_ENVIRONMENT_SLUG}
+    KUBE_NAMESPACE: default
 
 .deploy: &deploy
   extends: .auto-deploy
