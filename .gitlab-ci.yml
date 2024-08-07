@@ -130,6 +130,8 @@ check-trailing-whitespace:
 
 .auto-deploy:
   image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.28.2"
+  variables:
+    KUBE_NAMESPACE: ${CI_PROJECT_NAME}-${CI_PROJECT_ID}-${CI_ENVIRONMENT_SLUG}
 
 .deploy: &deploy
   extends: .auto-deploy
@@ -225,6 +227,7 @@ stop_review:
     GIT_STRATEGY: none
   script:
     - auto-deploy initialize_tiller
+    - auto-deploy use_kube_context || true
     - auto-deploy delete
   environment:
     name: review/$CI_COMMIT_REF_NAME
@@ -247,6 +250,7 @@ stop_normal:
     GIT_STRATEGY: none
   script:
     - auto-deploy initialize_tiller
+    - auto-deploy use_kube_context || true
     - auto-deploy delete
   environment:
     name: $CI_COMMIT_BRANCH
