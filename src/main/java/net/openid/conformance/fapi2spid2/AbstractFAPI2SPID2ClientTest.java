@@ -125,6 +125,7 @@ import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContain
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
+import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
@@ -513,6 +514,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	protected void configureServerJWKS() {
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(AugmentRealJwksWithDecoys.class);
 	}
 
 	@Override
@@ -562,6 +564,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
+		} else if (path.equals("jwks_decoy")) {
+			// expose JWKSet with real JWKs and decoy keys
+			return jwksEndpoint("server_public_jwks_decoy");
 		} else if (path.equals("userinfo")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -1033,9 +1038,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	}
 
 	protected Object jwksEndpoint() {
+		return jwksEndpoint("server_public_jwks");
+	}
+
+	protected Object jwksEndpoint(String jwksReference) {
 
 		setStatus(Status.RUNNING);
-		JsonObject jwks = env.getObject("server_public_jwks");
+		JsonObject jwks = env.getObject(jwksReference);
 
 		setStatus(Status.WAITING);
 
