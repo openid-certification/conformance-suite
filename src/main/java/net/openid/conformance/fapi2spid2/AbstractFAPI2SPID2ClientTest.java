@@ -125,6 +125,7 @@ import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContain
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
+import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
@@ -513,6 +514,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	protected void configureServerJWKS() {
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(AugmentRealJwksWithDecoys.class);
 	}
 
 	@Override

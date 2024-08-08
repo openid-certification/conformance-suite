@@ -15,7 +15,6 @@ import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResource
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
@@ -322,7 +321,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		callAndStopOnFailure(AugmentRealJwksWithDecoys.class);
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-ID2-5.6.3-3");
 		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
