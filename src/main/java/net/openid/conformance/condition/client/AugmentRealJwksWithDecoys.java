@@ -93,7 +93,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		// provided by net.openid.conformance.fapi2spid2.AbstractFAPI2SPID2ClientTest.handleClientRequestForPath
 		String baseUrl = env.getString("base_url");
 		String decoyJwksUri = baseUrl + "jwks_decoy";
-		env.putObjectFromJsonString("server", "jwks_uri", decoyJwksUri);
+		env.putString("server", "jwks_uri", decoyJwksUri);
 
 		logSuccess("Updated jwks_uri with decoy keys", Map.of("jwks_uri", decoyJwksUri, "publicJwksWithDecoys", publicJwksWithDecoys));
 
