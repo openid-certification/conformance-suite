@@ -15,6 +15,7 @@ import net.openid.conformance.util.JWKUtil;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Adds additional "decoy" JWKs with the same kid but different algorithms to the JWKSet to ensure that
@@ -23,7 +24,7 @@ import java.util.List;
 public class AugmentRealJwksWithDecoys extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"server_public_jwks"})
+	@PreEnvironment(required = {"server_public_jwks", "base_url", "server"})
 	@PostEnvironment(required = {"server_public_jwks_decoy"})
 	public Environment evaluate(Environment env) {
 
@@ -60,7 +61,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		};
 
 		// generate decoy keys
-		switch(alg.getName()) {
+		switch (alg.getName()) {
 			case "ES256":
 				// generate decoys with same kid for the "other" algorithms
 				keysWithDecoys.add(keyGenerator.createJwkForAlg("EdDSA")); // decoy jwk
@@ -77,6 +78,8 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 				keysWithDecoys.add(publicKey); // real jwk
 				keysWithDecoys.add(keyGenerator.createJwkForAlg("ES256"));
 				break;
+			default:
+				throw error("Invalid FAPI alg detected in JWK", Map.of("alg", alg.getName()));
 		}
 
 		// generate a new JWKS set with the real key and the decoys
@@ -90,7 +93,9 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		// provided by net.openid.conformance.fapi2spid2.AbstractFAPI2SPID2ClientTest.handleClientRequestForPath
 		String baseUrl = env.getString("base_url");
 		String decoyJwksUri = baseUrl + "jwks_decoy";
-		env.putObjectFromJsonString("server","jwks_uri", decoyJwksUri);
+		env.putObjectFromJsonString("server", "jwks_uri", decoyJwksUri);
+
+		logSuccess("Updated jwks_uri with decoy keys", Map.of("jwks_uri", decoyJwksUri, "publicJwksWithDecoys", publicJwksWithDecoys));
 
 		return env;
 	}
