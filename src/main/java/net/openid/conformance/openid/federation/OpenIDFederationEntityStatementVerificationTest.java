@@ -110,11 +110,11 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate authority hints in Entity Statement for %s".formatted(entity));
+		// eventLog.startBlock("Validate authority hints in Entity Statement for %s".formatted(entity));
 		skipIfElementMissing("entity_statement_body", "authority_hints", Condition.ConditionResult.INFO,
 			ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		validateAuthorityHints();
-		eventLog.endBlock();
+		// eventLog.endBlock();
 	}
 
 	private void validateEntityStatementResponse() {
@@ -151,14 +151,30 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 			for (JsonElement authorityHintElement : authorityHints) {
 				String authorityHint = OIDFJSON.getString(authorityHintElement);
 				String authorityHintUrl = authorityHint + ".well-known/openid-federation";
-				eventLog.log("authority_hint", authorityHint);
 
+				eventLog.startBlock("Validating immediate superior %s".formatted(authorityHint));
+
+				// Get the entity statement for the Superior
 				env.putString("entity_statement_url", authorityHintUrl);
 				callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
 				validateEntityStatementResponse();
 				validateEntityStatement();
 
-				callAndContinueOnFailure(FederationFetchCondition.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				// Get the entity statement from the Superior's fetch endpoint
+				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint"));
+				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				callAndContinueOnFailure(ValidateEntityStatementEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				call(sequence(ValidateEntityStatementSignatureSequence.class));
+
+				callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ValidateEntityStatementExp.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.putString("entity_statement_url", OIDFJSON.getString(env.getElementFromObject("primary_entity_statement_body", "sub")));
+				callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				eventLog.endBlock();
 
 			}
 		}

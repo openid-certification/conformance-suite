@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class ValidateEntityStatementSub extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "entity_statement_body", "config" } )
+	@PreEnvironment(required = { "entity_statement_body" } )
 	public Environment evaluate(Environment env) {
 		JsonElement sub = env.getElementFromObject("entity_statement_body", "sub");
 
@@ -30,7 +30,7 @@ public class ValidateEntityStatementSub extends AbstractCondition {
 			throw error("sub listed in the entity statement is not consistent with the location the entity statement was retrieved from. These must match to prevent impersonation attacks.", args("entity_statement_url", entityStatementUrl, "sub", subUrl));
 		}
 
-		logSuccess("sub is consistent with the entity statement endpoint URL", args("sub", sub));
+		logSuccess("sub is consistent with the entity statement endpoint URL", args("expected", entityStatementUrl, "actual", sub));
 
 		return env;
 	}
