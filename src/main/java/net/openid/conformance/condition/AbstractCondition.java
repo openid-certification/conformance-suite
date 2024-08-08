@@ -182,7 +182,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	 * Decorate with @PreEnvironment to ensure objects or strings are in the environment before evaluation.
 	 * Decorate with @PostEnvironment to ensure objects or strings are in the environment after evaluation.
 	 */
-	protected abstract Environment evaluate(Environment env);
+	public abstract Environment evaluate(Environment env);
 
 	/**
 	 * Get the testId for this instance
