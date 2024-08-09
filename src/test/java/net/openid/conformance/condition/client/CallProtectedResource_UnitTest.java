@@ -2,28 +2,30 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.specto.hoverfly.junit.rule.HoverflyRule;
+import io.specto.hoverfly.junit.core.Hoverfly;
+import io.specto.hoverfly.junit5.HoverflyExtension;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(HoverflyExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class CallProtectedResource_UnitTest {
 
 	@Spy
@@ -44,32 +46,30 @@ public class CallProtectedResource_UnitTest {
 		+ "\"type\":\"example\""
 		+ "}").getAsJsonObject();
 
-	@ClassRule
-	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
-		service("example.com")
-			.get("/resource")
-			.header("Authorization", "Bearer mF_9.B5f-4.1JqM")
-			.willReturn(success("OK", "text/plain")),
-		service("example.com")
-			.get("/dpopresource")
-			.header("Authorization", "DPoP FZFEjr1zCsicM")
-			.willReturn(success("OK", "text/plain")),
-		service("example.com")
-			.get("/resource400")
-			.willReturn(badRequest()),
-		service("example.com")
-			.post("/resource")
-			.header("Authorization", "Bearer mF_9.B5f-4.1JqM")
-			.willReturn(success("OK", "text/plain"))));
-
 	private CallProtectedResource cond;
 
 	/**
 	 * @throws Exception
 	 */
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	public void setUp(Hoverfly hoverfly) throws Exception {
 
+		hoverfly.simulate(dsl(
+			service("example.com")
+				.get("/resource")
+				.header("Authorization", "Bearer mF_9.B5f-4.1JqM")
+				.willReturn(success("OK", "text/plain")),
+			service("example.com")
+				.get("/dpopresource")
+				.header("Authorization", "DPoP FZFEjr1zCsicM")
+				.willReturn(success("OK", "text/plain")),
+			service("example.com")
+				.get("/resource400")
+				.willReturn(badRequest()),
+			service("example.com")
+				.post("/resource")
+				.header("Authorization", "Bearer mF_9.B5f-4.1JqM")
+				.willReturn(success("OK", "text/plain"))));
 		hoverfly.resetJournal();
 
 		cond = new CallProtectedResource();
@@ -80,7 +80,7 @@ public class CallProtectedResource_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_noError() {
+	public void testEvaluate_noError(Hoverfly hoverfly) {
 
 		env.putObject("access_token", bearerToken);
 		env.putString("protected_resource_url", "http://example.com/resource");
@@ -99,7 +99,7 @@ public class CallProtectedResource_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_noErrorDpop() {
+	public void testEvaluate_noErrorDpop(Hoverfly hoverfly) {
 		env.putObjectFromJsonString("access_token","{"
 			+ "\"value\":\"FZFEjr1zCsicM\","
 			+ "\"type\":\"DPoP\""
@@ -121,7 +121,7 @@ public class CallProtectedResource_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_noErrorPost() {
+	public void testEvaluate_noErrorPost(Hoverfly hoverfly) {
 
 		env.putObject("access_token", bearerToken);
 		env.putString("protected_resource_url", "http://example.com/resource");
@@ -140,13 +140,16 @@ public class CallProtectedResource_UnitTest {
 		assertThat(env.getString("resource_endpoint_response_full","body")).isEqualTo("OK");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badToken() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("access_token", exampleToken);
-		env.putString("protected_resource_url", "http://example.com/resource");
+			env.putObject("access_token", exampleToken);
+			env.putString("protected_resource_url", "http://example.com/resource");
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -171,21 +174,27 @@ public class CallProtectedResource_UnitTest {
 		assertThat(env.getInteger("resource_endpoint_response_full","status")).isEqualTo(400);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingToken() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("protected_resource_url", "http://example.com/resource");
+			env.putString("protected_resource_url", "http://example.com/resource");
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingUrl() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("access_token", bearerToken);
+			env.putObject("access_token", bearerToken);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 }

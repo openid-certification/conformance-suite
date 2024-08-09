@@ -4,14 +4,14 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ValidateServerJWKs_UnitTest {
 
 	@Spy
@@ -22,7 +22,7 @@ public class ValidateServerJWKs_UnitTest {
 
 	private ValidateServerJWKs cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateServerJWKs();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);

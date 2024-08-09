@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckTokenEndpointReturnedJsonContentType_UnitTest {
 
 	@Spy
@@ -26,7 +28,7 @@ public class CheckTokenEndpointReturnedJsonContentType_UnitTest {
 	/*
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckTokenEndpointReturnedJsonContentType();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -56,17 +58,21 @@ public class CheckTokenEndpointReturnedJsonContentType_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalid() {
-		setHeader(env, "application/jsonmoo");
+		assertThrows(ConditionError.class, () -> {
+			setHeader(env, "application/jsonmoo");
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_notFoundContentType() {
-		setHeader(env, null);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			setHeader(env, null);
+			cond.execute(env);
+		});
 	}
 
 }

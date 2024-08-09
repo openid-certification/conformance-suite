@@ -5,10 +5,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Environment_UnitTest {
 
@@ -49,7 +49,7 @@ public class Environment_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		env = new Environment();
@@ -299,16 +299,20 @@ public class Environment_UnitTest {
 		assertNull(env.getInteger(testKey, pathNotFound));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetStringAsInteger() {
-		@SuppressWarnings("unused")
-		Integer actual = env.getInteger(testKey, "stringint");
+		assertThrows(IllegalArgumentException.class, () -> {
+			@SuppressWarnings("unused")
+			Integer actual = env.getInteger(testKey, "stringint");
+		});
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testGetStringAsBoolean() {
-		@SuppressWarnings("unused")
-		Boolean actual = env.getBoolean(testKey, "stringbool");
+		assertThrows(IllegalArgumentException.class, () -> {
+			@SuppressWarnings("unused")
+			Boolean actual = env.getBoolean(testKey, "stringbool");
+		});
 	}
 
 	/**

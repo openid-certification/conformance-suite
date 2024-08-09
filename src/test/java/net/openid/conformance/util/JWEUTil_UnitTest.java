@@ -1,7 +1,7 @@
 package net.openid.conformance.util;
 
 import com.nimbusds.jose.util.Base64URL;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

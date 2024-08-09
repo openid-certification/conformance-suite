@@ -7,14 +7,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateUserInfoStandardClaims_UnitTest {
 
 	@Spy
@@ -27,7 +29,7 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 
 	private JsonObject userInfo;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateUserInfoStandardClaims();
 
@@ -141,89 +143,113 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithEmptyName() {
-		userInfo.addProperty("name", "");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("name", "");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithBlankName() {
-		userInfo.addProperty("name", " ");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("name", " ");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithNullName() {
-		userInfo.add("name", JsonNull.INSTANCE);
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.add("name", JsonNull.INSTANCE);
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithEmailVerifiedIsNotBoolean() {
-		userInfo.addProperty("email_verified", "true");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("email_verified", "true");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithEmailVerifiedIsNull() {
-		userInfo.add("email_verified", JsonNull.INSTANCE);
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.add("email_verified", JsonNull.INSTANCE);
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithBirthDate() {
-		userInfo.addProperty("birthdate", "2022-14-22");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("birthdate", "2022-14-22");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithAddress() {
-		userInfo.addProperty("address", "true");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("address", "true");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithAddressCountry() {
-		JsonObject address = userInfo.get("address").getAsJsonObject();
-		address.addProperty("country", 3);
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject address = userInfo.get("address").getAsJsonObject();
+			address.addProperty("country", 3);
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithUpdatedAtIsNotNumber() {
-		userInfo.addProperty("updated_at", "is not a number");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("updated_at", "is not a number");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithClaimsNameIsNotJsonObject() {
-		userInfo.addProperty("_claim_names", "is not JSON object");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("_claim_names", "is not JSON object");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithClaimsSourceIsNotJsonObject() {
-		userInfo.addProperty("_claim_sources", "is not JSON object");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("_claim_sources", "is not JSON object");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithAddressIsEmptyJsonObject() {
-		userInfo.add("address", new JsonObject());
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			userInfo.add("address", new JsonObject());
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -265,159 +291,195 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateEmpty() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "");
+			userInfo.addProperty("birthdate", "");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalid() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "0000-13-32");
+			userInfo.addProperty("birthdate", "0000-13-32");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalid1() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "0000");
+			userInfo.addProperty("birthdate", "0000");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalid2() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "1648113552");
+			userInfo.addProperty("birthdate", "1648113552");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalidWithTime() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "2000-01-01T00:00:00.000Z");
+			userInfo.addProperty("birthdate", "2000-01-01T00:00:00.000Z");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalidMonth() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "2022-14-22");
+			userInfo.addProperty("birthdate", "2022-14-22");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalidDay() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "2022-02-30");
+			userInfo.addProperty("birthdate", "2022-02-30");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalidYear() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "12345-02-01");
+			userInfo.addProperty("birthdate", "12345-02-01");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalidYearFuture() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "2400-02-01");
+			userInfo.addProperty("birthdate", "2400-02-01");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalidYear2() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "20222");
+			userInfo.addProperty("birthdate", "20222");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalidYear3() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "a2022");
+			userInfo.addProperty("birthdate", "a2022");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_birthDateInvalidYear4() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject userInfo = new JsonObject();
+			JsonObject userInfo = new JsonObject();
 
-		userInfo.addProperty("birthdate", "2022a");
+			userInfo.addProperty("birthdate", "2022a");
 
-		env.putObject("userinfo", userInfo);
+			env.putObject("userinfo", userInfo);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

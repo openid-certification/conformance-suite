@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 {
 	@Spy
@@ -24,7 +26,7 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 
 	private ValidateVerifiedClaimsResponseAgainstSchema cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateVerifiedClaimsResponseAgainstSchema();
 
@@ -43,14 +45,16 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_validateVerifiedClaimsError() {
-		JsonObject verifiedClaimsResponse = new JsonObject();
-		String claimsJson = "{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
-		JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-		verifiedClaimsResponse.add("id_token", parsedClaims);
-		env.putObject("verified_claims_response", verifiedClaimsResponse);
-		env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject verifiedClaimsResponse = new JsonObject();
+			String claimsJson = "{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
+			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
+			verifiedClaimsResponse.add("id_token", parsedClaims);
+			env.putObject("verified_claims_response", verifiedClaimsResponse);
+			env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
+			cond.execute(env);
+		});
 	}
 }

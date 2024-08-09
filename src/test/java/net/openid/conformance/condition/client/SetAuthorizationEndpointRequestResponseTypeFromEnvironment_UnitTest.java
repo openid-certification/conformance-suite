@@ -5,16 +5,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SetAuthorizationEndpointRequestResponseTypeFromEnvironment_UnitTest {
 
 	@Spy
@@ -25,7 +26,7 @@ public class SetAuthorizationEndpointRequestResponseTypeFromEnvironment_UnitTest
 
 	private SetAuthorizationEndpointRequestResponseTypeFromEnvironment cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new SetAuthorizationEndpointRequestResponseTypeFromEnvironment();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -53,20 +54,24 @@ public class SetAuthorizationEndpointRequestResponseTypeFromEnvironment_UnitTest
 		assertThat(env.getString("authorization_endpoint_request", "response_type")).isEqualTo("id_token");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missing() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("authorization_endpoint_request", new JsonObject());
+			env.putObject("authorization_endpoint_request", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_empty() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("authorization_endpoint_request", new JsonObject());
-		env.putString("response_type", "");
+			env.putObject("authorization_endpoint_request", new JsonObject());
+			env.putString("response_type", "");
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

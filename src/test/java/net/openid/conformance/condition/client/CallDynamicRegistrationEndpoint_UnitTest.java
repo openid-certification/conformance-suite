@@ -2,18 +2,18 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.specto.hoverfly.junit.rule.HoverflyRule;
+import io.specto.hoverfly.junit.core.Hoverfly;
+import io.specto.hoverfly.junit5.HoverflyExtension;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
@@ -21,10 +21,12 @@ import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 import io.specto.hoverfly.junit.verification.HoverflyVerificationError;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@ExtendWith(HoverflyExtension.class)
 public class CallDynamicRegistrationEndpoint_UnitTest {
 
 	@Spy
@@ -65,37 +67,35 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 		"\"grant_types\":[\"authorization_code\"]," +
 		"\"response_types\":[\"code\"]} ").getAsJsonObject();
 
-	@ClassRule
-	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
-		service("good.example.com")
-			.post("/registration")
-			.anyBody()
-			.willReturn(success(goodResponse.toString(), "application/json")),
-		service("noregapi.example.com")
-			.post("/registration")
-			.anyBody()
-			.willReturn(success(goodResponseNoRegistrationAPI.toString(), "application/json")),
-		service("error.example.com")
-			.post("/registration")
-			.anyBody()
-			.willReturn(badRequest()),
-		service("bad.example.com")
-			.post("/registration")
-			.anyBody()
-			.willReturn(success("This is not JSON!", "text/plain")),
-		service("empty.example.com")
-			.post("/registration")
-			.anyBody()
-			.willReturn(success())));
-
 	private CallDynamicRegistrationEndpoint cond;
 
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	public void setUp(Hoverfly hoverfly) throws Exception {
 
+		hoverfly.simulate(dsl(
+			service("good.example.com")
+				.post("/registration")
+				.anyBody()
+				.willReturn(success(goodResponse.toString(), "application/json")),
+			service("noregapi.example.com")
+				.post("/registration")
+				.anyBody()
+				.willReturn(success(goodResponseNoRegistrationAPI.toString(), "application/json")),
+			service("error.example.com")
+				.post("/registration")
+				.anyBody()
+				.willReturn(badRequest()),
+			service("bad.example.com")
+				.post("/registration")
+				.anyBody()
+				.willReturn(success("This is not JSON!", "text/plain")),
+			service("empty.example.com")
+				.post("/registration")
+				.anyBody()
+				.willReturn(success())));
 		hoverfly.resetJournal();
 
 		cond = new CallDynamicRegistrationEndpoint();
@@ -107,7 +107,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	 * Test method for {@link CallDynamicRegistrationEndpoint#evaluate(Environment)}.
 	 */
 	@Test
-	public void testEvaluate_noError() {
+	public void testEvaluate_noError(Hoverfly hoverfly) {
 		String requestAccessToken = "mF_9.B5f-4.1JqM";
 
 		JsonObject server = JsonParser.parseString("{"
@@ -138,7 +138,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	 * Test method for {@link CallDynamicRegistrationEndpoint#evaluate(Environment)}.
 	 */
 	@Test
-	public void testEvaluate_noError_noRegistrationClientUri() {
+	public void testEvaluate_noError_noRegistrationClientUri(Hoverfly hoverfly) {
 
 		JsonObject server = JsonParser.parseString("{"
 			+ "\"registration_endpoint\":\"https://noregapi.example.com/registration\""
@@ -164,7 +164,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	 * Test method for {@link CallDynamicRegistrationEndpoint#evaluate(Environment)}.
 	 */
 	@Test
-	public void testEvaluate_noError_noInitialAccessToken() {
+	public void testEvaluate_noError_noInitialAccessToken(Hoverfly hoverfly) {
 		JsonObject server = JsonParser.parseString("{"
 			+ "\"registration_endpoint\":\"https://good.example.com/registration\""
 			+ "}").getAsJsonObject();
@@ -184,7 +184,7 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 			.anyBody(),
 
 			(request, data) -> {
-				data.getJournal().getEntries().stream().forEach(entry -> {
+				data.getJournal().getEntries().forEach(entry -> {
 					if (entry.getRequest().getHeaders().containsKey("Authorization")) {
 						throw new HoverflyVerificationError("Unexpected Authorization Request Header Field.");
 					}
@@ -195,56 +195,64 @@ public class CallDynamicRegistrationEndpoint_UnitTest {
 	/**
 	 * Test method for {@link CallDynamicRegistrationEndpoint#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noServerRegistraitonEndpoint(){
-		JsonObject server = JsonParser.parseString("{\"not_registration_endpoint\":\"foo\"}").getAsJsonObject();
-		env.putObject("server",server);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{\"not_registration_endpoint\":\"foo\"}").getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link CallDynamicRegistrationEndpoint#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testBadRequestResponseFromServer(){
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"registration_endpoint\":\"https://error.example.com/registration\""
-			+ "}").getAsJsonObject();
-		env.putObject("server", server);
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"registration_endpoint\":\"https://error.example.com/registration\""
+				+ "}").getAsJsonObject();
+			env.putObject("server", server);
 
-		env.putObject("dynamic_registration_request", requestParameters);
+			env.putObject("dynamic_registration_request", requestParameters);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link CallDynamicRegistrationEndpoint#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testInvalidJsonReturnedFromServer(){
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"registration_endpoint\":\"https://bad.example.com/registration\""
-			+ "}").getAsJsonObject();
-		env.putObject("server", server);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"registration_endpoint\":\"https://bad.example.com/registration\""
+				+ "}").getAsJsonObject();
+			env.putObject("server", server);
 
-		env.putObject("dynamic_registration_request", requestParameters);
+			env.putObject("dynamic_registration_request", requestParameters);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link CallDynamicRegistrationEndpoint#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEmptyBodyReturnedFromServer(){
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"registration_endpoint\":\"https://empty.example.com/registration\""
-			+ "}").getAsJsonObject();
-		env.putObject("server", server);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"registration_endpoint\":\"https://empty.example.com/registration\""
+				+ "}").getAsJsonObject();
+			env.putObject("server", server);
 
-		env.putObject("dynamic_registration_request", requestParameters);
+			env.putObject("dynamic_registration_request", requestParameters);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

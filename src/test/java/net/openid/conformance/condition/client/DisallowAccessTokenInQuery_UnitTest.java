@@ -2,28 +2,30 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.specto.hoverfly.junit.rule.HoverflyRule;
+import io.specto.hoverfly.junit.core.Hoverfly;
+import io.specto.hoverfly.junit5.HoverflyExtension;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 import static io.specto.hoverfly.junit.dsl.matchers.HoverflyMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(HoverflyExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class DisallowAccessTokenInQuery_UnitTest {
 
 	@Spy
@@ -39,25 +41,23 @@ public class DisallowAccessTokenInQuery_UnitTest {
 		+ "\"type\":\"Bearer\""
 		+ "}").getAsJsonObject();
 
-	@ClassRule
-	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
-		service("good.example.com")
-			.get("/accounts")
-			.queryParam("access_token", any())
-			.willReturn(badRequest().body("Bad Request")),
-		service("bad.example.com")
-			.get("/accounts")
-			.queryParam("access_token", "mF_9.B5f-4.1JqM")
-			.willReturn(success("OK", "text/plain"))));
-
 	private DisallowAccessTokenInQuery cond;
 
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	public void setUp(Hoverfly hoverfly) throws Exception {
 
+		hoverfly.simulate(dsl(
+			service("good.example.com")
+				.get("/accounts")
+				.queryParam("access_token", any())
+				.willReturn(badRequest().body("Bad Request")),
+			service("bad.example.com")
+				.get("/accounts")
+				.queryParam("access_token", "mF_9.B5f-4.1JqM")
+				.willReturn(success("OK", "text/plain"))));
 		hoverfly.resetJournal();
 
 		cond = new DisallowAccessTokenInQuery();
@@ -68,7 +68,7 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_noError() {
+	public void testEvaluate_noError(Hoverfly hoverfly) {
 
 		env.putObject("access_token", bearerToken);
 		env.putString("protected_resource_url", "http://good.example.com/accounts");
@@ -86,50 +86,62 @@ public class DisallowAccessTokenInQuery_UnitTest {
 	/**
 	 * Test method for {@link DisallowAccessTokenInQuery#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_disallowedQueryAccepted() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("access_token", bearerToken);
-		env.putString("protected_resource_url", "http://bad.example.com/accounts");
+			env.putObject("access_token", bearerToken);
+			env.putString("protected_resource_url", "http://bad.example.com/accounts");
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link DisallowAccessTokenInQuery#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badServer() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("access_token", bearerToken);
-		env.putString("protected_resource_url", "http://invalid.org/accounts");
+			env.putObject("access_token", bearerToken);
+			env.putString("protected_resource_url", "http://invalid.org/accounts");
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link DisallowAccessTokenInQuery#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingToken() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("protected_resource_url", "http://good.example.com/accounts");
+			env.putString("protected_resource_url", "http://good.example.com/accounts");
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link DisallowAccessTokenInQuery#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingUrl() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("access_token", bearerToken);
+			env.putObject("access_token", bearerToken);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

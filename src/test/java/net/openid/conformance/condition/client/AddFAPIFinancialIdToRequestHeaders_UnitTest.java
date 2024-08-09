@@ -8,16 +8,16 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 
 	@Spy
@@ -35,7 +35,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new AddFAPIFinancialIdToResourceEndpointRequest();
@@ -102,12 +102,15 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 	}
 
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noFinancialId() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("resource", new JsonObject());
+			env.putObject("resource", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 }

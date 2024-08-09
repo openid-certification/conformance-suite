@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureErrorTokenEndpointSlowdownOrAuthorizationPending_UnitTest {
 
 	@Spy
@@ -23,7 +25,7 @@ public class EnsureErrorTokenEndpointSlowdownOrAuthorizationPending_UnitTest {
 
 	private EnsureErrorTokenEndpointSlowdownOrAuthorizationPending cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new EnsureErrorTokenEndpointSlowdownOrAuthorizationPending();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -46,34 +48,38 @@ public class EnsureErrorTokenEndpointSlowdownOrAuthorizationPending_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvalutate_isEmpty() {
-		JsonObject o = new JsonObject();
-		env.putObject("token_endpoint_response", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			env.putObject("token_endpoint_response", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvalutate_isBad() {
-		JsonObject o = new JsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
 
-		// Case access_denied
-		o.addProperty("error", "access_denied");
-		env.putObject("token_endpoint_response", o);
+			// Case access_denied
+			o.addProperty("error", "access_denied");
+			env.putObject("token_endpoint_response", o);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		// Case expired_token
-		o.addProperty("error", "expired_token");
-		env.putObject("token_endpoint_response", o);
+			// Case expired_token
+			o.addProperty("error", "expired_token");
+			env.putObject("token_endpoint_response", o);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		// Case unauthorized_client
-		o.addProperty("error", "unauthorized_client");
-		env.putObject("token_endpoint_response", o);
+			// Case unauthorized_client
+			o.addProperty("error", "unauthorized_client");
+			env.putObject("token_endpoint_response", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

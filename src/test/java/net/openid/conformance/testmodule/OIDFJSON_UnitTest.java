@@ -2,13 +2,14 @@ package net.openid.conformance.testmodule;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OIDFJSON_UnitTest {
 
 	@Test
@@ -20,11 +21,13 @@ public class OIDFJSON_UnitTest {
 		assert(f > 5.09 && f < 5.11);
 	}
 
-	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
+	@Test
 	public void getFloat_string() {
-		JsonElement json = JsonParser.parseString("\"5.1\"");
+		assertThrows(OIDFJSON.UnexpectedJsonTypeException.class, () -> {
+			JsonElement json = JsonParser.parseString("\"5.1\"");
 
-		float f = OIDFJSON.getFloat(json);
+			float f = OIDFJSON.getFloat(json);
+		});
 	}
 
 	@Test
@@ -45,31 +48,39 @@ public class OIDFJSON_UnitTest {
 		assertNotNull(s);
 	}
 
-	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
+	@Test
 	public void forceConversionToString_bool() {
-		JsonElement json = JsonParser.parseString("true");
+		assertThrows(OIDFJSON.UnexpectedJsonTypeException.class, () -> {
+			JsonElement json = JsonParser.parseString("true");
 
-		String s = OIDFJSON.forceConversionToString(json);
+			String s = OIDFJSON.forceConversionToString(json);
+		});
 	}
 
-	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
+	@Test
 	public void forceConversionToString_object() {
-		JsonElement json = JsonParser.parseString("{ \"foo\": 5 }");
+		assertThrows(OIDFJSON.UnexpectedJsonTypeException.class, () -> {
+			JsonElement json = JsonParser.parseString("{ \"foo\": 5 }");
 
-		String s = OIDFJSON.forceConversionToString(json);
+			String s = OIDFJSON.forceConversionToString(json);
+		});
 	}
 
-	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
+	@Test
 	public void forceConversionToString_array() {
-		JsonElement json = JsonParser.parseString("[ 5 ]");
+		assertThrows(OIDFJSON.UnexpectedJsonTypeException.class, () -> {
+			JsonElement json = JsonParser.parseString("[ 5 ]");
 
-		String s = OIDFJSON.forceConversionToString(json);
+			String s = OIDFJSON.forceConversionToString(json);
+		});
 	}
 
-	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
+	@Test
 	public void forceConversionToString_null() {
-		JsonElement json = JsonParser.parseString("null");
+		assertThrows(OIDFJSON.UnexpectedJsonTypeException.class, () -> {
+			JsonElement json = JsonParser.parseString("null");
 
-		String s = OIDFJSON.forceConversionToString(json);
+			String s = OIDFJSON.forceConversionToString(json);
+		});
 	}
 }

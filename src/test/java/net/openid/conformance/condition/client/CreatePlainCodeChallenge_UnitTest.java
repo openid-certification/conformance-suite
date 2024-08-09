@@ -4,18 +4,19 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.security.NoSuchAlgorithmException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CreatePlainCodeChallenge_UnitTest {
 
 	@Spy
@@ -26,15 +27,17 @@ public class CreatePlainCodeChallenge_UnitTest {
 
 	private CreatePlainCodeChallenge cond;
 
-	@Before
+	@BeforeEach
 	public void setUp(){
 		cond = new CreatePlainCodeChallenge();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testMissing() {
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
 	}
 
 	@Test

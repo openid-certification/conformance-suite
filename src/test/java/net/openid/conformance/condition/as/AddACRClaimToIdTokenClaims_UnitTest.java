@@ -6,18 +6,19 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddACRClaimToIdTokenClaims_UnitTest {
 
 	@Spy
@@ -35,7 +36,7 @@ public class AddACRClaimToIdTokenClaims_UnitTest {
 	private String acrValuesString;
 
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new AddACRClaimToIdTokenClaims();
@@ -76,13 +77,16 @@ public class AddACRClaimToIdTokenClaims_UnitTest {
 		assertEquals("urn:openbanking:psd2:ca", env.getString("id_token_claims", "acr"));
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidACRValue() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("id_token_claims", claims);
-		env.putString("requested_id_token_acr_values", "[\"urn:openbanking:invalid:ca\"]");
+			env.putObject("id_token_claims", claims);
+			env.putString("requested_id_token_acr_values", "[\"urn:openbanking:invalid:ca\"]");
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

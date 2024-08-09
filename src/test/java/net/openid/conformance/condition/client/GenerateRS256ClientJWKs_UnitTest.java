@@ -5,18 +5,18 @@ import com.nimbusds.jose.jwk.JWKSet;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.text.ParseException;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GenerateRS256ClientJWKs_UnitTest {
 
 	@Spy
@@ -27,7 +27,7 @@ public class GenerateRS256ClientJWKs_UnitTest {
 
 	private GenerateRS256ClientJWKs cond;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		cond = new GenerateRS256ClientJWKs();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);

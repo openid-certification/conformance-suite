@@ -5,16 +5,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EnsureClientAssertionTypeIsJwt_UnitTest {
 
 	@Spy
@@ -29,7 +30,7 @@ public class EnsureClientAssertionTypeIsJwt_UnitTest {
 
 	private EnsureClientAssertionTypeIsJwt cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new EnsureClientAssertionTypeIsJwt();
@@ -61,18 +62,23 @@ public class EnsureClientAssertionTypeIsJwt_UnitTest {
 		assertNotNull(env.getElementFromObject("token_endpoint_request", "body_form_params.client_assertion_type"));
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_valueMismatch() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("token_endpoint_request", invalidTokenEndpointRequest);
+			env.putObject("token_endpoint_request", invalidTokenEndpointRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_valueMissing() {
+		assertThrows(ConditionError.class, () -> {
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

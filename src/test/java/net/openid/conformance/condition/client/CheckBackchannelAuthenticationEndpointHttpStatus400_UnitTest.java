@@ -4,14 +4,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckBackchannelAuthenticationEndpointHttpStatus400_UnitTest {
 
 	@Spy
@@ -22,7 +24,7 @@ public class CheckBackchannelAuthenticationEndpointHttpStatus400_UnitTest {
 
 	private CheckBackchannelAuthenticationEndpointHttpStatus400 cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckBackchannelAuthenticationEndpointHttpStatus400();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -35,18 +37,22 @@ public class CheckBackchannelAuthenticationEndpointHttpStatus400_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_withError400() {
-		env.putInteger("backchannel_authentication_endpoint_response_http_status", 200);
+		assertThrows(ConditionError.class, () -> {
+			env.putInteger("backchannel_authentication_endpoint_response_http_status", 200);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_wrongParameters() {
-		env.putInteger("authentication_endpoint_response_http_status", 400);
+		assertThrows(ConditionError.class, () -> {
+			env.putInteger("authentication_endpoint_response_http_status", 400);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

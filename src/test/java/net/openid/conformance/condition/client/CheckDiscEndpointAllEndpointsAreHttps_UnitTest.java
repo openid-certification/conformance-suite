@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 
 	private CheckDiscEndpointAllEndpointsAreHttps cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckDiscEndpointAllEndpointsAreHttps();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -54,35 +56,41 @@ public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_notHttps() {
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"flibble_endpoint\": \"http://www.example.com/endpoint\""
-			+ "}")
-			.getAsJsonObject();
-		env.putObject("server", server);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"flibble_endpoint\": \"http://www.example.com/endpoint\""
+				+ "}")
+				.getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_notUrl() {
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"flibble_endpoint\": \"flibble\""
-			+ "}")
-			.getAsJsonObject();
-		env.putObject("server", server);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"flibble_endpoint\": \"flibble\""
+				+ "}")
+				.getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorArray() {
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"flibble_endpoint\": ["
-			+ "\"https://www.example.com/endpoint\""
-			+ "]}")
-			.getAsJsonObject();
-		env.putObject("server", server);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"flibble_endpoint\": ["
+				+ "\"https://www.example.com/endpoint\""
+				+ "]}")
+				.getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 
 }

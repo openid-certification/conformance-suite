@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class VerifyScopesReturnedInAuthorizationEndpointIdToken_UnitTest {
 
 	@Spy
@@ -28,7 +30,7 @@ public class VerifyScopesReturnedInAuthorizationEndpointIdToken_UnitTest {
 
 	private JsonObject authorizationEndpointRequest;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new VerifyScopesReturnedInAuthorizationEndpointIdToken();
@@ -65,42 +67,50 @@ public class VerifyScopesReturnedInAuthorizationEndpointIdToken_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingClaimsInIdToken() {
-		authorizationEndpointIdToken.remove("claims");
-		env.putObject("authorization_endpoint_id_token", authorizationEndpointIdToken);
-		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+		assertThrows(ConditionError.class, () -> {
+			authorizationEndpointIdToken.remove("claims");
+			env.putObject("authorization_endpoint_id_token", authorizationEndpointIdToken);
+			env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_claimsIsNotJsonObject() {
-		authorizationEndpointIdToken.addProperty("claims", "is not JsonObject");
-		env.putObject("authorization_endpoint_id_token", authorizationEndpointIdToken);
-		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+		assertThrows(ConditionError.class, () -> {
+			authorizationEndpointIdToken.addProperty("claims", "is not JsonObject");
+			env.putObject("authorization_endpoint_id_token", authorizationEndpointIdToken);
+			env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingScopeInAuthorizationEndpointRequest() {
-		env.putObject("authorization_endpoint_id_token", authorizationEndpointIdToken);
-		authorizationEndpointRequest.remove("scope");
-		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("authorization_endpoint_id_token", authorizationEndpointIdToken);
+			authorizationEndpointRequest.remove("scope");
+			env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_allScopeNamesIsNotReturnedInIdToken() {
-		env.putObject("authorization_endpoint_id_token", authorizationEndpointIdToken);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("authorization_endpoint_id_token", authorizationEndpointIdToken);
 
-		// 'email_verified' is not returned in claims of id_token
-		authorizationEndpointRequest.addProperty("scope", "openid address email");
-		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+			// 'email_verified' is not returned in claims of id_token
+			authorizationEndpointRequest.addProperty("scope", "openid address email");
+			env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

@@ -2,7 +2,7 @@ package net.openid.conformance.config;
 
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.mock.env.MockEnvironment;

@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckDiscEndpointIssuer_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class CheckDiscEndpointIssuer_UnitTest {
 
 	private CheckDiscEndpointIssuer cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckDiscEndpointIssuer();
@@ -37,38 +39,47 @@ public class CheckDiscEndpointIssuer_UnitTest {
 		env.putObject("config", config);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseMissingIssuer() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = new JsonObject();
+			JsonObject server = new JsonObject();
 
-		env.putObject("server", server);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseNoMatching() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = new JsonObject();
-		server.addProperty("issuer", "https://fapidev-as.authlete.net/");
+			JsonObject server = new JsonObject();
+			server.addProperty("issuer", "https://fapidev-as.authlete.net/");
 
-		env.putObject("server", server);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseInvalidIssuer() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = new JsonObject();
-		server.addProperty("issuer", "http:/fapidev-as.authlete.net/");
+			JsonObject server = new JsonObject();
+			server.addProperty("issuer", "http:/fapidev-as.authlete.net/");
 
-		env.putObject("server", server);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

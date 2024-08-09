@@ -9,12 +9,12 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +23,7 @@ import java.util.Set;
 import static net.openid.conformance.ekyc.condition.client.AbstractValidateAgainstSchema.checkRequestSchema;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTest {
 
 	@Spy
@@ -34,7 +34,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 
 	private AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);

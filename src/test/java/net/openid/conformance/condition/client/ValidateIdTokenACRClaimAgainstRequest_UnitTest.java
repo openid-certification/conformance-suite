@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 
 	private ValidateIdTokenACRClaimAgainstRequest cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateIdTokenACRClaimAgainstRequest();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -41,9 +43,10 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseBadEmpty() {
-		String request =
+		assertThrows(ConditionError.class, () -> {
+			String request =
 				"""
 						{
 						  "claims": {
@@ -55,12 +58,14 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 						    }
 						  }
 						}""";
-		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
-		env.putObject("authorization_endpoint_request", req);
+			JsonObject req = JsonParser.parseString(request).getAsJsonObject();
+			env.putObject("authorization_endpoint_request", req);
 
-		env.putObject("id_token", new JsonObject());
+			env.putObject("id_token", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -88,9 +93,10 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseSingleBad() {
-		String request =
+		assertThrows(ConditionError.class, () -> {
+			String request =
 				"""
 						{
 						  "claims": {
@@ -103,13 +109,15 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 						  }
 						}""";
 
-		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
-		env.putObject("authorization_endpoint_request", req);
+			JsonObject req = JsonParser.parseString(request).getAsJsonObject();
+			env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
-		env.putObject("id_token", idToken);
+			JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
+			env.putObject("id_token", idToken);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -141,9 +149,10 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseArrayBad() {
-		String request =
+		assertThrows(ConditionError.class, () -> {
+			String request =
 				"""
 						{
 						  "claims": {
@@ -159,13 +168,15 @@ public class ValidateIdTokenACRClaimAgainstRequest_UnitTest {
 						  }
 						}""";
 
-		JsonObject req = JsonParser.parseString(request).getAsJsonObject();
-		env.putObject("authorization_endpoint_request", req);
+			JsonObject req = JsonParser.parseString(request).getAsJsonObject();
+			env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:openbanking:psd2:s\"}}").getAsJsonObject();
-		env.putObject("id_token", idToken);
+			JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:openbanking:psd2:s\"}}").getAsJsonObject();
+			env.putObject("id_token", idToken);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 }

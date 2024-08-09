@@ -2,25 +2,27 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.specto.hoverfly.junit.rule.HoverflyRule;
+import io.specto.hoverfly.junit.core.Hoverfly;
+import io.specto.hoverfly.junit5.HoverflyExtension;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(HoverflyExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class FetchServerKeys_UnitTest {
 
 	@Spy
@@ -55,26 +57,24 @@ public class FetchServerKeys_UnitTest {
 		+ "}"
 		+ "]}";
 
-	@ClassRule
-	public static HoverflyRule hoverfly = HoverflyRule.inSimulationMode(dsl(
-		service("good.example.com")
-			.get("/jwks.json")
-			.willReturn(success(jwksStr, "application/json")),
-		service("good.example1.com")
-			.get("/jwks.json")
-			.willReturn(success(unsupportedJwksStr, "application/json")),
-		service("bad.example.com")
-			.get("/jwks.json")
-			.willReturn(success("This is not JSON!", "text/plain"))));
-
 	private FetchServerKeys cond;
 
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
-	public void setUp() throws Exception {
+	@BeforeEach
+	public void setUp(Hoverfly hoverfly) throws Exception {
 
+		hoverfly.simulate(dsl(
+			service("good.example.com")
+				.get("/jwks.json")
+				.willReturn(success(jwksStr, "application/json")),
+			service("good.example1.com")
+				.get("/jwks.json")
+				.willReturn(success(unsupportedJwksStr, "application/json")),
+			service("bad.example.com")
+				.get("/jwks.json")
+				.willReturn(success("This is not JSON!", "text/plain"))));
 		hoverfly.resetJournal();
 
 		cond = new FetchServerKeys();
@@ -86,7 +86,7 @@ public class FetchServerKeys_UnitTest {
 	 * Test method for {@link FetchServerKeys#evaluate(Environment)}.
 	 */
 	@Test
-	public void testEvaluate_dynamic() {
+	public void testEvaluate_dynamic(Hoverfly hoverfly) {
 
 		JsonObject jwks = JsonParser.parseString(jwksStr).getAsJsonObject();
 
@@ -102,7 +102,7 @@ public class FetchServerKeys_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_dynamicWithUnsupportedServerJWKs() {
+	public void testEvaluate_dynamicWithUnsupportedServerJWKs(Hoverfly hoverfly) {
 
 		JsonObject jwks = JsonParser.parseString(unsupportedJwksStr).getAsJsonObject();
 
@@ -120,46 +120,54 @@ public class FetchServerKeys_UnitTest {
 	/**
 	 * Test method for {@link FetchServerKeys#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingUri() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("server", new JsonObject());
+			env.putObject("server", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link FetchServerKeys#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingConfig() {
+		assertThrows(ConditionError.class, () -> {
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link FetchServerKeys#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noServer() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = new JsonObject();
-		server.addProperty("jwks_uri", "https://nonexisting.example.com/jwks.json");
-		env.putObject("server", server);
+			JsonObject server = new JsonObject();
+			server.addProperty("jwks_uri", "https://nonexisting.example.com/jwks.json");
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link FetchServerKeys#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badResponse() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = new JsonObject();
-		server.addProperty("jwks_uri", "https://bad.example.com/jwks.json");
-		env.putObject("server", server);
+			JsonObject server = new JsonObject();
+			server.addProperty("jwks_uri", "https://bad.example.com/jwks.json");
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

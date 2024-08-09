@@ -6,16 +6,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckIdTokenAuthTimeIsRecentIfPresent_UnitTest {
 	private long nowSeconds;
 
@@ -38,7 +40,7 @@ public class CheckIdTokenAuthTimeIsRecentIfPresent_UnitTest {
 		return idToken;
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckIdTokenAuthTimeIsRecentIfPresent();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -53,11 +55,13 @@ public class CheckIdTokenAuthTimeIsRecentIfPresent_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_tooOld() {
-		env.putObject("id_token", createToken("{ \"auth_time\": "+(nowSeconds-10*60)+" }"));
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("id_token", createToken("{ \"auth_time\": " + (nowSeconds - 10 * 60) + " }"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -67,18 +71,22 @@ public class CheckIdTokenAuthTimeIsRecentIfPresent_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void testEvaluate_nullAuthTimes() {
-		env.putObject("id_token", createToken("{ \"auth_time\": null }"));
+		assertThrows(RuntimeException.class, () -> {
+			env.putObject("id_token", createToken("{ \"auth_time\": null }"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void testEvaluate_authTimeString() {
-		env.putObject("id_token", createToken("{ \"auth_time\": \"16\" }"));
+		assertThrows(RuntimeException.class, () -> {
+			env.putObject("id_token", createToken("{ \"auth_time\": \"16\" }"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

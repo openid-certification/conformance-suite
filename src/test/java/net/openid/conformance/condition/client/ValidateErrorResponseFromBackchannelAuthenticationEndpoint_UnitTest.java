@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateErrorResponseFromBackchannelAuthenticationEndpoint_UnitTest {
 
 	@Spy
@@ -23,7 +25,7 @@ public class ValidateErrorResponseFromBackchannelAuthenticationEndpoint_UnitTest
 	private TestInstanceEventLog eventLog;
 	private ValidateErrorResponseFromBackchannelAuthenticationEndpoint cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateErrorResponseFromBackchannelAuthenticationEndpoint();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -47,15 +49,19 @@ public class ValidateErrorResponseFromBackchannelAuthenticationEndpoint_UnitTest
 		doTestString(errorNoneAllOptionalFields);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorMissing() {
-		String errorErrorMissing = "{\"error_description\":\"incorrect credentials\",\"error_uri\":\"http://anerror.com\"}";
-		doTestString(errorErrorMissing);
+		assertThrows(ConditionError.class, () -> {
+			String errorErrorMissing = "{\"error_description\":\"incorrect credentials\",\"error_uri\":\"http://anerror.com\"}";
+			doTestString(errorErrorMissing);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorTooManyFields() {
-		String errorTooManyFields = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\",\"error_uri\":\"http://anerror.com\",\"extraField\":\"Illegal Extra Field\"}";
-		doTestString(errorTooManyFields);
+		assertThrows(ConditionError.class, () -> {
+			String errorTooManyFields = "{\"error\":\"access_denied\",\"error_description\":\"incorrect credentials\",\"error_uri\":\"http://anerror.com\",\"extraField\":\"Illegal Extra Field\"}";
+			doTestString(errorTooManyFields);
+		});
 	}
 }

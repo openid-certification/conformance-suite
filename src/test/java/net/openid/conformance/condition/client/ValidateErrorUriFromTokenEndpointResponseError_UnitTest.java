@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateErrorUriFromTokenEndpointResponseError_UnitTest {
 
 	@Spy
@@ -26,7 +28,7 @@ public class ValidateErrorUriFromTokenEndpointResponseError_UnitTest {
 
 	private JsonObject tokenEndpointResponse;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateErrorUriFromTokenEndpointResponseError();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -38,16 +40,20 @@ public class ValidateErrorUriFromTokenEndpointResponseError_UnitTest {
 		env.putObject("token_endpoint_response", tokenEndpointResponse);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_ErrorUriFieldCharacterInvalid() {
-		tokenEndpointResponse.addProperty("error_uri", "https://www.authlete.com/documents/apis/result_codes#A200308\"");
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			tokenEndpointResponse.addProperty("error_uri", "https://www.authlete.com/documents/apis/result_codes#A200308\"");
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_ErrorUriFieldURISyntaxInvalid() {
-		tokenEndpointResponse.addProperty("error_uri", "/authlete/documents/apis/result_codes#A200308");
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			tokenEndpointResponse.addProperty("error_uri", "/authlete/documents/apis/result_codes#A200308");
+			cond.execute(env);
+		});
 	}
 
 	@Test

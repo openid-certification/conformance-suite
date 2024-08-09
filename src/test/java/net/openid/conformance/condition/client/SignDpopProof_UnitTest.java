@@ -8,19 +8,20 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWTUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.text.ParseException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SignDpopProof_UnitTest {
 
 	@Spy
@@ -36,7 +37,7 @@ public class SignDpopProof_UnitTest {
 
 	private JsonObject rsaJwks;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new SignDpopProof();
@@ -96,21 +97,27 @@ public class SignDpopProof_UnitTest {
 		}
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noClaims() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("client", "dpop_private_jwk", rsaJwks);
+			env.putObject("client", "dpop_private_jwk", rsaJwks);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noJwks() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("dpop_proof_claims", claims);
+			env.putObject("dpop_proof_claims", claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 }

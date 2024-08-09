@@ -4,20 +4,20 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 
-
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CalculateCHash_UnitTest {
 
 	@Spy
@@ -32,7 +32,7 @@ public class CalculateCHash_UnitTest {
 
 	private String authorizationCode = "Qcb0Orv1zh30vL1MPRsbm-diHiMwcLyZvn1arpZv-Jxf_11jnpEX3Tgfvk";
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CalculateCHash();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO, new String[0]);
@@ -48,14 +48,16 @@ public class CalculateCHash_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test (expected = ConditionError.class)
+	@Test
 	public void testEvaluate_InvalidAlgorithm()
 	{
-		env.putString("signing_algorithm", "ZZ256");
+		assertThrows(ConditionError.class, () -> {
+			env.putString("signing_algorithm", "ZZ256");
 
-		env.putString("authorization_code", authorizationCode);
+			env.putString("authorization_code", authorizationCode);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test

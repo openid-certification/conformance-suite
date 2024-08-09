@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaimsTest_UnitTest {
 
 	@Spy
@@ -35,7 +37,7 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdent
 		env.putObject(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "claims.userinfo", claims);
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 
 		cond = new AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims();
@@ -81,9 +83,10 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdent
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_userinfoClaims() {
-		String userinfoRequestStr =
+		assertThrows(ConditionError.class, () -> {
+			String userinfoRequestStr =
 				"""
 						{
 						  "name": null,
@@ -100,10 +103,11 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdent
 						  "phone_number": null,
 						  "address": {}
 						}""";
-		JsonObject userinfoRequestObj = (JsonObject) JsonParser.parseString(userinfoRequestStr);
-		addRequestClaims(env,request);
-		addUserinfoClaims(env, userinfoRequestObj);
-		cond.execute(env);
+			JsonObject userinfoRequestObj = (JsonObject) JsonParser.parseString(userinfoRequestStr);
+			addRequestClaims(env, request);
+			addUserinfoClaims(env, userinfoRequestObj);
+			cond.execute(env);
+		});
 	}
 
 
@@ -128,16 +132,18 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdent
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_singleUserinfoclaim() {
-		String userinfoRequestStr =
+		assertThrows(ConditionError.class, () -> {
+			String userinfoRequestStr =
 				"""
 						{
 						  "name": null
 						}""";
-		JsonObject userinfoRequestObj = (JsonObject) JsonParser.parseString(userinfoRequestStr);
-		addRequestClaims(env,request);
-		addUserinfoClaims(env, userinfoRequestObj);
-		cond.execute(env);
+			JsonObject userinfoRequestObj = (JsonObject) JsonParser.parseString(userinfoRequestStr);
+			addRequestClaims(env, request);
+			addUserinfoClaims(env, userinfoRequestObj);
+			cond.execute(env);
+		});
 	}
 }

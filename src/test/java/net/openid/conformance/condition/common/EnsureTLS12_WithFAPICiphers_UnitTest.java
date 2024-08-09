@@ -6,17 +6,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EnsureTLS12_WithFAPICiphers_UnitTest
 {
 
@@ -31,7 +32,7 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new EnsureTLS12WithFAPICiphers();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -65,55 +66,63 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 	/**
 	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_notTls() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject tls = JsonParser.parseString("{"
-			+ "\"testHost\":\"example.com\","
-			+ "\"testPort\":80"
-			+ "}").getAsJsonObject();
+			JsonObject tls = JsonParser.parseString("{"
+				+ "\"testHost\":\"example.com\","
+				+ "\"testPort\":80"
+				+ "}").getAsJsonObject();
 
-		env.putObject("tls", tls);
+			env.putObject("tls", tls);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingHost() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject tls = JsonParser.parseString("{"
-			+ "\"testPort\":443"
-			+ "}").getAsJsonObject();
+			JsonObject tls = JsonParser.parseString("{"
+				+ "\"testPort\":443"
+				+ "}").getAsJsonObject();
 
-		env.putObject("tls", tls);
+			env.putObject("tls", tls);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingPort() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject tls = JsonParser.parseString("{"
-			+ "\"testHost\":\"example.com\""
-			+ "}").getAsJsonObject();
+			JsonObject tls = JsonParser.parseString("{"
+				+ "\"testHost\":\"example.com\""
+				+ "}").getAsJsonObject();
 
-		env.putObject("tls", tls);
+			env.putObject("tls", tls);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link EnsureTLS12WithFAPICiphers#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingConfig() {
+		assertThrows(ConditionError.class, () -> {
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

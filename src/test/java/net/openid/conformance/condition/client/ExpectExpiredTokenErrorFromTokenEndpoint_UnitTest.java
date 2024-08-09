@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ExpectExpiredTokenErrorFromTokenEndpoint_UnitTest {
 
 	@Spy
@@ -25,7 +27,7 @@ public class ExpectExpiredTokenErrorFromTokenEndpoint_UnitTest {
 
 	private JsonObject tokenEndpointResponse;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ExpectExpiredTokenErrorFromTokenEndpoint();
 
@@ -36,15 +38,19 @@ public class ExpectExpiredTokenErrorFromTokenEndpoint_UnitTest {
 		env.putObject("token_endpoint_response", tokenEndpointResponse);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_NoErrorField() {
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_ErrorFieldNotCorrect() {
-		tokenEndpointResponse.addProperty("error", "access_denied");
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			tokenEndpointResponse.addProperty("error", "access_denied");
+			cond.execute(env);
+		});
 	}
 
 	@Test

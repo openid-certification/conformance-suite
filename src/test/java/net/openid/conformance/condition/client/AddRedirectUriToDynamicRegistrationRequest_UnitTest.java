@@ -5,16 +5,16 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddRedirectUriToDynamicRegistrationRequest_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -35,7 +35,7 @@ public class AddRedirectUriToDynamicRegistrationRequest_UnitTest {
 
 	private AddRedirectUriToDynamicRegistrationRequest cond;
 
-	@Before
+	@BeforeEach
 	public void setUp(){
 		cond = new AddRedirectUriToDynamicRegistrationRequest();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);

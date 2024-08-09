@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateClientGrantTypes_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class ValidateClientGrantTypes_UnitTest {
 
 	private ValidateClientGrantTypes cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateClientGrantTypes();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -47,33 +49,37 @@ public class ValidateClientGrantTypes_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_MissingImplicit() {
-		JsonObject client = new JsonObject();
-		JsonArray grantTypes = new JsonArray();
-		grantTypes.add("authorization_code");
-		JsonArray responseTypes = new JsonArray();
-		responseTypes.add("code");
-		responseTypes.add("code id_token");
-		responseTypes.add("id_token");
-		responseTypes.add("code token id_token");
-		client.add("grant_types", grantTypes);
-		client.add("response_types", responseTypes);
-		env.putObject("client", client);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject client = new JsonObject();
+			JsonArray grantTypes = new JsonArray();
+			grantTypes.add("authorization_code");
+			JsonArray responseTypes = new JsonArray();
+			responseTypes.add("code");
+			responseTypes.add("code id_token");
+			responseTypes.add("id_token");
+			responseTypes.add("code token id_token");
+			client.add("grant_types", grantTypes);
+			client.add("response_types", responseTypes);
+			env.putObject("client", client);
+			cond.execute(env);
+		});
 	}
 
 	//grantTypes is set but "empty". it won't default to authorization_code
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_GrantTypesIsIncludedButEmpty() {
-		JsonObject client = new JsonObject();
-		JsonArray grantTypes = new JsonArray();
-		JsonArray responseTypes = new JsonArray();
-		responseTypes.add("code");
-		client.add("grant_types", grantTypes);
-		client.add("response_types", responseTypes);
-		env.putObject("client", client);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject client = new JsonObject();
+			JsonArray grantTypes = new JsonArray();
+			JsonArray responseTypes = new JsonArray();
+			responseTypes.add("code");
+			client.add("grant_types", grantTypes);
+			client.add("response_types", responseTypes);
+			env.putObject("client", client);
+			cond.execute(env);
+		});
 	}
 
 	@Test

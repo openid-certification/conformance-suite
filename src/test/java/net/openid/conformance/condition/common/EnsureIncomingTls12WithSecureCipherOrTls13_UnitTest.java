@@ -6,17 +6,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EnsureIncomingTls12WithSecureCipherOrTls13_UnitTest {
 
 	@Spy
@@ -27,7 +28,7 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13_UnitTest {
 
 	private EnsureIncomingTls12WithSecureCipherOrTls13 cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new EnsureIncomingTls12WithSecureCipherOrTls13();
 
@@ -60,39 +61,46 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13_UnitTest {
 		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_wrong_tls11() {
-		JsonObject wrongTls = JsonParser.parseString("{\"headers\": "
-			+ "{\"x-ssl-protocol\": \"TLSv1.1\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
-			+ "}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject wrongTls = JsonParser.parseString("{\"headers\": "
+				+ "{\"x-ssl-protocol\": \"TLSv1.1\", \"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+				+ "}").getAsJsonObject();
 
-		env.putObject("client_request", wrongTls);
+			env.putObject("client_request", wrongTls);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingProtocol() {
-		JsonObject missingTls = JsonParser.parseString("{\"headers\": "
-			+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
-			+ "}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject missingTls = JsonParser.parseString("{\"headers\": "
+				+ "{\"x-ssl-cipher\": \"ECDHE-RSA-AES128-GCM-SHA256\"}"
+				+ "}").getAsJsonObject();
 
-		env.putObject("client_request", missingTls);
+			env.putObject("client_request", missingTls);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingCipher() {
-		JsonObject onlyTls = JsonParser.parseString("{\"headers\": "
-			+ "{\"x-ssl-protocol\": \"TLSv1.2\"}"
-			+ "}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject onlyTls = JsonParser.parseString("{\"headers\": "
+				+ "{\"x-ssl-protocol\": \"TLSv1.2\"}"
+				+ "}").getAsJsonObject();
 
-		env.putObject("client_request", onlyTls);
+			env.putObject("client_request", onlyTls);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
+			verify(env, atLeastOnce()).getString("client_request", "headers.x-ssl-protocol");
+
+		});
 
 	}
 }

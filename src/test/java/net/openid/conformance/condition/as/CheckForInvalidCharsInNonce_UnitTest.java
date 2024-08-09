@@ -4,14 +4,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckForInvalidCharsInNonce_UnitTest {
 
 	@Spy
@@ -26,7 +28,7 @@ public class CheckForInvalidCharsInNonce_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckForInvalidCharsInNonce();
@@ -46,10 +48,12 @@ public class CheckForInvalidCharsInNonce_UnitTest {
 	/**
 	 * Test method for {@link  CheckForInvalidCharsInNonce#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidCharacter() {
-		// The '^' and '!' character are not URL safe and thus invalid.
-		env.putString("nonce", "aZB3-_.~^!");
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			// The '^' and '!' character are not URL safe and thus invalid.
+			env.putString("nonce", "aZB3-_.~^!");
+			cond.execute(env);
+		});
 	}
 }

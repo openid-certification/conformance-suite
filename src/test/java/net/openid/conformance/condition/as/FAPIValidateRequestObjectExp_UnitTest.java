@@ -6,19 +6,20 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class FAPIValidateRequestObjectExp_UnitTest
 {
 
@@ -35,7 +36,7 @@ public class FAPIValidateRequestObjectExp_UnitTest
 	private long nowSeconds;
 
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new FAPIValidateRequestObjectExp();
@@ -70,26 +71,32 @@ public class FAPIValidateRequestObjectExp_UnitTest
 		verify(env, atLeastOnce()).getLong("authorization_request_object", "claims.exp");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingExp() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("exp");
+			claims.remove("exp");
 
-		addRequestObjectClaims(env, claims);
+			addRequestObjectClaims(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidExp() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("exp");
-		claims.addProperty("exp", nowSeconds - (5 * 60)); // 5 minutes in the past is not ok
+			claims.remove("exp");
+			claims.addProperty("exp", nowSeconds - (5 * 60)); // 5 minutes in the past is not ok
 
-		addRequestObjectClaims(env, claims);
+			addRequestObjectClaims(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -117,15 +124,18 @@ public class FAPIValidateRequestObjectExp_UnitTest
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidExpFuture() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("exp");
-		claims.addProperty("exp", nowSeconds + (60 * 60 * 25)); // exp claim time range has expired (25 hours)
+			claims.remove("exp");
+			claims.addProperty("exp", nowSeconds + (60 * 60 * 25)); // exp claim time range has expired (25 hours)
 
-		addRequestObjectClaims(env, claims);
+			addRequestObjectClaims(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

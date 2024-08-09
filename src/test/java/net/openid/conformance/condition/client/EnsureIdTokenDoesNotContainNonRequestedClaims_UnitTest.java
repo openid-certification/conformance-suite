@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureIdTokenDoesNotContainNonRequestedClaims_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class EnsureIdTokenDoesNotContainNonRequestedClaims_UnitTest {
 
 	private EnsureIdTokenDoesNotContainNonRequestedClaims cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new EnsureIdTokenDoesNotContainNonRequestedClaims();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -54,27 +56,29 @@ public class EnsureIdTokenDoesNotContainNonRequestedClaims_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidClaim() {
-		// Ensure the authorization request exists and contains scopes that map to claims.
-		JsonObject scope = JsonParser.parseString("{"
-			+ "\"scope\": \"openid email\""
-			+ "}")
-			.getAsJsonObject();
-		env.putObject("authorization_endpoint_request", scope);
+		assertThrows(ConditionError.class, () -> {
+			// Ensure the authorization request exists and contains scopes that map to claims.
+			JsonObject scope = JsonParser.parseString("{"
+				+ "\"scope\": \"openid email\""
+				+ "}")
+				.getAsJsonObject();
+			env.putObject("authorization_endpoint_request", scope);
 
-		// Add some supported claims to the id token including those mapped from the claims above + an invalid claim.
-		JsonObject claims = JsonParser.parseString("{"
-			+ "\"claims\": {"
+			// Add some supported claims to the id token including those mapped from the claims above + an invalid claim.
+			JsonObject claims = JsonParser.parseString("{"
+				+ "\"claims\": {"
 				+ "\"sub\": null,"
 				+ "\"exp\": null,"
 				+ "\"email_verified\": null,"
 				+ "\"email\": null,"
 				+ "\"invalid\": null"
-			+ "}}")
-			.getAsJsonObject();
-		env.putObject("id_token", claims);
+				+ "}}")
+				.getAsJsonObject();
+			env.putObject("id_token", claims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

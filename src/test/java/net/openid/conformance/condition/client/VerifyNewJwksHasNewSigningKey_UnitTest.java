@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class VerifyNewJwksHasNewSigningKey_UnitTest {
 
 	@Spy
@@ -23,7 +25,7 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 
 	private VerifyNewJwksHasNewSigningKey cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new VerifyNewJwksHasNewSigningKey();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -55,9 +57,10 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testOneKeyNoRotation() {
-		env.putObject("original_jwks", JsonParser.parseString("""
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("original_jwks", JsonParser.parseString("""
 				{
 				  "keys": [
 				    {
@@ -69,15 +72,17 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 				  ]
 				}""").getAsJsonObject());
 
-		env.putObject("new_jwks", env.getObject("original_jwks"));
+			env.putObject("new_jwks", env.getObject("original_jwks"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testOnlyKidChanged() {
-		// a "new" key with a new kid, but the 'n' exponent is the same so it's not actually a new key
-		env.putObject("original_jwks", JsonParser.parseString("""
+		assertThrows(ConditionError.class, () -> {
+			// a "new" key with a new kid, but the 'n' exponent is the same so it's not actually a new key
+			env.putObject("original_jwks", JsonParser.parseString("""
 				{
 				  "keys": [
 				    {
@@ -89,7 +94,7 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 				  ]
 				}""").getAsJsonObject());
 
-		env.putObject("new_jwks", JsonParser.parseString("""
+			env.putObject("new_jwks", JsonParser.parseString("""
 				{  "keys": [
 				    {
 				      "kty": "RSA",
@@ -100,14 +105,16 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 				  ]
 				}""").getAsJsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testSameKidDifferentPublicExponent() {
-		// here the key ('n') has changed, but the kid is the same, which should be a fail as the kid has to change
-		// for the client to know it has to refetch the jwks
-		env.putObject("original_jwks", JsonParser.parseString("""
+		assertThrows(ConditionError.class, () -> {
+			// here the key ('n') has changed, but the kid is the same, which should be a fail as the kid has to change
+			// for the client to know it has to refetch the jwks
+			env.putObject("original_jwks", JsonParser.parseString("""
 				{
 				  "keys": [
 				    {
@@ -119,7 +126,7 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 				  ]
 				}""").getAsJsonObject());
 
-		env.putObject("new_jwks", JsonParser.parseString("""
+			env.putObject("new_jwks", JsonParser.parseString("""
 				{  "keys": [
 				    {
 				      "kty": "RSA",
@@ -130,7 +137,8 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 				  ]
 				}""").getAsJsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -305,9 +313,10 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 	}
 
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testInvalidKeys() {
-		env.putObject("original_jwks", JsonParser.parseString(
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("original_jwks", JsonParser.parseString(
 				"""
 						{
 						  "keys": [
@@ -321,16 +330,18 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 						    }
 						  ]
 						}"""
-		).getAsJsonObject());
+			).getAsJsonObject());
 
-		env.putObject("new_jwks", env.getObject("original_jwks"));
+			env.putObject("new_jwks", env.getObject("original_jwks"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testSameExponent() {
-		env.putObject("original_jwks", JsonParser.parseString(
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("original_jwks", JsonParser.parseString(
 				"""
 						{
 						  "keys": [
@@ -344,9 +355,9 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 						    }
 						  ]
 						}"""
-		).getAsJsonObject());
+			).getAsJsonObject());
 
-		env.putObject("new_jwks", JsonParser.parseString(
+			env.putObject("new_jwks", JsonParser.parseString(
 				"""
 						{
 						  "keys": [
@@ -360,9 +371,10 @@ public class VerifyNewJwksHasNewSigningKey_UnitTest {
 						    }
 						  ]
 						}"""
-		).getAsJsonObject());
+			).getAsJsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 

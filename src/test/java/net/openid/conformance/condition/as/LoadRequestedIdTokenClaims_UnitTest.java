@@ -8,20 +8,19 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LoadRequestedIdTokenClaims_UnitTest
 {
 
@@ -38,7 +37,7 @@ public class LoadRequestedIdTokenClaims_UnitTest
 	private JsonObject essentialTrue;
 
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new LoadRequestedIdTokenClaims();
@@ -67,20 +66,26 @@ public class LoadRequestedIdTokenClaims_UnitTest
 		assertEquals(null, env.getElementFromObject("id_token_claims", "email_verified"));
 	}
 
-	@Test(expected = OIDFJSON.UnexpectedJsonTypeException.class)
+	@Test
 	public void testEvaluate_essentialAsString() {
-		essentialTrue.addProperty("essential", "true");
+		assertThrows(OIDFJSON.UnexpectedJsonTypeException.class, () -> {
+			essentialTrue.addProperty("essential", "true");
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_claimsAsString() {
-		env.putString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "claims", "{ \"id_token\": { \"name\": { \"essential\": true } ,\"given_name\": { \"essential\": true } ,\"family_name\": { \"essential\": true } ,\"phone_number\": { \"essential\": true } ,\"email\": { \"essential\": true } ,\"address\": { \"essential\": true } ,\"birthdate\": { \"essential\": true }  } }");
+		assertThrows(ConditionError.class, () -> {
+			env.putString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "claims", "{ \"id_token\": { \"name\": { \"essential\": true } ,\"given_name\": { \"essential\": true } ,\"family_name\": { \"essential\": true } ,\"phone_number\": { \"essential\": true } ,\"email\": { \"essential\": true } ,\"address\": { \"essential\": true } ,\"birthdate\": { \"essential\": true }  } }");
 
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

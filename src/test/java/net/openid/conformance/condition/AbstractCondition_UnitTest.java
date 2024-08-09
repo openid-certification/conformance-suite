@@ -10,14 +10,14 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.hc.client5.http.classic.HttpClient;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.verify;
  * This tests the behavior of the various utility methods in the
  * abstract superclass used by most conditions.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AbstractCondition_UnitTest {
 
 	private static final String TEST_ID = "UNIT-TEST";
@@ -80,7 +81,7 @@ public class AbstractCondition_UnitTest {
 
 	private Throwable cause = new Throwable("throwable message");
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new AbstractConditionTester();
@@ -110,14 +111,18 @@ public class AbstractCondition_UnitTest {
 		assertThat(args.get("baz")).isEqualTo("quz");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testArgs_oddList() {
-		cond.args("foo", "bar", "baz", "quz", "batman");
+		assertThrows(IllegalArgumentException.class, () -> {
+			cond.args("foo", "bar", "baz", "quz", "batman");
+		});
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testArgs_null() {
-		cond.args((Object[]) null);
+		assertThrows(IllegalArgumentException.class, () -> {
+			cond.args((Object[]) null);
+		});
 	}
 
 	@Test
