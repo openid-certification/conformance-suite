@@ -77,6 +77,7 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate JWKs and signature in Entity Statement for %s".formatted(entity));
+		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		call(sequence(ValidateEntityStatementSignatureSequence.class));
 		eventLog.endBlock();
 
@@ -166,12 +167,15 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				callAndContinueOnFailure(ValidateEntityStatementEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.mapKey("server_jwks", "federation_fetch_endpoint_jkws");
 				call(sequence(ValidateEntityStatementSignatureSequence.class));
+				env.unmapKey("server_jwks");
 
 				callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(ValidateEntityStatementExp.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint_iss"));
 				callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				env.putString("entity_statement_url", OIDFJSON.getString(env.getElementFromObject("primary_entity_statement_body", "sub")));
+				env.putString("entity_statement_url", env.getString("primary_entity_statement_sub"));
 				callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				eventLog.endBlock();

@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class ValidateEntityStatementBasicClaimsSequence extends AbstractConditionSequence {

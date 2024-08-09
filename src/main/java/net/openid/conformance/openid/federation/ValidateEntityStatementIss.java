@@ -19,15 +19,16 @@ public class ValidateEntityStatementIss extends AbstractCondition {
 
 		String entityStatementUrl = env.getString("entity_statement_url");
 
-		String issuerUrl = OIDFJSON.getString(iss);
+		String issuer = OIDFJSON.getString(iss);
 
 		final String removingPartInUrl = ".well-known/openid-federation";
 		if (entityStatementUrl.endsWith(removingPartInUrl)) {
 			entityStatementUrl = entityStatementUrl.substring(0, entityStatementUrl.length() - removingPartInUrl.length());
 		}
 
-		if (!removeTrailingSlash(issuerUrl).equals(removeTrailingSlash(entityStatementUrl))) {
-			throw error("iss listed in the entity statement is not consistent with the location the entity statement was retrieved from. These must match to prevent impersonation attacks.", args("entity_statement_url", entityStatementUrl, "iss", issuerUrl));
+		if (!removeTrailingSlash(issuer).equals(removeTrailingSlash(entityStatementUrl))) {
+			throw error("iss listed in the entity statement is not consistent with the location the entity statement was retrieved from. " +
+				"These must match to prevent impersonation attacks.", args("expected", entityStatementUrl, "actual", issuer));
 		}
 
 		logSuccess("iss is consistent with the entity statement endpoint URL", args("expected", entityStatementUrl, "actual", iss));

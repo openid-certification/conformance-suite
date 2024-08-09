@@ -8,7 +8,6 @@ public class ValidateEntityStatementSignatureSequence extends AbstractConditionS
 
 	@Override
 	public void evaluate() {
-		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ValidateServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(VerifyEntityStatmentSignature.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
