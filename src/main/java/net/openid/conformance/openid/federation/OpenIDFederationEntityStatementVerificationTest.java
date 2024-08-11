@@ -54,7 +54,6 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 			callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 			validateEntityStatementResponse();
-			env.unmapKey("entity_statement_url");
 		}
 		eventLog.endBlock();
 
@@ -113,11 +112,11 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		// eventLog.startBlock("Validate authority hints in Entity Statement for %s".formatted(entity));
+		eventLog.startBlock("Validate authority hints in Entity Statement for %s".formatted(entity));
 		skipIfElementMissing("entity_statement_body", "authority_hints", Condition.ConditionResult.INFO,
 			ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		validateAuthorityHints();
-		// eventLog.endBlock();
+		eventLog.endBlock();
 	}
 
 	private void validateEntityStatementResponse() {
@@ -155,13 +154,13 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 				String authorityHint = OIDFJSON.getString(authorityHintElement);
 				String authorityHintUrl = authorityHint + ".well-known/openid-federation";
 
-				eventLog.startBlock("Validating immediate superior %s".formatted(authorityHint));
-
 				// Get the entity statement for the Superior
 				env.putString("entity_statement_url", authorityHintUrl);
 				callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
 				validateEntityStatementResponse();
 				validateEntityStatement();
+
+				eventLog.startBlock("Validating immediate superior %s".formatted(authorityHint));
 
 				// Verify that the primary entity is present in the list endpoint result
 				callAndContinueOnFailure(ExtractFederationListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
