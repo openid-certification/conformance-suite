@@ -199,6 +199,8 @@ scale up env:
     name: review/$CI_COMMIT_REF_NAME
   when: manual
   script:
+    - auto-deploy use_kube_context || true
+    - auto-deploy ensure_namespace
     - scale_up
   except:
     - master
