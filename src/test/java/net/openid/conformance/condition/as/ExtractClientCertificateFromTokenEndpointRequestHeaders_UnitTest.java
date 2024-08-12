@@ -6,19 +6,19 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -30,7 +30,7 @@ public class ExtractClientCertificateFromTokenEndpointRequestHeaders_UnitTest {
 	private ExtractClientCertificateFromRequestHeaders cond;
 
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ExtractClientCertificateFromRequestHeaders();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);

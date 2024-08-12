@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckStateInAuthorizationResponse_UnitTest {
 
 	@Spy
@@ -28,7 +30,7 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 
 	private JsonObject responseWithoutState;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckStateInAuthorizationResponse();
@@ -62,22 +64,26 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingStateResponse() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "xyz");
-		env.putObject("authorization_endpoint_response", responseWithoutState);
+			env.putString("state", "xyz");
+			env.putObject("authorization_endpoint_response", responseWithoutState);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_wrongStateResponse() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "abc_xyz");
-		env.putObject("authorization_endpoint_response", responseWithState);
+			env.putString("state", "abc_xyz");
+			env.putObject("authorization_endpoint_response", responseWithState);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -89,22 +95,26 @@ public class CheckStateInAuthorizationResponse_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_wrongStateResponseWithInvalidRequestObject() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "abc_xyz");
-		env.putObject("authorization_endpoint_response", JsonParser.parseString("{\"error_description\": \"Invalid request parameter JWS\",\"error\": \"invalid_request_object\",\"state\":\"xyz\"}").getAsJsonObject());
+			env.putString("state", "abc_xyz");
+			env.putObject("authorization_endpoint_response", JsonParser.parseString("{\"error_description\": \"Invalid request parameter JWS\",\"error\": \"invalid_request_object\",\"state\":\"xyz\"}").getAsJsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingStateResponseWithInvalidRequest() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "xyz");
-		env.putObject("authorization_endpoint_response", JsonParser.parseString("{\"error_description\": \"Invalid request parameter\",\"error\": \"invalid_request\"}").getAsJsonObject());
+			env.putString("state", "xyz");
+			env.putObject("authorization_endpoint_response", JsonParser.parseString("{\"error_description\": \"Invalid request parameter\",\"error\": \"invalid_request\"}").getAsJsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test

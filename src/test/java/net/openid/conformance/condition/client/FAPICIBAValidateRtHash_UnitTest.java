@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class FAPICIBAValidateRtHash_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class FAPICIBAValidateRtHash_UnitTest {
 
 	private FAPICIBAValidateRtHash cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new FAPICIBAValidateRtHash();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -42,27 +44,33 @@ public class FAPICIBAValidateRtHash_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseRefreshTokenEmpty() {
-		JsonObject token = JsonParser.parseString("{}").getAsJsonObject();
-		env.putObject("token_endpoint_response", token);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject token = JsonParser.parseString("{}").getAsJsonObject();
+			env.putObject("token_endpoint_response", token);
 
-		JsonObject rtHash = JsonParser.parseString("{\"alg\":\"RS256\", \"rt_hash\":\"sHahCuSpXCRg5mkDDvvr4w\"}").getAsJsonObject();
-		env.putObject("rt_hash", rtHash);
+			JsonObject rtHash = JsonParser.parseString("{\"alg\":\"RS256\", \"rt_hash\":\"sHahCuSpXCRg5mkDDvvr4w\"}").getAsJsonObject();
+			env.putObject("rt_hash", rtHash);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseBad() {
-		JsonObject token = JsonParser.parseString("{\"refresh_token\": \"G5kXH2wHvUra0sHlDy1iTkDJgsgUO1bN\"}").getAsJsonObject();
-		env.putObject("token_endpoint_response", token);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject token = JsonParser.parseString("{\"refresh_token\": \"G5kXH2wHvUra0sHlDy1iTkDJgsgUO1bN\"}").getAsJsonObject();
+			env.putObject("token_endpoint_response", token);
 
-		JsonObject rtHash = JsonParser.parseString("{\"alg\":\"RS256\", \"rt_hash\":\"sHahCuSpXCRg5mkDDvvr4w\"}").getAsJsonObject();
-		env.putObject("rt_hash", rtHash);
+			JsonObject rtHash = JsonParser.parseString("{\"alg\":\"RS256\", \"rt_hash\":\"sHahCuSpXCRg5mkDDvvr4w\"}").getAsJsonObject();
+			env.putObject("rt_hash", rtHash);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 }

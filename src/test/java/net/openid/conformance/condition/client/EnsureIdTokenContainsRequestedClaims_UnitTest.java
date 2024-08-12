@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 
 	private EnsureIdTokenContainsRequestedClaims cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new EnsureIdTokenContainsRequestedClaims();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -123,30 +125,31 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_idTokenMissingSupportedClaim() {
+		assertThrows(ConditionError.class, () -> {
 
-		// Add all supported claims to the authorization request.
-		JsonObject authRequestClaims = JsonParser.parseString("{"
-			+ "\"claims\": {"
+			// Add all supported claims to the authorization request.
+			JsonObject authRequestClaims = JsonParser.parseString("{"
+				+ "\"claims\": {"
 				+ "\"id_token\": {"
-					+ "\"given_name\": {},"
-					+ "\"middle_name\": {},"
-					+ "\"family_name\": {\"essential\": true},"
-					+ "\"email\": {\"7EimPyJ0oq\": \"eRpxS9SF3u\"},"
-					+ "\"birthdate\": {\"essential\": false},"
-					+ "\"phone_number\": null,"
-					+ "\"address\": {},"
-					+ "\"txn\": {}"
+				+ "\"given_name\": {},"
+				+ "\"middle_name\": {},"
+				+ "\"family_name\": {\"essential\": true},"
+				+ "\"email\": {\"7EimPyJ0oq\": \"eRpxS9SF3u\"},"
+				+ "\"birthdate\": {\"essential\": false},"
+				+ "\"phone_number\": null,"
+				+ "\"address\": {},"
+				+ "\"txn\": {}"
 				+ "}"
-			+ "}}")
-			.getAsJsonObject();
-		env.putObject("authorization_endpoint_request", authRequestClaims);
+				+ "}}")
+				.getAsJsonObject();
+			env.putObject("authorization_endpoint_request", authRequestClaims);
 
-		// Add all requested claims to the token id - "given_name".
-		// This should result in an error as this claim is supported by the server.
-		JsonObject idTokenClaims = JsonParser.parseString("{"
-			+ "\"claims\": {"
+			// Add all requested claims to the token id - "given_name".
+			// This should result in an error as this claim is supported by the server.
+			JsonObject idTokenClaims = JsonParser.parseString("{"
+				+ "\"claims\": {"
 				+ "\"middle_name\": \"Anne\","
 				+ "\"family_name\": \"Doe\","
 				+ "\"email\": \"janedoe@example.com\","
@@ -154,10 +157,11 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 				+ "\"phone_number\": \"12345678\","
 				+ "\"address\": \"10 Downing Street\","
 				+ "\"txn\": \"2c6fb585-d51b-465a-9dca-b8cd22a11451\""
-			+ "}}")
-			.getAsJsonObject();
-		env.putObject("id_token", idTokenClaims);
+				+ "}}")
+				.getAsJsonObject();
+			env.putObject("id_token", idTokenClaims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

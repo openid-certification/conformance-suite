@@ -5,16 +5,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ReverseScopeOrderInAuthorizationEndpointRequest_UnitTest {
 
 	@Spy
@@ -27,7 +28,7 @@ public class ReverseScopeOrderInAuthorizationEndpointRequest_UnitTest {
 
 	private String requestId;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ReverseScopeOrderInAuthorizationEndpointRequest();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -44,30 +45,36 @@ public class ReverseScopeOrderInAuthorizationEndpointRequest_UnitTest {
 		assertThat(env.getString("authorization_endpoint_request", "scope")).isEqualTo("accounts openid");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluateNoScope() {
-		JsonObject authRequest = new JsonObject();
-		env.putObject("authorization_endpoint_request", authRequest);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject authRequest = new JsonObject();
+			env.putObject("authorization_endpoint_request", authRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluateScopeEmpty() {
-		JsonObject authRequest = new JsonObject();
-		authRequest.addProperty("scope", "");
-		env.putObject("authorization_endpoint_request", authRequest);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject authRequest = new JsonObject();
+			authRequest.addProperty("scope", "");
+			env.putObject("authorization_endpoint_request", authRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluateOnlyOneScope() {
-		JsonObject authRequest = new JsonObject();
-		authRequest.addProperty("scope", "openid");
-		env.putObject("authorization_endpoint_request", authRequest);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject authRequest = new JsonObject();
+			authRequest.addProperty("scope", "openid");
+			env.putObject("authorization_endpoint_request", authRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

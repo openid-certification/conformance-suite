@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateMTLSCertificatesHeader_UnitTest {
 
 	@Spy
@@ -587,20 +589,22 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 		"7+e2V9glTJo3xtFrQB+seQhlNMCop8VdC8tg1IDkk7GPXLhyjKejNgREN46o\\n" +
 		"-----END CERTIFICATE-----\\n";
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateMTLSCertificatesHeader();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noCert() {
-		JsonObject config = JsonParser.parseString("{\"mtls\":{"
-			+ "\"key\":\"" + key + "\""
-			+ "}}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject config = JsonParser.parseString("{\"mtls\":{"
+				+ "\"key\":\"" + key + "\""
+				+ "}}").getAsJsonObject();
 
-		env.putObject("config", config);
-		cond.execute(env);
+			env.putObject("config", config);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -627,25 +631,29 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_certInvalid() {
-		JsonObject config = JsonParser.parseString("{\"mtls\":{"
-			+ "\"cert\":\"" + certInvalid + "\","
-			+ "\"key\":\"" + key + "\""
-			+ "}}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject config = JsonParser.parseString("{\"mtls\":{"
+				+ "\"cert\":\"" + certInvalid + "\","
+				+ "\"key\":\"" + key + "\""
+				+ "}}").getAsJsonObject();
 
-		env.putObject("config", config);
-		cond.execute(env);
+			env.putObject("config", config);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noKey() {
-		JsonObject config = JsonParser.parseString("{\"mtls\":{"
-			+ "\"cert\":\"" + cert + "\""
-			+ "}}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject config = JsonParser.parseString("{\"mtls\":{"
+				+ "\"cert\":\"" + cert + "\""
+				+ "}}").getAsJsonObject();
 
-		env.putObject("config", config);
-		cond.execute(env);
+			env.putObject("config", config);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -670,15 +678,17 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_keyInvalid() {
-		JsonObject config = JsonParser.parseString("{\"mtls\":{"
-			+ "\"cert\":\"" + cert + "\","
-			+ "\"cert\":\"" + keyInvalid + "\""
-			+ "}}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject config = JsonParser.parseString("{\"mtls\":{"
+				+ "\"cert\":\"" + cert + "\","
+				+ "\"cert\":\"" + keyInvalid + "\""
+				+ "}}").getAsJsonObject();
 
-		env.putObject("config", config);
-		cond.execute(env);
+			env.putObject("config", config);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -705,16 +715,18 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caInvalid() {
-		JsonObject config = JsonParser.parseString("{\"mtls\":{"
-			+ "\"cert\":\"" + cert + "\","
-			+ "\"key\":\"" + key + "\","
-			+ "\"ca\":\"" + caInvalid + "\""
-			+ "}}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject config = JsonParser.parseString("{\"mtls\":{"
+				+ "\"cert\":\"" + cert + "\","
+				+ "\"key\":\"" + key + "\","
+				+ "\"ca\":\"" + caInvalid + "\""
+				+ "}}").getAsJsonObject();
 
-		env.putObject("config", config);
-		cond.execute(env);
+			env.putObject("config", config);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -729,9 +741,11 @@ public class ValidateMTLSCertificatesHeader_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_valueMissing() {
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
 	}
 
 }

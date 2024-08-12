@@ -6,17 +6,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ExtractNonceFromAuthorizationRequest_UnitTest {
 
 	@Spy
@@ -34,7 +35,7 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 	private JsonObject onlyNonce;
 	private JsonObject noParams;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new ExtractNonceFromAuthorizationRequest();
@@ -73,18 +74,24 @@ public class ExtractNonceFromAuthorizationRequest_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_bad() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, noNonce);
-		cond.execute(env);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, noNonce);
+			cond.execute(env);
+
+		});
 
 	}
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_missing() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, noParams);
-		cond.execute(env);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, noParams);
+			cond.execute(env);
+
+		});
 
 	}
 }

@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest_
 
 	private CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -39,20 +41,24 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidRequest_
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseWrongError() {
-		JsonObject response = JsonParser.parseString("{\"error_description\":\"[A167303] A request object included in a backchannel authentication request must be signed.\",\"error\":\"invalid_client\",\"error_uri\":\"https://www.authlete.com/documents/apis/result_codes#A167303\"}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject response = JsonParser.parseString("{\"error_description\":\"[A167303] A request object included in a backchannel authentication request must be signed.\",\"error\":\"invalid_client\",\"error_uri\":\"https://www.authlete.com/documents/apis/result_codes#A167303\"}").getAsJsonObject();
 
-		env.putObject("backchannel_authentication_endpoint_response", response);
+			env.putObject("backchannel_authentication_endpoint_response", response);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseErrorEmpty() {
-		env.putObject("backchannel_authentication_endpoint_response", new JsonObject());
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("backchannel_authentication_endpoint_response", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

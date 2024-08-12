@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class VerifyBearerTokenHeaderCallback_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 
 	private VerifyBearerTokenHeaderCallback cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new VerifyBearerTokenHeaderCallback();
@@ -34,38 +36,46 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 		env.putString("client_notification_token", "8d67dc78-7faa-4d41-aabd-67707b374255");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseHeadersAsNull() {
-		env.putObject("notification_callback", new JsonObject());
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("notification_callback", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseHeadersAsEmpty() {
-		JsonObject o = new JsonObject();
-		o.add("headers", new JsonObject());
-		env.putObject("notification_callback", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.add("headers", new JsonObject());
+			env.putObject("notification_callback", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseAuthorizationAsEmpty() {
-		JsonObject o = new JsonObject();
-		o.add("headers", JsonParser.parseString("{\"authorization\": \"\"}").getAsJsonObject());
-		env.putObject("notification_callback", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.add("headers", JsonParser.parseString("{\"authorization\": \"\"}").getAsJsonObject());
+			env.putObject("notification_callback", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseAuthorizationAsNotBearer() {
-		JsonObject o = new JsonObject();
-		o.add("headers", JsonParser.parseString("{\"authorization\": \"x-bearer 8d67dc78-7faa-4d41-aabd-67707b374255\"}").getAsJsonObject());
-		env.putObject("notification_callback", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.add("headers", JsonParser.parseString("{\"authorization\": \"x-bearer 8d67dc78-7faa-4d41-aabd-67707b374255\"}").getAsJsonObject());
+			env.putObject("notification_callback", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -86,12 +96,14 @@ public class VerifyBearerTokenHeaderCallback_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseBad() {
-		JsonObject o = new JsonObject();
-		o.add("headers", JsonParser.parseString("{\"authorization\": \"Bearer qw3lPzKZNTpgZ2IKYSNwn6Xct1pX9jdQ2dIBUpD4AiI\"}").getAsJsonObject());
-		env.putObject("notification_callback", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.add("headers", JsonParser.parseString("{\"authorization\": \"Bearer qw3lPzKZNTpgZ2IKYSNwn6Xct1pX9jdQ2dIBUpD4AiI\"}").getAsJsonObject());
+			env.putObject("notification_callback", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

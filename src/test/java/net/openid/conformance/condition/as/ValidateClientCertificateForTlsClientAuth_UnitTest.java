@@ -6,16 +6,17 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ValidateClientCertificateForTlsClientAuth_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -25,7 +26,7 @@ public class ValidateClientCertificateForTlsClientAuth_UnitTest {
 
 	private ValidateClientCertificateForTlsClientAuth cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateClientCertificateForTlsClientAuth();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -94,21 +95,25 @@ public class ValidateClientCertificateForTlsClientAuth_UnitTest {
 		cond.evaluate(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void evaluate_Error() {
-		JsonObject client = new JsonObject();
-		client.addProperty("tls_client_auth_subject_dn", "cn=INVALIDtest.certification.example.com,o=oidf,l=san ramon,st=ca,c=us");
-		env.putObject("client", client);
-		cond.evaluate(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject client = new JsonObject();
+			client.addProperty("tls_client_auth_subject_dn", "cn=INVALIDtest.certification.example.com,o=oidf,l=san ramon,st=ca,c=us");
+			env.putObject("client", client);
+			cond.evaluate(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void evaluate_Multiple() {
-		JsonObject client = new JsonObject();
-		client.addProperty("tls_client_auth_subject_dn", "cn=test.certification.example.com,o=oidf,l=san ramon,st=ca,c=us");
-		client.addProperty("tls_client_auth_san_dns", "dnsname2.conformance.example.com");
-		env.putObject("client", client);
-		cond.evaluate(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject client = new JsonObject();
+			client.addProperty("tls_client_auth_subject_dn", "cn=test.certification.example.com,o=oidf,l=san ramon,st=ca,c=us");
+			client.addProperty("tls_client_auth_san_dns", "dnsname2.conformance.example.com");
+			env.putObject("client", client);
+			cond.evaluate(env);
+		});
 	}
 
 	@Test

@@ -6,14 +6,16 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.HttpHeaders;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckTokenEndpointRetryAfterHeaders_UnitTest {
 
 	@Spy
@@ -24,16 +26,18 @@ public class CheckTokenEndpointRetryAfterHeaders_UnitTest {
 
 	private CheckTokenEndpointRetryAfterHeaders cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckTokenEndpointRetryAfterHeaders();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_isEmpty() {
+		assertThrows(ConditionError.class, () -> {
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test

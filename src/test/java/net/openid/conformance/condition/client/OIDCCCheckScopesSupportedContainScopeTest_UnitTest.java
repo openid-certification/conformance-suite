@@ -6,16 +6,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 
 	@Spy
@@ -30,7 +31,7 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 
 	private JsonObject clientObj;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new OIDCCCheckScopesSupportedContainScopeTest();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -63,38 +64,44 @@ public class OIDCCCheckScopesSupportedContainScopeTest_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingScopesSupported() {
-		serverObj.remove("scopes_supported");
-		env.putObject("server", serverObj);
+		assertThrows(ConditionError.class, () -> {
+			serverObj.remove("scopes_supported");
+			env.putObject("server", serverObj);
 
-		env.putObject("client", clientObj);
-		cond.execute(env);
+			env.putObject("client", clientObj);
+			cond.execute(env);
 
-		assertThat(env.getBoolean("scopes_not_supported_flag").equals(true));
+			assertThat(env.getBoolean("scopes_not_supported_flag").equals(true));
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_scopesSupportedIsNotJsonArray() {
-		serverObj.addProperty("scopes_supported", "is not JsonArray");
-		env.putObject("server", serverObj);
+		assertThrows(ConditionError.class, () -> {
+			serverObj.addProperty("scopes_supported", "is not JsonArray");
+			env.putObject("server", serverObj);
 
-		env.putObject("client", clientObj);
+			env.putObject("client", clientObj);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		assertThat(env.getBoolean("scopes_not_supported_flag").equals(true));
+			assertThat(env.getBoolean("scopes_not_supported_flag").equals(true));
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_scopesSupportedIsNotEnough() {
-		serverObj.getAsJsonArray("scopes_supported").remove(0);
-		env.putObject("server", serverObj);
-		env.putObject("client", clientObj);
+		assertThrows(ConditionError.class, () -> {
+			serverObj.getAsJsonArray("scopes_supported").remove(0);
+			env.putObject("server", serverObj);
+			env.putObject("client", clientObj);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		assertThat(env.getBoolean("scopes_not_supported_flag").equals(true));
+			assertThat(env.getBoolean("scopes_not_supported_flag").equals(true));
+		});
 	}
 
 }

@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureMinimumAuthenticationRequestIdLength_UnitTest {
 
 	@Spy
@@ -23,7 +25,7 @@ public class EnsureMinimumAuthenticationRequestIdLength_UnitTest {
 
 	private EnsureMinimumAuthenticationRequestIdLength cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new EnsureMinimumAuthenticationRequestIdLength();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -38,13 +40,15 @@ public class EnsureMinimumAuthenticationRequestIdLength_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_lengthBad() {
-		JsonObject o = new JsonObject();
-		o.addProperty("auth_req_id", "1c266114");
-		env.putObject("backchannel_authentication_endpoint_response", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.addProperty("auth_req_id", "1c266114");
+			env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

@@ -6,8 +6,8 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,7 +19,7 @@ public class BackchannelRequestRequestedExpiryIsAnInteger_UnitTest {
 	Environment env;
 	BackchannelRequestRequestedExpiryIsAnInteger condition;
 
-	@Before
+	@BeforeEach
 	public void setup(){
 		env = mock(Environment.class);
 

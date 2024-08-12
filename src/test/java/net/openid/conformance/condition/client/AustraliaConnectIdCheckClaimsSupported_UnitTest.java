@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class AustraliaConnectIdCheckClaimsSupported_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class AustraliaConnectIdCheckClaimsSupported_UnitTest {
 
 	private AustraliaConnectIdCheckClaimsSupported cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new AustraliaConnectIdCheckClaimsSupported();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -59,14 +61,16 @@ public class AustraliaConnectIdCheckClaimsSupported_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noClaimsSupported() {
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"claims_supported\": ["
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"claims_supported\": ["
 				+ "\"invalid_claim\""
-			+ "]}")
-			.getAsJsonObject();
-		env.putObject("server", server);
-		cond.execute(env);
+				+ "]}")
+				.getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 }

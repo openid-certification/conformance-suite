@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 
 	private FAPICIBAValidateIdTokenACRClaims cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new FAPICIBAValidateIdTokenACRClaims();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -41,15 +43,18 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseBadEmpty() {
-		JsonObject req = new JsonObject();
-		req.addProperty("acr_values", "urn:openbanking:psd2:sca");
-		env.putObject("authorization_endpoint_request", req);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject req = new JsonObject();
+			req.addProperty("acr_values", "urn:openbanking:psd2:sca");
+			env.putObject("authorization_endpoint_request", req);
 
-		env.putObject("id_token", new JsonObject());
+			env.putObject("id_token", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -66,16 +71,19 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseSingleBad() {
-		JsonObject req = new JsonObject();
-		req.addProperty("acr_values", "urn:openbanking:psd2:sca");
-		env.putObject("authorization_endpoint_request", req);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject req = new JsonObject();
+			req.addProperty("acr_values", "urn:openbanking:psd2:sca");
+			env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
-		env.putObject("id_token", idToken);
+			JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver\"}}").getAsJsonObject();
+			env.putObject("id_token", idToken);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -92,16 +100,19 @@ public class FAPICIBAValidateIdTokenACRClaims_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseArrayBad() {
-		JsonObject req = new JsonObject();
-		req.addProperty("acr_values", "urn:openbanking:psd2:sca");
-		env.putObject("authorization_endpoint_request", req);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject req = new JsonObject();
+			req.addProperty("acr_values", "urn:openbanking:psd2:sca");
+			env.putObject("authorization_endpoint_request", req);
 
-		JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver urn:openbanking:psd2:ca\"}}").getAsJsonObject();
-		env.putObject("id_token", idToken);
+			JsonObject idToken = JsonParser.parseString("{\"claims\": {\"acr\": \"urn:mace:incommon:iap:silver urn:openbanking:psd2:ca\"}}").getAsJsonObject();
+			env.putObject("id_token", idToken);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 }

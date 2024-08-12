@@ -6,19 +6,20 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CreateClientAuthenticationAssertionClaims_UnitTest {
 
 	@Spy
@@ -40,7 +41,7 @@ public class CreateClientAuthenticationAssertionClaims_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		client = new JsonObject();
@@ -79,18 +80,22 @@ public class CreateClientAuthenticationAssertionClaims_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingClient() {
-		env.putObject("server", server);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingServer() {
-		env.putObject("client", client);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("client", client);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

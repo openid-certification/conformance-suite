@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class FAPIRWCheckDiscEndpointResponseTypesSupported_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class FAPIRWCheckDiscEndpointResponseTypesSupported_UnitTest {
 
 	private FAPIRWCheckDiscEndpointResponseTypesSupported cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new FAPIRWCheckDiscEndpointResponseTypesSupported();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -54,44 +56,52 @@ public class FAPIRWCheckDiscEndpointResponseTypesSupported_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithResponseTypes2Spaces () {
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"response_types_supported\": ["
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"response_types_supported\": ["
 				+ "\"code\","
 				+ "\"code  id_token\""
-			+ "]}")
-			.getAsJsonObject();
-		env.putObject("server", server);
-		cond.execute(env);
+				+ "]}")
+				.getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithResponseTypesTabFormat () {
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"response_types_supported\": ["
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"response_types_supported\": ["
 				+ "\"code\","
 				+ "\"code\tid_token\""
-			+ "]}")
-			.getAsJsonObject();
-		env.putObject("server", server);
-		cond.execute(env);
+				+ "]}")
+				.getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithResponseTypesSupportedNull () {
-		JsonObject server = new JsonObject();
-		env.putObject("server", server);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = new JsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithResponseTypesSupportedIsNotArray () {
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"response_types_supported\": \"is not an array\"}")
-			.getAsJsonObject();
-		env.putObject("server", server);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"response_types_supported\": \"is not an array\"}")
+				.getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
 	}
 
 }

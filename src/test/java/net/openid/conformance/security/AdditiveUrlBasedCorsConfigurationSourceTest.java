@@ -1,11 +1,15 @@
 package net.openid.conformance.security;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AdditiveUrlBasedCorsConfigurationSourceTest {
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void does_not_allow_using_the_set_configuration_method(){
-		new AdditiveUrlBasedCorsConfigurationSource().setCorsConfigurations(null);
+		assertThrows(RuntimeException.class, () -> {
+			new AdditiveUrlBasedCorsConfigurationSource().setCorsConfigurations(null);
+		});
 	}
 }

@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class VerifyIdTokenSubConsistentHybridFlow_UnitTest {
 
 	@Spy
@@ -26,7 +28,7 @@ public class VerifyIdTokenSubConsistentHybridFlow_UnitTest {
 
 	private VerifyIdTokenSubConsistentHybridFlow cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new VerifyIdTokenSubConsistentHybridFlow();
@@ -53,37 +55,43 @@ public class VerifyIdTokenSubConsistentHybridFlow_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_valueMismatch() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject badToken = goodToken.deepCopy();
-		badToken.get("claims").getAsJsonObject().addProperty("sub", "foo");
-		env.putObject("authorization_endpoint_id_token", goodToken);
-		env.putObject("token_endpoint_id_token", badToken);
+			JsonObject badToken = goodToken.deepCopy();
+			badToken.get("claims").getAsJsonObject().addProperty("sub", "foo");
+			env.putObject("authorization_endpoint_id_token", goodToken);
+			env.putObject("token_endpoint_id_token", badToken);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingToken() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject badToken = goodToken.deepCopy();
-		badToken.get("claims").getAsJsonObject().remove("sub");
-		env.putObject("authorization_endpoint_id_token", goodToken);
-		env.putObject("token_endpoint_id_token", badToken);
+			JsonObject badToken = goodToken.deepCopy();
+			badToken.get("claims").getAsJsonObject().remove("sub");
+			env.putObject("authorization_endpoint_id_token", goodToken);
+			env.putObject("token_endpoint_id_token", badToken);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void testEvaluate_missingAuth() {
+		assertThrows(NullPointerException.class, () -> {
 
-		JsonObject badToken = goodToken.deepCopy();
-		badToken.get("claims").getAsJsonObject().remove("sub");
-		env.putObject("authorization_endpoint_id_token", badToken);
-		env.putObject("token_endpoint_id_token", goodToken);
+			JsonObject badToken = goodToken.deepCopy();
+			badToken.get("claims").getAsJsonObject().remove("sub");
+			env.putObject("authorization_endpoint_id_token", badToken);
+			env.putObject("token_endpoint_id_token", goodToken);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

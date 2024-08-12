@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckForUnexpectedClaimsInRequestObject_UnitTest {
 
 	@Spy
@@ -28,7 +30,7 @@ public class CheckForUnexpectedClaimsInRequestObject_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckForUnexpectedClaimsInRequestObject();
@@ -60,40 +62,44 @@ public class CheckForUnexpectedClaimsInRequestObject_UnitTest {
 	/**
 	 * Test method for {@link CheckForUnexpectedClaimsInRequestObject#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_misspeltClaim() {
-		// The 'nonce' claim is misspelt.
-		JsonObject authRequestClaims = JsonParser.parseString("{" +
-			"    \"claims\": {" +
-			"	\"client_id\": \"52480754053\"," +
-			"	\"iss\": \"52480754053\"," +
-			"	\"noncex\": \"rC3y9vbmmJ\"" +
-			"    }" +
-			"}")
-		.getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			// The 'nonce' claim is misspelt.
+			JsonObject authRequestClaims = JsonParser.parseString("{" +
+				"    \"claims\": {" +
+				"	\"client_id\": \"52480754053\"," +
+				"	\"iss\": \"52480754053\"," +
+				"	\"noncex\": \"rC3y9vbmmJ\"" +
+				"    }" +
+				"}")
+				.getAsJsonObject();
 
-		env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject("authorization_request_object", authRequestClaims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link CheckForUnexpectedClaimsInRequestObject#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidClaim() {
-		// The authentication request 'request_uri'  parameter should not be in the request_object.
-		JsonObject authRequestClaims = JsonParser.parseString("{" +
-			"    \"claims\": {" +
-			"	\"client_id\": \"52480754053\"," +
-			"	\"iss\": \"52480754053\"," +
-			"	\"request_uri\": \"https://example.com/request\"" +
-			"    }" +
-			"}")
-		.getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			// The authentication request 'request_uri'  parameter should not be in the request_object.
+			JsonObject authRequestClaims = JsonParser.parseString("{" +
+				"    \"claims\": {" +
+				"	\"client_id\": \"52480754053\"," +
+				"	\"iss\": \"52480754053\"," +
+				"	\"request_uri\": \"https://example.com/request\"" +
+				"    }" +
+				"}")
+				.getAsJsonObject();
 
-		env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject("authorization_request_object", authRequestClaims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

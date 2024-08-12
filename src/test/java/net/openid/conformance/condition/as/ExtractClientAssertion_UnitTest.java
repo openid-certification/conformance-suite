@@ -5,16 +5,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ExtractClientAssertion_UnitTest {
 
 	@Spy
@@ -30,7 +31,7 @@ public class ExtractClientAssertion_UnitTest {
 	/**
 	 * @throws Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new ExtractClientAssertion();
@@ -67,14 +68,17 @@ public class ExtractClientAssertion_UnitTest {
 		assertThat(env.containsObject("client_assertion")).isTrue();
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_valueMissing() {
+		assertThrows(ConditionError.class, () -> {
 
-		tokenEndpointRequest.add("body_form_params", new JsonObject());
+			tokenEndpointRequest.add("body_form_params", new JsonObject());
 
-		env.putObject("token_endpoint_request", tokenEndpointRequest);
+			env.putObject("token_endpoint_request", tokenEndpointRequest);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

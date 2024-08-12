@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 
 	@Spy
@@ -24,7 +26,7 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 
 	private ValidateIdTokenNotIncludeCHashAndSHash cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateIdTokenNotIncludeCHashAndSHash();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -52,10 +54,11 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvalutate_isBad() {
-		// Define claims object
-		JsonObject claims = JsonParser.parseString("""
+		assertThrows(ConditionError.class, () -> {
+			// Define claims object
+			JsonObject claims = JsonParser.parseString("""
 				{
 				  "at_hash": "SzqRJ7WtQMjkoDyPMXnpvA",
 				  "sub": "1001",
@@ -67,12 +70,13 @@ public class ValidateIdTokenNotIncludeCHashAndSHash_UnitTest {
 				  "s_hash": "1553590907"
 				}""").getAsJsonObject();
 
-		JsonObject o = new JsonObject();
-		o.add("claims", claims);
+			JsonObject o = new JsonObject();
+			o.add("claims", claims);
 
-		env.putObject("id_token", o);
+			env.putObject("id_token", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

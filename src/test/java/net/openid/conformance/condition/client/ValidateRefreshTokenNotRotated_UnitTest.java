@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateRefreshTokenNotRotated_UnitTest {
 
 	@Spy
@@ -26,7 +28,7 @@ public class ValidateRefreshTokenNotRotated_UnitTest {
 
 	private ValidateRefreshTokenNotRotated cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new ValidateRefreshTokenNotRotated();
@@ -57,17 +59,21 @@ public class ValidateRefreshTokenNotRotated_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_differentRefreshToken() {
-		env.putObject("token_endpoint_response", tokenResponse);
-		env.putString("refresh_token", "foobar");
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("token_endpoint_response", tokenResponse);
+			env.putString("refresh_token", "foobar");
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noExistingRefreshToken() {
-		env.putObject("token_endpoint_response", tokenResponse);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("token_endpoint_response", tokenResponse);
+			cond.execute(env);
+		});
 	}
 
 }

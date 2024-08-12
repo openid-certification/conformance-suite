@@ -9,19 +9,20 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ValidateIdToken_UnitTest {
 
 	@Spy
@@ -45,7 +46,7 @@ public class ValidateIdToken_UnitTest {
 	/*
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new ValidateIdToken();
@@ -107,113 +108,134 @@ public class ValidateIdToken_UnitTest {
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingClientId() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("server", server);
-		env.putObject("client", new JsonObject());
-		addIdToken(env, claims);
+			env.putObject("server", server);
+			env.putObject("client", new JsonObject());
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingServerConfig() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("client", client);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIdToken() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("client", client);
-		env.putObject("server", server);
+			env.putObject("client", client);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIssuer() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iss");
+			claims.remove("iss");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidIssuer() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iss");
-		claims.addProperty("iss", "invalid");
+			claims.remove("iss");
+			claims.addProperty("iss", "invalid");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingAudience() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("aud");
+			claims.remove("aud");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidAudience() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("aud");
-		claims.addProperty("aud", "invalid");
+			claims.remove("aud");
+			claims.addProperty("aud", "invalid");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test()
+	@Test
 	public void testEvaluate_multipleAudience() {
 
 		claims.remove("aud");
@@ -233,53 +255,62 @@ public class ValidateIdToken_UnitTest {
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidMultipleAudience() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("aud");
-		JsonArray aud = new JsonArray();
-		aud.add("https://other.example.com");
-		aud.add("https://wheel.example.com");
-		claims.add("aud", aud);
+			claims.remove("aud");
+			JsonArray aud = new JsonArray();
+			aud.add("https://other.example.com");
+			aud.add("https://wheel.example.com");
+			claims.add("aud", aud);
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingExp() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("exp");
+			claims.remove("exp");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidExp() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("exp");
-		claims.addProperty("exp", nowSeconds - (60 * 60)); // one hour in the past is not ok
+			claims.remove("exp");
+			claims.addProperty("exp", nowSeconds - (60 * 60)); // one hour in the past is not ok
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -318,33 +349,39 @@ public class ValidateIdToken_UnitTest {
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIat() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iat");
+			claims.remove("iat");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
 	/**
 	 * Test method for {@link ValidateIdToken#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidIat() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iat");
-		claims.addProperty("iat", nowSeconds + 3600);
+			claims.remove("iat");
+			claims.addProperty("iat", nowSeconds + 3600);
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -375,50 +412,59 @@ public class ValidateIdToken_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidAuthTimeFuture() {
-		claims.addProperty("auth_time", nowSeconds + 3600);
+		assertThrows(ConditionError.class, () -> {
+			claims.addProperty("auth_time", nowSeconds + 3600);
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidAuthTimePast() {
-		claims.addProperty("auth_time", nowSeconds - 2 * 365 * 24 * 60 * 60);
+		assertThrows(ConditionError.class, () -> {
+			claims.addProperty("auth_time", nowSeconds - 2 * 365 * 24 * 60 * 60);
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidAuthTimeString() {
-		claims.addProperty("auth_time", String.valueOf(nowSeconds-3600));
+		assertThrows(ConditionError.class, () -> {
+			claims.addProperty("auth_time", String.valueOf(nowSeconds - 3600));
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidExpString() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonElement o = claims.remove("exp");
-		claims.addProperty("exp", String.valueOf(OIDFJSON.getNumber(o))); // a string (containing a valid number) is not ok
+			JsonElement o = claims.remove("exp");
+			claims.addProperty("exp", String.valueOf(OIDFJSON.getNumber(o))); // a string (containing a valid number) is not ok
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -432,26 +478,30 @@ public class ValidateIdToken_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_acrEmpty() {
-		claims.addProperty("acr", "");
+		assertThrows(ConditionError.class, () -> {
+			claims.addProperty("acr", "");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_acrArray() {
-		claims.add("acr", JsonParser.parseString("[ \"foo\" ]"));
+		assertThrows(ConditionError.class, () -> {
+			claims.add("acr", JsonParser.parseString("[ \"foo\" ]"));
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addIdToken(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

@@ -6,19 +6,20 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ValidateClientAssertionClaims_UnitTest {
 
 	@Spy
@@ -43,7 +44,7 @@ public class ValidateClientAssertionClaims_UnitTest {
 
 	private ValidateClientAssertionClaims cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new ValidateClientAssertionClaims();
@@ -133,112 +134,138 @@ public class ValidateClientAssertionClaims_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorMtls() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("client", client);
-		env.putObject("server", serverMtls);
-		claims.addProperty("aud", "invalid");
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", serverMtls);
+			claims.addProperty("aud", "invalid");
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingClientId() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("server", server);
-		env.putObject("client", new JsonObject());
-		addClientAssertion(env, claims);
+			env.putObject("server", server);
+			env.putObject("client", new JsonObject());
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingServerConfig() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("client", client);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIdToken() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("client", client);
-		env.putObject("server", server);
+			env.putObject("client", client);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIssuer() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iss");
+			claims.remove("iss");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidIssuer() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iss");
-		claims.addProperty("iss", "invalid");
+			claims.remove("iss");
+			claims.addProperty("iss", "invalid");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingAudience() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("aud");
+			claims.remove("aud");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidAudience() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("aud");
-		claims.addProperty("aud", "invalid");
+			claims.remove("aud");
+			claims.addProperty("aud", "invalid");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingExp() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("exp");
+			claims.remove("exp");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -256,31 +283,37 @@ public class ValidateClientAssertionClaims_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidNbf() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("nbf");
-		claims.addProperty("nbf", nowSeconds + (6 * 60)); // 6 minutes in the past is not ok
+			claims.remove("nbf");
+			claims.addProperty("nbf", nowSeconds + (6 * 60)); // 6 minutes in the past is not ok
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidExp() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("exp");
-		claims.addProperty("exp", nowSeconds - (5 * 60)); // 5 minutes in the past is not ok
+			claims.remove("exp");
+			claims.addProperty("exp", nowSeconds - (5 * 60)); // 5 minutes in the past is not ok
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -312,44 +345,53 @@ public class ValidateClientAssertionClaims_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidExpFuture() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("exp");
-		claims.addProperty("exp", nowSeconds + (60 * 60 * 25)); // exp claim time range has expired (25 hours)
+			claims.remove("exp");
+			claims.addProperty("exp", nowSeconds + (60 * 60 * 25)); // exp claim time range has expired (25 hours)
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIat() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iat");
+			claims.remove("iat");
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidIat() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iat");
-		claims.addProperty("iat", nowSeconds + (60 * 60 * 25)); //iat claim time too far in future (25 hours)
+			claims.remove("iat");
+			claims.addProperty("iat", nowSeconds + (60 * 60 * 25)); //iat claim time too far in future (25 hours)
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -367,17 +409,20 @@ public class ValidateClientAssertionClaims_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidIatFuture() {
+		assertThrows(ConditionError.class, () -> {
 
-		claims.remove("iat");
-		claims.addProperty("iat", nowSeconds + (60 * 60 * 25)); // exp claim time range has expired (25 hours)
+			claims.remove("iat");
+			claims.addProperty("iat", nowSeconds + (60 * 60 * 25)); // exp claim time range has expired (25 hours)
 
-		env.putObject("client", client);
-		env.putObject("server", server);
-		addClientAssertion(env, claims);
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addClientAssertion(env, claims);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 }

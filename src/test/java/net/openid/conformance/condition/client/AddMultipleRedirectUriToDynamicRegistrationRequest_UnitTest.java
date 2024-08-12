@@ -6,16 +6,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddMultipleRedirectUriToDynamicRegistrationRequest_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -36,7 +37,7 @@ public class AddMultipleRedirectUriToDynamicRegistrationRequest_UnitTest {
 
 	private AddMultipleRedirectUriToDynamicRegistrationRequest cond;
 
-	@Before
+	@BeforeEach
 	public void setUp(){
 		cond = new AddMultipleRedirectUriToDynamicRegistrationRequest();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -50,15 +51,19 @@ public class AddMultipleRedirectUriToDynamicRegistrationRequest_UnitTest {
 		assertThat(env.getObject("dynamic_registration_request").equals(goodDynamicRegistrationRequest)).isTrue();
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingDynamicRegistrationRequest(){
-		env.putString("redirect_uri","https://example1.org/redirect");
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putString("redirect_uri", "https://example1.org/redirect");
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingRedirectUriInEnvironment(){
-		env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("dynamic_registration_request", dynamicRegistrationRequest);
+			cond.execute(env);
+		});
 	}
 }

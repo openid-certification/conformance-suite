@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckNotificationCallbackOnlyAuthReqId_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -23,26 +25,30 @@ public class CheckNotificationCallbackOnlyAuthReqId_UnitTest {
 
 	private CheckNotificationCallbackOnlyAuthReqId cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckNotificationCallbackOnlyAuthReqId();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseNull() {
-		env.putObject("notification_callback", new JsonObject());
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("notification_callback", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseEmpty() {
-		JsonObject o = new JsonObject();
-		o.add("body_json", new JsonObject());
-		env.putObject("notification_callback", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.add("body_json", new JsonObject());
+			env.putObject("notification_callback", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -54,12 +60,14 @@ public class CheckNotificationCallbackOnlyAuthReqId_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseMultipleValues() {
-		JsonObject o = new JsonObject();
-		o.add("body_json", JsonParser.parseString("{\"auth_req_id\": \"1c266114-a1be-4252-8ad1-04986c5b9ac1\",\"expires_in\": 3600}").getAsJsonObject());
-		env.putObject("notification_callback", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.add("body_json", JsonParser.parseString("{\"auth_req_id\": \"1c266114-a1be-4252-8ad1-04986c5b9ac1\",\"expires_in\": 3600}").getAsJsonObject());
+			env.putObject("notification_callback", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

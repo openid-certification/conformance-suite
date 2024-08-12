@@ -6,17 +6,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CheckForSubjectInIdToken_UnitTest {
 
 	@Spy
@@ -32,7 +33,7 @@ public class CheckForSubjectInIdToken_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckForSubjectInIdToken();
@@ -65,39 +66,46 @@ public class CheckForSubjectInIdToken_UnitTest {
 		verify(env, atLeastOnce()).getString("id_token", "claims.sub");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_valueMissing() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject badToken = goodToken;
-		badToken.get("claims").getAsJsonObject().remove("sub");
-		env.putObject("id_token", badToken);
+			JsonObject badToken = goodToken;
+			badToken.get("claims").getAsJsonObject().remove("sub");
+			env.putObject("id_token", badToken);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_nonprintable() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject badToken = goodToken;
-		badToken.get("claims").getAsJsonObject().addProperty("sub", "fo\to");
-		env.putObject("id_token", badToken);
+			JsonObject badToken = goodToken;
+			badToken.get("claims").getAsJsonObject().addProperty("sub", "fo\to");
+			env.putObject("id_token", badToken);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_nonascii() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject badToken = goodToken;
-		badToken.get("claims").getAsJsonObject().addProperty("sub", "\u007f");
-		env.putObject("id_token", badToken);
-		cond.execute(env);
+			JsonObject badToken = goodToken;
+			badToken.get("claims").getAsJsonObject().addProperty("sub", "\u007f");
+			env.putObject("id_token", badToken);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_valueNull() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject nullClaims = JsonParser.parseString("""
+			JsonObject nullClaims = JsonParser.parseString("""
 				{
 				 "iss": "http://server.example.com",
 				 "sub": null,
@@ -107,12 +115,13 @@ public class CheckForSubjectInIdToken_UnitTest {
 				 "iat": 1311280970
 				}""").getAsJsonObject();
 
-		var tokenWithNull = new JsonObject();
-		tokenWithNull.add("claims", nullClaims);
+			var tokenWithNull = new JsonObject();
+			tokenWithNull.add("claims", nullClaims);
 
-		env.putObject("id_token", tokenWithNull);
+			env.putObject("id_token", tokenWithNull);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

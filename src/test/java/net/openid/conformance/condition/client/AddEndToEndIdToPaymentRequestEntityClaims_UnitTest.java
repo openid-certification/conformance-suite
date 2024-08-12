@@ -8,16 +8,17 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddEndToEndIdToPaymentRequestEntityClaims_UnitTest {
 
 	@Spy
@@ -70,18 +71,20 @@ public class AddEndToEndIdToPaymentRequestEntityClaims_UnitTest {
 		}
 		""";
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		condition = new AddEndToEndIdToPaymentRequestEntityClaims();
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void test_that_v3_payloads_fail(){
-		JsonObject paymentsv4Payload = JsonParser.parseString(paymentsV3PayloadJson).getAsJsonObject();
-		env.putObject("resource_request_entity_claims", paymentsv4Payload);
+		assertThrows(IllegalStateException.class, () -> {
+			JsonObject paymentsv4Payload = JsonParser.parseString(paymentsV3PayloadJson).getAsJsonObject();
+			env.putObject("resource_request_entity_claims", paymentsv4Payload);
 
-		condition.evaluate(env);
+			condition.evaluate(env);
+		});
 	}
 
 	@Test

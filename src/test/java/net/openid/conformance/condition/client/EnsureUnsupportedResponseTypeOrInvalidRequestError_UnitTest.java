@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureUnsupportedResponseTypeOrInvalidRequestError_UnitTest {
 
 	@Spy
@@ -23,7 +25,7 @@ public class EnsureUnsupportedResponseTypeOrInvalidRequestError_UnitTest {
 
 	private EnsureUnsupportedResponseTypeOrInvalidRequestError cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new EnsureUnsupportedResponseTypeOrInvalidRequestError();
@@ -42,29 +44,35 @@ public class EnsureUnsupportedResponseTypeOrInvalidRequestError_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_notExistErrorField() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject authorizationEndpointResponse = env.getObject("authorization_endpoint_response");
+			JsonObject authorizationEndpointResponse = env.getObject("authorization_endpoint_response");
 
-		authorizationEndpointResponse.remove("error");
+			authorizationEndpointResponse.remove("error");
 
-		env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
+			env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorIsNotOneOfUnsupportedResponseTypeOrInvalidRequest() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject authorizationEndpointResponse = env.getObject("authorization_endpoint_response");
+			JsonObject authorizationEndpointResponse = env.getObject("authorization_endpoint_response");
 
-		authorizationEndpointResponse.addProperty("error", "access_denied");
+			authorizationEndpointResponse.addProperty("error", "access_denied");
 
-		env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
+			env.putObject("authorization_endpoint_response", authorizationEndpointResponse);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

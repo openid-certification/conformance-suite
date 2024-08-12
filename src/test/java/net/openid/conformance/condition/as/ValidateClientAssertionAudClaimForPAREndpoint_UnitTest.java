@@ -7,17 +7,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ValidateClientAssertionAudClaimForPAREndpoint_UnitTest {
 
 	@Spy
@@ -34,7 +35,7 @@ public class ValidateClientAssertionAudClaimForPAREndpoint_UnitTest {
 
 	private ValidateClientAssertionAudClaimForPAREndpoint cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new ValidateClientAssertionAudClaimForPAREndpoint();
@@ -58,15 +59,17 @@ public class ValidateClientAssertionAudClaimForPAREndpoint_UnitTest {
 		verify(env, atLeastOnce()).getString("server", "issuer");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badIssuer() {
-		env.putString("client_assertion", "claims.aud", issuer + "a");
+		assertThrows(ConditionError.class, () -> {
+			env.putString("client_assertion", "claims.aud", issuer + "a");
 
-		env.putObject("server", server);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("server", "issuer");
+			verify(env, atLeastOnce()).getString("server", "issuer");
+		});
 	}
 
 	@Test
@@ -102,35 +105,39 @@ public class ValidateClientAssertionAudClaimForPAREndpoint_UnitTest {
 		verify(env, atLeastOnce()).getString("server", "issuer");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badIssuerArray() {
-		var aud = new JsonArray();
-		aud.add(issuer + "a");
+		assertThrows(ConditionError.class, () -> {
+			var aud = new JsonArray();
+			aud.add(issuer + "a");
 
-		var claims = new JsonObject();
-		claims.add("aud", aud);
-		env.putObject("client_assertion", "claims", claims);
+			var claims = new JsonObject();
+			claims.add("aud", aud);
+			env.putObject("client_assertion", "claims", claims);
 
-		env.putObject("server", server);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("server", "issuer");
+			verify(env, atLeastOnce()).getString("server", "issuer");
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_emptyArray() {
-		var aud = new JsonArray();
+		assertThrows(ConditionError.class, () -> {
+			var aud = new JsonArray();
 
-		var claims = new JsonObject();
-		claims.add("aud", aud);
-		env.putObject("client_assertion", "claims", claims);
+			var claims = new JsonObject();
+			claims.add("aud", aud);
+			env.putObject("client_assertion", "claims", claims);
 
-		env.putObject("server", server);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("server", "issuer");
+			verify(env, atLeastOnce()).getString("server", "issuer");
+		});
 	}
 
 }

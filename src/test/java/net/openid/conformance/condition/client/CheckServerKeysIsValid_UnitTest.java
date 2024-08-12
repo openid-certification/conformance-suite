@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckServerKeysIsValid_UnitTest {
 
 	@Spy
@@ -27,7 +29,7 @@ public class CheckServerKeysIsValid_UnitTest {
 	/**
 	 * @throws Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckServerKeysIsValid();
@@ -35,24 +37,26 @@ public class CheckServerKeysIsValid_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorWithUnsupportedServerJWKs() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject serverJWKs = JsonParser.parseString("{"
-			+ "\"keys\":["
-			+ "{"
-			+ "\"crv\":\"P-256K\","
-			+ "\"x\":\"x1VOGFv0yuGvWhfQBMFZ5KPlvXwbm9HwPY-RAzZdj7g\","
-			+ "\"y\":\"FhHT44a-pvfXf42c--EjrSMR7vCMtQGzrUZsItdidSs\","
-			+ "\"d\":\"p8nLEvyACILbzRQYecb2bt7aSZTBuI3L39n7ygad8To\","
-			+ "\"kty\":\"EC\","
-			+ "\"use\":\"sig\","
-			+ "\"kid\":\"PRvpagnns5AZqGSZaOAmX3BKSejLizPME_Q-KZiyz24\""
-			+ "}"
-			+ "]}").getAsJsonObject();
+			JsonObject serverJWKs = JsonParser.parseString("{"
+				+ "\"keys\":["
+				+ "{"
+				+ "\"crv\":\"P-256K\","
+				+ "\"x\":\"x1VOGFv0yuGvWhfQBMFZ5KPlvXwbm9HwPY-RAzZdj7g\","
+				+ "\"y\":\"FhHT44a-pvfXf42c--EjrSMR7vCMtQGzrUZsItdidSs\","
+				+ "\"d\":\"p8nLEvyACILbzRQYecb2bt7aSZTBuI3L39n7ygad8To\","
+				+ "\"kty\":\"EC\","
+				+ "\"use\":\"sig\","
+				+ "\"kid\":\"PRvpagnns5AZqGSZaOAmX3BKSejLizPME_Q-KZiyz24\""
+				+ "}"
+				+ "]}").getAsJsonObject();
 
-		env.putObject("server_jwks", serverJWKs);
-		cond.execute(env);
+			env.putObject("server_jwks", serverJWKs);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -74,9 +78,11 @@ public class CheckServerKeysIsValid_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingServerJWKs() {
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
 	}
 
 }

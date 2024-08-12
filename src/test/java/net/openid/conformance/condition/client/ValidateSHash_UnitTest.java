@@ -5,17 +5,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ValidateSHash_UnitTest {
 
 	@Spy
@@ -29,7 +30,7 @@ public class ValidateSHash_UnitTest {
 	/*
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateSHash();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -77,71 +78,83 @@ public class ValidateSHash_UnitTest {
 	/**
 	 * Test method for {@link ValidateSHash#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIdToken() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "12345");
+			env.putString("state", "12345");
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link ValidateSHash#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingHash() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "12345");
-		addStateHash(env, "HS256", null);
+			env.putString("state", "12345");
+			addStateHash(env, "HS256", null);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link ValidateSHash#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingState() {
+		assertThrows(ConditionError.class, () -> {
 
-		addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
+			addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link ValidateSHash#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingAlg() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "12345");
-		addStateHash(env, null, "WZRHGrsBESr8wYFZ9sx0tA");
+			env.putString("state", "12345");
+			addStateHash(env, null, "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link ValidateSHash#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidAlg() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "12345");
-		addStateHash(env, "XXX", "WZRHGrsBESr8wYFZ9sx0tA");
+			env.putString("state", "12345");
+			addStateHash(env, "XXX", "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link ValidateSHash#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badHash() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putString("state", "abcde");
-		addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
+			env.putString("state", "abcde");
+			addStateHash(env, "HS256", "WZRHGrsBESr8wYFZ9sx0tA");
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

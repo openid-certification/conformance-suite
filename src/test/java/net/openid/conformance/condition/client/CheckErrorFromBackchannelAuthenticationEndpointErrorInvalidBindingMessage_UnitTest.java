@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage_UnitTest {
 
 	@Spy
@@ -23,7 +25,7 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingM
 
 	private CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingMessage();
@@ -43,28 +45,33 @@ public class CheckErrorFromBackchannelAuthenticationEndpointErrorInvalidBindingM
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseErrorEmpty() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject response = env.getObject("backchannel_authentication_endpoint_response");
+			JsonObject response = env.getObject("backchannel_authentication_endpoint_response");
 
-		response.remove("error");
+			response.remove("error");
 
-		env.putObject("backchannel_authentication_endpoint_response", new JsonObject());
+			env.putObject("backchannel_authentication_endpoint_response", new JsonObject());
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_caseWrongError() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject response = env.getObject("backchannel_authentication_endpoint_response");
+			JsonObject response = env.getObject("backchannel_authentication_endpoint_response");
 
-		response.addProperty("error", "invalid_request");
+			response.addProperty("error", "invalid_request");
 
-		env.putObject("backchannel_authentication_endpoint_response", response);
+			env.putObject("backchannel_authentication_endpoint_response", response);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

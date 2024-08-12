@@ -6,13 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
-@RunWith(MockitoJUnitRunner.class)
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureValidRedirectUriForAuthorizationEndpointRequest_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -22,7 +25,7 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest_UnitTest {
 
 	private EnsureValidRedirectUriForAuthorizationEndpointRequest cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new EnsureValidRedirectUriForAuthorizationEndpointRequest();
@@ -81,21 +84,23 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_httpWhenNotCode() {
-		JsonObject client = new JsonObject();
-		JsonArray redirectUris = new JsonArray();
-		redirectUris.add("https://www.certification.openid.net/redirect/uri1");
-		redirectUris.add("http://www.certification.openid.net/redirect/uri2");
-		client.add("redirect_uris", redirectUris);
-		env.putObject("client", client);
-		client.addProperty("application_type", "web");
-		JsonObject effectiveRequest = new JsonObject();
-		effectiveRequest.addProperty(CreateEffectiveAuthorizationRequestParameters.REDIRECT_URI,
-			"http://www.certification.openid.net/redirect/uri2");
-		effectiveRequest.addProperty(CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE, "code id_token");
-		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, effectiveRequest);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject client = new JsonObject();
+			JsonArray redirectUris = new JsonArray();
+			redirectUris.add("https://www.certification.openid.net/redirect/uri1");
+			redirectUris.add("http://www.certification.openid.net/redirect/uri2");
+			client.add("redirect_uris", redirectUris);
+			env.putObject("client", client);
+			client.addProperty("application_type", "web");
+			JsonObject effectiveRequest = new JsonObject();
+			effectiveRequest.addProperty(CreateEffectiveAuthorizationRequestParameters.REDIRECT_URI,
+				"http://www.certification.openid.net/redirect/uri2");
+			effectiveRequest.addProperty(CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE, "code id_token");
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, effectiveRequest);
+			cond.execute(env);
+		});
 	}
 
 

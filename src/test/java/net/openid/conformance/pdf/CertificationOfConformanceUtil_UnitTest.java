@@ -4,9 +4,9 @@ import net.openid.conformance.certification.CertificationOfConformanceUtil;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public class CertificationOfConformanceUtil_UnitTest
 {
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 	}
@@ -88,37 +88,37 @@ public class CertificationOfConformanceUtil_UnitTest
 				reloadedFields.add(field.getFullyQualifiedName());
 			}
 			PDField nameOfImplementerField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_NAME_OF_IMPLEMENTER);
-			Assert.assertEquals(nameOfImplementerValue, nameOfImplementerField.getValueAsString());
+			Assertions.assertEquals(nameOfImplementerValue, nameOfImplementerField.getValueAsString());
 
 			PDField nameField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_DEPLOYMENT_VERSION);
-			Assert.assertEquals(nameVersionValueWithNonAsciiChars, nameField.getValueAsString());
+			Assertions.assertEquals(nameVersionValueWithNonAsciiChars, nameField.getValueAsString());
 
 			PDField profileField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_CONFORMANCE_PROFILE);
-			Assert.assertEquals(profileFieldValue, profileField.getValueAsString());
+			Assertions.assertEquals(profileFieldValue, profileField.getValueAsString());
 
 			PDField suiteField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_TEST_SUITE_SOFTWARE);
-			Assert.assertEquals(suiteFieldValue, suiteField.getValueAsString());
+			Assertions.assertEquals(suiteFieldValue, suiteField.getValueAsString());
 
 			PDField testDateField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_TEST_DATE);
-			Assert.assertEquals(testDateFieldValue, testDateField.getValueAsString());
+			Assertions.assertEquals(testDateFieldValue, testDateField.getValueAsString());
 
 			PDField moreInfoUrlField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_MORE_INFO_URL);
-			Assert.assertEquals(moreInfoUrlFieldValue, moreInfoUrlField.getValueAsString());
+			Assertions.assertEquals(moreInfoUrlFieldValue, moreInfoUrlField.getValueAsString());
 
 			PDField implDescField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_IMPL_DESCRIPTION);
-			Assert.assertEquals(implDescFieldValue, implDescField.getValueAsString());
+			Assertions.assertEquals(implDescFieldValue, implDescField.getValueAsString());
 
 			PDField progLangField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_PROGRAMMING_LANG);
-			Assert.assertEquals(progLangFieldValue, progLangField.getValueAsString());
+			Assertions.assertEquals(progLangFieldValue, progLangField.getValueAsString());
 
 			PDField licenseField = acroForm.getField(CertificationOfConformanceUtil.PDF_FIELD_LICENSE);
-			Assert.assertEquals(licenseFieldValue, licenseField.getValueAsString());
+			Assertions.assertEquals(licenseFieldValue, licenseField.getValueAsString());
 
 		} catch (IOException e) {
 			throw e;
 		} finally {
 			outputFile.delete();
 		}
-		Assert.assertEquals("Field names in the template and generated pdfs do not match.", originalFields, reloadedFields);
+		Assertions.assertEquals(originalFields, reloadedFields, "Field names in the template and generated pdfs do not match.");
 	}
 }

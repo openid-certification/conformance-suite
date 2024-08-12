@@ -5,19 +5,20 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ValidateJARMExp_Recommendations_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -27,7 +28,7 @@ public class ValidateJARMExp_Recommendations_UnitTest {
 
 	private ValidateJARMExpRecommendations cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateJARMExpRecommendations();
 		cond.setProperties("UNIT_TEST", eventLog, Condition.ConditionResult.INFO);
@@ -58,24 +59,30 @@ public class ValidateJARMExp_Recommendations_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_tooLong() {
-		createResponse(env,16*60); // 16 minutes (10 minutes allowable in spec + 5 minutes allowed time skew)
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			createResponse(env, 16 * 60); // 16 minutes (10 minutes allowable in spec + 5 minutes allowed time skew)
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_tooShort() {
-		createResponse(env,5); // 5 seconds; fairly random
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			createResponse(env, 5); // 5 seconds; fairly random
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noExp() {
-		JsonObject claims = new JsonObject();
-		JsonObject response = new JsonObject();
-		response.add("claims", claims);
-		env.putObject("jarm_response",response);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject claims = new JsonObject();
+			JsonObject response = new JsonObject();
+			response.add("claims", claims);
+			env.putObject("jarm_response", response);
+			cond.execute(env);
+		});
 	}
 }

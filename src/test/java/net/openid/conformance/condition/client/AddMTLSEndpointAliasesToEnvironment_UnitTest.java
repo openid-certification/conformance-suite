@@ -6,16 +6,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 
 	@Spy
@@ -26,7 +27,7 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 
 	private AddMTLSEndpointAliasesToEnvironment cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new AddMTLSEndpointAliasesToEnvironment();
@@ -110,24 +111,28 @@ public class AddMTLSEndpointAliasesToEnvironment_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingConfig() {
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_notObject() {
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"token_endpoint\": \"https://server.example.com/token\","
-			+ "\"revocation_endpoint\": \"https://server.example.com/revo\","
-			+ "\"introspection_endpoint\": \"https://server.example.com/introspect\","
-			+ "\"userinfo_endpoint\": \"https://server.example.com/me\","
-			+ "\"mtls_endpoint_aliases\": \"https://mtls.example.com/token\""
-			+ "}").getAsJsonObject();
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"token_endpoint\": \"https://server.example.com/token\","
+				+ "\"revocation_endpoint\": \"https://server.example.com/revo\","
+				+ "\"introspection_endpoint\": \"https://server.example.com/introspect\","
+				+ "\"userinfo_endpoint\": \"https://server.example.com/me\","
+				+ "\"mtls_endpoint_aliases\": \"https://mtls.example.com/token\""
+				+ "}").getAsJsonObject();
 
-		env.putObject("server", server);
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test

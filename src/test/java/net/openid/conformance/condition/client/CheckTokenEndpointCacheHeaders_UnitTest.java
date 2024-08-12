@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckTokenEndpointCacheHeaders_UnitTest {
 
 	@Spy
@@ -24,18 +26,20 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 
 	private CheckTokenEndpointCacheHeaders cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckTokenEndpointCacheHeaders();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_isEmpty() {
-		JsonObject o = new JsonObject();
-		env.putObject("token_endpoint_response_headers", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			env.putObject("token_endpoint_response_headers", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -62,44 +66,52 @@ public class CheckTokenEndpointCacheHeaders_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badCacheControlArray() {
-		// the server can legally sent several Cache-Control headers, which java presents as an array
+		assertThrows(ConditionError.class, () -> {
+			// the server can legally sent several Cache-Control headers, which java presents as an array
 
-		JsonArray a = new JsonArray();
-		a.add("store");
-		a.add("transform");
+			JsonArray a = new JsonArray();
+			a.add("store");
+			a.add("transform");
 
-		JsonObject o = new JsonObject();
-		o.add("cache-control", a);
-		env.putObject("token_endpoint_response_headers", o);
+			JsonObject o = new JsonObject();
+			o.add("cache-control", a);
+			env.putObject("token_endpoint_response_headers", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_cacheControlMissing() {
-		JsonObject o = new JsonObject();
-		env.putObject("token_endpoint_response_headers", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			env.putObject("token_endpoint_response_headers", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_isBadCacheControlEmpty() {
-		JsonObject o = new JsonObject();
-		o.addProperty("cache-control", "");
-		env.putObject("token_endpoint_response_headers", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.addProperty("cache-control", "");
+			env.putObject("token_endpoint_response_headers", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_isBadCacheControl() {
-		JsonObject o = new JsonObject();
-		o.addProperty("cache-control", "store");
-		env.putObject("token_endpoint_response_headers", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.addProperty("cache-control", "store");
+			env.putObject("token_endpoint_response_headers", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

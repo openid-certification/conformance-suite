@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_UnitTest {
 
 	@Spy
@@ -26,7 +28,7 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_U
 
 	private JsonObject userInfo;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources();
 
@@ -107,34 +109,40 @@ public class EnsureMemberValuesInClaimNameReferenceToMemberNamesInClaimSources_U
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingClaimNames() {
-		// the spec isn't explicit but it seems that having only one of claim names and sources makes no sense
-		userInfo.remove("_claim_names");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			// the spec isn't explicit but it seems that having only one of claim names and sources makes no sense
+			userInfo.remove("_claim_names");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingClaimSources() {
-		// the spec isn't explicit but it seems that having only one of claim names and sources makes no sense
-		userInfo.remove("_claim_sources");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			// the spec isn't explicit but it seems that having only one of claim names and sources makes no sense
+			userInfo.remove("_claim_sources");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalid() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject claimSources = JsonParser.parseString("{"
-			+ "\"payment_info\":\"src1\","
-			+ "\"shipping_address\":\"src2\","
-			+ "\"credit_score\":\"src3\""
-			+ "}").getAsJsonObject();
+			JsonObject claimSources = JsonParser.parseString("{"
+				+ "\"payment_info\":\"src1\","
+				+ "\"shipping_address\":\"src2\","
+				+ "\"credit_score\":\"src3\""
+				+ "}").getAsJsonObject();
 
-		userInfo.add("_claim_sources", claimSources);
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+			userInfo.add("_claim_sources", claimSources);
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
 }

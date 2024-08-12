@@ -5,16 +5,17 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddPromptLoginToAuthorizationEndpointRequest_UnitTest {
 
 	@Spy
@@ -25,7 +26,7 @@ public class AddPromptLoginToAuthorizationEndpointRequest_UnitTest {
 
 	private AddPromptLoginToAuthorizationEndpointRequest cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new AddPromptLoginToAuthorizationEndpointRequest();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -46,9 +47,11 @@ public class AddPromptLoginToAuthorizationEndpointRequest_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingAuthorizationEndpointRequest() {
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
 	}
 
 }

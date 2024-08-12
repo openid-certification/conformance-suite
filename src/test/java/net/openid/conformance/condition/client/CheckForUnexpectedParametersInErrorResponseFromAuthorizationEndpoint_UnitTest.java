@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint_UnitTest {
 
 	@Spy
@@ -33,7 +35,7 @@ public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoin
 	/*
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -73,17 +75,21 @@ public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoin
 	 * Test method for
 	 * {@link CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorMissing() {
-		doTestString(errorErrorMissing);
+		assertThrows(ConditionError.class, () -> {
+			doTestString(errorErrorMissing);
+		});
 	}
 
 	/**
 	 * Test method for
 	 * {@link CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorTooManyFields() {
-		doTestString(errorTooManyFields);
+		assertThrows(ConditionError.class, () -> {
+			doTestString(errorTooManyFields);
+		});
 	}
 }

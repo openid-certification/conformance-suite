@@ -5,14 +5,16 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckStateLength_UnitTest {
 
 	@Spy
@@ -27,7 +29,7 @@ public class CheckStateLength_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckStateLength();
@@ -49,11 +51,13 @@ public class CheckStateLength_UnitTest {
 	/**
 	 * Test method for {@link  CheckStateLength#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidLength() {
-		// The state shout not exceed 128 characters in length.
-		env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
-			CreateEffectiveAuthorizationRequestParameters.STATE, RandomStringUtils.randomAlphabetic(129));
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			// The state shout not exceed 128 characters in length.
+			env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
+				CreateEffectiveAuthorizationRequestParameters.STATE, RandomStringUtils.randomAlphabetic(129));
+			cond.execute(env);
+		});
 	}
 }

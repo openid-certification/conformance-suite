@@ -7,15 +7,17 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaimsTest_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -36,7 +38,7 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaimsTest
 		env.putObject(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "claims.id_token", claims);
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims();
 
@@ -81,10 +83,11 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaimsTest
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_idtokenSingleAcr() {
+		assertThrows(ConditionError.class, () -> {
 
-		String idtokenRequestStr =
+			String idtokenRequestStr =
 				"""
 						{
 						  "name": null,
@@ -92,17 +95,19 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaimsTest
 						}
 						""";
 
-		JsonObject idtokenRequestObj = (JsonObject) JsonParser.parseString(idtokenRequestStr);
+			JsonObject idtokenRequestObj = (JsonObject) JsonParser.parseString(idtokenRequestStr);
 
-		addRequestClaims(env, request);
-		addIdtokenClaims(env, idtokenRequestObj);
-		cond.execute(env);
+			addRequestClaims(env, request);
+			addIdtokenClaims(env, idtokenRequestObj);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_idtokenMultipleAcr() {
+		assertThrows(ConditionError.class, () -> {
 
-		String idtokenRequestStr =
+			String idtokenRequestStr =
 				"""
 						{
 						  "name": null,
@@ -110,18 +115,21 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaimsTest
 						}
 						""";
 
-		JsonObject idtokenRequestObj = (JsonObject) JsonParser.parseString(idtokenRequestStr);
+			JsonObject idtokenRequestObj = (JsonObject) JsonParser.parseString(idtokenRequestStr);
 
-		addRequestClaims(env, request);
-		addIdtokenClaims(env, idtokenRequestObj);
-		cond.execute(env);
+			addRequestClaims(env, request);
+			addIdtokenClaims(env, idtokenRequestObj);
+			cond.execute(env);
+		});
 	}
 
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_acrvalues() {
-		addRequestClaims(env, request);
-		env.putString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "acr_values", "urn:openbanking:psd2:sca urn:openbanking:psd2:ca");
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			addRequestClaims(env, request);
+			env.putString(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "acr_values", "urn:openbanking:psd2:sca urn:openbanking:psd2:ca");
+			cond.execute(env);
+		});
 	}
 }

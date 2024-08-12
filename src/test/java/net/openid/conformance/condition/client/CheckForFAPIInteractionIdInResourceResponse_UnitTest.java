@@ -5,17 +5,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CheckForFAPIInteractionIdInResourceResponse_UnitTest {
 
 	@Spy
@@ -26,7 +27,7 @@ public class CheckForFAPIInteractionIdInResourceResponse_UnitTest {
 
 	private CheckForFAPIInteractionIdInResourceResponse cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckForFAPIInteractionIdInResourceResponse();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -69,26 +70,30 @@ public class CheckForFAPIInteractionIdInResourceResponse_UnitTest {
 	/**
 	 * Test method for {@link CheckForFAPIInteractionIdInResourceResponse#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidValue() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject headers = new JsonObject();
-		headers.addProperty("x-fapi-interaction-id", "this is not a uuid");
-		env.putObject("resource_endpoint_response_headers", headers);
+			JsonObject headers = new JsonObject();
+			headers.addProperty("x-fapi-interaction-id", "this is not a uuid");
+			env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link CheckForFAPIInteractionIdInResourceResponse#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingValue() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject headers = new JsonObject();
-		env.putObject("resource_endpoint_response_headers", headers);
+			JsonObject headers = new JsonObject();
+			env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

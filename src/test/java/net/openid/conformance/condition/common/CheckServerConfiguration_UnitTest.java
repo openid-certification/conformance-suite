@@ -6,17 +6,18 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CheckServerConfiguration_UnitTest {
 
 	@Spy
@@ -38,7 +39,7 @@ public class CheckServerConfiguration_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new CheckServerConfiguration();
@@ -85,33 +86,39 @@ public class CheckServerConfiguration_UnitTest {
 	/**
 	 * Test method for {@link CheckServerConfiguration#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingAuthorizationEndpoint() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("server", badConfigWithoutAuthorizationEndpoint);
+			env.putObject("server", badConfigWithoutAuthorizationEndpoint);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link CheckServerConfiguration#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingTokenEndpoint() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("server", badConfigWithoutTokenEndpoint);
+			env.putObject("server", badConfigWithoutTokenEndpoint);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link CheckServerConfiguration#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIssuer() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("server", badConfigWithoutIssuer);
+			env.putObject("server", badConfigWithoutIssuer);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

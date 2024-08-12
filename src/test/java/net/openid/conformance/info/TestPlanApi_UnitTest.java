@@ -1,10 +1,10 @@
 package net.openid.conformance.info;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TestPlanApi_UnitTest {
 
 	TestPlanService planService;
@@ -27,7 +27,7 @@ public class TestPlanApi_UnitTest {
 	Plan plan;
 	TestPlanApi api;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		planService = Mockito.mock(TestPlanService.class);
 		infoService = Mockito.mock(TestInfoService.class);

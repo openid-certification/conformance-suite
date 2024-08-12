@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureMatchingFAPIInteractionId_UnitTest {
 
 	@Spy
@@ -28,7 +30,7 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new EnsureMatchingFAPIInteractionId();
@@ -61,24 +63,30 @@ public class EnsureMatchingFAPIInteractionId_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_wrongId() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject headers = new JsonObject();
-		headers.addProperty("x-fapi-interaction-id", "incorrect");
-		env.putObject("resource_endpoint_response_headers", headers);
+			JsonObject headers = new JsonObject();
+			headers.addProperty("x-fapi-interaction-id", "incorrect");
+			env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingId() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject headers = new JsonObject();
-		env.putObject("resource_endpoint_response_headers", headers);
+			JsonObject headers = new JsonObject();
+			env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 

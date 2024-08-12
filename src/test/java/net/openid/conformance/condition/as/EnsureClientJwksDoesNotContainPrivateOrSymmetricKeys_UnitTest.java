@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys_UnitTest {
 	@Spy
 	private Environment env = new Environment();
@@ -136,7 +138,7 @@ public class EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys();
@@ -154,21 +156,25 @@ public class EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_privateKeys() {
-		JsonObject client = new JsonObject();
-		JsonObject publicJwks = JsonParser.parseString(BAD_JWKS).getAsJsonObject();
-		client.add("jwks", publicJwks);
-		env.putObject("client", client);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject client = new JsonObject();
+			JsonObject publicJwks = JsonParser.parseString(BAD_JWKS).getAsJsonObject();
+			client.add("jwks", publicJwks);
+			env.putObject("client", client);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_symmetricKeys() {
-		JsonObject client = new JsonObject();
-		JsonObject publicJwks = JsonParser.parseString(SYMMETRIC_JWKS).getAsJsonObject();
-		client.add("jwks", publicJwks);
-		env.putObject("client", client);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject client = new JsonObject();
+			JsonObject publicJwks = JsonParser.parseString(SYMMETRIC_JWKS).getAsJsonObject();
+			client.add("jwks", publicJwks);
+			env.putObject("client", client);
+			cond.execute(env);
+		});
 	}
 }

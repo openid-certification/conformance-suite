@@ -7,12 +7,12 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,10 +25,11 @@ import java.util.Base64;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ValidateMTLSCertificatesAsX509_UnitTest {
 
 	@Spy
@@ -208,7 +209,7 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 	/**
 	 * @throws Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		Security.addProvider(new BouncyCastleProvider());
@@ -502,54 +503,62 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 		verify(env, atLeastOnce()).getString("mutual_tls_authentication", "ca");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noKey() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject config = JsonParser.parseString("{"
-			+ "\"cert\":\"" + cert + "\""
-			+ "}").getAsJsonObject();
+			JsonObject config = JsonParser.parseString("{"
+				+ "\"cert\":\"" + cert + "\""
+				+ "}").getAsJsonObject();
 
-		env.putObject("mutual_tls_authentication", config);
+			env.putObject("mutual_tls_authentication", config);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badKey() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject config = JsonParser.parseString("{"
-			+ "\"cert\":\"" + cert + "\","
-			+ "\"key\":\"bad key value\""
-			+ "}").getAsJsonObject();
+			JsonObject config = JsonParser.parseString("{"
+				+ "\"cert\":\"" + cert + "\","
+				+ "\"key\":\"bad key value\""
+				+ "}").getAsJsonObject();
 
-		env.putObject("mutual_tls_authentication", config);
+			env.putObject("mutual_tls_authentication", config);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_noCert() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject config = JsonParser.parseString("{"
-			+ "\"key\":\"" + key + "\""
-			+ "}").getAsJsonObject();
+			JsonObject config = JsonParser.parseString("{"
+				+ "\"key\":\"" + key + "\""
+				+ "}").getAsJsonObject();
 
-		env.putObject("mutual_tls_authentication", config);
+			env.putObject("mutual_tls_authentication", config);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_badCert() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject config = JsonParser.parseString("{"
-			+ "\"cert\":\"bad cert value\","
-			+ "\"key\":\"" + key + "\""
-			+ "}").getAsJsonObject();
+			JsonObject config = JsonParser.parseString("{"
+				+ "\"cert\":\"bad cert value\","
+				+ "\"key\":\"" + key + "\""
+				+ "}").getAsJsonObject();
 
-		env.putObject("mutual_tls_authentication", config);
+			env.putObject("mutual_tls_authentication", config);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -714,10 +723,12 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 		return chain;
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_valueMissing() {
+		assertThrows(ConditionError.class, () -> {
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

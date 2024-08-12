@@ -6,15 +6,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class FAPIBrazilValidateRegistrationClientUriQueryParams_UnitTest {
 
 	@Spy
@@ -25,7 +27,7 @@ public class FAPIBrazilValidateRegistrationClientUriQueryParams_UnitTest {
 
 	private FAPIBrazilValidateRegistrationClientUriQueryParams cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new FAPIBrazilValidateRegistrationClientUriQueryParams();
@@ -66,54 +68,60 @@ public class FAPIBrazilValidateRegistrationClientUriQueryParams_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingQueryParameters() {
-		JsonObject registrationClientUri = new JsonObject();
-		registrationClientUri.addProperty("fullUrl", "https://server.example.com/connect/register?client_id=s6BhdRkqt3&R44s5miZVmIM7JXU=1fl7brbcGbK55dc6");
-		env.putObject("registration_client_uri", registrationClientUri);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject registrationClientUri = new JsonObject();
+			registrationClientUri.addProperty("fullUrl", "https://server.example.com/connect/register?client_id=s6BhdRkqt3&R44s5miZVmIM7JXU=1fl7brbcGbK55dc6");
+			env.putObject("registration_client_uri", registrationClientUri);
 
-		JsonObject queryStringParams = JsonParser.parseString( "{"
-			+ "  'query_string_params': {"
-			+ "    'client_id': 's6BhdRkqt3'"
-			+ "  }"
-			+ "}").getAsJsonObject();
-		env.putObject("client_request", queryStringParams);
+			JsonObject queryStringParams = JsonParser.parseString("{"
+				+ "  'query_string_params': {"
+				+ "    'client_id': 's6BhdRkqt3'"
+				+ "  }"
+				+ "}").getAsJsonObject();
+			env.putObject("client_request", queryStringParams);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_extraQueryParameters() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject registrationClientUri = new JsonObject();
-		registrationClientUri.addProperty("fullUrl", "https://server.example.com/connect/register?client_id=s6BhdRkqt3");
-		env.putObject("registration_client_uri", registrationClientUri);
+			JsonObject registrationClientUri = new JsonObject();
+			registrationClientUri.addProperty("fullUrl", "https://server.example.com/connect/register?client_id=s6BhdRkqt3");
+			env.putObject("registration_client_uri", registrationClientUri);
 
-		JsonObject queryStringParams = JsonParser.parseString( "{"
-			+ "  'query_string_params': {"
-			+ "    'client_id': 's6BhdRkqt3',"
-			+ "    'R44s5miZVmIM7JXU': '1fl7brbcGbK55dc6'"
-			+ "  }"
-			+ "}").getAsJsonObject();
-		env.putObject("client_request", queryStringParams);
+			JsonObject queryStringParams = JsonParser.parseString("{"
+				+ "  'query_string_params': {"
+				+ "    'client_id': 's6BhdRkqt3',"
+				+ "    'R44s5miZVmIM7JXU': '1fl7brbcGbK55dc6'"
+				+ "  }"
+				+ "}").getAsJsonObject();
+			env.putObject("client_request", queryStringParams);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidQueryParameters() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject registrationClientUri = new JsonObject();
-		registrationClientUri.addProperty("fullUrl", "https://server.example.com/connect/register?client_id=s6BhdRkqt3");
-		env.putObject("registration_client_uri", registrationClientUri);
+			JsonObject registrationClientUri = new JsonObject();
+			registrationClientUri.addProperty("fullUrl", "https://server.example.com/connect/register?client_id=s6BhdRkqt3");
+			env.putObject("registration_client_uri", registrationClientUri);
 
-		JsonObject queryStringParams = JsonParser.parseString( "{"
-			+ "  'query_string_params': {"
-			+ "    'client_id': 'invalid'"
-			+ "  }"
-			+ "}").getAsJsonObject();
-		env.putObject("client_request", queryStringParams);
+			JsonObject queryStringParams = JsonParser.parseString("{"
+				+ "  'query_string_params': {"
+				+ "    'client_id': 'invalid'"
+				+ "  }"
+				+ "}").getAsJsonObject();
+			env.putObject("client_request", queryStringParams);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 }

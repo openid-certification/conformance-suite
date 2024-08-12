@@ -4,14 +4,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class EnsureMinimumPkceCodeVerifierEntropy_UnitTest {
 
 	@Spy
@@ -22,7 +24,7 @@ public class EnsureMinimumPkceCodeVerifierEntropy_UnitTest {
 
 	private EnsureMinimumPkceCodeVerifierEntropy cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new EnsureMinimumPkceCodeVerifierEntropy();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -39,11 +41,13 @@ public class EnsureMinimumPkceCodeVerifierEntropy_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_entropyBad() {
-		env.putString("token_endpoint_request", "body_form_params.code_verifier","1111111111111111111111111111111111111111");
+		assertThrows(ConditionError.class, () -> {
+			env.putString("token_endpoint_request", "body_form_params.code_verifier", "1111111111111111111111111111111111111111");
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

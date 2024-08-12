@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CheckSecondIdTokenAuthTimeIsLaterIfPresent_UnitTest {
 
 	@Spy
@@ -35,7 +37,7 @@ public class CheckSecondIdTokenAuthTimeIsLaterIfPresent_UnitTest {
 		return idToken;
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckSecondIdTokenAuthTimeIsLaterIfPresent();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -49,12 +51,14 @@ public class CheckSecondIdTokenAuthTimeIsLaterIfPresent_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_secondHasEarlierAuthTime() {
-		env.putObject("first_id_token", createToken("{ \"auth_time\": 15 }"));
-		env.putObject("id_token", createToken("{ \"auth_time\": 14 }"));
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("first_id_token", createToken("{ \"auth_time\": 15 }"));
+			env.putObject("id_token", createToken("{ \"auth_time\": 14 }"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -81,28 +85,34 @@ public class CheckSecondIdTokenAuthTimeIsLaterIfPresent_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_sameAuthTimes() {
-		env.putObject("first_id_token", createToken("{ \"auth_time\": 15 }"));
-		env.putObject("id_token", createToken("{ \"auth_time\": 15 }"));
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("first_id_token", createToken("{ \"auth_time\": 15 }"));
+			env.putObject("id_token", createToken("{ \"auth_time\": 15 }"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void testEvaluate_nullAuthTimes() {
-		env.putObject("first_id_token", createToken("{ \"auth_time\": null }"));
-		env.putObject("id_token", createToken("{ \"auth_time\": 15 }"));
+		assertThrows(RuntimeException.class, () -> {
+			env.putObject("first_id_token", createToken("{ \"auth_time\": null }"));
+			env.putObject("id_token", createToken("{ \"auth_time\": 15 }"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void testEvaluate_authTimeStrings() {
-		env.putObject("first_id_token", createToken("{ \"auth_time\": \"15\" }"));
-		env.putObject("id_token", createToken("{ \"auth_time\": \"16\" }"));
+		assertThrows(RuntimeException.class, () -> {
+			env.putObject("first_id_token", createToken("{ \"auth_time\": \"15\" }"));
+			env.putObject("id_token", createToken("{ \"auth_time\": \"16\" }"));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

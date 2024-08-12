@@ -7,14 +7,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class CompareIdTokenClaims_UnitTest {
 
 	@Spy
@@ -28,7 +30,7 @@ public class CompareIdTokenClaims_UnitTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CompareIdTokenClaims();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
@@ -68,15 +70,17 @@ public class CompareIdTokenClaims_UnitTest {
 	 * its azp Claim Value MUST be the same as in the ID Token issued when the original authentication occurred;
 	 * if no azp Claim was present in the original ID Token, one MUST NOT be present in the new ID Token, and
 	 */
-	@Test (expected = ConditionError.class)
+	@Test
 	public void testEvaluate_diffentAzpInSecond() {
-		JsonObject first = createClaimsJsonObject("https://example.com/iss", "subject", "audience", 1560600719, 1560600619, null);
-		JsonObject second = createClaimsJsonObject("https://example.com/iss", "subject", "audience", 1560600819, 1560600619, "client");
+		assertThrows(ConditionError.class, () -> {
+			JsonObject first = createClaimsJsonObject("https://example.com/iss", "subject", "audience", 1560600719, 1560600619, null);
+			JsonObject second = createClaimsJsonObject("https://example.com/iss", "subject", "audience", 1560600819, 1560600619, "client");
 
-		env.putObject("first_id_token", createTokenObject(first));
-		env.putObject("second_id_token", createTokenObject(second));
+			env.putObject("first_id_token", createTokenObject(first));
+			env.putObject("second_id_token", createTokenObject(second));
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test

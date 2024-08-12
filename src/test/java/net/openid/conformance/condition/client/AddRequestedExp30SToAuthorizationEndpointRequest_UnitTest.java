@@ -4,16 +4,16 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AddRequestedExp30SToAuthorizationEndpointRequest_UnitTest {
 
 	@Spy
@@ -24,7 +24,7 @@ public class AddRequestedExp30SToAuthorizationEndpointRequest_UnitTest {
 
 	private AddRequestedExp30sToAuthorizationEndpointRequest cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new AddRequestedExp30sToAuthorizationEndpointRequest();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);

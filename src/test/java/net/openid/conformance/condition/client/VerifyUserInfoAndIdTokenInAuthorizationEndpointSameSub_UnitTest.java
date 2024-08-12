@@ -6,14 +6,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub_UnitTest {
 
 	@Spy
@@ -28,7 +30,7 @@ public class VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub_UnitTest {
 
 	private JsonObject userInfo;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub();
@@ -57,40 +59,48 @@ public class VerifyUserInfoAndIdTokenInAuthorizationEndpointSameSub_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_idTokenNull() {
-		env.putObject("authorization_endpoint_id_token", null);
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("authorization_endpoint_id_token", null);
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_subNotFoundInIdToken() {
-		JsonObject claims = idToken.getAsJsonObject("claims");
-		claims.remove("sub");
-		idToken.add("claims", claims);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject claims = idToken.getAsJsonObject("claims");
+			claims.remove("sub");
+			idToken.add("claims", claims);
 
-		env.putObject("authorization_endpoint_id_token", idToken);
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+			env.putObject("authorization_endpoint_id_token", idToken);
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_subNotFoundInUserInfo() {
-		env.putObject("authorization_endpoint_id_token", idToken);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("authorization_endpoint_id_token", idToken);
 
-		userInfo.remove("sub");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+			userInfo.remove("sub");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_userInfoAndIdTokenNotSameSub() {
-		env.putObject("authorization_endpoint_id_token", idToken);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("authorization_endpoint_id_token", idToken);
 
-		userInfo.addProperty("sub", "1002");
-		env.putObject("userinfo", userInfo);
-		cond.execute(env);
+			userInfo.addProperty("sub", "1002");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
 	}
 
 }

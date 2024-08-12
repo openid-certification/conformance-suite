@@ -6,16 +6,17 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone_UnitTest {
 
 	@Spy
@@ -28,7 +29,7 @@ public class OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone_UnitTest {
 
 	private JsonObject serverObj;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -54,33 +55,39 @@ public class OIDCCCheckIdTokenSigningAlgValuesSupportedAlgNone_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingIdTokenSigningAlgValuesSupport() {
-		serverObj.remove("id_token_signing_alg_values_supported");
-		env.putObject("server", serverObj);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			serverObj.remove("id_token_signing_alg_values_supported");
+			env.putObject("server", serverObj);
+			cond.execute(env);
 
-		assertThat(env.getBoolean("id_token_signing_alg_not_supported_flag").equals(true));
+			assertThat(env.getBoolean("id_token_signing_alg_not_supported_flag").equals(true));
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_idTokenSigningAlgValuesSupportIsNotJsonArray() {
-		serverObj.addProperty("id_token_signing_alg_values_supported", "is not JsonArray");
-		env.putObject("server", serverObj);
+		assertThrows(ConditionError.class, () -> {
+			serverObj.addProperty("id_token_signing_alg_values_supported", "is not JsonArray");
+			env.putObject("server", serverObj);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		assertThat(env.getBoolean("id_token_signing_alg_not_supported_flag").equals(true));
+			assertThat(env.getBoolean("id_token_signing_alg_not_supported_flag").equals(true));
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_idTokenSigningAlgValuesSupportNotSupportNoneAlg() {
-		serverObj.getAsJsonArray("id_token_signing_alg_values_supported").remove(0);
-		env.putObject("server", serverObj);
+		assertThrows(ConditionError.class, () -> {
+			serverObj.getAsJsonArray("id_token_signing_alg_values_supported").remove(0);
+			env.putObject("server", serverObj);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		assertThat(env.getBoolean("id_token_signing_alg_not_supported_flag").equals(true));
+			assertThat(env.getBoolean("id_token_signing_alg_not_supported_flag").equals(true));
+		});
 	}
 
 }

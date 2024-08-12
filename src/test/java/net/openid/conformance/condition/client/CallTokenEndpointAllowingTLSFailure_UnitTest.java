@@ -3,29 +3,32 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import io.specto.hoverfly.junit.core.Hoverfly;
 import io.specto.hoverfly.junit.dsl.HoverflyDsl;
-import io.specto.hoverfly.junit.rule.HoverflyRule;
+import io.specto.hoverfly.junit5.HoverflyExtension;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.badRequest;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
+import static net.openid.conformance.util.HoverflyUtil.formBodyFieldMatcher;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(HoverflyExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class CallTokenEndpointAllowingTLSFailure_UnitTest {
 
 	@Spy
@@ -51,11 +54,12 @@ public class CallTokenEndpointAllowingTLSFailure_UnitTest {
 
 	private static String thisIsNotJsonText = "This is not JSON!";
 
-	@ClassRule
-	public static HoverflyRule hoverfly;
+	private CallTokenEndpointAllowingTLSFailure cond;
 
-	static {
-		hoverfly = HoverflyRule.inSimulationMode(dsl(
+	@BeforeEach
+	public void setUp(Hoverfly hoverfly) throws Exception {
+
+		hoverfly.simulate(dsl(
 			service("good.example.com")
 				.post("/token")
 				.anyBody()
@@ -76,13 +80,6 @@ public class CallTokenEndpointAllowingTLSFailure_UnitTest {
 				.post("/token")
 				.anyBody()
 				.willReturn(success("", "application/json"))));
-	}
-
-	private CallTokenEndpointAllowingTLSFailure cond;
-
-	@Before
-	public void setUp() throws Exception {
-
 		hoverfly.resetJournal();
 
 		cond = new CallTokenEndpointAllowingTLSFailure();
@@ -91,7 +88,7 @@ public class CallTokenEndpointAllowingTLSFailure_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_noError() {
+	public void testEvaluate_noError(Hoverfly hoverfly) {
 
 		JsonObject server = JsonParser.parseString("{"
 			+ "\"token_endpoint\":\"https://good.example.com/token\""
@@ -106,7 +103,7 @@ public class CallTokenEndpointAllowingTLSFailure_UnitTest {
 		hoverfly.verify(service("good.example.com")
 			.post("/token")
 			.header("Authorization", "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW")
-			.body("grant_type=client_credentials"));
+			.body(formBodyFieldMatcher("grant_type", "client_credentials")));
 
 		verify(env, atLeastOnce()).getString("server", "token_endpoint");
 
@@ -148,18 +145,21 @@ public class CallTokenEndpointAllowingTLSFailure_UnitTest {
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_errorResponse() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"token_endpoint\":\"https://error.example.com/token\""
-			+ "}").getAsJsonObject();
-		env.putObject("server", server);
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"token_endpoint\":\"https://error.example.com/token\""
+				+ "}").getAsJsonObject();
+			env.putObject("server", server);
 
-		env.putObject("token_endpoint_request_form_parameters", requestParameters);
-		env.putObject("token_endpoint_request_headers", requestHeaders);
+			env.putObject("token_endpoint_request_form_parameters", requestParameters);
+			env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
@@ -201,40 +201,49 @@ public class CallTokenEndpointAllowingTLSFailure_UnitTest {
 		assertThat(env.getElementFromObject("token_endpoint_response_full", "body_json")).isNull();
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_emptyResponse() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"token_endpoint\":\"https://empty.example.com/token\""
-			+ "}").getAsJsonObject();
-		env.putObject("server", server);
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"token_endpoint\":\"https://empty.example.com/token\""
+				+ "}").getAsJsonObject();
+			env.putObject("server", server);
 
-		env.putObject("token_endpoint_request_form_parameters", requestParameters);
-		env.putObject("token_endpoint_request_headers", requestHeaders);
+			env.putObject("token_endpoint_request_form_parameters", requestParameters);
+			env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_requestMissing() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject server = JsonParser.parseString("{"
-			+ "\"token_endpoint\":\"https://good.example.com/token\""
-			+ "}").getAsJsonObject();
-		env.putObject("server", server);
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"token_endpoint\":\"https://good.example.com/token\""
+				+ "}").getAsJsonObject();
+			env.putObject("server", server);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_configMissing() {
+		assertThrows(ConditionError.class, () -> {
 
-		env.putObject("token_endpoint_request_form_parameters", requestParameters);
-		env.putObject("token_endpoint_request_headers", requestHeaders);
+			env.putObject("token_endpoint_request_form_parameters", requestParameters);
+			env.putObject("token_endpoint_request_headers", requestHeaders);
 
-		cond.execute(env);
+			cond.execute(env);
+
+		});
 
 	}
 }

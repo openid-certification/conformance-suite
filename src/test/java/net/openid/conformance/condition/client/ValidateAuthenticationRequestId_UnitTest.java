@@ -5,14 +5,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
 public class ValidateAuthenticationRequestId_UnitTest {
 
 	@Spy
@@ -23,27 +25,31 @@ public class ValidateAuthenticationRequestId_UnitTest {
 
 	private ValidateAuthenticationRequestId cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new ValidateAuthenticationRequestId();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_isEmpty() {
-		JsonObject o = new JsonObject();
-		env.putObject("backchannel_authentication_endpoint_response", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_isBlank() {
-		JsonObject o = new JsonObject();
-		o.addProperty("auth_req_id", "");
-		env.putObject("backchannel_authentication_endpoint_response", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.addProperty("auth_req_id", "");
+			env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	@Test
@@ -55,13 +61,15 @@ public class ValidateAuthenticationRequestId_UnitTest {
 		cond.execute(env);
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_isBad() {
-		JsonObject o = new JsonObject();
-		o.addProperty("auth_req_id", "~~f-vRyWiNZbuHssshH8WY");
-		env.putObject("backchannel_authentication_endpoint_response", o);
+		assertThrows(ConditionError.class, () -> {
+			JsonObject o = new JsonObject();
+			o.addProperty("auth_req_id", "~~f-vRyWiNZbuHssshH8WY");
+			env.putObject("backchannel_authentication_endpoint_response", o);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

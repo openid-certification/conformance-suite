@@ -6,19 +6,20 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.http.client.utils.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CheckForDateHeaderInResourceResponse_UnitTest {
 
 	@Spy
@@ -29,7 +30,7 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 
 	private CheckForDateHeaderInResourceResponse cond;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		cond = new CheckForDateHeaderInResourceResponse();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
@@ -50,43 +51,49 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 		verify(env, atLeastOnce()).getString("resource_endpoint_response_headers", "date");
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_oldDate() {
+		assertThrows(ConditionError.class, () -> {
 
-		// Obviously, don't run this test on 6 Nov 1994 ;)
+			// Obviously, don't run this test on 6 Nov 1994 ;)
 
-		JsonObject headers = new JsonObject();
-		headers.addProperty("date", "Sun, 06 Nov 1994 08:49:37 GMT"); // Example from RFC 7231
-		env.putObject("resource_endpoint_response_headers", headers);
+			JsonObject headers = new JsonObject();
+			headers.addProperty("date", "Sun, 06 Nov 1994 08:49:37 GMT"); // Example from RFC 7231
+			env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.execute(env);
+			cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("resource_endpoint_response_headers", "date");
+			verify(env, atLeastOnce()).getString("resource_endpoint_response_headers", "date");
+		});
 	}
 
 	/**
 	 * Test method for {@link CheckForDateHeaderInResourceResponse#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_invalidDate() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject headers = new JsonObject();
-		headers.addProperty("date", "this is not a date");
-		env.putObject("resource_endpoint_response_headers", headers);
+			JsonObject headers = new JsonObject();
+			headers.addProperty("date", "this is not a date");
+			env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 	/**
 	 * Test method for {@link CheckForDateHeaderInResourceResponse#evaluate(Environment)}.
 	 */
-	@Test(expected = ConditionError.class)
+	@Test
 	public void testEvaluate_missingDate() {
+		assertThrows(ConditionError.class, () -> {
 
-		JsonObject headers = new JsonObject();
-		env.putObject("resource_endpoint_response_headers", headers);
+			JsonObject headers = new JsonObject();
+			env.putObject("resource_endpoint_response_headers", headers);
 
-		cond.execute(env);
+			cond.execute(env);
+		});
 	}
 
 }

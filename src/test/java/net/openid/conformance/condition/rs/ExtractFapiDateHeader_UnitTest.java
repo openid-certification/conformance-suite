@@ -6,18 +6,19 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ExtractFapiDateHeader_UnitTest {
 
 	@Spy
@@ -44,7 +45,7 @@ public class ExtractFapiDateHeader_UnitTest {
 	private JsonObject missingHeader;
 	private JsonObject noHeaders;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 
 		cond = new ExtractFapiDateHeader();
@@ -84,46 +85,60 @@ public class ExtractFapiDateHeader_UnitTest {
 		assertEquals(date, env.getString("fapi_auth_date"));
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_bad() {
-		env.putObject("incoming_request", badRequest);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("incoming_request", badRequest);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_odd() {
-		env.putObject("incoming_request", oddRequest);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("incoming_request", oddRequest);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_old() {
-		env.putObject("incoming_request", oldRequest);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("incoming_request", oldRequest);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_ascii() {
-		env.putObject("incoming_request", asciiRequest);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("incoming_request", asciiRequest);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_badFormat() {
-		env.putObject("incoming_request", badFormatRequest);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("incoming_request", badFormatRequest);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_missing() {
-		env.putObject("incoming_request", missingHeader);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("incoming_request", missingHeader);
+			cond.execute(env);
+		});
 	}
 
-	@Test(expected = ConditionError.class)
+	@Test
 	public void test_noHeader() {
-		env.putObject("incoming_request", noHeaders);
-		cond.execute(env);
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("incoming_request", noHeaders);
+			cond.execute(env);
+		});
 	}
 
 }
