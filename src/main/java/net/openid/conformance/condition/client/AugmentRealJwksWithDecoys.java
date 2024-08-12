@@ -48,7 +48,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 
 		var keyGenerator = new AbstractGenerateKey() {
 			@Override
-			protected Environment evaluate(Environment env) {
+			public Environment evaluate(Environment env) {
 				return null;
 			}
 

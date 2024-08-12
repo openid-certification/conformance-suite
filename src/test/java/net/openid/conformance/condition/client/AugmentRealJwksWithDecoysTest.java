@@ -8,16 +8,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AugmentRealJwksWithDecoysTest {
 
 	@Spy
@@ -28,7 +28,7 @@ public class AugmentRealJwksWithDecoysTest {
 
 	private AugmentRealJwksWithDecoys augmentRealJwksWithDecoys;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		JsonObject server = new JsonObject();
 		server.addProperty("jwks_uri", "https://as/jwks");
@@ -37,7 +37,7 @@ public class AugmentRealJwksWithDecoysTest {
 
 		var keyGenerator = new AbstractGenerateKey() {
 			@Override
-			protected Environment evaluate(Environment env) {
+			public Environment evaluate(Environment env) {
 				return null;
 			}
 
