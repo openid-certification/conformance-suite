@@ -33,7 +33,7 @@ public class AugmentRealJwksWithDecoysTest {
 		JsonObject server = new JsonObject();
 		server.addProperty("jwks_uri", "https://as/jwks");
 		env.putObject("server", server);
-		env.putString("base_url", "https://as/");
+		env.putString("base_url", "https://as");
 
 		var keyGenerator = new AbstractGenerateKey() {
 			@Override
@@ -52,8 +52,7 @@ public class AugmentRealJwksWithDecoysTest {
 		JWK ps256 = keyGenerator.createJwkForAlg("PS256");
 		JWKSet jwks = new JWKSet(ps256);
 
-		JsonObject publicJwksAsJsonObject = JWKUtil.getPublicJwksAsJsonObject(jwks);
-		env.putObject("server_public_jwks", publicJwksAsJsonObject);
+		env.putObject("server_jwks", JWKUtil.getPublicJwksAsJsonObject(jwks));
 
 		augmentRealJwksWithDecoys = new AugmentRealJwksWithDecoys();
 		augmentRealJwksWithDecoys.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO, "server", "base_url", "server_public_jwks");
