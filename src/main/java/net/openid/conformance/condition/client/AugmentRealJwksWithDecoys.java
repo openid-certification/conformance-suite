@@ -37,7 +37,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 			// extract the real public JWKSet
 			publicJWKSet = JWKUtil.parseJWKSet(serverJwksJsonObject.toString()).toPublicJWKSet();
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to parse server_jwks", e);
+			throw error("Failed to parse server_jwks", e);
 		}
 
 		if (publicJWKSet.getKeys().isEmpty()) {
