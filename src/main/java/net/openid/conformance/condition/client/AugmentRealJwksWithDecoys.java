@@ -7,7 +7,6 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.JWKGenerator;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
@@ -22,7 +21,7 @@ import java.util.Set;
 
 /**
  * Adds additional "decoy" JWKs with the same kid but different algorithms to the JWKSet to ensure that
- * clients perform proper JWK lookups which also considers `alg` and `kty`.
+ * clients perform proper JWK lookups by {@code kid} including {@code alg} and {@code kty}.
  */
 public class AugmentRealJwksWithDecoys extends AbstractCondition {
 
@@ -30,7 +29,6 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"server_jwks"})
-	@PostEnvironment(required = {"server_public_jwks_decoy"})
 	public Environment evaluate(Environment env) {
 
 		JsonObject serverJwksJsonObject = env.getObject("server_jwks");
@@ -39,56 +37,66 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 			// extract the real public JWKSet
 			publicJWKSet = JWKUtil.parseJWKSet(serverJwksJsonObject.toString()).toPublicJWKSet();
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Failed to parse server_jwks", e);
 		}
 
-
-		// reference public key
-		JWK publicKey;
-
-		if (publicJWKSet == null || publicJWKSet.getKeys().isEmpty()) {
-			logFailure("No public JWK found in server_jwks. Cannot generate decoy JWKs.");
+		if (publicJWKSet.getKeys().isEmpty()) {
+			logSuccess("Skipping JWKS decoy generation for server_jwks with missing public keys.");
 			return env;
 		}
 
 		// try to find the public JWK used for signing
 		List<JWK> publicKeysForSigning = publicJWKSet.getKeys().stream().filter(jwk -> jwk.getKeyUse() == KeyUse.SIGNATURE).toList();
-		if (!publicKeysForSigning.isEmpty()) {
-			// we found public keys with use=sig
-			if (publicKeysForSigning.size() == 1) {
-				// found a single public key with use=sig, generating decoy keys with the same kid for the missing algorithms
-				publicKey = publicKeysForSigning.get(0);
-			} else {
-				// more than one public keys found
-				// check if the JWKS already contains Keys with the same kid for the desired "decoy" algorithms.
-				Map<String, Set<String>> kidsWithMissingFapiAlgorithms = findKeyIdsWithMissingFapiAlgorithms(publicKeysForSigning);
+		if (publicKeysForSigning.isEmpty()) {
 
-				if (!kidsWithMissingFapiAlgorithms.isEmpty()) {
-					// Shall we just generate a decoy for the missing algorithm here?
-					logFailure("Existing server_jwks contains multiple keys for use=sig, but desired JWK variant is missing",
-						Map.of("jwks_ids_with_missing_fapi_algorithms", kidsWithMissingFapiAlgorithms));
-					return env;
-				}
-
-				// all desired fapi algorithms are provided by the JWKS
-				log("Existing server_jwks already contains the desired JWK variants. Skipping decoy JWKS key generation.");
-				return env;
-			}
-		} else {
-			log("Found no public keys with use=sig in server_jwks");
-			// try to use another JWK if present
-			if (publicJWKSet.getKeys().size() == 1) {
-				// TODO check shall we fail here?
-				log("Found a single JWK in server_jwks without use=sig, using it for now.");
-				publicKey = publicJWKSet.getKeys().get(0);
-			} else {
-				// found multiple public keys but we don't know which one to use.
-				logFailure("Found ambiguous JWKs in server_jwks without use=sig.");
-				return env;
-			}
+			logSuccess("Skipping JWKS decoy generation for server_jwks with missing public keys with use=sig.");
+			return env;
 		}
 
-		// determine ID of public key with use=sig
+		// we found public keys with use=sig
+		if (publicKeysForSigning.size() != 1) {
+			// we found more than one public key
+			// check if the JWKS already contains keys with the same kid for all desired "decoy" algorithms.
+			Map<String, Set<String>> kidsWithMissingFapiAlgorithms = findKeyIdsWithMissingFapiAlgorithms(publicKeysForSigning);
+
+			if (!kidsWithMissingFapiAlgorithms.isEmpty()) {
+				// Shall we just generate a decoy for the missing algorithm here?
+				logFailure("Existing server_jwks contains multiple keys for use=sig, but desired JWK variant is missing",
+					Map.of("jwks_ids_with_missing_fapi_algorithms", kidsWithMissingFapiAlgorithms));
+				return env;
+			}
+
+			// all desired fapi algorithms are provided by the JWKS
+			logSuccess("Existing server_jwks already contains JWKs with the desired algorithm variants. Skipping generation of additional decoy JWKs.");
+			return env;
+		}
+
+		// we found a single public key with use=sig, generating decoy keys with the same kid for the missing algorithms
+		// reference public key
+		JWK publicKey = publicKeysForSigning.get(0);
+		if (publicKey.getAlgorithm() == null) {
+			logFailure("Public JWK with use=sig is missing alg information.", Map.of("kid", publicKey.getKeyID(), "alg", publicKey.getAlgorithm()));
+			return env;
+		}
+
+		JsonObject publicJwksWithDecoys = generateDecoyPublicKeysAroundGivenPublicKey(publicKey);
+
+		// expose the new decoy keys
+		env.putObject("server_public_jwks_decoy", publicJwksWithDecoys);
+
+		// update jwks URI in server object with jwks_decoy endpoint variant
+		// exposed by net.openid.conformance.fapi2spid2.AbstractFAPI2SPID2ClientTest.handleClientRequestForPath
+		String baseUrl = env.getString("base_url");
+		String decoyJwksUri = (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + "jwks_decoy";
+		env.putString("server", "jwks_uri", decoyJwksUri);
+
+		logSuccess("Augmented JWKS exposed by jwks_uri with decoy keys.", Map.of("jwks_uri", decoyJwksUri, "publicJwksWithDecoys", publicJwksWithDecoys));
+
+		return env;
+	}
+
+	JsonObject generateDecoyPublicKeysAroundGivenPublicKey(JWK publicKey) {
+
 		String keyID = publicKey.getKeyID();
 		Algorithm alg = publicKey.getAlgorithm();
 
@@ -129,26 +137,13 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 				throw error("Invalid FAPI alg detected in JWK", Map.of("alg", alg.getName()));
 		}
 
-		// generate a new JWKS set with the real key and the decoys
-		JWKSet jwkSet = new JWKSet(keysWithDecoys);
-		JsonObject publicJwksWithDecoys = JWKUtil.getPublicJwksAsJsonObject(jwkSet);
-
-		// expose the new decoy keys
-		env.putObject("server_public_jwks_decoy", publicJwksWithDecoys);
-
-		// update jwks URI in server object with jwks_decoy endpoint variant
-		// provided by net.openid.conformance.fapi2spid2.AbstractFAPI2SPID2ClientTest.handleClientRequestForPath
-		String baseUrl = env.getString("base_url");
-		String decoyJwksUri = baseUrl + "/jwks_decoy";
-		env.putString("server", "jwks_uri", decoyJwksUri);
-
-		logSuccess("Updated jwks_uri with decoy keys", Map.of("jwks_uri", decoyJwksUri, "publicJwksWithDecoys", publicJwksWithDecoys));
-
-		return env;
+		// generate a new JWKS with the real key and the decoys
+		return JWKUtil.getPublicJwksAsJsonObject(new JWKSet(keysWithDecoys));
 	}
 
 	/**
 	 * Some providers already contain multiple JWKs with use=sig, the same kid but different algorithms. Find those kid's where a FAPI algorithm is missing.
+	 *
 	 * @param publicKeysForSigning
 	 * @return
 	 */
