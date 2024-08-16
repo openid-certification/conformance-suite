@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -12,7 +11,6 @@ public class ExtractFederationListEndpoint extends AbstractCondition {
 	@PostEnvironment(strings = "federation_list_endpoint")
 	public Environment evaluate(Environment env) {
 
-		JsonObject jwks = env.getElementFromObject("entity_statement_body", "jwks").getAsJsonObject();
 		String listEndpoint = OIDFJSON.getString(env.getElementFromObject("entity_statement_body", "metadata.federation_entity.federation_list_endpoint"));
 
 		env.putString("federation_list_endpoint", listEndpoint);
