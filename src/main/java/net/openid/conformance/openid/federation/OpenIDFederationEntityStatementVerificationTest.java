@@ -160,7 +160,7 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 				validateEntityStatementResponse();
 				validateEntityStatement();
 
-				eventLog.startBlock("Validating immediate superior %s".formatted(authorityHint));
+				eventLog.startBlock("Validating subordinate statement by immediate superior %s".formatted(authorityHint));
 
 				// Verify that the primary entity is present in the list endpoint result
 				callAndContinueOnFailure(ExtractFederationListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
@@ -187,6 +187,10 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 				callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.putString("entity_statement_url", env.getString("primary_entity_statement_sub"));
 				callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ValidateEntityStatementMetadataClaim.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				eventLog.endBlock();
 
