@@ -1,9 +1,9 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -15,8 +15,6 @@ import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
-
-import java.util.Set;
 
 @PublishTestModule(
 	testName = "openid-federation-entity-configuration-endpoint-verification",
@@ -36,8 +34,6 @@ import java.util.Set;
 })
 @VariantNotApplicable(parameter = ClientRegistration.class, values={ "static_client" })
 public class OpenIDFederationEntityStatementVerificationTest extends AbstractTestModule {
-
-	private static Set<String> AUTHORITY_HINT_IGNORE_LIST = ImmutableSet.of();
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -66,6 +62,8 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		setStatus(Status.RUNNING);
 
 		validateEntityStatement();
+		validateAbsenceOfMetadataPolicy();
+		validateSuperiors();
 
 		fireTestFinished();
 	}
@@ -83,7 +81,7 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate metadata in Entity Statement for %s".formatted(entity));
-		callAndContinueOnFailure(ValidateEntityStatementMetadataClaim.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate Federation Entity metadata for %s".formatted(entity));
@@ -111,22 +109,16 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		eventLog.startBlock("Validate OAuth Protected Resource metadata for %s".formatted(entity));
 		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
-
-		eventLog.startBlock("Validate authority hints in Entity Statement for %s".formatted(entity));
-		skipIfElementMissing("entity_statement_body", "authority_hints", Condition.ConditionResult.INFO,
-			ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		validateAuthorityHints();
-		eventLog.endBlock();
 	}
 
-	private void validateEntityStatementResponse() {
+	protected void validateEntityStatementResponse() {
 		env.mapKey("discovery_endpoint_response", "entity_statement_endpoint_response");
 		call(sequence(ValidateEntityStatementResponseSequence.class));
 		env.unmapKey("discovery_endpoint_response");
 		env.removeObject("entity_statement_endpoint_response");
 	}
 
-	private void validateOpenIdRelyingPartyMetadata() {
+	protected void validateOpenIdRelyingPartyMetadata() {
 		if (env.containsObject("openid_relying_party_metadata")) {
 			env.mapKey("client", "openid_relying_party_metadata");
 			call(sequence(ValidateOpenIDRelyingPartyMetadataSequence.class));
@@ -136,7 +128,7 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		}
 	}
 
-	private void validateOpenIdProviderMetadata() {
+	protected void validateOpenIdProviderMetadata() {
 		if (env.containsObject("openid_provider_metadata")) {
 			env.mapKey("server", "openid_provider_metadata");
 			call(new ValidateDiscoveryMetadataSequence(getVariant(ClientRegistration.class)));
@@ -146,7 +138,24 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		}
 	}
 
-	private void validateAuthorityHints() {
+	protected void validateAbsenceOfMetadataPolicy() {
+		String entity = env.getString("entity_statement_url");
+		eventLog.startBlock("Validate that Entity Statement for %s does not have a metadata_policy".formatted(entity));
+		callAndContinueOnFailure(ValidateAbsenceOfMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
+	}
+
+	protected void validateSuperiors() {
+		String entity = env.getString("entity_statement_url");
+
+		eventLog.startBlock("Validate authority hints in Entity Statement for %s".formatted(entity));
+		skipIfElementMissing("entity_statement_body", "authority_hints", Condition.ConditionResult.INFO,
+				ValidateAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		validateAuthorityHints();
+		eventLog.endBlock();
+	}
+
+	protected void validateAuthorityHints() {
 		JsonElement authorityHintsElement = env.getElementFromObject("entity_statement_body", "authority_hints");
 		if (authorityHintsElement != null) {
 			JsonArray authorityHints = authorityHintsElement.getAsJsonArray();
@@ -187,10 +196,24 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 				callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.putString("entity_statement_url", env.getString("primary_entity_statement_sub"));
 				callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				callAndContinueOnFailure(ValidateEntityStatementMetadataClaim.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				// TODO: Remove injected fake metadata policy
+				JsonObject FAKE_METADATA_POLICY = JsonParser.parseString("""
+						{
+						  "openid_relying_party": {
+						    "id_token_signed_response_alg": {
+						      "default": "ES256",
+						      "one_of": ["ES256", "ES384", "ES512"]
+						    }
+						  }
+						}
+						""").getAsJsonObject();
+				env.putObject("entity_statement_body", "metadata_policy", FAKE_METADATA_POLICY);
+				callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				eventLog.endBlock();
 

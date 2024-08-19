@@ -18,6 +18,10 @@ public class ValidateOpenIDRelyingPartyMetadata extends AbstractCondition {
 
 		JsonElement clientRegistrationTypesElement = env.getElementFromObject("client", "client_registration_types");
 
+		if (clientRegistrationTypesElement == null) {
+			throw error("client_registration_types is a required parameter", args("client_registration_types", clientRegistrationTypesElement));
+		}
+
 		if (!clientRegistrationTypesElement.isJsonArray()) {
 			throw error("client_registration_types must be an array of strings", args("client_registration_types", clientRegistrationTypesElement));
 		}
