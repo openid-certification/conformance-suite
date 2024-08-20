@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;

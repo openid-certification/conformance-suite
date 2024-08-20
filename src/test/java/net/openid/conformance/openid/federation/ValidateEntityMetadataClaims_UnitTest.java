@@ -52,7 +52,7 @@ public class ValidateEntityMetadataClaims_UnitTest {
 
 		ConditionError exception = assertThrows(ConditionError.class, () -> validateEntityStatementMetadataCond.execute(env));
 
-		assertEquals("ValidateEntityStatementMetadataClaim: The metadata claim contains invalid entity types", exception.getMessage());
+		assertEquals("ValidateEntityStatementMetadata: The metadata claim contains invalid entity types", exception.getMessage());
 	}
 
 	@Test

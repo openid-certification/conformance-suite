@@ -1,12 +1,8 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-
-import java.util.Set;
 
 public class ValidateAbsenceOfMetadataPolicy extends AbstractValidateMetadata {
 

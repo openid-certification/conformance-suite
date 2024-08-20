@@ -24,7 +24,7 @@ public class ValidateEntityStatementMetadata extends AbstractCondition {
 
 		JsonObject metadata = metadataClaim.getAsJsonObject();
 
-		Set<String> validTopLevelKeys = ImmutableSet.of(
+		Set<String> validEntityTypes = ImmutableSet.of(
 			"federation_entity",
 			"openid_relying_party",
 			"openid_provider",
@@ -32,19 +32,12 @@ public class ValidateEntityStatementMetadata extends AbstractCondition {
 			"oauth_client",
 			"oauth_resource"
 		);
-		/*
-		validTopLevelKeys.stream().forEach(key -> {
-			if (metadata.has(key)) {
-				env.putObject(key, metadata.getAsJsonObject(key));
-			}
-		});
-	 	*/
 
 		Set<String> keys = metadata.keySet();
 		Set<String> difference = new HashSet<>(keys);
-		difference.removeAll(validTopLevelKeys);
+		difference.removeAll(validEntityTypes);
 		if (!difference.isEmpty()) {
-			throw error("The metadata claim contains invalid entity types", args("expected", validTopLevelKeys, "actual", keys));
+			throw error("The metadata claim contains invalid entity types", args("expected", validEntityTypes, "actual", keys));
 		}
 
 		logSuccess("Entity statement contains a valid metadata claim", args("metadata", metadata));
