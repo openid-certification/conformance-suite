@@ -24,17 +24,23 @@ public class AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject extends Abstra
 	@PreEnvironment(required = {"authorization_request_object"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject requestObjectClaims = env.getElementFromObject("authorization_request_object", "claims").getAsJsonObject();
+		JsonElement requestedIdTokenClaimsEl = env.getElementFromObject("authorization_request_object", "claims.claims.id_token");
+
+		if (requestedIdTokenClaimsEl == null) {
+			throw error("No id_token claims requested in request object.", args("expected_claims", EXPECTED_REQUESTED_CLAIMS));
+		}
+
+		JsonObject requestedIdTokenClaims = requestedIdTokenClaimsEl.getAsJsonObject();
 
 		Set<String> missingExpectedClaims = new LinkedHashSet<>();
 		Set<String> missingEssentialClaims = new LinkedHashSet<>();
 		for (String expectedClaim : EXPECTED_REQUESTED_CLAIMS) {
-			if (!requestObjectClaims.has(expectedClaim)) {
+			if (!requestedIdTokenClaims.has(expectedClaim)) {
 				missingExpectedClaims.add(expectedClaim);
 				continue;
 			}
 
-			JsonObject expectedClaimValue = requestObjectClaims.getAsJsonObject(expectedClaim);
+			JsonObject expectedClaimValue = requestedIdTokenClaims.getAsJsonObject(expectedClaim);
 			JsonElement essentialValue = expectedClaimValue.get("essential");
 			boolean essential = (essentialValue != null) && OIDFJSON.getBoolean(essentialValue);
 			if (!essential) {
@@ -43,14 +49,14 @@ public class AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject extends Abstra
 		}
 
 		if (!missingExpectedClaims.isEmpty()) {
-			throw error("Missing expected claims in authorization_request_object.", args("missing_expected_claims", missingExpectedClaims));
+			throw error("Missing expected claims in authorization request object.", args("missing_expected_claims", missingExpectedClaims));
 		}
 
 		if (!missingEssentialClaims.isEmpty()) {
-			throw error("Missing essential claims in authorization_request_object.", args("missing_essential_claims", missingEssentialClaims));
+			throw error("Missing essential claims in authorization request object.", args("missing_essential_claims", missingEssentialClaims));
 		}
 
-		logSuccess("Expected claims are present in authorization_request_object.", args("expected_claims", EXPECTED_REQUESTED_CLAIMS));
+		logSuccess("Expected claims are present in authorization request object.", args("expected_claims", EXPECTED_REQUESTED_CLAIMS));
 
 		return env;
 	}
