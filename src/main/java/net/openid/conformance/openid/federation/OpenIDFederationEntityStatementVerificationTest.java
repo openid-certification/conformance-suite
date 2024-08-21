@@ -22,7 +22,8 @@ import net.openid.conformance.variant.VariantParameters;
 	summary = "This test ensures that the server's entity configuration metadata is according to the specifications",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.entityStatementUrl",
+		"federation.entity_statement_url",
+		"federation.trust_anchor_jwks"
 	}
 )
 @VariantParameters({
@@ -30,7 +31,7 @@ import net.openid.conformance.variant.VariantParameters;
 	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
-	"federation.entityStatement"
+	"federation.entity_statement"
 })
 @VariantNotApplicable(parameter = ClientRegistration.class, values={ "static_client" })
 public class OpenIDFederationEntityStatementVerificationTest extends AbstractTestModule {
@@ -201,23 +202,9 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
-				// TODO: Remove injected fake metadata policy
-				JsonObject FAKE_METADATA_POLICY = JsonParser.parseString(
-					"""
-					{
-						"openid_relying_party": {
-								"id_token_signed_response_alg": {
-								"default": "ES256",
-								"one_of": ["ES256", "ES384", "ES512"]
-							}
-						}
-					}
-					""").getAsJsonObject();
-				env.putObject("entity_statement_body", "metadata_policy", FAKE_METADATA_POLICY);
 				callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				eventLog.endBlock();
-
 			}
 		}
 	}

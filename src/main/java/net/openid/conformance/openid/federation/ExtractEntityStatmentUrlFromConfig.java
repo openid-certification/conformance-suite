@@ -13,7 +13,7 @@ public class ExtractEntityStatmentUrlFromConfig extends AbstractCondition {
 	@PostEnvironment(strings = "entity_statement_url")
 	public Environment evaluate(Environment env) {
 
-		String entityStatementUrl = env.getString("config", "federation.entityStatementUrl");
+		String entityStatementUrl = env.getString("config", "federation.entity_statement_url");
 		env.putString("entity_statement_url", entityStatementUrl);
 
 		logSuccess("Found entity statement URL in config", args("entity_statement_url", entityStatementUrl));

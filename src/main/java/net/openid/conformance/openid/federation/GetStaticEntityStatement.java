@@ -15,7 +15,7 @@ public class GetStaticEntityStatement extends AbstractCondition {
 	@PostEnvironment(required = { "entity_statement_body", } )
 	public Environment evaluate(Environment env) {
 
-		JsonElement entityStatement = env.getElementFromObject("config", "federation.entityStatement");
+		JsonElement entityStatement = env.getElementFromObject("config", "federation.entity_statement");
 		if (entityStatement == null) {
 			throw error("Couldn't find entityStatement in configuration");
 		}
