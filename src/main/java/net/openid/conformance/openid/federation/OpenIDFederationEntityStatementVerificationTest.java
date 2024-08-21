@@ -3,7 +3,6 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -19,7 +18,9 @@ import net.openid.conformance.variant.VariantParameters;
 @PublishTestModule(
 	testName = "openid-federation-entity-configuration-endpoint-verification",
 	displayName = "OpenID Federation: Entity Configuration Endpoint Verification",
-	summary = "This test ensures that the server's entity configuration metadata is according to the specifications",
+	summary = "This test verifies the correctness of the given entity's Entity Statement. The test will " +
+		"proceed to the Immediate Superiors of the entity as specified in authority_hints and perform additional " +
+		"verification of those entities, including the output of their list and fetch endpoints.",
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_statement_url",
@@ -64,7 +65,7 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 
 		validateEntityStatement();
 		validateAbsenceOfMetadataPolicy();
-		validateSuperiors();
+		validateImmediateSuperiors();
 
 		fireTestFinished();
 	}
@@ -146,7 +147,7 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		eventLog.endBlock();
 	}
 
-	protected void validateSuperiors() {
+	protected void validateImmediateSuperiors() {
 		String entity = env.getString("entity_statement_url");
 
 		eventLog.startBlock("Validate authority hints in Entity Statement for %s".formatted(entity));
