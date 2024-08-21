@@ -16,8 +16,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
-	testName = "openid-federation-entity-configuration-endpoint-verification",
-	displayName = "OpenID Federation: Entity Configuration Endpoint Verification",
+	testName = "openid-federation-entity-statement-verification",
+	displayName = "OpenID Federation: Entity Statement Verification",
 	summary = "This test verifies the correctness of the given entity's Entity Statement. The test will " +
 		"proceed to the Immediate Superiors of the entity as specified in authority_hints and perform additional " +
 		"verification of those entities, including the output of their list and fetch endpoints.",
