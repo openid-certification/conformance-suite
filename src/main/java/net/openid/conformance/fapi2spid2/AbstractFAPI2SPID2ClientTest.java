@@ -564,9 +564,6 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
-		} else if (path.equals("jwks_decoy")) {
-			// expose JWKSet with real JWKs and decoy keys
-			return jwksEndpoint("server_public_jwks_decoy");
 		} else if (path.equals("userinfo")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
