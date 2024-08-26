@@ -80,6 +80,6 @@ public class AugmentRealJwksWithDecoysTest {
 	private void generateAndAddJwkToEnv(String alg) {
 		JWK jwk = keyGenerator.createJwkForAlg(alg);
 		JWKSet jwks = new JWKSet(jwk);
-		env.putObject("server_public_jwks", JWKUtil.getPublicJwksAsJsonObject(jwks));
+		env.putObject("server_jwks", JWKUtil.getPublicJwksAsJsonObject(jwks));
 	}
 }

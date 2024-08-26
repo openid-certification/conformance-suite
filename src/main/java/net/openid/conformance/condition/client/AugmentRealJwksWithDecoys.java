@@ -28,19 +28,20 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 	static final Set<String> FAPI_JWK_ALGORITHMS = Set.of("EdDSA", "PS256", "ES256");
 
 	@Override
-	@PreEnvironment(required = {"server_public_jwks"})
+	@PreEnvironment(required = {"server_jwks"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject serverPublicJwks = env.getObject("server_public_jwks");
+		JsonObject serverJwksJsonObject = env.getObject("server_jwks");
 		JWKSet publicJWKSet;
 		try {
-			publicJWKSet = JWKUtil.parseJWKSet(serverPublicJwks.toString());
+			// extract the real public JWKSet
+			publicJWKSet = JWKUtil.parseJWKSet(serverJwksJsonObject.toString()).toPublicJWKSet();
 		} catch (Exception e) {
-			throw error("Failed to parse server_public_jwks", e);
+			throw error("Failed to parse server_jwks", e);
 		}
 
 		if (publicJWKSet.getKeys().isEmpty()) {
-			logSuccess("Skipping JWKS decoy generation for server_public_jwks with missing public keys.");
+			logSuccess("Skipping JWKS decoy generation for server_jwks with missing public keys.");
 			return env;
 		}
 
@@ -48,7 +49,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		List<JWK> publicKeysForSigning = publicJWKSet.getKeys().stream().filter(jwk -> jwk.getKeyUse() == KeyUse.SIGNATURE).toList();
 		if (publicKeysForSigning.isEmpty()) {
 
-			logSuccess("Skipping JWKS decoy generation for server_public_jwks with missing public keys of use=sig.");
+			logSuccess("Skipping JWKS decoy generation for server_jwks with missing public keys of use=sig.");
 			return env;
 		}
 
@@ -65,7 +66,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 			}
 
 			// all desired fapi algorithms are provided by the JWKS
-			logSuccess("Existing server_public_jwks already contains JWKs with the desired algorithm variants. Skipping generation of additional decoy JWKs.");
+			logSuccess("Existing server_jwks already contains JWKs with the desired algorithm variants. Skipping generation of additional decoy JWKs.");
 			return env;
 		}
 
@@ -82,7 +83,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		// augment the current server_public_jwks with additional decoy keys
 		env.putObject("server_public_jwks", publicJwksWithDecoys);
 
-		logSuccess("Augmented JWKS with decoy keys.", Map.of("existingJwks", serverPublicJwks, "jwksWithDecoys", publicJwksWithDecoys));
+		logSuccess("Augmented JWKS with decoy keys.", Map.of("existingJwks", publicJWKSet, "jwksWithDecoys", publicJwksWithDecoys));
 
 		return env;
 	}
