@@ -347,7 +347,7 @@ public class TestRunner implements DataUtils {
 		}
 		String url = baseUrl + TestDispatcher.TEST_PATH + path;
 		String mtlsUrl = baseMtlsUrl + TestDispatcher.TEST_MTLS_PATH + path;
-		String externalOverrideUrlWithPath = Strings.isNullOrEmpty(externalUrlOverride) ? "" : externalUrlOverride + path;
+		String externalOverrideUrlWithPath = Strings.isNullOrEmpty(externalUrlOverride) ? "" : externalUrlOverride + TestDispatcher.TEST_PATH + path;
 
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
