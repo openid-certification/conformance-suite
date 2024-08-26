@@ -91,10 +91,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	}
 
 	protected void validateEntityStatementResponse() {
-		env.mapKey("discovery_endpoint_response", "entity_statement_endpoint_response");
+		env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 		call(sequence(ValidateEntityStatementResponseSequence.class));
-		env.unmapKey("discovery_endpoint_response");
-		env.removeObject("entity_statement_endpoint_response");
+		env.unmapKey("endpoint_response");
 	}
 
 	protected void validateOpenIdRelyingPartyMetadata() {
@@ -140,7 +139,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			JsonArray authorityHints = authorityHintsElement.getAsJsonArray();
 			for (JsonElement authorityHintElement : authorityHints) {
 				String authorityHint = OIDFJSON.getString(authorityHintElement);
-				String authorityHintUrl = authorityHint + ".well-known/openid-federation";
+				String authorityHintUrl = appendWellKnown(authorityHint);
 
 				// Get the entity statement for the Superior
 				env.putString("entity_statement_url", authorityHintUrl);
@@ -187,5 +186,12 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				eventLog.endBlock();
 			}
 		}
+	}
+
+	protected static String appendWellKnown(String entityIdentifier) {
+		if (entityIdentifier.endsWith("/")) {
+			return entityIdentifier + ".well-known/openid-federation";
+		}
+		return entityIdentifier + "/.well-known/openid-federation";
 	}
 }

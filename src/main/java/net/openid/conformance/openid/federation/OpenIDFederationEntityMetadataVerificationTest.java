@@ -3,6 +3,7 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -33,6 +34,24 @@ public class OpenIDFederationEntityMetadataVerificationTest extends AbstractOpen
 		setStatus(Status.RUNNING);
 
 		callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+		if (env.getString("federation_list_endpoint") != null) {
+			callAndContinueOnFailure(GetSubordinateListingResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			env.mapKey("endpoint_response", "federation_list_endpoint_response");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(EnsureResponseIsJsonArray.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			env.unmapKey("endpoint_response");
+
+			JsonArray listEndpointResponse = JsonParser.parseString(env.getString("endpoint_response_body")).getAsJsonArray();
+			for (JsonElement listElement : listEndpointResponse) {
+				String entityIdentifier = OIDFJSON.getString(listElement);
+				env.putString("entity_statement_url", appendWellKnown(entityIdentifier));
+				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				validateEntityStatementResponse();
+				validateEntityStatement();
+			}
+		}
 
 		fireTestFinished();
 	}

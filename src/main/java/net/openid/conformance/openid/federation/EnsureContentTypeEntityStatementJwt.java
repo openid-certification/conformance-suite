@@ -7,10 +7,10 @@ import net.openid.conformance.testmodule.Environment;
 public class EnsureContentTypeEntityStatementJwt extends AbstractCheckEndpointContentTypeReturned {
 
 	@Override
-	@PreEnvironment(required = "entity_statement_endpoint_response")
+	@PreEnvironment(required = "endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		env = checkContentType(env, "entity_statement_endpoint_response", "headers.", "application/entity-statement+jwt");
+		env = checkContentType(env, "endpoint_response", "headers.", "application/entity-statement+jwt");
 
 		return env;
 	}
