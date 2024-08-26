@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.gen.JWKGenerator;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +72,7 @@ public class AugmentRealJwksWithDecoysTest {
 
 		JsonArray keys = serverPublicJwksDecoy.getAsJsonArray("keys");
 		String actualAlgs = Stream.of(keys.get(0), keys.get(1), keys.get(2))
-			.map(entry -> entry.getAsJsonObject().get("alg").getAsString())
+			.map(entry -> OIDFJSON.getString(entry.getAsJsonObject().get("alg")))
 			.collect(Collectors.joining(","));
 		assertThat(actualAlgs).isEqualTo(expectedAlgWithDecoys);
 	}
