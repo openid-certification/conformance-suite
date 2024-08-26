@@ -347,7 +347,7 @@ public class TestRunner implements DataUtils {
 		}
 		String url = baseUrl + TestDispatcher.TEST_PATH + path;
 		String mtlsUrl = baseMtlsUrl + TestDispatcher.TEST_MTLS_PATH + path;
-		String externalOverrideUrlWithPath = Strings.isNullOrEmpty(externalUrlOverride) ? "" : externalUrlOverride + path;
+		String externalOverrideUrlWithPath = Strings.isNullOrEmpty(externalUrlOverride) ? "" : externalUrlOverride + TestDispatcher.TEST_PATH + path;
 
 		String description = null;
 		if (config.has("description") && config.get("description").isJsonPrimitive()) {
@@ -577,6 +577,7 @@ public class TestRunner implements DataUtils {
 			if (browser != null) {
 				Map<String, Object> map = new HashMap<>();
 				map.put("id", testId);
+				map.put("show_qr_code", browser.showQrCodes());
 				map.put("urls", browser.getUrls());
 				map.put("visited", browser.getVisited());
 				map.put("runners", browser.getWebRunners());
@@ -659,6 +660,7 @@ public class TestRunner implements DataUtils {
 		BrowserControl browser = test.getBrowser();
 		if (browser != null) {
 			Map<String, Object> bmap = new HashMap<>();
+			bmap.put("show_qr_code", browser.showQrCodes());
 			bmap.put("urls", browser.getUrls());
 			bmap.put("urlsWithMethod", browser.getUrlsWithMethod());
 			bmap.put("visited", browser.getVisited());

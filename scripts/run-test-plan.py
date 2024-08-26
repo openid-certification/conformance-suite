@@ -1278,6 +1278,7 @@ async def main():
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
         oidcc = all_test_modules[m]['profile'] in ['OIDCC']
         fapi2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']
+        oid4vp = all_test_modules[m]['profile'] in ['OID4VP-ID2']
         brazildcr = re.match(r'.*brazil.*dcr.*', m)
         obuk = re.match(r'.*ensure-server-handles-non-matching-intent-id.*', m) or \
           re.match(r'.*test-essential-acr-sca-claim.*', m)
@@ -1294,17 +1295,17 @@ async def main():
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test:
+            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or oid4vp:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
             # we've not yet setup fapi2 brazil dcr or uk test runs
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or (fapi2 and (brazildcr or obuk)):
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or (fapi2 and (brazildcr or obuk)) or oid4vp:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':
-            if ekyc_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc:
+            if ekyc_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':

@@ -34,6 +34,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.5.2/randomColor.js" integrity="sha256-MRXUjKPZRRi+LHqT1KY/uoxyFF2JLOp2b329vX4p+2Y=" crossorigin="anonymous"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.js" integrity="sha256-9I2FxupwHkF6hXzZKS3hLCwP95XFukX3EnxRzGqXzz0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script type="text/javascript" src="js/fapi.ui.js"></script>
 </head>
@@ -1099,6 +1100,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 browser: data.browser
                             });
                         }
+
+                       if (data.browser.show_qr_code) {
+                            document.querySelectorAll('#runningTestBrowser .qr').forEach(qr => {
+                                new QRCode(qr, qr.dataset.url);
+                            });
+                       }
+
                         updateTestInfoStickiness(testId);
 
                         if (document.querySelector('#runningTestBrowser .visitBtn') !== null) {

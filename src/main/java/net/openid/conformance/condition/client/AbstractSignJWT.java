@@ -40,13 +40,13 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 	}
 
 	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp) {
-		return signJWT(env, claims, jwks, includeTyp, false);
+		return signJWT(env, claims, jwks, includeTyp, false, false);
 	}
 
 	/**
 	 * Expects only one non-encryption JWK in jwks
 	 */
-	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp, boolean includeX5tS256) {
+	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp, boolean includeX5tS256, boolean includeX5c) {
 
 		if (claims == null) {
 			throw error("Couldn't find claims");
@@ -74,6 +74,12 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 			}
 			if (includeX5tS256) {
 				builder.x509CertSHA256Thumbprint(signingJwk.computeThumbprint());
+			}
+			if (includeX5c) {
+				if (signingJwk.getX509CertChain() == null) {
+				 	throw error("A x5c entry is required in the client's signing key but isn't present in the configuration", args("clientjwks", jwks));
+				}
+				builder.x509CertChain(signingJwk.getX509CertChain());
 			}
 			builder.keyID(signingJwk.getKeyID());
 			JWSHeader header = builder.build();

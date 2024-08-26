@@ -12,6 +12,10 @@ public class CheckCallbackContentTypeIsFormUrlEncoded extends AbstractCondition 
 		String contentType = env.getString("callback_headers", "content-type");
 		String expected = "application/x-www-form-urlencoded";
 
+		if (contentType == null) {
+			throw error("content-type header to redirect_uri is missing", args("expected", expected));
+		}
+
 		if (!contentType.equals(expected)) {
 			throw error("content-type header to redirect_uri does not have the expected value", args("content_type", contentType, "expected", expected));
 		}
