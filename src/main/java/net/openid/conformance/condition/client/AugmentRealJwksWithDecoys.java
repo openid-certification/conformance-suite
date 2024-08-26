@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Adds additional "decoy" JWKs with the same kid but different algorithms to the JWKSet to ensure that
+ * Adds additional "decoy" JWKs with the same kid but different algorithms to the {@code server_public_jwks} JWKSet to ensure that
  * clients perform proper JWK lookups by {@code kid} including {@code alg} and {@code kty}.
  */
 public class AugmentRealJwksWithDecoys extends AbstractCondition {
@@ -28,20 +28,19 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 	static final Set<String> FAPI_JWK_ALGORITHMS = Set.of("EdDSA", "PS256", "ES256");
 
 	@Override
-	@PreEnvironment(required = {"server_jwks"})
+	@PreEnvironment(required = {"server_public_jwks"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject serverJwksJsonObject = env.getObject("server_jwks");
+		JsonObject serverPublicJwks = env.getObject("server_public_jwks");
 		JWKSet publicJWKSet;
 		try {
-			// extract the real public JWKSet
-			publicJWKSet = JWKUtil.parseJWKSet(serverJwksJsonObject.toString()).toPublicJWKSet();
+			publicJWKSet = JWKUtil.parseJWKSet(serverPublicJwks.toString());
 		} catch (Exception e) {
-			throw error("Failed to parse server_jwks", e);
+			throw error("Failed to parse server_public_jwks", e);
 		}
 
 		if (publicJWKSet.getKeys().isEmpty()) {
-			logSuccess("Skipping JWKS decoy generation for server_jwks with missing public keys.");
+			logSuccess("Skipping JWKS decoy generation for server_public_jwks with missing public keys.");
 			return env;
 		}
 
@@ -49,7 +48,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		List<JWK> publicKeysForSigning = publicJWKSet.getKeys().stream().filter(jwk -> jwk.getKeyUse() == KeyUse.SIGNATURE).toList();
 		if (publicKeysForSigning.isEmpty()) {
 
-			logSuccess("Skipping JWKS decoy generation for server_jwks with missing public keys with use=sig.");
+			logSuccess("Skipping JWKS decoy generation for server_public_jwks with missing public keys of use=sig.");
 			return env;
 		}
 
@@ -61,13 +60,12 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 
 			if (!kidsWithMissingFapiAlgorithms.isEmpty()) {
 				// Shall we just generate a decoy for the missing algorithm here?
-				logFailure("Existing server_jwks contains multiple keys for use=sig, but desired JWK variant is missing",
-					Map.of("jwks_ids_with_missing_fapi_algorithms", kidsWithMissingFapiAlgorithms));
+				logFailure("Existing server_jwks contains multiple keys for use=sig, but desired JWK variant is missing", Map.of("jwks_ids_with_missing_fapi_algorithms", kidsWithMissingFapiAlgorithms));
 				return env;
 			}
 
 			// all desired fapi algorithms are provided by the JWKS
-			logSuccess("Existing server_jwks already contains JWKs with the desired algorithm variants. Skipping generation of additional decoy JWKs.");
+			logSuccess("Existing server_public_jwks already contains JWKs with the desired algorithm variants. Skipping generation of additional decoy JWKs.");
 			return env;
 		}
 
@@ -81,16 +79,10 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 
 		JsonObject publicJwksWithDecoys = generateDecoyPublicKeysAroundGivenPublicKey(publicKey);
 
-		// expose the new decoy keys
-		env.putObject("server_public_jwks_decoy", publicJwksWithDecoys);
+		// augment the current server_public_jwks with additional decoy keys
+		env.putObject("server_public_jwks", publicJwksWithDecoys);
 
-		// update jwks URI in server object with jwks_decoy endpoint variant
-		// exposed by net.openid.conformance.fapi2spid2.AbstractFAPI2SPID2ClientTest.handleClientRequestForPath
-		String baseUrl = env.getString("base_url");
-		String decoyJwksUri = (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + "jwks_decoy";
-		env.putString("server", "jwks_uri", decoyJwksUri);
-
-		logSuccess("Augmented JWKS exposed by jwks_uri with decoy keys.", Map.of("jwks_uri", decoyJwksUri, "publicJwksWithDecoys", publicJwksWithDecoys));
+		logSuccess("Augmented JWKS with decoy keys.", Map.of("existingJwks", serverPublicJwks, "jwksWithDecoys", publicJwksWithDecoys));
 
 		return env;
 	}
