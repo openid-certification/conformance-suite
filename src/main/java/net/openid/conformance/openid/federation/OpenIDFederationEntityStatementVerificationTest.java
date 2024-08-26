@@ -186,8 +186,8 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint"));
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-
-				callAndContinueOnFailure(ValidateEntityStatementEndpointReturnedCorrectContentType.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(EnsureContentTypeEntityStatementJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.mapKey("server_jwks", "federation_fetch_endpoint_jkws");
 				call(sequence(ValidateEntityStatementSignatureSequence.class));
 				env.unmapKey("server_jwks");

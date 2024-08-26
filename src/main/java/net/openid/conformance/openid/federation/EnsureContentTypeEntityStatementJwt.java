@@ -4,7 +4,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateEntityStatementEndpointReturnedCorrectContentType extends AbstractCheckEndpointContentTypeReturned {
+public class EnsureContentTypeEntityStatementJwt extends AbstractCheckEndpointContentTypeReturned {
 
 	@Override
 	@PreEnvironment(required = "entity_statement_endpoint_response")
