@@ -1,19 +1,6 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
-import net.openid.conformance.testmodule.AbstractTestModule;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.ServerMetadata;
-import net.openid.conformance.variant.VariantConfigurationFields;
-import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
 	testName = "openid-federation-entity-configuration-verification",
