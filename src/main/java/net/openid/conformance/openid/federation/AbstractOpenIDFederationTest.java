@@ -15,18 +15,6 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 
-@PublishTestModule(
-	testName = "openid-federation-entity-statement-verification",
-	displayName = "OpenID Federation: Entity Statement Verification",
-	summary = "This test verifies the correctness of the given entity's Entity Statement. The test will " +
-		"proceed to the Immediate Superiors of the entity as specified in authority_hints and perform additional " +
-		"verification of those entities, including the output of their list and fetch endpoints.",
-	profile = "OIDFED",
-	configurationFields = {
-		"federation.entity_statement_url",
-		"federation.trust_anchor_jwks"
-	}
-)
 @VariantParameters({
 	ServerMetadata.class,
 	ClientRegistration.class
@@ -35,7 +23,7 @@ import net.openid.conformance.variant.VariantParameters;
 	"federation.entity_statement"
 })
 @VariantNotApplicable(parameter = ClientRegistration.class, values={ "static_client" })
-public class OpenIDFederationEntityStatementVerificationTest extends AbstractTestModule {
+public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -43,7 +31,7 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		eventLog.startBlock("Fetch primary Entity Statement");
+		eventLog.startBlock("Fetch primary Entity Configuration");
 		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
 			// This case is actually not valid, I believe, but it's here for testing purposes atm
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
@@ -57,17 +45,6 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
-	}
-
-	@Override
-	public void start() {
-		setStatus(Status.RUNNING);
-
-		validateEntityStatement();
-		validateAbsenceOfMetadataPolicy();
-		validateImmediateSuperiors();
-
-		fireTestFinished();
 	}
 
 	protected void validateEntityStatement() {
@@ -186,8 +163,10 @@ public class OpenIDFederationEntityStatementVerificationTest extends AbstractTes
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint"));
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(EnsureContentTypeEntityStatementJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.unmapKey("endpoint_response");
 				env.mapKey("server_jwks", "federation_fetch_endpoint_jkws");
 				call(sequence(ValidateEntityStatementSignatureSequence.class));
 				env.unmapKey("server_jwks");

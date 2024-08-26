@@ -39,7 +39,7 @@ public class GetEntityStatement extends AbstractCondition {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 			ResponseEntity<String> response = restTemplate.exchange(entityStatementUrl, HttpMethod.GET, null, String.class);
-			JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
+			JsonObject responseInfo = convertResponseForEnvironment("Entity statement", response);
 			env.putObject("entity_statement_endpoint_response", responseInfo);
 			jwtString = response.getBody();
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
