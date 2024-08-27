@@ -158,7 +158,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				// Get the entity statement from the Superior's fetch endpoint
+				env.mapKey("entity_statement_iss", "primary_entity_statement_iss");
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.unmapKey("entity_statement_iss");
 				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint"));
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.mapKey("endpoint_response", "entity_statement_endpoint_response");

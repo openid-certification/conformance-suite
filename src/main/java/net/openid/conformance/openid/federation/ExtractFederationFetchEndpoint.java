@@ -3,6 +3,7 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -10,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class ExtractFederationFetchEndpoint extends AbstractCondition {
 
 	@Override
+	@PreEnvironment(strings = "entity_statement_iss")
 	@PostEnvironment(strings = "federation_fetch_endpoint")
 	public Environment evaluate(Environment env) {
 
@@ -17,7 +19,7 @@ public class ExtractFederationFetchEndpoint extends AbstractCondition {
 		JsonObject jwks = env.getElementFromObject("entity_statement_body", "jwks").getAsJsonObject();
 		String fetchEndpoint = OIDFJSON.getString(env.getElementFromObject("entity_statement_body", "metadata.federation_entity.federation_fetch_endpoint"));
 
-		String primaryIss = env.getString("primary_entity_statement_iss");
+		String primaryIss = env.getString("entity_statement_iss");
 		String fetchEndpointUrlWithSubParam = UriComponentsBuilder.fromHttpUrl(fetchEndpoint).queryParam("sub", primaryIss).toUriString();
 
 		env.putString("federation_fetch_endpoint", fetchEndpointUrlWithSubParam);

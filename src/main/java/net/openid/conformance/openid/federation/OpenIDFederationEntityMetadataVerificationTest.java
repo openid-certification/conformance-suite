@@ -28,21 +28,53 @@ public class OpenIDFederationEntityMetadataVerificationTest extends AbstractOpen
 
 		callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
-		if (env.getString("federation_list_endpoint") != null) {
+		String listEndpoint = env.getString("federation_list_endpoint");
+		JsonArray listEndpointResponse;
+		if (listEndpoint != null) {
+			eventLog.startBlock(String.format("Retrieving entities from federation_list_endpoint %s", listEndpoint));
 			callAndContinueOnFailure(GetSubordinateListingResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			env.mapKey("endpoint_response", "federation_list_endpoint_response");
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			callAndContinueOnFailure(EnsureResponseIsJsonArray.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			env.unmapKey("endpoint_response");
+			eventLog.endBlock();
 
-			JsonArray listEndpointResponse = JsonParser.parseString(env.getString("endpoint_response_body")).getAsJsonArray();
+			listEndpointResponse = JsonParser.parseString(env.getString("endpoint_response_body")).getAsJsonArray();
 			for (JsonElement listElement : listEndpointResponse) {
 				String entityIdentifier = OIDFJSON.getString(listElement);
+				eventLog.startBlock(String.format("Validating entity statement for %s", entityIdentifier));
 				env.putString("entity_statement_url", appendWellKnown(entityIdentifier));
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				validateEntityStatementResponse();
 				validateEntityStatement();
+				eventLog.endBlock();
+			}
+		} else {
+			 listEndpointResponse = new JsonArray();
+		}
+
+		String fetchEndpoint = env.getString("federation_fetch_endpoint");
+		if (fetchEndpoint != null) {
+			for (JsonElement listElement : listEndpointResponse) {
+				String entityIdentifier = OIDFJSON.getString(listElement);
+				eventLog.startBlock(String.format("Fetching subordinate statement for %s using federation_fetch_endpoint %s", entityIdentifier, fetchEndpoint));
+				env.putString("entity_statement_iss", entityIdentifier);
+				env.mapKey("entity_statement_url", "federation_fetch_endpoint");
+				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ValidateEntityStatementExp.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint_iss"));
+				callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.putString("entity_statement_url", env.getString("primary_entity_statement_sub"));
+				callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			}
 		}
 
