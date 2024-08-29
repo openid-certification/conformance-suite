@@ -20,7 +20,8 @@ public class SignIdTokenWithX5tS256 extends AbstractSignJWT {
 		boolean includeTyp = false;
 		boolean includeX5tS256 = true;
 		boolean includeX5c = false;
-		return signJWT(env, claims, jwks, includeTyp, includeX5tS256, includeX5c);
+		boolean errorIfX5cMissing = false;
+		return signJWT(env, claims, jwks, includeTyp, includeX5tS256, includeX5c, errorIfX5cMissing);
 	}
 
 	@Override
