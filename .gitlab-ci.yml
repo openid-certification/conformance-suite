@@ -273,6 +273,7 @@ stop_normal:
   only:
     refs:
       - branches
+  when: manual
   artifacts:
     when: always
     paths:
