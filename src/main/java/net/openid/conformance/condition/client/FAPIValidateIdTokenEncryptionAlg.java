@@ -16,8 +16,8 @@ public class FAPIValidateIdTokenEncryptionAlg extends AbstractCondition {
 		if (alg.equals("RSA1_5")) {
 			throw error("id_token encrypted with RSA1_5, which is not permitted by FAPI specification", args("alg", alg));
 		}
-
-		if (JWEAlgorithm.Family.SYMMETRIC.contains(alg)) {
+		JWEAlgorithm algorithm = JWEAlgorithm.parse(alg);
+		if (JWEAlgorithm.Family.SYMMETRIC.contains(algorithm)) {
 			throw error("id_token encrypted with a symmetric algorithm, whereas FAPI requires the use of asymmetric cryptography", args("alg", alg));
 		}
 

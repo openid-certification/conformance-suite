@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.export.HtmlExportRenderer;
 import net.openid.conformance.export.PlanExportInfo;
@@ -45,7 +46,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -345,6 +345,7 @@ public class LogApi {
 		return export;
 	}
 
+	@SuppressWarnings("MixedMutabilityReturnType")
 	private List<Document> getTestResults(String id, Long since, boolean isPublic) {
 		boolean summaryOnly;
 
@@ -444,6 +445,7 @@ public class LogApi {
 	}
 
 
+	@SuppressWarnings("JavaTimeDefaultTimeZone")
 	protected ResponseEntity<StreamingResponseBody> exportPlanAsZip(String planId, boolean forCertification, boolean publicOnly, boolean addFolderForHtmlFiles,
 																	MultipartFile certificationOfConformancePdf,
 																	MultipartFile clientSideData) {

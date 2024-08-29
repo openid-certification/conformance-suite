@@ -428,9 +428,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see TestModule#start()
-	 */
 	@Override
 	public void start() {
 

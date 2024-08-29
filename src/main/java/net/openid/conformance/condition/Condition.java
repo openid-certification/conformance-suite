@@ -19,7 +19,7 @@ public interface Condition {
 	}
 
 	/**
-	 * @return a a string suitable for tagging this as a "source" in the logs, defaults to the class name
+	 * Returns a string suitable for tagging this as a "source" in the logs, defaults to the class name
 	 */
 	default String getMessage() {
 		return this.getClass().getSimpleName();

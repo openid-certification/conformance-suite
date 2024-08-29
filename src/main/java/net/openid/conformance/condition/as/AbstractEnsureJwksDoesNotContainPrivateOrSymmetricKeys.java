@@ -10,14 +10,14 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
 import java.text.ParseException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractEnsureJwksDoesNotContainPrivateOrSymmetricKeys extends AbstractCondition {
 
 	protected Environment verifyJwksDoesNotContainPrivateOrSymmetricKeys(Environment env, JsonObject jwks) {
-		List<JsonElement> privateKeys = new LinkedList<>();
-		List<JsonElement> symmetricKeys = new LinkedList<>();
+		List<JsonElement> privateKeys = new ArrayList<>();
+		List<JsonElement> symmetricKeys = new ArrayList<>();
 		try {
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
 			for(JWK jwk : jwkSet.getKeys()) {

@@ -297,9 +297,6 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 	}
 
-	/* (non-Javadoc)
-	 * @see TestModule#start()
-	 */
 	@Override
 	public void start() {
 

@@ -12,7 +12,7 @@ import static org.mockito.Mockito.mock;
 
 class AbstractOIDCCClientLogoutTest_UnitTest {
 
-	class TestAbstractOIDCCClientLogoutTest extends AbstractOIDCCClientLogoutTest {
+	static class TestAbstractOIDCCClientLogoutTest extends AbstractOIDCCClientLogoutTest {
 		TestAbstractOIDCCClientLogoutTest() {
 			env.putString("base_url", "");
 			env.putString("rp_frontchannel_logout_uri_request_url", "https://rp_frontchannel_logout_uri_request_url.com?alert('1')");

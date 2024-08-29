@@ -29,7 +29,7 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extend
 		JsonElement jsonError = env.getElementFromObject("token_endpoint_response_full", "body_json.error");
 		JsonObject jsonResponseHeaders = env.getObject("token_endpoint_response_headers");
 		int status = env.getInteger("token_endpoint_response_http_status");
-		if((status == 400) && (null != jsonError) && (OIDFJSON.getString(jsonError).equals("use_dpop_nonce"))) {
+		if((status == 400) && (null != jsonError) && OIDFJSON.getString(jsonError).equals("use_dpop_nonce")) {
 			List<String> nonceList = response.getHeaders().get("DPoP-Nonce");
 			if(nonceList.size() != 1) {
 				throw error("Unexpected DPoP-Nonce header response", args("headers", jsonResponseHeaders));

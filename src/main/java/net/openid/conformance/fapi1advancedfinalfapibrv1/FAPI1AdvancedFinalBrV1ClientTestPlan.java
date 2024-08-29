@@ -73,8 +73,8 @@ public class FAPI1AdvancedFinalBrV1ClientTestPlan implements TestPlan {
 				break;
 			case "openbanking_uk":
 				certProfile = "UK-OB";
-				if (par || jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR/JARM are not used in UK",
+				if (par) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: PAR are not used in UK",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -82,10 +82,6 @@ public class FAPI1AdvancedFinalBrV1ClientTestPlan implements TestPlan {
 				certProfile = "AU-CDR";
 				if (!privateKey) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in AU-CDR",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -97,10 +93,6 @@ public class FAPI1AdvancedFinalBrV1ClientTestPlan implements TestPlan {
 				certProfile = "KSA-OB";
 				if (!par) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: Only pused request is used for KSA-OB",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in KSA-OB",
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;

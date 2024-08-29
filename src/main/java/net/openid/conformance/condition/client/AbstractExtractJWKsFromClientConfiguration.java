@@ -29,7 +29,7 @@ public abstract class AbstractExtractJWKsFromClientConfiguration extends Abstrac
 
 		JWKSet pub = parsed.toPublicJWKSet();
 
-		JsonObject pubObj = (JsonParser.parseString(pub.toString())).getAsJsonObject();
+		JsonObject pubObj = JsonParser.parseString(pub.toString()).getAsJsonObject();
 
 		logSuccess("Extracted client JWK", args("client_jwks", jwks, "public_client_jwks", pubObj));
 

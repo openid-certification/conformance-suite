@@ -14,7 +14,8 @@ public class ValidateVpTokenIsUnpaddedBase64Url extends AbstractCondition {
 		String mdocBase64 = env.getString("vp_token");
 
 		String regex = "[a-zA-Z0-9_-]";
-		for (char character : mdocBase64.toCharArray()) {
+		for (int i = 0; i < mdocBase64.length(); i++) {
+			char character = mdocBase64.charAt(i);
 			if (!Pattern.matches(regex, String.valueOf(character))) {
 				throw error("Returned vp_token is invalid because it contains characters not permitted in unpadded base64url",
 					args("bad_character", "'"+character+"'"));

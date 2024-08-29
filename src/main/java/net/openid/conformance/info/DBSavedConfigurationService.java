@@ -27,9 +27,6 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
-	/* (non-Javadoc)
-	 * @see SavedConfigurationService#getLastConfigForCurrentUser()
-	 */
 	@Override
 	public Document getLastConfigForCurrentUser() {
 		ImmutableMap<String, String> user = authenticationFacade.getPrincipal();

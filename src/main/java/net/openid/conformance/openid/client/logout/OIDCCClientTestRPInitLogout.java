@@ -28,7 +28,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 	"client.frontchannel_logout_uri"
 })
 
-/**
+/*
  * OIDCCClientTestRPInitLogoutInvalidState and OIDCCClientTestRPInitLogoutNoState extend this class
  * don't forget to update them if you modify this class
  *

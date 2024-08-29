@@ -2,6 +2,9 @@ package net.openid.conformance.openid.client;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
@@ -157,9 +160,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
 
 
@@ -369,6 +369,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 				break;
 			case REQUEST_URI:
 				callAndStopOnFailure(SetRequestUriParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.2");
+				break;
+			case PLAIN_HTTP_REQUEST:
+				// nothing to do
 				break;
 		}
 	}
@@ -1340,7 +1343,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 */
 	protected void startWaitingForTimeout() {
 		getTestExecutionManager().runInBackground(() -> {
-			Thread.sleep(waitTimeoutSeconds * 1000);
+			Thread.sleep(waitTimeoutSeconds * 1000L);
 			if (getStatus().equals(Status.WAITING)) {
 				setStatus(Status.RUNNING);
 				fireTestFinished();

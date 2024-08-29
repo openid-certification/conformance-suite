@@ -2,35 +2,34 @@ package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.crypto.Ed25519Verifier;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
-import com.nimbusds.jose.proc.JWSVerifierFactory;
-import com.nimbusds.jose.proc.SecurityContext;
-import com.nimbusds.jose.proc.SimpleSecurityContext;
-import com.nimbusds.jose.jwk.AsymmetricJWK;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.OctetKeyPair;
-import com.nimbusds.jose.jwk.SecretJWK;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.Ed25519Verifier;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jose.jwk.AsymmetricJWK;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.SecretJWK;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.JWSVerifierFactory;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
-
-import java.text.ParseException;
-import java.security.KeyPair;
-import java.util.List;
-
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
+
+import java.security.KeyPair;
+import java.text.ParseException;
+import java.util.List;
 
 public abstract class AbstractVerifyJwsSignature extends AbstractCondition {
 

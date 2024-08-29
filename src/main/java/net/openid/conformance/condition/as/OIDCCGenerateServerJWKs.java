@@ -20,7 +20,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -70,9 +70,9 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 	@Override
 	@PostEnvironment(required = { "server_public_jwks", "server_jwks", "server_encryption_keys" })
 	public Environment evaluate(Environment env) {
-		allGeneratedKeys = new LinkedList<>();
-		signingKeyToBeUsed = new LinkedList<>();
-		encryptionKeysToBeUsed = new LinkedList<>();
+		allGeneratedKeys = new ArrayList<>();
+		signingKeyToBeUsed = new ArrayList<>();
+		encryptionKeysToBeUsed = new ArrayList<>();
 		setupParameters();
 
 		try {
@@ -144,8 +144,8 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 			if(keyUse!=null) {
 				jwkGenerator.keyUse(keyUse);
 			}
-			if( (generateSigKids && ((null == keyUse) || (KeyUse.SIGNATURE.equals(keyUse)))) ||
-				(generateEncKids && ((null == keyUse) || (KeyUse.ENCRYPTION.equals(keyUse))))) {
+			if( (generateSigKids && ((null == keyUse) || KeyUse.SIGNATURE.equals(keyUse))) ||
+				(generateEncKids && ((null == keyUse) || KeyUse.ENCRYPTION.equals(keyUse)))) {
 				jwkGenerator.keyID(UUID.randomUUID().toString());
 			}
 			if(algorithm!=null) {
@@ -158,7 +158,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 				encryptionKeysToBeUsed.add(generatedJWK);
 			}
 
-			if(i==whichKeyToUse && (keyUse.equals(KeyUse.SIGNATURE))) {
+			if(i==whichKeyToUse && keyUse.equals(KeyUse.SIGNATURE)) {
 				signingKeyToBeUsed.add(generatedJWK);
 			}
 		}
@@ -175,7 +175,7 @@ public class OIDCCGenerateServerJWKs extends AbstractCondition {
 			return 0;
 		}
 		Random random = new Random();
-		int index = 0;
+		int index;
 		index = random.ints(1, 0, keyCount - 1).findFirst().getAsInt();
 		return index;
 	}

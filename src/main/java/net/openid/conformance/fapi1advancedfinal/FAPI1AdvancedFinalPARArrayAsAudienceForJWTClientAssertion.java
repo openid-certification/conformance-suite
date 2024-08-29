@@ -49,9 +49,9 @@ public class FAPI1AdvancedFinalPARArrayAsAudienceForJWTClientAssertion extends A
 
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
-		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
+		call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().replace(
 			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
-			condition(AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.3"))));
+			condition(AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.3")));
 	}
 
 	@Override

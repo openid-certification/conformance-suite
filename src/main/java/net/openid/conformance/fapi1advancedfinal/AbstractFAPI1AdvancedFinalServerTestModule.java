@@ -410,9 +410,6 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
 	}
 
-	/* (non-Javadoc)
-	 * @see TestModule#start()
-	 */
 	@Override
 	public void start() {
 

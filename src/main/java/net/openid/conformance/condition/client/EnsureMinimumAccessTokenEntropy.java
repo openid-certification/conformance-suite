@@ -12,9 +12,6 @@ public class EnsureMinimumAccessTokenEntropy extends AbstractEnsureMinimumEntrop
 	 */
 	private final double requiredEntropy = 96;
 
-	/* (non-Javadoc)
-	 * @see Condition#evaluate(Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {

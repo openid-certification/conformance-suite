@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -196,7 +196,7 @@ public class PlanHelper {
 	}
 
 	public List<TestHelper> getTestHelpers() {
-		List<TestHelper> helpers = new LinkedList<>();
+		List<TestHelper> helpers = new ArrayList<>();
 		for(PlanExportInfo.TestExportInfoHolder holder : planExportInfo.getTestLogExports()) {
 			TestHelper testHelper = new TestHelper(holder.getExport(), suiteBaseUrl);
 			helpers.add(testHelper);

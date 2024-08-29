@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +26,7 @@ public abstract class AbstractClientValidationCondition extends AbstractConditio
 	 * don't forget to set in evaluate methods
 	 */
 	protected JsonObject client;
-	protected List<Map<String, Object>> validationErrors = new LinkedList<>();
+	protected List<Map<String, Object>> validationErrors = new ArrayList<>();
 
 	protected void appendError(String keyForMessage, String msg, String keyForArgs, Map<String, Object> args) {
 		validationErrors.add(Map.of(keyForMessage, msg, keyForArgs, args));

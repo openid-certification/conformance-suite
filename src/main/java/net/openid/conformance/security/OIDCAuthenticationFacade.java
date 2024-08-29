@@ -16,6 +16,7 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	public static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
 
 	// this gets set by the test runners and used later on
+	@SuppressWarnings({"ThreadLocals", "ThreadLocalUsage"})
 	private ThreadLocal<Authentication> localAuthentication = new ThreadLocal<>();
 
 	@Override

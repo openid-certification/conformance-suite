@@ -137,6 +137,7 @@ public class TestRunner implements DataUtils {
 	private class FutureWatcher implements Runnable {
 		private boolean running = false;
 
+		@SuppressWarnings("UnusedMethod") // Unsure why this was created but never called
 		public void stop() {
 			this.running = false;
 		}
@@ -177,6 +178,7 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
+	@SuppressWarnings("FutureReturnValueIgnored")
 	public TestRunner() {
 		executorService.submit(futureWatcher);
 	}
@@ -417,11 +419,6 @@ public class TestRunner implements DataUtils {
 		return null;
 	}
 
-	/**
-	 * @param alias
-	 * @param id
-	 * @return
-	 */
 	private void createTestAlias(String alias, String id) {
 		// first see if the alias is already in use
 		if (support.hasAlias(alias)) {

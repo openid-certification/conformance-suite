@@ -118,7 +118,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
 		// Check that the private key and the certificate match
 		RSAPublicKey rsaPublicKey = (RSAPublicKey) certificate.getPublicKey();
-		if (!(privateKey.getModulus().equals(rsaPublicKey.getModulus()))) {
+		if (!privateKey.getModulus().equals(rsaPublicKey.getModulus())) {
 			throw error("MTLS Private Key and Cert do not match", args("cert", certString, "key", keyString));
 		}
 	}

@@ -192,7 +192,7 @@ public class Environment {
 	 *
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
-	 * @returns the element within the object if found, null if the object is not found, or null if no element is found at the given path within the object
+	 * @return the element within the object if found, null if the object is not found, or null if no element is found at the given path within the object
 	 */
 	public JsonElement getElementFromObject(String key, String path) {
 
@@ -241,7 +241,7 @@ public class Environment {
 	 *
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
-	 * @returns the value within the object if found, null if the object is not found,
+	 * @return the value within the object if found, null if the object is not found,
 	 * 	null if no element is found at the given path within the object
 	 * @throws UnexpectedTypeException if the element is not the appropriate native type
 	 */
@@ -270,7 +270,7 @@ public class Environment {
 	 *
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
-	 * @returns the value within the object if found, null if the object is not found,
+	 * @return the value within the object if found, null if the object is not found,
 	 * 	null if no element is found at the given path within the object
 	 * @throws UnexpectedTypeException if the element is not the appropriate native type
 	 */
@@ -299,7 +299,7 @@ public class Environment {
 	 *
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
-	 * @returns the value within the object if found, null if the object is not found,
+	 * @return the value within the object if found, null if the object is not found,
 	 * 	null if no element is found at the given path within the object
 	 * @throws UnexpectedTypeException if the element is not the appropriate native type
 	 */
@@ -328,7 +328,7 @@ public class Environment {
 	 *
 	 * @param key the object identifier to look up, may be mapped; see getObject(String)
 	 * @param path the path within the object to search; in dot-separated notation
-	 * @returns the value within the object if found, null if the object is not found,
+	 * @return the value within the object if found, null if the object is not found,
 	 * 	null if no element is found at the given path within the object
 	 * @throws UnexpectedTypeException if the element is not the appropriate native type
 	 */

@@ -20,9 +20,6 @@ public class DBEventLog implements EventLog {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	/* (non-Javadoc)
-	 * @see EventLog#log(java.lang.String)
-	 */
 	@Override
 	public void log(String testId, String source, Map<String, String> owner, String msg) {
 
@@ -37,9 +34,6 @@ public class DBEventLog implements EventLog {
 		mongoTemplate.insert(document, COLLECTION);
 	}
 
-	/* (non-Javadoc)
-	 * @see EventLog#log(java.lang.String, com.google.gson.JsonObject)
-	 */
 	@Override
 	public void log(String testId, String source, Map<String, String> owner, JsonObject obj) {
 
@@ -53,9 +47,6 @@ public class DBEventLog implements EventLog {
 		mongoTemplate.insert(dbObject, COLLECTION);
 	}
 
-	/* (non-Javadoc)
-	 * @see EventLog#log(java.lang.String, java.util.Map)
-	 */
 	@Override
 	public void log(String testId, String source, Map<String, String> owner, Map<String, Object> map) {
 

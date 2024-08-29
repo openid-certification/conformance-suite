@@ -25,9 +25,9 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.Optional;
 
 @Service
 public class DBTestPlanService implements TestPlanService {
@@ -80,9 +80,6 @@ public class DBTestPlanService implements TestPlanService {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see TestPlanService#createTestPlan(java.lang.String, java.lang.String, com.google.gson.JsonObject, java.util.Map, TestPlan)
-	 */
 	@Override
 	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String certificationProfileName, List<Plan.Module> testModules, String summary, String publish) {
 
@@ -103,9 +100,6 @@ public class DBTestPlanService implements TestPlanService {
 				publish));
 	}
 
-	/* (non-Javadoc)
-	 * @see TestPlanService#getTestPlan(java.lang.String)
-	 */
 	@Override
 	public Plan getTestPlan(String id) {
 
@@ -116,9 +110,6 @@ public class DBTestPlanService implements TestPlanService {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see TestPlanService#getPublicPlan(java.lang.String)
-	 */
 	@Override
 	public PublicPlan getPublicPlan(String id) {
 
@@ -166,9 +157,6 @@ public class DBTestPlanService implements TestPlanService {
 		return config;
 	}
 
-	/* (non-Javadoc)
-	 * @see TestPlanService#getPaginatedPlansForCurrentUser()
-	 */
 	@Override
 	public PaginationResponse<Plan> getPaginatedPlansForCurrentUser(PaginationRequest page) {
 
@@ -184,9 +172,6 @@ public class DBTestPlanService implements TestPlanService {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see TestPlanService#getPaginatedPublicPlans()
-	 */
 	@Override
 	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page) {
 
@@ -195,10 +180,6 @@ public class DBTestPlanService implements TestPlanService {
 				(s, p) -> plans.findAllPublicSearch(s, p));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see TestPlanService#publishTestPlan(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public boolean publishTestPlan(String id, String publish) {
 

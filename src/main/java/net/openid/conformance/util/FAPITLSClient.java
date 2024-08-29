@@ -23,7 +23,7 @@ public class FAPITLSClient extends DefaultTlsClient {
 	private boolean allowOnlyFAPICiphers;
 	private ProtocolVersion allowedProtocolVersion;
 
-	public static final int[] FAPI_CIPHERS = {
+	private static final int[] FAPI_CIPHERS = {
 		CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
 		CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 		CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
@@ -78,7 +78,7 @@ public class FAPITLSClient extends DefaultTlsClient {
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes") // fit with the API
+	@SuppressWarnings({"rawtypes", "JdkObsolete"}) // fit with the API
 	public Hashtable getClientExtensions() throws IOException {
 		Hashtable clientExtensions = super.getClientExtensions();
 		Vector<ServerName> serverNameList = new Vector<>();

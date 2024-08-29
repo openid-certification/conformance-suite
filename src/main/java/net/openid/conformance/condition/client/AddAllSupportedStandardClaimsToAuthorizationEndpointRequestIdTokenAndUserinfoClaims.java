@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AddAllSupportedStandardClaimsToAuthorizationEndpointRequestIdTokenAndUserinfoClaims extends AbstractAddClaimToAuthorizationEndpointRequest {
@@ -43,7 +43,7 @@ public class AddAllSupportedStandardClaimsToAuthorizationEndpointRequestIdTokenA
 	public Environment evaluate(Environment env) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		JsonArray nonOidcClaims = new JsonArray();
-		List<String> supportedOidcClaims = new LinkedList<>();
+		List<String> supportedOidcClaims = new ArrayList<>();
 
 		JsonArray serverValues = env.getElementFromObject("server", "claims_supported").getAsJsonArray();
 		for (JsonElement el: serverValues) {

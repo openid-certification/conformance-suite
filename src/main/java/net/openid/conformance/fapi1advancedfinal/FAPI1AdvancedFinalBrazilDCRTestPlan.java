@@ -39,7 +39,7 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 					FAPI1AdvancedFinalBrazilDCRInvalidJwksByValue.class
 				),
 				List.of(
-					/** This plan is only used for Brazil, so when OpenInsurance switches to the new profile
+					/* This plan is only used for Brazil, so when OpenInsurance switches to the new profile
 					 * we could remove the need for the user to select these variants by uncommenting these lines:
 					new Variant(ClientAuthType.class, "private_key_jwt"),
 					new Variant(FAPIResponseMode.class, "plain_response"),

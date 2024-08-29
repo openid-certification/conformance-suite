@@ -32,7 +32,7 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		if(typ  == null) {
 			throw error("'typ' claim in DPoP Proof header is missing");
 		}
-		if(!("dpop+jwt").equals(OIDFJSON.getString(typ))) {
+		if(!"dpop+jwt".equals(OIDFJSON.getString(typ))) {
 			throw error("Invalid DPoP Proof 'typ' header", args("expected", "dpop+jwt", "actual", OIDFJSON.getString(typ)));
 		}
 		JsonElement jsonJwk = env.getElementFromObject("incoming_dpop_proof", "header.jwk");

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 
 	private Duration closedTestTimeout = Duration.ofMinutes(15);
-	private Duration waitingTestTimeout = Duration.ofMinutes(360);
+	private Duration waitingTestTimeout = Duration.ofHours(6);
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
@@ -29,25 +29,16 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	// collection of aliases assigned to tests
 	private Map<String, String> aliases = new HashMap<>();
 
-	/* (non-Javadoc)
-	 * @see TestRunnerSupport#addRunningTest(java.lang.String, TestModule)
-	 */
 	@Override
 	public synchronized void addRunningTest(String id, TestModule test) {
 		runningTests.put(id, test);
 	}
 
-	/* (non-Javadoc)
-	 * @see TestRunnerSupport#hasAlias(java.lang.String)
-	 */
 	@Override
 	public synchronized boolean hasAlias(String alias) {
 		return aliases.containsKey(alias);
 	}
 
-	/* (non-Javadoc)
-	 * @see TestRunnerSupport#getRunningTestByAlias(java.lang.String)
-	 */
 	@Override
 	public synchronized TestModule getRunningTestByAliasIgnoringLoggedInUser(String alias) {
 		expireOldTests();
@@ -55,17 +46,11 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 		return runningTests.get(testId);
 	}
 
-	/* (non-Javadoc)
-	 * @see TestRunnerSupport#addAlias(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public synchronized void addAlias(String alias, String id) {
 		aliases.put(alias, id);
 	}
 
-	/* (non-Javadoc)
-	 * @see TestRunnerSupport#getRunningTestById(java.lang.String)
-	 */
 	@Override
 	public synchronized TestModule getRunningTestById(String testId) {
 		expireOldTests();
@@ -83,9 +68,6 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see TestRunnerSupport#getAllRunningTestIds()
-	 */
 	@Override
 	public synchronized Set<String> getAllRunningTestIds() {
 		expireOldTests();
@@ -106,17 +88,11 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see TestRunnerSupport#getTestIdForAlias(java.lang.String)
-	 */
 	@Override
 	public synchronized String getTestIdForAlias(String alias) {
 		return aliases.get(alias);
 	}
 
-	/* (non-Javadoc)
-	 * @see TestRunnerSupport#hasTestId(java.lang.String)
-	 */
 	@Override
 	public synchronized boolean hasTestId(String testId) {
 		expireOldTests();

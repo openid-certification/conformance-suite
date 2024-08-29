@@ -7,6 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 
 public class OIDCCLoadUserInfo extends AbstractCondition {
 
+	@SuppressWarnings("MutablePublicArray")
 	public static final String[] SUPPORTED_CLAIMS =
 		{
 			"sub",

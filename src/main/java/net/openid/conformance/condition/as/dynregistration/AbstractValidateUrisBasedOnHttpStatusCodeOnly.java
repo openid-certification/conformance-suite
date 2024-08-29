@@ -14,7 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +33,7 @@ public abstract class AbstractValidateUrisBasedOnHttpStatusCodeOnly extends Abst
 			logSuccess("Client does not contain any " + getMetadataName());
 			return env;
 		}
-		List<String> clientUriStatusCodes = new LinkedList<>();
+		List<String> clientUriStatusCodes = new ArrayList<>();
 		try {
 			RestTemplate restTemplate = createRestTemplate(env, false);
 			for (String lang : clientUris.keySet()) {

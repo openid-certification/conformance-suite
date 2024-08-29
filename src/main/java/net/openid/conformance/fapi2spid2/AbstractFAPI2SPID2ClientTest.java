@@ -2,6 +2,9 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
@@ -22,6 +25,7 @@ import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfi
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidatePurpose;
 import net.openid.conformance.condition.as.CalculateAtHash;
@@ -29,7 +33,6 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
-import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
@@ -209,10 +212,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -728,9 +727,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				JsonObject headerJson = env.getObject("consent_response_headers");
 
 				HttpHeaders headers = headersFromJson(headerJson);
-				if(isPayments) {
-					headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-				}
+				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 				responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 			} else {
 				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
@@ -775,9 +772,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				JsonObject headerJson = env.getObject("consent_response_headers");
 
 			HttpHeaders headers = headersFromJson(headerJson);
-			if(isPayments) {
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-			}
+			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
 
 		} else {
@@ -872,7 +867,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 
-	private abstract class SenderContrainTokenRequestHelper {
+	private abstract static class SenderContrainTokenRequestHelper {
 		public abstract void checkParRequest();
 		public abstract void checkTokenRequest();
 		public abstract void checkResourceRequest();

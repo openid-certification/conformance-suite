@@ -89,7 +89,6 @@ public class JWEUtil {
 	 * @param algorithm
 	 * @param inputString
 	 * @return
-	 * @throws NoSuchAlgorithmException
 	 */
 	public static byte[] deriveEncryptionKey(String algorithm, String inputString)
 	{

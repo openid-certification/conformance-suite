@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.VariantSelection;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -117,7 +117,7 @@ public class BrazilV1OBClientTestPlan implements TestPlan {
 			FAPI1AdvancedFinalBrV1ClientRefreshTokenTest.class,
 			FAPI1AdvancedFinalBrV1BrazilClientDCRHappyPathTest.class
 		);
-		List<Class<? extends TestModule>> parModules = new LinkedList<>();
+		List<Class<? extends TestModule>> parModules = new ArrayList<>();
 		parModules.addAll(byValueModules);
 		parModules.add(FAPI1AdvancedFinalBrV1ClientTestUnencryptedRequestObjectWithPAR.class);
 

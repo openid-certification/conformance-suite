@@ -54,6 +54,7 @@ public class DBTestInfoService implements TestInfoService {
 	@Autowired
 	private TestPlanService testPlanService;
 
+	@SuppressWarnings("CacheLoaderNull")
 	//Private cache for holding test owners without having to hit the db
 	LoadingCache<String, ImmutableMap<String, String>> testOwnerCache = CacheBuilder.newBuilder()
 		.maximumSize(1000)
@@ -98,9 +99,6 @@ public class DBTestInfoService implements TestInfoService {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see TestInfoService#updateTestResult(java.lang.String, TestModule.Result)
-	 */
 	@Override
 	public void updateTestResult(String id, Result result) {
 
@@ -119,9 +117,6 @@ public class DBTestInfoService implements TestInfoService {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see TestInfoService#updateTestStatus(java.lang.String, TestModule.Status)
-	 */
 	@Override
 	public void updateTestStatus(String id, Status status) {
 
@@ -162,10 +157,6 @@ public class DBTestInfoService implements TestInfoService {
 		*/
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see TestInfoService#publishTest(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public boolean publishTest(String id, String publish) {
 
