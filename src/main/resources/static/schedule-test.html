@@ -1407,29 +1407,28 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     FAPI_UI.hideBusy();
 
                     if (error instanceof Response) {
-                        // We have a 'Respose' object.
+                        // We have a 'Response' object.
                         var message = error.statusText;
                         var responseClone = error.clone();
 
                         error.text()
                         .then(textError => {
                             // Text error thrown by the app
-                            messageParsed = true;
-
-                            try {
-                                const errorObj = JSON.parse(textError);
-
-                                if (errorObj.error.length != 0) {
-                                    message = errorObj.error;
-                                    if (error.status == 500) {
-                                        // We have code that throws RunTimeException for bad variant selections etc; the error message we provide only seems to appear in the trace
-                                        if (errorObj.trace != null && errorObj.trace.length > 0) {
-                                            message = errorObj.trace.split("\n")[0].replace("java.lang.RuntimeException: ", "");
-                                        }
-                                    }
-                                }
+                            if (message === "") {
+                                message = textError;
                             }
-                            catch (e) {
+
+                            if (error.status == 500) {
+                                try {
+                                    const errorObj = JSON.parse(textError);
+
+                                    // We have code that throws RunTimeException for bad variant selections etc; the error message we provide only seems to appear in the trace
+                                    if (errorObj.trace != null && errorObj.trace.length > 0) {
+                                        message = errorObj.trace.split("\n")[0].replace("java.lang.RuntimeException: ", "");
+                                    }
+                                } catch (e) {
+                                    // just use the message we already have
+                                }
                             }
 
                             FAPI_UI.showError({code: error.status.toString(), error: message});
