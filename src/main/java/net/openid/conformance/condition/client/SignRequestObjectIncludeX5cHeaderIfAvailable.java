@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class SignRequestObjectIncludeX5cHeader extends AbstractSignJWT {
+public class SignRequestObjectIncludeX5cHeaderIfAvailable extends AbstractSignJWT {
 
 	@Override
 	@PreEnvironment(required = { "request_object_claims", "client_jwks" })
@@ -17,7 +17,7 @@ public class SignRequestObjectIncludeX5cHeader extends AbstractSignJWT {
 		JsonObject claims = env.getObject("request_object_claims");
 		JsonObject jwks = env.getObject("client_jwks");
 		boolean includeX5c = true;
-		boolean errorIfX5cMissing = true;
+		boolean errorIfX5cMissing = false;
 		return signJWT(env, claims, jwks, false, false, includeX5c, errorIfX5cMissing);
 	}
 
