@@ -1113,13 +1113,19 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             document.querySelector('#runningTestBrowser .visitBtn').onclick = function(evt) {
                                 evt.preventDefault();
                                 var url = this.dataset.url;
+                                let method = this.dataset.method;
 
                                 FAPI_UI.showBusy('Opening target URL', 'Opening: ' + url);
 
-                                var win = {
-                                    focus: () => {}
-                                };
-                                document.querySelector('form.redirect').submit();
+                                var win;
+                                if (method === 'POST') {
+                                    win = {
+                                        focus: () => {}
+                                    };
+                                    document.querySelector('form.redirect').submit();
+                                } else {
+                                    win = window.open(url, '_blank');
+                                }
 
                                 if (win) {
                                     win.focus();
