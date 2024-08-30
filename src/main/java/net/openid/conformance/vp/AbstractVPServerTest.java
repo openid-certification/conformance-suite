@@ -171,9 +171,9 @@ import java.util.function.Supplier;
 	"mtls.cert",
 	"mtls.ca"
 })
-//@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
-//	"client.client_id"
-//})
+@VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "pre_registered", configurationFields = {
+	"client.client_id"
+})
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name"
 })
@@ -405,6 +405,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		}
 
 		switch (clientIdScheme) {
+			case PRE_REGISTERED:
+				// client id has been set already in config
+				break;
 			case REDIRECT_URI:
 				callAndStopOnFailure(SetClientIdToResponseUri.class);
 				break;
@@ -611,6 +614,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			}
 
 			switch (clientIdScheme) {
+				case PRE_REGISTERED:
+					// pre-registered is the default, we can omit the client_id_scheme
+					// FIXME: try passing client_id_scheme=pre-registered for one of tests
+					break;
 				case REDIRECT_URI:
 					callAndStopOnFailure(SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri.class, "OID4VP-5.7");
 					break;
@@ -777,6 +784,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeX5cHeader.class));
 						break;
 					case REDIRECT_URI:
+					case PRE_REGISTERED:
 						// otherwise follow the default (use x5c header if it's available) although signed request objects + redirect_uri client_id_scheme isn't allowed in the spec
 						break;
 				}
