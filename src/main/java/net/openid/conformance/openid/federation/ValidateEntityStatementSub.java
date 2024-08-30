@@ -9,25 +9,23 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class ValidateEntityStatementSub extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "entity_statement_body" } )
+	@PreEnvironment(strings = { "entity_statement_sub" } )
 	public Environment evaluate(Environment env) {
-		JsonElement sub = env.getElementFromObject("entity_statement_body", "sub");
+		String sub = env.getString("entity_statement_sub");
 
-		if (sub == null || sub.isJsonObject()) {
-			throw error("sub is missing from entity statement");
+		if (sub == null) {
+			throw error("sub is missing", args("sub", sub));
 		}
 
 		String entityStatementUrl = env.getString("entity_statement_url");
-
-		String subUrl = OIDFJSON.getString(sub);
 
 		final String removingPartInUrl = ".well-known/openid-federation";
 		if (entityStatementUrl.endsWith(removingPartInUrl)) {
 			entityStatementUrl = entityStatementUrl.substring(0, entityStatementUrl.length() - removingPartInUrl.length());
 		}
 
-		if (!removeTrailingSlash(subUrl).equals(removeTrailingSlash(entityStatementUrl))) {
-			throw error("sub listed in the entity statement is not consistent with the location the entity statement was retrieved from. These must match to prevent impersonation attacks.", args("entity_statement_url", entityStatementUrl, "sub", subUrl));
+		if (!removeTrailingSlash(sub).equals(removeTrailingSlash(entityStatementUrl))) {
+			throw error("sub listed in the entity statement is not consistent with the location the entity statement was retrieved from. These must match to prevent impersonation attacks.", args("entity_statement_url", entityStatementUrl, "sub", sub));
 		}
 
 		logSuccess("sub is consistent with the entity statement endpoint URL", args("expected", entityStatementUrl, "actual", sub));

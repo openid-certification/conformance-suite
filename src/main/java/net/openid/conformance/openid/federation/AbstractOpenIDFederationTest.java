@@ -50,6 +50,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		String entity = env.getString("entity_statement_url");
 
 		eventLog.startBlock("Validate basic claims in Entity Statement for %s".formatted(entity));
+		callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
 		eventLog.endBlock();
 
@@ -158,22 +159,21 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				// Get the entity statement from the Superior's fetch endpoint
-				env.mapKey("entity_statement_iss", "primary_entity_statement_iss");
+				env.putString("entity_statement_sub", env.getString("primary_entity_statement_iss"));
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				env.unmapKey("entity_statement_iss");
-				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint"));
+				callAndContinueOnFailure(AppendSubToFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(EnsureContentTypeEntityStatementJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.unmapKey("endpoint_response");
-				env.mapKey("server_jwks", "federation_fetch_endpoint_jkws");
 				call(sequence(ValidateEntityStatementSignatureSequence.class));
-				env.unmapKey("server_jwks");
 
 				callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(ValidateEntityStatementExp.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint_iss"));
+				env.putString("entity_statement_iss", env.getString("federation_fetch_endpoint_iss"));
 				callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.putString("entity_statement_url", env.getString("primary_entity_statement_sub"));
 				callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?");

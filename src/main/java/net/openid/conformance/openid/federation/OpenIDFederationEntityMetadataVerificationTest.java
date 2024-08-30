@@ -58,9 +58,11 @@ public class OpenIDFederationEntityMetadataVerificationTest extends AbstractOpen
 		if (fetchEndpoint != null) {
 			for (JsonElement listElement : listEndpointResponse) {
 				String entityIdentifier = OIDFJSON.getString(listElement);
-				eventLog.startBlock(String.format("Fetching subordinate statement for %s using federation_fetch_endpoint %s", entityIdentifier, fetchEndpoint));
-				env.putString("entity_statement_iss", entityIdentifier);
-				env.mapKey("entity_statement_url", "federation_fetch_endpoint");
+
+				env.putString("entity_statement_sub", entityIdentifier);
+				callAndContinueOnFailure(AppendSubToFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
