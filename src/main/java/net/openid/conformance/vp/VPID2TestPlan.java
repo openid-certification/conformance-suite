@@ -4,15 +4,10 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
-import net.openid.conformance.variant.VPClientIdScheme;
-import net.openid.conformance.variant.VPRequestMethod;
-import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
@@ -64,20 +59,20 @@ public class VPID2TestPlan implements TestPlan {
 
 		String certProfile = "OID4VPID2";
 
-		if (credentialFormat.equals(CredentialFormat.ISO_MDL.toString())) {
-			if (!responseMode.equals(VPResponseMode.DIRECT_POST_JWT.toString())) {
-				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires direct_post.jwt",
-					MethodHandles.lookup().lookupClass().getSimpleName()));
-			}
-			if (!requestMethod.equals(VPRequestMethod.REQUEST_URI_SIGNED.toString())) {
-				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires signed request uri",
-					MethodHandles.lookup().lookupClass().getSimpleName()));
-			}
-			if (!clientIDScheme.equals(VPClientIdScheme.X509_SAN_DNS.toString())) {
-				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires client_id_scheme x509_san_dns",
-					MethodHandles.lookup().lookupClass().getSimpleName()));
-			}
-		}
+//		if (credentialFormat.equals(CredentialFormat.ISO_MDL.toString())) {
+//			if (!responseMode.equals(VPResponseMode.DIRECT_POST_JWT.toString())) {
+//				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires direct_post.jwt",
+//					MethodHandles.lookup().lookupClass().getSimpleName()));
+//			}
+//			if (!requestMethod.equals(VPRequestMethod.REQUEST_URI_SIGNED.toString())) {
+//				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires signed request uri",
+//					MethodHandles.lookup().lookupClass().getSimpleName()));
+//			}
+//			if (!clientIDScheme.equals(VPClientIdScheme.X509_SAN_DNS.toString())) {
+//				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires client_id_scheme x509_san_dns",
+//					MethodHandles.lookup().lookupClass().getSimpleName()));
+//			}
+//		}
 
 		return certProfile;
 	}
