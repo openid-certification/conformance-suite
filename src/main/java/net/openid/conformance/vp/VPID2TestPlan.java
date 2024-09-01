@@ -2,7 +2,6 @@ package net.openid.conformance.vp;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
@@ -48,8 +47,7 @@ public class VPID2TestPlan implements TestPlan {
 					new Variant(ResponseType.class, "id_token"),
 					// FIXME: confirm if most of these options should be removed as I don't think they're ever going to be applicable
 					new Variant(ServerMetadata.class, "static"),
-					new Variant(ClientRegistration.class, "static_client"),
-					new Variant(ClientAuthType.class, "none")
+					new Variant(ClientRegistration.class, "static_client")
 				)
 			)
 		);
