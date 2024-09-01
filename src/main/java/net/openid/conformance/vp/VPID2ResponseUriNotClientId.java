@@ -1,9 +1,5 @@
 package net.openid.conformance.vp;
 
-import com.google.gson.JsonObject;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.client.AddBadResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
@@ -58,10 +54,5 @@ public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 	@Override
 	protected Object handleDirectPost(String requestId) {
 		throw new TestFailureException(getId(), "Direct post (response_uri) endpoint has been called but was not in the request");
-	}
-
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		return super.handleHttp(path, req, res, session, requestParts);
 	}
 }
