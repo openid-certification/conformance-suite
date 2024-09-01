@@ -27,7 +27,8 @@ public class VPID2TestPlan implements TestPlan {
 				List.of(
 					VPID2HappyFlowNoState.class,
 					VPID2HappyFlowWithStateAndRedirect.class,
-					VPID2ResponseUriNotClientId.class
+					VPID2ResponseUriNotClientId.class,
+					VPID2InvalidRequestObjectSignature.class
 
 					// FIXME: more tests
 					// positive tests:
@@ -39,7 +40,6 @@ public class VPID2TestPlan implements TestPlan {
 					// sending client_id != response_uri when using redirect client scheme + direct post
 					// sending invalid client_id_scheme should cause an error?
 					// flow without nonce
-					// for signed requests, bad signature
 					// for x509 client id scheme, try a client_id that's not permitted by the cert?
 				),
 				List.of(
