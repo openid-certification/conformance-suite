@@ -112,6 +112,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -582,7 +583,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				call(new CreateAuthorizationRedirectStepsUnsignedRequestUri());
 				break;
 			case REQUEST_URI_SIGNED:
-				ConditionSequence seq = new CreateAuthorizationRedirectStepsSignedRequestUri();
+				ConditionSequence seq = createAuthorizationRedirectStepsSignedRequestUri();
 				switch (clientIdScheme) {
 					case X509_SAN_DNS:
 						// x5c header is mandatory for x509 san dns (and/or mdl profile)
@@ -596,6 +597,11 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				call(seq);
 				break;
 		}
+	}
+
+	@NotNull
+	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
+		return new CreateAuthorizationRedirectStepsSignedRequestUri();
 	}
 
 	@Override
