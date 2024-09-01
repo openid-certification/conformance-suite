@@ -684,15 +684,17 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	public void unregisterClient() {
-		eventLog.startBlock(currentClientString() + "Unregister dynamically registered client");
+		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
+			eventLog.startBlock(currentClientString() + "Unregister dynamically registered client");
 
-		call(condition(UnregisterDynamicallyRegisteredClient.class)
-			.skipIfObjectsMissing(new String[] {"client"})
-			.onSkip(ConditionResult.INFO)
-			.onFail(ConditionResult.WARNING)
-			.dontStopOnFailure());
+			call(condition(UnregisterDynamicallyRegisteredClient.class)
+				.skipIfObjectsMissing(new String[]{"client"})
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure());
 
-		eventLog.endBlock();
+			eventLog.endBlock();
+		}
 	}
 
 	protected String currentClientString() {
