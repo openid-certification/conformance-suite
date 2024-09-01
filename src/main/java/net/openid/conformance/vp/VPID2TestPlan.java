@@ -2,14 +2,12 @@ package net.openid.conformance.vp;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
-import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "vp-test-plan",
@@ -43,19 +41,18 @@ public class VPID2TestPlan implements TestPlan {
 					new Variant(ResponseType.class, "id_token"),
 					// FIXME: confirm if most of these options should be removed as I don't think they're ever going to be applicable
 					new Variant(ServerMetadata.class, "static"),
-					new Variant(ClientRegistration.class, "static_client"),
-					new Variant(ClientAuthType.class, "none")
+					new Variant(ClientRegistration.class, "static_client")
 				)
 			)
 		);
 	}
 	public static String certificationProfileName(VariantSelection variant) {
 
-		Map<String, String> v = variant.getVariant();
-		String responseMode = v.get("response_mode");
-		String credentialFormat = v.get("credential_format");
-		String requestMethod = v.get("request_method");
-		String clientIDScheme = v.get("client_id_scheme");
+//		Map<String, String> v = variant.getVariant();
+//		String responseMode = v.get("response_mode");
+//		String credentialFormat = v.get("credential_format");
+//		String requestMethod = v.get("request_method");
+//		String clientIDScheme = v.get("client_id_scheme");
 
 		String certProfile = "OID4VPID2";
 

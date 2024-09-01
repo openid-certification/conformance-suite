@@ -9,10 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddFormBasedClientIdAuthenticationParameters;
-import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
@@ -51,17 +48,11 @@ import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
-import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
-import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientAuthNone;
-import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretBasic;
-import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsClientSecretPost;
-import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
-import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -71,10 +62,7 @@ import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpoint
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
-import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractVpToken;
-import net.openid.conformance.condition.client.GenerateJWKsFromClientSecret;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
@@ -99,9 +87,6 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAutho
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
-import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
-import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
-import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateSdJwtHolderBindingSignature;
 import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
@@ -112,14 +97,10 @@ import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCiph
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
-import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
@@ -130,18 +111,14 @@ import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
-import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
-import java.util.function.Supplier;
 
 @VariantParameters({
 	CredentialFormat.class,
 	VPClientIdScheme.class,
 	ServerMetadata.class,
-	ClientAuthType.class,
 	ResponseType.class,
 	VPResponseMode.class,
 	VPRequestMethod.class,
@@ -152,24 +129,6 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {
 	"server.discoveryUrl"
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
-	"client.client_secret"
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = {
-	"client.client_secret"
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_jwt", configurationFields = {
-	"client.client_secret",
-	"client.client_secret_jwt_alg"
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
-	"client.jwks"
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
-	"mtls.key",
-	"mtls.cert",
-	"mtls.ca"
 })
 @VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "pre_registered", configurationFields = {
 	"client.client_id"
@@ -193,178 +152,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	protected Boolean pre_id2 = null;
 	private boolean serverSupportsDiscovery;
 
-	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
-	protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
-	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
-	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
-
-	public static class ConfigureClientForClientSecretJwt extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(GenerateJWKsFromClientSecret.class);
-		}
-	}
-
-	public class ConfigureClientForAuthTypeNone extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			if (serverSupportsDiscovery) {
-				callAndContinueOnFailure(EnsureServerConfigurationSupportsClientAuthNone.class, ConditionResult.FAILURE);
-			}
-		}
-	}
-
-	public class ConfigureClientForClientSecretBasic extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			if (serverSupportsDiscovery) {
-				callAndContinueOnFailure(EnsureServerConfigurationSupportsClientSecretBasic.class, ConditionResult.FAILURE);
-			}
-		}
-	}
-
-	public class ConfigureClientForClientSecretPost extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			if (serverSupportsDiscovery) {
-				callAndContinueOnFailure(EnsureServerConfigurationSupportsClientSecretPost.class, ConditionResult.FAILURE);
-			}
-		}
-	}
-
-	public class ConfigureClientForPrivateKeyJwt extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			if (serverSupportsDiscovery) {
-				callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, ConditionResult.FAILURE);
-			}
-		}
-	}
-
-	public static class ConfigureClientForMtls extends AbstractConditionSequence {
-		private boolean serverSupportsDiscovery;
-		private boolean secondClient;
-
-		public ConfigureClientForMtls(boolean serverSupportsDiscovery, boolean secondClient) {
-			this.secondClient = secondClient;
-			this.serverSupportsDiscovery = serverSupportsDiscovery;
-		}
-
-		@Override
-		public void evaluate() {
-			if (!secondClient) {
-				if (serverSupportsDiscovery) {
-					callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, ConditionResult.FAILURE);
-				}
-				callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, ConditionResult.WARNING);
-				callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, ConditionResult.FAILURE);
-			} else {
-				// TODO: use environment mapping so we don't need two versions of these conditions
-				callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, ConditionResult.WARNING);
-				callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, ConditionResult.FAILURE);
-			}
-			callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, ConditionResult.FAILURE);
-		}
-	}
-
-	public static class ConfigureStaticClientForPrivateKeyJwt extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-			callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		}
-	}
-
-	public static class ConfigureStaticClient extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			// for auth types other than private_key_jwt we might still need a jwks if the server is returning
-			// encrypted id_tokens; extract one if it's there.
-			// FIXME these are required for isomdl
-			call(condition(ValidateClientJWKsPrivatePart.class)
-				.skipIfElementMissing("client", "jwks")
-				.onSkip(ConditionResult.INFO)
-				.requirements("RFC7517-1.1")
-				.onFail(ConditionResult.FAILURE));
-
-			call(condition(ExtractJWKsFromStaticClientConfiguration.class)
-				.skipIfElementMissing("client", "jwks")
-				.onSkip(ConditionResult.INFO)
-				.onFail(ConditionResult.FAILURE));
-
-			call(condition(CheckDistinctKeyIdValueInClientJWKs.class)
-				.skipIfElementMissing("client", "jwks")
-				.onSkip(ConditionResult.INFO)
-				.requirements("RFC7517-4.5")
-				.onFail(ConditionResult.FAILURE));
-		}
-	}
-
-	public static class AddAuthClientNoneAuthenticationToTokenRequest extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(AddFormBasedClientIdAuthenticationParameters.class);
-		}
-	}
-
-	public static class AddBasicAuthClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
-		}
-	}
-
-	public static class AddFormBasedClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
-		}
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "none")
-	public void setupNone() {
-		profileStaticClientConfiguration = ConfigureStaticClient.class;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForAuthTypeNone();
-		addTokenEndpointClientAuthentication = AddAuthClientNoneAuthenticationToTokenRequest.class;
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_basic")
-	public void setupClientSecretBasic() {
-		profileStaticClientConfiguration = ConfigureStaticClient.class;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretBasic();
-		addTokenEndpointClientAuthentication = AddBasicAuthClientSecretAuthenticationToTokenRequest.class;
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_post")
-	public void setupClientSecretPost() {
-		profileStaticClientConfiguration = ConfigureStaticClient.class;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretPost();
-		addTokenEndpointClientAuthentication = AddFormBasedClientSecretAuthenticationToTokenRequest.class;
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_secret_jwt")
-	public void setupClientSecretJwt() {
-		profileStaticClientConfiguration = ConfigureStaticClient.class;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForClientSecretJwt();
-		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
-	public void setupPrivateKeyJwt() {
-		profileStaticClientConfiguration = ConfigureStaticClientForPrivateKeyJwt.class;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForPrivateKeyJwt();
-		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
-	public void setupMtls() {
-		profileStaticClientConfiguration = ConfigureStaticClient.class;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(serverSupportsDiscovery(), isSecondClient());
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
-		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
-	}
-
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
@@ -382,9 +169,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			return;
 		}
 		serverSupportsDiscovery = getVariant(ServerMetadata.class) == ServerMetadata.DISCOVERY;
-
-		ClientAuthType clientAuthType = getVariant(ClientAuthType.class);
-		env.putString("client_auth_type", clientAuthType.toString());
 
 		responseType = getVariant(ResponseType.class);
 		env.putString("response_type", responseType.toString());
@@ -435,10 +219,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			case STATIC:
 				callAndStopOnFailure(GetStaticServerConfiguration.class);
 				break;
-		}
-
-		if (supportMTLSEndpointAliases != null) {
-			call(sequence(supportMTLSEndpointAliases));
 		}
 
 		// make sure the server configuration passes some basic sanity checks
@@ -520,9 +300,34 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void configureStaticClient() {
-		if (profileStaticClientConfiguration != null) {
-			call(sequence(profileStaticClientConfiguration));
+		JsonElement el = env.getElementFromObject("client", "jwks");
+		if (el == null) {
+			boolean jwksRequired = false;
+			// keys are needed for signed requests or encrypted responses
+			switch (requestMethod) {
+				case URL_QUERY:
+				case REQUEST_URI_UNSIGNED:
+					break;
+				case REQUEST_URI_SIGNED:
+					jwksRequired = true;
+					break;
+			}
+			switch (responseMode) {
+				case DIRECT_POST:
+					break;
+				case DIRECT_POST_JWT:
+					// assume response is encrypted so a key is required
+					jwksRequired = true;
+					break;
+			}
+
+			if (!jwksRequired) {
+				return;
+			}
 		}
+		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
 	}
 
 	protected void createDynamicClientRegistrationRequest() {
@@ -544,11 +349,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void completeClientConfiguration() {
-		//callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class); // FIXME need a configurable scope as it might be used instead of presentation definition
-
-		if (profileCompleteClientConfiguration != null) {
-			call(sequence(profileCompleteClientConfiguration));
-		}
 	}
 
 	@Override
@@ -866,20 +666,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void performPostAuthorizationFlow() {
-		if (responseType.includesCode()) {
-			// call the token endpoint and complete the flow
-			createAuthorizationCodeRequest();
-			requestAuthorizationCode();
-			requestProtectedResource();
-		}
 		onPostAuthorizationFlowComplete();
-	}
-
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-		if (addTokenEndpointClientAuthentication != null) {
-			call(sequence(addTokenEndpointClientAuthentication));
-		}
 	}
 
 	protected void requestAuthorizationCode() {
