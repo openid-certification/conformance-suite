@@ -75,7 +75,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPostJwt;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
-import net.openid.conformance.condition.client.SetClientIdToResponseUriHostname;
+import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
@@ -130,6 +130,9 @@ import org.springframework.http.ResponseEntity;
 	"server.discoveryUrl"
 })
 @VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "pre_registered", configurationFields = {
+	"client.client_id"
+})
+@VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
@@ -196,7 +199,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				break;
 			case X509_SAN_DNS:
 				// FIXME: verify that hostname is actually in the certificate
-				callAndStopOnFailure(SetClientIdToResponseUriHostname.class);
+				callAndStopOnFailure(SetClientIdToResponseUriHostnameIfUnset.class);
 				break;
 		}
 
