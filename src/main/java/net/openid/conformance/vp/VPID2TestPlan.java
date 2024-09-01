@@ -34,7 +34,7 @@ public class VPID2TestPlan implements TestPlan {
 					// sending client_id != response_uri when using redirect client scheme + direct post
 					// sending invalid client_id_scheme should cause an error?
 					// flow without nonce
-					// for x509 client id scheme, try a client_id that's not permitted by the cert?
+					// for x509 client id scheme, try a client_id that's not permitted by the cert? FIXME
 				),
 				List.of(
 					// a hack; not actually id_token we'll hardwire vp token

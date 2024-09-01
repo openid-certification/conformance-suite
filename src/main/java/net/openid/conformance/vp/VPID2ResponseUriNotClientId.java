@@ -21,6 +21,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 // For x509 dns the client_id we try would need to be on a different hostname; but even this is permitted by the specs in some cases:
 // "If the Wallet can establish trust in the Client Identifier authenticated through the certificate, e.g. because the Client Identifier is contained in a list of trusted Client Identifiers, it may allow the client to freely choose the redirect_uri value."
 // So we just don't do this test for x509_san_dns for now
+
+// FIXME: can replace this with a test that uses an invalid client_id instead, which'd be valid for all client id schemes? or is that a new test?
 @VariantNotApplicable(parameter = VPClientIdScheme.class, values={"x509_san_dns"})
 public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 	@Override
