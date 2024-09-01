@@ -16,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestTemplate;
 
@@ -56,9 +55,6 @@ public class AbstractCondition_UnitTest {
 	private AbstractConditionTester opt;
 	// optional condition with requirements
 	private AbstractConditionTester optReqs;
-
-	@Spy
-	private Environment env = new Environment();
 
 	@Mock
 	private TestInstanceEventLog eventLog;

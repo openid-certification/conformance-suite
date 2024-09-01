@@ -48,13 +48,12 @@ public class DecryptResponse extends AbstractCondition {
 			EncryptedJWT encryptedJWT = (EncryptedJWT) token;
 			JsonObject jweHeader = JWTUtil.jwtHeaderAsJsonObject(token);
 			JWEAlgorithm alg = encryptedJWT.getHeader().getAlgorithm();
-			JWK decryptionKey = null;
 
 			if (clientJwks == null) {
 				throw new ParseException("A JWKS is required to decrypt this JWT", 0);
 			}
 			JWKSet jwkSet = JWKUtil.parseJWKSet(clientJwks.toString());
-			decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
+			JWK decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
 			if (decryptionKey == null) {
 				throw new ParseException("No suitable key for decrypting this JWT was provided in the test configuration.", 0);
 			}

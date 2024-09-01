@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +41,7 @@ public class ValidateClientLogoUris extends AbstractClientValidationCondition
 		//  org.springframework.data.mapping.MappingException: Map key
 		//  https://www.example.com/a.png contains dots but no replacement was configured!
 		//  Make sure map keys don't contain dots in the first place or configure an appropriate replacement!
-		List<String> uriContentTypesMap = new LinkedList<>();
+		List<String> uriContentTypesMap = new ArrayList<>();
 		RestTemplate restTemplate = null;
 		try {
 			restTemplate = createRestTemplate(env, false);

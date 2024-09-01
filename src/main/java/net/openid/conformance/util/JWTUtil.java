@@ -36,7 +36,8 @@ public class JWTUtil {
 	public static void validateJwtContainsOnlyAllowedCharacters(String jwt) throws ParseException {
 		// the allowed characters is base64url plus '.'
 		String regex = "[.a-zA-Z0-9_-]";
-		for (char character : jwt.toCharArray()) {
+		for (int i = 0; i < jwt.length(); i++) {
+			char character = jwt.charAt(i);
 			if (!Pattern.matches(regex, String.valueOf(character))) {
 				throw new ParseException(String.format("The jwt is invalid because it contains the character %s that is neither a '.' nor one permitted in unpadded base64url", character), 0);
 			}

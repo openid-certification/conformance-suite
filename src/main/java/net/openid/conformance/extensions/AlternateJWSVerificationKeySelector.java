@@ -12,8 +12,8 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -35,6 +35,7 @@ public class AlternateJWSVerificationKeySelector<C extends SecurityContext> exte
 
 	// Modified code from super.selectJWSKeys to return JWSVerifier instead of Key due to
 	// EdDSA OctetKeyPair throwing a not implemented exception for toKeyPair()
+	@SuppressWarnings("MixedMutabilityReturnType")
 	public List<JWK> selectJWSJwks(JWSHeader jwsHeader, final C context) throws JOSEException {
 		if (! jwsAlgs.contains(jwsHeader.getAlgorithm())) {
 			// Unexpected JWS alg
@@ -48,7 +49,7 @@ public class AlternateJWSVerificationKeySelector<C extends SecurityContext> exte
 
 		List<JWK> jwkMatches = getJWKSource().get(new JWKSelector(jwkMatcher), context);
 		// Get non-EdDSA keys from original function
-		List<JWK> sanitizedJWKs = new LinkedList<>();
+		List<JWK> sanitizedJWKs = new ArrayList<>();
 		for(JWK jwk: jwkMatches) {
 			if (jwk instanceof AsymmetricJWK) {
 				sanitizedJWKs.add(jwk.toPublicJWK());

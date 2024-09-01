@@ -9,7 +9,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCondition {
@@ -21,21 +20,6 @@ public class FAPIBrazilValidateRequestObjectIdTokenACRClaims extends AbstractCon
 
 		String scope = env.getString("authorization_request_object", "claims.scope");
 		List<String> scopes = Lists.newArrayList(Splitter.on(" ").split(scope).iterator());
-
-		List<String> expectedValues = new ArrayList<>();
-		//Read-and-Write APIs (Transactional): shall require resource owner authentication to at least LoA3.
-
-		if (scopes.contains("accounts")) {
-			expectedValues.add("urn:brasil:openbanking:loa2");
-			expectedValues.add("urn:brasil:openbanking:loa3");
-		}
-		if (scopes.contains("payments")) {
-			expectedValues.add("urn:brasil:openbanking:loa3");
-		}
-		// changing to customers as the reference implementation does not support resources endpoint
-		if (scopes.contains("customers")) {
-			expectedValues.add("urn:brasil:openinsurance:loa2");
-		}
 
 		JsonElement acrClaim = env.getElementFromObject("authorization_request_object", "claims.claims.id_token.acr");
 		if (acrClaim == null) {

@@ -36,6 +36,9 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 			} else {
 				JsonObject claimBody = new JsonObject();
 				switch (requestType) {
+					case AsNull:
+						// already handled
+						break;
 					case AsEmpty:
 						break;
 					case EssentialTrue:

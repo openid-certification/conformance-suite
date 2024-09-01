@@ -27,7 +27,7 @@ public class ValidateClientAssertionAudClaimForPAREndpoint extends AbstractCondi
 		}
 
 		if (aud.isJsonArray()) {
-			if (! (aud.getAsJsonArray().contains(new JsonPrimitive(issuer)))) {
+			if (!aud.getAsJsonArray().contains(new JsonPrimitive(issuer))) {
 				throw error("aud claim array does not contain the authentication server issuer url", args("expected", issuer, "actual", aud));
 			}
 		} else {

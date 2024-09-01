@@ -120,6 +120,7 @@ public class VariantService {
 		return builder.build();
 	}
 
+	@SuppressWarnings("JdkObsolete") // errorprone doesn't like 'LinkedList' but ArrayList doesn't have an 'addFirst'
 	private static <A extends Annotation> Stream<A> inCombinedAnnotations(
 			Class<? extends TestModule> testClass,
 			Class<A> annotationClass) {
@@ -136,6 +137,7 @@ public class VariantService {
 				.flatMap(c -> Arrays.stream(c.getDeclaredAnnotationsByType(annotationClass)));
 	}
 
+	@SuppressWarnings("NonApiType")
 	private static <T, K, U> Collector<T, ?, LinkedHashMap<K, U>> toOrderedMap(
 			Function<? super T, ? extends K> keyMapper,
 			Function<? super T, ? extends U> valueMapper) {
@@ -697,7 +699,7 @@ public class VariantService {
 	 *
 	 * @param <T> the variant
 	 */
-	class TestModuleVariantInfo<T extends Enum<T>> {
+	static class TestModuleVariantInfo<T extends Enum<T>> {
 
 		final ParameterHolder<T> parameter;
 		final Set<T> allowedValues;

@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AddRandomLocationClaimsToAuthorizationEndpointRequest extends AbstractAddClaimToAuthorizationEndpointRequest {
@@ -19,7 +19,7 @@ public class AddRandomLocationClaimsToAuthorizationEndpointRequest extends Abstr
 
 		String locationStr = RandomStringUtils.randomAlphanumeric(10);
 		JsonObject claimsObject = getClaimsForLocation(authorizationEndpointRequest, locationStr);
-		List<String> claimsToAdd = new LinkedList<>();
+		List<String> claimsToAdd = new ArrayList<>();
 		claimsToAdd.add(RandomStringUtils.randomAlphanumeric(10));
 		addRequestsForClaims(claimsObject, claimsToAdd);
 

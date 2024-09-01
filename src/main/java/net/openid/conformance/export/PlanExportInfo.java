@@ -1,7 +1,7 @@
 package net.openid.conformance.export;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +19,7 @@ public class PlanExportInfo {
 		this.exportedBy = principal;
 		this.exportedVersion = version;
 		this.planInfo = planInfo;
-		testLogExports = new LinkedList<>();
+		testLogExports = new ArrayList<>();
 	}
 
 	public void addTestExportInfoHolder(TestExportInfoHolder testExportInfoHolder) {

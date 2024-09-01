@@ -132,8 +132,8 @@ public class FAPI1AdvancedFinalBrV1TestPlan implements TestPlan {
 				break;
 			case "openbanking_uk":
 				certProfile = "UK-OB";
-				if (par || jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR/JARM are not used in UK",
+				if (par) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: PAR are not used in UK",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -153,10 +153,6 @@ public class FAPI1AdvancedFinalBrV1TestPlan implements TestPlan {
 			case "openbanking_ksa":
 				if (!par) {
 					throw new RuntimeException(String.format("Invalid configuration for %s: PAR is required for KSA OB",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in KSA OB",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				certProfile = "KSA-OB";

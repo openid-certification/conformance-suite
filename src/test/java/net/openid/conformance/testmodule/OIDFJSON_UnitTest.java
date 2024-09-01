@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("UnusedVariable")
 public class OIDFJSON_UnitTest {
 
 	@Test

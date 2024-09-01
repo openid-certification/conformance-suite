@@ -6,8 +6,8 @@ import org.bson.Document;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,9 +28,9 @@ public class TestHelper {
 	private TestInfo testInfoObject;
 	private PublicTestInfo publicTestInfo;
 	private List<Document> testResults;
-	private List<LogEntryHelper> logEntryHelpers = new LinkedList<>();
+	private List<LogEntryHelper> logEntryHelpers = new ArrayList<>();
 
-	private List<String> failures = new LinkedList<>();
+	private List<String> failures = new ArrayList<>();
 	private int successCount;
 	private int failureCount;
 	private int warningCount;

@@ -45,8 +45,8 @@ public class FAPI2SPID2PARTokenEndpointAsAudienceForJWTClientAssertion extends A
 	*/
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
-		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
+		call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().replace(
 			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
-			condition(AddTokenEndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2"))));
+			condition(AddTokenEndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2")));
 	}
 }

@@ -237,7 +237,8 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 		for (String key : keys) {
 			String value = OIDFJSON.getString(keyObject.get(key));
 			String regex = "[a-zA-Z0-9_-]";
-			for (char character : value.toCharArray()) {
+			for (int i = 0; i < value.length(); i++) {
+				char character = value.charAt(i);
 				if (!Pattern.matches(regex, String.valueOf(character))) {
 					throw error(String.format("Value of key %s is invalid because it contains the character %s that is not permitted in unpadded base64url", key, character), args("jwk", keyObject));
 				}

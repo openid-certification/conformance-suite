@@ -45,8 +45,8 @@ public class FAPI2SPID2PAREndpointAsAudienceForJWTClientAssertion extends Abstra
 	*/
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
-		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
+		call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().replace(
 			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
-			condition(AddPAREndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2"))));
+			condition(AddPAREndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2")));
 	}
 }

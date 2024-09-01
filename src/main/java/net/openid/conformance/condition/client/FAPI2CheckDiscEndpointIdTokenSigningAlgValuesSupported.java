@@ -5,6 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
+@SuppressWarnings("MutablePublicArray")
 public class FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "id_token_signing_alg_values_supported";

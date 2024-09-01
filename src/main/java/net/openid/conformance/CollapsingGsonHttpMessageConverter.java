@@ -19,17 +19,11 @@ import java.util.stream.Collectors;
 
 public final class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
 
-	/**
-	 *
-	 */
 	public CollapsingGsonHttpMessageConverter() {
 		super();
 		this.setGson(getDbObjectCollapsingGson());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.http.converter.AbstractGenericHttpMessageConverter#supports(java.lang.Class)
-	 */
 	@Override
 	public boolean canRead(Class<?> clazz, MediaType mediaType) {
 		if (JsonElement.class.isAssignableFrom(clazz)) {

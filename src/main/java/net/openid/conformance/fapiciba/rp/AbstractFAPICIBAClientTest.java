@@ -1,6 +1,9 @@
 package net.openid.conformance.fapiciba.rp;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
@@ -129,10 +132,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -934,9 +933,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			JsonObject headerJson = env.getObject("consent_response_headers");
 
 			HttpHeaders headers = headersFromJson(headerJson);
-			if(isPayments) {
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-			}
+			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 		} else {
 			callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
@@ -974,9 +971,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			JsonObject headerJson = env.getObject("consent_response_headers");
 
 			HttpHeaders headers = headersFromJson(headerJson);
-			if(isPayments) {
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-			}
+			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
 
 		} else {
@@ -1027,7 +1022,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4.class, ConditionResult.FAILURE, "BrazilOB-6.1-3");
 		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, ConditionResult.FAILURE, "BrazilOB-6.1-3");
 
-		ResponseEntity<Object> responseEntity = null;
 		callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
 		callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1-2");
 		String signedConsentResponse = env.getString("signed_payment_initiation_response");
@@ -1035,7 +1029,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		HttpHeaders headers = headersFromJson(headerJson);
 		headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-		responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
+		ResponseEntity<Object> responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 
 		callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
 

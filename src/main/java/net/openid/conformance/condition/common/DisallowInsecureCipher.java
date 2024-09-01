@@ -127,7 +127,7 @@ public class DisallowInsecureCipher extends AbstractCondition {
 					}
 
 					@Override
-					@SuppressWarnings("rawtypes") // fit with the API
+					@SuppressWarnings({"rawtypes", "JdkObsolete"}) // fit with the API
 					public Hashtable getClientExtensions() throws IOException {
 						Hashtable clientExtensions = super.getClientExtensions();
 						Vector<ServerName> serverNameList = new Vector<>();

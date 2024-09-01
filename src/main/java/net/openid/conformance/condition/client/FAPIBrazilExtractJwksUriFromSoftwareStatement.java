@@ -16,7 +16,7 @@ public class FAPIBrazilExtractJwksUriFromSoftwareStatement extends AbstractCondi
 		// This is as per the Brazil (and UK) OpenBanking dynamic client registration specification
 		String jwksUri = env.getString("software_statement_assertion", "claims.software_jwks_uri");
 
-		if (Strings.isNullOrEmpty((jwksUri))) {
+		if (Strings.isNullOrEmpty(jwksUri)) {
 			throw error("Software statement 'software_jwks_uri' missing or empty");
 		}
 

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -39,8 +39,8 @@ public class CertificationOfConformanceUtil_UnitTest
 		final String progLangFieldValue = "JavaScript for Node.js";
 		final String licenseFieldValue = "Apache 2.0";
 
-		List<String> originalFields = new LinkedList<>();
-		List<String> reloadedFields = new LinkedList<>();
+		List<String> originalFields = new ArrayList<>();
+		List<String> reloadedFields = new ArrayList<>();
 		try (PDDocument pdfDocument = PDDocument.load(new File(formTemplate))) {
 			PDAcroForm acroForm = pdfDocument.getDocumentCatalog().getAcroForm(null);
 

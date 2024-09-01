@@ -1,13 +1,13 @@
 package net.openid.conformance.fapi1advancedfinalfapibrv1;
 
+import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.UpdateClientAuthenticationAssertionClaimsWithISSAud;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims;
 
 
 
@@ -48,9 +48,9 @@ public class FAPI1AdvancedFinalBrV1PARArrayAsAudienceForJWTClientAssertion exten
 
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
-		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
+		call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().replace(
 			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
-			condition(AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.3"))));
+			condition(AddArrayContainingIssuerAndAnotherValueAsAudToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.3")));
 	}
 
 	@Override

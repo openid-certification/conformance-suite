@@ -1,6 +1,9 @@
 package net.openid.conformance.fapi1advancedfinalfapibrv1;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AbstractBrazilAddACRClaimToIdTokenClaims;
@@ -196,9 +199,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.Arrays;
 import java.util.List;
 
@@ -677,9 +677,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ClientTest extends AbstractT
 			JsonObject headerJson = env.getObject("consent_response_headers");
 
 			HttpHeaders headers = headersFromJson(headerJson);
-			if(isPayments) {
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-			}
+			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 		} else {
 			callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
@@ -722,9 +720,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ClientTest extends AbstractT
 			JsonObject headerJson = env.getObject("consent_response_headers");
 
 			HttpHeaders headers = headersFromJson(headerJson);
-			if(isPayments) {
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-			}
+			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
 
 		} else {
@@ -778,7 +774,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ClientTest extends AbstractT
 		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
 
 
-		ResponseEntity<Object> responseEntity = null;
+		ResponseEntity<Object> responseEntity;
 		callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
 		callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
 		String signedConsentResponse = env.getString("signed_payment_initiation_response");

@@ -19,9 +19,6 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 
 	private Gson gson = new GsonBuilder().serializeNulls().create();
 
-	/* (non-Javadoc)
-	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
-	 */
 	@Override
 	public BsonArray convert(JsonArray source) {
 		if (source == null) {

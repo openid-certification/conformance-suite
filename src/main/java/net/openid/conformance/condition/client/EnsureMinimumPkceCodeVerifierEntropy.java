@@ -20,9 +20,6 @@ public class EnsureMinimumPkceCodeVerifierEntropy extends AbstractEnsureMinimumE
 	 */
 	private final double requiredEntropy = 180;
 
-	/* (non-Javadoc)
-	 * @see Condition#evaluate(Environment)
-	 */
 	@Override
 	@PreEnvironment(required = "token_endpoint_request")
 	public Environment evaluate(Environment env) {

@@ -62,7 +62,7 @@ public class OIDCCClientTestIdTokenSigAlgNone extends AbstractOIDCCClientTest {
 	@Override
 	protected void startWaitingForTimeout() {
 		getTestExecutionManager().runInBackground(() -> {
-			Thread.sleep(waitTimeoutSeconds * 1000);
+			Thread.sleep(waitTimeoutSeconds * 1000L);
 			if (getStatus().equals(Status.WAITING)) {
 				setStatus(Status.RUNNING);
 				fireTestSkipped("Client did not send a userinfo request after receiving an unsigned id_token. As clients are not required to support unsigned (alg: none) id_tokens this is okay.");

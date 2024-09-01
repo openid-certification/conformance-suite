@@ -19,11 +19,11 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims ext
 			// check value, values
 			JsonObject acrObj = acrClaim.getAsJsonObject();
 			JsonElement valueElement = acrObj.get("value");
-			if((null != valueElement) && (valueElement.isJsonPrimitive())) {
+			if(null != valueElement && valueElement.isJsonPrimitive()) {
 				throw error("Authorization request claims object contains ID Token acr request", args("claims id_token acr value", acrClaim));
 			}
 			valueElement = acrObj.get("values");
-			if((null != valueElement) && (valueElement.isJsonArray())) {
+			if(null != valueElement && valueElement.isJsonArray()) {
 				throw error("Authorization request claims object contains ID Token acr request values", args("claims id_token acr values", acrClaim));
 			}
 		}

@@ -49,8 +49,8 @@ public class FAPI1AdvancedFinalBrV1PARCheckAudienceForJWTClientAssertion extends
 	*/
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
-		call(((new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest()).replace(
+		call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().replace(
 			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
-			condition(AddPAREndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2"))));
+			condition(AddPAREndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2")));
 	}
 }

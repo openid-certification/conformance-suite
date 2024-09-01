@@ -18,6 +18,7 @@ public class CheckForDateHeaderInResourceResponse extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "resource_endpoint_response_headers")
+	@SuppressWarnings("JavaTimeDefaultTimeZone")
 	public Environment evaluate(Environment env) {
 
 		String dateStr = env.getString("resource_endpoint_response_headers", "date");

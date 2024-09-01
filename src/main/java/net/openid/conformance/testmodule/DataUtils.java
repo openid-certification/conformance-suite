@@ -11,9 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -163,7 +163,7 @@ public interface DataUtils {
 				JsonElement jsonElement = headerJson.get(header);
 				if(jsonElement.isJsonArray()){
 					JsonArray jsonArray = jsonElement.getAsJsonArray();
-					List<String> strings = new LinkedList<>();
+					List<String> strings = new ArrayList<>();
 					for (int i = 0; i < jsonArray.size(); i++) {
 						strings.add(OIDFJSON.getString(jsonArray.get(i)));
 					}

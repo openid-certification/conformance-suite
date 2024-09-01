@@ -20,7 +20,7 @@ public class CreateDpopHeader extends AbstractCondition {
 		} catch (ParseException e) {
 			throw error("Invalid DPoP JWK", e, args("jwk", jwk));
 		}
-		JsonObject pubObj = (JsonParser.parseString(parsedJwk.toPublicJWK().toString())).getAsJsonObject();
+		JsonObject pubObj = JsonParser.parseString(parsedJwk.toPublicJWK().toString()).getAsJsonObject();
 
 		return pubObj;
 	}

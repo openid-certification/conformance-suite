@@ -5,6 +5,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.Arrays;
 
+@SuppressWarnings("MutablePublicArray")
 public class AustraliaConnectIdCheckClaimsSupported extends AbstractValidateJsonArray {
 
 	private static final String environmentVariable = "claims_supported";

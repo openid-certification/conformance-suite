@@ -1,5 +1,7 @@
 package net.openid.conformance.variant;
 
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 
 @VariantParameter(
@@ -16,10 +18,10 @@ public enum ResponseType {
 	CODE_TOKEN("code", "token"),
 	CODE_ID_TOKEN_TOKEN("code", "id_token", "token");
 
-	private final List<String> types;
+	private final ImmutableList<String> types;
 
 	private ResponseType(String... responseTypes) {
-		this.types = List.of(responseTypes);
+		this.types = ImmutableList.copyOf(List.of(responseTypes));
 	}
 
 	@Override

@@ -44,7 +44,6 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.net.Proxy.Type;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
@@ -706,7 +705,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			// Note that the above 'log' doesn't make the test result be a warning; it would be better if it did but
 			// that's not simple to achieve from here
 
-			Proxy proxy = new Proxy(Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+			Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
 			socket = new Socket(proxy);
 			socket.connect(new InetSocketAddress(targetHost, targetPort));
 		} else {

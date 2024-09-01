@@ -3,6 +3,13 @@
     <JavaCodeStyleSettings>
       <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="1000" />
       <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="1000" />
+      <option name="PACKAGES_TO_USE_IMPORT_ON_DEMAND">
+        <value>
+          <package name="java.awt" withSubpackages="false" static="false" />
+          <package name="java.util.stream.Collectors" withSubpackages="false" static="false" />
+          <package name="javax.swing" withSubpackages="false" static="false" />
+        </value>
+      </option>
     </JavaCodeStyleSettings>
     <codeStyleSettings language="JAVA">
       <indentOptions>
