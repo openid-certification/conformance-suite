@@ -7,8 +7,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "oid4vp-happy-flow-no-state",
-	displayName = "OID4VP: Unsigned request_uri",
-	summary = "Expects the wallet to correctly process a request without state",
+	displayName = "OID4VP: Happy flow test with no 'state' parameter",
+	summary = "Expects the wallet to correctly process a request without a state parameter, which is an optional parameter in the OID4VP specification.",
 	profile = "OID4VP-ID2",
 	configurationFields = {
 		"client.presentation_definition",
