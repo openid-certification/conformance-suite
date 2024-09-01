@@ -19,7 +19,6 @@ import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndp
 import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
@@ -305,7 +304,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			boolean jwksRequired = false;
 			// keys are needed for signed requests or encrypted responses
 			switch (requestMethod) {
-				case URL_QUERY:
+//				case URL_QUERY:
 				case REQUEST_URI_UNSIGNED:
 					break;
 				case REQUEST_URI_SIGNED:
@@ -570,9 +569,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	protected void createAuthorizationRedirect() {
 		// alternative without request_uri
 		switch (requestMethod) {
-			case URL_QUERY:
-				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class); // FIXME: doesn't work, Caught exception from test framework: [openid4vp://] is not a valid HTTP URL
-				break;
+//			case URL_QUERY:
+//				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class); // FIXME: doesn't work, Caught exception from test framework: [openid4vp://] is not a valid HTTP URL
+//				break;
 			case REQUEST_URI_UNSIGNED:
 				call(new CreateAuthorizationRedirectStepsUnsignedRequestUri());
 				break;
