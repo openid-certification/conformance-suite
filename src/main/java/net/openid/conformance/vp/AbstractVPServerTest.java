@@ -32,6 +32,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
+import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckNonceInBindingJwt;
@@ -198,7 +199,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				callAndStopOnFailure(SetClientIdToResponseUri.class);
 				break;
 			case X509_SAN_DNS:
-				// FIXME: verify that hostname is actually in the certificate
 				callAndStopOnFailure(SetClientIdToResponseUriHostnameIfUnset.class);
 				break;
 		}
@@ -351,6 +351,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void completeClientConfiguration() {
+		if (clientIdScheme == VPClientIdScheme.X509_SAN_DNS) {
+			callAndContinueOnFailure(CheckIfClientIdInX509CertSanDns.class, ConditionResult.FAILURE);
+		}
 	}
 
 	@Override
