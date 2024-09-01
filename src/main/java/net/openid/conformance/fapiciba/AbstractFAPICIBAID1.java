@@ -2,6 +2,9 @@ package net.openid.conformance.fapiciba;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckAuthReqIdInCallback;
 import net.openid.conformance.condition.as.CheckCIBAModeIsPoll;
@@ -198,9 +201,6 @@ import net.openid.conformance.variant.VariantSetup;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -599,32 +599,38 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	public void unregisterClient1() {
-		eventLog.startBlock("Unregister dynamically registered client");
+		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
 
-		// IF management interface, delete the client to clean up
-		call(condition(UnregisterDynamicallyRegisteredClient.class)
-			.skipIfObjectsMissing(new String[] {"client"})
-			.onSkip(Condition.ConditionResult.INFO)
-			.onFail(Condition.ConditionResult.WARNING)
-			.dontStopOnFailure());
+			eventLog.startBlock("Unregister dynamically registered client");
 
-		eventLog.endBlock();
+			// IF management interface, delete the client to clean up
+			call(condition(UnregisterDynamicallyRegisteredClient.class)
+				.skipIfObjectsMissing(new String[]{"client"})
+				.onSkip(Condition.ConditionResult.INFO)
+				.onFail(Condition.ConditionResult.WARNING)
+				.dontStopOnFailure());
+
+			eventLog.endBlock();
+		}
 	}
 
 	public void unregisterClient2() {
-		eventLog.startBlock("Unregister dynamically registered client2");
+		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
 
-		env.mapKey("client", "client2");
+			eventLog.startBlock("Unregister dynamically registered client2");
 
-		call(condition(UnregisterDynamicallyRegisteredClient.class)
-			.skipIfObjectsMissing(new String[] {"client"})
-			.onSkip(Condition.ConditionResult.INFO)
-			.onFail(Condition.ConditionResult.WARNING)
-			.dontStopOnFailure());
+			env.mapKey("client", "client2");
 
-		env.unmapKey("client");
+			call(condition(UnregisterDynamicallyRegisteredClient.class)
+				.skipIfObjectsMissing(new String[]{"client"})
+				.onSkip(Condition.ConditionResult.INFO)
+				.onFail(Condition.ConditionResult.WARNING)
+				.dontStopOnFailure());
 
-		eventLog.endBlock();
+			env.unmapKey("client");
+
+			eventLog.endBlock();
+		}
 	}
 
 	@Override
