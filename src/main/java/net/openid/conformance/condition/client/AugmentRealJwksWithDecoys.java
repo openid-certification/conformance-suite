@@ -46,7 +46,7 @@ public class AugmentRealJwksWithDecoys extends AbstractCondition {
 		}
 
 		// try to find the public JWK used for signing
-		List<JWK> publicKeysForSigning = publicJWKSet.getKeys().stream().filter(jwk -> jwk.getKeyUse() == KeyUse.SIGNATURE).toList();
+		List<JWK> publicKeysForSigning = publicJWKSet.getKeys().stream().filter(jwk -> KeyUse.SIGNATURE.equals(jwk.getKeyUse())).toList();
 		if (publicKeysForSigning.isEmpty()) {
 
 			logSuccess("Skipping JWKS decoy generation for server_jwks with missing public keys of use=sig.");
