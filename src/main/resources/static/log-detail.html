@@ -1112,7 +1112,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         if (document.querySelector('#runningTestBrowser .visitBrowserApiBtn') !== null) {
                             document.querySelector('#runningTestBrowser .visitBrowserApiBtn').onclick = async function (evt) {
                                 evt.preventDefault();
-                                var testRequest = `
+                                let browserApiRequest = this.dataset.browserapirequest;
+                                let browserApiSubmitUrl = this.dataset.browserapisubmiturl;
+
+                                let testRequest = `
 {
   "client_id": "digital-credentials.dev",
   "client_id_scheme": "web-origin",
@@ -1170,10 +1173,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
   }
 }
 `;
-                                // const responseUrl = 'https://review-app-dev-branch-3.certification.openid.net/test/a/jhtest/responseuri';
-                                const responseUrl = 'https://localhost.emobix.co.uk:8443/test/a/changeme-my-company-name-vp-test/responseuri';
                                 const xhr = new XMLHttpRequest();
-                                xhr.open('POST', responseUrl, true);
+                                xhr.open('POST', browserApiSubmitUrl, true);
                                 xhr.responseType = "json";
                                 xhr.onload = function () {
                                     console.log('XMLHttpRequest call succeeded. Response:' + JSON.stringify(this.response));
@@ -1206,7 +1207,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 } catch (err) {
                                     console.log("Exception");
                                     console.log(err);
-                                    xhr.send(JSON.stringify({"exception": err}));
+                                    xhr.send(JSON.stringify({"exception": {"name": err.name, "message": err.message}}));
                                     alert(err)
                                 }
                             }

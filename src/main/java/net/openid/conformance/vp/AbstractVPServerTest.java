@@ -3,6 +3,8 @@ package net.openid.conformance.vp;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -72,11 +74,9 @@ import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndp
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPost;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPostJwt;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
-import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
@@ -92,6 +92,7 @@ import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Ur
 import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
 import net.openid.conformance.condition.common.CreateRandomRequestUri;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -101,6 +102,8 @@ import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAnd
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
@@ -113,6 +116,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -178,6 +182,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		env.putString("response_type", responseType.toString());
 
 		responseMode = getVariant(VPResponseMode.class);
+		env.putString("response_mode", responseMode.toString());
 		credentialFormat = getVariant(CredentialFormat.class);
 		requestMethod = getVariant(VPRequestMethod.class);
 		clientIdScheme = getVariant(VPClientIdScheme.class);
@@ -188,9 +193,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		switch (responseMode) {
 			case DIRECT_POST:
 			case DIRECT_POST_JWT:
+				callAndStopOnFailure(CreateDirectPostResponseUri.class);
+				break;
 			case W3C_DC_API_JWT:
 			case W3C_DC_API:
-				callAndStopOnFailure(CreateDirectPostResponseUri.class);
 				break;
 		}
 
@@ -202,7 +208,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				callAndStopOnFailure(SetClientIdToResponseUri.class);
 				break;
 			case X509_SAN_DNS:
-				callAndStopOnFailure(SetClientIdToResponseUriHostnameIfUnset.class);
+				// callAndStopOnFailure(SetClientIdToResponseUriHostnameIfUnset.class); FIXME browser API
 				break;
 		}
 
@@ -322,10 +328,8 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				case W3C_DC_API:
 					break;
 				case DIRECT_POST_JWT:
-					// assume response is encrypted so a key is required
-					jwksRequired = true;
-					break;
 				case W3C_DC_API_JWT:
+					// assume response is encrypted so a key is required
 					jwksRequired = true;
 					break;
 			}
@@ -376,14 +380,25 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		switch (responseMode) {
 			case W3C_DC_API:
 			case W3C_DC_API_JWT:
-//				browser.requestCredential(); FIXME finish writing
-//				break;
+				callAndStopOnFailure(CreateRandomBrowserApiSubmitUrl.class);
+				String submitUrl = env.getString("browser_api_submit", "fullUrl");
+				JsonObject request = env.getObject("authorization_endpoint_request");
+
+				eventLog.log(getName(), args("msg", "Calling browser API",
+					"request", request,
+					"http", "api"));
+
+				browser.requestCredential(request, submitUrl);
+				setStatus(Status.WAITING);
+
+				eventLog.log(getName(), "The wallet should be opened using the Browser API button, and should then fetch the request_uri");
+				break;
 			case DIRECT_POST_JWT:
 			case DIRECT_POST:
 				performRedirect();
+				eventLog.log(getName(), "The wallet should be opened via the QR code / proceed with test button, and should then fetch the request_uri");
 				break;
 		}
-		eventLog.log(getName(), "The wallet should be opened via the QR code / proceed with test button, and should then fetch the request_uri");
 		eventLog.endBlock();
 	}
 
@@ -400,12 +415,31 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
-			callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class);
+			//boolean browserApi = false;
+			boolean browserUnsigned = false;
+			switch (responseMode) {
+				case DIRECT_POST:
+				case DIRECT_POST_JWT:
+					break;
+				case W3C_DC_API:
+					browserUnsigned = true;
+					//browserApi = true;
+					break;
+				case W3C_DC_API_JWT:
+					//browserApi = true;
+					break;
+			}
 
-			callAndStopOnFailure(CreateRandomStateValue.class);
-			call(exec().exposeEnvironmentString("state"));
-			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
+			if (!browserUnsigned) {
+				callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class);
+
+				callAndStopOnFailure(CreateRandomStateValue.class);
+				call(exec().exposeEnvironmentString("state"));
+				callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+				callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
+			}
 
 			callAndStopOnFailure(AddPresentationDefinitionToAuthorizationEndpointRequest.class);
 
@@ -423,20 +457,8 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			}
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToVpToken.class);
-			callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
 
-			switch (responseMode) {
-				case DIRECT_POST:
-					callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPost.class);
-					break;
-				case DIRECT_POST_JWT:
-					callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPostJwt.class);
-					break;
-				case W3C_DC_API:
-				case W3C_DC_API_JWT:
-					// FIXME : set response mode
-					break;
-			}
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseMode.class);
 
 			switch (clientIdScheme) {
 				case PRE_REGISTERED:
@@ -780,6 +802,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		setStatus(Status.WAITING);
 		// FIXME add logs about the next step
 
+		if (path.equals(env.getString("browser_api_submit", "path"))) {
+			return handleBrowserApiSubmission(requestParts);
+		}
 		if (path.equals("responseuri")) {
 			return handleDirectPost(requestId);
 		}
@@ -788,6 +813,50 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		}
 		return super.handleHttp(path, req, res, session, requestParts);
 
+	}
+
+	private Object handleBrowserApiSubmission(JsonObject requestParts) {
+
+		getTestExecutionManager().runInBackground(() -> {
+
+			// process the callback
+			setStatus(Status.RUNNING);
+
+			JsonElement body = requestParts.get("body");
+			if (body == null || !body.isJsonPrimitive()) {
+				throw new TestFailureException(getId(), "No body received in browser API submission");
+			}
+			JsonObject result;
+			try {
+				result = JsonParser.parseString(OIDFJSON.getString(body)).getAsJsonObject();
+			} catch (JsonParseException e) {
+				throw new TestFailureException(getId(), "Parsing JSON in browser API submission failed", e);
+			}
+
+			if (result.has("bad_response_type")) {
+				eventLog.log(getName(), args("msg", "Browser API returned object of unknown type", "bad_response_type", result.get("bad_response_type")));
+				throw new TestFailureException(getId(), "Bad response from browser API");
+			}
+			if (result.has("exception")) {
+				eventLog.log(getName(), args("msg", "Browser API threw an exception", "exception", result.get("exception")));
+				throw new TestFailureException(getId(), "Bad response from browser API");
+			}
+
+			JsonObject data = result.getAsJsonObject("data");
+			String protocol = OIDFJSON.getString(result.get("protocol"));
+
+			eventLog.log(getName(), args(
+				"msg", "Browser API result captured",
+				"http", "api-result",
+				"data", data,
+				"protocol", protocol));
+
+//			processCallback();
+
+			return "done";
+		});
+
+		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
 	protected Object handleRequestUriRequest() {
