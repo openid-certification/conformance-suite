@@ -3,8 +3,6 @@ package net.openid.conformance.vp;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,6 +57,7 @@ import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizati
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
+import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
@@ -102,8 +101,6 @@ import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAnd
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
@@ -374,7 +371,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void performAuthorizationFlow() {
-		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
+		eventLog.startBlock(currentClientString() + "Make request to wallet");
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
 		switch (responseMode) {
@@ -803,7 +800,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		// FIXME add logs about the next step
 
 		if (path.equals(env.getString("browser_api_submit", "path"))) {
-			return handleBrowserApiSubmission(requestParts);
+			return handleBrowserApiSubmission(requestId);
 		}
 		if (path.equals("responseuri")) {
 			return handleDirectPost(requestId);
@@ -815,41 +812,15 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 	}
 
-	private Object handleBrowserApiSubmission(JsonObject requestParts) {
+	private Object handleBrowserApiSubmission(String requestId) {
 
 		getTestExecutionManager().runInBackground(() -> {
 
 			// process the callback
 			setStatus(Status.RUNNING);
+			call(exec().startBlock("Process Browser API result").mapKey("incoming_request", requestId));
 
-			JsonElement body = requestParts.get("body");
-			if (body == null || !body.isJsonPrimitive()) {
-				throw new TestFailureException(getId(), "No body received in browser API submission");
-			}
-			JsonObject result;
-			try {
-				result = JsonParser.parseString(OIDFJSON.getString(body)).getAsJsonObject();
-			} catch (JsonParseException e) {
-				throw new TestFailureException(getId(), "Parsing JSON in browser API submission failed", e);
-			}
-
-			if (result.has("bad_response_type")) {
-				eventLog.log(getName(), args("msg", "Browser API returned object of unknown type", "bad_response_type", result.get("bad_response_type")));
-				throw new TestFailureException(getId(), "Bad response from browser API");
-			}
-			if (result.has("exception")) {
-				eventLog.log(getName(), args("msg", "Browser API threw an exception", "exception", result.get("exception")));
-				throw new TestFailureException(getId(), "Bad response from browser API");
-			}
-
-			JsonObject data = result.getAsJsonObject("data");
-			String protocol = OIDFJSON.getString(result.get("protocol"));
-
-			eventLog.log(getName(), args(
-				"msg", "Browser API result captured",
-				"http", "api-result",
-				"data", data,
-				"protocol", protocol));
+			callAndStopOnFailure(ExtractBrowserApiResponse.class);
 
 //			processCallback();
 
