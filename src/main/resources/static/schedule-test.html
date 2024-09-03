@@ -1144,9 +1144,30 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             <button class="btn btn-lg btn-primary bg-gradient border border-secondary mb-3" id="createPlanBtn" disabled="">
                                 <span class="bi bi-flag-fill"></span> Create Test Plan
                             </button>
-                            <button class="btn btn-lg btn-secondary bg-gradient border border-secondary" id="copyPlanUrlBtn" disabled="">
-                                <span class="bi bi-clipboard"></span> Copy plan URL
+                            <button class="btn btn-lg btn-secondary bg-gradient border border-secondary" id="copyPlanUrlBtn" disabled="" data-bs-toggle="modal" data-bs-target="#copyTestPlanUrlModal">
+                                <span class="bi bi-clipboard"></span> Share Test Plan Configuration
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="copyTestPlanUrlModal" tabindex="-1" aria-labelledby="copyTestPlanUrlModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="copyTestPlanUrlModalLabel">OpenID Conformance Suite</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            The Test Plan Configuration URL was copied to the clipboard.
+
+                            <p class="alert alert-danger">
+                                Please note, that the URL might contain <strong>private keys</strong>, <strong>secrets</strong>, and other <strong>sensitive information</strong> extracted from the Test Plan configuration, and sharing it will reveal these things to the recipient.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
                 </div>
@@ -1396,15 +1417,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
         function loadScheduleTestPage() {
 
-            document.getElementById('copyPlanUrlBtn').onclick = function(evt)  {
-
-                // sync json with current form
-                updateJSONFromFormElements();
-                let url = createTestPlanParameterUrl();
-                navigator.clipboard.writeText(url);
-                console.log("Copied Testplan URL: %s", url);
-            }
-
             document.getElementById('createPlanBtn').onclick = function(evt) {
 
                 const planName = document.getElementById('planSelect').value;
@@ -1513,6 +1525,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     }
                 });
             };
+
+            let copyPlanUrlBtn = document.getElementById('copyPlanUrlBtn');
+            copyPlanUrlBtn.onclick = function(evt)  {
+                // sync json with current form
+                updateJSONFromFormElements();
+                let url = createTestPlanParameterUrl();
+                navigator.clipboard.writeText(url);
+                // console.log("Copied Testplan URL: %s", url);
+            }
 
             // update field visibility when the selectors change
             document.getElementById('planSelect').addEventListener("change", function(){
