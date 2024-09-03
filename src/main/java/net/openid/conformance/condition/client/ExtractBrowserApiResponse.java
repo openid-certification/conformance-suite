@@ -54,7 +54,7 @@ public class ExtractBrowserApiResponse extends AbstractCondition {
 		JsonElement dataEl = result.get("data");
 		if (!dataEl.isJsonObject()) {
 			// FIXME hack/workaround for google wallet returning json in a string
-			dataEl = JsonParser.parseString(dataEl.getAsString());
+			dataEl = JsonParser.parseString(OIDFJSON.getString(dataEl));
 			if (!dataEl.isJsonObject()) {
 				throw error("'data' member returned by browser API is not a JSON object", args("data", dataEl));
 			}
@@ -63,7 +63,7 @@ public class ExtractBrowserApiResponse extends AbstractCondition {
 		JsonObject data = dataEl.getAsJsonObject();
 		env.putObject("authorization_endpoint_response", data);
 
-		logSuccess("Browser API result captured and successfully parsed", args("result", result));
+		logSuccess("Browser API result captured and successfully parsed", args("api_result", result));
 
 		return env;
 	}

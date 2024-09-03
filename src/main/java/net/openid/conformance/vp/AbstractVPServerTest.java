@@ -101,6 +101,7 @@ import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAnd
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
@@ -512,12 +513,33 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				break;
 			case W3C_DC_API:
 			case W3C_DC_API_JWT:
-				// FIXME do stuff
+				throw new TestFailureException(getId(), "Direct post response received but result was expected to be returned from the Browser API");
+		}
+
+		processReceivedResponse();
+
+		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
+		JsonObject response = new JsonObject();
+		switch (credentialFormat) {
+			case ISO_MDL:
+				// iso mdl spec requires that redirect uri is always returned
+				populateDirectPostResponseWithRedirectUri(response);
+				break;
+			default:
+				populateDirectPostResponse(response);
 				break;
 		}
 
+		return ResponseEntity.ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(response.toString());
+	}
+
+	private void processReceivedResponse() {
+		// FIXME: decryption doesn't work for browser API
+
 		// vp token may be an object containing multiple tokens, https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
-		// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assme only a single token here
+		// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assume only a single token here
 		callAndStopOnFailure(ExtractVpToken.class, ConditionResult.FAILURE);
 
 		// FIXME: extract / verify presentation_submission
@@ -564,22 +586,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				// FIXME: verify credential contents?
 				break;
 		}
-
-		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
-		JsonObject response = new JsonObject();
-		switch (credentialFormat) {
-			case ISO_MDL:
-				// iso mdl spec requires that redirect uri is always returned
-				populateDirectPostResponseWithRedirectUri(response);
-				break;
-			default:
-				populateDirectPostResponse(response);
-				break;
-		}
-
-		return ResponseEntity.ok()
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(response.toString());
 	}
 
 	protected void populateDirectPostResponse(JsonObject response) {
@@ -822,7 +828,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 			callAndStopOnFailure(ExtractBrowserApiResponse.class);
 
-//			processCallback();
+			processReceivedResponse();
+
+			fireTestFinished();
 
 			return "done";
 		});
