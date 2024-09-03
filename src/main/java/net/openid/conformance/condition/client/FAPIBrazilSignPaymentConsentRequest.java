@@ -1,14 +1,24 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
+import java.text.ParseException;
+
 public class FAPIBrazilSignPaymentConsentRequest extends AbstractSignJWT {
+
+	@Override
+	protected String performSigning(JWSHeader header, JsonObject claims, JWSSigner signer) throws JOSEException, ParseException {
+		// Ensure a single element array 'aud' claim is not converted to a string.
+		return performSigningEnsureAudIsArray(header, claims, signer);
+	}
 
 	@Override
 	@PreEnvironment(required = { "consent_endpoint_request", "client" })

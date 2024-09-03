@@ -1,12 +1,15 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -31,6 +34,7 @@ import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 	public static final Base64URL ALG_NONE_HEADER = Base64URL.encode("{\"alg\":\"none\"}");
@@ -109,6 +113,38 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 		JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
 
 		SignedJWT signJWT = new SignedJWT(header, claimSet);
+
+		signJWT.sign(signer);
+
+		return signJWT.serialize();
+	}
+
+	protected String performSigningEnsureAudIsArray(JWSHeader header, JsonObject claims, JWSSigner signer) throws JOSEException, ParseException {
+		class SignedJWTKeepAudArray extends JWSObject {
+			private static final long serialVersionUID = 1L;
+
+			public SignedJWTKeepAudArray(JWSHeader header, Payload payload) {
+				super(header, payload);
+			}
+		}
+
+		JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
+		Map<String, Object> payloadJson = claimSet.toJSONObject();
+
+		/*
+		 * The default behaviour of JWTClaimsSet.toJSONObject() is to convert a single element 'aud' claim array to a string.
+		 *
+		 * Here we ensure it remains an array.
+		 */
+		Object audClaim = claims.get("aud");
+		if (audClaim != null && audClaim instanceof JsonArray) {
+			if (payloadJson.get("aud") instanceof String) {
+				List<Object> audList = List.<Object>of(payloadJson.get("aud"));
+				payloadJson.put("aud", audList);
+			}
+		}
+
+		SignedJWTKeepAudArray signJWT = new SignedJWTKeepAudArray(header, new Payload(payloadJson));
 
 		signJWT.sign(signer);
 
