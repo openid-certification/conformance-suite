@@ -34,7 +34,7 @@ mongodb:
   image:
     # this is currently the latest 5.0.x according to https://hub.docker.com/r/bitnami/mongodb/tags and https://www.mongodb.com/docs/manual/release-notes/5.0/
     # it should be kept in sync with the version we're using for dev in the docker compose files
-    tag: 5.0.14
+    tag: 5.0.24
   auth:
       enabled: false
   usePassword: false
