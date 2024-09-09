@@ -89,8 +89,8 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostname;
-import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
+import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -171,9 +171,9 @@ import java.util.function.Supplier;
 	"mtls.cert",
 	"mtls.ca"
 })
-//@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
-//	"client.client_id"
-//})
+@VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "pre_registered", configurationFields = {
+	"client.client_id"
+})
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name"
 })
@@ -405,6 +405,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		}
 
 		switch (clientIdScheme) {
+			case PRE_REGISTERED:
+				// client id has been set already in config
+				break;
 			case REDIRECT_URI:
 				callAndStopOnFailure(SetClientIdToResponseUri.class);
 				break;
@@ -611,6 +614,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			}
 
 			switch (clientIdScheme) {
+				case PRE_REGISTERED:
+					// pre-registered is the default, we can omit the client_id_scheme
+					// FIXME: try passing client_id_scheme=pre-registered for one of tests
+					break;
 				case REDIRECT_URI:
 					callAndStopOnFailure(SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri.class, "OID4VP-5.7");
 					break;
@@ -755,7 +762,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 			callAndStopOnFailure(AddSelfIssuedMeV2AudToRequestObject.class);
-			callAndStopOnFailure(SignRequestObject.class);
+			callAndStopOnFailure(SignRequestObjectIncludeX5cHeaderIfAvailable.class);
 			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class);
 		}
 	}
@@ -771,8 +778,15 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				break;
 			case REQUEST_URI_SIGNED:
 				ConditionSequence seq = new CreateAuthorizationRedirectStepsSignedRequestUri();
-				if (credentialFormat == CredentialFormat.ISO_MDL) {
-					seq.replace(SignRequestObject.class, condition(SignRequestObjectIncludeX5cHeader.class));
+				switch (clientIdScheme) {
+					case X509_SAN_DNS:
+						// x5c header is mandatory for x509 san dns (and/or mdl profile)
+						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeX5cHeader.class));
+						break;
+					case REDIRECT_URI:
+					case PRE_REGISTERED:
+						// otherwise follow the default (use x5c header if it's available) although signed request objects + redirect_uri client_id_scheme isn't allowed in the spec
+						break;
 				}
 				call(seq);
 				break;

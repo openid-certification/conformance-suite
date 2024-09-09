@@ -35,7 +35,6 @@ public class VPID2TestPlan implements TestPlan {
 					// try request without redirect_uri returned from direct post [not allowed by HAIP?]
 					// try sending presentation_definition_uri [but this is not allowed by HAIP]
 					// try response_mode "direct_post.jwt"
-					// include an random unknown parameter that must be ignored (i.e. happyflow still works), similar to OIDCCEnsureRequestWithUnknownParameterSucceeds.java
 					// negative tests:
 					// try sending a redirect_uri in auth request with response_mode=direct_post
 					// sending client_id != response_uri when using redirect client scheme + direct post
