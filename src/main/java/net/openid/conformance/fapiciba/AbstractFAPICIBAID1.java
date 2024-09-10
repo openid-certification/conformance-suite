@@ -140,6 +140,7 @@ import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccounts
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
 import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
 import net.openid.conformance.condition.client.TellUserToDoCIBAAuthentication;
@@ -776,7 +777,12 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		createAuthorizationRequestObject();
 
-		callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
+		if (isSecondClient()) {
+			callAndStopOnFailure(SignRequestObjectIncludeMediaType.class, "CIBA-7.1.1", "JAR-4");
+		}
+		else {
+			callAndStopOnFailure(SignRequestObject.class, "CIBA-7.1.1");
+		}
 
 		callAndStopOnFailure(CreateBackchannelAuthenticationEndpointRequest.class, "CIBA-7.1");
 

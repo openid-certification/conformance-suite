@@ -47,6 +47,10 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 		return signJWT(env, claims, jwks, includeTyp, false, false, false);
 	}
 
+	protected JOSEObjectType getMediaType() {
+		return JOSEObjectType.JWT;
+	}
+
 	/**
 	 * Expects only one non-encryption JWK in jwks
 	 */
@@ -74,7 +78,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 
 			JWSHeader.Builder builder = new JWSHeader.Builder(alg);
 			if (includeTyp) {
-				builder.type(JOSEObjectType.JWT);
+				builder.type(getMediaType());
 			}
 			if (includeX5tS256) {
 				builder.x509CertSHA256Thumbprint(signingJwk.computeThumbprint());
