@@ -7,7 +7,7 @@
 # version: '3' # version is obsolete
 services:
   mongodb:
-    image: mongo:5.0.14
+    image: mongo:5.0.24
     volumes:
      - ./mongo/data:/data/db
     ports:
