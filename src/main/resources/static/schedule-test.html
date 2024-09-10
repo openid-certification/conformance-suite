@@ -1141,8 +1141,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 <div class="card" style="width: 28rem;">
                     <div class="card-body">
                         <div class="d-grid">
-                            <button class="btn btn-lg btn-primary bg-gradient border border-secondary" id="createPlanBtn" disabled="">
+                            <button class="btn btn-lg btn-primary bg-gradient border border-secondary mb-3" id="createPlanBtn" disabled="">
                                 <span class="bi bi-flag-fill"></span> Create Test Plan
+                            </button>
+                            <button class="btn btn-lg btn-secondary bg-gradient border border-secondary" id="copyPlanUrlBtn" disabled="">
+                                <span class="bi bi-clipboard"></span> Copy plan URL
                             </button>
                         </div>
                     </div>
@@ -1172,10 +1175,24 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return loadScheduleTestPage();
             }).then(function() {
                 return loadServerInfo();
+            }).then(function() {
+                return applyConfigPreset();
             }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
         });
+
+        function applyConfigPreset() {
+            let searchParams = new URLSearchParams(window.location.search);
+            let testPlanName = searchParams.get("test_plan");
+            if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
+                let planSelect = document.getElementById("planSelect");
+                planSelect.value = testPlanName;
+
+                // trigger change event to update variant and config field visibility
+                planSelect.dispatchEvent(new Event('change'));
+            }
+        }
 
         function loadAvailableTests() {
             return fetch('/api/runner/available')
@@ -1344,7 +1361,49 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             }
         }
 
+        function collectFormParametersToParameterObject(dataAttribute, skipValue) {
+            let paramValues = [...document.querySelectorAll(`[${dataAttribute}]`)]
+                .filter(it => (it.value && it.value !== skipValue))
+                .map(it => ({
+                    [it.getAttribute(`${dataAttribute}`)]: encodeURIComponent(it.value)
+                }));
+
+            const paramObject = paramValues.reduce((acc, obj) => {
+                const key = Object.keys(obj)[0];
+                const value = obj[key];
+                acc[key] = value;
+                return acc;
+            }, {});
+            return paramObject;
+        }
+
+        function createTestPlanParameterUrl() {
+            let pageUrl = window.location.origin + window.location.pathname;
+            let testPlan = document.getElementById("planSelect").value;
+            let url = pageUrl + "?test_plan=" + testPlan;
+            let dataVariantParameters = collectFormParametersToParameterObject("data-variant-parameter", "select");
+
+            if (Object.keys(dataVariantParameters).length > 0) {
+                url += "&" + new URLSearchParams(dataVariantParameters).toString();
+            }
+            let jsonConfig = document.getElementById("config").value;
+            if (jsonConfig) {
+                let normalizedJsonConfig = JSON.stringify(JSON.parse(jsonConfig))
+                url += "&configJson=" + encodeURIComponent(normalizedJsonConfig);
+            }
+            return url;
+        }
+
         function loadScheduleTestPage() {
+
+            document.getElementById('copyPlanUrlBtn').onclick = function(evt)  {
+
+                // sync json with current form
+                updateJSONFromFormElements();
+                let url = createTestPlanParameterUrl();
+                navigator.clipboard.writeText(url);
+                console.log("Copied Testplan URL: %s", url);
+            }
 
             document.getElementById('createPlanBtn').onclick = function(evt) {
 
@@ -1496,6 +1555,12 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             };
 
             // sync the JSON at least once
+            let searchParams = new URLSearchParams(window.location.search);
+            let configJson = searchParams.get("configJson");
+            if (configJson) {
+                document.getElementById("config").value = configJson;
+            }
+
             updateFormElementsFromJSON();
 
             FAPI_UI.hideBusy();
@@ -1540,6 +1605,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     }
                 });
                 document.getElementById('createPlanBtn').disabled = !allVariantsSelected;
+                document.getElementById('copyPlanUrlBtn').disabled = !allVariantsSelected;
 
                 if (allVariantsSelected) {
                     document.getElementById('configForm').style.display = '';
@@ -1620,6 +1686,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             display: value
                         }));
                     });
+
+                    // update param presets from query parameter
+                    let searchParams = new URLSearchParams(window.location.search);
+                    let paramValue = searchParams.get(parameter);
+                    if (paramValue) {
+                        let variantSelect = document.getElementById(id);
+                        variantSelect.value = paramValue;
+                        variantSelect.dispatchEvent(new Event('change'));
+                    }
                 });
 
                 document.getElementById('variantSelectors').style.display = '';
