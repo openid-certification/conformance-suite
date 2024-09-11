@@ -83,6 +83,13 @@ public class FAPI2SPID2TestPlan implements TestPlan {
 			case "connectid_au":
 				throw new RuntimeException("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
+			case "cbuae":
+				certProfile = "CBUAE";
+				if (!privateKey) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for CBUAE",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));

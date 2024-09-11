@@ -333,7 +333,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			profile == FAPI2ID2OPProfile.OPENBANKING_UK ||
 			profile == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
 			profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-			profile == FAPI2ID2OPProfile.CONNECTID_AU; // https://gitlab.com/idmvp/specifications/-/issues/29
+			profile == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
+			profile == FAPI2ID2OPProfile.CBUAE;
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5

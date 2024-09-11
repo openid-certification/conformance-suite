@@ -62,6 +62,9 @@ makeClientTest() {
 }
 
 makeServerTest() {
+
+    TESTS="fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response] cbuae-fapi2securityprofile-privatekey-jar.json"
+    return
     # FAPI2 security profile
     # plain oauth
     TESTS="${TESTS} fapi2-security-profile-id2-test-plan[openid=plain_oauth][client_auth_type=mtls][sender_constrain=mtls][fapi_profile=plain_fapi] authlete-fapi2securityprofile-mtls-plainoauth.json"

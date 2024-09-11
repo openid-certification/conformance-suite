@@ -197,6 +197,29 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
 				return certProfile + " ConnectID OP";
+			case "cbuae":
+				if (!privateKey) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for CBUAE",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!signedRequest) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: Only signed requests are required for CBUAE",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (dpop) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: DPoP sender constraining is not used for CBUAE",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: JARM responses are not used for CBUAE",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!openid) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: OpenID must be selected for CBUAE",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				// as there's only one possible correct configuration, stop here and return just the name
+				return certProfile + " CBUAE OP";
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
