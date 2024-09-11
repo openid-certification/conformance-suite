@@ -1,10 +1,8 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 
 public class ValidateEntityStatementSub extends AbstractCondition {
 

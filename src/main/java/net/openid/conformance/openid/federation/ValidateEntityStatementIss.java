@@ -3,7 +3,6 @@ package net.openid.conformance.openid.federation;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 
 public class ValidateEntityStatementIss extends AbstractCondition {
 
