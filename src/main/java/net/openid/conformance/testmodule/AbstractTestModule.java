@@ -601,7 +601,6 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		if (getResult() != Result.FAILED) {
 			setResult(Result.SKIPPED);
 		}
-		fireTestFinished();
 		throw new TestSkippedException(getId(), msg);
 	}
 
@@ -877,6 +876,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 				args(
 					"result", TestModule.Result.SKIPPED,
 					"msg", "The test was skipped: " + error.getMessage()));
+			fireTestFinished();
 		} else {
 			/* must be a TestFailureException */
 			String failure;
