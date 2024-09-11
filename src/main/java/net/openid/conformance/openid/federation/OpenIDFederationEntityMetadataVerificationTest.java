@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "openid-federation-entity-metadata-verification",
 	displayName = "OpenID Federation: Federation Entity metadata Verification",
-	summary = "This test verifies the correctness of endpoints provided in the entity's federation_entity metadata." +
+	summary = "This test verifies the correctness of endpoints provided in the entity's federation_entity metadata. " +
 		"The test is isolated to the provided entity and will not proceed to its superiors.",
 	profile = "OIDFED",
 	configurationFields = {

@@ -47,45 +47,47 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	}
 
 	protected void validateEntityStatement() {
-		String entity = env.getString("entity_statement_url");
+		String entityStatementUrl = env.getString("entity_statement_url");
 
-		eventLog.startBlock("Validate basic claims in Entity Statement for %s".formatted(entity));
+		eventLog.startBlock("Validate basic claims in Entity Statement for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		env.putString("expected_iss", stripWellKnown(entityStatementUrl));
+		env.putString("expected_sub", stripWellKnown(entityStatementUrl));
 		call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate JWKs and signature in Entity Statement for %s".formatted(entity));
+		eventLog.startBlock("Validate JWKs and signature in Entity Statement for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		call(sequence(ValidateEntityStatementSignatureSequence.class));
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate metadata in Entity Statement for %s".formatted(entity));
+		eventLog.startBlock("Validate metadata in Entity Statement for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate Federation Entity metadata for %s".formatted(entity));
+		eventLog.startBlock("Validate Federation Entity metadata for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ValidateFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OpenID Relying Party metadata for %s".formatted(entity));
+		eventLog.startBlock("Validate OpenID Relying Party metadata for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ExtractOpenIDRelyingPartyMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		validateOpenIdRelyingPartyMetadata();
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OpenID Provider metadata for %s".formatted(entity));
+		eventLog.startBlock("Validate OpenID Provider metadata for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ExtractOpenIDProviderMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		validateOpenIdProviderMetadata();
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OAuth Authorization Server metadata for %s".formatted(entity));
+		eventLog.startBlock("Validate OAuth Authorization Server metadata for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ValidateOAuthAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OAuth Client metadata for %s".formatted(entity));
+		eventLog.startBlock("Validate OAuth Client metadata for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ValidateOAuthClientMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		eventLog.startBlock("Validate OAuth Protected Resource metadata for %s".formatted(entity));
+		eventLog.startBlock("Validate OAuth Protected Resource metadata for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ValidateOAuthProtectedResourceMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 	}
@@ -159,7 +161,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				// Get the entity statement from the Superior's fetch endpoint
-				env.putString("entity_statement_sub", env.getString("primary_entity_statement_iss"));
+				env.putString("expected_iss", authorityHint);
+				env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
+
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(AppendSubToFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
@@ -171,12 +175,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				env.unmapKey("endpoint_response");
 				call(sequence(ValidateEntityStatementSignatureSequence.class));
 
-				callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				callAndContinueOnFailure(ValidateEntityStatementExp.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				env.putString("entity_statement_iss", env.getString("federation_fetch_endpoint_iss"));
-				callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				env.putString("entity_statement_url", env.getString("primary_entity_statement_sub"));
-				callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
+
 				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
@@ -195,4 +196,14 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		}
 		return entityIdentifier + "/.well-known/openid-federation";
 	}
+
+	protected static String stripWellKnown(String url) {
+		String entityIdentifier = url;
+		final String removingPartInUrl = ".well-known/openid-federation";
+		if (url.endsWith(removingPartInUrl)) {
+			entityIdentifier = url.substring(0, url.length() - removingPartInUrl.length());
+		}
+		return entityIdentifier;
+	}
+
 }

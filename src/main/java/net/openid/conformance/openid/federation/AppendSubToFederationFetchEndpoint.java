@@ -9,11 +9,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class AppendSubToFederationFetchEndpoint extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = { "entity_statement_url", "entity_statement_sub" })
+	@PreEnvironment(strings = { "entity_statement_url", "expected_sub" })
 	@PostEnvironment(strings = "entity_statement_url")
 	public Environment evaluate(Environment env) {
 
-		String sub = env.getString("entity_statement_sub");
+		String sub = env.getString("expected_sub");
 		String fetchEndpoint = env.getString("entity_statement_url");
 
 		String fetchEndpointUrlWithSubParam = UriComponentsBuilder.fromHttpUrl(fetchEndpoint).queryParam("sub", sub).toUriString();
