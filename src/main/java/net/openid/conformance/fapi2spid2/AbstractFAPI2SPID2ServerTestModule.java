@@ -173,6 +173,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -190,7 +191,8 @@ import java.util.function.Supplier;
 	FAPI2SenderConstrainMethod.class,
 	FAPI2ID2OPProfile.class,
 	FAPIOpenIDConnect.class,
-	FAPIResponseMode.class
+	FAPIResponseMode.class,
+	AuthorizationRequestType.class,
 })
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
@@ -221,6 +223,9 @@ import java.util.function.Supplier;
 	"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
 	"client2.scope"
+})
+@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
+	"resource.richAuthorizationRequest",
 })
 public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirectServerTestModule {
 
@@ -301,8 +306,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			variant == FAPI2ID2OPProfile.OPENBANKING_UK ||
 			variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
 			variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-			variant == FAPI2ID2OPProfile.CONNECTID_AU; // https://gitlab.com/idmvp/specifications/-/issues/29
-
+			variant == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
+			variant == FAPI2ID2OPProfile.CBUAE;
 		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -318,7 +323,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(FetchServerKeys.class);
+		callAndContinueOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
@@ -344,7 +349,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 	protected void setupResourceEndpoint() {
 		// Set up the resource endpoint configuration
-		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU ||
+				getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CBUAE) {
 			// always use the MTLS version if available, as ConnectID always uses mtls sender constraining
 			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-5");
 		} else {
