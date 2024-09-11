@@ -64,6 +64,8 @@ public class CallPAREndpoint extends AbstractCondition {
 			if (el.isJsonObject()) {
 				// e.g. claims parameter
 				form.add(key, el.toString());
+			} else if (el.isJsonArray()) {
+				form.add(key, el.getAsJsonArray().toString());
 			} else {
 				form.add(key, OIDFJSON.getString(el));
 			}

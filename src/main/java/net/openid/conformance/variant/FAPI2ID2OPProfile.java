@@ -15,7 +15,9 @@ public enum FAPI2ID2OPProfile {
 	// as per https://github.com/OpenBanking-Brasil/specs-seguranca/
 	OPENBANKING_BRAZIL,
 	// https://connectid.com.au
-	CONNECTID_AU;
+	CONNECTID_AU,
+	// https://openfinanceuae.atlassian.net/wiki/spaces/StandardsDraft01/pages/39158001/Security+Profile+-+FAPI
+	CBUAE;
 
 	@Override
 	public String toString() {

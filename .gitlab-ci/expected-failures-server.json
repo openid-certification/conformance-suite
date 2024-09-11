@@ -133,5 +133,39 @@
         "condition": "AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject",
         "expected-result": "failure",
         "comment": "Ignore missing txn claim in CI environment"
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-par-ensure-reused-request-uri-prior-to-auth-completion-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "authorization_request_type": "rar",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "cbuae",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
+        "current-block": "Make request to authorization endpoint",
+        "condition": "WebRunner",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't support that"
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-par-ensure-reused-request-uri-prior-to-auth-completion-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "authorization_request_type": "rar",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "cbuae",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
+        "current-block": "Make request to authorization endpoint",
+        "condition": "fapi2-security-profile-id2-par-ensure-reused-request-uri-prior-to-auth-completion-succeeds",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't support that"
     }
 ]

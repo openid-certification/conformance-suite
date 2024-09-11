@@ -35,7 +35,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil" })
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "cbuae" })
 public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims extends AbstractFAPI2SPID2ServerTestModule {
 
 	@Override

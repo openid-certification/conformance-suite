@@ -137,12 +137,15 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		String requestMethod = v.get("fapi_request_method");
 		String responseMode = v.get("fapi_response_mode");
 		String senderConstrain = v.get("sender_constrain");
+		String authRequestType = v.get("authorization_request_type");
 		boolean jarm = responseMode.equals("jarm");
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 		boolean dpop = senderConstrain.equals("dpop");
+		boolean mtlsBounded = senderConstrain.equals("mtls");
 		boolean signedRequest = requestMethod.equals("signed_non_repudiation");
 		String clientType = v.get("openid");
 		boolean openid = clientType.equals("openid_connect");
+		boolean rar = "rar".equals(authRequestType);
 
 		String certProfile = "FAPI2MsgSigningID1 ";
 
@@ -197,6 +200,34 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
 				return certProfile + " ConnectID OP";
+			case "cbuae":
+				if (!privateKey) {
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for CBUAE".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!signedRequest) {
+					throw new RuntimeException("Invalid configuration for %s: Only signed requests are supported for CBUAE".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!rar) {
+					throw new RuntimeException("Invalid configuration for %s: Only signed requests are supported for CBUAE".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!mtlsBounded) {
+					throw new RuntimeException("Invalid configuration for %s: Only MTLS sender constraining is supported for CBUAE".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException("Invalid configuration for %s: JARM responses are not used for CBUAE".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+
+				if (!openid) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: OpenID must be selected for CBUAE",
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				// as there's only one possible correct configuration, stop here and return just the name
+				return certProfile + " CBUAE OP";
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
