@@ -13,13 +13,16 @@ public class AppendSubToEntityStatementUrl extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String sub = env.getString("expected_sub");
-		String fetchEndpoint = env.getString("entity_statement_url");
+		String endpoint = env.getString("entity_statement_url");
 
-		String fetchEndpointUrlWithSubParam = UriComponentsBuilder.fromHttpUrl(fetchEndpoint).queryParam("sub", sub).toUriString();
+		String endpointUrlWithSubParam = UriComponentsBuilder.fromHttpUrl(endpoint)
+			.queryParam("sub", sub)
+			.encode()
+			.toUriString();
 
-		env.putString("entity_statement_url", fetchEndpointUrlWithSubParam);
+		env.putString("entity_statement_url", endpointUrlWithSubParam);
 
-		logSuccess("Appended sub parameter to federation_fetch_endpoint", args("entity_statement_url", fetchEndpointUrlWithSubParam));
+		logSuccess("Appended sub parameter to endpoint", args("entity_statement_url", endpointUrlWithSubParam));
 
 		return env;
 	}
