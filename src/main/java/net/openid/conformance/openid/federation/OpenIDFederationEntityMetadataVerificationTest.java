@@ -60,6 +60,7 @@ public class OpenIDFederationEntityMetadataVerificationTest extends AbstractOpen
 				String entityIdentifier = OIDFJSON.getString(listElement);
 
 				env.putString("entity_statement_url", fetchEndpoint);
+				env.putString("expected_iss", env.getString("primary_entity_statement_iss"));
 				env.putString("expected_sub", entityIdentifier);
 				callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
@@ -75,9 +76,8 @@ public class OpenIDFederationEntityMetadataVerificationTest extends AbstractOpen
 				callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
 
-				env.mapKey("server_jwks", "primary_entity_statement_body.jwks"); //This didn't work, it returned null
+				callAndContinueOnFailure(ExtractJWKsFromPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				call(sequence(ValidateEntityStatementSignatureSequence.class));
-				env.unmapKey("server_jwks");
 
 				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
