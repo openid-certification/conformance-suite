@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -21,6 +22,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 public class OpenIDFederationEntityMetadataVerificationTest extends AbstractOpenIDFederationTest {
+
+	// Splitta upp detta i olika test för list, fetch, resolve etc. Och så bara kör fireTestSkipped om den
+	// endpointen inte finns.
 
 	protected JsonArray validateListEndpoint() {
 		final String listEndpoint = env.getString("federation_list_endpoint");
