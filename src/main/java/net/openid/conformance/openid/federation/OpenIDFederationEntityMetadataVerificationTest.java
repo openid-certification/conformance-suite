@@ -59,24 +59,34 @@ public class OpenIDFederationEntityMetadataVerificationTest extends AbstractOpen
 			for (JsonElement listElement : listEndpointResponse) {
 				String entityIdentifier = OIDFJSON.getString(listElement);
 
-				env.putString("entity_statement_sub", entityIdentifier);
-				callAndContinueOnFailure(AppendSubToFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.putString("entity_statement_url", fetchEndpoint);
+				env.putString("expected_sub", entityIdentifier);
+				callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
+
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
-				callAndContinueOnFailure(ValidateEntityStatementIat.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				callAndContinueOnFailure(ValidateEntityStatementExp.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				env.putString("entity_statement_url", env.getString("federation_fetch_endpoint_iss"));
-				callAndContinueOnFailure(ValidateEntityStatementIss.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				env.putString("entity_statement_url", env.getString("primary_entity_statement_sub"));
-				callAndContinueOnFailure(ValidateEntityStatementSub.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.mapKey("endpoint_response", "entity_statement_endpoint_response");
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(EnsureContentTypeEntityStatementJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				env.unmapKey("endpoint_response");
+
+				callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
+
+				env.mapKey("server_jwks", "primary_entity_statement_body.jwks"); //This didn't work, it returned null
+				call(sequence(ValidateEntityStatementSignatureSequence.class));
+				env.unmapKey("server_jwks");
+
 				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+				eventLog.endBlock();
 			}
 		}
 

@@ -154,10 +154,12 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				// Verify that the primary entity is present in the list endpoint result
 				callAndContinueOnFailure(ExtractFederationListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(GetSubordinateListingResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
 				env.mapKey("endpoint_response", "federation_list_endpoint_response");
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.unmapKey("endpoint_response");
+
 				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				// Get the entity statement from the Superior's fetch endpoint
@@ -165,14 +167,15 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
 
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				callAndContinueOnFailure(AppendSubToFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-				callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
 				env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(EnsureContentTypeEntityStatementJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				env.unmapKey("endpoint_response");
+
 				call(sequence(ValidateEntityStatementSignatureSequence.class));
 
 				callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
