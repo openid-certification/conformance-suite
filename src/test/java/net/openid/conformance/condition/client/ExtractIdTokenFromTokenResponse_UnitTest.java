@@ -197,6 +197,61 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_encryptedWithAudInJWEHeader() {
+		// has an aud/iss in JWE header as per https://datatracker.ietf.org/doc/html/rfc7519#section-5.3
+		String idToken = "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00iLCJjdHkiOiJKV1QiLCJraWQiOiIzNzNhZDVjNjAzOGViZWRjZDkyMjJjZjU4OGZiYjRkNmRhMzg3OWE1OGIyYWFkNjMxY2FhOGRmNWQwNWE1YWM0IiwiaXNzIjoiaHR0cHM6Ly9hdXRoLm1vY2tiYW5rLnBvYy5yYWlkaWFtLmlvIiwiYXVkIjoiM1prclFNR1R5WGE2QVh0THdjR1JMIn0.Xwtc2_Pyua2OmrakO2VHL2MFeSXhB1NKKAWDKqmyQVhWFkI4LEwhcmnJSFnPmn33z0LsN_7eq-XKLxD5PBUio6h0SUCxpfiL9ZxKsERLz0s-gXt0i2y0ZgI9bQL6voEkw3FIjNJOGKssHQgG6us8zsKIpJehLL1ziD5FOAj-BaA5I5ovBR_14lSnHPC-iayeRu78IlBbVnPWk4opLWqin6_APbojotQD1JfHwe7Y7yb7rbn7fobt5RDnx3kD7rhVrG6t8TU59CTmspTzct2CpbLEhBYO_xFRddWWxgwRFGu0Id2gnErb3oAiMBccWviSgf8z1R0DLTumOxeX0LZCkA.ikl8jye8HEwu6int.IciQKV7VSUUh2DzQKTpLcmQQR_2WnriGSZabHW_BWB58JdrSSkQxjW93ElN2Ay8V0ymCbo2buVDUlHze56-E17zxCJvHth6D5XvOj13JzQnJ8IeY9ds4eBogXtdqkDPAfWayCqjp5OLFokabxFeyWq4wKdp5fVYGd2EXF_emzqvsMzdT-OFXhakq_q1NUHhMm-2GTcqiAHLUHdvU1xC1e9QejZECmsup5jGByQZ3M70RBNrBBD71IX04yXzqTuUOaPRr7QMpQNFVK9enij7DApYIDY9egtv4B64lX9bWsYPpSXbopEpqLVR0PEqAjD5x9UTPXzCrp2X7eqfBHIOAIsDJKsmlxgnHVcRxSoZPJhY2Rp32Wl-OYyXixRirQFVosdRHtfpsiay8YMQj908_ynbiqdaUE97rVAqjA44gJs-Hf7ilc_7UbaiIvV8wCgV_eKtZv21qtFHhTzydyrIwmXvNo_286g5cgIDYy8aLfM3UPEYWuz05omm5eWFCuO9tGx9E99-QmXbIvfQBlg6rQ8g4J6NbbyO7QcbrDymVwOeugAlT3lN8KpWCFr6w4FnqBLvTGd5Qg9b66F3pltZ4mZNoUNghoDu6EsGAomd1xSda_w69rsLNoyjKqalaT6ctCoOJePkmRc_H00DRv44Qt59m8sOIU_CmeHWh_9zVkIWh0V7_D_r0NUSrnxl1xnlT9QCek-18C6B5AALpoLhw_lguseji_C4m5GFtsBkz2PJcsF4jmOvkb9X9fnT_7bo6wBLnu6Jnc9PntaekUr28l9tV3n5WoPpfgf8JW1dbAxif4_zF7kzU1tBa3Mj7aZ3r733Oz0u6q_LarOfSwN0xl2w6cMGabGy90-C9Tco4GULbxVZrDR4SNVuA_LxHG500X4N1MXP_N2pmvJ8neQwOrfhEmLeCge_Bmcr1WyvaRf1bKYr0Sy5YBCvtvVWJ_tyQ_90MsNr5hq6ctYTULdOXDI0-nlqU_-w_CIuRf8vVn0jbYyfBd0KXd8orKih3EEde5RmIIpvbd254cw.FFWEjn6Eo7lk8ZU6TN0E9Q";
+		JsonObject response = new JsonObject();
+		String decryptedIdToken = "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjE2MjI2MzA0MDk2MjEtYzliZWRiMWVhYSJ9.eyJzdWIiOiJyYWxwaC5icmFnZ0BnbWFpbC5jb20iLCJhY3IiOiJ1cm46YnJhc2lsOm9wZW5iYW5raW5nOmxvYTIiLCJub25jZSI6IloxdXhybXFtOVIiLCJjX2hhc2giOiJGOVFQNTc3a2Z0SG1jbC0tLU1raFhRIiwic19oYXNoIjoiUk53cE91cmE5ZTBZaXVsNkNEYzhSZyIsImF1ZCI6IjNaa3JRTUdUeVhhNkFYdEx3Y0dSTCIsImV4cCI6MTcyNzc3NzAwMCwiaWF0IjoxNzI3NzczNDAwLCJpc3MiOiJodHRwczovL2F1dGgubW9ja2JhbmsucG9jLnJhaWRpYW0uaW8ifQ.DZs20ZE5mlKPC_URxMslxa4wG6TeyIvjWbhJg4rOysw5YyEHNZfKm-mthAg7AAnpfitUFDMJ28X_f7J_BYo3J_uN5n71TFz-NJGOU_luzb5N_Uiy-TA7x6o2lOQnW31ICQsTPWxAjSoEBUGX0D5gho7Y1_p4Q_URIRGlMn_SA4j6nqbVt9NSm53jj4Ef2MnnkYZTRhl2EJeC5O7fH-EIp4mwpuBQZshmJ_tXh7-qJS_MoDirdSsit6Hrb_nNidaSEQutzdmG6LGxWzg36sN2Bs3D4DGZtCW_lRGvc7k3PCYWIwpufQHA_ftTUeGIaVMEwH29QleFWvHXwqFH_zU9UQ";
+		response.addProperty("id_token", idToken);
+
+		String jwks =
+			"""
+				{
+				    "keys": [
+				        {
+				            "kid": "9bX0NjJpuo7TxJ08HtSWeh8iHqBuHGETPJL-1NXeRIg",
+				            "alg": "PS256",
+				            "use": "sig",
+				            "kty": "RSA",
+				            "d": "BGzRkD7H_tAlgq8wEZqE2TD6x7aOYm0tPd7weQy8Cl1bJASykwKZCaXHp_flBPV3CBYqVeuEvxz3d2ITSkDdq5-Tiu_yqujytuh3jaKX7uhwIZkH4lVcfvB2e7fnNEEyAohaNMI0a9iHxZkl_vOxRhGHGH8Qw_sRPURxLkQYmAo8q_mguWCc4if9qFaxyKrCSyK6hh3qXXP8mNkngEBDJ8lV_1w_xLYpx0kgm6aiBkFGEDoFhoAVIhypv2LyHNZVfltlcV__901fJxuhsbHKP6eumOhenoSTOcanSlUbPoHlMyCcDQEaNSOam48rhtUqhJdfQKmBmj0drCbLuBABYQ",
+				            "dp": "jpTjr6VnHuPjQmg7lZvsLXUXDpqxM2-rZoYG9nU7HztlqTj3SVr0wl3poi8zDIwLVdFq5wfgp62vmN_Zro1E6j8EOo5Yie9YPK0Tjks2o7Rw8nlzN_cI5xKIfCcHH5wwtZ5WHyXNGKoqauEUO5J8owZ4M1-UjzNtyKXhjTLX2uE",
+				            "dq": "iPFs-xkHZNzvlBtf7TqslsLILtPcGy3gvPRpyYpkTr5NCJgxfXmBjx4joNdIAhD0QJLQffWUXh2ouf9ngJspZZ-sSSFlJzBLLsobo4ec-FsU5kwJ8piI32L_jBTTOqLwnYPdQZlWA8W3caeln2sd52EV-t-xgFsT7qgSJVb-hVk",
+				            "e": "AQAB",
+				            "n": "qZxVTSIymGN2x3wOyo_zYUTLBvZoTcozNk0ojFIcdko88W2CvRMyUYV5EAciifd24xuv3Is92uA4jCvR1cB020e3gvSjBrR1deIsrrKnXVuC1m0rcvLS511Qs9MFlpsAiIBF1kn9XMuqLbQHs2U4lYrxGzLesZhs2SY4pq6nqMr4jEWJs8k0k8yLz9K5GOO9-AYbSuYZHkJ_12cQepW6ORF43cMKQqPQt42FvPw8bnfwk6Wnu0HdvHcGzx4F2aW2PUgeesNcknrvJ2EUiPhriJWpDhZbwlS1ZnomrPlzsxMRekvQ1LqAQcWgVOzK5KQDDTcvtkmKhX4_rF7xyzAYTw",
+				            "p": "6HnW-YEVnJmObkTPYoFj5-HqlexrrJ-MLOxFp2i8Fz_-mk-aNqWrfhCfeqo5dYU-fCK6ZYarYrovcIRJYrfrT4DQqCgeXnNoD_tQXaQnJkCfn96crCeEvGpb0bUVcsU_mwIBKylxvv5ohWngzxwyWY3z3101jHrZwUOBezW6k6E",
+				            "q": "usYA9jU_C7juw_wZtBBrJ9NT_gS0Mb-p9t0xk_q0HskwWNlVP_fPzK7t3As2tejONMJa6eQYkbAJrEtGmdTg9IT8cgpDLEpXwC7EgrEXP9MQOXUZ4norN32-_7QhwKf8FNKaRc4L9gEKPzOLrwZmbispFgBHbqVZBaslmUpqJe8",
+				            "qi": "1OXGalYr90TfS6kI3oP3xq01h1-rLz_D3Gh2wLj2M5KdRzGrcSJEnjezsibsn1oY3lE-MpP-gAjN4Xa8WZfpJOnxIms_ThsmrijPtFLU1TBXHVfsjI66h_nnbRYWUE6h16J1_wtzJ4oos-AFSxFBj7eNKPWaeY1PJk1cGv-q4Mw"
+				        },
+				        {
+				            "kty": "RSA",
+				            "use": "enc",
+				            "kid": "373ad5c6038ebedcd9222cf588fbb4d6da3879a58b2aad631caa8df5d05a5ac4",
+				            "n": "ALExYKPuup7mvCjQMMDzUA2yB33N5s1XxUFyMkybzSb30Q3Z3TkjnKePRl5hgRFG2gvaKsKeCkbEKTERp366Siwe4OZNpMNYCvVZfrJKJrHRcrO4ORRvU9caRWSmd_VcVUB5maYOcgOpofSyc4UvwAUi5jNPkm-rU5XE5ijOmQF5C6Ot_1zRrZ_mr6DVd7W-e8E0EF6rTs3DG-vkP4muz5V1UjbGgRsjFZ3U0ig-HXdzQjj9Qq75sD-y9Dr0IKSdUHzYCR_xeVsnW6LoJ7p6TwsWmX-lxfIj-9tJi-jGsW6aiQXuij_wXKzTdclRICZpZxfxPF1ArWtOuhpWQMAeB8E",
+				            "e": "AQAB",
+				            "d": "AzEVAQ7xTKByXjfV0PvxArYkvWbik-tTUcj5T_j0epG3Mc0tV3SlQz1o8pVGCmYg0lrVL1lCbSDmbwxW3IkFggLyYSOf5qbk16OLjTGZvdU8gDE-0ffpZjQCcPwwp_pITNeD5YJYGmnJUYuPWiRQjKcix2TVCe7nnAiGbtC939FjJOQ22egXCwJhPEd6mz2JgLe83De_YXsm7-CF6JP2nlmVSmTysalPI33isCPdi0UMa369PwIq_l8E1u_jrjuprmXHu2FxJyKPe5AXAQg70mIA66XlMFRLujLwLTNGfu6ycOcaA-D24zQlMIlWAGHblYB3qEDzMxtaIK9fkukSWQ",
+				            "p": "AO11Mizc-mIobXmVR-HZszdw-XNhlB7KPAQBn4NG038-XoKFIhed5WZTTkn2MDc_E2Qi0ngY-dGGscgdluFZAjZNw0RtqkbmY9c68hcc50jiU9_vmK7_8_DzAgwJEg07ciEQPIoBL9L129lh9Iu9MfNdeGqIyLTpm-CX751YDU0N",
+				            "q": "AL8Heub3V5Oom78sQIR2odJMtQMjV65kWOurfzmVLotdqNWNzx0hufzAmVwPPLNWf2EPFbQyJ8VzSEF8FMqZfdhayUYgFB60lPnOvF3KTcUTp6kMdW7w_5APD5PLcJ03ILwv6YjC0pZ5DCCJ8eCyi33XvI2UlLblHdFegsYKyQCF",
+				            "dp": "ANHo_hfmqHhJIK2QJ2Ehn2ntNramlde6Et-_x5C29ZPQQJ_ErOSPshCIp_Z96RWNbsjgd4mvGnf8SACNF6nRk0EJ8Qn2n8XZOH01IHkKFfK6EEcveJuKq8xeJXsaMZj86eEMh1e_wNUOffBmxVUaRKPMBvy2OiajNCaQaUOAaRGp",
+				            "dq": "AKn8sAMDKq08posxh5_YKRuIIrNOKeIHbZEZJLdK5wYhK_IMpLbZojUl9dITxQIZAHSQBdI5p2ZutWeAUMgQWgnCj8SVGxJPwxmgO8KCGT47xUAK1B0K23-Hx2bO68Eao0iSog-OvfIkeQQjfFdkyfgLl7-s7cDqlOQQY_Jy-nY5",
+				            "qi": "AJkrmYZvsut7QxHLyzfzsxDn-v-EQzo6E4q_Fb0lKAF0CE7R3ren4SyX2013TOf3tUlMgTlQN3yoJjtZ1zbVrDX7RouKFX6HUzEDNSAwYrzhtNXZB_iQsOm_UUI1A4zA8kRSStkTHs1vqpPRhtgmNyl4vWrCphlTZqzO3Tp1g6Nw"
+				        }
+				    ]
+				}
+			""";
+
+		env.putObject("token_endpoint_response", response);
+		env.putObjectFromJsonString("client_jwks", jwks);
+
+		cond.execute(env);
+
+		assertThat(env.getObject("id_token")).isNotNull();
+		assertThat(env.getString("id_token", "value")).isEqualTo(decryptedIdToken);
+		assertThat(env.getElementFromObject("id_token", "header")).isNotNull();
+		assertThat(env.getElementFromObject("id_token", "claims")).isNotNull();
+	}
+
+
+	@Test
 	public void testEvaluate_encryptedButNotSigned() {
 		assertThrows(ConditionError.class, () -> {
 			String idToken = "eyJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiY2VydGlmaWNhdGlvbl9jbGllbnRfMTYiLCJjdHkiOiJKU09OIiwiZXhwIjoxNjIzODQ0MDc2LCJuYmYiOjE2MjM3NTc2NzYsImFsZyI6IlJTQTFfNSJ9.RmdnvchWM7VV2BuSE_3DZbD0Xzo4T-j4fK9p50P0rC0_zRXmDQDJ79xErYH-XjoZ-qyUrAqv4JCW6vpXPTOZKMroJXFXJ4OqZI8Sxw-If_pYfB_c5gS9WVzk6rnGh1No7Sdd-OwFpZWMVH-y0a9_zTuhhujtIswZxQytnONsSkefLFx4C1rxPEK3JzqOB46lQnle6wfSc8eDO06loSQQenwUeS9TohxO4RqV2NbXy-EtrWorjudmQu1ODAPikRhCECPtk6UpN613uvXmVfeqc1tWDb0xXWArsWzF9mjNqpnmwROSMRidNLNKI-WYTNqd2QuBRc07z0BPN9d4bHIEqg.FEmCtUg_Fk8F-W_Rc65VdQ.A0lzf6eQLnIFzWH1nZbduwPTdhZl23G4brvzYSmTtH05bd0gIOrlEcIR9pBF5dg6-lYHaOGKgPTg5xZ6LVMIRG2MPz6dZS3S9BQurT6cMAde7AhLxJ6FKgVEyXxpFU_CrwMZFulmrC0q-6FY-aeNPMCb_RalF7JsbbIGQMwYfNG8gEVPh8Mx4ZseVlKfN6EAR2HdQlsluy5dKhYZowZ3vO93VW_Ll6M7pTULEb0AJoRVScVMINTtR75-Kl7ui5cv5ggwpRabdggCrm_UHylsRdbE5iwUQZBWIWFwUHS7k-KNK-PcV9HxIzHZJIgmXZlVaR44vTk1eutDoRL571_6lu2bcAIl0SiUXcD_DbiBqKq2FgxRr-HbPecbadxNuY3vgAI1iv-1DzTG9vcP8O2h2Q.111GdTQtllmt64vjWBCMulKRW3K-y6pf-knRP_UOlo8";
