@@ -36,11 +36,11 @@ public class CheckIfClientIdInX509CertSanDns extends AbstractGetSigningKey {
 			// As per javadoc for getSubjectAlternativeNames:
 			// Each entry is a List whose first entry is an Integer (the name type, 0-8) and whose second entry is a String or a byte array (the name, in string or ASN.1 DER encoded form, respectively).
 			Object type = entry.get(0);
-			if (!(type instanceof Integer)) {
+			if (!(type instanceof Integer typeInteger)) {
 				throw error("Non-integer type found in certificate SAN", args("cert", certificate.toString()));
 			}
-			Integer typeInteger = (Integer) type;
-			if (typeInteger == 2) {
+			final int X509_SAN_NAME_DNS = 2;
+			if (typeInteger == X509_SAN_NAME_DNS) {
 				Object value = entry.get(1);
 				if (!(value instanceof String)) {
 					throw error("Non-string value found in certificate SAN dnsName", args("cert", certificate.toString()));
