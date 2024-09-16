@@ -371,6 +371,28 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     </div>
                                 </div>
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">authorization_encrypted_response_alg</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JWE alg algorithm for encrypting the JARM response issued to this Client, e.g RSA-OAEP or ECDH-ESP."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.authorization_encrypted_response_alg"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">authorization_encrypted_response_enc</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JWE enc algorithm for encrypting the JARM response issued to this Client, e.g. A128CBC-HS256 or A256GCM."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.authorization_encrypted_response_enc"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">presentation_definition</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
