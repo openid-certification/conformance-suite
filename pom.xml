@@ -387,20 +387,23 @@
 			<plugin>
 				<groupId>org.openrewrite.maven</groupId>
 				<artifactId>rewrite-maven-plugin</artifactId>
-				<version>5.38.1</version>
+				<version>5.40.2</version>
 				<configuration>
+					<exportDatatables>true</exportDatatables>
 					<activeRecipes>
-						<recipe>org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration</recipe>
+						<recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3</recipe>
 					</activeRecipes>
+					<!-- org.openrewrite.java.migrate.UpgradeToJava17-->
 					<exclusions>
-						<exclusion>**/mongo/**</exclusion> <!-- Exclude the 'mongo' directory -->
+						<exclusion>**/mongo/**</exclusion> <!-- Exclude the 'mongo' directory to avoid parse errors -->
+						<exclusion>**/chart/**</exclusion> <!-- Exclude the 'chart' directory to avoid parse errors -->
 					</exclusions>
 				</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.openrewrite.recipe</groupId>
 						<artifactId>rewrite-spring</artifactId>
-						<version>5.16.0</version>
+						<version>5.19.0</version>
 					</dependency>
 				</dependencies>
 			</plugin>
