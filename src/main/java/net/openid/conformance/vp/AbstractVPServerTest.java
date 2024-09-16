@@ -157,6 +157,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	protected CredentialFormat credentialFormat;
 	protected VPClientIdScheme clientIdScheme;
 	protected Boolean pre_id2 = null;
+	protected Boolean requestUriCalled = false;
 	private boolean serverSupportsDiscovery;
 
 	@Override
@@ -853,17 +854,26 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 	protected Object handleRequestUriRequest() {
 		setStatus(Status.RUNNING);
-		markAuthorizationEndpointVisited();
 
 		String requestObject = env.getString("request_object");
 
-		eventLog.log(getName(), "Wallet has retrieved request_uri - waiting for it to call the response_uri");
+		if (requestUriCalled) {
+			eventLog.log(getName(), "Wallet has retrieved request_uri another time");
+		} else {
+			markAuthorizationEndpointVisited();
+
+			continueAfterRequestUriCalled();
+		}
 
 		setStatus(Status.WAITING);
 
 		return ResponseEntity.ok()
 			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_OAUTH_OAUTHZ_REQ_JWT)
 			.body(requestObject);
+	}
+
+	protected void continueAfterRequestUriCalled() {
+		eventLog.log(getName(), "Wallet has retrieved request_uri - waiting for it to call the response_uri");
 	}
 
 	protected void markAuthorizationEndpointVisited() {
