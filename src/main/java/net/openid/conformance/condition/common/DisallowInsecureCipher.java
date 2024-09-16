@@ -164,16 +164,16 @@ public class DisallowInsecureCipher extends AbstractCondition {
 			if (e.getCause() instanceof ConditionError) {
 				// It's our own error; pass it on
 				throw (ConditionError) e.getCause();
-			} else if ((e instanceof TlsFatalAlertReceived)
-				&& ((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure) {
+			} else if ((e instanceof TlsFatalAlertReceived received)
+				&& received.getAlertDescription() == AlertDescription.handshake_failure) {
 				logSuccess("The TLS handshake was rejected when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
-			} else if ((e instanceof TlsFatalAlert)
-				&& ((TlsFatalAlert) e).getAlertDescription() == AlertDescription.handshake_failure) {
+			} else if ((e instanceof TlsFatalAlert alert)
+				&& alert.getAlertDescription() == AlertDescription.handshake_failure) {
 				logSuccess("The TLS handshake failed when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
-			} else if ((e instanceof SocketException)
-				&& ((SocketException) e).getMessage().equals("Connection reset")) {
+			} else if ((e instanceof SocketException exception)
+				&& exception.getMessage().equals("Connection reset")) {
 				logSuccess("The TCP connection was reset when trying to connect with disallowed ciphers.", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {

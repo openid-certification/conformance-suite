@@ -75,7 +75,7 @@ public class DBTestPlanService implements TestPlanService {
 
 		var result = mongoTemplate.updateFirst(query, update, COLLECTION);
 		if (result.getModifiedCount() != 1) {
-			throw new RuntimeException(String.format("failed to add module '%s'('%s') to test plan id '%s' - modifiedCount=%d",
+			throw new RuntimeException("failed to add module '%s'('%s') to test plan id '%s' - modifiedCount=%d".formatted(
 				testName, variant != null ? variant.toString() : "variant=null", planId, result.getModifiedCount()));
 		}
 	}

@@ -97,9 +97,11 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	@Test
 	public void testEvaluate_noErrorOnlySub() {
 		// technically userinfo must contain sub; EnsureUserInfoContainsSub checks that separately
-		userInfo = JsonParser.parseString("{" +
-			"  \"sub\": \"foo\"\n" +
-			"}").getAsJsonObject();
+		userInfo = JsonParser.parseString("""
+			{\
+			  "sub": "foo"
+			}\
+			""").getAsJsonObject();
 
 		env.putObject("userinfo", userInfo);
 		cond.execute(env);

@@ -17,11 +17,11 @@ public class CheckNonceLength extends AbstractCondition {
 		if (! Strings.isNullOrEmpty(nonce)) {
 
 			if (nonce.length() > MAX_LEN) {
-				throw error(String.format("Nonce contains in excess of %d characters. This may introduce interoperability issues.", MAX_LEN));
+				throw error("Nonce contains in excess of %d characters. This may introduce interoperability issues.".formatted(MAX_LEN));
 			}
 		}
 
-		logSuccess(String.format("Nonce is empty or does not exceed %d characters", MAX_LEN));
+		logSuccess("Nonce is empty or does not exceed %d characters".formatted(MAX_LEN));
 		return env;
 	}
 }

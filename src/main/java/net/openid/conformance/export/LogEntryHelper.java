@@ -139,8 +139,7 @@ public class LogEntryHelper {
 		if(!isDoubleStackTrace() && ("stacktrace".equals(key) || "cause_stacktrace".equals(key))) {
 			return "exception";
 		}
-		if(fieldValue instanceof Document) {
-			Document doc = (Document) fieldValue;
+		if(fieldValue instanceof Document doc) {
 			if(doc.containsKey("verifiable_jws")) {
 				return "verifiable_jws";
 			}

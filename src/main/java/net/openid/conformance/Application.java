@@ -55,10 +55,10 @@ public class Application {
 		MongoDatabase adminDb = mongoClient.getDatabase("admin");
 
 		String currentVersion = getCurrentFeatureCompatibilityVersion(adminDb);
-		logger.info(String.format("mongodb server version is '%s', featureCompatibilityVersion is currently '%s' and openid.mongodb.targetFeatureCompatibilityVersion is '%s'",
-				getMongoDBVersion(adminDb),
-				currentVersion,
-				targetFeatureCompatibilityVersion));
+		logger.info("mongodb server version is '%s', featureCompatibilityVersion is currently '%s' and openid.mongodb.targetFeatureCompatibilityVersion is '%s'".formatted(
+			getMongoDBVersion(adminDb),
+			currentVersion,
+			targetFeatureCompatibilityVersion));
 
 		if (!targetFeatureCompatibilityVersion.isBlank() &&
 				!currentVersion.equals(targetFeatureCompatibilityVersion)) {

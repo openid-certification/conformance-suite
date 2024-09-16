@@ -20,14 +20,14 @@ public abstract class AbstractCopyConfigFromDynamicRegistrationTemplateToClientC
 		String specifiedConfigValue = env.getString("original_client_config", configName);
 
 		if (Strings.isNullOrEmpty(specifiedConfigValue)) {
-			throw error(String.format("Couldn't find %s in configuration", configName));
+			throw error("Couldn't find %s in configuration".formatted(configName));
 		}
 
 		JsonObject client = env.getObject("client");
 		client.addProperty(configName, specifiedConfigValue);
 		env.putObject("client", client);
 
-		log(String.format("Copied %s from original_client_config to client configuration", configName), args("client", client));
+		log("Copied %s from original_client_config to client configuration".formatted(configName), args("client", client));
 
 		return env;
 	}

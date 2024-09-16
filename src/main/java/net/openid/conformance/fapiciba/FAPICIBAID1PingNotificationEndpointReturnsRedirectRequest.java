@@ -73,7 +73,7 @@ public class FAPICIBAID1PingNotificationEndpointReturnsRedirectRequest extends A
 
 			return new ResponseEntity<>(httpHeaders, HttpStatus.MOVED_PERMANENTLY);
 		} catch (URISyntaxException e) {
-			throw new TestFailureException(getId(), String.format("Couldn't parse %s as URI", redirectUri));
+			throw new TestFailureException(getId(), "Couldn't parse %s as URI".formatted(redirectUri));
 		}
 	}
 

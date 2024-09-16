@@ -18,7 +18,7 @@ public class CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration ext
 		JsonElement specifiedConfigValue = env.getElementFromObject("original_client_config", configName);
 
 		if (specifiedConfigValue == null) {
-			log(String.format("No %s in original_client_config", configName));
+			log("No %s in original_client_config".formatted(configName));
 			return env;
 		}
 
@@ -26,7 +26,7 @@ public class CopyOrgJwksFromDynamicRegistrationTemplateToClientConfiguration ext
 		client.add(configName, specifiedConfigValue);
 		env.putObject("client", client);
 
-		log(String.format("Copied %s from original_client_config to client configuration", configName), args("client", client));
+		log("Copied %s from original_client_config to client configuration".formatted(configName), args("client", client));
 
 		return env;
 	}

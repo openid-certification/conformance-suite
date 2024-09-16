@@ -80,11 +80,11 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 						if (Curve.Ed25519.equals(publicKey.getCurve())) {
 							verifier = new Ed25519Verifier(publicKey);
 						}  // else Unsupported Curve, throw exception?
-					} else if (jwkKey instanceof AsymmetricJWK) {
-						KeyPair keyPair = ((AsymmetricJWK) jwkKey).toKeyPair();
+					} else if (jwkKey instanceof AsymmetricJWK wK) {
+						KeyPair keyPair = wK.toKeyPair();
 						verifier = factory.createJWSVerifier(jwt.getHeader(), keyPair.getPublic());
-					} else if (jwkKey instanceof SecretJWK) {
-						verifier = factory.createJWSVerifier(jwt.getHeader(), ((SecretJWK) jwkKey).toSecretKey());
+					} else if (jwkKey instanceof SecretJWK wK) {
+						verifier = factory.createJWSVerifier(jwt.getHeader(), wK.toSecretKey());
 					}
 				}
 				catch(JOSEException e) {

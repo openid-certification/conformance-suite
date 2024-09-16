@@ -93,9 +93,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		if (value == null) {
 			throw new IllegalArgumentException("Invalid variant parameter: " + parameter.getSimpleName());
 		} else if (!parameter.isAssignableFrom(value.getClass())) {
-			throw new RuntimeException(String.format("BUG: invalid value for variant %s: %s",
-					parameter.getSimpleName(),
-					value));
+			throw new RuntimeException("BUG: invalid value for variant %s: %s".formatted(
+				parameter.getSimpleName(),
+				value));
 		}
 		return parameter.cast(value);
 	}
@@ -401,17 +401,17 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * Dispatch function to call a more specific subclass as needed.
 	 */
 	protected void call(TestExecutionUnit builder) {
-		if (builder instanceof ConditionCallBuilder) {
-			call((ConditionCallBuilder)builder);
-		} else if (builder instanceof Command) {
-			call((Command)builder);
-		} else if (builder instanceof ConditionSequence) {
-			call((ConditionSequence)builder);
-		} else if (builder instanceof ConditionSequenceCallBuilder) {
-			call((ConditionSequenceCallBuilder)builder);
-		} else if (builder instanceof SkippedCondition) {
-			eventLog.log(((SkippedCondition) builder).getSource(), args(
-					"msg", ((SkippedCondition) builder).getMessage()));
+		if (builder instanceof ConditionCallBuilder callBuilder) {
+			call(callBuilder);
+		} else if (builder instanceof Command command) {
+			call(command);
+		} else if (builder instanceof ConditionSequence sequence) {
+			call(sequence);
+		} else if (builder instanceof ConditionSequenceCallBuilder callBuilder) {
+			call(callBuilder);
+		} else if (builder instanceof SkippedCondition condition) {
+			eventLog.log(condition.getSource(), args(
+					"msg", condition.getMessage()));
 		} else {
 			throw new TestFailureException(getId(), "Unknown class passed to call() function");
 		}

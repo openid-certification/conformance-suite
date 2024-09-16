@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 
 public class CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError extends AbstractCondition {
 

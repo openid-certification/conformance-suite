@@ -155,18 +155,18 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 			case "openbanking_uk":
 				certProfile = "UK-OB";
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in UK",
+					throw new RuntimeException("Invalid configuration for %s: JARM is not used in UK".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in AU-CDR",
+					throw new RuntimeException("Invalid configuration for %s: JARM is not used in AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -175,29 +175,29 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 				break;
 			case "connectid_au":
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for ConnectID",
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for ConnectID".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!signedRequest) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only signed requests are required for ConnectID",
+					throw new RuntimeException("Invalid configuration for %s: Only signed requests are required for ConnectID".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (dpop) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: DPoP sender constraining is not used for ConnectID",
+					throw new RuntimeException("Invalid configuration for %s: DPoP sender constraining is not used for ConnectID".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM responses are not used for ConnectID",
+					throw new RuntimeException("Invalid configuration for %s: JARM responses are not used for ConnectID".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!openid) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: OpenID must be selected for ConnectID",
+					throw new RuntimeException("Invalid configuration for %s: OpenID must be selected for ConnectID".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
 				return certProfile + " ConnectID OP";
 			default:
-				throw new RuntimeException(String.format("Unknown profile %s for %s",
+				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 

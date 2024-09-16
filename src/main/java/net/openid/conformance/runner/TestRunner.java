@@ -40,9 +40,9 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
@@ -187,7 +187,7 @@ public class TestRunner implements DataUtils {
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
-	@RequestMapping(value = "/runner/available", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/runner/available", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> getAvailableTests(Model m) {
 
 		List<?> available = variantService.getTestModules().stream()
@@ -211,7 +211,7 @@ public class TestRunner implements DataUtils {
 		@ApiResponse(responseCode = "409", description = "There was a failure in creating the test alias"),
 		@ApiResponse(responseCode = "500", description = "Created test failed"),
 	})
-	@RequestMapping(value = "/runner", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/runner", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, String>> createTest(@Parameter(description = "Test name, use to identify a specific TestModule") @RequestParam("test") String testName,
 														  @Parameter(description = "Plan Id") @RequestParam(name = "plan", required = false) String planId,
 														  @Parameter(description = "Kind of test variation") @RequestParam(name = "variant", required = false) VariantSelection variantFromApi,
@@ -476,7 +476,7 @@ public class TestRunner implements DataUtils {
 		@ApiResponse(responseCode = "200", description = "Started test successfully"),
 		@ApiResponse(responseCode = "404", description = "The test you were trying to run is not found")
 	})
-	@RequestMapping(value = "/runner/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/runner/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> startTest(@Parameter(description = "Id of test that you want to run") @PathVariable("id") String testId) {
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
@@ -550,7 +550,7 @@ public class TestRunner implements DataUtils {
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
-	@RequestMapping(value = "/runner/running", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/runner/running", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Set<String>> getAllRunningTestIds(Model m) {
 		Set<String> testIds = support.getAllRunningTestIds();
 
@@ -563,7 +563,7 @@ public class TestRunner implements DataUtils {
 		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),
 		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information")
 	})
-	@RequestMapping(value = "/runner/browser/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(value = "/runner/browser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, Object>> getBrowserStatus(@Parameter(description = "Id of test") @PathVariable("id") String testId,
 																Model m) {
 		// logger.info("Getting status of " + testId);
@@ -594,9 +594,9 @@ public class TestRunner implements DataUtils {
 		@ApiResponse(responseCode = "404", description = "The test you were trying to retrieve is not found"),
 		@ApiResponse(responseCode = "503", description = "Couldn't find Browser information")
 	})
-	@RequestMapping(value = "/runner/browser/{id}/visit", method = RequestMethod.POST)
+	@PostMapping("/runner/browser/{id}/visit")
 	public ResponseEntity<String> visitBrowserUrl(@Parameter(description = "Id of test") @PathVariable("id") String testId,
-												  @Parameter(description = "Url which you want to visit") @RequestParam("url") String url, Model m) {
+												  @Parameter(description = "Url which you want to visit") @RequestParam String url, Model m) {
 		TestModule test = support.getRunningTestById(testId);
 		if (test != null) {
 			BrowserControl browser = test.getBrowser();
@@ -703,9 +703,9 @@ public class TestRunner implements DataUtils {
 			statusCode = HttpStatus.OK;
 		}
 
-		if(error instanceof TestFailureException && ((TestFailureException) error).getError() != null) {
-			errorResponse.addProperty("error", ((TestFailureException) error).getError());
-			errorResponse.addProperty("error_description", ((TestFailureException) error).getErrorDescription());
+		if(error instanceof TestFailureException exception && exception.getError() != null) {
+			errorResponse.addProperty("error", exception.getError());
+			errorResponse.addProperty("error_description", exception.getErrorDescription());
 			statusCode = HttpStatus.BAD_REQUEST;
 		} else {
 			errorResponse.addProperty("error", error.getMessage());

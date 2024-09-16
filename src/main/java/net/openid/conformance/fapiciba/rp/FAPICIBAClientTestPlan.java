@@ -82,22 +82,22 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "openbanking_brazil":
 				certProfile = "BR-OB";
 				if (!privateKey || !poll) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil OpenFinance",
+					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil OpenFinance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "openinsurance_brazil":
 				certProfile = "BR-OPIN";
 				if (!privateKey || !poll) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil OpenFinance",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil OpenFinance".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 

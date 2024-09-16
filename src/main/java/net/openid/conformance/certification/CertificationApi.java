@@ -29,16 +29,16 @@ public class CertificationApi {
 	})
 	public void getCertificationOfConformancePdfTemplate(
 			HttpServletResponse response,
-			@Parameter(description = "Id of test plan") @PathVariable("id") String id,
-			@Parameter(description = "Name of Entity (Implementer) Making this Certification") @RequestParam(name = "nameOfImplementer", required = false) String nameOfImplementer,
-			@Parameter(description = "Software or Service (Deployment) Name & Version #") @RequestParam(name = "deploymentVersion", required = false) String deploymentVersion,
-			@Parameter(description = "OpenID Conformance Profile") @RequestParam(name = "conformanceProfile", required = false) String conformanceProfile,
-			@Parameter(description = "Conformance Test Suite Software") @RequestParam(name = "suiteSoftware", required = false) String suiteSoftware,
-			@Parameter(description = "Test Date") @RequestParam(name = "testDate", required = false) String testDate,
-			@Parameter(description = "URL at which people interested in using your implementation can learn about it and/or obtain it") @RequestParam(name = "moreInfoUrl", required = false) String moreInfoUrl,
-			@Parameter(description = "1-2 sentence description of the implementation") @RequestParam(name = "implementationDescription", required = false) String implementationDescription,
-			@Parameter(description = "The programming language of the software and deployment environment for it, if applicable") @RequestParam(name = "programmingLanguage", required = false) String programmingLanguage,
-			@Parameter(description = "Licensing terms of the software, if applicable") @RequestParam(name = "license", required = false) String license
+			@Parameter(description = "Id of test plan") @PathVariable String id,
+			@Parameter(description = "Name of Entity (Implementer) Making this Certification") @RequestParam(required = false) String nameOfImplementer,
+			@Parameter(description = "Software or Service (Deployment) Name & Version #") @RequestParam(required = false) String deploymentVersion,
+			@Parameter(description = "OpenID Conformance Profile") @RequestParam(required = false) String conformanceProfile,
+			@Parameter(description = "Conformance Test Suite Software") @RequestParam(required = false) String suiteSoftware,
+			@Parameter(description = "Test Date") @RequestParam(required = false) String testDate,
+			@Parameter(description = "URL at which people interested in using your implementation can learn about it and/or obtain it") @RequestParam(required = false) String moreInfoUrl,
+			@Parameter(description = "1-2 sentence description of the implementation") @RequestParam(required = false) String implementationDescription,
+			@Parameter(description = "The programming language of the software and deployment environment for it, if applicable") @RequestParam(required = false) String programmingLanguage,
+			@Parameter(description = "Licensing terms of the software, if applicable") @RequestParam(required = false) String license
 	) throws Exception {
 		File filledPdfTemplateFile = null;
 		try {

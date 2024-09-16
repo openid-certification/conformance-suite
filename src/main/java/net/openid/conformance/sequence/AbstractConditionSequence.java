@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 public abstract class AbstractConditionSequence implements ConditionSequence, DataUtils {
 
 	protected static Function<TestExecutionUnit, Class<? extends Condition>> actionToConditionClass = action -> {
-		if (action instanceof ConditionCallBuilder) {
-			return ((ConditionCallBuilder) action).getConditionClass();
+		if (action instanceof ConditionCallBuilder builder) {
+			return builder.getConditionClass();
 		} else if (action instanceof Condition) {
 			return action.getClass().asSubclass(Condition.class);
 		} else {
@@ -105,16 +105,15 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 		List<TestExecutionUnit> expandedUnits = new ArrayList<>();
 		for (TestExecutionUnit action: this.callables) {
 			ConditionSequence sequence = null;
-			if (action instanceof ConditionSequenceCallBuilder) {
-				ConditionSequenceCallBuilder builder = (ConditionSequenceCallBuilder) action;
+			if (action instanceof ConditionSequenceCallBuilder builder) {
 
 				if (builder.getConditionSequenceConstructor() != null) {
 					sequence = builder.getConditionSequenceConstructor().get();
 				} else {
 					sequence = createSequence(builder.getConditionSequenceClass());
 				}
-			} else if (action instanceof ConditionSequence) {
-				sequence = (ConditionSequence) action;
+			} else if (action instanceof ConditionSequence conditionSequence) {
+				sequence = conditionSequence;
 			}
 
 			if (sequence != null) {
@@ -141,26 +140,26 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 				.collect(Collectors.toSet());
 		replacements.keySet().forEach(conditionClass -> {
 			if (!conditionClasses.contains(conditionClass)) {
-				throw new RuntimeException(String.format("%s: replacement requested for missing condition: %s",
-						this.getClass().getSimpleName(), conditionClass.getSimpleName()));
+				throw new RuntimeException("%s: replacement requested for missing condition: %s".formatted(
+					this.getClass().getSimpleName(), conditionClass.getSimpleName()));
 			}
 		});
 		skips.keySet().forEach(conditionClass -> {
 			if (!conditionClasses.contains(conditionClass)) {
-				throw new RuntimeException(String.format("%s: skip requested for missing condition: %s",
-						this.getClass().getSimpleName(), conditionClass.getSimpleName()));
+				throw new RuntimeException("%s: skip requested for missing condition: %s".formatted(
+					this.getClass().getSimpleName(), conditionClass.getSimpleName()));
 			}
 		});
 		insertBefore.keySet().forEach(conditionClass -> {
 			if (!conditionClasses.contains(conditionClass)) {
-				throw new RuntimeException(String.format("%s: insertion requested for missing condition: %s",
-						this.getClass().getSimpleName(), conditionClass.getSimpleName()));
+				throw new RuntimeException("%s: insertion requested for missing condition: %s".formatted(
+					this.getClass().getSimpleName(), conditionClass.getSimpleName()));
 			}
 		});
 		insertAfter.keySet().forEach(conditionClass -> {
 			if (!conditionClasses.contains(conditionClass)) {
-				throw new RuntimeException(String.format("%s: insertion requested for missing condition: %s",
-						this.getClass().getSimpleName(), conditionClass.getSimpleName()));
+				throw new RuntimeException("%s: insertion requested for missing condition: %s".formatted(
+					this.getClass().getSimpleName(), conditionClass.getSimpleName()));
 			}
 		});
 

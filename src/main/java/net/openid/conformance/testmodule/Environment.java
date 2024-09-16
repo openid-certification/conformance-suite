@@ -144,7 +144,7 @@ public class Environment {
 			} else if (nextO.isJsonObject()) {
 				// object already exists
 			} else {
-				throw new UnexpectedTypeException(String.format("putObject(%s, %s, obj) found a non-object of type %s in the path at %s",
+				throw new UnexpectedTypeException("putObject(%s, %s, obj) found a non-object of type %s in the path at %s".formatted(
 					key, path, nextO.getClass().getSimpleName(), pathSegment));
 			}
 			o = (JsonObject) nextO;
@@ -221,7 +221,7 @@ public class Environment {
 					break;
 				}
 			} else {
-				throw new UnexpectedTypeException(String.format("An object is required for %s.%s but %s was found whilst traversing the path",
+				throw new UnexpectedTypeException("An object is required for %s.%s but %s was found whilst traversing the path".formatted(
 					key, path, e.getClass().getSimpleName()));
 			}
 		}
@@ -255,7 +255,7 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()) {
 			return OIDFJSON.getString(e);
 		} else {
-			throw new UnexpectedTypeException(String.format("If present, a string is expected for %s %s but %s was found",
+			throw new UnexpectedTypeException("If present, a string is expected for %s %s but %s was found".formatted(
 				key, path, e.getClass().getSimpleName()));
 		}
 	}
@@ -283,7 +283,7 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
 			return OIDFJSON.getNumber(e).intValue();
 		} else {
-			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+			throw new UnexpectedTypeException("A number is required for %s %s but %s was found".formatted(
 				key, path, e.getClass().getSimpleName()));
 		}
 	}
@@ -312,7 +312,7 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean()) {
 			return OIDFJSON.getBoolean(e);
 		} else {
-			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+			throw new UnexpectedTypeException("A number is required for %s %s but %s was found".formatted(
 				key, path, e.getClass().getSimpleName()));
 		}
 	}
@@ -340,7 +340,7 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
 			return OIDFJSON.getNumber(e).longValue();
 		} else {
-			throw new UnexpectedTypeException(String.format("A number is required for %s %s but %s was found",
+			throw new UnexpectedTypeException("A number is required for %s %s but %s was found".formatted(
 				key, path, e.getClass().getSimpleName()));
 		}
 	}

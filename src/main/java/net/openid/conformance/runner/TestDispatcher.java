@@ -19,8 +19,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.testmodule.UserFacing;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.hc.core5.net.URLEncodedUtils;
+import org.apache.hc.core5.http.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -278,8 +278,7 @@ public class TestDispatcher implements DataUtils {
 		}
 
 		try {
-			if(test instanceof AbstractOIDCCClientTest) {
-				AbstractOIDCCClientTest clientTest = (AbstractOIDCCClientTest) test;
+			if(test instanceof AbstractOIDCCClientTest clientTest) {
 				JsonObject requestParts = new JsonObject();
 				requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
 				requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(servletRequest.getQueryString()), false));
@@ -362,8 +361,7 @@ public class TestDispatcher implements DataUtils {
 	}
 
 	protected void logOutgoingHttpResponse(TestModule test, String path, Object response) {
-		if (response instanceof ResponseEntity) {
-			ResponseEntity<?> responseEntity = (ResponseEntity<?>) response;
+		if (response instanceof ResponseEntity<?> responseEntity) {
 			eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 				"msg", "Response to HTTP request to test instance " + test.getId(),
 				"http", "outgoing",

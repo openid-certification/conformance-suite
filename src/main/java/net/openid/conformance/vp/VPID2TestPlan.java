@@ -64,15 +64,15 @@ public class VPID2TestPlan implements TestPlan {
 
 		if (credentialFormat.equals(CredentialFormat.ISO_MDL.toString())) {
 			if (!responseMode.equals(VPResponseMode.DIRECT_POST_JWT.toString())) {
-				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires direct_post.jwt",
+				throw new RuntimeException("Invalid configuration for %s: ISO mDL requires direct_post.jwt".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			}
 			if (!requestMethod.equals(VPRequestMethod.REQUEST_URI_SIGNED.toString())) {
-				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires signed request uri",
+				throw new RuntimeException("Invalid configuration for %s: ISO mDL requires signed request uri".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			}
 			if (!clientIDScheme.equals(VPClientIdScheme.X509_SAN_DNS.toString())) {
-				throw new RuntimeException(String.format("Invalid configuration for %s: ISO mDL requires client_id_scheme x509_san_dns",
+				throw new RuntimeException("Invalid configuration for %s: ISO mDL requires client_id_scheme x509_san_dns".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			}
 		}

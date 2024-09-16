@@ -64,7 +64,7 @@ public class FAPIBrazilCallDirectorySoftwareStatementEndpointWithBearerToken ext
 			throw error("'cn' not found in TLS certificate subject");
 		}
 
-		String resourceEndpoint = String.format("%sorganisations/%s/softwarestatements/%s/assertion", apibase, ou, cn);
+		String resourceEndpoint = "%sorganisations/%s/softwarestatements/%s/assertion".formatted(apibase, ou, cn);
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);

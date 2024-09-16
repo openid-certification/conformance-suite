@@ -71,7 +71,7 @@ public class TokenApi {
 		@ApiResponse(responseCode = "200", description = "Deleted token successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find provided token Id")
 	})
-	public ResponseEntity<Object> deleteToken(@Parameter(description = "Id of token, use to identify a specific token") @PathVariable("id") String id) {
+	public ResponseEntity<Object> deleteToken(@Parameter(description = "Id of token, use to identify a specific token") @PathVariable String id) {
 
 		if (tokenService.deleteToken(id)) {
 			return new ResponseEntity<>(HttpStatus.OK);

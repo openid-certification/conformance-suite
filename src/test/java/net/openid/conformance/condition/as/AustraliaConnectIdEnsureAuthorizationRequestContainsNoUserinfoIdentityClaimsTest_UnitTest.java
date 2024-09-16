@@ -114,8 +114,10 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdent
 	@Test
 	public void testEvaluate_blankUserinfoClaims() {
 		String userinfoRequestStr =
-			"{\n" +
-				"}";
+			"""
+			{
+			}\
+			""";
 		JsonObject userinfoRequestObj = (JsonObject) JsonParser.parseString(userinfoRequestStr);
 		addRequestClaims(env,request);
 		addUserinfoClaims(env, userinfoRequestObj);

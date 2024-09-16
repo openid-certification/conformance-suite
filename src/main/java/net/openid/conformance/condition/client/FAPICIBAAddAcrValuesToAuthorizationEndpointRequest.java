@@ -41,7 +41,7 @@ public class FAPICIBAAddAcrValuesToAuthorizationEndpointRequest extends Abstract
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
 
-		logSuccess(String.format("Added acr_values of '%s' to authorization endpoint request", requestedACRs), authorizationEndpointRequest);
+		logSuccess("Added acr_values of '%s' to authorization endpoint request".formatted(requestedACRs), authorizationEndpointRequest);
 
 		return env;
 	}

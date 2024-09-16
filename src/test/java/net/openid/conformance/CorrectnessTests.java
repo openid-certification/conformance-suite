@@ -26,7 +26,7 @@ public class CorrectnessTests {
 			PublishTestPlan publishTestPlan = clazz.getDeclaredAnnotation(PublishTestPlan.class);
 			String planName = publishTestPlan.testPlanName();
 			if(found.contains(planName)) {
-				fail(String.format("The test plan %s is not unique - this is not allowed", planName));
+				fail("The test plan %s is not unique - this is not allowed".formatted(planName));
 			}
 			found.add(planName);
 		}

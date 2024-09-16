@@ -202,11 +202,11 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 					if (Curve.Ed25519.equals(publicKey.getCurve())) {
 						verifier = new Ed25519Verifier(publicKey);
 					}
-				} else if (jwkKey instanceof AsymmetricJWK) {
-					KeyPair keyPair = ((AsymmetricJWK) jwkKey).toKeyPair();
+				} else if (jwkKey instanceof AsymmetricJWK wK) {
+					KeyPair keyPair = wK.toKeyPair();
 					verifier = factory.createJWSVerifier(jwt.getHeader(), keyPair.getPublic());
-				} else if (jwkKey instanceof SecretJWK) {
-					verifier = factory.createJWSVerifier(jwt.getHeader(), ((SecretJWK) jwkKey).toSecretKey());
+				} else if (jwkKey instanceof SecretJWK wK) {
+					verifier = factory.createJWSVerifier(jwt.getHeader(), wK.toSecretKey());
 				}
 			} catch (JOSEException | ParseException e) {
 				log("Unable to verifyJWTAfterSigned", args("exception", e));
@@ -240,7 +240,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			for (int i = 0; i < value.length(); i++) {
 				char character = value.charAt(i);
 				if (!Pattern.matches(regex, String.valueOf(character))) {
-					throw error(String.format("Value of key %s is invalid because it contains the character %s that is not permitted in unpadded base64url", key, character), args("jwk", keyObject));
+					throw error("Value of key %s is invalid because it contains the character %s that is not permitted in unpadded base64url".formatted(key, character), args("jwk", keyObject));
 				}
 			}
 		}

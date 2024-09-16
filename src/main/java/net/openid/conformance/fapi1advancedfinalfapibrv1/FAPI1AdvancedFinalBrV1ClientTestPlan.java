@@ -74,14 +74,14 @@ public class FAPI1AdvancedFinalBrV1ClientTestPlan implements TestPlan {
 			case "openbanking_uk":
 				certProfile = "UK-OB";
 				if (par) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR are not used in UK",
+					throw new RuntimeException("Invalid configuration for %s: PAR are not used in UK".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -92,8 +92,8 @@ public class FAPI1AdvancedFinalBrV1ClientTestPlan implements TestPlan {
 			case "openbanking_ksa":
 				certProfile = "KSA-OB";
 				if (!par) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only pused request is used for KSA-OB",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: Only pused request is used for KSA-OB".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			default:
@@ -132,7 +132,7 @@ public class FAPI1AdvancedFinalBrV1ClientTestPlan implements TestPlan {
 						certProfile += " (OAuth)";
 						break;
 					default:
-						throw new RuntimeException(String.format("Invalid configuration for %s: Unexpected jarm type value: %s",
+						throw new RuntimeException("Invalid configuration for %s: Unexpected jarm type value: %s".formatted(
 							MethodHandles.lookup().lookupClass().getSimpleName(), fapiClientType));
 				}
 				break;

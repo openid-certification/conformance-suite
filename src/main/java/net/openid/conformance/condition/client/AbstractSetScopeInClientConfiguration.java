@@ -14,7 +14,7 @@ public abstract class AbstractSetScopeInClientConfiguration extends AbstractCond
 		JsonObject client = env.getObject("client");
 		client.addProperty("scope", scope);
 		env.putObject("client", client);
-		log(String.format("Set scope in client configuration to \"%s\"" + additionalLogMsg, scope), args("scope", scope));
+		log(("Set scope in client configuration to \"%s\"" + additionalLogMsg).formatted(scope), args("scope", scope));
 		return env;
 	}
 }

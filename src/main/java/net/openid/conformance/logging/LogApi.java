@@ -128,8 +128,8 @@ public class LogApi {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully")
 	})
 	public ResponseEntity<List<Document>> getLogResults(
-		@Parameter(description = "Id of test") @PathVariable("id") String id,
-		@Parameter(description = "Since when test created") @RequestParam(value = "since", required = false) Long since,
+		@Parameter(description = "Id of test") @PathVariable String id,
+		@Parameter(description = "Since when test created") @RequestParam(required = false) Long since,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, since, publicOnly);
 
@@ -143,7 +143,7 @@ public class LogApi {
 		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
 	})
 	public ResponseEntity<StreamingResponseBody> export(
-		@Parameter(description = "Id of test") @PathVariable("id") String id,
+		@Parameter(description = "Id of test") @PathVariable String id,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, null, publicOnly);
 
@@ -152,7 +152,7 @@ public class LogApi {
 		String testModuleName = null;
 		VariantSelection variant = null;
 
-		if (!testInfo.isPresent()) {
+		if (testInfo.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else if (testInfo.get() instanceof TestInfo) {
 			testModuleName = ((TestInfo) testInfo.get()).getTestName();
@@ -199,7 +199,7 @@ public class LogApi {
 		@ApiResponse(responseCode = "404", description = "Couldn't find given plan Id")
 	})
 	public ResponseEntity<StreamingResponseBody> exportLogsOfPlan(
-		@Parameter(description = "Id of plan") @PathVariable("id") String id,
+		@Parameter(description = "Id of plan") @PathVariable String id,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
 		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
@@ -211,14 +211,14 @@ public class LogApi {
 
 		if (testPlan == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		} else if (testPlan instanceof PublicPlan) {
-			planName = ((PublicPlan) testPlan).getPlanName();
-			variant = ((PublicPlan) testPlan).getVariant();
-			modules = ((PublicPlan) testPlan).getModules();
-		} else if (testPlan instanceof Plan) {
-			planName = ((Plan) testPlan).getPlanName();
-			variant = ((Plan) testPlan).getVariant();
-			modules = ((Plan) testPlan).getModules();
+		} else if (testPlan instanceof PublicPlan plan) {
+			planName = plan.getPlanName();
+			variant = plan.getVariant();
+			modules = plan.getModules();
+		} else if (testPlan instanceof Plan plan) {
+			planName = plan.getPlanName();
+			variant = plan.getVariant();
+			modules = plan.getModules();
 		}
 
 		List<Map<String, Object>> allLatestLogsExport = new ArrayList<>();
@@ -352,7 +352,7 @@ public class LogApi {
 		if (isPublic) {
 			// Check publish status of test
 			Optional<PublicTestInfo> testInfo = testInfos.findByIdPublic(id);
-			if (!testInfo.isPresent()) {
+			if (testInfo.isEmpty()) {
 				return Collections.emptyList();
 			} else {
 				summaryOnly = !testInfo.get().getPublish().equals("everything");
@@ -414,11 +414,11 @@ public class LogApi {
 	})
 	public ResponseEntity<StreamingResponseBody> prepareCertificationPackageForTestPlan(
 		@Parameter(description = "Id of test plan")
-			@PathVariable("id") String id,
+			@PathVariable String id,
 		@Parameter(description = "Signed certification of conformance pdf")
-			@RequestParam("certificationOfConformancePdf") MultipartFile certificationOfConformancePdf,
+			@RequestParam MultipartFile certificationOfConformancePdf,
 		@Parameter(description = "Client data in zip format. Only required for RP tests")
-			@RequestParam("clientSideData") Optional<MultipartFile> clientSideData
+			@RequestParam Optional<MultipartFile> clientSideData
 	) {
 		if (!planService.publishTestPlan(id, "everything")) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -439,7 +439,7 @@ public class LogApi {
 	})
 	public ResponseEntity<StreamingResponseBody> exportPlanAsHTML(
 		HttpServletRequest httpRequest,
-		@Parameter(description = "Id of plan") @PathVariable("id") String id,
+		@Parameter(description = "Id of plan") @PathVariable String id,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		return exportPlanAsZip(id, false, publicOnly, false, null, null);
 	}
@@ -459,14 +459,14 @@ public class LogApi {
 
 		if (testPlan == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		} else if (testPlan instanceof PublicPlan) {
-			planName = ((PublicPlan) testPlan).getPlanName();
-			variant = ((PublicPlan) testPlan).getVariant();
-			modules = ((PublicPlan) testPlan).getModules();
-		} else if (testPlan instanceof Plan) {
-			planName = ((Plan) testPlan).getPlanName();
-			variant = ((Plan) testPlan).getVariant();
-			modules = ((Plan) testPlan).getModules();
+		} else if (testPlan instanceof PublicPlan plan) {
+			planName = plan.getPlanName();
+			variant = plan.getVariant();
+			modules = plan.getModules();
+		} else if (testPlan instanceof Plan plan) {
+			planName = plan.getPlanName();
+			variant = plan.getVariant();
+			modules = plan.getModules();
 		}
 
 		//plan summary page
@@ -683,7 +683,7 @@ public class LogApi {
 		@ApiResponse(responseCode = "404", description = "Couldn't find given test Id")
 	})
 	public ResponseEntity<StreamingResponseBody> exportTestHtml(
-		@Parameter(description = "Id of test") @PathVariable("id") String id,
+		@Parameter(description = "Id of test") @PathVariable String id,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 		List<Document> results = getTestResults(id, null, publicOnly);
 
@@ -692,7 +692,7 @@ public class LogApi {
 		String testModuleName = null;
 		VariantSelection variant = null;
 
-		if (!testInfo.isPresent()) {
+		if (testInfo.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else if (testInfo.get() instanceof TestInfo) {
 			testModuleName = ((TestInfo) testInfo.get()).getTestName();

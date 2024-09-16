@@ -65,16 +65,21 @@ import jakarta.servlet.http.HttpSession;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-client-brazildcr-happypath-test",
 	displayName = "FAPI1-Advanced-Final: client DCR happy path test",
-	summary = "Tests a 'happy path' flow; " +
-		"first perform OpenID discovery from the displayed discoveryUrl, and (after obtaining a software statement from the directory) register the client. " +
-		"Then call the authorization endpoint (which will immediately redirect back), " +
-		"exchange the authorization code for an access token at the token endpoint and " +
-		"make a GET request to the accounts/payments endpoint displayed.\n\nFinally, the client must make two " +
-		"a GET calls to the RFC7592 Client Configuration Endpoint; a new registration access token is returned " +"" +
-		"each time - it is vital that the client PERMANENTLY "+
-		"stores the registration_client_uri and registration_access_token so that future changes may be "+
-		"made to the configuration of the client.\n\n" +
-		"If you do not have access to the directory you can use the keys in this configuration: https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json",
+	summary = """
+		Tests a 'happy path' flow; \
+		first perform OpenID discovery from the displayed discoveryUrl, and (after obtaining a software statement from the directory) register the client. \
+		Then call the authorization endpoint (which will immediately redirect back), \
+		exchange the authorization code for an access token at the token endpoint and \
+		make a GET request to the accounts/payments endpoint displayed.
+		
+		Finally, the client must make two \
+		a GET calls to the RFC7592 Client Configuration Endpoint; a new registration access token is returned \
+		each time - it is vital that the client PERMANENTLY \
+		stores the registration_client_uri and registration_access_token so that future changes may be \
+		made to the configuration of the client.
+		
+		If you do not have access to the directory you can use the keys in this configuration: https://gitlab.com/openid/conformance-suite/-/blob/master/scripts/test-configs-rp-against-op/fapi-brazil-rp-test-config-payments.json\
+		""",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.jwks"

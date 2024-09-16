@@ -63,8 +63,8 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name")
 	})
 	public ResponseEntity<Map<String, Object>> createTestPlan(
-		@Parameter(description = "Plan name") @RequestParam("planName") String planName,
-		@Parameter(description = "Kind of test variation") @RequestParam(value = "variant", required = false) VariantSelection variant,
+		@Parameter(description = "Plan name") @RequestParam String planName,
+		@Parameter(description = "Kind of test variation") @RequestParam(required = false) VariantSelection variant,
 		@Parameter(description = "Configuration json") @RequestBody JsonObject config,
 		Model m) {
 
@@ -146,7 +146,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
 	})
 	public ResponseEntity<Object> getTestPlan(
-		@Parameter(description = "Id of test plan") @PathVariable("id") String id,
+		@Parameter(description = "Id of test plan") @PathVariable String id,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
 		Object testPlan = publicOnly ? planService.getPublicPlan(id) : planService.getTestPlan(id);
@@ -180,7 +180,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "400", description = "'publish' field is missing or its value is not JsonPrimitive"),
 		@ApiResponse(responseCode = "403", description = "'publish' value is not valid or couldn't find test plan by provided plan Id")
 	})
-	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of test plan that you want publish") @PathVariable("id") String id,
+	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of test plan that you want publish") @PathVariable String id,
 												  @Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
 
 		String publish = null;
@@ -209,7 +209,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "403", description = "Not authorized")
 	})
 	public ResponseEntity<Object> makeTestPlanMutable(
-			@Parameter(description = "Id of test plan that you want make mutable again") @PathVariable("id") String id) {
+			@Parameter(description = "Id of test plan that you want make mutable again") @PathVariable String id) {
 		if (!planService.changeTestPlanImmutableStatus(id, Boolean.FALSE)) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
@@ -223,7 +223,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name")
 	})
 	public ResponseEntity<Object> getTestPlanInfo(
-			@Parameter(description = "Plan name, use to identify a specific TestPlan ") @PathVariable("planName") String planName) {
+			@Parameter(description = "Plan name, use to identify a specific TestPlan ") @PathVariable String planName) {
 		VariantService.TestPlanHolder holder = variantService.getTestPlan(planName);
 
 		if (holder != null) {
@@ -275,7 +275,7 @@ public class TestPlanApi implements DataUtils {
 		@ApiResponse(responseCode = "405", description = "The plan is immutable and cannot be deleted")
 	})
 	public ResponseEntity<StreamingResponseBody> deleteMutableTestPlan(
-		@Parameter(description = "Id of test plan") @PathVariable("id") String id
+		@Parameter(description = "Id of test plan") @PathVariable String id
 	) {
 		Plan testPlan = planService.getTestPlan(id);
 		if(testPlan == null) {

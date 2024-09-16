@@ -58,7 +58,7 @@ public class BrazilOBClientTestPlan implements TestPlan {
 						certProfile += " (OAuth)";
 						break;
 					default:
-						throw new RuntimeException(String.format("Invalid configuration for %s: Unexpected jarm type value: %s",
+						throw new RuntimeException("Invalid configuration for %s: Unexpected jarm type value: %s".formatted(
 							MethodHandles.lookup().lookupClass().getSimpleName(), fapiClientType));
 				}
 				break;

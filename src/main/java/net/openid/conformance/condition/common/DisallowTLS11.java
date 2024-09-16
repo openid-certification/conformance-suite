@@ -67,19 +67,19 @@ public class DisallowTLS11 extends AbstractCondition {
 						"port", tlsTestPort));
 			}
 		} catch (IOException e) {
-			if ((e instanceof TlsFatalAlertReceived)
-				&& (((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.handshake_failure ||
-				((TlsFatalAlertReceived) e).getAlertDescription() == AlertDescription.protocol_version)){
+			if ((e instanceof TlsFatalAlertReceived received)
+				&& (received.getAlertDescription() == AlertDescription.handshake_failure ||
+				received.getAlertDescription() == AlertDescription.protocol_version)){
 				// If we get here then we haven't received a server hello agreeing on a version
 				logSuccess("Server refused TLS 1.1 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
-			} else if ((e instanceof TlsFatalAlert)
-				&& ((TlsFatalAlert) e).getAlertDescription() == AlertDescription.handshake_failure) {
+			} else if ((e instanceof TlsFatalAlert alert)
+				&& alert.getAlertDescription() == AlertDescription.handshake_failure) {
 				// If we get here then we haven't received a server hello agreeing on a version
 				logSuccess("Server refused TLS 1.1 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
-			} else if ((e instanceof SocketException)
-				&& ((SocketException) e).getMessage().equals("Connection reset")) {
+			} else if ((e instanceof SocketException exception)
+				&& exception.getMessage().equals("Connection reset")) {
 				// AWS ELB seem to reject like this instead of by failing the handshake
 				logSuccess("Server refused TLS 1.1 handshake", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;

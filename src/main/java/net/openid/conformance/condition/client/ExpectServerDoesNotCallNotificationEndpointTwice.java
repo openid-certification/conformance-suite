@@ -21,7 +21,7 @@ public class ExpectServerDoesNotCallNotificationEndpointTwice extends AbstractCo
 		env.putString("times_server_called_notification_endpoint", String.valueOf(times));
 
 		if (times > 1) {
-			throw error(String.format("Server called notification endpoint %d times while it shouldn't.", times));
+			throw error("Server called notification endpoint %d times while it shouldn't.".formatted(times));
 		}
 
 		logSuccess("Server called notification endpoint once");

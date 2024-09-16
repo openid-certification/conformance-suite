@@ -44,17 +44,17 @@ public class FAPI2SPID2ClientTestPlan implements TestPlan {
 			case "consumerdataright_au":
 				certProfile += " AU-CDR";
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "openbanking_brazil":
 				return "Not a conformance profile. Please use 'FAPI2-Security-Profile-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
 			case "connectid_au":
-				throw new RuntimeException(String.format("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID",
+				throw new RuntimeException("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			default:
-				throw new RuntimeException(String.format("Unknown profile %s for %s",
+				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 

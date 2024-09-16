@@ -42,7 +42,7 @@ public class FAPICIBABrazilAddAcrValuesToAuthorizationEndpointRequest extends Ab
 
 			env.putObject("authorization_endpoint_request", "claims.id_token", acr);
 
-			logSuccess(String.format("Added acr_values of '%s' to authorization endpoint request", requestedACRs), authorizationEndpointRequest);
+			logSuccess("Added acr_values of '%s' to authorization endpoint request".formatted(requestedACRs), authorizationEndpointRequest);
 		}
 
 		return env;
