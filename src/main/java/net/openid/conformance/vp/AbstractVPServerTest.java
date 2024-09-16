@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
@@ -139,6 +140,14 @@ import org.springframework.http.ResponseEntity;
 })
 @VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
+})
+@VariantConfigurationFields(parameter = VPResponseMode.class, value = "direct_post.jwt", configurationFields = {
+	"client.authorization_encrypted_response_alg",
+	"client.authorization_encrypted_response_enc"
+})
+@VariantConfigurationFields(parameter = VPResponseMode.class, value = "w3c_dc_api.jwt", configurationFields = {
+	"client.authorization_encrypted_response_alg",
+	"client.authorization_encrypted_response_enc"
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name"
@@ -455,6 +464,15 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 					break;
 				case SD_JWT_VC:
 					callAndStopOnFailure(AddSdJwtClientMetadataToAuthorizationRequest.class);
+					break;
+			}
+			switch (responseMode) {
+				case DIRECT_POST:
+				case W3C_DC_API:
+					break;
+				case DIRECT_POST_JWT:
+				case W3C_DC_API_JWT:
+					callAndStopOnFailure(AddEncryptionParametersToClientMetadata.class);
 					break;
 			}
 
