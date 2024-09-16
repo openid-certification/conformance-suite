@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -7,11 +8,18 @@ import net.openid.conformance.testmodule.Environment;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class SetClientIdToResponseUriHostname extends AbstractCondition {
+public class SetClientIdToResponseUriHostnameIfUnset extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "response_uri", required = "config")
 	public Environment evaluate(Environment env) {
+
+		String client_id = env.getString("config", "client.client_id");
+		if (!Strings.isNullOrEmpty(client_id)) {
+			log("client_id is already set, not setting it to our hostname", args("client_id", client_id));
+			return env;
+		}
+
 		String responseUri = env.getString("response_uri");
 		String hostname;
 

@@ -2,7 +2,6 @@ package net.openid.conformance.vp;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
@@ -28,7 +27,8 @@ public class VPID2TestPlan implements TestPlan {
 				List.of(
 					VPID2HappyFlowNoState.class,
 					VPID2HappyFlowWithStateAndRedirect.class,
-					VPID2ResponseUriNotClientId.class
+					VPID2ResponseUriNotClientId.class,
+					VPID2InvalidRequestObjectSignature.class
 
 					// FIXME: more tests
 					// positive tests:
@@ -40,7 +40,6 @@ public class VPID2TestPlan implements TestPlan {
 					// sending client_id != response_uri when using redirect client scheme + direct post
 					// sending invalid client_id_scheme should cause an error?
 					// flow without nonce
-					// for signed requests, bad signature
 					// for x509 client id scheme, try a client_id that's not permitted by the cert?
 				),
 				List.of(
@@ -48,8 +47,7 @@ public class VPID2TestPlan implements TestPlan {
 					new Variant(ResponseType.class, "id_token"),
 					// FIXME: confirm if most of these options should be removed as I don't think they're ever going to be applicable
 					new Variant(ServerMetadata.class, "static"),
-					new Variant(ClientRegistration.class, "static_client"),
-					new Variant(ClientAuthType.class, "none")
+					new Variant(ClientRegistration.class, "static_client")
 				)
 			)
 		);
