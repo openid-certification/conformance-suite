@@ -32,7 +32,7 @@ public class AddSdJwtClientMetadataToAuthorizationRequest extends AbstractCondit
 
 		authorizationEndpointRequest.add("client_metadata", clientMetaData);
 
-		log("Added client_metadata to authorization endpoint request", args("client_metdata", clientMetaData));
+		log("Added client_metadata to authorization endpoint request", args("client_metadata", clientMetaData));
 
 		return env;
 	}
