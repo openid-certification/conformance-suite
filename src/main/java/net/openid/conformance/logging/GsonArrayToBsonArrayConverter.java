@@ -35,10 +35,10 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 			map.forEach((key, value) -> {
 				if (value instanceof JsonElement element && element.isJsonArray()) {
 					convertedMap.put(key, new GsonArrayToBsonArrayConverter().convert(element.getAsJsonArray()));
-				} else if (value instanceof JWK wK) {
+				} else if (value instanceof JWK jwk) {
 					// letting this through to the default mongo converter results in stackoverflows if the jwk
 					// contains an x5c entry; explicitly convert it to it's more helpful JSON representation
-					String json = wK.toJSONString();
+					String json = jwk.toJSONString();
 					convertedMap.put(key, JsonParser.parseString(json));
 				} else if (value instanceof JWKSet set) {
 					String json = set.toString();

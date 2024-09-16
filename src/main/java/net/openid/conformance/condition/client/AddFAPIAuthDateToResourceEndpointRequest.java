@@ -18,7 +18,7 @@ public class AddFAPIAuthDateToResourceEndpointRequest extends AbstractCondition 
 
 		JsonObject headers = env.getObject("resource_endpoint_request_headers");
 
-		headers.addProperty("x-fapi-auth-date", DateUtils.formatDate(loginDate));
+		headers.addProperty("x-fapi-auth-date", DateUtils.formatStandardDate(DateUtils.toInstant(loginDate)));
 
 		logSuccess("Added x-fapi-auth-date to resource endpoint request headers", args("resource_endpoint_request_headers", headers));
 

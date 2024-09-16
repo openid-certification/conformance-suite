@@ -43,7 +43,7 @@ public class CheckForDateHeaderInResourceResponse_UnitTest {
 	public void testEvaluate_noError() {
 
 		JsonObject headers = new JsonObject();
-		headers.addProperty("date", DateUtils.formatDate(new Date()));
+		headers.addProperty("date", DateUtils.formatStandardDate(DateUtils.toInstant(new Date())));
 		env.putObject("resource_endpoint_response_headers", headers);
 
 		cond.execute(env);

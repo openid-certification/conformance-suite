@@ -202,11 +202,11 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 					if (Curve.Ed25519.equals(publicKey.getCurve())) {
 						verifier = new Ed25519Verifier(publicKey);
 					}
-				} else if (jwkKey instanceof AsymmetricJWK wK) {
-					KeyPair keyPair = wK.toKeyPair();
+				} else if (jwkKey instanceof AsymmetricJWK asyncJwkKey) {
+					KeyPair keyPair = asyncJwkKey.toKeyPair();
 					verifier = factory.createJWSVerifier(jwt.getHeader(), keyPair.getPublic());
-				} else if (jwkKey instanceof SecretJWK wK) {
-					verifier = factory.createJWSVerifier(jwt.getHeader(), wK.toSecretKey());
+				} else if (jwkKey instanceof SecretJWK secretJwkKey) {
+					verifier = factory.createJWSVerifier(jwt.getHeader(), secretJwkKey.toSecretKey());
 				}
 			} catch (JOSEException | ParseException e) {
 				log("Unable to verifyJWTAfterSigned", args("exception", e));

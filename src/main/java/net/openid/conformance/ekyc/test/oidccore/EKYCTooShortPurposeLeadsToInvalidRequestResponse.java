@@ -16,7 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = """
 		This test requests one known claim, selected from the list of claims_in_verified_claims_supported, \
 		 with a purpose which is only 2 characters long.
-		
+
 		 As per section 6.1 of the spec, the authentication request MUST fail and the OP return an error invalid_request to the RP.\
 		""",
 	profile = "OIDCC",
