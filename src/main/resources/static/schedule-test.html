@@ -1594,8 +1594,22 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             updateFormElementsFromJSON();
 
+            registerFormValidationForFields();
+
             FAPI_UI.hideBusy();
 
+        }
+
+        function registerFormValidationForFields() {
+
+            [...document.querySelectorAll(".form-control.config-form-element")]
+                .filter(inputEl => inputEl.dataset.jsonType === "jsonobject")
+                .forEach(inputEl => {
+                    inputEl.addEventListener("blur", function(evt) {
+                        let element = evt.currentTarget;
+                        validateJSONFromFormElement(element,element.value, element.dataset.jsonType)
+                    });
+                });
         }
 
         function updateConfigFieldVisibility() {
@@ -1835,14 +1849,29 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return;
             }
             let result = validateJSON(value);
+            let elementInputGroup = element.closest(".input-group");
             if (!result.valid) {
                 // propagate validation error on field via customValidity
                 element.setCustomValidity(result.error);
                 element.classList.add("is-invalid");
+
+                let validationFeedbackEl = elementInputGroup.parentElement.querySelector(".invalid-feedback");
+                if (validationFeedbackEl === null) {
+                    validationFeedbackEl = document.createElement('div');
+                    validationFeedbackEl.classList.add('invalid-feedback', 'd-block');
+                    elementInputGroup.parentElement.appendChild(validationFeedbackEl)
+                }
+                validationFeedbackEl.innerHTML = result.error;
+
             } else {
                 // reset custom validity
                 element.setCustomValidity("");
                 element.classList.remove("is-invalid");
+
+                let validationFeedbackEl = elementInputGroup.parentElement.querySelector(".invalid-feedback");
+                if (validationFeedbackEl) {
+                    validationFeedbackEl.remove();
+                }
             }
         }
 
