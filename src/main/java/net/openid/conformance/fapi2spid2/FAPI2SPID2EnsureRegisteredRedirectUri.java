@@ -68,7 +68,7 @@ public class FAPI2SPID2EnsureRegisteredRedirectUri extends AbstractFAPI2SPID2Exp
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "FAPI1-BASE-5.2.2-8");
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "PAR-2.1-3");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
 	}

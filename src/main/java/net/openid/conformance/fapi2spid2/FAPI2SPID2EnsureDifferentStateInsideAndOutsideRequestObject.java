@@ -39,7 +39,7 @@ public class FAPI2SPID2EnsureDifferentStateInsideAndOutsideRequestObject extends
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestDifferentStateInsideAndOutsideErrorPage.class, "FAPI1-ADV-5.2.3-8");
+		callAndStopOnFailure(ExpectRequestDifferentStateInsideAndOutsideErrorPage.class, "FAPI2-MS-ID1-5.3.2-1");
 
 		env.putString("error_callback_placeholder", env.getString("request_unverifiable_error"));
 	}

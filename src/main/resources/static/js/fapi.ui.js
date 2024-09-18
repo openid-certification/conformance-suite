@@ -585,6 +585,7 @@ var FAPI_UI = {
 			"FAPI1-ADV-" : "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.",
 			"FAPI2-SP-ID2-" : "https://openid.net/specs/fapi-2_0-security-profile-ID2.html#section-",
 			"FAPI2-MS-ID1-" : "https://openid.net/specs/fapi-2_0-message-signing-ID1.html#section.", // note that MS ID1 builds upon SP ID2
+			"FAPI2-IMP-" : "https://openid.bitbucket.io/fapi/fapi-2_0-implementation_advice.html#section-",
 			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.",
 			"FAPI-CIBA-" : "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.",
 			"JARM-" : "https://openid.net/specs/oauth-v2-jarm.html#section-",

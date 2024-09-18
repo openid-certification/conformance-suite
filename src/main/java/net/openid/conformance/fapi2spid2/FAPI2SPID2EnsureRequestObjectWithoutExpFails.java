@@ -42,7 +42,7 @@ public class FAPI2SPID2EnsureRequestObjectWithoutExpFails extends AbstractFAPI2S
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectMissingExpClaimErrorPage.class, "FAPI1-ADV-5.2.2-13");
+		callAndStopOnFailure(ExpectRequestObjectMissingExpClaimErrorPage.class, "FAPI2-MS-ID1-5.3.1-4");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}

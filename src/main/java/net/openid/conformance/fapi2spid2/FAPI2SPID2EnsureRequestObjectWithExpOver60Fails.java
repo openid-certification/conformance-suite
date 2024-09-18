@@ -43,7 +43,7 @@ public class FAPI2SPID2EnsureRequestObjectWithExpOver60Fails extends AbstractFAP
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectWithExpOver60ClaimErrorPage.class, "FAPI1-ADV-5.2.2-13");
+		callAndStopOnFailure(ExpectRequestObjectWithExpOver60ClaimErrorPage.class, "FAPI2-MS-ID1-5.3.1-4");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}

@@ -58,7 +58,7 @@ public class FAPI2SPID2EnsureSignedClientAssertionWithRS256Fails extends Abstrac
 
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
-		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI1-ADV-8.6");
+		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI2-SP-ID2-5.4");
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 

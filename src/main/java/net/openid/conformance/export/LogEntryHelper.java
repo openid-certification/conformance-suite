@@ -42,6 +42,7 @@ public class LogEntryHelper {
 		specLinks.put("FAPI1-ADV-", "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.");
 		specLinks.put("FAPI2-SP-ID2-", "https://openid.net/specs/fapi-2_0-security-profile-ID2.html#section-");
 		specLinks.put("FAPI2-MS-ID1-", "https://openid.net/specs/fapi-2_0-message-signing-ID1.html#section..");
+		specLinks.put("FAPI2-IMP-", "https://openid.bitbucket.io/fapi/fapi-2_0-implementation_advice.html#section-");
 		specLinks.put("CIBA-", "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.");
 		specLinks.put("FAPI-CIBA-", "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.");
 		specLinks.put("JARM-", "https://openid.net/specs/oauth-v2-jarm.html#section-");
@@ -50,7 +51,7 @@ public class LogEntryHelper {
 		specLinks.put("OIDCC-", "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.");
 		specLinks.put("OIDCR-", "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.");
 		specLinks.put("OAuth2-FP", "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html");
-		specLinks.put("OAuth2-iss", "ttps://tools.ietf.org/html/rfc9207#section-");
+		specLinks.put("OAuth2-iss-", "https://tools.ietf.org/html/rfc9207#section-");
 		specLinks.put("RFC3986-", "https://tools.ietf.org/html/rfc3986#section-");
 		specLinks.put("RFC6749-", "https://tools.ietf.org/html/rfc6749#section-");
 		specLinks.put("RFC6749A-", "https://tools.ietf.org/html/rfc6749#appendix-");

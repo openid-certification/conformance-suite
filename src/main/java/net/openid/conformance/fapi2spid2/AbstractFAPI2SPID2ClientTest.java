@@ -341,8 +341,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		configureServerJWKS();
 
-		call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-SP-ID2-4.3.1-2"));
-		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-SP-ID2-4.3.1-13"));
+		call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-SP-ID2-5.3.1.2-1"));
+		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-SP-ID2-5.3.1.2-7"));
 		call(condition(AddCodeChallengeMethodToServerConfiguration.class).requirement("FAPI2-SP-ID2-5.3.1.2"));
 		if (fapiClientType == FAPIClientType.OIDC) {
 			call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
@@ -353,12 +353,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		}
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
-			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class, "BrazilOB-5.2.3-5");
-			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
+			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1");
+			// FIXME - BrazilOB-5.2.3-5 seems incorrect, but no obvious replacement.
+			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class);
+			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-4");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
 		} else if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
-			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CID-SP-5");
+			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CID-SP-5.2.2-8");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CID-SP-5");
 			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CID-SP-5");
 			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CID-SP-5");
@@ -413,7 +414,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI1-BASE-5.2.2-5", "FAPI1-BASE-5.2.2-6");
+		callAndStopOnFailure(FAPIEnsureMinimumServerKeyLength.class, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 
 		callAndStopOnFailure(LoadUserInfo.class);
 
@@ -506,7 +507,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 
-		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI1-BASE-5.2.4-2", "FAPI1-BASE-5.2.4-3");
+		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 	}
 
 	protected void configureServerJWKS() {
@@ -532,7 +533,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5");
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-ID2-5.2.1-1", "FAPI2-SP-ID2-5.2.1-2");
 
 		call(exec().unmapKey("client_request"));
 
@@ -613,7 +614,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5-1");
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-ID2-5.2.1-1", "FAPI2-SP-ID2-5.2.1-2");
 
 		call(exec().unmapKey("client_request"));
 
@@ -654,15 +655,17 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	}
 
 	protected void validateResourceEndpointHeaders() {
+		// FIXME: No obvious FAPI2 equivalent
 		skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date", ConditionResult.INFO,
 			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-3");
 
+		// FIXME: No obvious FAPI2 equivalent
 		skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address", ConditionResult.INFO,
 			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
 
 		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
-		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 	}
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
@@ -691,29 +694,29 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if(isPayments) {
 			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
-			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
+			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
 			//ensure aud equals endpoint url	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
+			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1");
 			//ensure ISS equals TLS certificate organizational unit
-			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
-			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			//ensure jti is uuid	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-3");
-			callAndContinueOnFailure(FAPIBrazilValidateConsentRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilValidateConsentRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
-			callAndContinueOnFailure(FAPIBrazilFetchClientOrganizationJwksFromDirectory.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-6");
+			callAndContinueOnFailure(FAPIBrazilFetchClientOrganizationJwksFromDirectory.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			env.mapKey("parsed_client_request_jwt", "new_consent_request");
-			callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-6");
+			callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			env.unmapKey("parsed_client_request_jwt");
 
 		} else {
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedConsents.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
 		}
 
-		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE,"FAPI1-BASE-6.2.1-11");
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE,"FAPI2-IMP-2.1.1");
 
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
@@ -721,7 +724,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
 			if(isPayments) {
-				callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+				callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
 				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-2");
 				String signedConsentResponse = env.getString("signed_consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
@@ -730,7 +733,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 				responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 			} else {
-				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2.2");
+				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
 				JsonObject response = env.getObject("consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
 				responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.CREATED);
@@ -755,7 +758,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 
 		checkResourceEndpointRequest(true);
-		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 		String requestedConsentId = path.substring(path.lastIndexOf('/')+1);
 		env.putString("requested_consent_id", requestedConsentId);
@@ -766,8 +769,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
 			if(isPayments) {
-				callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
-				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
+				callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 				String signedConsentResponse = env.getString("signed_consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
 
@@ -776,7 +779,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
 
 		} else {
-			callAndContinueOnFailure(FAPIBrazilGenerateGetConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
+			callAndContinueOnFailure(FAPIBrazilGenerateGetConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
 			JsonObject response = env.getObject("consent_response");
 			JsonObject headerJson = env.getObject("consent_response_headers");
 			responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.OK);
@@ -807,22 +810,22 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainPayments.class, Condition.ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(FAPIBrazilExtractPaymentInitiationRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
+		callAndContinueOnFailure(FAPIBrazilExtractPaymentInitiationRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
 		env.mapKey("parsed_client_request_jwt", "payment_initiation_request");
-		callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-6");
+		callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 		env.unmapKey("parsed_client_request_jwt");
 
-		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-4");
+		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 		callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
 
 		//ensure aud equals endpoint url	"BrazilOB-6.1"
-		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 		//ensure ISS equals TLS certificate organizational unit
-		callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
-		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
-		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
-		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-3");
+		callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 
 
 		ResponseEntity<Object> responseEntity = null;
@@ -831,8 +834,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
-			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2.2");
-			callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1-2");
+			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+			callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
 			String signedConsentResponse = env.getString("signed_payment_initiation_response");
 			JsonObject headerJson = env.getObject("payment_initiation_response_headers");
 
@@ -863,7 +866,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected void checkMtlsCertificate() {
 		callAndContinueOnFailure(ExtractClientCertificateFromRequestHeaders.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-5");
+		callAndStopOnFailure(CheckForClientCertificate.class, ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.1-4");
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 
@@ -910,8 +913,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		@Override
 		public void checkResourceRequest() {
-			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI1-BASE-6.2.2-1");
-			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI1-BASE-6.2.2-1");
+			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI2-SP-ID2-5.3.3-2");
 		}
 	}
 
@@ -1001,7 +1004,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10");
 		}
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
@@ -1245,7 +1248,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateEffectiveAuthorizationPARRequestParameters.class);
 
 		endTestIfRequiredParametersAreMissing();
-		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-SP-ID2-4.3.2-1");
+		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-SP-ID2-5.3.1.2-1");
 
 		skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
 			CheckForUnexpectedClaimsInRequestObject.class, ConditionResult.WARNING, "RFC6749-4.1.1", "OIDCC-3.1.2.1", "RFC7636-4.3", "OAuth2-RT-2.1", "RFC7519-4.1", "DPOP-10", "RFC8485-4.1", "RFC8707-2.1", "RFC9396-2");
@@ -1259,14 +1262,14 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 				CheckForUnexpectedClaimsInClaimsParameter.class, ConditionResult.WARNING, "OIDCC-5.5");
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
-				CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.3", "BrazilOB-5.2.2.4", "OBSP-3.4");
+				CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1", "OIDCC-5.5.1.1", "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10", "OBSP-3.4");
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 				CheckRequestObjectClaimsParameterValues.class, ConditionResult.FAILURE, "OIDCC-5.5");
 			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 				CheckRequestObjectClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
 		}
 
-		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-SP-ID2-4.3.2-5");
+		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-SP-ID2-5.3.2.2-3");
 		validateRequestObjectForAuthorizationEndpointRequest();
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
@@ -1311,23 +1314,23 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	 * Common checks applicable to both PAR endpoint and authorization requests
 	 */
 	protected void validateRequestObjectCommonChecks() {
-		callAndStopOnFailure(FAPI2ValidateRequestObjectSigningAlg.class, "FAPI1-ADV-8.6");
+		callAndStopOnFailure(FAPI2ValidateRequestObjectSigningAlg.class, "FAPI2-SP-ID2-5.4");
 		if(fapiClientType== FAPIClientType.OIDC) {
 			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
-					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.4");
+					"OIDCC-5.5.1.1", "BrazilOB-5.2.2-5", "BrazilOB-5.2.2-6");
 			} else {
 				callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
-					"FAPI1-ADV-5.2.3-5", "OIDCC-5.5.1.1");
+					"OIDCC-5.5.1.1");
 			}
 		}
-		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI1-ADV-5.2.2-13");
-		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2-17");
+		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI2-MS-ID1-5.3.1-4");
+		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI2-MS-ID1-5.3.1-3");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI1-ADV-5.2.2-1");
+		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");
 		validateRedirectUriInRequestObject();
 	}
 
@@ -1338,7 +1341,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
 		if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
 			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
-				"FAPI1-ADV-5.2.3-16");
+				"FAPI2-MS-ID1-5.3.2-1");
 		}
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
@@ -1354,13 +1357,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
 				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "CID-SP-5");
 				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CID-SP-5");
-				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-5", "CID-IDA-5.2-9");
+				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-5", "CID-IDA-5.2-10");
 			}
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
 
 		if(fapiClientType == FAPIClientType.OIDC) {
-			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
+			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class);
 		}
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
@@ -1368,7 +1371,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected void validateRequestObjectForPAREndpointRequest() {
 		validateRequestObjectCommonChecks();
-		callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI1-ADV-5.2.3-15");
+		callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI2-SP-ID2-5.3.1.2-5");
 	}
 
 	protected void issueIdToken(boolean isAuthorizationEndpoint) {
@@ -1395,13 +1398,14 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		//TODO skip or add?
 		if(isAuthorizationEndpoint) {
 			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
+			// FIXME = No obvkous FAPI2 equivalent. PKCE replaces s_hash
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
-				ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
+				ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE);
 		}
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10");
 		}
 
 		if (!isAuthorizationEndpoint && authorizationCodeGrantTypeProfileSteps != null) {
@@ -1416,7 +1420,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		if(isAuthorizationEndpoint) {
 			callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
 			skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
-				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
+				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE);
 		}
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
@@ -1459,7 +1463,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
-		callAndStopOnFailure(AddIssToAuthorizationEndpointResponseParams.class, "FAPI2-SP-ID2-4.3.1-13");
+		callAndStopOnFailure(AddIssToAuthorizationEndpointResponseParams.class, "FAPI2-SP-ID2-5.3.1.2-7");
 
 		addCustomValuesToAuthorizationResponse();
 
@@ -1519,7 +1523,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(GenerateAccountRequestId.class);
 			exposeEnvString("account_request_id");
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
 
 		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
 
@@ -1564,7 +1568,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 		}
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
 
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 
