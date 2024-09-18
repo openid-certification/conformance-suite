@@ -31,6 +31,7 @@ public class GetSubordinateListingResponse extends AbstractCondition {
 			ResponseEntity<String> response = restTemplate.exchange(listEndpoint, HttpMethod.GET, null, String.class);
 			JsonObject responseInfo = convertResponseForEnvironment("federation_list_endpoint_response", response);
 			env.putObject("federation_list_endpoint_response", responseInfo);
+			logSuccess("Successfully got a response from federation_list_endpoint", args("federation_list_endpoint_response", responseInfo));
 			return env;
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			throw error("Error creating HTTP client", e);

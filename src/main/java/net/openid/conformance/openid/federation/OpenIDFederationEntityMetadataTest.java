@@ -22,9 +22,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 public class OpenIDFederationEntityMetadataTest extends AbstractOpenIDFederationTest {
 
-	// Splitta upp detta i olika test för list, fetch, resolve etc. Och så bara kör fireTestSkipped om den
-	// endpointen inte finns.
-
 	protected JsonArray validateListEndpoint() {
 		final String listEndpoint = env.getString("federation_list_endpoint");
 		JsonArray listEndpointResponse;

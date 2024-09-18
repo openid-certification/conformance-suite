@@ -41,11 +41,12 @@ public class OpenIDFederationFetchTest extends AbstractOpenIDFederationTest {
 			env.putString("entity_statement_url", env.getString("federation_fetch_endpoint"));
 			env.putString("expected_iss", env.getString("primary_entity_statement_iss"));
 			env.putString("expected_sub", entityIdentifier);
+			callAndContinueOnFailure(AppendIssToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 			eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
 
-			callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 			env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");

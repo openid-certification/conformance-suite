@@ -4,6 +4,9 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
+
+import java.nio.charset.StandardCharsets;
 
 public class AppendIssToEntityStatementUrl extends AbstractCondition {
 
@@ -15,8 +18,7 @@ public class AppendIssToEntityStatementUrl extends AbstractCondition {
 		String endpoint = env.getString("entity_statement_url");
 
 		String endpointUrlWithIssParam = UriComponentsBuilder.fromHttpUrl(endpoint)
-			.queryParam("iss", iss)
-			.encode()
+			.queryParam("iss", UriUtils.encode(iss, StandardCharsets.UTF_8.toString()))
 			.toUriString();
 
 		env.putString("entity_statement_url", endpointUrlWithIssParam);
