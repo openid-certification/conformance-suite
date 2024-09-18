@@ -4,7 +4,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @PublishTestModule(
