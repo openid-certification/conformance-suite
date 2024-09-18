@@ -28,8 +28,7 @@ public class OpenIDFederationEnsureFetchWithUnknownIssFailsTest extends Abstract
 		env.putString("entity_statement_url", fetchEndpoint);
 		env.putString("expected_iss", iss);
 		env.putString("expected_sub", sub);
-		callAndContinueOnFailure(AppendIssToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(AppendIssAndSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
 
 }

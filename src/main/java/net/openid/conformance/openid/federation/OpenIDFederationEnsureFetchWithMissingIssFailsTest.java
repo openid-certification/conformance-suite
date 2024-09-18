@@ -25,7 +25,7 @@ public class OpenIDFederationEnsureFetchWithMissingIssFailsTest extends Abstract
 		final String fetchEndpoint = env.getString("federation_fetch_endpoint");
 		env.putString("entity_statement_url", fetchEndpoint);
 		env.putString("expected_sub", sub);
-		callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(AppendIssAndSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
 
 }
