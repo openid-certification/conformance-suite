@@ -173,7 +173,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(AppendIssAndSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
-				callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
