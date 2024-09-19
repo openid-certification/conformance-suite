@@ -15,6 +15,9 @@ metadata:
       RequestHeader set X-Ssl-Protocol "%{SSL_PROTOCOL}s"
       RequestHeader set X-Forwarded-Proto https
       RequestHeader set X-Forwarded-Port 443
+      <Location "/test-mtls/">
+        RequestHeader set X-Test-Mtls-Called-On-Wrong-Host: true
+      </Location>
 spec:
   tls:
   - hosts:
