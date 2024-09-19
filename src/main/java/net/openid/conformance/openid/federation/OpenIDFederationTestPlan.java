@@ -12,7 +12,8 @@ import net.openid.conformance.variant.VariantSelection;
 		OpenIDFederationEntityConfigurationTest.class,
 		OpenIDFederationFetchTest.class,
 		OpenIDFederationEnsureFetchWithMissingSubFailsTest.class,
-		OpenIDFederationResolveTest.class
+		OpenIDFederationResolveTest.class,
+		OpenIDFederationTESTBUILDINGRESOLVEDMETADATA.class
 	}
 )
 public class OpenIDFederationTestPlan implements TestPlan {

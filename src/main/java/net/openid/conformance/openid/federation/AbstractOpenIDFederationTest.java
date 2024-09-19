@@ -243,6 +243,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	}
 
 	protected static String appendWellKnown(String entityIdentifier) {
+		if (entityIdentifier.endsWith(".well-known/openid-federation")) {
+			return entityIdentifier;
+		}
 		if (entityIdentifier.endsWith("/")) {
 			return entityIdentifier + ".well-known/openid-federation";
 		}
