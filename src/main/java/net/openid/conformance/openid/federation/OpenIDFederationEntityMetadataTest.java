@@ -57,9 +57,8 @@ public class OpenIDFederationEntityMetadataTest extends AbstractOpenIDFederation
 			String entityIdentifier = OIDFJSON.getString(listElement);
 
 			env.putString("entity_statement_url", fetchEndpoint);
-			env.putString("expected_iss", env.getString("primary_entity_statement_iss"));
 			env.putString("expected_sub", entityIdentifier);
-			callAndContinueOnFailure(AppendIssAndSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 			eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
 
@@ -91,9 +90,8 @@ public class OpenIDFederationEntityMetadataTest extends AbstractOpenIDFederation
 	protected void validateFetchEndpointForIssAndSub(String iss, String sub) {
 		final String fetchEndpoint = env.getString("federation_fetch_endpoint");
 		env.putString("entity_statement_url", fetchEndpoint);
-		env.putString("expected_iss", iss);
 		env.putString("expected_sub", sub);
-		callAndContinueOnFailure(AppendIssAndSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 		eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
 		callAndContinueOnFailure(GetEntityStatementAndExpectError.class, Condition.ConditionResult.FAILURE, "OIDFED-?");

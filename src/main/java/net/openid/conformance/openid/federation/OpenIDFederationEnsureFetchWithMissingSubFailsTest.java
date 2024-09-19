@@ -20,13 +20,10 @@ public class OpenIDFederationEnsureFetchWithMissingSubFailsTest extends Abstract
 
 	@Override
 	protected void prepareFetchRequest(List<String> subordinates) {
-		String iss = env.getString("primary_entity_statement_iss");
-
 		final String fetchEndpoint = env.getString("federation_fetch_endpoint");
 		env.putString("entity_statement_url", fetchEndpoint);
-		env.putString("expected_iss", iss);
 		env.removeNativeValue("expected_sub");
-		callAndContinueOnFailure(AppendIssAndSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
 
 }

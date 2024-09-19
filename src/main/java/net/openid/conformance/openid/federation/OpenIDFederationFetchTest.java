@@ -36,13 +36,12 @@ public class OpenIDFederationFetchTest extends AbstractOpenIDFederationTest {
 		fireTestFinished();
 	}
 
-	@SuppressWarnings("UnusedVariable")
 	protected void validateFetchEndpoint(List<String> subordinates) {
 		for (String entityIdentifier : subordinates) {
 			env.putString("entity_statement_url", env.getString("federation_fetch_endpoint"));
 			env.putString("expected_iss", env.getString("primary_entity_statement_iss"));
 			env.putString("expected_sub", entityIdentifier);
-			callAndContinueOnFailure(AppendIssAndSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 			eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
 
