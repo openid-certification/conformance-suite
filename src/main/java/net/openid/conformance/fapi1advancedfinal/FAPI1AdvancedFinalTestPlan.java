@@ -74,6 +74,7 @@ import java.util.Map;
 		FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails.class,
 
 		//PAR tests
+		FAPI1AdvancedFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticationCompletion.class,
 		FAPI1AdvancedFinalPARAttemptReuseRequestUri.class,
 		FAPI1AdvancedFinalPARAttemptToUseExpiredRequestUri.class,
 		FAPI1AdvancedFinalPARCheckAudienceForJWTClientAssertion.class,
