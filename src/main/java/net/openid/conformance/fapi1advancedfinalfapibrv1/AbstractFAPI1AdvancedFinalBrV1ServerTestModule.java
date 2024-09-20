@@ -651,11 +651,23 @@ public abstract class AbstractFAPI1AdvancedFinalBrV1ServerTestModule extends Abs
 		call(sequence(addParEndpointClientAuthentication));
 	}
 
-	protected void requestAuthorizationCode() {
-
+	/**
+	 * Default Call to token endpoint with non-full response
+	 */
+	protected void callTokenEndpoint() {
 		callAndStopOnFailure(CallTokenEndpoint.class);
+	}
+
+
+	protected void requestAuthorizationCode() {
+		callTokenEndpoint();
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
+		processTokenEndpointResponse();
+		eventLog.endBlock();
+	}
+
+	protected void processTokenEndpointResponse() {
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
