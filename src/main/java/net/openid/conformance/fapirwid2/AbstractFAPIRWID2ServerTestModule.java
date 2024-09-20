@@ -523,11 +523,22 @@ public abstract class AbstractFAPIRWID2ServerTestModule extends AbstractRedirect
 		call(sequence(addParEndpointClientAuthentication));
 	}
 
-	protected void requestAuthorizationCode() {
-
+	/**
+	 * Default Call to token endpoint with non-full response
+	 */
+	protected void callTokenEndpoint() {
 		callAndStopOnFailure(CallTokenEndpoint.class);
+	}
+
+	protected void requestAuthorizationCode() {
+		callTokenEndpoint();
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
+		processTokenEndpointResponse();
+		eventLog.endBlock();
+	}
+
+	protected void processTokenEndpointResponse() {
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
