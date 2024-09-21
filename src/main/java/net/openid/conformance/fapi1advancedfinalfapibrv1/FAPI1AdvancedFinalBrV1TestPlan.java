@@ -61,6 +61,7 @@ import java.util.Map;
 		FAPI1AdvancedFinalBrV1EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
 		FAPI1AdvancedFinalBrV1EnsureClientAssertionWithWrongAudFails.class,
 		FAPI1AdvancedFinalBrV1EnsureClientAssertionWithNoSubFails.class,
+		FAPI1AdvancedFinalBrV1EnsureClientAssertionWithIssAudSucceeds.class,
 
 		//Refresh token tests
 		FAPI1AdvancedFinalBrV1RefreshToken.class,
