@@ -58,6 +58,7 @@ import java.util.Map;
 		FAPIRWID2EnsureClientAssertionWithExpIs5MinutesInPastFails.class,
 		FAPIRWID2EnsureClientAssertionWithWrongAudFails.class,
 		FAPIRWID2EnsureClientAssertionWithNoSubFails.class,
+		FAPIRWID2EnsureClientAssertionWithIssAudSucceeds.class,
 
 		//Refresh token tests
 		FAPIRWID2RefreshToken.class,
