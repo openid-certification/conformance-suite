@@ -1253,7 +1253,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         document.getElementById('runningTestError').classList.add('show');
                     }
 
-                    document.getElementById('stacktraceBtn').onclick = function(evt) {
+                    document.getElementById('stacktraceBtn').onclick = function(event) {
                         event.preventDefault();
                         document.getElementById('stacktraceBtn').style.display = 'none';
                         document.getElementById('stacktrace').classList.add('show');
@@ -1444,6 +1444,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         startReloader(testId); // periodically reload the page as long as the test is active
                         pinVisitSectionOnTopWindow();
                     }
+                    scrollToAnchorIfPresent();
                 }
             });
 
@@ -1454,8 +1455,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             clipboard.on('error', function(e) {
                 console.log(e);
             });
-
-            scrollToAnchorIfPresent();
         });
 
         function scrollToAnchorIfPresent() {
@@ -1463,12 +1462,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return;
             }
 
-            window.setTimeout(() => {
-                let scrollTargetElement = document.querySelector(window.location.hash);
-                if (scrollTargetElement !== null) {
-                    scrollTargetElement.scrollIntoView();
-                }
-            }, 500);
+            let scrollTargetElement = document.querySelector(window.location.hash);
+            if (scrollTargetElement !== null) {
+                scrollTargetElement.scrollIntoView();
+            }
         }
 
         function parseUrl(urlWithMethod) {
