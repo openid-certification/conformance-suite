@@ -17,7 +17,7 @@ public class ValidateAbsenceOfAuthorityHints extends AbstractCondition {
 			throw error("authority_hints must not be present in Subordinate Statements", args("authority_hints", authorityHintsElement));
 		}
 
-		logSuccess("Entity statement does not contain authority_hints", args("authority_hints", authorityHintsElement));
+		logSuccess("Entity statement does not contain authority_hints");
 		return env;
 	}
 }

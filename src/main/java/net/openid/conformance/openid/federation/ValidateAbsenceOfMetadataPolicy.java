@@ -16,7 +16,7 @@ public class ValidateAbsenceOfMetadataPolicy extends AbstractValidateMetadata {
 			throw error("Only subordinate statements may contain metadata_policy", args("metadata_policy", metadataPolicyElement));
 		}
 
-		logSuccess("Entity statement does not contain metadata_policy", args("metadata_policy", metadataPolicyElement));
+		logSuccess("Entity statement does not contain metadata_policy");
 		return env;
 
 	}

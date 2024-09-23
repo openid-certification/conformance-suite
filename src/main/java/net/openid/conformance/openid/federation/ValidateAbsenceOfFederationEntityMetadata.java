@@ -39,7 +39,7 @@ public class ValidateAbsenceOfFederationEntityMetadata extends AbstractValidateM
 			}
 		}
 
-		logSuccess("Subordinate statement does not contain federation_entity endpoint URLs", args("metadata", metadata));
+		logSuccess("Subordinate statement does not contain federation_entity endpoint URLs");
 		return env;
 	}
 }
