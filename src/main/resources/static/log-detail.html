@@ -1454,7 +1454,22 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             clipboard.on('error', function(e) {
                 console.log(e);
             });
+
+            scrollToAnchorIfPresent();
         });
+
+        function scrollToAnchorIfPresent() {
+            if (window.location.hash === '') {
+                return;
+            }
+
+            window.setTimeout(() => {
+                let scrollTargetElement = document.querySelector(window.location.hash);
+                if (scrollTargetElement !== null) {
+                    scrollTargetElement.scrollIntoView();
+                }
+            }, 500);
+        }
 
         function parseUrl(urlWithMethod) {
             let urlString = urlWithMethod.url;
