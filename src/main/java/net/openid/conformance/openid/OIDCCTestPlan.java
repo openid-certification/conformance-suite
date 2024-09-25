@@ -65,6 +65,7 @@ public class OIDCCTestPlan implements TestPlan {
 					OIDCCRefreshTokenRPKeyRotation.class,
 					OIDCCServerRotateKeys.class,
 					OIDCCEnsureRequestWithValidPkceSucceeds.class,
+					OIDCCEnsureClientAssertionWithIssAudSucceeds.class,
 
 					// negative tests
 					OIDCCAuthCodeReuse.class,
