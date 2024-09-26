@@ -284,7 +284,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Private key to be used by the server to sign id_tokens, this should be one key in JSON Web Key Set format."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="server.jwks"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="server.jwks" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -377,7 +377,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="presentation_definition to use in authorization request"></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="client.presentation_definition"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="client.presentation_definition" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -410,7 +410,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {    PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="client.jwks"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="client.jwks" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -421,7 +421,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Organizations's BRSEAL private signing key in JSON Web Key Set format, to be used to sign API requests to the payment consent creation/payment initiation endpoints. This key must be for the organization listed in the client's TLS certificate subjectdn. Only required if 'scope' contains 'payments'."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="client.org_jwks"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="client.org_jwks" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -746,7 +746,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Second client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ {    PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS. The key must be different to that for the first client."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="client2.jwks"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="client2.jwks" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -757,7 +757,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Second client's organization's BRSEAL private signing key in JSON Web Key Set format, to be used to sign API requests to the payment consent creation/payment initiation endpoints. This key must be for the organization listed in the client's TLS certificate subjectdn. Both clients can be from the same organization, in which case the same organization private key should be provided for both clients. Only required if 'scope' contains 'payments'."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="client2.org_jwks"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="client2.org_jwks" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1019,7 +1019,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JSON representation of a payment consent request. This will be used as the body of the request sent to the payment consent endpoint. Only required if 'scope' contains 'payments'."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="resource.brazilPaymentConsent"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="resource.brazilPaymentConsent" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1031,7 +1031,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JSON representation of a PIX payment request. This will be used as the body of the request sent to the payment initiation endpoint. Only required if 'scope' contains 'payments'."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="resource.brazilPixPayment"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="resource.brazilPixPayment" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1109,7 +1109,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Custom claims request. Must be a valid json object that can be added directly to the request as the top level 'claims' element."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc_verified_claims_request"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc_verified_claims_request" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1120,7 +1120,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="A complete set of end-user data as held by the OpenID Provider in the form it would be returned via the userinfo endpoint. Enter the entire userinfo json."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc_userinfo"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc_userinfo" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1436,6 +1436,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     updateJSONFromFormElements();
                 }
 
+                let invalidFormElements = [...document.querySelectorAll(":invalid")];
+                if (invalidFormElements.length > 0) {
+                    let invalidJsonTargets = invalidFormElements.map(inputEl => inputEl.dataset.jsonTarget)
+                    FAPI_UI.showError({
+                        error: "Please fix the reported validation errors: " + invalidJsonTargets.join(",")
+                    });
+                    return;
+                }
+
                 FAPI_UI.showBusy('Creating plan...');
 
                 var selectedVariant = getSelectedVariant();
@@ -1585,8 +1594,22 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             updateFormElementsFromJSON();
 
+            registerFormValidationForFields();
+
             FAPI_UI.hideBusy();
 
+        }
+
+        function registerFormValidationForFields() {
+
+            [...document.querySelectorAll(".form-control.config-form-element")]
+                .filter(inputEl => inputEl.dataset.jsonType === "jsonobject")
+                .forEach(inputEl => {
+                    inputEl.addEventListener("blur", function(evt) {
+                        let element = evt.currentTarget;
+                        validateJSONFromFormElement(element,element.value, element.dataset.jsonType)
+                    });
+                });
         }
 
         function updateConfigFieldVisibility() {
@@ -1743,7 +1766,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         function updateJSONFromFormElements() {
             document.getElementById('formInput').querySelectorAll('.config-form-element')?.forEach(function(element) {
                 if (element.classList.contains('config-form-element')) {
-                    populateJSON(element.dataset.jsonTarget, element.value);
+                    tryPopulateJSONFromElement(element);
                 }
             });
 
@@ -1798,6 +1821,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     if (_.isArray(value) || _.isObject(value)) {
                         el.value = JSON.stringify(value, null, 4);
                     } else {
+                        validateJSONFromFormElement(el, value, el.dataset.jsonType);
                         el.value = value;
                     }
                 } else {
@@ -1813,10 +1837,78 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         }
 
         /**
-         *
+         * Checks if the given form element contains a valid JSON value.
+         * If the JSON value is invalid, the given form element is annotated with a validation error marker.
+         * @param element
+         * @param typeHint
+         * @param value
          */
+        function validateJSONFromFormElement(element, value, typeHint) {
+            if (typeHint !== "jsonobject") {
+                // skip validation for non jsonobject input elements
+                return;
+            }
+            let result = validateJSON(value);
+            let elementInputGroup = element.closest(".input-group");
+            if (!result.valid) {
+                // propagate validation error on field via customValidity
+                element.setCustomValidity(result.error);
+                element.classList.add("is-invalid");
 
-        function populateJSON(key, val) {
+                let validationFeedbackEl = elementInputGroup.parentElement.querySelector(".invalid-feedback");
+                if (validationFeedbackEl === null) {
+                    validationFeedbackEl = document.createElement('div');
+                    validationFeedbackEl.classList.add('invalid-feedback', 'd-block');
+                    elementInputGroup.parentElement.appendChild(validationFeedbackEl)
+                }
+                validationFeedbackEl.innerHTML = result.error;
+
+            } else {
+                // reset custom validity
+                element.setCustomValidity("");
+                element.classList.remove("is-invalid");
+
+                let validationFeedbackEl = elementInputGroup.parentElement.querySelector(".invalid-feedback");
+                if (validationFeedbackEl) {
+                    validationFeedbackEl.remove();
+                }
+            }
+        }
+
+        function validateJSON(value) {
+            if (!value || value.trim() === "") {
+                return {valid: true};
+            }
+
+            try {
+                JSON.parse(value);
+                return {valid: true};
+            } catch (err) {
+                return {valid: false, error: err};
+            }
+        }
+
+        /**
+         * Attempts to populate the JSON configuration from the given HTML element.
+         *
+         * @param element
+         */
+        function tryPopulateJSONFromElement(element) {
+            let value = element.value;
+            let type = element.dataset.jsonType;
+            validateJSONFromFormElement(element, value, type)
+            let key = element.dataset.jsonTarget;
+            populateJSON(key, value, type);
+        }
+
+        /**
+         * Tries to parse the value as a JSON type and populates the FAPI UI with the resulting value.
+         *
+         * @param key
+         * @param val
+         * @param type
+         */
+        function populateJSON(key, val, type) {
             // preserve valid json objects and arrays as json values; store everything else as a string
             // This has an odd side effect that (say) a jwks that is invalid json (e.g. extra or missing comma) is
             // inserted as a string
@@ -1831,11 +1923,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     FAPI_UI.prop(FAPI_UI.testJSON, key, val);
                 }
             } catch (e) { // a string
-                if (val == "") { // if we have an empty string then delete the value
+                if (val === "") { // if we have an empty string then delete the value
                     FAPI_UI.removeFromObject(FAPI_UI.testJSON, key);
-                } else {
-                    FAPI_UI.prop(FAPI_UI.testJSON, key, val);
+                    return;
                 }
+                if (type === "jsonobject") {
+                    console.warn(`Error while populating json value for ${key}`, e);
+                }
+                FAPI_UI.prop(FAPI_UI.testJSON, key, val);
             }
 
             //console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
