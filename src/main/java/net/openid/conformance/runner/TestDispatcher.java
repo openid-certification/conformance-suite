@@ -7,6 +7,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
@@ -38,9 +41,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.view.RedirectView;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Iterator;
@@ -173,6 +173,9 @@ public class TestDispatcher implements DataUtils {
 				if (path.startsWith(TEST_PATH)) {
 					response = test.handleHttp(restOfPath, req, res, session, requestParts);
 				} else if (path.startsWith(TEST_MTLS_PATH)) {
+					if (headers.get("x-test-mtls-called-on-wrong-host") != null) {
+						throw new TestFailureException(test.getId(), "The " + path + " must be called on the mtls hostname, see the url in the 'exported values' section.");
+					}
 					response = test.handleHttpMtls(restOfPath, req, res, session, requestParts);
 				} else {
 					throw new TestFailureException(test.getId(), "Failure to route to path " + path);

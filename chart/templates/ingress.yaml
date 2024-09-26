@@ -16,18 +16,7 @@ metadata:
       RequestHeader set X-Forwarded-Proto https
       RequestHeader set X-Forwarded-Port 443
       <Location "/test-mtls/">
-        <If "%{HTTPS} == 'on'">
-          SSLVerifyClient optional_no_ca
-          SSLVerifyDepth 5
-          RequestHeader set X-Ssl-Cert "%{SSL_CLIENT_CERT}s"
-          RequestHeader set X-Ssl-Verify "%{SSL_CLIENT_VERIFY}s"
-          RequestHeader set X-Ssl-Cert-Chain-0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
-          RequestHeader set X-Ssl-Cert-Chain-1 "%{SSL_CLIENT_CERT_CHAIN_1}s"
-          RequestHeader set X-Ssl-Cert-Chain-2 "%{SSL_CLIENT_CERT_CHAIN_2}s"
-          RequestHeader set X-Ssl-Cert-Chain-3 "%{SSL_CLIENT_CERT_CHAIN_3}s"
-          RequestHeader set X-Ssl-Cert-Chain-4 "%{SSL_CLIENT_CERT_CHAIN_4}s"
-          RequestHeader set X-Ssl-Cert-Chain-5 "%{SSL_CLIENT_CERT_CHAIN_5}s"
-        </If>
+        RequestHeader set X-Test-Mtls-Called-On-Wrong-Host: true
       </Location>
 spec:
   tls:
@@ -62,20 +51,18 @@ metadata:
       RequestHeader set X-Ssl-Protocol "%{SSL_PROTOCOL}s"
       RequestHeader set X-Forwarded-Proto https
       RequestHeader set X-Forwarded-Port 443
-      <Location "/test-mtls/">
-        <If "%{HTTPS} == 'on'">
-          SSLVerifyClient optional_no_ca
-          SSLVerifyDepth 5
-          RequestHeader set X-Ssl-Cert "%{SSL_CLIENT_CERT}s"
-          RequestHeader set X-Ssl-Verify "%{SSL_CLIENT_VERIFY}s"
-          RequestHeader set X-Ssl-Cert-Chain-0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
-          RequestHeader set X-Ssl-Cert-Chain-1 "%{SSL_CLIENT_CERT_CHAIN_1}s"
-          RequestHeader set X-Ssl-Cert-Chain-2 "%{SSL_CLIENT_CERT_CHAIN_2}s"
-          RequestHeader set X-Ssl-Cert-Chain-3 "%{SSL_CLIENT_CERT_CHAIN_3}s"
-          RequestHeader set X-Ssl-Cert-Chain-4 "%{SSL_CLIENT_CERT_CHAIN_4}s"
-          RequestHeader set X-Ssl-Cert-Chain-5 "%{SSL_CLIENT_CERT_CHAIN_5}s"
-        </If>
-      </Location>
+      <If "%{HTTPS} == 'on'">
+        SSLVerifyClient optional_no_ca
+        SSLVerifyDepth 5
+        RequestHeader set X-Ssl-Cert "%{SSL_CLIENT_CERT}s"
+        RequestHeader set X-Ssl-Verify "%{SSL_CLIENT_VERIFY}s"
+        RequestHeader set X-Ssl-Cert-Chain-0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
+        RequestHeader set X-Ssl-Cert-Chain-1 "%{SSL_CLIENT_CERT_CHAIN_1}s"
+        RequestHeader set X-Ssl-Cert-Chain-2 "%{SSL_CLIENT_CERT_CHAIN_2}s"
+        RequestHeader set X-Ssl-Cert-Chain-3 "%{SSL_CLIENT_CERT_CHAIN_3}s"
+        RequestHeader set X-Ssl-Cert-Chain-4 "%{SSL_CLIENT_CERT_CHAIN_4}s"
+        RequestHeader set X-Ssl-Cert-Chain-5 "%{SSL_CLIENT_CERT_CHAIN_5}s"
+      </If>
 spec:
   tls:
     - hosts:
