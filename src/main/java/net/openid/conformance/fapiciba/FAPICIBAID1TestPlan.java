@@ -27,7 +27,7 @@ import java.util.Map;
 		FAPICIBAID1EnsureOtherScopeOrderSucceeds.class,
 		FAPICIBAID1EnsureRequestedExpiryAsStringSucceeds.class,
 
-		// Possible failure case
+		// Possible failure caseSetClientAuthenticationAudIssuerIdentifierToBackchannelAuthenticationEndpoint
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,
 
 		// Negative tests for request objects
@@ -64,6 +64,7 @@ import java.util.Map;
 		FAPICIBAID1EnsureWithoutClientAssertionInBackchannelAuthorizationRequestFails.class,
 		FAPICIBAID1EnsureClientAssertionSignatureAlgorithmInBackchannelAuthorizationRequestIsRS256Fails.class,
 		FAPICIBAID1EnsureClientAssertionSignatureAlgorithmInTokenEndpointRequestIsRS256Fails.class,
+		FAPICIBAID1EnsureClientAssertionWithIssAudToTokenEndpointSucceeds.class,
 
 		// Ping specific tests, not applicable to poll
 		FAPICIBAID1PingNotificationEndpointReturnsABody.class,
