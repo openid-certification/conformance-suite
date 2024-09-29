@@ -119,6 +119,7 @@ import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleRe
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
 import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -577,7 +578,12 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			// jwsreq-26 is very explicit that client_id should be both inside and outside the request object
 			callAndStopOnFailure(AddClientIdToRequestObject.class, "JAR-5", "FAPI2-MS-ID1-5.3.2-1");
 
-			callAndStopOnFailure(SignRequestObject.class);
+			if (isSecondClient) {
+				callAndStopOnFailure(SignRequestObjectIncludeMediaType.class, "JAR-4");
+			}
+			else {
+				callAndStopOnFailure(SignRequestObject.class);
+			}
 
 			if (encrypt) {
 				callAndStopOnFailure(FAPIBrazilEncryptRequestObject.class, "BrazilOB-5.2.2-1", "BrazilOB-6.1.2");

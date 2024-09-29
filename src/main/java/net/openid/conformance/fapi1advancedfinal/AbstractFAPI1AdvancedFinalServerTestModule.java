@@ -116,6 +116,7 @@ import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccounts
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -537,7 +538,12 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 			// jwsreq-26 is very explicit that client_id should be both inside and outside the request object
 			callAndStopOnFailure(AddClientIdToRequestObject.class, "FAPI1-ADV-5.2.3-8");
 
-			callAndStopOnFailure(SignRequestObject.class);
+			if (isSecondClient) {
+				callAndStopOnFailure(SignRequestObjectIncludeMediaType.class, "JAR-4");
+			}
+			else {
+				callAndStopOnFailure(SignRequestObject.class);
+			}
 
 			if (encrypt) {
 				callAndStopOnFailure(FAPIBrazilEncryptRequestObject.class, "BrazilOB-5.2.2-1", "BrazilOB-6.1.1-1");
