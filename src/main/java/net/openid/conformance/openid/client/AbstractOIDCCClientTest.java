@@ -1053,7 +1053,12 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
-		callAndContinueOnFailure(ExtractNonceFromAuthorizationRequest.class, Condition.ConditionResult.INFO, "OIDCC-3.1.2.1");
+		String responseType = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.RESPONSE_TYPE);
+		if (responseType != null && responseType.contains("id_token")) {
+			callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OIDCC-3.1.2.1", "OIDCC-3.2.2.1");
+		} else {
+			callAndContinueOnFailure(ExtractNonceFromAuthorizationRequest.class, Condition.ConditionResult.INFO, "OIDCC-3.1.2.1");
+		}
 	}
 
 	/**
