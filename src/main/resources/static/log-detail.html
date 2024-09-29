@@ -223,7 +223,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                             var failureDetailInfo = FAPI_UI.logTemplates.FAILURE_SUMMARY({
                                 item: item,
-                                startBlock: startBlock
+                                startBlock: item.blockId != null ? startBlock : ''
                             });
 
                             document.querySelector('.failureSummaryTitle').removeAttribute('hidden');
