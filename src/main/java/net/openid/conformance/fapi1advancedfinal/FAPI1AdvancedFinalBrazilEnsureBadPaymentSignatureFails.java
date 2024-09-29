@@ -51,7 +51,8 @@ public class FAPI1AdvancedFinalBrazilEnsureBadPaymentSignatureFails extends Abst
 			addTokenEndpointClientAuthentication,
 			brazilPayments.isTrue(),
 			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL,
-			true);
+			true,
+			false);
 
 		steps.insertAfter(FAPIBrazilSignPaymentConsentRequest.class,
 			condition(InvalidateConsentEndpointRequestSignature.class));
