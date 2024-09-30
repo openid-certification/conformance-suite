@@ -51,19 +51,21 @@ public class EnsureIdTokenContainsRequestedClaims_UnitTest {
 	public void testEvaluate_idTokenContainsAllRequestedClaims() {
 
 		// Add all supported claims to the authorization request.
-		JsonObject authRequestClaims = JsonParser.parseString("{"
-			+ "\"claims\": {"
-				+ "\"id_token\": {\n"
-					+ "\"given_name\": {},"
-					+ "\"middle_name\": {},"
-					+ "\"family_name\": {\"essential\": true},"
-					+ "\"email\": {\"7EimPyJ0oq\": \"eRpxS9SF3u\"},"
-					+ "\"birthdate\": {\"essential\": false},"
-					+ "\"phone_number\": null,"
-					+ "\"address\": {},"
-					+ "\"txn\": {}"
-				+ "}"
-			+ "}}")
+		JsonObject authRequestClaims = JsonParser.parseString("""
+			{\
+			"claims": {\
+			"id_token": {
+			"given_name": {},\
+			"middle_name": {},\
+			"family_name": {"essential": true},\
+			"email": {"7EimPyJ0oq": "eRpxS9SF3u"},\
+			"birthdate": {"essential": false},\
+			"phone_number": null,\
+			"address": {},\
+			"txn": {}\
+			}\
+			}}\
+			""")
 			.getAsJsonObject();
 		env.putObject("authorization_endpoint_request", authRequestClaims);
 

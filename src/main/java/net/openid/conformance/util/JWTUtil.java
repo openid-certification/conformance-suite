@@ -39,7 +39,7 @@ public class JWTUtil {
 		for (int i = 0; i < jwt.length(); i++) {
 			char character = jwt.charAt(i);
 			if (!Pattern.matches(regex, String.valueOf(character))) {
-				throw new ParseException(String.format("The jwt is invalid because it contains the character %s that is neither a '.' nor one permitted in unpadded base64url", character), 0);
+				throw new ParseException("The jwt is invalid because it contains the character %s that is neither a '.' nor one permitted in unpadded base64url".formatted(character), 0);
 			}
 		}
 
@@ -122,8 +122,7 @@ public class JWTUtil {
 	public static JsonObject jwtStringToJsonObjectForEnvironment(String jwtAsString, JsonObject client, JsonObject privateJwksWithEncKeys)
 		throws ParseException, JOSEException {
 		JWT token = JWTUtil.parseJWT(jwtAsString);
-		if(token instanceof EncryptedJWT) {
-			EncryptedJWT encryptedJWT = (EncryptedJWT) token;
+		if(token instanceof EncryptedJWT encryptedJWT) {
 			JsonObject jweHeader = JWTUtil.jwtHeaderAsJsonObject(token);
 			JWEAlgorithm alg = encryptedJWT.getHeader().getAlgorithm();
 			JWK decryptionKey = null;

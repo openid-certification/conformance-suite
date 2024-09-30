@@ -19,8 +19,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.testmodule.UserFacing;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.net.URLEncodedUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +32,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -278,8 +279,7 @@ public class TestDispatcher implements DataUtils {
 		}
 
 		try {
-			if(test instanceof AbstractOIDCCClientTest) {
-				AbstractOIDCCClientTest clientTest = (AbstractOIDCCClientTest) test;
+			if(test instanceof AbstractOIDCCClientTest clientTest) {
 				JsonObject requestParts = new JsonObject();
 				requestParts.add("headers", mapToJsonObject(headers, true)); // do lowercase headers
 				requestParts.add("query_string_params", mapToJsonObject(convertQueryStringParamsToMap(servletRequest.getQueryString()), false));
@@ -304,8 +304,9 @@ public class TestDispatcher implements DataUtils {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	protected MultiValueMap<String, String> convertQueryStringParamsToMap(String queryString) {
-		List<NameValuePair> parameters = URLEncodedUtils.parse(queryString, Charset.defaultCharset(), '&');
+		List<NameValuePair> parameters = StringUtils.isEmpty(queryString) ? List.of() : URLEncodedUtils.parse(queryString, Charset.defaultCharset(), '&');
 		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 
 		for (NameValuePair pair : parameters) {
@@ -362,8 +363,7 @@ public class TestDispatcher implements DataUtils {
 	}
 
 	protected void logOutgoingHttpResponse(TestModule test, String path, Object response) {
-		if (response instanceof ResponseEntity) {
-			ResponseEntity<?> responseEntity = (ResponseEntity<?>) response;
+		if (response instanceof ResponseEntity<?> responseEntity) {
 			eventLog.log(test.getId(), test.getName(), test.getOwner(), args(
 				"msg", "Response to HTTP request to test instance " + test.getId(),
 				"http", "outgoing",

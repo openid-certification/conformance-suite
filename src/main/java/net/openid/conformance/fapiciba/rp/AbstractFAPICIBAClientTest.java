@@ -338,7 +338,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		if (startingShutdown) {
 			throw new TestFailureException(
 				getId(),
-				String.format("Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server", path)
+				"Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path)
 			);
 		}
 

@@ -122,14 +122,14 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 			case "openbanking_uk":
 				certProfile = "UK-OB";
 				if (par || jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR/JARM are not used in UK",
+					throw new RuntimeException("Invalid configuration for %s: PAR/JARM are not used in UK".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -137,7 +137,7 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 				certProfile = "BR-OF";
 				suffix = " (FAPI-BR v2)";
 				if (!par || jarm || !privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used",
+					throw new RuntimeException("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -145,17 +145,17 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 				certProfile = "BR-OPIN";
 				suffix = " (FAPI-BR v2)";
 				if (!par || jarm || !privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: PAR & private_key_jwt are required in Brazil OpenFinance & JARM is not used".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "openbanking_ksa":
 				if (!par) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR is required for KSA OB",
+					throw new RuntimeException("Invalid configuration for %s: PAR is required for KSA OB".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in KSA OB",
+					throw new RuntimeException("Invalid configuration for %s: JARM is not used in KSA OB".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				certProfile = "KSA-OB";

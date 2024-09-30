@@ -49,7 +49,7 @@ public class FAPIRWID2EnsureSignedClientAssertionWithRS256Fails extends Abstract
 		String alg = JWKUtil.getAlgFromClientJwks(env);
 		if (!alg.equals("PS256")) { // FAPI only allows ES256 and PS256
 			// This throws an exception: the test will stop here
-			fireTestSkipped(String.format("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.", alg));
+			fireTestSkipped("This test requires RSA keys to be performed, the alg in client configuration is '%s' so this test is being skipped. If your server does not support PS256 then this will not prevent you certifying.".formatted(alg));
 		}
 	}
 

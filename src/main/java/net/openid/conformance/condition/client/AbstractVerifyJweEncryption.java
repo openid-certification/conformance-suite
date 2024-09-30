@@ -24,8 +24,7 @@ public abstract class AbstractVerifyJweEncryption extends AbstractCondition {
 			JWT jwt = JWTUtil.parseJWT(token);
 
 			// We are only interested in encrypted JWTs.
-			if(jwt instanceof EncryptedJWT) {
-				EncryptedJWT encryptedJWT = (EncryptedJWT) jwt;
+			if(jwt instanceof EncryptedJWT encryptedJWT) {
 
 				JWEHeader header   = encryptedJWT.getHeader();
 				String headerKeyID = header.getKeyID();

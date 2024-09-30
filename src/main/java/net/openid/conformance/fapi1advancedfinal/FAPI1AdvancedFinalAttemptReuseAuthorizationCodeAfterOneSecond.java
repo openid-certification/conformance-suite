@@ -4,7 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.ServerAllowedReusingAuthorizationCode;
 import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.testmodule.PublishTestModule;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-attempt-reuse-authorisation-code-after-one-second",

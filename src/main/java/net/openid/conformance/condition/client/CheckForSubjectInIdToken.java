@@ -24,10 +24,10 @@ public class CheckForSubjectInIdToken extends AbstractCondition {
 		for (int i = 0; i < sub.length(); i++) {
 			int c = sub.charAt(i);
 			if (c < 0x20) {
-				throw error(String.format("id_token 'sub' contains non-printable character 0x%02x at offset %d", c, i), args("sub", sub));
+				throw error("id_token 'sub' contains non-printable character 0x%02x at offset %d".formatted(c, i), args("sub", sub));
 			}
 			if (c >= 0x7F) {
-				throw error(String.format("id_token 'sub' contains non-ASCII character 0x%02x at offset %d", c, i), args("sub", sub));
+				throw error("id_token 'sub' contains non-ASCII character 0x%02x at offset %d".formatted(c, i), args("sub", sub));
 			}
 		}
 

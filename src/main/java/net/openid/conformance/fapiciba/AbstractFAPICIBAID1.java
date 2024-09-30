@@ -1276,7 +1276,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	protected void pingCleanupAfterBackchannelRequestShouldHaveFailed() {
 		Integer httpStatus = env.getInteger("backchannel_authentication_endpoint_response_http_status");
-		if (httpStatus != org.apache.http.HttpStatus.SC_OK) {
+		if (httpStatus != org.apache.hc.core5.http.HttpStatus.SC_OK) {
 			// error as expected, go on and complete test as normal
 			fireTestFinished();
 		} else {

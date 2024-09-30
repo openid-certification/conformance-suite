@@ -41,7 +41,7 @@ public class EnsureRequiredAuthorizationRequestParametersMatchRequestObject exte
 			if(valueFromHttpRequest==null) {
 				//this is unlikely to happen as probably another condition will fail before this one
 				//when one of these parameters are missing but just in case
-				failureLogArgs.put(paramName, String.format("Required parameter '%s' was not found in http request parameters", paramName));
+				failureLogArgs.put(paramName, "Required parameter '%s' was not found in http request parameters".formatted(paramName));
 			} else {
 				if(valueFromRequestObject!=null) {
 					if(!valueFromHttpRequest.equals(valueFromRequestObject)) {

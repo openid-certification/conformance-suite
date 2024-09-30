@@ -66,18 +66,18 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 			case "openbanking_uk":
 				certProfile = "UK-OB";
 				if (par || jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: PAR/JARM are not used in UK",
+					throw new RuntimeException("Invalid configuration for %s: PAR/JARM are not used in UK".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR",
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in AU-CDR",
+					throw new RuntimeException("Invalid configuration for %s: JARM is not used in AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -85,19 +85,19 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 				certProfile = "BR-OF ";
 				suffix = " (FAPI-BR v2)";
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for Brazil OpenFinance",
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for Brazil OpenFinance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!oidc) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only client type OIDC is used for Brazil OpenFinance",
+					throw new RuntimeException("Invalid configuration for %s: Only client type OIDC is used for Brazil OpenFinance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!par) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: pushed authorization requests are required for Brazil OpenFinance",
+					throw new RuntimeException("Invalid configuration for %s: pushed authorization requests are required for Brazil OpenFinance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used for Brazil OpenFinance",
+					throw new RuntimeException("Invalid configuration for %s: JARM is not used for Brazil OpenFinance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -105,31 +105,31 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 				certProfile = "BR-OPIN ";
 				suffix = " (FAPI-BR v2)";
 				if (!privateKey) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only private_key_jwt is used for Brazil OpenFinance",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for Brazil OpenFinance".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!oidc) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only client type OIDC is used for Brazil OpenFinance",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: Only client type OIDC is used for Brazil OpenFinance".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (!par) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: pushed authorization requests are required for Brazil OpenFinance",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: pushed authorization requests are required for Brazil OpenFinance".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used for Brazil OpenFinance",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: JARM is not used for Brazil OpenFinance".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case "openbanking_ksa":
 				certProfile = "KSA-OB";
 				if (!par) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: Only pushed request is used for KSA-OB",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: Only pushed request is used for KSA-OB".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				if (jarm) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: JARM is not used in KSA-OB",
-							MethodHandles.lookup().lookupClass().getSimpleName()));
+					throw new RuntimeException("Invalid configuration for %s: JARM is not used in KSA-OB".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			default:
@@ -159,7 +159,7 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 				// nothing, but if you're not using JARM you must use oidc as the front channel id token is a required
 				// part of FAPI1
 				if (!fapiClientType.equals("oidc")) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: If 'plain_response' is selected, 'oidc' must be selected as the client type",
+					throw new RuntimeException("Invalid configuration for %s: If 'plain_response' is selected, 'oidc' must be selected as the client type".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
@@ -173,7 +173,7 @@ public class FAPI1AdvancedFinalClientTestPlan implements TestPlan {
 						certProfile += " (OAuth)";
 						break;
 					default:
-						throw new RuntimeException(String.format("Invalid configuration for %s: Unexpected jarm type value: %s",
+						throw new RuntimeException("Invalid configuration for %s: Unexpected jarm type value: %s".formatted(
 							MethodHandles.lookup().lookupClass().getSimpleName(), fapiClientType));
 				}
 				break;

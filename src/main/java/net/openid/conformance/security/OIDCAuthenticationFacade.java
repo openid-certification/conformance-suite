@@ -48,8 +48,8 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	private OAuth2AuthenticationToken getOAuth() {
 		Authentication a = getAuthentication();
-		if (a instanceof OAuth2AuthenticationToken) {
-			return (OAuth2AuthenticationToken) a;
+		if (a instanceof OAuth2AuthenticationToken token) {
+			return token;
 		}
 		return null;
 	}

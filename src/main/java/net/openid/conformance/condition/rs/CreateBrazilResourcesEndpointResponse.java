@@ -15,87 +15,89 @@ public class CreateBrazilResourcesEndpointResponse extends AbstractOpenBankingAp
 	public Environment evaluate(Environment env) {
 		//Copied from https://br-openinsurance.github.io/areadesenvolvedor/#api-customers-v100-obtem-os-registros-de-identificacao-da-pessoa-natural
 		JsonObject response = JsonParser.parseString(
-			"{\n" +
-					"  \"data\": [\n" +
-					"    {\n" +
-					"      \"updateDateTime\": \"2021-05-21T08:30:00Z\",\n" +
-					"      \"personalId\": \"578-psd-71md6971kjh-2d414\",\n" +
-					"      \"brandName\": \"Organização A\",\n" +
-					"      \"civilName\": \"Juan Kaique Cláudio Fernandes\",\n" +
-					"      \"socialName\": \"string\",\n" +
-					"      \"cpfNumber\": \"string\",\n" +
-					"      \"companyInfo\": {\n" +
-					"        \"cnpjNumber\": \"01773247000563\",\n" +
-					"        \"name\": \"Empresa da Organização A\"\n" +
-					"      },\n" +
-					"      \"documents\": [\n" +
-					"        {\n" +
-					"          \"type\": \"CNH\",\n" +
-					"          \"number\": \"15291908\",\n" +
-					"          \"expirationDate\": \"2023-05-21\",\n" +
-					"          \"issueLocation\": \"string\"\n" +
-					"        }\n" +
-					"      ],\n" +
-					"      \"hasBrazilianNationality\": false,\n" +
-					"      \"otherNationalitiesInfo\": \"CAN\",\n" +
-					"      \"otherDocuments\": {\n" +
-					"        \"type\": \"SOCIAL SEC\",\n" +
-					"        \"number\": \"15291908\",\n" +
-					"        \"country\": \"string\",\n" +
-					"        \"expirationDate\": \"2023-05-21\"\n" +
-					"      },\n" +
-					"      \"contact\": {\n" +
-					"        \"postalAddresses\": [\n" +
-					"          {\n" +
-					"            \"address\": \"Av Naburo Ykesaki, 1270\",\n" +
-					"            \"additionalInfo\": \"Fundos\",\n" +
-					"            \"districtName\": \"Centro\",\n" +
-					"            \"townName\": \"Marília\",\n" +
-					"            \"countrySubDivision\": \"SP\",\n" +
-					"            \"postCode\": \"17500001\",\n" +
-					"            \"country\": \"BRA\"\n" +
-					"          }\n" +
-					"        ],\n" +
-					"        \"phones\": [\n" +
-					"          {\n" +
-					"            \"countryCallingCode\": \"55\",\n" +
-					"            \"areaCode\": \"19\",\n" +
-					"            \"number\": \"29875132\",\n" +
-					"            \"phoneExtension\": \"932\"\n" +
-					"          }\n" +
-					"        ],\n" +
-					"        \"emails\": [\n" +
-					"          {\n" +
-					"            \"email\": \"nome@br.net\"\n" +
-					"          }\n" +
-					"        ]\n" +
-					"      },\n" +
-					"      \"civilStatusCode\": \"SOLTEIRO\",\n" +
-					"      \"sex\": \"FEMININO\",\n" +
-					"      \"birthDate\": \"2021-05-21\",\n" +
-					"      \"filiation\": {\n" +
-					"        \"type\": \"PAI\",\n" +
-					"        \"civilName\": \"Marcelo Cláudio Fernandes\"\n" +
-					"      },\n" +
-					"      \"identificationDetails\": {\n" +
-					"        \"civilName\": \"Juan Kaique Cláudio Fernandes\",\n" +
-					"        \"cpfNumber\": \"string\"\n" +
-					"      }\n" +
-					"    }\n" +
-					"  ],\n" +
-					"  \"links\": {\n" +
-					"    \"self\": \"https://api.seguro.com.br/open-insurance/customer/v1\",\n" +
-					"    \"first\": \"https://api.seguro.com.br/open-insurance/customer/v1\",\n" +
-					"    \"prev\": \"https://api.seguro.com.br/open-insurance/customer/v1\",\n" +
-					"    \"next\": \"https://api.seguro.com.br/open-insurance/customer/v1\",\n" +
-					"    \"last\": \"https://api.seguro.com.br/open-insurance/customer/v1\"\n" +
-					"  },\n" +
-					"  \"meta\": {\n" +
-					"    \"totalRecords\": 1,\n" +
-					"    \"totalPages\": 1,\n" +
-					"    \"requestDateTime\": \"2021-05-21T08:30:00Z\"\n" +
-					"  }\n" +
-					"}"
+			"""
+			{
+				"data": [
+				{
+					"updateDateTime": "2021-05-21T08:30:00Z",
+					"personalId": "578-psd-71md6971kjh-2d414",
+					"brandName": "Organização A",
+					"civilName": "Juan Kaique Cláudio Fernandes",
+					"socialName": "string",
+					"cpfNumber": "string",
+					"companyInfo": {
+					"cnpjNumber": "01773247000563",
+					"name": "Empresa da Organização A"
+					},
+					"documents": [
+					{
+						"type": "CNH",
+						"number": "15291908",
+						"expirationDate": "2023-05-21",
+						"issueLocation": "string"
+					}
+					],
+					"hasBrazilianNationality": false,
+					"otherNationalitiesInfo": "CAN",
+					"otherDocuments": {
+					"type": "SOCIAL SEC",
+					"number": "15291908",
+					"country": "string",
+					"expirationDate": "2023-05-21"
+					},
+					"contact": {
+					"postalAddresses": [
+						{
+						"address": "Av Naburo Ykesaki, 1270",
+						"additionalInfo": "Fundos",
+						"districtName": "Centro",
+						"townName": "Marília",
+						"countrySubDivision": "SP",
+						"postCode": "17500001",
+						"country": "BRA"
+						}
+					],
+					"phones": [
+						{
+						"countryCallingCode": "55",
+						"areaCode": "19",
+						"number": "29875132",
+						"phoneExtension": "932"
+						}
+					],
+					"emails": [
+						{
+						"email": "nome@br.net"
+						}
+					]
+					},
+					"civilStatusCode": "SOLTEIRO",
+					"sex": "FEMININO",
+					"birthDate": "2021-05-21",
+					"filiation": {
+					"type": "PAI",
+					"civilName": "Marcelo Cláudio Fernandes"
+					},
+					"identificationDetails": {
+					"civilName": "Juan Kaique Cláudio Fernandes",
+					"cpfNumber": "string"
+					}
+				}
+				],
+				"links": {
+				"self": "https://api.seguro.com.br/open-insurance/customer/v1",
+				"first": "https://api.seguro.com.br/open-insurance/customer/v1",
+				"prev": "https://api.seguro.com.br/open-insurance/customer/v1",
+				"next": "https://api.seguro.com.br/open-insurance/customer/v1",
+				"last": "https://api.seguro.com.br/open-insurance/customer/v1"
+				},
+				"meta": {
+				"totalRecords": 1,
+				"totalPages": 1,
+				"requestDateTime": "2021-05-21T08:30:00Z"
+				}
+			}\
+			"""
 		).getAsJsonObject();
 
 		String fapiInteractionId = env.getString("fapi_interaction_id");

@@ -33,21 +33,21 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 		Map<String, Object> convertedMap = new HashMap<>();
 		if (map != null) {
 			map.forEach((key, value) -> {
-				if (value instanceof JsonElement && ((JsonElement) value).isJsonArray()) {
-					convertedMap.put(key, new GsonArrayToBsonArrayConverter().convert(((JsonElement) value).getAsJsonArray()));
-				} else if (value instanceof JWK) {
+				if (value instanceof JsonElement element && element.isJsonArray()) {
+					convertedMap.put(key, new GsonArrayToBsonArrayConverter().convert(element.getAsJsonArray()));
+				} else if (value instanceof JWK jwk) {
 					// letting this through to the default mongo converter results in stackoverflows if the jwk
 					// contains an x5c entry; explicitly convert it to it's more helpful JSON representation
-					String json = ((JWK) value).toJSONString();
+					String json = jwk.toJSONString();
 					convertedMap.put(key, JsonParser.parseString(json));
-				} else if (value instanceof JWKSet) {
-					String json = ((JWKSet) value).toString();
+				} else if (value instanceof JWKSet set) {
+					String json = set.toString();
 					convertedMap.put(key, JsonParser.parseString(json));
-				} else if (value instanceof JWTClaimsSet) {
-					String json = ((JWTClaimsSet) value).toString();
+				} else if (value instanceof JWTClaimsSet set) {
+					String json = set.toString();
 					convertedMap.put(key, JsonParser.parseString(json));
-				} else if (value instanceof JWSHeader) {
-					String json = ((JWSHeader) value).toString();
+				} else if (value instanceof JWSHeader header) {
+					String json = header.toString();
 					convertedMap.put(key, JsonParser.parseString(json));
 				} else {
 					convertedMap.put(key, value);

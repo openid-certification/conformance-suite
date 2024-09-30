@@ -62,17 +62,12 @@ public final class CollapsingGsonHttpMessageConverter extends GsonHttpMessageCon
 				}
 
 				private Object convertStructureToField(Object source) {
-					if (source instanceof List) {
-						// if it's a list of some type, loop through it
-						@SuppressWarnings("unchecked")
-						List<Object> list = (List<Object>) source;
+					if (source instanceof List<?> list) {
 						List<Object> converted = list.stream()
 							.map(this::convertStructureToField)
 							.collect(Collectors.toList());
 						return converted;
-					} else if (source instanceof Document) {
-						// if it's an object, need to look through all the fields and convert any weird ones
-						Document dbo = (Document) source;
+					} else if (source instanceof Document dbo) {
 						Document converted = new Document();
 						for (String key : dbo.keySet()) {
 							if (key.startsWith("__wrapped_key_element_")) {

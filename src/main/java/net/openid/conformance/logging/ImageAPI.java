@@ -63,7 +63,7 @@ public class ImageAPI {
 	})
 	public ResponseEntity<Object> uploadImageToNewLogEntry(@RequestBody String encoded,
 		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
-		@Parameter(description = "Description for image") @RequestParam(name = "description", required = false) String description) throws IOException {
+		@Parameter(description = "Description for image") @RequestParam(required = false) String description) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
@@ -112,7 +112,7 @@ public class ImageAPI {
 	public ResponseEntity<Object> uploadImageToExistingLogEntry(
 		@Parameter(description = "Image should be encoded as a string") @RequestBody String encoded,
 		@Parameter(description = "Id of test") @PathVariable(name = "id") String testId,
-		@Parameter(description = "Placeholder which created when the test run") @PathVariable(name = "placeholder") String placeholder) throws IOException {
+		@Parameter(description = "Placeholder which created when the test run") @PathVariable String placeholder) throws IOException {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 

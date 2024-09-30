@@ -169,14 +169,14 @@ public class VariantService {
 				K key = keyMapper.apply(t);
 				U value = valueMapper.apply(t);
 				if (m.containsKey(key)) {
-					throw new RuntimeException(String.format("More than one %s with the name '%s'", itemType, key));
+					throw new RuntimeException("More than one %s with the name '%s'".formatted(itemType, key));
 				}
 				m.put(key, value);
 			},
 			(m, r) -> {
 				for (K t : r.keySet()) {
 					if (m.containsKey(t)) {
-						throw new RuntimeException(String.format("More than one %s with the name '%s'", itemType, t));
+						throw new RuntimeException("More than one %s with the name '%s'".formatted(itemType, t));
 					}
 				}
 				m.putAll(r);
@@ -223,7 +223,7 @@ public class VariantService {
 		T valueOf(String s) {
 			T v = valuesByString.get(s);
 			if (v == null) {
-				throw new IllegalArgumentException(String.format("Illegal value for variant parameter %s: \"%s\"", variantParameter.name(), s));
+				throw new IllegalArgumentException("Illegal value for variant parameter %s: \"%s\"".formatted(variantParameter.name(), s));
 			}
 			return v;
 		}
@@ -335,7 +335,7 @@ public class VariantService {
 				return moduleListEntry.testModules.stream().map(testModuleClass -> {
 					TestModuleHolder testModuleHolder = testModulesByClass.get(testModuleClass);
 					if (testModuleHolder == null) {
-						throw new RuntimeException(String.format("Processing testModulesWithVariants for %s: not a published test module: %s",
+						throw new RuntimeException("Processing testModulesWithVariants for %s: not a published test module: %s".formatted(
 							testPlanName,
 							testModuleClass.getName()));
 					}
@@ -374,7 +374,7 @@ public class VariantService {
 					.map(c -> {
 						TestModuleHolder m = testModulesByClass.get(c);
 						if (m == null) {
-							throw new RuntimeException(String.format("In annotation for %s: not a published test module: %s",
+							throw new RuntimeException("In annotation for %s: not a published test module: %s".formatted(
 								planClass.getSimpleName(),
 								c.getName()));
 						}
@@ -428,8 +428,8 @@ public class VariantService {
 				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
 			} catch (InvocationTargetException e) {
 				Throwable target = e.getTargetException();
-				if (target instanceof RuntimeException) {
-					throw (RuntimeException) target;
+				if (target instanceof RuntimeException exception) {
+					throw exception;
 				}
 				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
 			}
@@ -447,7 +447,7 @@ public class VariantService {
 					preselectedVariants.forEach((variantName, value) -> {
 						if (selectedStringVariants.containsKey(variantName)) {
 							// there may be future cases where this is valid, if we want to allow the user to generally select a variant but ensure a specific one is used for a particular test
-							throw new RuntimeException(String.format("Variant '%s' has been set by user, but test plan already sets this variant for module '%s'",
+							throw new RuntimeException("Variant '%s' has been set by user, but test plan already sets this variant for module '%s'".formatted(
 								variantName, testPlanModuleWithVariant.module.info.testName()));
 						}
 					});
@@ -561,9 +561,9 @@ public class VariantService {
 			Function<Class<?>, ParameterHolder<?>> moduleParameter = c -> {
 				ParameterHolder<?> p = declaredParametersByClass.get(c);
 				if (p == null) {
-					throw new IllegalArgumentException(String.format("In annotation for %s: not a declared variant parameter: %s",
-							moduleClass.getSimpleName(),
-							c.getName()));
+					throw new IllegalArgumentException("In annotation for %s: not a declared variant parameter: %s".formatted(
+						moduleClass.getSimpleName(),
+						c.getName()));
 				}
 				return p;
 			};
@@ -618,7 +618,7 @@ public class VariantService {
 					.allMatch(p -> {
 						Object v = variant.get(p.parameter);
 						if (v == null) {
-							throw new RuntimeException(String.format("TestModule '%s' requires a value for variant '%s'",
+							throw new RuntimeException("TestModule '%s' requires a value for variant '%s'".formatted(
 								this.info.testName(),
 								p.parameter.variantParameter.name()));
 						}
@@ -660,9 +660,9 @@ public class VariantService {
 			parameters.forEach(p -> {
 				Object v = typedVariant.get(p.parameter);
 				if (!p.allowedValues.contains(v)) {
-					throw new RuntimeException(String.format("Not an allowed value for variant parameter %s: %s",
-							p.parameter.variantParameter.name(),
-							v));
+					throw new RuntimeException("Not an allowed value for variant parameter %s: %s".formatted(
+						p.parameter.variantParameter.name(),
+						v));
 				}
 			});
 

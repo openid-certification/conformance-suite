@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.9</version>
+		<version>3.3.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -91,7 +91,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.5.0</version>
+			<version>2.6.0</version>
 		</dependency>
 
 		<dependency>
@@ -230,17 +230,14 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
-			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -279,9 +276,7 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>17</source>
-					<target>17</target>
-					<release>17</release>
+					<release>${java.version}</release>
 					<showWarnings>true</showWarnings>
 					<compilerArgs>
 						<arg>-Xlint</arg>
@@ -315,7 +310,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.1.2</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -368,7 +362,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>3.5.0</version>
 				<configuration>
 					<configLocation>.checkstyle.xml</configLocation>
 					<violationSeverity>warning</violationSeverity>
@@ -387,20 +381,23 @@
 			<plugin>
 				<groupId>org.openrewrite.maven</groupId>
 				<artifactId>rewrite-maven-plugin</artifactId>
-				<version>5.38.1</version>
+				<version>5.40.2</version>
 				<configuration>
+					<exportDatatables>true</exportDatatables>
 					<activeRecipes>
-						<recipe>org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration</recipe>
+						<recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3</recipe>
 					</activeRecipes>
+					<!-- org.openrewrite.java.migrate.UpgradeToJava17-->
 					<exclusions>
-						<exclusion>**/mongo/**</exclusion> <!-- Exclude the 'mongo' directory -->
+						<exclusion>**/mongo/**</exclusion> <!-- Exclude the 'mongo' directory to avoid parse errors -->
+						<exclusion>**/chart/**</exclusion> <!-- Exclude the 'chart' directory to avoid parse errors -->
 					</exclusions>
 				</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.openrewrite.recipe</groupId>
 						<artifactId>rewrite-spring</artifactId>
-						<version>5.16.0</version>
+						<version>5.19.0</version>
 					</dependency>
 				</dependencies>
 			</plugin>
@@ -411,7 +408,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.11</version>
+					<version>0.8.12</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -420,19 +417,9 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>com.google.code.gson</groupId>
-				<artifactId>gson</artifactId>
-				<version>2.10.1</version>
-			</dependency>
-			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
 				<version>33.1.0-jre</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-lang3</artifactId>
-				<version>3.14.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.nimbusds</groupId>
@@ -468,16 +455,6 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-compress</artifactId>
 				<version>1.26.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.seleniumhq.selenium</groupId>
-				<artifactId>selenium-java</artifactId>
-				<version>4.16.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.seleniumhq.selenium</groupId>
-				<artifactId>selenium-api</artifactId>
-				<version>4.16.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.htmlunit</groupId>

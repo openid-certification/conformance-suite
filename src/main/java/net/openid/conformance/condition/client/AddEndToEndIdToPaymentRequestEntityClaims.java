@@ -28,7 +28,7 @@ public class AddEndToEndIdToPaymentRequestEntityClaims extends AbstractCondition
 			OffsetDateTime currentDateTime = OffsetDateTime.now(ZoneOffset.UTC);
 			String formattedCurrentDateTime = currentDateTime.format(formatter);
 			String randomString = RandomStringUtils.randomAlphanumeric(11);
-			String endToEndId = String.format("E%s%s%s", PROXY_E2EID_ISPB, formattedCurrentDateTime, randomString);
+			String endToEndId = "E%s%s%s".formatted(PROXY_E2EID_ISPB, formattedCurrentDateTime, randomString);
 			dataElement.getAsJsonObject().addProperty("endToEndId", endToEndId);
 		}
 

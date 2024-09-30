@@ -65,7 +65,7 @@ public class TestInfoApi {
 			@ApiResponse(responseCode = "404", description = "Couldn't find test information for provided testId")
 	})
 	public ResponseEntity<Object> getTestInfo(
-			@Parameter(description = "Id of test") @PathVariable("id") String id,
+			@Parameter(description = "Id of test") @PathVariable String id,
 			@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
 
 		Optional<?> testInfo = Optional.empty();
@@ -79,7 +79,7 @@ public class TestInfoApi {
 				testInfo = testInfos.findByIdAndOwner(id, owner);
 			}
 		}
-		if (!testInfo.isPresent()) {
+		if (testInfo.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} else {
 			return new ResponseEntity<>(testInfo.get(), HttpStatus.OK);
@@ -95,7 +95,7 @@ public class TestInfoApi {
 			@ApiResponse(responseCode = "403", description = "'publish' value is not valid")
 	})
 	public ResponseEntity<Object> publishTestInfo(
-			@Parameter(description = "Id of test that you want to publish") @PathVariable("id") String id,
+			@Parameter(description = "Id of test that you want to publish") @PathVariable String id,
 			@Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
 
 		String publish = null;
