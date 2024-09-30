@@ -110,6 +110,7 @@ public class BrowserControl implements DataUtils {
 	private List<UrlWithMethod> urlsWithMethod = new ArrayList<>();
 	private List<String> visited = new ArrayList<>();
 	private List<UrlWithMethod> visitedUrlsWithMethod = new ArrayList<>();
+	private List<BrowserApiRequest> browserApiRequests = new ArrayList<>();
 	private Queue<WebRunner> runners = new ConcurrentLinkedQueue<>();
 
 	private ImageService imageService;
@@ -193,6 +194,15 @@ public class BrowserControl implements DataUtils {
 		// if we couldn't find a command for this URL, leave it up to the user to do something with it
 		urls.add(url);
 		urlsWithMethod.add(new UrlWithMethod(url, method));
+	}
+
+	/**
+	 * Request a credential using the Browser API
+	 * @param request JSON object that will be passed to the browser API
+	 * @param submitUrl URL that log-detail.html should send the results of the browser API call back to
+	 */
+	public void requestCredential(JsonObject request, String submitUrl) {
+		browserApiRequests.add(new BrowserApiRequest(request, submitUrl));
 	}
 
 	/**
@@ -868,6 +878,10 @@ public class BrowserControl implements DataUtils {
 
 	public List<UrlWithMethod> getUrlsWithMethod() {
 		return urlsWithMethod;
+	}
+
+	public List<BrowserApiRequest> getBrowserApiRequests() {
+		return browserApiRequests;
 	}
 
 	public List<UrlWithMethod> getVisitedUrlsWithMethod() {

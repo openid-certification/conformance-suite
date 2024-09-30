@@ -57,6 +57,7 @@ import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizati
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
+import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
@@ -72,8 +73,7 @@ import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndp
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPost;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToDirectPostJwt;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
@@ -92,6 +92,7 @@ import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Ur
 import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
 import net.openid.conformance.condition.common.CreateRandomRequestUri;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -101,6 +102,7 @@ import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAnd
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
 import net.openid.conformance.variant.ResponseType;
@@ -113,6 +115,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -178,6 +181,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		env.putString("response_type", responseType.toString());
 
 		responseMode = getVariant(VPResponseMode.class);
+		env.putString("response_mode", responseMode.toString());
 		credentialFormat = getVariant(CredentialFormat.class);
 		requestMethod = getVariant(VPRequestMethod.class);
 		clientIdScheme = getVariant(VPClientIdScheme.class);
@@ -189,6 +193,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			case DIRECT_POST:
 			case DIRECT_POST_JWT:
 				callAndStopOnFailure(CreateDirectPostResponseUri.class);
+				break;
+			case W3C_DC_API_JWT:
+			case W3C_DC_API:
 				break;
 		}
 
@@ -317,8 +324,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			}
 			switch (responseMode) {
 				case DIRECT_POST:
+				case W3C_DC_API:
 					break;
 				case DIRECT_POST_JWT:
+				case W3C_DC_API_JWT:
 					// assume response is encrypted so a key is required
 					jwksRequired = true;
 					break;
@@ -364,11 +373,33 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void performAuthorizationFlow() {
-		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
+		eventLog.startBlock(currentClientString() + "Make request to wallet");
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
-		performRedirect();
-		eventLog.log(getName(), "The wallet should be opened via the QR code / proceed with test button, and should then fetch the request_uri");
+		switch (responseMode) {
+			case W3C_DC_API:
+			case W3C_DC_API_JWT:
+				callAndStopOnFailure(CreateRandomBrowserApiSubmitUrl.class);
+				String submitUrl = env.getString("browser_api_submit", "fullUrl");
+
+				JsonObject request;
+				request = env.getObject("authorization_endpoint_request");
+
+				eventLog.log(getName(), args("msg", "Calling browser API",
+					"request", request,
+					"http", "api"));
+
+				browser.requestCredential(request, submitUrl);
+				setStatus(Status.WAITING);
+
+				eventLog.log(getName(), "The wallet should be opened using the Browser API button, and should then fetch the request_uri");
+				break;
+			case DIRECT_POST_JWT:
+			case DIRECT_POST:
+				performRedirect();
+				eventLog.log(getName(), "The wallet should be opened via the QR code / proceed with test button, and should then fetch the request_uri");
+				break;
+		}
 		eventLog.endBlock();
 	}
 
@@ -385,12 +416,31 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
-			callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class);
+			//boolean browserApi = false;
+			boolean browserUnsigned = false;
+			switch (responseMode) {
+				case DIRECT_POST:
+				case DIRECT_POST_JWT:
+					break;
+				case W3C_DC_API:
+					browserUnsigned = true;
+					//browserApi = true;
+					break;
+				case W3C_DC_API_JWT:
+					//browserApi = true;
+					break;
+			}
 
-			callAndStopOnFailure(CreateRandomStateValue.class);
-			call(exec().exposeEnvironmentString("state"));
-			callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+			callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
+			if (!browserUnsigned) {
+				callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class);
+
+				callAndStopOnFailure(CreateRandomStateValue.class);
+				call(exec().exposeEnvironmentString("state"));
+				callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+				callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
+			}
 
 			callAndStopOnFailure(AddPresentationDefinitionToAuthorizationEndpointRequest.class);
 
@@ -408,16 +458,8 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			}
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToVpToken.class);
-			callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
 
-			switch (responseMode) {
-				case DIRECT_POST:
-					callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPost.class);
-					break;
-				case DIRECT_POST_JWT:
-					callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToDirectPostJwt.class);
-					break;
-			}
+			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseMode.class);
 
 			switch (clientIdScheme) {
 				case PRE_REGISTERED:
@@ -472,10 +514,35 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				// FIXME: need to validate jwe header
 				// FIXME iss, exp and aud MUST be omitted in the JWT Claims Set of the JWE
 				break;
+			case W3C_DC_API:
+			case W3C_DC_API_JWT:
+				throw new TestFailureException(getId(), "Direct post response received but result was expected to be returned from the Browser API");
 		}
 
+		processReceivedResponse();
+
+		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
+		JsonObject response = new JsonObject();
+		switch (credentialFormat) {
+			case ISO_MDL:
+				// iso mdl spec requires that redirect uri is always returned
+				populateDirectPostResponseWithRedirectUri(response);
+				break;
+			default:
+				populateDirectPostResponse(response);
+				break;
+		}
+
+		return ResponseEntity.ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(response.toString());
+	}
+
+	private void processReceivedResponse() {
+		// FIXME: decryption doesn't work for browser API
+
 		// vp token may be an object containing multiple tokens, https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
-		// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assme only a single token here
+		// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assume only a single token here
 		callAndStopOnFailure(ExtractVpToken.class, ConditionResult.FAILURE);
 
 		// FIXME: extract / verify presentation_submission
@@ -522,22 +589,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				// FIXME: verify credential contents?
 				break;
 		}
-
-		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
-		JsonObject response = new JsonObject();
-		switch (credentialFormat) {
-			case ISO_MDL:
-				// iso mdl spec requires that redirect uri is always returned
-				populateDirectPostResponseWithRedirectUri(response);
-				break;
-			default:
-				populateDirectPostResponse(response);
-				break;
-		}
-
-		return ResponseEntity.ok()
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(response.toString());
 	}
 
 	protected void populateDirectPostResponse(JsonObject response) {
@@ -574,16 +625,16 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void createAuthorizationRedirect() {
-		// alternative without request_uri
+		ConditionSequence seq = null;
 		switch (requestMethod) {
 //			case URL_QUERY:
 //				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class); // FIXME: doesn't work, Caught exception from test framework: [openid4vp://] is not a valid HTTP URL
 //				break;
 			case REQUEST_URI_UNSIGNED:
-				call(new CreateAuthorizationRedirectStepsUnsignedRequestUri());
+				seq = new CreateAuthorizationRedirectStepsUnsignedRequestUri();
 				break;
 			case REQUEST_URI_SIGNED:
-				ConditionSequence seq = createAuthorizationRedirectStepsSignedRequestUri();
+				seq = createAuthorizationRedirectStepsSignedRequestUri();
 				switch (clientIdScheme) {
 					case X509_SAN_DNS:
 						// x5c header is mandatory for x509 san dns (and/or mdl profile)
@@ -594,9 +645,19 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 						// otherwise follow the default (use x5c header if it's available) although signed request objects + redirect_uri client_id_scheme isn't allowed in the spec
 						break;
 				}
-				call(seq);
 				break;
 		}
+		switch (responseMode) {
+			case DIRECT_POST:
+			case DIRECT_POST_JWT:
+				break;
+			case W3C_DC_API:
+			case W3C_DC_API_JWT:
+				seq = seq.skip(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "No redirected required for Browser API");
+				break;
+		}
+
+		call(seq);
 	}
 
 	@NotNull
@@ -757,6 +818,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		setStatus(Status.WAITING);
 		// FIXME add logs about the next step
 
+		if (path.equals(env.getString("browser_api_submit", "path"))) {
+			return handleBrowserApiSubmission(requestId);
+		}
 		if (path.equals("responseuri")) {
 			return handleDirectPost(requestId);
 		}
@@ -765,6 +829,26 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		}
 		return super.handleHttp(path, req, res, session, requestParts);
 
+	}
+
+	private Object handleBrowserApiSubmission(String requestId) {
+
+		getTestExecutionManager().runInBackground(() -> {
+
+			// process the callback
+			setStatus(Status.RUNNING);
+			call(exec().startBlock("Process Browser API result").mapKey("incoming_request", requestId));
+
+			callAndStopOnFailure(ExtractBrowserApiResponse.class);
+
+			processReceivedResponse();
+
+			fireTestFinished();
+
+			return "done";
+		});
+
+		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
 	protected Object handleRequestUriRequest() {

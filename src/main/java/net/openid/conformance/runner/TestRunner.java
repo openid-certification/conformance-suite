@@ -660,6 +660,7 @@ public class TestRunner implements DataUtils {
 			bmap.put("show_qr_code", browser.showQrCodes());
 			bmap.put("urls", browser.getUrls());
 			bmap.put("urlsWithMethod", browser.getUrlsWithMethod());
+			bmap.put("browserApiRequests", browser.getBrowserApiRequests());
 			bmap.put("visited", browser.getVisited());
 			bmap.put("visitedUrlsWithMethod", browser.getVisitedUrlsWithMethod());
 			bmap.put("runners", browser.getWebRunners());
