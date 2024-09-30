@@ -14,10 +14,14 @@ public class EnsureIncomingTlsSecureCipher extends AbstractCondition {
 	// the constants found in the CipherSuite enum used by DisallowInsecureCipher
 
 	private static final List<String> ALLOWED_CIPHERS = ImmutableList.of(
-		"DHE-RSA-AES128-GCM-SHA256",
-		"ECDHE-RSA-AES128-GCM-SHA256",
-		"DHE-RSA-AES256-GCM-SHA384",
-		"ECDHE-RSA-AES256-GCM-SHA384");
+			"DHE-RSA-AES128-GCM-SHA256",
+			"ECDHE-RSA-AES128-GCM-SHA256",
+			"DHE-RSA-AES256-GCM-SHA384",
+			"ECDHE-RSA-AES256-GCM-SHA384",
+			//TLS 1.3 Cipher suites
+			"TLS_AES_256_GCM_SHA384",
+			"TLS_CHACHA20_POLY1305_SHA256",
+			"TLS_AES_128_GCM_SHA256");
 
 	@PreEnvironment(required = "client_request")
 	@Override
