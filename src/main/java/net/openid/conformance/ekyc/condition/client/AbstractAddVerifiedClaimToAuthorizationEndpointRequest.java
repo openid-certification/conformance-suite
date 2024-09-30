@@ -9,20 +9,20 @@ public abstract class AbstractAddVerifiedClaimToAuthorizationEndpointRequest ext
 
 	protected void addVerifiedClaims(Environment env, JsonObject verifiedClaims, boolean toIdToken, boolean toUserinfo) {
 		JsonElement topLevelClaimsElement = env.getElementFromObject("authorization_endpoint_request", "claims");
-		JsonObject topLevelClaimsObject = null;
-		if(topLevelClaimsElement==null) {
+		if (topLevelClaimsElement == null) {
 			topLevelClaimsElement = new JsonObject();
 			env.getObject("authorization_endpoint_request").add("claims", topLevelClaimsElement);
-		} else {
-			topLevelClaimsObject = topLevelClaimsElement.getAsJsonObject();
 		}
-		if(toIdToken) {
+		JsonObject topLevelClaimsObject = topLevelClaimsElement.getAsJsonObject();
+
+		if (toIdToken) {
 			if (!topLevelClaimsObject.has("id_token")) {
 				topLevelClaimsObject.add("id_token", new JsonObject());
 			}
 			topLevelClaimsObject.get("id_token").getAsJsonObject().add("verified_claims", verifiedClaims);
 		}
-		if(toUserinfo) {
+
+		if (toUserinfo) {
 			if (!topLevelClaimsObject.has("userinfo")) {
 				topLevelClaimsObject.add("userinfo", new JsonObject());
 			}
