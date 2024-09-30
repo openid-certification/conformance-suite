@@ -24,10 +24,13 @@ public class FAPITLSClient extends DefaultTlsClient {
 	private ProtocolVersion allowedProtocolVersion;
 
 	private static final int[] FAPI_CIPHERS = {
-		CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
-		CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
-		CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+			org.bouncycastle.tls.CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+			org.bouncycastle.tls.CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			org.bouncycastle.tls.CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+			org.bouncycastle.tls.CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			org.bouncycastle.tls.CipherSuite.TLS_AES_256_GCM_SHA384,
+			org.bouncycastle.tls.CipherSuite.TLS_CHACHA20_POLY1305_SHA256,
+			org.bouncycastle.tls.CipherSuite.TLS_AES_128_GCM_SHA256
 	};
 
 	public FAPITLSClient(Object tlsTestHost, boolean useOnlyFAPICiphers, ProtocolVersion protocolVersion) {
