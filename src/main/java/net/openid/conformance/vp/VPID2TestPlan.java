@@ -5,8 +5,10 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
@@ -53,9 +55,6 @@ public class VPID2TestPlan implements TestPlan {
 
 		Map<String, String> v = variant.getVariant();
 		String responseMode = v.get("response_mode");
-		String credentialFormat = v.get("credential_format");
-		String requestMethod = v.get("request_method");
-		String clientIDScheme = v.get("client_id_scheme");
 
 		String certProfile = "OID4VPID2";
 
