@@ -9,6 +9,8 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
+
 @PublishTestModule(
 	testName = "openid-federation-entity-metadata",
 	displayName = "OpenID Federation: Federation entity metadata",

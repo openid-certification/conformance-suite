@@ -18,6 +18,9 @@ import net.openid.conformance.variant.VariantParameters;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
+import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnown;
+
 @VariantParameters({
 	ServerMetadata.class,
 	ClientRegistration.class
@@ -242,23 +245,5 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		return subordinates;
 	}
 
-	protected static String appendWellKnown(String entityIdentifier) {
-		if (entityIdentifier.endsWith(".well-known/openid-federation")) {
-			return entityIdentifier;
-		}
-		if (entityIdentifier.endsWith("/")) {
-			return entityIdentifier + ".well-known/openid-federation";
-		}
-		return entityIdentifier + "/.well-known/openid-federation";
-	}
-
-	protected static String stripWellKnown(String url) {
-		String entityIdentifier = url;
-		final String removingPartInUrl = ".well-known/openid-federation";
-		if (url.endsWith(removingPartInUrl)) {
-			entityIdentifier = url.substring(0, url.length() - removingPartInUrl.length());
-		}
-		return entityIdentifier;
-	}
 
 }

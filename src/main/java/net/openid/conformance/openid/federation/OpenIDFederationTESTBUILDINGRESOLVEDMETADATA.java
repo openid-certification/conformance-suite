@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
+import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnown;
+
 @PublishTestModule(
 	testName = "openid-federation-TESTBUILDINGRESOLVEDMETADATA",
 	displayName = "OpenID Federation: TESTBUILDINGRESOLVEDMETADATA",
@@ -45,7 +48,7 @@ public class OpenIDFederationTESTBUILDINGRESOLVEDMETADATA extends AbstractOpenID
 	protected List<String> findPath(String fromEntity, String trustAnchor, List<String> path) {
 		path.add(fromEntity);
 
-		if (fromEntity.equals(trustAnchor)) {
+		if (EntityUtils.equals(fromEntity, trustAnchor)) {
 			return path;
 		}
 
