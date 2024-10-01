@@ -102,7 +102,8 @@ public class OIDCCDynamicTestPlan implements TestPlan {
 					OIDCCRequestUriUnsigned.class, // OP-request_uri-Unsigned-Dynamic
 					OIDCCRequestUriSignedRS256.class, // OP-request_uri-Sig
 					OIDCCEnsureRequestObjectWithRedirectUri.class, // new test that ensures OP is processing the request object when passing OIDCCRequestUriUnsigned
-					OIDCCRefreshToken.class // extra test not in python (skipped if refresh tokens not supported)
+					OIDCCRefreshToken.class, // extra test not in python (skipped if refresh tokens not supported)
+					OIDCCEnsureClientAssertionWithIssAudSucceeds.class // extra test not in python (warnings only if failed)
 				),
 				variantPrivateKeyJwtDynReg
 			)
