@@ -1,27 +1,30 @@
 package net.openid.conformance.util;
 
-import org.bouncycastle.crypto.tls.Certificate;
-import org.bouncycastle.crypto.tls.CertificateRequest;
-import org.bouncycastle.crypto.tls.CipherSuite;
-import org.bouncycastle.crypto.tls.DefaultTlsClient;
-import org.bouncycastle.crypto.tls.NameType;
-import org.bouncycastle.crypto.tls.ProtocolVersion;
-import org.bouncycastle.crypto.tls.ServerName;
-import org.bouncycastle.crypto.tls.ServerNameList;
-import org.bouncycastle.crypto.tls.TlsAuthentication;
-import org.bouncycastle.crypto.tls.TlsCredentials;
-import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
+
+import org.bouncycastle.tls.CertificateRequest;
+import org.bouncycastle.tls.DefaultTlsClient;
+import org.bouncycastle.tls.NameType;
+import org.bouncycastle.tls.ProtocolVersion;
+import org.bouncycastle.tls.ServerName;
+import org.bouncycastle.tls.TlsAuthentication;
+import org.bouncycastle.tls.TlsCredentials;
+import org.bouncycastle.tls.TlsServerCertificate;
+import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "rawtypes"})
 public class FAPITLSClient extends DefaultTlsClient {
 
-	private Object targetHost;
+	private String targetHost;
 	private boolean allowOnlyFAPICiphers;
-	private ProtocolVersion allowedProtocolVersion;
+	private ProtocolVersion[] allowedProtocolVersion;
 
 	private static final int[] FAPI_CIPHERS = {
 			org.bouncycastle.tls.CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
@@ -33,7 +36,8 @@ public class FAPITLSClient extends DefaultTlsClient {
 			org.bouncycastle.tls.CipherSuite.TLS_AES_128_GCM_SHA256
 	};
 
-	public FAPITLSClient(Object tlsTestHost, boolean useOnlyFAPICiphers, ProtocolVersion protocolVersion) {
+	public FAPITLSClient(String tlsTestHost, boolean useOnlyFAPICiphers, ProtocolVersion... protocolVersion) {
+		super(new BcTlsCrypto(new SecureRandom()));
 		this.targetHost = tlsTestHost;
 		this.allowOnlyFAPICiphers = useOnlyFAPICiphers;
 		this.allowedProtocolVersion = protocolVersion;
@@ -52,48 +56,35 @@ public class FAPITLSClient extends DefaultTlsClient {
 		}
 	}
 
-
 	@Override
-	public TlsAuthentication getAuthentication() {
+	public TlsAuthentication getAuthentication() throws IOException {
 		return new TlsAuthentication() {
 
 			@Override
-			public TlsCredentials getClientCredentials(CertificateRequest certificateRequest) throws IOException
-			{
+			public TlsCredentials getClientCredentials(CertificateRequest certificateRequest) throws IOException {
 				return null;
 			}
 
 			@Override
-			public void notifyServerCertificate(Certificate serverCertificate) throws IOException {
+			public void notifyServerCertificate(TlsServerCertificate tlsServerCertificate) throws IOException {
 				// even though we make a TLS connection we ignore the server cert validation here
 			}
 		};
 	}
 
-		@Override
-	public ProtocolVersion getMinimumVersion() {
-		return allowedProtocolVersion;
-	}
-
-		@Override
-	public ProtocolVersion getClientVersion() {
-		return allowedProtocolVersion;
+	@Override
+	protected ProtocolVersion[] getSupportedVersions() {
+		return this.allowedProtocolVersion;
 	}
 
 	@Override
-	@SuppressWarnings({"rawtypes", "JdkObsolete"}) // fit with the API
-	public Hashtable getClientExtensions() throws IOException {
-		Hashtable clientExtensions = super.getClientExtensions();
-		Vector<ServerName> serverNameList = new Vector<>();
-		serverNameList.addElement(new ServerName(NameType.host_name, targetHost));
-		TlsExtensionsUtils.addServerNameExtension(clientExtensions, new ServerNameList(serverNameList));
-		return clientExtensions;
+	protected Vector getSNIServerNames() {
+		return new Vector<ServerName>(Arrays.asList(new ServerName(NameType.host_name, this.targetHost.getBytes(StandardCharsets.UTF_8))));
 	}
 
 	@Override
-	public void notifyServerVersion(ProtocolVersion serverVersion) throws IOException {
-		// don't need to proceed further
-		throw new ServerHelloReceived(serverVersion);
+	public void notifyServerVersion(ProtocolVersion protocolVersion) throws IOException {
+		throw new ServerHelloReceived(protocolVersion);
 	}
 
 	// Signals that the connection was aborted after discovering the server version
