@@ -1912,8 +1912,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             // preserve valid json objects and arrays as json values; store everything else as a string
             // This has an odd side effect that (say) a jwks that is invalid json (e.g. extra or missing comma) is
             // inserted as a string
+            if (val === "") { // if we have an empty string then delete the value
+                FAPI_UI.removeFromObject(FAPI_UI.testJSON, key);
+                return;
+            }
+
             try {
-                var stringToJSON = JSON.parse(val); // an array, object or number ?
+                const stringToJSON = JSON.parse(val); // an array, object or number ?
                 if (_.isArray(stringToJSON) || _.isObject(stringToJSON)) {
                     FAPI_UI.prop(FAPI_UI.testJSON, key, stringToJSON);
                 } else {
@@ -1923,10 +1928,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     FAPI_UI.prop(FAPI_UI.testJSON, key, val);
                 }
             } catch (e) { // a string
-                if (val === "") { // if we have an empty string then delete the value
-                    FAPI_UI.removeFromObject(FAPI_UI.testJSON, key);
-                    return;
-                }
                 if (type === "jsonobject") {
                     console.warn(`Error while populating json value for ${key}`, e);
                 }
