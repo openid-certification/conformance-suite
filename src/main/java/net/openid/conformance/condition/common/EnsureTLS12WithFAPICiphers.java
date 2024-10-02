@@ -12,7 +12,6 @@ import org.bouncycastle.tls.TlsClientProtocol;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.security.SecureRandom;
 
 @SuppressWarnings("deprecation")
 public class EnsureTLS12WithFAPICiphers extends AbstractCondition {

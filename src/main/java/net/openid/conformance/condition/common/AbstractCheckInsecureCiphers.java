@@ -6,7 +6,6 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.util.NoopTlsAuthentication;
 import net.openid.conformance.testmodule.Environment;
-import org.bouncycastle.tls.CipherSuite;
 import org.bouncycastle.tls.DefaultTlsClient;
 import org.bouncycastle.tls.TlsAuthentication;
 import org.bouncycastle.tls.TlsClient;

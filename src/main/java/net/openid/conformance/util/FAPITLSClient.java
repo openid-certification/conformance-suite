@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Hashtable;
 import java.util.Vector;
 
 @SuppressWarnings({"deprecation", "rawtypes"})

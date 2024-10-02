@@ -1,9 +1,5 @@
 package net.openid.conformance.condition.util;
 
-
-
-
-import org.bouncycastle.tls.Certificate;
 import org.bouncycastle.tls.CertificateRequest;
 import org.bouncycastle.tls.TlsAuthentication;
 import org.bouncycastle.tls.TlsCredentials;

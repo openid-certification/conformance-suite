@@ -1,28 +1,13 @@
 package net.openid.conformance.condition.common;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Ints;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.tls.CipherSuite;
-
-
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.Socket;
-import java.net.SocketException;
-import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
+
 
 @SuppressWarnings("deprecation")
 public class DisallowInsecureCipher extends AbstractCheckInsecureCiphers {

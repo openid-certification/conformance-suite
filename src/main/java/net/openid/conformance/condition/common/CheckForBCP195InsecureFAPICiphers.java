@@ -1,25 +1,7 @@
 package net.openid.conformance.condition.common;
 
-import com.google.common.base.Strings;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.util.NoopTlsAuthentication;
-import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.tls.CipherSuite;
-import org.bouncycastle.tls.DefaultTlsClient;
-import org.bouncycastle.tls.TlsAuthentication;
-import org.bouncycastle.tls.TlsClient;
-import org.bouncycastle.tls.TlsClientProtocol;
-import org.bouncycastle.tls.crypto.TlsCrypto;
-import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 
-
-import java.io.IOException;
-import java.net.Socket;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
