@@ -14,7 +14,7 @@ import java.util.List;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_statement_url",
-		"federation.anchor",
+		"federation.trust_anchor",
 		"federation.trust_anchor_jwks",
 	}
 )

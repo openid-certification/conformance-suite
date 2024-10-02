@@ -11,7 +11,7 @@ public class AppendAnchorToEntityStatementUrl extends AbstractCondition {
 	@PreEnvironment(required = "config", strings = { "entity_statement_url" })
 	public Environment evaluate(Environment env) {
 
-		String anchor = env.getString("config", "federation.anchor");
+		String anchor = env.getString("config", "federation.trust_anchor");
 		String endpoint = env.getString("entity_statement_url");
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(endpoint);

@@ -245,5 +245,39 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		return subordinates;
 	}
 
+	protected List<String> findPath(String fromEntity, String trustAnchor) {
+		return findPath(fromEntity, trustAnchor, new ArrayList<>());
+	}
+
+	protected List<String> findPath(String fromEntity, String trustAnchor, List<String> path) {
+		path.add(fromEntity);
+
+		if (EntityUtils.equals(fromEntity, trustAnchor)) {
+			return path;
+		}
+
+		String currentWellKnownUrl = appendWellKnown(fromEntity);
+		env.putString("entity_statement_url", currentWellKnownUrl);
+		callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE);
+
+		JsonElement authorityHintsElement = env.getElementFromObject("entity_statement_body", "authority_hints");
+		if (authorityHintsElement == null) {
+			return null;
+		}
+		JsonArray authorityHints = authorityHintsElement.getAsJsonArray();
+		if (authorityHints.isJsonNull() || authorityHints.isEmpty()) {
+			return null;
+		}
+
+		for (JsonElement authorityHintElement : authorityHints) {
+			String authorityHint = OIDFJSON.getString(authorityHintElement);
+			List<String> result = findPath(authorityHint, trustAnchor, new ArrayList<>(path));
+			if (result != null) {
+				return result;
+			}
+		}
+
+		return null;
+	}
 
 }

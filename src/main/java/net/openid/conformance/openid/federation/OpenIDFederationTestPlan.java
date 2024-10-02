@@ -13,6 +13,7 @@ import net.openid.conformance.variant.VariantSelection;
 		OpenIDFederationFetchTest.class,
 		OpenIDFederationEnsureFetchWithMissingSubFailsTest.class,
 		OpenIDFederationResolveTest.class,
+		OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest.class,
 		OpenIDFederationTESTBUILDINGRESOLVEDMETADATA.class
 	}
 )

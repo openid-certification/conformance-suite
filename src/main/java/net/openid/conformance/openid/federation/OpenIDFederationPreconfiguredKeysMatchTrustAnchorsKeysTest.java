@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.JsonElement;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -10,8 +11,8 @@ import static net.openid.conformance.openid.federation.EntityUtils.appendWellKno
 import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnown;
 
 @PublishTestModule(
-	testName = "openid-federation-TESTBUILDINGRESOLVEDMETADATA",
-	displayName = "OpenID Federation: TESTBUILDINGRESOLVEDMETADATA",
+	testName = "openid-federation-preconfigured-keys-match-trust-anchors-keys",
+	displayName = "OpenID Federation: Preconfigured keys match Trust Anchor's keys",
 	summary = "",
 	profile = "OIDFED",
 	configurationFields = {
@@ -20,7 +21,7 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 		"federation.trust_anchor_jwks",
 	}
 )
-public class OpenIDFederationTESTBUILDINGRESOLVEDMETADATA extends AbstractOpenIDFederationTest {
+public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends AbstractOpenIDFederationTest {
 
 	@Override
 	public void start() {
@@ -31,6 +32,10 @@ public class OpenIDFederationTESTBUILDINGRESOLVEDMETADATA extends AbstractOpenID
 		if (trustAnchor == null) {
 			throw new TestFailureException(getId(), "The test configuration does not contain a trust anchor");
 		}
+		JsonElement trustAnchorJwks = env.getElementFromObject("config", "federation.trust_anchor_jwks");
+		if (trustAnchorJwks == null || !trustAnchorJwks.isJsonObject()) {
+			fireTestSkipped("The test configuration does not contain preconfigured trust anchor jwks.");
+		}
 
 		List<String> path = findPath(fromEntity, trustAnchor);
 		if (path == null || path.isEmpty()) {
@@ -40,6 +45,7 @@ public class OpenIDFederationTESTBUILDINGRESOLVEDMETADATA extends AbstractOpenID
 		env.putString("entity_statement_url", appendWellKnown(trustAnchor));
 		callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(ValidateJwksAreEqual.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 		fireTestFinished();
 	}
