@@ -18,7 +18,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public class GetSubordinateListingResponse extends AbstractCondition {
+public class CallListEndpoint extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "federation_list_endpoint")

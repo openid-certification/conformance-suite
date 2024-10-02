@@ -8,7 +8,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
 
-public class GetEntityStatementAndExpectError extends AbstractCallProtectedResource {
+public class CallEntityStatementEndpointAndExpectError extends AbstractCallProtectedResource {
 
 	@Override
 	public Environment evaluate(Environment env) {

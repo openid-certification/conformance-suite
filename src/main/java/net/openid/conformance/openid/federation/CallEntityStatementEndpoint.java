@@ -23,7 +23,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 
-public class GetEntityStatement extends AbstractCondition {
+public class CallEntityStatementEndpoint extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "entity_statement_url")

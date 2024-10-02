@@ -12,8 +12,10 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 
 @PublishTestModule(
 	testName = "openid-federation-preconfigured-keys-match-trust-anchors-keys",
-	displayName = "OpenID Federation: Preconfigured keys match Trust Anchor's keys",
-	summary = "",
+	displayName = "OpenID Federation: Preconfigured keys match trust anchor's keys",
+	summary = "This test starts at the given entity and follows the chain up to the trust anchor. " +
+		"When the trust anchor has been reached, the jwks specified in its entity configuration " +
+		"are compared to the trust_anchor_jwks specified in the test configuration.",
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_statement_url",
@@ -33,6 +35,10 @@ public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends 
 			throw new TestFailureException(getId(), "The test configuration does not contain a trust anchor");
 		}
 		JsonElement trustAnchorJwks = env.getElementFromObject("config", "federation.trust_anchor_jwks");
+		if (trustAnchorJwks != null && trustAnchorJwks.isJsonPrimitive()) {
+			throw new TestFailureException(getId(), "The preconfigured trust anchor jwks is not a valid JSON object. " +
+				"Please verify that your configuration does not contain errors.");
+		}
 		if (trustAnchorJwks == null || !trustAnchorJwks.isJsonObject()) {
 			fireTestSkipped("The test configuration does not contain preconfigured trust anchor jwks.");
 		}
@@ -43,7 +49,7 @@ public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends 
 		}
 
 		env.putString("entity_statement_url", appendWellKnown(trustAnchor));
-		callAndContinueOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ValidateJwksAreEqual.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 

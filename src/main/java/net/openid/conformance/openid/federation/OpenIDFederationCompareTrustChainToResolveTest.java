@@ -7,10 +7,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import java.util.List;
 
 @PublishTestModule(
-	testName = "openid-federation-resolve",
-	displayName = "OpenID Federation: resolve",
+	testName = "openid-federation-compare-trust-chain-to-resolve",
+	displayName = "OpenID Federation: Compare trust chain to resolve result",
 	summary = "This test verifies the behavior of the federation_resolve_endpoint provided in the entity's federation_entity metadata. " +
-		"The test is isolated to the provided entity and will not proceed to its superiors.",
+		"The test will attempt to create a trust chain from the configured entity to the trust anchor, and compare the result with " +
+		"the result obtained from the trust anchor's resolve endpoint, provided that it exists.",
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_statement_url",
@@ -18,7 +19,7 @@ import java.util.List;
 		"federation.trust_anchor_jwks",
 	}
 )
-public class OpenIDFederationResolveTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpenIDFederationTest {
 
 	@Override
 	public void start() {
@@ -46,7 +47,7 @@ public class OpenIDFederationResolveTest extends AbstractOpenIDFederationTest {
 
 		eventLog.startBlock(String.format("Fetching resolved metadata from %s", env.getString("entity_statement_url")));
 
-		callAndStopOnFailure(GetEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndStopOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 		env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
