@@ -6,7 +6,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpMethod;
@@ -26,26 +25,21 @@ import java.text.ParseException;
 public class CallResolveEndpoint extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = "entity_statement_url")
-	@PostEnvironment(required = { "entity_statement_endpoint_response", "entity_statement_body", "entity_statement_header" } )
+	@PreEnvironment(strings = { "federation_resolve_endpoint", "expected_sub" })
 	public Environment evaluate(Environment env) {
 
-		String entityStatementUrl = env.getString("entity_statement_url");
-		if (Strings.isNullOrEmpty(entityStatementUrl)) {
-			throw error("Couldn't find entityStatementUrl in configuration");
-		}
-
+		String resolveEndpointUrl = env.getString("federation_resolve_endpoint");
 		String jwtString;
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
-			ResponseEntity<String> response = restTemplate.exchange(entityStatementUrl, HttpMethod.GET, null, String.class);
-			JsonObject responseInfo = convertResponseForEnvironment("Entity statement", response);
-			env.putObject("entity_statement_endpoint_response", responseInfo);
+			ResponseEntity<String> response = restTemplate.exchange(resolveEndpointUrl, HttpMethod.GET, null, String.class);
+			JsonObject responseInfo = convertResponseForEnvironment("Resolve response", response);
+			env.putObject("resolve_endpoint_response", responseInfo);
 			jwtString = response.getBody();
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			throw error("Error creating HTTP client", e);
 		} catch (RestClientException e) {
-			String msg = "Unable to fetch entity statement from " + entityStatementUrl;
+			String msg = "Unable to invoke the resolve endpoint " + resolveEndpointUrl;
 			if (e.getCause() != null) {
 				msg += " - " + e.getCause().getMessage();
 			}
@@ -55,12 +49,12 @@ public class CallResolveEndpoint extends AbstractCondition {
 		if (!Strings.isNullOrEmpty(jwtString)) {
 			try {
 				SignedJWT jwt = SignedJWT.parse(jwtString);
-				JsonObject entityStatementBody = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
-				JsonObject entityStatementHeader = JsonParser.parseString(jwt.getHeader().toString()).getAsJsonObject();
-				logSuccess("Successfully parsed entity statement", entityStatementBody);
+				JsonObject resolveResponseBody = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
+				JsonObject resolveResponseHeader = JsonParser.parseString(jwt.getHeader().toString()).getAsJsonObject();
+				logSuccess("Successfully parsed resolve response", resolveResponseBody);
 				env.putString("entity_statement", jwtString);
-				env.putObject("entity_statement_body", entityStatementBody);
-				env.putObject("entity_statement_header", entityStatementHeader);
+				env.putObject("entity_statement_body", resolveResponseBody);
+				env.putObject("entity_statement_header", resolveResponseHeader);
 				return env;
 			} catch (ParseException e) {
 				throw error("Failed to parse entity statement as a signed JWT", e, args("jwt", jwtString));

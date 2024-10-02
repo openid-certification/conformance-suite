@@ -19,7 +19,7 @@ import static net.openid.conformance.openid.federation.EntityUtils.appendWellKno
 		"in the list response, and validation of each of the responses.",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.entity_statement_url",
+		"federation.entity_identifier",
 		"federation.trust_anchor_jwks"
 	}
 )
@@ -55,7 +55,7 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 				String entityIdentifier = OIDFJSON.getString(listElement);
 				eventLog.startBlock(String.format("Validating entity statement for %s", entityIdentifier));
 				env.putString("entity_statement_url", appendWellKnown(entityIdentifier));
-				callAndContinueOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				validateEntityStatementResponse();
 				validateEntityStatement();
 				eventLog.endBlock();
@@ -77,7 +77,7 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 
 			eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
 
-			callAndContinueOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 			env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
@@ -109,7 +109,7 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 		callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 		eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
-		callAndContinueOnFailure(CallEntityStatementEndpointAndExpectError.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(CallFederationEndpointAndExpectError.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 	}
 
 }

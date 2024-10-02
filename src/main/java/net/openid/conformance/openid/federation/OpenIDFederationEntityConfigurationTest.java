@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"verification of those entities, including the output of their list and fetch endpoints.",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.entity_statement_url"
+		"federation.entity_identifier"
 	}
 )
 public class OpenIDFederationEntityConfigurationTest extends AbstractOpenIDFederationTest {

@@ -42,8 +42,8 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			// This case is actually not valid, I believe, but it's here for testing purposes atm
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
 		} else {
-			callAndStopOnFailure(ExtractEntityStatmentUrlFromConfig.class, Condition.ConditionResult.FAILURE);
-			callAndStopOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(ExtractEntityStatementUrlFromConfig.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 			validateEntityStatementResponse();
 		}
@@ -152,7 +152,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 				// Get the entity statement for the Superior
 				env.putString("entity_statement_url", authorityHintUrl);
-				callAndStopOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE);
+				callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE);
 				validateEntityStatementResponse();
 				validateEntityStatement();
 
@@ -175,7 +175,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 				callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
-				callAndStopOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+				callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 				env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
@@ -215,7 +215,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			String entityIdentifier = OIDFJSON.getString(listElement);
 			eventLog.startBlock(String.format("Validating entity statement for %s", entityIdentifier));
 			env.putString("entity_statement_url", appendWellKnown(entityIdentifier));
-			callAndContinueOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			validateEntityStatementResponse();
 			validateEntityStatement();
 			subordinates.add(entityIdentifier);
@@ -258,7 +258,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 		String currentWellKnownUrl = appendWellKnown(fromEntity);
 		env.putString("entity_statement_url", currentWellKnownUrl);
-		callAndStopOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE);
 
 		JsonElement authorityHintsElement = env.getElementFromObject("entity_statement_body", "authority_hints");
 		if (authorityHintsElement == null) {

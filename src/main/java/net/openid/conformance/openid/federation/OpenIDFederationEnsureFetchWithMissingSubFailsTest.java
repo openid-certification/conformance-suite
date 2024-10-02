@@ -12,7 +12,7 @@ import java.util.List;
 		"The test is isolated to the provided entity and will not proceed to its superiors.",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.entity_statement_url",
+		"federation.entity_identifier",
 		"federation.trust_anchor_jwks"
 	}
 )
@@ -37,7 +37,7 @@ public class OpenIDFederationEnsureFetchWithMissingSubFailsTest extends Abstract
 			callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 			eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("entity_statement_url")));
-			callAndContinueOnFailure(CallEntityStatementEndpointAndExpectError.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(CallFederationEndpointAndExpectError.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			eventLog.endBlock();
 		}
 

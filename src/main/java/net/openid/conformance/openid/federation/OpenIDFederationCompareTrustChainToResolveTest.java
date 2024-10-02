@@ -3,18 +3,22 @@ package net.openid.conformance.openid.federation;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 import java.util.List;
+
+import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
+import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnown;
 
 @PublishTestModule(
 	testName = "openid-federation-compare-trust-chain-to-resolve",
 	displayName = "OpenID Federation: Compare trust chain to resolve result",
-	summary = "This test verifies the behavior of the federation_resolve_endpoint provided in the entity's federation_entity metadata. " +
+	summary = "This test verifies the behavior of the federation_resolve_endpoint of the entity's trust anchor. " +
 		"The test will attempt to create a trust chain from the configured entity to the trust anchor, and compare the result with " +
 		"the result obtained from the trust anchor's resolve endpoint, provided that it exists.",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.entity_statement_url",
+		"federation.entity_identifier",
 		"federation.trust_anchor",
 		"federation.trust_anchor_jwks",
 	}
@@ -25,48 +29,54 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		final String listEndpoint = env.getString("federation_list_endpoint");
-		final String resolveEndpoint = env.getString("federation_resolve_endpoint");
-		if (listEndpoint == null || resolveEndpoint == null) {
-			fireTestSkipped("Entity metadata does not contain a federation_list_endpoint/federation_resolve_endpoint.");
+		String fromEntity = stripWellKnown(env.getString("config", "federation.entity_identifier"));
+		String trustAnchor = env.getString("config", "federation.trust_anchor");
+		if (trustAnchor == null) {
+			throw new TestFailureException(getId(), "The test configuration does not contain a trust anchor");
 		}
 
-		List<String> subordinates = getSubordinates(listEndpoint);
-		validateResolveEndpoint(subordinates);
+		List<String> path = findPath(fromEntity, trustAnchor);
+		if (path == null || path.isEmpty()) {
+			throw new TestFailureException(getId(), "A trust chain from %s to %s can not be constructed".formatted(fromEntity, trustAnchor));
+		}
+
+		env.putString("entity_statement_url", appendWellKnown(trustAnchor));
+		callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(SetTrustAnchorEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		validateResolveEndpoint();
 
 		fireTestFinished();
 	}
 
-	protected void validateResolveEndpoint(List<String> subordinates) {
-		env.putString("entity_statement_url", env.getString("federation_resolve_endpoint"));
-		env.putString("expected_sub", subordinates.get(0));
-
+	protected void validateResolveEndpoint() {
+		final String resolveEndpoint = env.getString("federation_resolve_endpoint");
+		if (resolveEndpoint == null) {
+			fireTestSkipped("Trust anchor does not contain a federation_resolve_endpoint.");
+		}
+		env.putString("entity_statement_url", resolveEndpoint);
+		env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
 		callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(AppendAnchorToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 		eventLog.startBlock(String.format("Fetching resolved metadata from %s", env.getString("entity_statement_url")));
 
-		callAndStopOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 		env.mapKey("endpoint_response", "entity_statement_endpoint_response");
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		callAndContinueOnFailure(EnsureContentTypeEntityStatementJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(EnsureContentTypeResolveResponseJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		env.unmapKey("endpoint_response");
 
-		/*
+		env.putString("expected_iss", env.getString("config", "federation.trust_anchor"));
 		callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
 
-		callAndContinueOnFailure(ExtractJWKsFromPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(ExtractJWKsFromTrustAnchorEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		call(sequence(ValidateEntityStatementSignatureSequence.class));
 
-		callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-
-		callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-		callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
-
-		callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		/*
+		Now we have the trust_chain array here, let's figure out what to do with it.
 		*/
 
 		eventLog.endBlock();

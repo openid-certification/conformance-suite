@@ -18,7 +18,7 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 		"are compared to the trust_anchor_jwks specified in the test configuration.",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.entity_statement_url",
+		"federation.entity_identifier",
 		"federation.trust_anchor",
 		"federation.trust_anchor_jwks",
 	}
@@ -29,7 +29,7 @@ public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends 
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		String fromEntity = stripWellKnown(env.getString("config", "federation.entity_statement_url"));
+		String fromEntity = stripWellKnown(env.getString("config", "federation.entity_identifier"));
 		String trustAnchor = env.getString("config", "federation.trust_anchor");
 		if (trustAnchor == null) {
 			throw new TestFailureException(getId(), "The test configuration does not contain a trust anchor");
@@ -49,7 +49,7 @@ public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends 
 		}
 
 		env.putString("entity_statement_url", appendWellKnown(trustAnchor));
-		callAndContinueOnFailure(CallEntityStatementEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ValidateJwksAreEqual.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
