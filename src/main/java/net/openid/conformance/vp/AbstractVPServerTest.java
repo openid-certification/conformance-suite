@@ -879,15 +879,18 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	public void unregisterClient() {
-		eventLog.startBlock(currentClientString() + "Unregister dynamically registered client");
+		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
 
-		call(condition(UnregisterDynamicallyRegisteredClient.class)
-			.skipIfObjectsMissing(new String[] {"client"})
-			.onSkip(ConditionResult.INFO)
-			.onFail(ConditionResult.WARNING)
-			.dontStopOnFailure());
+			eventLog.startBlock(currentClientString() + "Unregister dynamically registered client");
 
-		eventLog.endBlock();
+			call(condition(UnregisterDynamicallyRegisteredClient.class)
+				.skipIfObjectsMissing(new String[]{"client"})
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure());
+
+			eventLog.endBlock();
+		}
 	}
 
 	protected String currentClientString() {

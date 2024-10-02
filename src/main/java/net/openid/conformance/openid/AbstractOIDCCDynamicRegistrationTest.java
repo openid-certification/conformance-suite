@@ -196,15 +196,18 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 	}
 
 	public void unregisterClient() {
-		eventLog.startBlock("Unregister dynamically registered client");
+		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
 
-		call(condition(UnregisterDynamicallyRegisteredClient.class)
-			.skipIfObjectsMissing(new String[] {"client"})
-			.onSkip(ConditionResult.INFO)
-			.onFail(ConditionResult.WARNING)
-			.dontStopOnFailure());
+			eventLog.startBlock("Unregister dynamically registered client");
 
-		eventLog.endBlock();
+			call(condition(UnregisterDynamicallyRegisteredClient.class)
+				.skipIfObjectsMissing(new String[]{"client"})
+				.onSkip(ConditionResult.INFO)
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure());
+
+			eventLog.endBlock();
+		}
 	}
 
 }
