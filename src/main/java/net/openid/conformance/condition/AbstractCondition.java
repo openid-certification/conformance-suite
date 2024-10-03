@@ -19,6 +19,8 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
@@ -581,6 +583,34 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		}
 
+		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
+		builder.setDefaultRequestConfig(RequestConfig.custom().build());
+
+		setHttpClientConnectionManager(builder, restrictAllowedTLSVersions, km);
+
+		builder.disableRedirectHandling();
+
+		builder.disableAutomaticRetries();
+
+		HttpClient httpClient = builder.build();
+		return httpClient;
+	}
+
+	static PoolingHttpClientConnectionManager cm;
+	private static synchronized HttpClientConnectionManager getSharedConnectManager(Registry<ConnectionSocketFactory> registry) {
+		if (cm == null) {
+			cm = new PoolingHttpClientConnectionManager(registry);
+			int timeout = 60; // seconds
+			cm.setDefaultConnectionConfig(ConnectionConfig.custom()
+				.setConnectTimeout(Timeout.ofSeconds(timeout))
+				.setSocketTimeout(Timeout.ofSeconds(timeout))
+				.setTimeToLive(Timeout.ofSeconds(timeout))
+				.build());
+		}
+		return cm;
+	}
+
+	private static void setHttpClientConnectionManager(HttpClientBuilder builder, boolean restrictAllowedTLSVersions, KeyManager[] km) throws NoSuchAlgorithmException, KeyManagementException {
 		TrustManager[] trustAllCerts = {
 			new X509TrustManager() {
 
@@ -608,31 +638,27 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
 			.build();
 
-		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
-		builder.setDefaultRequestConfig(RequestConfig.custom().build());
-
 		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
 			.register("https", sslConnectionFactory)
 			.register("http", new PlainConnectionSocketFactory())
 			.build();
 
-		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-		int timeout = 60; // seconds
-		ccm.setConnectionConfig(ConnectionConfig.custom()
-			.setConnectTimeout(Timeout.ofSeconds(timeout))
-			.setSocketTimeout(Timeout.ofSeconds(timeout))
-			.setTimeToLive(Timeout.ofSeconds(timeout))
-			.build());
-
-
-		builder.setConnectionManager(ccm);
-
-		builder.disableRedirectHandling();
-
-		builder.disableAutomaticRetries();
-
-		HttpClient httpClient = builder.build();
-		return httpClient;
+		if (km == null) {
+			// if no mutual tls use a global pool
+			HttpClientConnectionManager ccm;
+			ccm = getSharedConnectManager(registry);
+			builder.setConnectionManager(ccm);
+			builder.setConnectionManagerShared(true);
+		} else {
+			BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+			int timeout = 60; // seconds
+			ccm.setConnectionConfig(ConnectionConfig.custom()
+				.setConnectTimeout(Timeout.ofSeconds(timeout))
+				.setSocketTimeout(Timeout.ofSeconds(timeout))
+				.setTimeToLive(Timeout.ofSeconds(timeout))
+				.build());
+			builder.setConnectionManager(ccm);
+		}
 	}
 
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
