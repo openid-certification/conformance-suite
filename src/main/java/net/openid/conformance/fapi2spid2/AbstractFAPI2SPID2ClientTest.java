@@ -25,8 +25,12 @@ import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfi
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AustraliaConnectIdAddTrustFrameworksSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AustraliaConnectIdAddVerifiedClaimsSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AustraliaConnectIdAddVerifiedClaimsToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
+import net.openid.conformance.condition.as.AustraliaConnectIdEnsureVerifiedClaimsInRequestObject;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidatePurpose;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
@@ -363,6 +367,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CID-SP-5.2.2-8");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CID-SP-5");
 			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CID-SP-5");
+			callAndStopOnFailure(AustraliaConnectIdAddVerifiedClaimsSupportedToServerConfiguration.class, "IA-9");
+			callAndStopOnFailure(AustraliaConnectIdAddVerifiedClaimsToServerConfiguration.class, "IA-9", "CID-IDA-5.3.3");
+			callAndStopOnFailure(AustraliaConnectIdAddTrustFrameworksSupportedToServerConfiguration.class, "IA-9", "CID-IDA-5.2-11");
 			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CID-SP-5");
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
@@ -1256,7 +1263,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
 			skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
-				AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class, ConditionResult.FAILURE, "CID-IDA-5.2-2.7");
+				AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class, ConditionResult.FAILURE, "CID-IDA-5.2-2");
+			skipIfElementMissing("authorization_request_object", "claims.claims.id_token.verified_claims.claims", ConditionResult.INFO,
+				AustraliaConnectIdEnsureVerifiedClaimsInRequestObject.class, ConditionResult.FAILURE, "CID-IDA-5.2-2");
 		}
 
 		if (fapiClientType == FAPIClientType.OIDC) {
