@@ -285,34 +285,117 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return false;
 	}
 
+	/**
+	 * Returns a JsonObject with requirements. If there are requirements, a copy is always returned. Otherwise,
+	 * the alwaysCopy parameter determines whether a copy or the original JsonObject is returned.
+	 * @param in JsonObject to copy and add requirements
+	 * @param alwaysCopy specifies whether to make always return a copy
+	 * @return Copy of the JsonObject with requirements. If there are no requirements, then it could be the same input JsonObject.
+	 */
+	private JsonObject getJsonObjectWithRequirements(JsonObject in, boolean alwaysCopy) {
+		boolean addRequirements = !getRequirements().isEmpty() && !in.has("requirements");
+		JsonObject jsonObject = alwaysCopy || addRequirements ?
+			JsonParser.parseString(in.toString()).getAsJsonObject() // don't modify the underlying object, round-trip to get a copy
+			: in;
+		if(addRequirements) {
+			JsonArray arr = new JsonArray();
+			for (String req : getRequirements()) {
+				arr.add(req);
+			}
+			jsonObject.add("requirements", arr);
+		}
+		return jsonObject;
+	}
+
+	/**
+	 * Returns the same or a copy of the JsonObject with requirements.
+	 * @param in JsonObject to add requirements
+	 * @return copy or same JsonObject with requirements
+	 */
+	private JsonObject getJsonObjectWithRequirements(JsonObject in) {
+		return getJsonObjectWithRequirements(in, false);
+	}
+
+	/**
+	 * Copies a JsonObject and adds requirements
+	 * @param in Input JsonObject to copy and add requirements
+	 * @return Copy of JsonObject with requirements
+	 */
+	private JsonObject copyJsonObjectWithRequirements(JsonObject in) {
+		return getJsonObjectWithRequirements(in, true);
+	}
+
+
 	protected void log(JsonObject obj) {
 		String result = null;
-		if (obj.has("result")) {
-			result = OIDFJSON.getString(obj.get("result"));
+		JsonObject copy = getJsonObjectWithRequirements(obj);
+		if (copy.has("result")) {
+			result = OIDFJSON.getString(copy.get("result"));
 		}
 		if (reachedLoggingLimits(result)) {
 			return;
 		}
-		log.log(getMessage(), obj);
+		log.log(getMessage(), copy);
 	}
 
 	protected void log(String msg) {
-		if (reachedLoggingLimits(null)) {
-			return;
+		if (getRequirements().isEmpty()) {
+			if (reachedLoggingLimits(null)) {
+				return;
+			}
+			log.log(getMessage(), msg);
+		} else {
+			log(args("msg", msg, "requirements", getRequirements()));
 		}
-		log.log(getMessage(), msg);
+	}
+
+	/**
+	 * Returns a Map with requirements. If there are requirements, a copy is always returned. Otherwise,
+	 * the alwaysCopy parameter determines whether a copy or the original Map is returned.
+	 * @param in Map to copy and add requirements
+	 * @param alwaysCopy specifies whether to make always return a copy
+	 * @return Copy of the Map with requirements. If there are no requirements, then it could be the same input Map.
+	 */
+	private Map<String, Object> getMapWithRequirements(Map<String, Object> in, boolean alwaysCopy) {
+		boolean addRequirements = !getRequirements().isEmpty() && !in.containsKey("requirements");
+		Map<String, Object> outMap = alwaysCopy || addRequirements ?
+			new HashMap<>(in) // don't modify the underlying map
+			: in;
+		if(addRequirements) {
+			outMap.put("requirements", getRequirements());
+		}
+		return outMap;
+	}
+
+	/**
+	 * Returns the same or a copy of the JsonObject with requirements.
+	 * @param in Ma[ to add requirements
+	 * @return copy or same Map with requirements
+	 */
+	private Map<String, Object> getMapWithRequirements(Map<String, Object> in) {
+		return getMapWithRequirements(in, false);
+	}
+
+	/**
+	 * Copies a Map and adds requirements
+	 * @param in Input Map to copy and add requirements
+	 * @return Copy of Map with requirements
+	 */
+	private Map<String, Object> copyMapWithRequirements(Map<String, Object> in) {
+		return getMapWithRequirements(in, true);
 	}
 
 	protected void log(Map<String, Object> map) {
+		Map<String, Object> mapWithRequirements = getMapWithRequirements(map);
 		String result = null;
-		if (map.containsKey("result")) {
-			result = map.get("result").toString();
+		if (mapWithRequirements.containsKey("result")) {
+			result = mapWithRequirements.get("result").toString();
 		}
 		if (reachedLoggingLimits(result)) {
 			return;
 		}
 
-		log.log(getMessage(), map);
+		log.log(getMessage(), mapWithRequirements);
 	}
 
 	protected void log(String msg, JsonObject in) {
@@ -322,21 +405,14 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected void log(String msg, Map<String, Object> map) {
-		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		Map<String, Object> copy = copyMapWithRequirements(map);
 		copy.put("msg", msg);
 		log(copy);
 	}
 
 	protected void logSuccess(JsonObject in) {
-		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = copyJsonObjectWithRequirements(in);
 		copy.addProperty("result", ConditionResult.SUCCESS.toString());
-		if (!getRequirements().isEmpty()) {
-			JsonArray arr = new JsonArray();
-			for (String req : getRequirements()) {
-				arr.add(req);
-			}
-			copy.add("requirements", arr);
-		}
 		log(copy);
 	}
 
@@ -349,35 +425,22 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected void logSuccess(Map<String, Object> map) {
-		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		Map<String, Object> copy = copyMapWithRequirements(map);
 		copy.put("result", ConditionResult.SUCCESS);
-		if (!getRequirements().isEmpty()) {
-			copy.put("requirements", getRequirements());
-		}
 		log(copy);
 	}
 
 	protected void logSuccess(String msg, JsonObject in) {
-		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = copyJsonObjectWithRequirements(in);
 		copy.addProperty("msg", msg);
 		copy.addProperty("result", ConditionResult.SUCCESS.toString());
-		if (!getRequirements().isEmpty()) {
-			JsonArray reqs = new JsonArray(getRequirements().size());
-			for (String req : getRequirements()) {
-				reqs.add(req);
-			}
-			copy.add("requirements", reqs);
-		}
 		log(copy);
 	}
 
 	protected void logSuccess(String msg, Map<String, Object> map) {
-		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		Map<String, Object> copy = copyMapWithRequirements(map);
 		copy.put("msg", msg);
 		copy.put("result", ConditionResult.SUCCESS);
-		if (!getRequirements().isEmpty()) {
-			copy.put("requirements", getRequirements());
-		}
 		log(copy);
 	}
 
@@ -391,15 +454,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	 */
 
 	protected void logFailure(JsonObject in) {
-		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = copyJsonObjectWithRequirements(in);
 		copy.addProperty("result", conditionResultOnFailure.toString());
-		if (!getRequirements().isEmpty()) {
-			JsonArray arr = new JsonArray();
-			for (String req : getRequirements()) {
-				arr.add(req);
-			}
-			copy.add("requirements", arr);
-		}
 		log(copy);
 	}
 
@@ -412,35 +468,22 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected void logFailure(Map<String, Object> map) {
-		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		Map<String, Object> copy = copyMapWithRequirements(map);
 		copy.put("result", conditionResultOnFailure);
-		if (!getRequirements().isEmpty()) {
-			copy.put("requirements", getRequirements());
-		}
 		log(copy);
 	}
 
 	protected void logFailure(String msg, JsonObject in) {
-		JsonObject copy = JsonParser.parseString(in.toString()).getAsJsonObject(); // don't modify the underlying object, round-trip to get a copy
+		JsonObject copy = copyJsonObjectWithRequirements(in);
 		copy.addProperty("msg", msg);
 		copy.addProperty("result", conditionResultOnFailure.toString());
-		if (!getRequirements().isEmpty()) {
-			JsonArray reqs = new JsonArray(getRequirements().size());
-			for (String req : getRequirements()) {
-				reqs.add(req);
-			}
-			copy.add("requirements", reqs);
-		}
 		log(copy);
 	}
 
 	protected void logFailure(String msg, Map<String, Object> map) {
-		Map<String, Object> copy = new HashMap<>(map); // don't modify the underlying map
+		Map<String, Object> copy = copyMapWithRequirements(map);
 		copy.put("msg", msg);
 		copy.put("result", conditionResultOnFailure);
-		if (!getRequirements().isEmpty()) {
-			copy.put("requirements", getRequirements());
-		}
 		log(copy);
 	}
 
