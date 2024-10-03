@@ -22,7 +22,9 @@ public class CheckForUnexpectedOpenIdClaims extends AbstractValidateOpenIdStanda
 		// As per https://openbanking-brasil.github.io/specs-seguranca/open-banking-brasil-financial-api-1_ID3.html#section-7.2.2-10
 		"cnpj",
 		// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#OpenBankingSecurityProfile-Implementer'sDraftv1.1.2-HybridGrantParameters
-		"openbanking_intent_id"
+		"openbanking_intent_id",
+		// as per https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#name-verified_claims-element
+		"verified_claims"
 	);
 
 	// For success/failure result purposes we maintain allMemberClaims/invalidMemberClaims maps
