@@ -1,10 +1,13 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
@@ -26,6 +29,7 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpenIDFederationTest {
 
 	@Override
+	@SuppressWarnings("UnusedVariable")
 	public void start() {
 		setStatus(Status.RUNNING);
 
@@ -47,25 +51,53 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 		callAndContinueOnFailure(SetTrustAnchorEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
-		validateResolveEndpoint();
+		List<String> trustChainBuiltManually = buildTrustChain(path);
+		List<String> trustChainFromResolver = validateResolveEndpoint();
 
 		fireTestFinished();
 	}
 
-	protected void buildTrustChain(List<String> path) {
-		String primaryEntityConfiguration = env.getString("primary_entity_statement_body");
+	protected List<String> buildTrustChain(List<String> path) {
 
+		List<String> trustChain = new ArrayList<>();
+        trustChain.add(env.getString("primary_entity_statement"));
+
+		if (path.size() == 1) {
+			return trustChain;
+		}
+
+		for (int i = 1; i < path.size(); i++) {
+			String entityIdentifier = path.get(i);
+			env.putString("entity_statement_url", appendWellKnown(entityIdentifier));
+			callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+
+			String fetchEndpoint = env.getString("federation_fetch_endpoint");
+			env.putString("entity_statement_url", fetchEndpoint);
+			String sub = path.get(i - 1);
+			env.putString("expected_sub", sub);
+			callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+			trustChain.add(env.getString("entity_statement"));
+        }
+
+		String trustAnchorEntityIdentifier = path.get(path.size() - 1);
+		env.putString("entity_statement_url", appendWellKnown(trustAnchorEntityIdentifier));
+		callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		trustChain.add(env.getString("entity_statement"));
+
+		return trustChain;
 	};
 
 
-	protected void validateResolveEndpoint() {
+	protected List<String> validateResolveEndpoint() {
 		final String resolveEndpoint = env.getString("federation_resolve_endpoint");
 		if (resolveEndpoint == null) {
 			fireTestSkipped("Trust anchor does not contain a federation_resolve_endpoint.");
 		}
 		env.putString("entity_statement_url", resolveEndpoint);
 		env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
-		callAndContinueOnFailure(AppendSubToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(AppendAnchorToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 		eventLog.startBlock(String.format("Fetching resolved metadata from %s", env.getString("entity_statement_url")));
@@ -84,10 +116,15 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 		callAndContinueOnFailure(ExtractJWKsFromTrustAnchorEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		call(sequence(ValidateEntityStatementSignatureSequence.class));
 
-		/*
-		Now we have the trust_chain array here, let's figure out what to do with it.
-		*/
+		callAndContinueOnFailure(ExtractTrustChainFromResolveResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
 		eventLog.endBlock();
+
+		JsonArray trustChain = env.getElementFromObject("trust_chain_from_resolver", "trust_chain").getAsJsonArray();
+		List<String> trustChainList = new ArrayList<>();
+        for (JsonElement jsonElement : trustChain) {
+            trustChainList.add(jsonElement.getAsString());
+        }
+        return trustChainList;
 	}
 }

@@ -15,6 +15,7 @@ public class SetPrimaryEntityStatement extends AbstractCondition {
 		"primary_entity_statement_body",
 		"primary_entity_statement_header"
 	}, strings = {
+		"primary_entity_statement",
 		"primary_entity_statement_iss",
 		"primary_entity_statement_sub"
 	})
@@ -24,6 +25,7 @@ public class SetPrimaryEntityStatement extends AbstractCondition {
 		env.putObject("primary_entity_statement_body", env.getObject("entity_statement_body"));
 		env.putObject("primary_entity_statement_header", env.getObject("entity_statement_header"));
 
+		env.putString("primary_entity_statement", env.getString("entity_statement"));
 		env.putString("primary_entity_statement_iss", OIDFJSON.getString(env.getElementFromObject("entity_statement_body", "iss")));
 		env.putString("primary_entity_statement_sub", OIDFJSON.getString(env.getElementFromObject("entity_statement_body", "sub")));
 
