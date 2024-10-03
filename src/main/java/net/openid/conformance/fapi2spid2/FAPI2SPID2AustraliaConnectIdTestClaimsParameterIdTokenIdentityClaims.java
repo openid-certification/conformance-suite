@@ -3,7 +3,12 @@ package net.openid.conformance.fapi2spid2;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddEssentialTxnClaimRequestToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
+import net.openid.conformance.condition.client.AustraliaConnectIdAddVerifiedClaimsToAuthorizationEndpointRequestIdTokenClaims;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdCheckTrustFrameworkSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdCheckVerifiedClaimsSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdEnsureIdTokenContainsTrustFramework;
+import net.openid.conformance.condition.client.AustraliaConnectIdEnsureIdTokenContainsVerifiedClaims;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckForUnexpectedClaimsInIdToken;
@@ -49,9 +54,14 @@ public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaim
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
 		callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CID-SP-5");
+		callAndContinueOnFailure(AustraliaConnectIdCheckVerifiedClaimsSupported.class, Condition.ConditionResult.INFO, "CID-IDA-5.3.3");
+		callAndContinueOnFailure(AustraliaConnectIdCheckTrustFrameworkSupported.class, Condition.ConditionResult.INFO, "IA-9");
 
 		return super.makeCreateAuthorizationRequestSteps()
 			.then(condition(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class).requirements("OIDCC-5.1", "OIDCC-5.5", "CID-SP-5"))
+			.then(condition(AustraliaConnectIdAddVerifiedClaimsToAuthorizationEndpointRequestIdTokenClaims.class)
+				.requirements("CID-IDA-5.2-2", "CID-IDA-5.2-11")
+				.onFail(Condition.ConditionResult.FAILURE))
 			.then(condition(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class).requirements("CID-IDA-5.2-2.7"));
 	}
 
@@ -62,6 +72,12 @@ public class FAPI2SPID2AustraliaConnectIdTestClaimsParameterIdTokenIdentityClaim
 		callAndContinueOnFailure(EnsureIdTokenContainsRequestedClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-5.5");
 
 		callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsMandatoryClaims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.1-2.6");
+
+		// Check the trust_framework
+		callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsTrustFramework.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.2-11");
+
+		// Check the verified_claims
+		callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsVerifiedClaims.class, Condition.ConditionResult.FAILURE, "CID-IDA-5.2-2");
 
 		// We don't include this check in the more general PerformStandardIdTokenChecks as it could be pretty noisy
 		callAndContinueOnFailure(CheckForUnexpectedClaimsInIdToken.class, Condition.ConditionResult.WARNING, "OIDCC-5.1");

@@ -133,5 +133,37 @@
         "condition": "AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject",
         "expected-result": "failure",
         "comment": "Ignore missing txn claim in CI environment"
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "",
+        "condition": "AustraliaConnectIdEnsureIdTokenContainsTrustFramework",
+        "expected-result": "failure",
+        "comment": "Authlete does not support the connectid_au trust framework for verified claims"
+    },
+    {
+        "test-name": "fapi2-security-profile-id2-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "",
+        "condition": "AustraliaConnectIdEnsureIdTokenContainsVerifiedClaims",
+        "expected-result": "failure",
+        "comment": "Authlete does not support the connectid verified claims"
     }
 ]

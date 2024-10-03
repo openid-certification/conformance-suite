@@ -27,7 +27,9 @@ public class ValidateIdTokenStandardClaims extends AbstractValidateOpenIdStandar
 		"s_hash",
 		// standard jwt claims https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
 		"jti",
-		"nbf"
+		"nbf",
+		// as per https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#name-verified_claims-element
+		"verified_claims"
 	);
 
 	public static JsonObject getIdTokenIdentityClaims(Environment env) {
