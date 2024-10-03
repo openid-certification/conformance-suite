@@ -22,7 +22,7 @@ public class GetStaticEntityStatement extends AbstractCondition {
 
 		try {
 			JsonObject entityStatementBody = entityStatement.getAsJsonObject();
-			logSuccess("Successfully parsed entity statement", entityStatementBody);
+			logSuccess("Successfully parsed signed JWT", entityStatementBody);
 			env.putObject("entity_statement_body", entityStatementBody);
 			return env;
 		} catch (JsonSyntaxException e) {

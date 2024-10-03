@@ -246,7 +246,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	}
 
 	protected List<String> findPath(String fromEntity, String trustAnchor) {
-		return findPath(fromEntity, trustAnchor, new ArrayList<>());
+		List<String> path = findPath(fromEntity, trustAnchor, new ArrayList<>());
+		eventLog.log(getName(), "Path to trust anchor: %s".formatted(String.join(" → ", path)));
+		return path;
 	}
 
 	protected List<String> findPath(String fromEntity, String trustAnchor, List<String> path) {

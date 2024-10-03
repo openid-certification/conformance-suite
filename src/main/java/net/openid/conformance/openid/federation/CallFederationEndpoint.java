@@ -57,7 +57,7 @@ public class CallFederationEndpoint extends AbstractCondition {
 				SignedJWT jwt = SignedJWT.parse(jwtString);
 				JsonObject entityStatementBody = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
 				JsonObject entityStatementHeader = JsonParser.parseString(jwt.getHeader().toString()).getAsJsonObject();
-				logSuccess("Successfully parsed entity statement", entityStatementBody);
+				logSuccess("Successfully parsed signed JWT", entityStatementBody);
 				env.putString("entity_statement", jwtString);
 				env.putObject("entity_statement_body", entityStatementBody);
 				env.putObject("entity_statement_header", entityStatementHeader);

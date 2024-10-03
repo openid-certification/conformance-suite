@@ -40,14 +40,23 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 			throw new TestFailureException(getId(), "A trust chain from %s to %s can not be constructed".formatted(fromEntity, trustAnchor));
 		}
 
+		eventLog.startBlock("Fetching entity configuration for trust anchor %s".formatted(trustAnchor));
 		env.putString("entity_statement_url", appendWellKnown(trustAnchor));
 		callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(SetTrustAnchorEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
+
 		validateResolveEndpoint();
 
 		fireTestFinished();
 	}
+
+	protected void buildTrustChain(List<String> path) {
+		String primaryEntityConfiguration = env.getString("primary_entity_statement_body");
+
+	};
+
 
 	protected void validateResolveEndpoint() {
 		final String resolveEndpoint = env.getString("federation_resolve_endpoint");
