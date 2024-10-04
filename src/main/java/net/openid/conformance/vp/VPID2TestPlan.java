@@ -67,19 +67,13 @@ public class VPID2TestPlan implements TestPlan {
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		if (credentialFormat.equals(CredentialFormat.ISO_MDL.toString())) {
-			if (!responseMode.equals(VPResponseMode.DIRECT_POST_JWT.toString())) {
-				throw new RuntimeException("Invalid configuration for %s: ISO mDL requires direct_post.jwt".formatted(
-					MethodHandles.lookup().lookupClass().getSimpleName()));
-			}
-			if (!requestMethod.equals(VPRequestMethod.REQUEST_URI_SIGNED.toString())) {
-				throw new RuntimeException("Invalid configuration for %s: ISO mDL requires signed request uri".formatted(
-					MethodHandles.lookup().lookupClass().getSimpleName()));
-			}
-			if (!clientIDScheme.equals(VPClientIdScheme.X509_SAN_DNS.toString())) {
-				throw new RuntimeException("Invalid configuration for %s: ISO mDL requires client_id_scheme x509_san_dns".formatted(
-					MethodHandles.lookup().lookupClass().getSimpleName()));
-			}
+		if (credentialFormat.equals(CredentialFormat.ISO_MDL.toString()) &&
+			responseMode.equals(VPResponseMode.DIRECT_POST_JWT.toString()) &&
+			requestMethod.equals(VPRequestMethod.REQUEST_URI_SIGNED.toString()) &&
+			clientIDScheme.equals(VPClientIdScheme.X509_SAN_DNS.toString())) {
+			certProfile += " ISO 18013-7";
+		} else {
+			certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode;
 		}
 
 		return certProfile;
