@@ -203,7 +203,14 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 	}
 
-	public class ConfigureClientForPrivateKeyJwt extends AbstractConditionSequence {
+	public static class ConfigureClientForPrivateKeyJwt extends AbstractConditionSequence {
+
+		private final boolean serverSupportsDiscovery;
+
+		public ConfigureClientForPrivateKeyJwt(boolean serverSupportsDiscovery) {
+			this.serverSupportsDiscovery = serverSupportsDiscovery;
+		}
+
 		@Override
 		public void evaluate() {
 			if (serverSupportsDiscovery) {
@@ -323,7 +330,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		profileStaticClientConfiguration = ConfigureStaticClientForPrivateKeyJwt.class;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForPrivateKeyJwt();
+		profileCompleteClientConfiguration = () -> new ConfigureClientForPrivateKeyJwt(serverSupportsDiscovery);
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 

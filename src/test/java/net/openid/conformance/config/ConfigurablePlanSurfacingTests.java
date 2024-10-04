@@ -28,6 +28,7 @@ public class ConfigurablePlanSurfacingTests {
 			TestPlan.ProfileNames.ekyctest,
 			TestPlan.ProfileNames.wallettest,
 			TestPlan.ProfileNames.verifierTest,
+			TestPlan.ProfileNames.ssftest,
 			TestPlan.ProfileNames.federationTest);
 		List<String> profilesSurfaced = profilesPresent(testPlans);
 
