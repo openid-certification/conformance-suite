@@ -442,9 +442,9 @@ public class LogApi {
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 			@Override
 			public void writeTo(OutputStream outputStream) throws IOException {
-				OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-				outputStreamWriter.write(json.toString());
-				outputStreamWriter.close();
+				try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+					outputStreamWriter.write(json.toString());
+				}
 			}
 		};
 		HttpHeaders headers = new HttpHeaders();
@@ -454,7 +454,6 @@ public class LogApi {
 
 	private JsonObject getFailedOrIncompleteTests(String planId, boolean publicOnly) {
 		Object testPlan = publicOnly ? planService.getPublicPlan(planId) : planService.getTestPlan(planId);
-		JsonObject failedPlanInfo = new JsonObject();
 		JsonObject failedTests = new JsonObject();
 		String planName = "";
 		String variant = "";
@@ -511,6 +510,7 @@ public class LogApi {
 				failedTests.add(testModuleName, failedTestInfo);
 			}
 		}
+		JsonObject failedPlanInfo = new JsonObject();
 		if(!failedTests.isEmpty()) {
 			failedPlanInfo.addProperty("error", "Unable to create certification package");
 			failedPlanInfo.addProperty("error_description", "All tests have not been completed or tests have failed. ");
