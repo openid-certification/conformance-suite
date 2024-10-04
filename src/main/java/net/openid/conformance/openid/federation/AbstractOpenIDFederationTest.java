@@ -26,9 +26,8 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
-	"federation.entity_statement"
+	"federation.entity_configuration"
 })
-@VariantNotApplicable(parameter = ClientRegistration.class, values={ "static_client" })
 public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 	@Override
@@ -39,8 +38,12 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 		eventLog.startBlock("Fetch primary Entity Configuration");
 		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
-			// This case is actually not valid, I believe, but it's here for testing purposes atm
+			// This case is perhaps not applicable in the general case,
+			// but f ex the leaf entities in the Swedish sandbox federation
+			// do not publish their own entity configurations.
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(ExtractEntityStatementUrlFromConfig.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 		} else {
 			callAndStopOnFailure(ExtractEntityStatementUrlFromConfig.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE);
@@ -252,15 +255,21 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	}
 
 	protected List<String> findPath(String fromEntity, String trustAnchor, List<String> path) {
+
+		if (path.isEmpty()) {
+			env.mapKey("entity_statement_body", "primary_entity_statement_body");
+		} else {
+			env.unmapKey("entity_statement_body");
+			String currentWellKnownUrl = appendWellKnown(fromEntity);
+			env.putString("entity_statement_url", currentWellKnownUrl);
+			callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE);
+		}
+
 		path.add(fromEntity);
 
 		if (EntityUtils.equals(fromEntity, trustAnchor)) {
 			return path;
 		}
-
-		String currentWellKnownUrl = appendWellKnown(fromEntity);
-		env.putString("entity_statement_url", currentWellKnownUrl);
-		callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE);
 
 		JsonElement authorityHintsElement = env.getElementFromObject("entity_statement_body", "authority_hints");
 		if (authorityHintsElement == null) {

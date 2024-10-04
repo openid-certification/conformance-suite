@@ -19,7 +19,7 @@ public class ExtractEntityStatementUrlFromConfig extends AbstractCondition {
 		entityStatementUrl = appendWellKnown(entityStatementUrl);
 		env.putString("entity_statement_url", entityStatementUrl);
 
-		logSuccess("Found entity statement URL in config", args("entity_statement_url", entityStatementUrl));
+		logSuccess("Constructed entity statement URL based on configured issuer", args("entity_statement_url", entityStatementUrl));
 
 		return env;
 	}

@@ -9,9 +9,8 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class SetPrimaryEntityStatement extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "entity_statement_endpoint_response", "entity_statement_body", "entity_statement_header" } )
+	@PreEnvironment(required = { "entity_statement_body", "entity_statement_header" } )
 	@PostEnvironment(required = {
-		"primary_entity_statement_endpoint_response",
 		"primary_entity_statement_body",
 		"primary_entity_statement_header"
 	}, strings = {
