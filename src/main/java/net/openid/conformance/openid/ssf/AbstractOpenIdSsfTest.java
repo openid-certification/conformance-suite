@@ -7,7 +7,7 @@ import net.openid.conformance.variant.VariantParameters;
 
 @VariantParameters({
 	ServerMetadata.class, // e.g. Transmitter/Receiver Configuration metadata URL
-	// TODO how to define Authorization (AT / API Key?)
+	// TODO how to define Authorization (AT / API Key?) 
 })
 
 public abstract class AbstractOpenIdSsfTest extends AbstractTestModule {
