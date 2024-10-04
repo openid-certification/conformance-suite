@@ -7,6 +7,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.VPClientIdScheme;
+import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -24,6 +25,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 // FIXME: can replace this with a test that uses an invalid client_id instead, which'd be valid for all client id schemes? or is that a new test?
 @VariantNotApplicable(parameter = VPClientIdScheme.class, values={"x509_san_dns"})
+@VariantNotApplicable(parameter = VPResponseMode.class, values={"w3c_dc_api", "w3c_dc_api.jwt"})
 public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 	@Override
 	protected ConditionSequence createAuthorizationRequestSequence() {
