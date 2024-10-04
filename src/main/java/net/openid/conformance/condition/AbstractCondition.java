@@ -617,7 +617,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.build();
 
 		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-		int timeout = 60; // seconds
+		int timeout = 180; // seconds
 		ccm.setConnectionConfig(ConnectionConfig.custom()
 			.setConnectTimeout(Timeout.ofSeconds(timeout))
 			.setSocketTimeout(Timeout.ofSeconds(timeout))
