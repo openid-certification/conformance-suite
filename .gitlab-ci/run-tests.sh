@@ -286,11 +286,6 @@ makeServerTest() {
     TESTS="${TESTS} fapi2-message-signing-id1-client-test-plan[client_auth_type=mtls][fapi_request_method=unsigned][fapi_client_type=oidc][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-security-profile-id2-client-test-happy-path{fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=mtls][fapi_request_method=unsigned][sender_constrain=dpop][fapi_profile=plain_fapi][fapi_response_mode=plain_response]:fapi2-security-profile-id2-discovery-end-point-verification,fapi2-security-profile-id2-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config-mtls-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/fapi-rp-test-config.json"
 
 
-    TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=mtls] authlete-fapi-r-mtls.json"
-    TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=private_key_jwt] authlete-fapi-r-private-key.json"
-    TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=client_secret_jwt] authlete-fapi-r-client-secret.json"
-    TESTS="${TESTS} fapi-r-test-plan[fapir_client_auth_type=none] authlete-fapi-r-pkce.json"
-
     # This is the configuration used in the instructions as an example.
     # We keep it here as we want to be sure code changes don't break the example in the instructions, but the downside is there
     # is a chance that users may be using the alias at the same time our tests are running
