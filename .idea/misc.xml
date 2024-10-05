@@ -6,6 +6,8 @@
       <item index="1" class="java.lang.String" itemvalue="net.openid.conformance.testmodule.PublishTestModule" />
       <item index="2" class="java.lang.String" itemvalue="net.openid.conformance.variant.VariantSetup" />
     </list>
+    <pattern value="net.openid.conformance.plan.TestPlan" hierarchically="true" method="certificationProfileName" />
+    <pattern value="net.openid.conformance.plan.TestPlan" hierarchically="true" method="testModulesWithVariants" />
   </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="JavaScriptSettings">
@@ -31,7 +33,7 @@
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="false" project-jdk-name="17" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="PythonCompatibilityInspectionAdvertiser">
