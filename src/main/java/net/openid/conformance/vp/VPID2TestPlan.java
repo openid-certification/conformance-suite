@@ -2,10 +2,7 @@ package net.openid.conformance.vp;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
-import net.openid.conformance.variant.ResponseType;
-import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VPClientIdScheme;
 import net.openid.conformance.variant.VPRequestMethod;
 import net.openid.conformance.variant.VPResponseMode;
@@ -25,29 +22,24 @@ public class VPID2TestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
+					// positive tests
 					VPID2HappyFlowNoState.class,
 					VPID2HappyFlowWithStateAndRedirect.class,
+
+					// negative tests
 					VPID2ResponseUriNotClientId.class,
 					VPID2InvalidRequestObjectSignature.class
 
 					// FIXME: more tests
 					// positive tests:
-					// try request without redirect_uri returned from direct post [not allowed by HAIP?]
 					// try sending presentation_definition_uri [but this is not allowed by HAIP]
-					// try response_mode "direct_post.jwt"
 					// negative tests:
 					// try sending a redirect_uri in auth request with response_mode=direct_post
 					// sending client_id != response_uri when using redirect client scheme + direct post
 					// sending invalid client_id_scheme should cause an error?
 					// flow without nonce
-					// for x509 client id scheme, try a client_id that's not permitted by the cert?
 				),
 				List.of(
-					// a hack; not actually id_token we'll hardwire vp token
-					new Variant(ResponseType.class, "id_token"),
-					// FIXME: confirm if most of these options should be removed as I don't think they're ever going to be applicable
-					new Variant(ServerMetadata.class, "static"),
-					new Variant(ClientRegistration.class, "static_client")
 				)
 			)
 		);
