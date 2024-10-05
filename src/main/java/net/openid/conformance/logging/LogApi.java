@@ -275,7 +275,6 @@ public class LogApi {
 
 						String sigFileName = "test-log-" + testLogInfoExport.get("testModuleName") + "-" + testLogInfoExport.get("testId") + ".sig";
 
-						@SuppressWarnings("unchecked")
 						TestExportInfo infoExport = (TestExportInfo) testLogInfoExport.get("export");
 
 						addFilesToZip(archiveOutputStream, jsonFileName, sigFileName, infoExport);
