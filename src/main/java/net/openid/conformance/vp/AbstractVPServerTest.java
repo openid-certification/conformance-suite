@@ -1,9 +1,7 @@
 package net.openid.conformance.vp;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -14,28 +12,19 @@ import net.openid.conformance.condition.client.AddEncryptionParametersToClientMe
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddRequestUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddResponseUriAsRedirectUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
-import net.openid.conformance.condition.client.CallProtectedResource;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckAudInBindingJwt;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
-import net.openid.conformance.condition.client.CheckForAccessTokenValue;
-import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
-import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckNonceInBindingJwt;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckTypInBindingJwt;
@@ -50,27 +39,16 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.DecryptResponse;
-import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
-import net.openid.conformance.condition.client.ExtractAccessTokenFromAuthorizationResponse;
-import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
-import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
-import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
-import net.openid.conformance.condition.client.ExtractIdTokenFromAuthorizationResponse;
-import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractVpToken;
-import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.ParseVpTokenAsMdoc;
 import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
-import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns;
@@ -80,17 +58,10 @@ import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
-import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
-import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
-import net.openid.conformance.condition.client.ValidateExpiresIn;
-import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateSdJwtHolderBindingSignature;
 import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Url;
-import net.openid.conformance.condition.client.VerifyIdTokenSubConsistentHybridFlow;
 import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
@@ -99,20 +70,13 @@ import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCiph
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
-import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
-import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.CredentialFormat;
-import net.openid.conformance.variant.ResponseType;
-import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VPClientIdScheme;
 import net.openid.conformance.variant.VPRequestMethod;
 import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
-import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -123,17 +87,8 @@ import org.springframework.http.ResponseEntity;
 @VariantParameters({
 	CredentialFormat.class,
 	VPClientIdScheme.class,
-	ServerMetadata.class,
-	ResponseType.class,
 	VPResponseMode.class,
-	VPRequestMethod.class,
-	ClientRegistration.class
-})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
-	"server.authorization_endpoint"
-})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {
-	"server.discoveryUrl"
+	VPRequestMethod.class
 })
 @VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "pre_registered", configurationFields = {
 	"client.client_id"
@@ -149,25 +104,14 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
-@VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client.client_name"
-})
-@VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
-	"client.client_secret",
-	"client.jwks",
-	"client2.client_secret",
-	"client2.jwks"
-})
 public abstract class AbstractVPServerTest extends AbstractRedirectServerTestModule {
 
-	protected ResponseType responseType;
 	protected VPResponseMode responseMode;
 	protected VPRequestMethod requestMethod;
 	protected CredentialFormat credentialFormat;
 	protected VPClientIdScheme clientIdScheme;
 	protected Boolean pre_id2 = null;
 	protected Boolean requestUriCalled = false;
-	private boolean serverSupportsDiscovery;
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -185,10 +129,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			fireTestFinished();
 			return;
 		}
-		serverSupportsDiscovery = getVariant(ServerMetadata.class) == ServerMetadata.DISCOVERY;
-
-		responseType = getVariant(ResponseType.class);
-		env.putString("response_type", responseType.toString());
 
 		responseMode = getVariant(VPResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
@@ -232,37 +172,14 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			callAndContinueOnFailure(WarningAboutTestingOldSpec.class, ConditionResult.WARNING);
 		}
 
-		switch (getVariant(ServerMetadata.class)) {
-			case DISCOVERY:
-				callAndStopOnFailure(GetDynamicServerConfiguration.class);
-				break;
-			case STATIC:
-				callAndStopOnFailure(GetStaticServerConfiguration.class);
-				break;
-		}
+		callAndStopOnFailure(GetStaticServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
-		//callAndStopOnFailure(CheckServerConfiguration.class); // FIXME doesn't like the openid4vp:// url being set as authorization endpoint url
-
-//		callAndStopOnFailure(ExtractTLSTestValuesFromServerConfiguration.class); // FIXME doesn't like the openid4vp:// url being set as authorization endpoint url
-
-//		callAndStopOnFailure(FetchServerKeys.class); is there a jwks uri?
-//		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
-		// Includes verify-base64url and bare-keys assertions (OIDC test)
-		//callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		//callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-		//callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		//callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
-
-//		skipTestIfSigningAlgorithmNotSupported();
+//		callAndStopOnFailure(CheckServerConfiguration.class); // FIXME doesn't like the openid4vp:// url being set as authorization endpoint url
 
 		// Set up the client configuration
 		configureClient();
 
-		skipTestIfScopesNotSupported();
-
-		// Set up the resource endpoint configuration
-//		callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class);
 		if (credentialFormat == CredentialFormat.ISO_MDL) {
 			// ISO spec always creates a redirect returned from response_uri
 			callAndStopOnFailure(CreateRedirectUri.class);
@@ -276,24 +193,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		fireSetupDone();
 	}
 
-	protected void skipTestIfSigningAlgorithmNotSupported() {
-		// Just apply for 'oidcc-idtoken-unsigned' test
-	}
-
-	protected void skipTestIfScopesNotSupported() {
-		// Just apply for scope tests
-	}
-
-	protected void skipTestIfNoneUnsupported() {
-		JsonElement el = env.getElementFromObject("server", "request_object_signing_alg_values_supported");
-		if (el != null && el.isJsonArray()) {
-			JsonArray serverValues = el.getAsJsonArray();
-			if (!serverValues.contains(new JsonPrimitive("none"))) {
-				fireTestSkipped("'none' is not listed in request_object_signing_alg_values_supported - assuming it is not supported.");
-			}
-		}
-	}
-
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
@@ -301,18 +200,8 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void configureClient() {
-		// Set up the client configuration
-		switch (getVariant(ClientRegistration.class)) {
-		case STATIC_CLIENT:
-			callAndStopOnFailure(GetStaticClientConfiguration.class);
-			configureStaticClient();
-			break;
-		case DYNAMIC_CLIENT:
-			callAndStopOnFailure(StoreOriginalClientConfiguration.class);
-			callAndStopOnFailure(ExtractClientNameFromStoredConfig.class);
-			configureDynamicClient();
-			break;
-		}
+		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		configureStaticClient();
 
 		exposeEnvString("client_id");
 
@@ -350,24 +239,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-	}
-
-	protected void createDynamicClientRegistrationRequest() {
-
-		// Corresponds to https://www.heenan.me.uk/~joseph/oidcc_test_desc-phase1.html#OP_Registration_Dynamic
-		call(new OIDCCCreateDynamicClientRegistrationRequest(responseType));
-
-		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
-
-		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
-		callAndStopOnFailure(AddRequestUriToDynamicRegistrationRequest.class);
-	}
-
-	protected void configureDynamicClient() {
-
-		createDynamicClientRegistrationRequest();
-
-		call(sequence(CallDynamicRegistrationEndpointAndVerifySuccessfulResponse.class));
 	}
 
 	protected void completeClientConfiguration() {
@@ -560,6 +431,8 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	private void processReceivedResponse() {
 		// FIXME: decryption doesn't work for browser API
 
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+
 		// vp token may be an object containing multiple tokens, https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
 		// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assume only a single token here
 		callAndStopOnFailure(ExtractVpToken.class, ConditionResult.FAILURE);
@@ -694,130 +567,8 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 		fireTestFinished();
 
-//		if (formPost) {
-//			env.mapKey("authorization_endpoint_response", "callback_body_form_params");
-//			callAndContinueOnFailure(CheckCallbackHttpMethodIsPost.class, ConditionResult.FAILURE, "OAuth2-FP-2");
-//			callAndContinueOnFailure(CheckCallbackContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE, "OAuth2-FP-2");
-//			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-//			callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
-//		} else if (isCodeFlow()) {
-//			env.mapKey("authorization_endpoint_response", "callback_query_params");
-//		} else {
-//			env.mapKey("authorization_endpoint_response", "callback_params");
-//
-//			callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-//			callAndContinueOnFailure(RejectErrorInUrlQuery.class, ConditionResult.FAILURE, "OAuth2-RT-5");
-//		}
-//
-//		onAuthorizationCallbackResponse();
 		eventLog.endBlock();
 	}
-
-	protected void onAuthorizationCallbackResponse() {
-		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2");
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE);
-		if (responseType.includesCode()) {
-			callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-		}
-		if (responseType.includesToken()) {
-			callAndStopOnFailure(ExtractAccessTokenFromAuthorizationResponse.class);
-		}
-		handleSuccessfulAuthorizationEndpointResponse();
-	}
-
-	protected void handleSuccessfulAuthorizationEndpointResponse() {
-		if (responseType.includesIdToken()) {
-			callAndStopOnFailure(ExtractIdTokenFromAuthorizationResponse.class);
-
-			// save the id_token returned from the authorization endpoint
-			env.putObject("authorization_endpoint_id_token", env.getObject("id_token"));
-
-			performAuthorizationEndpointIdTokenValidation();
-		}
-		if (responseType.includesCode()) {
-			performAuthorizationCodeValidation();
-		}
-		if (responseType.includesToken()) {
-			requestProtectedResource();
-		}
-		performPostAuthorizationFlow();
-	}
-
-	protected void performAuthorizationEndpointIdTokenValidation() {
-		performIdTokenValidation();
-	}
-
-	protected void performIdTokenValidation() {
-		call(new PerformStandardIdTokenChecks());
-	}
-
-	protected void performAuthorizationCodeValidation() {
-	}
-
-	protected void performPostAuthorizationFlow() {
-		onPostAuthorizationFlowComplete();
-	}
-
-	protected void requestAuthorizationCode() {
-		callAndStopOnFailure(CallTokenEndpoint.class);
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-		callAndStopOnFailure(CheckForAccessTokenValue.class);
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, ConditionResult.INFO, "RFC6749-5.1"); // this is 'recommended' by the RFC, but we don't want to raise a warning on every test
-		skipIfMissing(new String[] { "expires_in" }, null, ConditionResult.INFO,
-			ValidateExpiresIn.class, ConditionResult.FAILURE, "RFC6749-5.1");
-
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
-
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
-
-		// save the id_token returned from the token endpoint
-		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
-
-		additionalTokenEndpointResponseValidation();
-
-		if (responseType.includesIdToken()) {
-			callAndContinueOnFailure(VerifyIdTokenSubConsistentHybridFlow.class, ConditionResult.FAILURE, "OIDCC-2");
-		}
-	}
-
-	protected void additionalTokenEndpointResponseValidation() {
-		performIdTokenValidation();
-	}
-
-	protected void requestProtectedResource() {
-		eventLog.startBlock(currentClientString() + "Userinfo endpoint tests");
-		callAndStopOnFailure(CallProtectedResource.class);
-		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE);
-		call(exec().unmapKey("endpoint_response"));
-		eventLog.endBlock();
-	}
-
-	/**
-	 * Do generic checks on an error response from the authorization endpoint
-	 *
-	 * Generally called from onAuthorizationCallbackResponse. The caller stills needs to check for the exact specific
-	 * error code their test scenario expects.
-	 */
-	protected void performGenericAuthorizationEndpointErrorResponseValidation() {
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2");
-		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(RejectAuthCodeInAuthorizationEndpointResponse.class, ConditionResult.FAILURE, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING, "OIDCC-3.1.2.6");
-		callAndContinueOnFailure(CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB.class, ConditionResult.WARNING, "RFC6749-4.1.2.1");
-		callAndContinueOnFailure(ValidateErrorDescriptionFromAuthorizationEndpointResponseError.class, ConditionResult.FAILURE,"RFC6749-4.1.2.1");
-		callAndContinueOnFailure(ValidateErrorUriFromAuthorizationEndpointResponseError.class, ConditionResult.FAILURE,"RFC6749-4.1.2.1");
-	}
-
-	protected void onPostAuthorizationFlowComplete() {
-		fireTestFinished();
-	}
-
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -900,27 +651,6 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		browser.urlVisited(redirectTo);
 	}
 
-
-	@Override
-	public void cleanup() {
-		unregisterClient();
-	}
-
-	public void unregisterClient() {
-		if (getVariant(ClientRegistration.class) == ClientRegistration.DYNAMIC_CLIENT) {
-
-			eventLog.startBlock(currentClientString() + "Unregister dynamically registered client");
-
-			call(condition(UnregisterDynamicallyRegisteredClient.class)
-				.skipIfObjectsMissing(new String[]{"client"})
-				.onSkip(ConditionResult.INFO)
-				.onFail(ConditionResult.WARNING)
-				.dontStopOnFailure());
-
-			eventLog.endBlock();
-		}
-	}
-
 	protected String currentClientString() {
 		return "";
 	}
@@ -929,19 +659,4 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		return false;
 	}
 
-	protected boolean serverSupportsDiscovery() {
-		return serverSupportsDiscovery;
-	}
-
-	protected boolean isCodeFlow() {
-		return responseType.equals(ResponseType.CODE);
-	}
-
-	protected boolean isHybridFlow() {
-		return responseType.includesCode() && !isCodeFlow();
-	}
-
-	protected boolean isImplicitFlow() {
-		return !responseType.includesCode();
-	}
 }
