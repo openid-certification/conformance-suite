@@ -80,7 +80,6 @@ import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
-import net.openid.conformance.condition.rs.RequireOpenIDScope;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
@@ -296,8 +295,6 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI-R-6.2.2-1");
 
 		callAndStopOnFailure(RequireBearerAccessToken.class);
-
-		callAndStopOnFailure(RequireOpenIDScope.class, "FAPI-R-5.2.3-7");
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 
