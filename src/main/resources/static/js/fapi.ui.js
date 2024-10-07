@@ -633,6 +633,8 @@ var FAPI_UI = {
 			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-",
 			"DPOP-" : "https://www.rfc-editor.org/rfc/rfc9449#section-",
 			"KSA" : "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security",
+			"OIDSSF-": "https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-",
+			"OIDCAEPIOP-": "https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html#section-",
 			"CID-SP-" : "https://cdn.connectid.com.au/specifications/digitalid-fapi-profile-01.html#section",
 			"CID-IDA-" : "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html#section",
 			"CID-PURPOSE-": "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section"
