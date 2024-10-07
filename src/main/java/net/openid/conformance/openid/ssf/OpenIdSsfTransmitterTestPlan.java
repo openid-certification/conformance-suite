@@ -11,6 +11,7 @@ import net.openid.conformance.variant.VariantSelection;
 	testModules = {
 		OpenIdSsfTransmitterMetadataTest.class,
 		OpenIdSsfTransmitterStreamControlTest.class,
+		OpenIdSsfTransmitterSubjectControlTest.class,
 	}
 )
 public class OpenIdSsfTransmitterTestPlan implements TestPlan {
