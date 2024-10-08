@@ -11,7 +11,7 @@ import net.openid.conformance.variant.VariantSelection;
 	testModules = {
 	}
 )
-public class OpenIdSsfReceiverTestPlan implements TestPlan {
+public class OIDSSFReceiverTestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
 		return "OpenID SSF Receiver";
