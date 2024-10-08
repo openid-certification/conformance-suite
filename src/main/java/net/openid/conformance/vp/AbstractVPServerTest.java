@@ -105,13 +105,18 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_enc"
 })
 public abstract class AbstractVPServerTest extends AbstractRedirectServerTestModule {
+	protected enum TestState {
+		INITIAL,
+		REQUEST_SENT, // if there's a request uri, this state is only used after it has been called
+		RESPONSE_RECEIVED,
+	}
 
 	protected VPResponseMode responseMode;
 	protected VPRequestMethod requestMethod;
 	protected CredentialFormat credentialFormat;
 	protected VPClientIdScheme clientIdScheme;
 	protected Boolean pre_id2 = null;
-	protected Boolean requestUriCalled = false;
+	protected TestState testState = TestState.INITIAL;
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -389,6 +394,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Direct post endpoint").mapKey("incoming_request", requestId));
+		setStateToResponseReceived();
 		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.FAILURE);
@@ -604,10 +610,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	private Object handleBrowserApiSubmission(String requestId) {
 
 		getTestExecutionManager().runInBackground(() -> {
-
 			// process the callback
 			setStatus(Status.RUNNING);
 			call(exec().startBlock("Process Browser API result").mapKey("incoming_request", requestId));
+			setStateToResponseReceived();
 
 			callAndStopOnFailure(ExtractBrowserApiResponse.class);
 
@@ -621,17 +627,30 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
+	private void setStateToResponseReceived() {
+		if (testState == TestState.RESPONSE_RECEIVED) {
+			throw new TestFailureException(getId(), "More than one response received");
+		}
+		testState = TestState.RESPONSE_RECEIVED;
+	}
+
 	protected Object handleRequestUriRequest() {
 		setStatus(Status.RUNNING);
 
 		String requestObject = env.getString("request_object");
 
-		if (requestUriCalled) {
-			eventLog.log(getName(), "Wallet has retrieved request_uri another time");
-		} else {
-			markAuthorizationEndpointVisited();
-
-			continueAfterRequestUriCalled();
+		switch (testState) {
+			case INITIAL:
+				markAuthorizationEndpointVisited();
+				continueAfterRequestUriCalled();
+				testState = TestState.REQUEST_SENT;
+				break;
+			case REQUEST_SENT:
+				// nothing seems to prevent request_uri being retrieved more than once
+				eventLog.log(getName(), "Wallet has retrieved request_uri another time");
+				break;
+			case RESPONSE_RECEIVED:
+				throw new TestFailureException(getId(), "Wallet called request_uri after already sending a response");
 		}
 
 		setStatus(Status.WAITING);
