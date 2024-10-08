@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ssf.transmitter.access_token"
 	}
 )
-public class OpenIdSsfTransmitterStreamControlTest extends AbstractOpenIdSsfTest {
+public class OIDSSFTransmitterStreamControlTest extends AbstractOIDSSFTest {
 
 	@Override
 	public void start() {
