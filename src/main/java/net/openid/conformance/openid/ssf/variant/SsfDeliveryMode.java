@@ -1,4 +1,6 @@
-package net.openid.conformance.variant;
+package net.openid.conformance.openid.ssf.variant;
+
+import net.openid.conformance.variant.VariantParameter;
 
 @VariantParameter(
 	name = "ssf_delivery_mode",

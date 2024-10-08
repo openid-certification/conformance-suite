@@ -27,6 +27,8 @@ public class OIDSSFRequiredFieldsTransmitterMetadataCheck extends AbstractCondit
 			throw error("Couldn't find required fields in transmitter_metadata", args("missing_fields", missingFields));
 		}
 
+		logSuccess("Found all required fields");
+
 		return env;
 	}
 }
