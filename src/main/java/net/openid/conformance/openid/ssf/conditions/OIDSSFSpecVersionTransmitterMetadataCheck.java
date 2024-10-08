@@ -15,21 +15,23 @@ public class OIDSSFSpecVersionTransmitterMetadataCheck extends AbstractCondition
 		JsonObject transmitterMetadata = env.getObject("transmitter_metadata");
 
 		if (!transmitterMetadata.has("spec_version")) {
-			log("Could not find spec_version field in transmitter_metadata");
+			log("Skipping missing optional spec_version field in transmitter_metadata");
 			return env;
 		}
 
-		log("Found spec_version field in transmitter_metadata");
 		String specVersion = OIDFJSON.getString(transmitterMetadata.get("spec_version"));
+		if (isValidVersion(specVersion)) {
+			throw error("Found invalid spec_version field in transmitter_metadata. Must be greater than 1.0-ID2.", args("spec_version", specVersion));
+		}
+
+		logSuccess("Found valid spec_version field in transmitter_metadata", args("spec_version", specVersion));
+		return env;
+	}
+
+	boolean isValidVersion(String specVersion) {
 		String[] parts = specVersion.split("-");
 		String versionPart = parts[0].replace('_', '.');
 		String classifierPart = parts.length > 1 ? parts[1] : null;
-		// TODO compare classifier 1_0-ID3
-		if (Double.parseDouble(versionPart) < 1.0 || (classifierPart != null && classifierPart.compareTo("ID2") < 0)) {
-			throw error("Invalid spec_version field in transmitter_metadata. Must be greater than 1.0-ID2.", args("spec_version", specVersion));
-		}
-		log("Found valid spec_version field in transmitter_metadata", args("spec_version", specVersion));
-
-		return env;
+		return Double.parseDouble(versionPart) < 1.0 || (classifierPart != null && classifierPart.compareTo("ID2") < 0);
 	}
 }
