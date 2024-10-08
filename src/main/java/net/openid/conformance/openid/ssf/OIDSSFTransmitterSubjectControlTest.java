@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.ssf;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -14,7 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ssf.transmitter.access_token"
 	}
 )
-public class OpenIdSsfTransmitterSubjectControlTest extends AbstractOpenIdSsfTest {
+public class OIDSSFTransmitterSubjectControlTest extends AbstractOIDSSFTest {
 
 	@Override
 	public void start() {
