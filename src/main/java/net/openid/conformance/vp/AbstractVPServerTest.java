@@ -32,6 +32,7 @@ import net.openid.conformance.condition.client.CheckUrlFragmentContainsCodeVerif
 import net.openid.conformance.condition.client.CheckUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import net.openid.conformance.condition.client.CreateClientEncryptionKeyIfMissing;
 import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
@@ -214,34 +215,38 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void configureStaticClient() {
-		JsonElement el = env.getElementFromObject("client", "jwks");
-		if (el == null) {
-			boolean jwksRequired = false;
-			// keys are needed for signed requests or encrypted responses
-			switch (requestMethod) {
+		JsonElement clientJwksEl = env.getElementFromObject("client", "jwks");
+		boolean jwksRequired = false;
+		boolean encryptionKeyRequired = false;
+		// keys are needed for signed requests or encrypted responses
+		switch (requestMethod) {
 //				case URL_QUERY:
-				case REQUEST_URI_UNSIGNED:
-					break;
-				case REQUEST_URI_SIGNED:
-					jwksRequired = true;
-					break;
-			}
-			switch (responseMode) {
-				case DIRECT_POST:
-				case W3C_DC_API:
-					break;
-				case DIRECT_POST_JWT:
-				case W3C_DC_API_JWT:
-					// assume response is encrypted so a key is required
-					jwksRequired = true;
-					break;
-			}
-
-			if (!jwksRequired) {
-				return;
-			}
+			case REQUEST_URI_UNSIGNED:
+				break;
+			case REQUEST_URI_SIGNED:
+				jwksRequired = true;
+				break;
 		}
+		switch (responseMode) {
+			case DIRECT_POST:
+			case W3C_DC_API:
+				break;
+			case DIRECT_POST_JWT:
+			case W3C_DC_API_JWT:
+				// assume response is encrypted so a key is required
+				jwksRequired = true;
+				encryptionKeyRequired = true;
+				break;
+		}
+
+		if (clientJwksEl == null && !jwksRequired) {
+			return;
+		}
+
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+		if (encryptionKeyRequired) {
+			callAndStopOnFailure(CreateClientEncryptionKeyIfMissing.class);
+		}
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
 	}
