@@ -3,15 +3,18 @@ package net.openid.conformance.openid.ssf;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.FetchServerKeys;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFGetStaticTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFDefaultSubjectsTransmitterMetadataCheck;
-import net.openid.conformance.openid.ssf.conditions.OIDSSFFetchTransmitterConfiguration;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFRequiredFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFSpecVersionTransmitterMetadataCheck;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
@@ -20,12 +23,19 @@ import net.openid.conformance.variant.VariantParameters;
 	summary = "This test verifies the behavior of the transmitter metadata.",
 	profile = "OIDSSF",
 	configurationFields = {
-		"ssf.transmitter.issuer",
-		"ssf.transmitter.metadata_suffix",
+
 	}
 )
 @VariantParameters({
+	ServerMetadata.class,
 	SsfDeliveryMode.class,
+})
+@VariantConfigurationFields(parameter = ServerMetadata.class, value="static", configurationFields = {
+	"ssf.transmitter.configuration_metadata_endpoint",
+})
+@VariantConfigurationFields(parameter = ServerMetadata.class, value="discovery", configurationFields = {
+	"ssf.transmitter.issuer",
+	"ssf.transmitter.metadata_suffix",
 })
 public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 
@@ -35,15 +45,21 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 		setStatus(Status.RUNNING);
 
 		// fetch transmitter metadata
-		callAndStopOnFailure(OIDSSFFetchTransmitterConfiguration.class, "OIDSSF-6.2");
+		switch (getVariant(ServerMetadata.class)) {
+			case DISCOVERY:
+				callAndStopOnFailure(OIDSSFGetDynamicTransmitterConfiguration.class, "OIDSSF-6.2");
+				break;
+			case STATIC:
+				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-6.2");
+				break;
+		}
 
 		// validate transmitter metadata
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class,"OIDSSF-6.1", "OIDCAEPIOP-2.3.7");
-		callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class);
-		callAndStopOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class);
+		callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDCAEPIOP-2.3.1");
+		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
+		callAndStopOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, "OIDSSF-6.1");
 		callAndStopOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, "OIDSSF-6.1.1", "OIDCAEPIOP-2.3.7");
-
 
 		// populate server jwks
 		env.mapKey("server", "transmitter_metadata");
