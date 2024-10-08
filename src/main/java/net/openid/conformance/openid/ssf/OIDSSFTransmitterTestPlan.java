@@ -9,12 +9,12 @@ import net.openid.conformance.variant.VariantSelection;
 	displayName = "OpenID Shared Signals Framework: Transmitter test (alpha - INCOMPLETE/INCORRECT, please email certification team if interested)",
 	profile = TestPlan.ProfileNames.ssftest,
 	testModules = {
-		OpenIdSsfTransmitterMetadataTest.class,
-		OpenIdSsfTransmitterStreamControlTest.class,
-		OpenIdSsfTransmitterSubjectControlTest.class,
+		OIDSSFTransmitterMetadataTest.class,
+		OIDSSFTransmitterStreamControlTest.class,
+		OIDSSFTransmitterSubjectControlTest.class,
 	}
 )
-public class OpenIdSsfTransmitterTestPlan implements TestPlan {
+public class OIDSSFTransmitterTestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
 		return "OpenID SSF Transmitter";
