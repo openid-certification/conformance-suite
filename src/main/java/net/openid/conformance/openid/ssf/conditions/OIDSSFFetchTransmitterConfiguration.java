@@ -1,4 +1,4 @@
-package net.openid.conformance.condition.client;
+package net.openid.conformance.openid.ssf.conditions;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
@@ -21,7 +21,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public class SsfGetDynamicTransmitterConfiguration extends AbstractCondition {
+public class OIDSSFFetchTransmitterConfiguration extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
@@ -76,13 +76,13 @@ public class SsfGetDynamicTransmitterConfiguration extends AbstractCondition {
 					throw error(e, args("json", jsonString));
 				}
 
-			} else {
-				throw error("empty ssf configuration configuration");
 			}
 
-		} else {
-			throw error("Couldn't find or construct a discovery URL");
+			throw error("empty ssf configuration configuration");
+
 		}
+
+		throw error("Couldn't find or construct a discovery URL");
 
 	}
 
