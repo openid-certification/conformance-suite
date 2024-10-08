@@ -3,7 +3,7 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
 
-public abstract class AbstractOpenIdSsfTest extends AbstractTestModule {
+public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
