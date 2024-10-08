@@ -19,10 +19,10 @@ public class OIDSSFDefaultSubjectsTransmitterMetadataCheck extends AbstractCondi
 		JsonObject transmitterMetadata = env.getObject("transmitter_metadata");
 
 		if (!transmitterMetadata.has("default_subjects")) {
+			log("Skipping missing optional default_subjects field");
 			return env;
 		}
 
-		log("Found optional default_subjects field");
 		String defaultSubjects = OIDFJSON.getString(transmitterMetadata.get("default_subjects"));
 		Set<String> allowedValues = Set.of("ALL", "NONE");
 		if (!allowedValues.contains(defaultSubjects)) {
@@ -30,6 +30,7 @@ public class OIDSSFDefaultSubjectsTransmitterMetadataCheck extends AbstractCondi
 				args("default_subjects", defaultSubjects));
 		}
 
+		logSuccess("Found valid default_subjects", args("default_subjects", defaultSubjects));
 		return env;
 	}
 }
