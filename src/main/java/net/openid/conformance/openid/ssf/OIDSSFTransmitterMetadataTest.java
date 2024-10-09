@@ -44,7 +44,15 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 
 		setStatus(Status.RUNNING);
 
-		// fetch transmitter metadata
+		fetchTransmitterMetadata();
+
+		validateTransmitterMetadata();
+
+		fireTestFinished();
+	}
+
+	private void fetchTransmitterMetadata() {
+
 		switch (getVariant(ServerMetadata.class)) {
 			case DISCOVERY:
 				callAndStopOnFailure(OIDSSFGetDynamicTransmitterConfiguration.class, "OIDSSF-6.2");
@@ -53,21 +61,21 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-6.2");
 				break;
 		}
+	}
 
-		// validate transmitter metadata
+	private void validateTransmitterMetadata() {
+
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class,"OIDSSF-6.1", "OIDCAEPIOP-2.3.7");
 		callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDCAEPIOP-2.3.1");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
 		callAndStopOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, "OIDSSF-6.1");
 		callAndStopOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, "OIDSSF-6.1.1", "OIDCAEPIOP-2.3.7");
 
-		// populate server jwks
+		// treat transmitter_metadata as "server" metadata to leverage existing checks
 		env.mapKey("server", "transmitter_metadata");
 
 		callAndStopOnFailure(CheckJwksUri.class);
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-
-		fireTestFinished();
 	}
 }
