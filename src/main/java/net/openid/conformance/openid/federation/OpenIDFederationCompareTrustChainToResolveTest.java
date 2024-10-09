@@ -1,14 +1,23 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
 import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnown;
@@ -53,6 +62,45 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 
 		List<String> trustChainBuiltManually = buildTrustChain(path);
 		List<String> trustChainFromResolver = validateResolveEndpoint();
+
+		List<String> entityStatementClaimsToCompare = new ArrayList<>(List.of(
+			"iss",
+			"sub",
+			"aud",
+			"iat",
+			"exp",
+			"jwks",
+			"metadata",
+			"metadata_policy",
+			"trust_marks",
+			"authority_hints",
+			"constraints"
+		));
+		// Remove claims we don't want to compare
+		// iat and exp are time based
+		// trust_marks are signed jwts
+		entityStatementClaimsToCompare.removeAll(List.of("iat", "exp", "trust_marks"));
+
+		for (int i = 0; i < trustChainBuiltManually.size(); i++) {
+
+			try {
+				String firstEntryManual = trustChainBuiltManually.get(i);
+				SignedJWT manualJwt = SignedJWT.parse(firstEntryManual);
+				JsonElement manualElm = JsonParser.parseString(manualJwt.getPayload().toString());
+
+				String firstEntryResolved = trustChainFromResolver.get(i);
+				SignedJWT resolvedJwt = SignedJWT.parse(firstEntryResolved);
+				JsonElement resolvedElm = JsonParser.parseString(resolvedJwt.getPayload().toString());
+
+				List<String> diff = EntityUtils.diffEntityStatements(entityStatementClaimsToCompare, manualElm, resolvedElm);
+
+				String s = "";
+
+			} catch (ParseException e) {
+				throw new RuntimeException(e);
+			}
+
+		}
 
 		fireTestFinished();
 	}
