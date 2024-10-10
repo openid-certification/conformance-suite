@@ -22,7 +22,7 @@ public class OIDSSFAuthorizationSchemesTransmitterMetadataCheck extends Abstract
 		// OIDSSF-6.1.1
 		JsonArray authorizationSchemes = transmitterMetadata.getAsJsonArray("authorization_schemes");
 
-		// OIDCAEPIOP-2.3.7
+		// CAEPIOP-2.3.7
 		boolean rfc6749Found = false;
 		for (var element : authorizationSchemes) {
 			String specUrn = OIDFJSON.getString(element.getAsJsonObject().get("spec_urn"));
