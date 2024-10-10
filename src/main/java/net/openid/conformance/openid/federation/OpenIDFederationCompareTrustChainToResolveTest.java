@@ -1,23 +1,16 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
 import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnown;
@@ -38,7 +31,6 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpenIDFederationTest {
 
 	@Override
-	@SuppressWarnings("UnusedVariable")
 	public void start() {
 		setStatus(Status.RUNNING);
 
@@ -60,55 +52,25 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 		callAndContinueOnFailure(SetTrustAnchorEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		eventLog.endBlock();
 
+		eventLog.startBlock("Comparing manually built trust chain to resolved trust chain");
 		List<String> trustChainBuiltManually = buildTrustChain(path);
 		List<String> trustChainFromResolver = validateResolveEndpoint();
 
-		List<String> entityStatementClaimsToCompare = new ArrayList<>(List.of(
-			"iss",
-			"sub",
-			"aud",
-			"iat",
-			"exp",
-			"jwks",
-			"metadata",
-			"metadata_policy",
-			"trust_marks",
-			"authority_hints",
-			"constraints"
-		));
-		// Remove claims we don't want to compare
-		// iat and exp are time based
-		// trust_marks are signed jwts
-		entityStatementClaimsToCompare.removeAll(List.of("iat", "exp", "trust_marks"));
+		JsonObject trustChains = new JsonObject();
+		trustChains.add("manual", OIDFJSON.convertListToJsonArray(trustChainBuiltManually));
+		trustChains.add("resolved", OIDFJSON.convertListToJsonArray(trustChainFromResolver));
+		env.putObject("trust_chains", trustChains);
 
-		for (int i = 0; i < trustChainBuiltManually.size(); i++) {
-
-			try {
-				String firstEntryManual = trustChainBuiltManually.get(i);
-				SignedJWT manualJwt = SignedJWT.parse(firstEntryManual);
-				JsonElement manualElm = JsonParser.parseString(manualJwt.getPayload().toString());
-
-				String firstEntryResolved = trustChainFromResolver.get(i);
-				SignedJWT resolvedJwt = SignedJWT.parse(firstEntryResolved);
-				JsonElement resolvedElm = JsonParser.parseString(resolvedJwt.getPayload().toString());
-
-				List<String> diff = EntityUtils.diffEntityStatements(entityStatementClaimsToCompare, manualElm, resolvedElm);
-
-				String s = "";
-
-			} catch (ParseException e) {
-				throw new RuntimeException(e);
-			}
-
-		}
+		callAndContinueOnFailure(CompareTrustChains.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
+		eventLog.endBlock();
 
 		fireTestFinished();
 	}
 
 	protected List<String> buildTrustChain(List<String> path) {
-
+		eventLog.startBlock("Building trust chain from %s to %s".formatted(path.get(0), path.get(path.size() - 1)));
 		List<String> trustChain = new ArrayList<>();
-        trustChain.add(env.getString("primary_entity_statement"));
+		trustChain.add(env.getString("primary_entity_statement"));
 
 		if (path.size() == 1) {
 			return trustChain;
@@ -127,15 +89,16 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 			callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 			trustChain.add(env.getString("entity_statement"));
-        }
+		}
 
 		String trustAnchorEntityIdentifier = path.get(path.size() - 1);
 		env.putString("entity_statement_url", appendWellKnown(trustAnchorEntityIdentifier));
 		callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		trustChain.add(env.getString("entity_statement"));
+		eventLog.endBlock();
 
 		return trustChain;
-	};
+	}
 
 
 	protected List<String> validateResolveEndpoint() {
@@ -143,12 +106,13 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 		if (resolveEndpoint == null) {
 			fireTestSkipped("Trust anchor does not contain a federation_resolve_endpoint.");
 		}
+
 		env.putString("entity_statement_url", resolveEndpoint);
 		env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
 		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 		callAndContinueOnFailure(AppendAnchorToEntityStatementUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
-		eventLog.startBlock(String.format("Fetching resolved metadata from %s", env.getString("entity_statement_url")));
+		eventLog.startBlock("Fetching and validating response from resolve endpoint %s".formatted(resolveEndpoint));
 
 		callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-?");
 
@@ -170,9 +134,10 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 
 		JsonArray trustChain = env.getElementFromObject("trust_chain_from_resolver", "trust_chain").getAsJsonArray();
 		List<String> trustChainList = new ArrayList<>();
-        for (JsonElement jsonElement : trustChain) {
-            trustChainList.add(jsonElement.getAsString());
-        }
-        return trustChainList;
+		for (JsonElement jsonElement : trustChain) {
+			trustChainList.add(OIDFJSON.getString(jsonElement));
+		}
+		return trustChainList;
 	}
+
 }

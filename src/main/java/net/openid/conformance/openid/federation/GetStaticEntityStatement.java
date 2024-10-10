@@ -9,6 +9,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
 
@@ -29,7 +30,7 @@ public class GetStaticEntityStatement extends AbstractCondition {
 		}
 
 		try {
-			String jwtString = entityConfiguration.getAsString();
+			String jwtString = OIDFJSON.getString(entityConfiguration);
 			SignedJWT jwt = SignedJWT.parse(jwtString);
 			JsonObject entityStatementBody = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
 			JsonObject entityStatementHeader = JsonParser.parseString(jwt.getHeader().toString()).getAsJsonObject();

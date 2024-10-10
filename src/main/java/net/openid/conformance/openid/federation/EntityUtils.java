@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -10,6 +11,20 @@ import java.util.Map;
 import java.util.Objects;
 
 public class EntityUtils {
+
+	public static List<String> STANDARD_ENTITY_STATEMENT_CLAIMS = ImmutableList.of(
+		"iss",
+		"sub",
+		"aud",
+		"iat",
+		"exp",
+		"jwks",
+		"metadata",
+		"metadata_policy",
+		"trust_marks",
+		"authority_hints",
+		"constraints"
+	);
 
 	public static String appendWellKnown(String entityIdentifier) {
 		if (entityIdentifier.endsWith(".well-known/openid-federation")) {
@@ -44,6 +59,11 @@ public class EntityUtils {
 	}
 
 	public static List<String> diffEntityStatements(List<String> propertyNames, JsonElement a, JsonElement b) {
+
+		if (propertyNames == null || propertyNames.isEmpty()) {
+			throw new IllegalArgumentException("Property names list cannot be null or empty");
+		}
+
 		List<String> differences = new ArrayList<>();
 
 		if (a == null || b == null || !a.isJsonObject() || !b.isJsonObject()) {
@@ -111,4 +131,6 @@ public class EntityUtils {
 		}
 		return true;
 	}
+
+
 }
