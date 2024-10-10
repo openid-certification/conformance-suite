@@ -1253,11 +1253,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         document.getElementById('runningTestError').classList.add('show');
                     }
 
-                    document.getElementById('stacktraceBtn').onclick = function(event) {
-                        event.preventDefault();
-                        document.getElementById('stacktraceBtn').style.display = 'none';
-                        document.getElementById('stacktrace').classList.add('show');
-                    };
+                    if (document.getElementById('stacktraceBtn') != null) {
+                        document.getElementById('stacktraceBtn').onclick = function (event) {
+                            event.preventDefault();
+                            document.getElementById('stacktraceBtn').style.display = 'none';
+                            document.getElementById('stacktrace').classList.add('show');
+                        };
+                    }
                 }
             })
             .catch((error) => {
