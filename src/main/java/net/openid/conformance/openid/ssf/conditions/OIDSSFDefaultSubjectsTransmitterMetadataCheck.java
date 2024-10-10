@@ -6,9 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class OIDSSFDefaultSubjectsTransmitterMetadataCheck extends AbstractCondition {
 
