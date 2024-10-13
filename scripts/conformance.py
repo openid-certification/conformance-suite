@@ -64,7 +64,7 @@ class Conformance(object):
             headers['Authorization'] = 'Bearer {0}'.format(api_token)
         self.httpclient.headers = headers
 
-    async def get_all_test_modules(self):
+    def get_all_test_modules(self):
         """ Returns an array containing a dictionary per test module """
         api_url = '{0}api/runner/available'.format(self.api_url_base)
         response = self.httpclient.get(api_url)
@@ -73,7 +73,7 @@ class Conformance(object):
             raise Exception("get_all_test_modules failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def exporthtml(self, plan_id, path):
+    def exporthtml(self, plan_id, path):
         for i in range(5):
             api_url = '{0}api/plan/exporthtml/{1}'.format(self.api_url_base, plan_id)
             try:
@@ -93,10 +93,10 @@ class Conformance(object):
                 return full_path
             except Exception as e:
                 print("httpx {} exception {} caught - retrying".format(api_url, e))
-                await asyncio.sleep(1)
+                time.sleep(1)
         raise Exception("exporthtml for {} failed even after retries".format(plan_id))
 
-    async def create_certification_package(self, plan_id, conformance_pdf_path, rp_logs_zip_path = None, output_zip_directory = "./"):
+    def create_certification_package(self, plan_id, conformance_pdf_path, rp_logs_zip_path = None, output_zip_directory = "./"):
         """
         Create a complete certification package zip file which is written
         to the directory specified by the 'output_zip_directory' parameter.
@@ -131,7 +131,7 @@ class Conformance(object):
             certificationOfConformancePdf.close();
             clientSideData.close();
 
-    async def create_test_plan(self, name, configuration, variant=None):
+    def create_test_plan(self, name, configuration, variant=None):
         api_url = '{0}api/plan'.format(self.api_url_base)
         payload = {'planName': name}
         if variant != None:
@@ -142,7 +142,7 @@ class Conformance(object):
             raise Exception("create_test_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def create_test(self, test_name, configuration):
+    def create_test(self, test_name, configuration):
         api_url = '{0}api/runner'.format(self.api_url_base)
         payload = {'test': test_name}
         response = self.httpclient.post(api_url, params=payload, data=configuration)
@@ -151,7 +151,7 @@ class Conformance(object):
             raise Exception("create_test failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def create_test_from_plan(self, plan_id, test_name):
+    def create_test_from_plan(self, plan_id, test_name):
         api_url = '{0}api/runner'.format(self.api_url_base)
         payload = {'test': test_name, 'plan': plan_id}
         response = self.httpclient.post(api_url, params=payload)
@@ -160,7 +160,7 @@ class Conformance(object):
             raise Exception("create_test_from_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def create_test_from_plan_with_variant(self, plan_id, test_name, variant):
+    def create_test_from_plan_with_variant(self, plan_id, test_name, variant):
         api_url = '{0}api/runner'.format(self.api_url_base)
         payload = {'test': test_name, 'plan': plan_id}
         if variant != None:
@@ -171,7 +171,7 @@ class Conformance(object):
             raise Exception("create_test_from_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def get_module_info(self, module_id):
+    def get_module_info(self, module_id):
         api_url = '{0}api/info/{1}'.format(self.api_url_base, module_id)
         response = self.httpclient.get(api_url)
 
@@ -179,7 +179,7 @@ class Conformance(object):
             raise Exception("get_module_info failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def get_test_log(self, module_id):
+    def get_test_log(self, module_id):
         api_url = '{0}api/log/{1}'.format(self.api_url_base, module_id)
         response = self.httpclient.get(api_url)
 
@@ -187,7 +187,7 @@ class Conformance(object):
             raise Exception("get_test_log failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def start_test(self, module_id):
+    def start_test(self, module_id):
         api_url = '{0}api/runner/{1}'.format(self.api_url_base, module_id)
         response = self.httpclient.post(api_url)
 
@@ -195,14 +195,14 @@ class Conformance(object):
             raise Exception("start_test failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def wait_for_state(self, module_id, required_states, timeout=240):
+    def wait_for_state(self, module_id, required_states, timeout=240):
         timeout_at = time.time() + timeout
         while True:
             if time.time() > timeout_at:
                 raise Exception("Timed out waiting for test module {} to be in one of states: {}".
                                 format(module_id, required_states))
 
-            info = await self.get_module_info(module_id)
+            info = self.get_module_info(module_id)
 
             status = info['status']
             print("module id {} status is {}".format(module_id, status))
@@ -211,7 +211,7 @@ class Conformance(object):
             if status == 'INTERRUPTED':
                 raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
 
-            await asyncio.sleep(1)
+            time.sleep(1)
 
-    async def close_client(self):
+    def close_client(self):
         self.httpclient.close()
