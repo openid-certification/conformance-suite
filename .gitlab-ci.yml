@@ -334,6 +334,7 @@ local_test:
   script:
     - apk add docker-compose
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
+    - cp $CI_PROJECT_DIR/requirements.txt $CI_PROJECT_DIR/test/
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
     - sleep 5
@@ -635,8 +636,8 @@ local_test:
   }
 
   function set_up_for_running_test_plan() {
+    pip install -r requirements.txt
     install_test_dependencies
-    pip install httpx pyparsing
   }
 
   function run_client_test_plan() {

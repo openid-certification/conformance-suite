@@ -25,6 +25,7 @@ echo
 TESTS=""
 EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
 EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
+NEW_RUNNER=true
 
 makeClientTest() {
     . ./node-client-setup.sh
@@ -551,4 +552,10 @@ else
     exit 1
 fi
 
-echo ${TESTS} | xargs ../conformance-suite/scripts/run-test-plan.py
+
+if [ "$NEW_RUNNER" = true ] ; then
+  export CONFORMANCE_SUITE_PRIVATE=../conformance-suite-private/
+  echo ${TESTS} | xargs ../conformance-suite/scripts/conformance_runner.py
+else
+  echo ${TESTS} | xargs ../conformance-suite/scripts/run-test-plan.py
+fi
