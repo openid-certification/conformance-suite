@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
-import java.util.Set;
 
 public class OIDSSFUpdateStreamStatusCall extends AbstractOIDSSFStreamConfigCall {
 
