@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.ssf.support;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
@@ -86,6 +87,19 @@ public class StreamAdminClient {
 		return response;
 	}
 
+	public ResponseEntity<UpdateStreamOutput> updateStream(UpdateStreamInput input) {
+
+		var restClient = createRestClient();
+		var response = restClient.patch()
+			.uri(configurationEndpoint)
+			.headers(headers -> headers.setBearerAuth(transmitterAccessToken))
+			.body(input)
+			.retrieve()
+			.toEntity(UpdateStreamOutput.class);
+
+		return response;
+	}
+
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public static class QueryStreamOutput extends StreamConfiguration {
 	}
@@ -108,6 +122,13 @@ public class StreamAdminClient {
 	}
 
 	public static class CreateStreamOutput extends StreamConfiguration {
+	}
+
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public static class UpdateStreamInput extends StreamConfiguration{
+	}
+
+	public static class UpdateStreamOutput extends StreamConfiguration {
 	}
 
 	public static class StreamConfiguration {
@@ -136,6 +157,7 @@ public class StreamAdminClient {
 		@JsonProperty("events_requested")
 		public Set<String> eventsRequested;
 
+		@JsonIgnore
 		public Map<String, Object> properties = new HashMap<>();
 
 		@JsonAnySetter
