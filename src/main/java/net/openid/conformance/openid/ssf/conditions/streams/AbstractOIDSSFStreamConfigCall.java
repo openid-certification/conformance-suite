@@ -106,7 +106,6 @@ public abstract class AbstractOIDSSFStreamConfigCall extends AbstractCallProtect
 
 		log("Calling resource endpoint");
 		callProtectedResource(env);
-//		logSuccess("Calling resource endpoint finished.");
 
 		return env;
 	}
