@@ -2,7 +2,6 @@ package net.openid.conformance.openid.ssf;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.openid.ssf.conditions.CheckTransmitterMetadataIssuer;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGetStaticTransmitterConfiguration;

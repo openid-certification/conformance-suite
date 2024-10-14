@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 
 public class OIDSSFReadStreamStatusCall extends AbstractOIDSSFStreamConfigCall {
