@@ -56,8 +56,8 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class,"OIDSSF-6.1", "CAEPIOP-2.3.7");
 		callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.1");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
-		callAndStopOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, "OIDSSF-6.1");
-		callAndStopOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, "OIDSSF-6.1.1", "CAEPIOP-2.3.7");
+		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1");
+		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1.1", "CAEPIOP-2.3.7");
 
 		// treat transmitter_metadata as "server" metadata to leverage existing checks
 		env.mapKey("server", "transmitter_metadata");
