@@ -13,7 +13,9 @@ class PrioritizedItem:
     priority: int
     item: Any = field(compare=False)
 
+
 logger = logging.getLogger(__name__)
+
 
 class TestTask:
     def __init__(self, alias: str, config: str, plan_config_filename: str, config_json, parsed_config):
@@ -49,25 +51,24 @@ class TaskQueue:
     def get_a_task(self) -> TestTask:
         logger.debug("pulling items from priority queue")
         aQueue = self._priority_queue.get().item
-        logger.debug("pulling items from picked queue")
         task = aQueue.popleft()
         logger.debug(f"priority - picked from queue {task.queue_name}")
-        if len(aQueue) > 0 :
+        if len(aQueue) > 0:
             self._running_queues[task.queue_name] = aQueue
         with self._lock:
             self._pending_executions += 1
         return task
 
-    def task_completed(self, task : TestTask):
+    def task_completed(self, task: TestTask):
         queue_name = task.queue_name
         logger.debug(f"queue {queue_name} - starting the completion")
         if queue_name in self._running_queues:
             aQueue = self._running_queues.pop(queue_name)
-            logger.debug(f"queue {queue_name} - tasks to go {len(aQueue)}")
+            logger.info(f"queue {queue_name} - tasks to go {len(aQueue)}")
             self._priority_queue.put(PrioritizedItem(-1 * len(aQueue), aQueue))
             logger.debug(f"queue {queue_name} - queue included on priority queue")
         else:
-            logger.debug(f"queue {queue_name} - queue could not be found on running queues... it is done")
+            logger.info(f"queue {queue_name} - queue cleared. it is done")
         with self._lock:
             self._pending_executions -= 1
 

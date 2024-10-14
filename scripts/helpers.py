@@ -1,5 +1,21 @@
 import re
+import json
 
+class TestConfigParser:
+    def __init__(self, client_certs, baseurl, baseurlmtls,):
+        self._client_certs = client_certs
+        self._baseurl = baseurl
+        self._baseurlmtls = baseurlmtls
+
+    def parse(self, plan_config_file_name):
+        with open(plan_config_file_name) as f:
+            json_config = f.read()
+        json_config = json_config.replace('{BASEURL}', self._baseurl)
+        json_config = json_config.replace('{BASEURLMTLS}', self._baseurlmtls)
+
+        for k,v in self._client_certs.items():
+            json_config = json_config.replace('{'+ k + '}', v)
+        return (json_config, json.loads(json_config))
 
 # syntax is:
 # test_plan_name[variant=value][variant2=value2]:optional-run-only-module-named-test{optestplan}optestconfig
