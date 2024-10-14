@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,6 +25,7 @@ import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.security.KeyManager;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -48,6 +50,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -420,16 +423,104 @@ public class LogApi {
 		@Parameter(description = "Client data in zip format. Only required for RP tests")
 			@RequestParam Optional<MultipartFile> clientSideData
 	) {
-		if (!planService.publishTestPlan(id, "everything")) {
-			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		JsonObject failedTests = getFailedOrIncompleteTests(id, false);
+		if(failedTests.isEmpty()) {
+			// Publish plan and make immutable only if there are no failed/incomplete tests
+			if (!planService.publishTestPlan(id, "everything")) {
+				return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			}
+			if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
+				return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+			}
+			return exportPlanAsZip(id, true, false, true, certificationOfConformancePdf, clientSideData.orElse(null));
+		} else {
+			return createJsonErrorResponseEntity(failedTests);
 		}
-
-		if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
-			return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-		}
-		return exportPlanAsZip(id, true, false, true, certificationOfConformancePdf, clientSideData.orElse(null));
 	}
 
+	private ResponseEntity<StreamingResponseBody> createJsonErrorResponseEntity(JsonObject json) {
+		StreamingResponseBody responseBody = new StreamingResponseBody() {
+			@Override
+			public void writeTo(OutputStream outputStream) throws IOException {
+				try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+					outputStreamWriter.write(json.toString());
+				}
+			}
+		};
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		return new ResponseEntity<>(responseBody, headers, HttpStatus.UNPROCESSABLE_ENTITY);
+	}
+
+	private JsonObject getFailedOrIncompleteTests(String planId, boolean publicOnly) {
+		Object testPlan = publicOnly ? planService.getPublicPlan(planId) : planService.getTestPlan(planId);
+		JsonObject failedTests = new JsonObject();
+		String planName = "";
+		String variant = "";
+
+		List<Plan.Module> modules = new ArrayList<>();
+
+		if (testPlan == null) {
+			failedTests.addProperty("error", "invalid_plan_id");
+			failedTests.addProperty("error_description", "plan ID " + planId + " does not exist");
+		} else if (testPlan instanceof PublicPlan) {
+			modules = ((PublicPlan) testPlan).getModules();
+			planName = ((PublicPlan) testPlan).getPlanName();
+			variant = ((PublicPlan) testPlan).getVariant().toString();
+		} else if (testPlan instanceof Plan) {
+			modules = ((Plan) testPlan).getModules();
+			planName = ((Plan) testPlan).getPlanName();
+			variant = ((Plan) testPlan).getVariant().toString();
+		}
+
+		for (Plan.Module module : modules) {
+			String testModuleName = module.getTestModule();
+			List<String> instances = module.getInstances();
+
+			if (instances != null && !instances.isEmpty()) {
+				String testId = instances.get(instances.size() - 1);
+				Optional<?> testInfo = getTestInfo(publicOnly, testId);
+
+				String status = null;
+				String result = null;
+				if (testInfo.get() instanceof TestInfo) {
+					status = ((TestInfo) testInfo.get()).getStatus().name();
+					result = ((TestInfo) testInfo.get()).getResult();
+				} else if (testInfo.get() instanceof PublicTestInfo) {
+					status = ((PublicTestInfo) testInfo.get()).getStatus().name();
+					result = ((PublicTestInfo) testInfo.get()).getResult();
+				}
+
+				// status != FINISHED or
+				// result == {FAILED || UNKNOWN} are considered failed
+				if(!status.equals(TestModule.Status.FINISHED.name()) ||
+					result.equals(TestModule.Result.FAILED.name()) ||
+					result.equals(TestModule.Result.UNKNOWN.name())) {
+					JsonObject failedTestInfo = new JsonObject();
+					failedTestInfo.addProperty("testId", testId);
+					failedTestInfo.addProperty("status", status);
+					failedTestInfo.addProperty("result", result);
+					failedTests.add(testModuleName, failedTestInfo);
+				}
+			} else {
+				JsonObject failedTestInfo = new JsonObject();
+				failedTestInfo.addProperty("testId", "NOT_YET_CREATED");
+				failedTestInfo.addProperty("status", "NOT_YET_CREATED");
+				failedTestInfo.addProperty("result", "NOT_YET_CREATED");
+				failedTests.add(testModuleName, failedTestInfo);
+			}
+		}
+		JsonObject failedPlanInfo = new JsonObject();
+		if(!failedTests.isEmpty()) {
+			failedPlanInfo.addProperty("error", "Unable to create certification package");
+			failedPlanInfo.addProperty("error_description", "All tests have not been completed or tests have failed. ");
+			failedPlanInfo.addProperty("plan_name", planName);
+			failedPlanInfo.addProperty("test_plan_id", planId);
+			failedPlanInfo.addProperty("variant", variant);
+			failedPlanInfo.add("failed_tests", failedTests);
+		}
+		return failedPlanInfo;
+	}
 
 	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
 	@Operation(summary = "Export the full results for this plan as both html and json in a zip")
