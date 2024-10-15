@@ -1253,11 +1253,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         document.getElementById('runningTestError').classList.add('show');
                     }
 
-                    document.getElementById('stacktraceBtn').onclick = function(evt) {
-                        event.preventDefault();
-                        document.getElementById('stacktraceBtn').style.display = 'none';
-                        document.getElementById('stacktrace').classList.add('show');
-                    };
+                    if (document.getElementById('stacktraceBtn') != null) {
+                        document.getElementById('stacktraceBtn').onclick = function (event) {
+                            event.preventDefault();
+                            document.getElementById('stacktraceBtn').style.display = 'none';
+                            document.getElementById('stacktrace').classList.add('show');
+                        };
+                    }
                 }
             })
             .catch((error) => {
@@ -1444,6 +1446,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         startReloader(testId); // periodically reload the page as long as the test is active
                         pinVisitSectionOnTopWindow();
                     }
+                    scrollToAnchorIfPresent();
                 }
             });
 
@@ -1455,6 +1458,17 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 console.log(e);
             });
         });
+
+        function scrollToAnchorIfPresent() {
+            if (window.location.hash === '') {
+                return;
+            }
+
+            let scrollTargetElement = document.querySelector(window.location.hash);
+            if (scrollTargetElement !== null) {
+                scrollTargetElement.scrollIntoView();
+            }
+        }
 
         function parseUrl(urlWithMethod) {
             let urlString = urlWithMethod.url;
