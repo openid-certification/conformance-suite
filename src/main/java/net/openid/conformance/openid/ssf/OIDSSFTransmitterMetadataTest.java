@@ -15,26 +15,12 @@ import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
-@PublishTestModule(
-	testName = "openid-ssf-transmitter-metadata",
-	displayName = "OpenID Shared Signals Framework: Validate Transmitter Metadata",
-	summary = "This test verifies the behavior of the transmitter metadata.",
-	profile = "OIDSSF",
-	configurationFields = {
+@PublishTestModule(testName = "openid-ssf-transmitter-metadata", displayName = "OpenID Shared Signals Framework: Validate Transmitter Metadata", summary = "This test verifies the behavior of the transmitter metadata.", profile = "OIDSSF", configurationFields = {
 
-	}
-)
-@VariantParameters({
-	ServerMetadata.class,
-	SsfDeliveryMode.class,
 })
-@VariantConfigurationFields(parameter = ServerMetadata.class, value="static", configurationFields = {
-	"ssf.transmitter.configuration_metadata_endpoint",
-})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value="discovery", configurationFields = {
-	"ssf.transmitter.issuer",
-	"ssf.transmitter.metadata_suffix",
-})
+@VariantParameters({ServerMetadata.class, SsfDeliveryMode.class,})
+@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
+@VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
 public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 
 	@Override
@@ -51,17 +37,19 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 
 	private void validateTransmitterMetadata() {
 
-		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class,"OIDSSF-6.1", "CAEPIOP-2.3.7");
-		callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.1");
-		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
-		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1");
-		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1.1", "CAEPIOP-2.3.7");
+		eventLog.runBlock("Validate Transmitter Metadata", () -> {
+			callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-6.1", "CAEPIOP-2.3.7");
+			callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.1");
+			callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
+			callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1");
+			callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1.1", "CAEPIOP-2.3.7");
 
-		// treat transmitter_metadata as "server" metadata to leverage existing checks
-		env.mapKey("server", "transmitter_metadata");
+			// treat transmitter_metadata as "server" metadata to leverage existing checks
+			env.mapKey("server", "transmitter_metadata");
 
-		callAndStopOnFailure(CheckJwksUri.class);
-		callAndStopOnFailure(FetchServerKeys.class);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+			callAndStopOnFailure(CheckJwksUri.class);
+			callAndStopOnFailure(FetchServerKeys.class);
+			callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		});
 	}
 }

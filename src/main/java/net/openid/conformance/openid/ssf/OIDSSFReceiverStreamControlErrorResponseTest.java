@@ -27,11 +27,13 @@ public class OIDSSFReceiverStreamControlErrorResponseTest extends AbstractOIDSSF
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		fetchTransmitterMetadata();
+		eventLog.runBlock("Fetch Transmitter Metadata", this::fetchTransmitterMetadata);
 
-		callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
+		eventLog.runBlock("Prepare Transmitter Access", () -> {
+			callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
+		});
 
-		{ // create stream config endpoint
+		eventLog.runBlock("Create Stream Configuration", () -> {
 
 			// 400	if the request cannot be parsed
 			callAndStopOnFailure(OIDSSFAttemptCreateStreamConfigCallWithBrokenInput.class, "OIDSSF-7.1.1.1");
@@ -48,9 +50,9 @@ public class OIDSSFReceiverStreamControlErrorResponseTest extends AbstractOIDSSF
 			// TODO 403	if the Event Receiver is not allowed to create a stream
 
 			// TODO 409	if the Transmitter does not support multiple streams per Receiver
-		}
+		});
 
-		{ // read stream config endpoint
+		eventLog.runBlock("Read Stream Configuration", () -> {
 			// 401	if authorization failed or it is missing
 			callAndStopOnFailure(OIDSSFAttemptReadStreamConfigCallWithInvalidToken.class, "OIDSSF-7.1.1.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
@@ -64,24 +66,23 @@ public class OIDSSFReceiverStreamControlErrorResponseTest extends AbstractOIDSSF
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
 			call(exec().unmapKey("endpoint_response"));
+		});
 
-		}
-
-		{ // update stream configuration
+		eventLog.runBlock("Update Stream Configuration", () -> {
 			// TODO check 400	if the request body cannot be parsed, a Transmitter-Supplied property is incorrect, or if the request is otherwise invalid
 			// TODO check 401	if authorization failed or it is missing
 			// TODO check 403	if the Event Receiver is not allowed to update the stream configuration
 			// TODO check 404	if there is no Event Stream with the given "stream_id" for this Event Receiver
-		}
+		});
 
-		{ // replace stream configuration
+		eventLog.runBlock("Replace Stream Configuration", () -> {
 			//	TODO check 400	if the request body cannot be parsed, a Transmitter-Supplied property is incorrect, or if the request is otherwise invalid
 			//	TODO check 401	if authorization failed or it is missing
 			//	TODO check 403	if the Event Receiver is not allowed to replace the stream configuration
 			//	TODO check 404	if there is no Event Stream with the given "stream_id" for this Event Receiver
-		}
+		});
 
-		{ // delete stream configuration
+		eventLog.runBlock("Delete Stream Configuration", () -> {
 			// check 401	if authorization failed or it is missing
 			callAndStopOnFailure(OIDSSFAttemptDeleteStreamConfigCallWithInvalidToken.class, "OIDSSF-7.1.1.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
@@ -90,7 +91,7 @@ public class OIDSSFReceiverStreamControlErrorResponseTest extends AbstractOIDSSF
 
 			// TODO check 403	if the Event Receiver is not allowed to delete the stream
 			// TODO check 404	if there is no Event Stream with the given "stream_id" for this Event Receiver
-		}
+		});
 
 		fireTestFinished();
 	}
