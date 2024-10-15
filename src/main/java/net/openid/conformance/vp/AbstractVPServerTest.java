@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
@@ -140,6 +141,14 @@ import org.springframework.http.ResponseEntity;
 @VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
 })
+@VariantConfigurationFields(parameter = VPResponseMode.class, value = "direct_post.jwt", configurationFields = {
+	"client.authorization_encrypted_response_alg",
+	"client.authorization_encrypted_response_enc"
+})
+@VariantConfigurationFields(parameter = VPResponseMode.class, value = "w3c_dc_api.jwt", configurationFields = {
+	"client.authorization_encrypted_response_alg",
+	"client.authorization_encrypted_response_enc"
+})
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.client_name"
 })
@@ -157,6 +166,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	protected CredentialFormat credentialFormat;
 	protected VPClientIdScheme clientIdScheme;
 	protected Boolean pre_id2 = null;
+	protected Boolean requestUriCalled = false;
 	private boolean serverSupportsDiscovery;
 
 	@Override
@@ -454,6 +464,15 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 					break;
 				case SD_JWT_VC:
 					callAndStopOnFailure(AddSdJwtClientMetadataToAuthorizationRequest.class);
+					break;
+			}
+			switch (responseMode) {
+				case DIRECT_POST:
+				case W3C_DC_API:
+					break;
+				case DIRECT_POST_JWT:
+				case W3C_DC_API_JWT:
+					callAndStopOnFailure(AddEncryptionParametersToClientMetadata.class);
 					break;
 			}
 
@@ -853,17 +872,26 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 	protected Object handleRequestUriRequest() {
 		setStatus(Status.RUNNING);
-		markAuthorizationEndpointVisited();
 
 		String requestObject = env.getString("request_object");
 
-		eventLog.log(getName(), "Wallet has retrieved request_uri - waiting for it to call the response_uri");
+		if (requestUriCalled) {
+			eventLog.log(getName(), "Wallet has retrieved request_uri another time");
+		} else {
+			markAuthorizationEndpointVisited();
+
+			continueAfterRequestUriCalled();
+		}
 
 		setStatus(Status.WAITING);
 
 		return ResponseEntity.ok()
 			.contentType(DATAUTILS_MEDIATYPE_APPLICATION_OAUTH_OAUTHZ_REQ_JWT)
 			.body(requestObject);
+	}
+
+	protected void continueAfterRequestUriCalled() {
+		eventLog.log(getName(), "Wallet has retrieved request_uri - waiting for it to call the response_uri");
 	}
 
 	protected void markAuthorizationEndpointVisited() {

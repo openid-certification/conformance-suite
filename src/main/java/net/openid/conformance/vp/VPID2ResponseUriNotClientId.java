@@ -7,6 +7,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.VPClientIdScheme;
+import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -22,6 +23,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 // "If the Wallet can establish trust in the Client Identifier authenticated through the certificate, e.g. because the Client Identifier is contained in a list of trusted Client Identifiers, it may allow the client to freely choose the redirect_uri value."
 // So we just don't do this test for x509_san_dns for now
 @VariantNotApplicable(parameter = VPClientIdScheme.class, values={"x509_san_dns"})
+
+// For BrowserAPI Response URI isn't used
+@VariantNotApplicable(parameter = VPResponseMode.class, values={"w3c_dc_api", "w3c_dc_api.jwt"})
+
 public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 	@Override
 	protected ConditionSequence createAuthorizationRequestSequence() {
@@ -42,13 +47,10 @@ public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 	}
 
 	@Override
-	protected Object handleRequestUriRequest() {
-		Object o = super.handleRequestUriRequest();
-		setStatus(Status.RUNNING);
+	protected void continueAfterRequestUriCalled() {
+		eventLog.log(getName(), "Wallet has retrieved request_uri - the response_uri is invalid, so the wallet should display an error, a screenshot of which must be uploaded for the test to transition to 'FINISHED'.");
 		createPlaceholder();
 		waitForPlaceholders();
-		setStatus(Status.WAITING);
-		return o;
 	}
 
 	@Override

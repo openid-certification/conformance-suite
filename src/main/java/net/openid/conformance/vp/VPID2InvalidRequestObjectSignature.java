@@ -41,13 +41,10 @@ public class VPID2InvalidRequestObjectSignature extends AbstractVPServerTest {
 	}
 
 	@Override
-	protected Object handleRequestUriRequest() {
-		Object o = super.handleRequestUriRequest();
-		setStatus(Status.RUNNING);
+	protected void continueAfterRequestUriCalled() {
+		eventLog.log(getName(), "Wallet has retrieved request_uri - the request object signature is invalid, so the wallet should display an error, a screenshot of which must be uploaded for the test to transition to 'FINISHED'.");
 		createPlaceholder();
 		waitForPlaceholders();
-		setStatus(Status.WAITING);
-		return o;
 	}
 
 	@Override
