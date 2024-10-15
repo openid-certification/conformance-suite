@@ -36,7 +36,7 @@ public class EnsureTLS12WithFAPICiphers extends AbstractCondition {
 
 				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream());
 
-				TlsClient client = new FAPITLSClient(tlsTestHost, true, ProtocolVersion.TLSv12);
+				TlsClient client = new FAPITLSClient(tlsTestHost, true, ProtocolVersion.TLSv12, ProtocolVersion.TLSv13);
 
 				protocol.connect(client);
 
