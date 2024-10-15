@@ -4,32 +4,31 @@ import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.util.NoopTlsAuthentication;
 import net.openid.conformance.testmodule.Environment;
-import org.bouncycastle.crypto.tls.AlertDescription;
-import org.bouncycastle.crypto.tls.Certificate;
-import org.bouncycastle.crypto.tls.CertificateRequest;
-import org.bouncycastle.crypto.tls.DefaultTlsClient;
-import org.bouncycastle.crypto.tls.NameType;
-import org.bouncycastle.crypto.tls.ProtocolVersion;
-import org.bouncycastle.crypto.tls.ServerName;
-import org.bouncycastle.crypto.tls.ServerNameList;
-import org.bouncycastle.crypto.tls.TlsAuthentication;
-import org.bouncycastle.crypto.tls.TlsClient;
-import org.bouncycastle.crypto.tls.TlsClientProtocol;
-import org.bouncycastle.crypto.tls.TlsCredentials;
-import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
-import org.bouncycastle.crypto.tls.TlsFatalAlert;
-import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
+import org.bouncycastle.tls.AlertDescription;
+import org.bouncycastle.tls.DefaultTlsClient;
+import org.bouncycastle.tls.NameType;
+import org.bouncycastle.tls.ProtocolVersion;
+import org.bouncycastle.tls.ServerName;
+import org.bouncycastle.tls.TlsAuthentication;
+import org.bouncycastle.tls.TlsClient;
+import org.bouncycastle.tls.TlsClientProtocol;
+import org.bouncycastle.tls.TlsFatalAlert;
+import org.bouncycastle.tls.TlsFatalAlertReceived;
+import org.bouncycastle.tls.crypto.TlsCrypto;
+import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-@SuppressWarnings("deprecation")
+
 public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 
 	abstract Map<Integer, String> getInsecureCiphers();
@@ -55,24 +54,14 @@ public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 
 			try {
 
-				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream(), new SecureRandom());
+				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream());
 
-				TlsClient client = new DefaultTlsClient() {
+				TlsCrypto crypto = new BcTlsCrypto(new SecureRandom());
+				TlsClient client = new DefaultTlsClient(crypto) {
 
 					@Override
 					public TlsAuthentication getAuthentication() {
-						return new TlsAuthentication() {
-
-							@Override
-							public TlsCredentials getClientCredentials(CertificateRequest certificateRequest) throws IOException {
-								return null;
-							}
-
-							@Override
-							public void notifyServerCertificate(Certificate serverCertificate) throws IOException {
-								// Don't care
-							}
-						};
+						return new NoopTlsAuthentication();
 					}
 
 					@Override
@@ -81,18 +70,13 @@ public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 					}
 
 					@Override
-					public ProtocolVersion getMinimumVersion() {
-						return getProtocolVersion();
+					protected ProtocolVersion[] getSupportedVersions() {
+						return new ProtocolVersion[]{getProtocolVersion()};
 					}
 
 					@Override
-					@SuppressWarnings({"rawtypes", "JdkObsolete"}) // fit with the API
-					public Hashtable getClientExtensions() throws IOException {
-						Hashtable clientExtensions = super.getClientExtensions();
-						Vector<ServerName> serverNameList = new Vector<>();
-						serverNameList.addElement(new ServerName(NameType.host_name, tlsTestHost));
-						TlsExtensionsUtils.addServerNameExtension(clientExtensions, new ServerNameList(serverNameList));
-						return clientExtensions;
+					protected Vector<ServerName> getSNIServerNames() {
+						return new Vector<ServerName>(List.of(new ServerName(NameType.host_name, tlsTestHost.getBytes(StandardCharsets.UTF_8))));
 					}
 
 					@Override

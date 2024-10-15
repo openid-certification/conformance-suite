@@ -156,15 +156,15 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
+			<artifactId>bcprov-jdk18on</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bctls-jdk15on</artifactId>
+			<artifactId>bctls-jdk18on</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
+			<artifactId>bcpkix-jdk18on</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -439,18 +439,18 @@
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcprov-jdk15on</artifactId>
-				<version>1.64</version>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>1.78.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bctls-jdk15on</artifactId>
-				<version>1.64</version>
+				<artifactId>bctls-jdk18on</artifactId>
+				<version>1.78.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcpkix-jdk15on</artifactId>
-				<version>1.64</version>
+				<artifactId>bcpkix-jdk18on</artifactId>
+				<version>1.78.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>

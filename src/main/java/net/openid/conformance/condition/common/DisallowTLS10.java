@@ -1,6 +1,6 @@
 package net.openid.conformance.condition.common;
 
-import org.bouncycastle.crypto.tls.ProtocolVersion;
+import org.bouncycastle.tls.ProtocolVersion;
 
 @SuppressWarnings("deprecation")
 public class DisallowTLS10 extends AbstractDisallowTLSVersion {
