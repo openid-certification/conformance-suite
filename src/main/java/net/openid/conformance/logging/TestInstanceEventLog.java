@@ -118,4 +118,40 @@ public class TestInstanceEventLog implements DataUtils {
 		return oldBlock;
 	}
 
+	/**
+	 * Wraps the given {@link Runnable} block in a startBlock()... endBlock() sequence.
+	 *
+	 * See {@link #runBlock(String, Runnable)}
+	 * @param block
+	 * @return
+	 */
+	public synchronized String runBlock(Runnable block) {
+		return runBlock(null, block);
+	}
+
+	/**
+	 * Wraps the given {@link Runnable} block in a startBlock()... endBlock() sequence.
+	 * <pre>{@code
+	 * eventLog.startBlock(message);
+	 *	block.run();
+	 * eventLog.endBlock();
+	 * }</pre>
+	 * @param message
+	 * @param block
+	 * @return
+	 */
+	public synchronized String runBlock(String message, Runnable block) {
+		String result;
+		if (message == null) {
+			startBlock();
+		} else {
+			startBlock(message);
+		}
+		try {
+			block.run();
+		} finally {
+			result = endBlock();
+		}
+		return result;
+	}
 }
