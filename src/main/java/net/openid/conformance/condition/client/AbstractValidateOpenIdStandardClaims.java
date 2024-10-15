@@ -15,7 +15,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondition {
-	@SuppressWarnings("serial")
 	private static ElementValidator VALIDATE_STRING = new ElementValidator() {
 		@Override
 		public String getDescription() {
