@@ -2,8 +2,8 @@ package net.openid.conformance.condition.common;
 
 
 import com.google.common.collect.ImmutableList;
-import org.bouncycastle.crypto.tls.CipherSuite;
-import org.bouncycastle.crypto.tls.ProtocolVersion;
+import org.bouncycastle.tls.CipherSuite;
+import org.bouncycastle.tls.ProtocolVersion;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

@@ -1,7 +1,7 @@
 package net.openid.conformance.condition.common;
 
-import org.bouncycastle.crypto.tls.CipherSuite;
-import org.bouncycastle.crypto.tls.ProtocolVersion;
+import org.bouncycastle.tls.CipherSuite;
+import org.bouncycastle.tls.ProtocolVersion;
 
 import java.util.Map;
 

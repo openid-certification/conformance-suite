@@ -5,18 +5,14 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.FAPITLSClient;
-import org.bouncycastle.crypto.tls.ProtocolVersion;
-import org.bouncycastle.crypto.tls.TlsClient;
-import org.bouncycastle.crypto.tls.TlsClientProtocol;
+import org.bouncycastle.tls.ProtocolVersion;
+import org.bouncycastle.tls.TlsClient;
+import org.bouncycastle.tls.TlsClientProtocol;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.security.SecureRandom;
 
-@SuppressWarnings("deprecation")
 public class EnsureTLS12WithFAPICiphers extends AbstractCondition {
-
-
 
 	@Override
 	@PreEnvironment(required = "tls")
@@ -38,7 +34,7 @@ public class EnsureTLS12WithFAPICiphers extends AbstractCondition {
 
 			try {
 
-				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream(), new SecureRandom());
+				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream());
 
 				TlsClient client = new FAPITLSClient(tlsTestHost, true, ProtocolVersion.TLSv12);
 
@@ -56,7 +52,7 @@ public class EnsureTLS12WithFAPICiphers extends AbstractCondition {
 			}
 		} catch (FAPITLSClient.ServerHelloReceived e) {
 			ProtocolVersion serverVersion = e.getServerVersion();
-			if (serverVersion.equals(ProtocolVersion.TLSv12)) {
+			if (serverVersion.equals(ProtocolVersion.TLSv12) || serverVersion.equals(ProtocolVersion.TLSv13)) {
 				logSuccess("Server agreed to TLS 1.2", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {

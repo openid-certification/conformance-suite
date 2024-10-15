@@ -5,17 +5,16 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.FAPITLSClient;
-import org.bouncycastle.crypto.tls.AlertDescription;
-import org.bouncycastle.crypto.tls.ProtocolVersion;
-import org.bouncycastle.crypto.tls.TlsClient;
-import org.bouncycastle.crypto.tls.TlsClientProtocol;
-import org.bouncycastle.crypto.tls.TlsFatalAlert;
-import org.bouncycastle.crypto.tls.TlsFatalAlertReceived;
+import org.bouncycastle.tls.AlertDescription;
+import org.bouncycastle.tls.ProtocolVersion;
+import org.bouncycastle.tls.TlsClient;
+import org.bouncycastle.tls.TlsClientProtocol;
+import org.bouncycastle.tls.TlsFatalAlert;
+import org.bouncycastle.tls.TlsFatalAlertReceived;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.security.SecureRandom;
 
 @SuppressWarnings("deprecation")
 public abstract class AbstractDisallowTLSVersion extends AbstractCondition {
@@ -44,7 +43,7 @@ public abstract class AbstractDisallowTLSVersion extends AbstractCondition {
 
 			try {
 
-				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream(), new SecureRandom());
+				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream());
 
 				TlsClient client = new FAPITLSClient(tlsTestHost, false, getDisallowedProtocol());
 

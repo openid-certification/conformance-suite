@@ -1,10 +1,10 @@
 package net.openid.conformance.condition.util;
 
 
-import org.bouncycastle.crypto.tls.Certificate;
-import org.bouncycastle.crypto.tls.CertificateRequest;
-import org.bouncycastle.crypto.tls.TlsAuthentication;
-import org.bouncycastle.crypto.tls.TlsCredentials;
+import org.bouncycastle.tls.CertificateRequest;
+import org.bouncycastle.tls.TlsAuthentication;
+import org.bouncycastle.tls.TlsCredentials;
+import org.bouncycastle.tls.TlsServerCertificate;
 
 import java.io.IOException;
 
@@ -12,7 +12,7 @@ import java.io.IOException;
 public class NoopTlsAuthentication implements TlsAuthentication {
 
 	@Override
-	public void notifyServerCertificate(Certificate serverCertificate) throws IOException {
+	public void notifyServerCertificate(TlsServerCertificate serverCertificate) throws IOException {
 
 	}
 
