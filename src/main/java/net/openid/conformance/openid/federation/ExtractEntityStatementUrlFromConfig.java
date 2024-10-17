@@ -23,6 +23,4 @@ public class ExtractEntityStatementUrlFromConfig extends AbstractCondition {
 
 		return env;
 	}
-
 }
-
