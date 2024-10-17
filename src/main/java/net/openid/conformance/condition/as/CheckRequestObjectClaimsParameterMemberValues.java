@@ -1,15 +1,13 @@
 package net.openid.conformance.condition.as;
 
-import com.google.gson.JsonElement;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CheckRequestObjectClaimsParameterMemberValues extends AbstractCondition {
 	// https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter
@@ -25,35 +23,68 @@ public class CheckRequestObjectClaimsParameterMemberValues extends AbstractCondi
 		"values"
 	);
 
-	// For success/failure result purposes we maintain allMemberClaims/invalidMemberClaims maps
+	// Add a claim to the list for the specified claims object.
 	//
-	// eg. allMemberClaims:
-	//       id_token
-	//	   given_name
-	//	   ...
-	//       userinfo
-	//	   family_name
-	//	   ...
-	private void addClaimMemberToMap(String claim, String claimMember, Map<String, List<String>> map) {
-		List<String> claimsList;
+	// Parameters:
+	//   claimsObject:     The claims object to be updated.
+	//   claimsObjectPath: The path of the claims object (terminated with the claim name. eg ["id_token", "name"]
+	private void addClaimMemberToClaimsObject(JsonObject claimsObject, List<String> claimsObjectPath) {
+		// Extract the claim name from the path.
+		String claim = claimsObjectPath.remove(claimsObjectPath.size() - 1);
+		// Construct the claims object name from the remaining path.
+		// eg. "id_token.verified_claims.verification"
+		String claimsObjectPathStr = String.join(".", claimsObjectPath);
 
-		if (map.containsKey(claim)) {
-			claimsList = map.get(claim);
-		}
-		else {
-			claimsList = new ArrayList<>();
+		// Ensure the list of claims to be updated exists.
+		if (! claimsObject.has(claimsObjectPathStr)) {
+			claimsObject.add(claimsObjectPathStr, new JsonArray());
 		}
 
-		claimsList.add(claimMember);
-		map.put(claim, claimsList);
+		claimsObject.getAsJsonArray(claimsObjectPathStr).add(claim);
+	}
+
+	// Recurse through nested claims objects to identify and validate individual claims.
+	//
+	// Parameters:
+	//   claimsObject:	The claims object to be checked.
+	//   claimsObjectPath:    The path of the claims object. eg. ["id_token", "verified_claims"]
+	//   allMemberClaims:     A store for all identified claims.
+	//   invalidMemberClaims: A store for all invalid claims.
+	private void checkClaimsObject(JsonObject claimsObject, List<String> claimsObjectPath, JsonObject allMemberClaims, JsonObject invalidMemberClaims) {
+
+		// Process all entries in the claims object.
+		for (String key : claimsObject.keySet()) {
+			ArrayList<String> localClaimsObjectPath = new ArrayList<>(claimsObjectPath);
+
+			// Recurse down though claims that are objects.
+			if (claimsObject.get(key) instanceof JsonObject) {
+				// Add the claim name to the claim object path.
+				localClaimsObjectPath.add(key);
+
+				checkClaimsObject(claimsObject.get(key).getAsJsonObject(), localClaimsObjectPath, allMemberClaims, invalidMemberClaims);
+				continue;
+			}
+
+			// The claim has a value. Add to the all claims store.
+			if (claimsObject.get(key).isJsonNull()) {
+				// If the claim has a JsonNull value the claim name must be added to the
+				// claim object path. Otherwise the recursion through claims objects will
+				// already have added the claim to the path.
+				localClaimsObjectPath.add(key);
+			}
+			addClaimMemberToClaimsObject(allMemberClaims, localClaimsObjectPath);
+
+			if (! claimsObject.get(key).isJsonNull()) {
+				if (! validValuekeys.contains(key)) {
+					addClaimMemberToClaimsObject(invalidMemberClaims, claimsObjectPath);
+				}
+			}
+		}
 	}
 
 	@Override
 	@PreEnvironment(required = { "authorization_request_object" })
 	public Environment evaluate(Environment env) {
-
-		HashMap<String, List<String>> allMemberClaims = new HashMap<>();
-		HashMap<String, List<String>> invalidMemberClaims = new HashMap<>();
 
 		JsonObject requestObjectClaimsParameter = env.getElementFromObject("authorization_request_object", "claims.claims").getAsJsonObject();
 
@@ -61,6 +92,9 @@ public class CheckRequestObjectClaimsParameterMemberValues extends AbstractCondi
 			logSuccess("authorization_request_object.claims.claims does not exist or is empty");
 			return env;
 		}
+
+		JsonObject allMemberClaims = new JsonObject();
+		JsonObject invalidMemberClaims = new JsonObject();
 
 		// Process the top level claims parameters.
 		// eg. 'userinfo'
@@ -70,31 +104,8 @@ public class CheckRequestObjectClaimsParameterMemberValues extends AbstractCondi
 				continue;
 			}
 
-			JsonElement claimObject = requestObjectClaimsParameter.get(claim);
-
-			if (claimObject instanceof JsonObject) {
-				// Process the claims parameter members.
-				// eg. 'given_name'
-				for (String member: claimObject.getAsJsonObject().keySet()) {
-
-					JsonElement claimValue = claimObject.getAsJsonObject().get(member);
-
-					addClaimMemberToMap(claim, member, allMemberClaims);
-
-					// The member value must either be null or an object containing only the expected keys.
-					if (claimValue instanceof JsonObject) {
-						for (String valueKey: claimValue.getAsJsonObject().keySet()) {
-							if (! validValuekeys.contains(valueKey)) {
-								addClaimMemberToMap(claim, member, invalidMemberClaims);
-							}
-						}
-					}
-					// Null is a valid claim value, anything else is not.
-					else if (! claimValue.isJsonNull()) {
-						addClaimMemberToMap(claim, member, invalidMemberClaims);
-					}
-				}
-			}
+			ArrayList<String> claimsObjectPath = new ArrayList<>(List.of(claim));
+			checkClaimsObject(requestObjectClaimsParameter.getAsJsonObject(claim), claimsObjectPath, allMemberClaims, invalidMemberClaims);
 		}
 
 		if (invalidMemberClaims.isEmpty()) {
