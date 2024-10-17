@@ -1,7 +1,9 @@
 package net.openid.conformance.testmodule;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.JWSAlgorithm;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -84,4 +86,17 @@ public class OIDFJSON_UnitTest {
 			String s = OIDFJSON.forceConversionToString(json);
 		});
 	}
+
+	@Test
+	public void testConvertJsonArrayToList_throwsExceptionOnNonString() {
+		JsonArray jsonArray = new JsonArray();
+		jsonArray.add("string1");
+		jsonArray.add("string2");
+		jsonArray.add(42); // Add a non-string element
+
+		assertThrows(OIDFJSON.UnexpectedJsonTypeException.class, () -> {
+			OIDFJSON.convertJsonArrayToList(jsonArray);
+		});
+	}
+
 }
