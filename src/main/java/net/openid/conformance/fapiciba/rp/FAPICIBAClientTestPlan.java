@@ -11,7 +11,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi-ciba-id1-client-test-plan",
-	displayName = "FAPI-CIBA-ID1: Relying Party (client test) (alpha - INCOMPLETE/INCORRECT, please email certification team if intererested)",
+	displayName = "FAPI-CIBA-ID1: Relying Party (client test) (alpha - INCOMPLETE/INCORRECT, please email certification team if interested)",
 	profile = TestPlan.ProfileNames.rptest,
 	testModules = {
 		// Happy path test

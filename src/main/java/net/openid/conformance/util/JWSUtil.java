@@ -2,6 +2,10 @@ package net.openid.conformance.util;
 
 import com.nimbusds.jose.JWSAlgorithm;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class JWSUtil {
 
 	/**
@@ -21,6 +25,18 @@ public class JWSUtil {
 		return false;
 	}
 
+	public static List<String> validJWSAlgorithms() {
+		return Stream.of(
+				JWSAlgorithm.Family.EC,
+				JWSAlgorithm.Family.ED,
+				JWSAlgorithm.Family.HMAC_SHA,
+				JWSAlgorithm.Family.RSA
+			)
+			.flatMap(family -> family.stream())
+			.map(JWSAlgorithm::getName)
+			.collect(Collectors.toList());
+	}
+
 	/**
 	 * Checks if alg is an asymmetric algorithm
 	 * @param alg
@@ -36,4 +52,5 @@ public class JWSUtil {
 		}
 		return false;
 	}
+
 }
