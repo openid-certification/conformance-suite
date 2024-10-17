@@ -1,4 +1,5 @@
 local-values.conf
+.devenv.flake.nix
 target
 *~
 bin
