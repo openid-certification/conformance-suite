@@ -53,7 +53,7 @@ public class EnsureTLS12WithFAPICiphers extends AbstractCondition {
 		} catch (FAPITLSClient.ServerHelloReceived e) {
 			ProtocolVersion serverVersion = e.getServerVersion();
 			if (serverVersion.equals(ProtocolVersion.TLSv12) || serverVersion.equals(ProtocolVersion.TLSv13)) {
-				logSuccess("Server agreed to TLS 1.2", args("host", tlsTestHost, "port", tlsTestPort));
+				logSuccess("Server agreed to TLS 1.2 or TLS 1.3", args("host", tlsTestHost, "port", tlsTestPort));
 				return env;
 			} else {
 				throw error("Server used incorrect TLS version",
