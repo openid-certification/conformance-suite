@@ -328,7 +328,7 @@ makeCIBATest() {
 }
 
 makeEkycTests() {
-    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=mtls][server_metadata=discovery][response_type=code][client_registration=static_client][response_mode=default] yesdotcom-ekyc.json"
+    TESTS="${TESTS} ekycid3-test-plan-oidccore[client_auth_type=mtls][server_metadata=discovery][response_type=code][client_registration=static_client][response_mode=default] yesdotcom-ekyc.json"
 }
 
 makeLocalProviderTests() {
