@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 
-@SuppressWarnings("deprecation")
 public abstract class AbstractDisallowTLSVersion extends AbstractCondition {
 
 	abstract ProtocolVersion getDisallowedProtocol();

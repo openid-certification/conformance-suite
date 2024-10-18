@@ -82,7 +82,7 @@ public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 					@Override
 					public void notifySelectedCipherSuite(int selectedCipherSuite) {
 						Map<Integer, String> insecureCiphers = getInsecureCiphers();
-						throw error("Server accepted a cipher that is not on the list of FAPI-RW permitted ciphers",
+						throw error("Server accepted a cipher that is not on the list of permitted ciphers",
 								args("host", tlsTestHost,
 										"port", tlsTestPort,
 										"cipher_suite", insecureCiphers.get(selectedCipherSuite)));
