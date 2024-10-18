@@ -239,6 +239,9 @@ def main():
         for key in tests_to_retry:
             logger.info(failure(f"{key[0]} {key[1]}"))
 
+    if tests_to_retry :
+        sys.exit(1)
+
 def load_client_certs():
     client_certs = {}
     key_directory = os.path.dirname(os.path.abspath(__file__)) + '/certs-keys/'
