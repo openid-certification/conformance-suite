@@ -288,6 +288,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                         </div>
                                     </div>
                                 </div>
+
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">login_hint</div>
                                     <div class="col-md-10">
@@ -569,6 +570,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
 
                             </div>
+
                             <div class="config-form-container">
                                 <h3 class="config-form-container-header">tls_client_auth configuration (Enter <u>only one</u> of the following)</h3>
                                 <div class="row config-form-element-container">
@@ -1122,6 +1124,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
 
                             </div>
+
                             <div class="config-form-container">
                                 <h3 class="config-form-container-header">eKYC</h3>
                                 <div class="row config-form-element-container">
@@ -1143,6 +1146,61 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="A complete set of end-user data as held by the OpenID Provider in the form it would be returned via the userinfo endpoint. Enter the entire userinfo json."></span>
                                             </div>
                                             <textarea class="form-control config-form-element" data-json-target="ekyc_userinfo" data-json-type="jsonobject"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Federation</h3>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">entity_identifier</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The globally unique URL bound to the entity.
+                                                This URL MUST use the https scheme, have a host component, and MAY contain port and path components.
+                                                It MUST NOT contain query parameter or fragment components."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="federation.entity_identifier" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">entity_configuration</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Static entity configuration"></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="federation.entity_configuration"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">trust_anchor</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the trust anchor"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="federation.trust_anchor" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">trust_anchor_jwks</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys for the entity's trust anchor"></span>
+                                            </div>
+                                            <textarea placeholder="OPTIONAL" class="form-control config-form-element" data-json-target="federation.trust_anchor_jwks"></textarea>
                                         </div>
                                     </div>
                                 </div>
