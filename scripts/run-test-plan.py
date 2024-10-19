@@ -1267,6 +1267,11 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
+        # Exclude federation modules as we don't have tests for those yet
+        if re.match(r'openid-federation-*', m):
+            untested_test_modules.remove(m)
+            continue
+
         client_test = re.match(r'fapi-rw-id2-client-.*', m) or \
                       re.match(r'fapi1-advanced-final-client-.*', m) or \
                       re.match(r'fapi2-security-profile-id2-client-.*', m) or \
