@@ -1,6 +1,12 @@
 package net.openid.conformance.testmodule;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * Wrappers around the GSON getAsXXXX methods
@@ -133,5 +139,29 @@ public final class OIDFJSON {
 		public UnexpectedJsonTypeException(String msg) {
 			super(msg);
 		}
+	}
+
+	public static <T> JsonArray convertListToJsonArray(List<T> list, Function<T, JsonElement> converter) {
+		JsonArray jsonArray = new JsonArray();
+		for (T item : list) {
+			jsonArray.add(converter.apply(item));
+		}
+		return jsonArray;
+	}
+
+	public static <T> List<T> convertJsonArrayToList(JsonArray jsonArray, Function<JsonElement, T> converter) {
+		List<T> list = new ArrayList<>();
+		for (JsonElement item : jsonArray) {
+			list.add(converter.apply(item));
+		}
+		return list;
+	}
+
+	public static JsonArray convertListToJsonArray(List<String> list) {
+		return convertListToJsonArray(list, JsonPrimitive::new);
+	}
+
+	public static List<String> convertJsonArrayToList(JsonArray jsonArray) {
+		return convertJsonArrayToList(jsonArray, OIDFJSON::getString);
 	}
 }
