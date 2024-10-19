@@ -26,7 +26,8 @@ public class ConfigurablePlanSurfacingTests {
 			TestPlan.ProfileNames.rptest,
 			TestPlan.ProfileNames.rplogouttest,
 			TestPlan.ProfileNames.ekyctest,
-			TestPlan.ProfileNames.wallettest);
+			TestPlan.ProfileNames.wallettest,
+			TestPlan.ProfileNames.federationTest);
 		List<String> profilesSurfaced = profilesPresent(testPlans);
 
 		assertThat(profilesToSurface, containsInAnyOrder(profilesSurfaced.toArray()));
