@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "openid-federation-entity-configuration",
 	displayName = "OpenID Federation: Entity Configuration validation",
 	summary =
-		"The test will fetch and validate given entity's Entity Configuration, and then proceed to its Immediate Superiors " +
+		"The test will fetch and validate the given entity's Entity Configuration, and then proceed to its Immediate Superiors " +
 		"as specified in `authority_hints`. For each Immediate Superior, its Entity Configuration is fetched and validated. " +
 		"Following that, the test will invoke the superior's List endpoint to confirm the presence of the original entity, " +
 		"and finally use the Fetch endpoint to retrieve and validate the Subordinate Statement for the entity.",
