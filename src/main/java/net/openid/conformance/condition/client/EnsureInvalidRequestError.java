@@ -19,7 +19,7 @@ public class EnsureInvalidRequestError extends AbstractCondition {
 		} else if (!error.equals(expected)) {
 			throw error("'error' field has unexpected value", args("expected", expected, "actual", error));
 		} else {
-			logSuccess("Authorization endpoint returned expected 'error' of '"+expected+"'", args("error", error));
+			logSuccess("Endpoint returned expected 'error' of '"+expected+"'", args("error", error));
 
 			return env;
 		}
