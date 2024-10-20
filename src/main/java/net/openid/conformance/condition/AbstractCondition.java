@@ -612,7 +612,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	/*
 	 * Create an HTTP Client for use in calling outbound to other services
 	 */
-	protected HttpClient createHttpClient(Environment env, boolean restrictAllowedTLSVersions)
+	protected HttpClient createHttpClient(Environment env, boolean restrictAllowedTLSVersions, boolean disableRedirectHandling)
 		throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException,
 				KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
 
@@ -671,7 +671,9 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		builder.setConnectionManager(ccm);
 
-		builder.disableRedirectHandling();
+		if (disableRedirectHandling) {
+			builder.disableRedirectHandling();
+		}
 
 		builder.disableAutomaticRetries();
 
@@ -680,11 +682,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
-		return createRestTemplate(env, true);
+		return createRestTemplate(env, true, true);
 	}
 
 	protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
-		HttpClient httpClient = createHttpClient(env, restrictAllowedTLSVersions);
+		return createRestTemplate(env, restrictAllowedTLSVersions, true);
+	}
+
+	protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions, boolean disableRedirectHandling) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
+		HttpClient httpClient = createHttpClient(env, restrictAllowedTLSVersions, disableRedirectHandling);
 
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
