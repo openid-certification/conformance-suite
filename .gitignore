@@ -1,4 +1,5 @@
 local-values.conf
+.devenv.flake.nix
 target
 *~
 bin
@@ -88,3 +89,13 @@ oidcc-*.zip
 fapi2-*.zip
 fapi1-*.zip
 fapi-*.zip
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
