@@ -6,6 +6,7 @@ import net.openid.conformance.condition.as.CheckForInvalidCharsInState;
 import net.openid.conformance.condition.as.CheckNonceLength;
 import net.openid.conformance.condition.as.CheckStateLength;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -25,6 +26,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 
 public class FAPI2SPID2ClientTestHappyPath extends AbstractFAPI2SPID2ClientTest {
+
+	@Override
+	protected void onConfigurationCompleted() {
+		super.onConfigurationCompleted();
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-ID2-5.6.3-3");
+	}
 
 	@Override
 	protected void addCustomValuesToIdToken(){

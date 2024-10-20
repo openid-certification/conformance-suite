@@ -133,14 +133,5 @@
         "condition": "AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject",
         "expected-result": "failure",
         "comment": "Ignore missing txn claim in CI environment"
-    },
-    {
-        "test-name": "fapi2-security-profile-id2-ensure-request-object-with-multiple-aud-succeeds",
-        "variant": "*",
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json",
-        "current-block": "",
-        "condition": "CheckDistinctKeyIdValueInServerJWKs",
-        "expected-result": "warning",
-        "comment": "Ignore warning about duplicate JWKS entries in CI tests"
     }
 ]
