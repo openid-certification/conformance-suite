@@ -17,6 +17,11 @@ public abstract class AbstractGenerateKey extends AbstractCondition {
 	public static final int RSA_KEY_SIZE = 2048;
 
 	protected JsonObject createKeyForAlg(String alg) {
+		JWK key = createJwkForAlg(alg);
+		return JsonParser.parseString(key.toJSONString()).getAsJsonObject();
+	}
+
+	protected JWK createJwkForAlg(String alg) {
 		JWKGenerator<? extends JWK> generator;
 		switch (alg) {
 			case "ES256":
@@ -38,7 +43,7 @@ public abstract class AbstractGenerateKey extends AbstractCondition {
 		} catch (JOSEException e) {
 			throw error("Failed to generate key for alg " + alg, e);
 		}
-		return JsonParser.parseString(key.toJSONString()).getAsJsonObject();
+		return key;
 	}
 
 	protected JWKGenerator<? extends JWK> onConfigure(JWKGenerator<? extends JWK> generator) {
