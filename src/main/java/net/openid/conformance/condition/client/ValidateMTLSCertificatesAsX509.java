@@ -139,7 +139,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
 				org.bouncycastle.asn1.sec.ECPrivateKey pKey = org.bouncycastle.asn1.sec.ECPrivateKey.getInstance(seq);
 
-				AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.id_ecPublicKey, pKey.getParameters());
+				AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.id_ecPublicKey, pKey.getParametersObject());
 
 				byte[] server_pkcs8 = new PrivateKeyInfo(algId, pKey).getEncoded();
 

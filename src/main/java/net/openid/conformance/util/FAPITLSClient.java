@@ -1,36 +1,43 @@
 package net.openid.conformance.util;
 
-import org.bouncycastle.crypto.tls.Certificate;
-import org.bouncycastle.crypto.tls.CertificateRequest;
-import org.bouncycastle.crypto.tls.CipherSuite;
-import org.bouncycastle.crypto.tls.DefaultTlsClient;
-import org.bouncycastle.crypto.tls.NameType;
-import org.bouncycastle.crypto.tls.ProtocolVersion;
-import org.bouncycastle.crypto.tls.ServerName;
-import org.bouncycastle.crypto.tls.ServerNameList;
-import org.bouncycastle.crypto.tls.TlsAuthentication;
-import org.bouncycastle.crypto.tls.TlsCredentials;
-import org.bouncycastle.crypto.tls.TlsExtensionsUtils;
+import org.bouncycastle.tls.CipherSuite;
+import org.bouncycastle.tls.CertificateRequest;
+import org.bouncycastle.tls.DefaultTlsClient;
+import org.bouncycastle.tls.NameType;
+import org.bouncycastle.tls.ProtocolVersion;
+import org.bouncycastle.tls.ServerName;
+import org.bouncycastle.tls.TlsAuthentication;
+import org.bouncycastle.tls.TlsCredentials;
+import org.bouncycastle.tls.TlsServerCertificate;
+import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 
 import java.io.IOException;
-import java.util.Hashtable;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.List;
 import java.util.Vector;
 
-@SuppressWarnings("deprecation")
+
 public class FAPITLSClient extends DefaultTlsClient {
 
-	private Object targetHost;
+	private String targetHost;
 	private boolean allowOnlyFAPICiphers;
-	private ProtocolVersion allowedProtocolVersion;
+	private ProtocolVersion[] allowedProtocolVersion;
 
 	private static final int[] FAPI_CIPHERS = {
-		CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
-		CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
-		CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+			CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+			CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+			CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+//			List of ciphers on Mandatory to implement Cipher Suite of TLS1.3
+			CipherSuite.TLS_AES_256_GCM_SHA384,
+			CipherSuite.TLS_CHACHA20_POLY1305_SHA256,
+			CipherSuite.TLS_AES_128_GCM_SHA256
+
 	};
 
-	public FAPITLSClient(Object tlsTestHost, boolean useOnlyFAPICiphers, ProtocolVersion protocolVersion) {
+	public FAPITLSClient(String tlsTestHost, boolean useOnlyFAPICiphers, ProtocolVersion... protocolVersion) {
+		super(new BcTlsCrypto(new SecureRandom()));
 		this.targetHost = tlsTestHost;
 		this.allowOnlyFAPICiphers = useOnlyFAPICiphers;
 		this.allowedProtocolVersion = protocolVersion;
@@ -61,30 +68,20 @@ public class FAPITLSClient extends DefaultTlsClient {
 			}
 
 			@Override
-			public void notifyServerCertificate(Certificate serverCertificate) throws IOException {
+			public void notifyServerCertificate(TlsServerCertificate serverCertificate) throws IOException {
 				// even though we make a TLS connection we ignore the server cert validation here
 			}
 		};
 	}
 
-		@Override
-	public ProtocolVersion getMinimumVersion() {
-		return allowedProtocolVersion;
-	}
-
-		@Override
-	public ProtocolVersion getClientVersion() {
-		return allowedProtocolVersion;
+	@Override
+	protected ProtocolVersion[] getSupportedVersions() {
+		return this.allowedProtocolVersion;
 	}
 
 	@Override
-	@SuppressWarnings({"rawtypes", "JdkObsolete"}) // fit with the API
-	public Hashtable getClientExtensions() throws IOException {
-		Hashtable clientExtensions = super.getClientExtensions();
-		Vector<ServerName> serverNameList = new Vector<>();
-		serverNameList.addElement(new ServerName(NameType.host_name, targetHost));
-		TlsExtensionsUtils.addServerNameExtension(clientExtensions, new ServerNameList(serverNameList));
-		return clientExtensions;
+	protected Vector<ServerName> getSNIServerNames() {
+		return new Vector<ServerName>(List.of(new ServerName(NameType.host_name, this.targetHost.getBytes(StandardCharsets.UTF_8))));
 	}
 
 	@Override
