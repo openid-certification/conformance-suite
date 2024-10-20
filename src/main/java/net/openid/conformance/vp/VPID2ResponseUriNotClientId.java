@@ -2,7 +2,7 @@ package net.openid.conformance.vp;
 
 import net.openid.conformance.condition.client.AddBadResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
+import net.openid.conformance.condition.common.ExpectResponseUriErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -13,7 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oid4vp-negative-test-response-uri-not-client-id",
 	displayName = "OID4VP: response_uri not valid",
-	summary = "Makes a request where the response_uri is not the client_id. The wallet should display an error, a screenshot of which must be uploaded.",
+	summary = "Makes a request where the response_uri is not the client_id. The wallet must display an error, a screenshot of which must be uploaded.",
 	profile = "OID4VP-ID2",
 	configurationFields = {
 		"client.presentation_definition"
@@ -40,10 +40,9 @@ public class VPID2ResponseUriNotClientId extends AbstractVPServerTest {
 
 	@Override
 	protected void createPlaceholder() {
-		// FIXME use a better placeholder with a better message
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OID4VP-6.2");
+		callAndStopOnFailure(ExpectResponseUriErrorPage.class, "OID4VP-6.2");
 
-		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
+		env.putString("error_callback_placeholder", env.getString("response_uri_error"));
 	}
 
 	@Override

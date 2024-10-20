@@ -32,6 +32,7 @@ import net.openid.conformance.condition.client.CheckUrlFragmentContainsCodeVerif
 import net.openid.conformance.condition.client.CheckUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
+import net.openid.conformance.condition.client.CreateClientEncryptionKeyIfMissing;
 import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
@@ -105,13 +106,18 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_enc"
 })
 public abstract class AbstractVPServerTest extends AbstractRedirectServerTestModule {
+	protected enum TestState {
+		INITIAL,
+		REQUEST_SENT, // if there's a request uri, this state is only used after it has been called
+		RESPONSE_RECEIVED,
+	}
 
 	protected VPResponseMode responseMode;
 	protected VPRequestMethod requestMethod;
 	protected CredentialFormat credentialFormat;
 	protected VPClientIdScheme clientIdScheme;
 	protected Boolean pre_id2 = null;
-	protected Boolean requestUriCalled = false;
+	protected TestState testState = TestState.INITIAL;
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -209,34 +215,38 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	}
 
 	protected void configureStaticClient() {
-		JsonElement el = env.getElementFromObject("client", "jwks");
-		if (el == null) {
-			boolean jwksRequired = false;
-			// keys are needed for signed requests or encrypted responses
-			switch (requestMethod) {
+		JsonElement clientJwksEl = env.getElementFromObject("client", "jwks");
+		boolean jwksRequired = false;
+		boolean encryptionKeyRequired = false;
+		// keys are needed for signed requests or encrypted responses
+		switch (requestMethod) {
 //				case URL_QUERY:
-				case REQUEST_URI_UNSIGNED:
-					break;
-				case REQUEST_URI_SIGNED:
-					jwksRequired = true;
-					break;
-			}
-			switch (responseMode) {
-				case DIRECT_POST:
-				case W3C_DC_API:
-					break;
-				case DIRECT_POST_JWT:
-				case W3C_DC_API_JWT:
-					// assume response is encrypted so a key is required
-					jwksRequired = true;
-					break;
-			}
-
-			if (!jwksRequired) {
-				return;
-			}
+			case REQUEST_URI_UNSIGNED:
+				break;
+			case REQUEST_URI_SIGNED:
+				jwksRequired = true;
+				break;
 		}
+		switch (responseMode) {
+			case DIRECT_POST:
+			case W3C_DC_API:
+				break;
+			case DIRECT_POST_JWT:
+			case W3C_DC_API_JWT:
+				// assume response is encrypted so a key is required
+				jwksRequired = true;
+				encryptionKeyRequired = true;
+				break;
+		}
+
+		if (clientJwksEl == null && !jwksRequired) {
+			return;
+		}
+
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+		if (encryptionKeyRequired) {
+			callAndStopOnFailure(CreateClientEncryptionKeyIfMissing.class);
+		}
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
 	}
@@ -389,6 +399,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		setStatus(Status.RUNNING);
 
 		call(exec().startBlock("Direct post endpoint").mapKey("incoming_request", requestId));
+		setStateToResponseReceived();
 		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.FAILURE);
@@ -604,10 +615,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 	private Object handleBrowserApiSubmission(String requestId) {
 
 		getTestExecutionManager().runInBackground(() -> {
-
 			// process the callback
 			setStatus(Status.RUNNING);
 			call(exec().startBlock("Process Browser API result").mapKey("incoming_request", requestId));
+			setStateToResponseReceived();
 
 			callAndStopOnFailure(ExtractBrowserApiResponse.class);
 
@@ -621,17 +632,30 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
 	}
 
+	private void setStateToResponseReceived() {
+		if (testState == TestState.RESPONSE_RECEIVED) {
+			throw new TestFailureException(getId(), "More than one response received");
+		}
+		testState = TestState.RESPONSE_RECEIVED;
+	}
+
 	protected Object handleRequestUriRequest() {
 		setStatus(Status.RUNNING);
 
 		String requestObject = env.getString("request_object");
 
-		if (requestUriCalled) {
-			eventLog.log(getName(), "Wallet has retrieved request_uri another time");
-		} else {
-			markAuthorizationEndpointVisited();
-
-			continueAfterRequestUriCalled();
+		switch (testState) {
+			case INITIAL:
+				markAuthorizationEndpointVisited();
+				continueAfterRequestUriCalled();
+				testState = TestState.REQUEST_SENT;
+				break;
+			case REQUEST_SENT:
+				// nothing seems to prevent request_uri being retrieved more than once
+				eventLog.log(getName(), "Wallet has retrieved request_uri another time");
+				break;
+			case RESPONSE_RECEIVED:
+				throw new TestFailureException(getId(), "Wallet called request_uri after already sending a response");
 		}
 
 		setStatus(Status.WAITING);

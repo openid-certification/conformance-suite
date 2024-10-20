@@ -427,9 +427,10 @@
 				<version>9.41.2</version>
 			</dependency>
 			<dependency>
+				<!-- should match version in https://bitbucket.org/connect2id/nimbus-jose-jwt/src/master/pom.xml -->
 				<groupId>com.google.crypto.tink</groupId>
 				<artifactId>tink</artifactId>
-				<version>1.8.0</version>
+				<version>1.13.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.specto</groupId>
