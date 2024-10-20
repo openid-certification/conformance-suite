@@ -15,6 +15,7 @@ public interface TestPlan {
 		String optest = "Test an OpenID Provider / Authorization Server";
 		String ekyctest = "Test an eKYC & IDA OpenID Provider";
 		String wallettest = "Test a wallet";
+		String federationTest = "Test an OpenID Federation entity";
 	}
 
 	/**
