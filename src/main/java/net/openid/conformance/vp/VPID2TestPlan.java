@@ -15,7 +15,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "vp-test-plan",
-	displayName = "OpenID for Verifiable Presentations ID2: Alpha tests (not currently part of certification program)",
+	displayName = "OpenID for Verifiable Presentations ID2: Test a wallet - alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.wallettest
 )
 public class VPID2TestPlan implements TestPlan {
