@@ -172,8 +172,7 @@ import net.openid.conformance.condition.common.CheckCIBAServerConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
-import net.openid.conformance.condition.common.EnsureIncomingTls12;
-import net.openid.conformance.condition.common.EnsureIncomingTlsSecureCipher;
+import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -1165,8 +1164,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		env.mapKey("client_request", envKey);
 
-		callAndContinueOnFailure(EnsureIncomingTls12.class, Condition.ConditionResult.WARNING, "FAPI-R-7.1-1");
-		callAndContinueOnFailure(EnsureIncomingTlsSecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI-RW-8.5-1");
+		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI1-BASE-7.1", "FAPI1-ADV-8.5");
 		callAndStopOnFailure(CheckIncomingContentTypeIsApplicationJson.class, Condition.ConditionResult.FAILURE, "CIBA-10.2");
 
 		env.unmapKey("client_request");
