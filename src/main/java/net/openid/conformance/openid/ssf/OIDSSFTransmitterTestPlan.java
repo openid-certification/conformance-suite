@@ -10,6 +10,9 @@ import net.openid.conformance.variant.VariantSelection;
 	profile = TestPlan.ProfileNames.ssftest,
 	testModules = {
 		OIDSSFTransmitterMetadataTest.class,
+		OIDSSFStreamControlHappyPathTest.class,
+		OIDSSFStreamControlErrorResponseTest.class,
+		OIDSSFStreamSubjectControlHappyPathTest.class,
 	}
 )
 public class OIDSSFTransmitterTestPlan implements TestPlan {
