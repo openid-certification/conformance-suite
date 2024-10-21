@@ -18,9 +18,9 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
-	testName = "openid-ssf-receiver-stream-control-happy-path",
-	displayName = "OpenID Shared Signals Framework: Validate Receiver Stream Control (Happy Path)",
-	summary = "This test verifies the behavior of the receiver stream control.",
+	testName = "openid-ssf-stream-control-happy-path",
+	displayName = "OpenID Shared Signals Framework: Validate Stream Control (Happy Path)",
+	summary = "This test verifies the behavior of the stream control.",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",
@@ -39,7 +39,7 @@ import net.openid.conformance.variant.VariantParameters;
 	"ssf.transmitter.issuer",
 	"ssf.transmitter.metadata_suffix",
 })
-public class OIDSSFReceiverStreamControlHappyPathTest extends AbstractOIDSSFTest {
+public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 
 	@Override
 	public void start() {
@@ -50,7 +50,7 @@ public class OIDSSFReceiverStreamControlHappyPathTest extends AbstractOIDSSFTest
 		// see https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		// OID_CAEP_INTEROP https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		eventLog.runBlock("Prepare Transmitter Access", () -> {
-				callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
+			callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
 		});
 
 //		try {
@@ -72,52 +72,51 @@ public class OIDSSFReceiverStreamControlHappyPathTest extends AbstractOIDSSFTest
 			call(exec().unmapKey("endpoint_response"));
 		});
 
-
 		eventLog.runBlock("Read Stream Configuration", () -> {
-				callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-7.1.1.2", "CAEPIOP-2.3.8.2");
-				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
-				callAndContinueOnFailure(CheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
-				// TODO check: In the event that there are no Event Streams configured, the Transmitter MUST return an empty list.
-				// TODO check: stream configuration response
-				call(exec().unmapKey("endpoint_response"));
+			callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-7.1.1.2", "CAEPIOP-2.3.8.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(CheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
+			// TODO check: In the event that there are no Event Streams configured, the Transmitter MUST return an empty list.
+			// TODO check: stream configuration response
+			call(exec().unmapKey("endpoint_response"));
 		});
 
-		eventLog.runBlock("Update Stream Configuration", () -> {
-//		callAndStopOnFailure(OIDSSFUpdateStreamConfigCall.class, "OIDSSF-7.1.1.3", "CAEPIOP-2.3.8.2");
-//		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-//		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.3");
-//		// TODO check for 202 response
-//		// 202	if the update request has been accepted, but not processed. Receiver MAY try the same request later to get processing result.
-//		callAndContinueOnFailure(CheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.3");
-//		call(exec().unmapKey("endpoint_response"));
-		});
+//		eventLog.runBlock("Update Stream Configuration", () -> {
+//			callAndStopOnFailure(OIDSSFUpdateStreamConfigCall.class, "OIDSSF-7.1.1.3", "CAEPIOP-2.3.8.2");
+//			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+//			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.3");
+//			// TODO check for 202 response
+//			// 202	if the update request has been accepted, but not processed. Receiver MAY try the same request later to get processing result.
+//			callAndContinueOnFailure(CheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.3");
+//			call(exec().unmapKey("endpoint_response"));
+//		});
 
-		eventLog.runBlock("Replace Stream Configuration", () -> {
-//		callAndStopOnFailure(OIDSSFReplaceStreamConfigCall.class, "OIDSSF-7.1.1.4", "CAEPIOP-2.3.8.2");
-//		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-//		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.4");
-//		// TODO check for 202 responses
-//		// 202	if the replace request has been accepted, but not processed. Receiver MAY try the same request later in order to get processing result.
-//		callAndContinueOnFailure(CheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.4");
-//		call(exec().unmapKey("endpoint_response"));
-		});
+//		eventLog.runBlock("Replace Stream Configuration", () -> {
+//			callAndStopOnFailure(OIDSSFReplaceStreamConfigCall.class, "OIDSSF-7.1.1.4", "CAEPIOP-2.3.8.2");
+//			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+//			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.4");
+//			// TODO check for 202 responses
+//			// 202	if the replace request has been accepted, but not processed. Receiver MAY try the same request later in order to get processing result.
+//			callAndContinueOnFailure(CheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.4");
+//			call(exec().unmapKey("endpoint_response"));
+//		});
 
 		eventLog.runBlock("Read Stream Status", () -> {
-				// stream status
-				callAndStopOnFailure(OIDSSFReadStreamStatusCall.class, "OIDSSF-7.1.2.1");
-				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.1");
-				// TODO check: status response
-				call(exec().unmapKey("endpoint_response"));
+			// stream status
+			callAndStopOnFailure(OIDSSFReadStreamStatusCall.class, "OIDSSF-7.1.2.1");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.1");
+			// TODO check: status response
+			call(exec().unmapKey("endpoint_response"));
 		});
 
 		eventLog.runBlock("Update Stream Status", () -> {
-				callAndStopOnFailure(OIDSSFUpdateStreamStatusCall.class, "OIDSSF-7.1.2.2");
-				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
-				// TODO check: status response
-				call(exec().unmapKey("endpoint_response"));
+			callAndStopOnFailure(OIDSSFUpdateStreamStatusCall.class, "OIDSSF-7.1.2.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
+			// TODO check: status response
+			call(exec().unmapKey("endpoint_response"));
 		});
 
 		eventLog.runBlock("Delete Stream Configuration", () -> {

@@ -44,16 +44,28 @@ public abstract class AbstractOIDSSFStreamConfigCall extends AbstractCallProtect
 	protected abstract String getEndpointName();
 
 	protected void configureResourceUrl(Environment env) {
-		String configurationEndpoint = getConfigurationEndpoint(env);
-		env.putString("protected_resource_url", configurationEndpoint);
+		String resourceUrl = getResourceEndpointUrl(env);
+		env.putString("protected_resource_url", resourceUrl);
 	}
 
-	protected String getConfigurationEndpoint(Environment env) {
+	protected String getResourceEndpointUrl(Environment env) {
+		return getConfigurationEndpointUrl(env);
+	}
+
+	protected String getConfigurationEndpointUrl(Environment env) {
 		return env.getString("transmitter_metadata", "configuration_endpoint");
 	}
 
-	protected String getStatusEndpoint(Environment env) {
+	protected String getStatusEndpointUrl(Environment env) {
 		return env.getString("transmitter_metadata", "status_endpoint");
+	}
+
+	protected String getAddSubjectEndpointUrl(Environment env) {
+		return env.getString("transmitter_metadata", "add_subject_endpoint");
+	}
+
+	protected String getRemoveSubjectEndpointUrl(Environment env) {
+		return env.getString("transmitter_metadata", "remove_subject_endpoint");
 	}
 
 	protected void configureAccessToken(Environment env) {
@@ -76,11 +88,11 @@ public abstract class AbstractOIDSSFStreamConfigCall extends AbstractCallProtect
 	}
 
 	protected String getStreamStatusEndpointUrlWithStreamId(Environment env) {
-		return appendStreamIdIfPresent(getStatusEndpoint(env), env);
+		return appendStreamIdIfPresent(getStatusEndpointUrl(env), env);
 	}
 
 	protected String getStreamConfigEndpointUrlWithStreamIdIfPresent(Environment env) {
-		return appendStreamIdIfPresent(getConfigurationEndpoint(env), env);
+		return appendStreamIdIfPresent(getConfigurationEndpointUrl(env), env);
 	}
 
 	private String appendStreamIdIfPresent(String endpoint, Environment env) {
