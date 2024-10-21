@@ -8,7 +8,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.VPRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
-import org.jetbrains.annotations.NotNull;
 
 @PublishTestModule(
 	testName = "oid4vp-negative-test-invalid-request-object-signature",
@@ -21,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 )
 @VariantNotApplicable(parameter = VPRequestMethod.class, values={"request_uri_unsigned"})
 public class VPID2InvalidRequestObjectSignature extends AbstractVPServerTest {
-	@NotNull
 	@Override
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
 		ConditionSequence seq = super.createAuthorizationRedirectStepsSignedRequestUri();

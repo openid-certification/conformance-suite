@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -112,7 +111,8 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 			// if we got here, it hasn't been verified by any key
 			throw error("Unable to verify request object signature based on client keys",
 				args("jwt_header", jwt.getHeader().toString(),
-					"keys", new GsonBuilder().setPrettyPrinting().create().toJson(jwkKeys),
+					//"keys", new GsonBuilder().setPrettyPrinting().create().toJson(jwkKeys),
+					// FIXME throws an exception in vp verifier tests against animo, don't think this is the right way to do it
 					"clientJwks", clientJwks,
 					"requestObject", requestObject)
 				);
