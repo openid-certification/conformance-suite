@@ -9,9 +9,7 @@ import net.openid.conformance.variant.VariantSelection;
 	displayName = "OpenID Shared Signals Framework: Receiver test (alpha - INCOMPLETE/INCORRECT, please email certification team if interested)",
 	profile = TestPlan.ProfileNames.ssftest,
 	testModules = {
-		OIDSSFReceiverStreamControlHappyPathTest.class,
-		OIDSSFReceiverStreamControlErrorResponseTest.class,
-		OIDSSFReceiverSubjectControlTest.class,
+
 	}
 )
 public class OIDSSFReceiverTestPlan implements TestPlan {
