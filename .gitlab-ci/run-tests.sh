@@ -295,6 +295,10 @@ makeServerTest() {
     # We keep it here as we want to be sure code changes don't break the example in the instructions, but the downside is there
     # is a chance that users may be using the alias at the same time our tests are running
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-rw-id2-privatekey-for-instructions.json"
+
+    # OpenID4VP op-against-rp
+    TESTS="${TESTS} vp-id2-verifier-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post]:oid4vp-verifier-happy-flow{vp-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post]:oid4vp-happy-flow-no-state}../conformance-suite/scripts/test-configs-rp-against-op/vp-wallet-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config.json"
+    TESTS="${TESTS} vp-id2-verifier-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post.jwt]:oid4vp-verifier-happy-flow{vp-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post.jwt]:oid4vp-happy-flow-no-state}../conformance-suite/scripts/test-configs-rp-against-op/vp-wallet-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config.json"
 }
 
 makeCIBATest() {

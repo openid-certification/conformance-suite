@@ -2,31 +2,31 @@ package net.openid.conformance.vpverifier;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
-import net.openid.conformance.condition.as.CheckNonceLength;
+import net.openid.conformance.condition.as.CheckNonceMaximumLength;
+import net.openid.conformance.condition.as.CheckNonceMinimumLength;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 /**
  * the default happy path test
  */
 @PublishTestModule(
-	testName = "oidcc-client-test",
-	displayName = "OIDCC: Relying party test, success case",
-	summary = "The client is expected to make an authentication request " +
-		"(also a token request and a userinfo request where applicable)" +
-		"using the selected response_type and other configuration options. ",
-	profile = "OIDCC",
+	testName = "oid4vp-verifier-happy-flow",
+	displayName = "OID4VP Verifier: Happy flow test ",
+	summary = "Expects the verifier to make a valid OID4VP request that matches the configuration, creates and returns an SD-JWT VC credential using the https://example.bmi.bund.de/credential/pid/1.0 VCT.\n\nThe presentation_definition must contain only one input_descriptor.",
+	profile = "OID4VP-ID2",
 	configurationFields = {
+		"client.client_id",
+		"credential.signing_jwk"
 	}
 )
-public class VPID2VerifierTestHappy extends AbstractVPID2VerifierTest {
+public class VPID2VerifierHappyFlow extends AbstractVPID2VerifierTest {
 
 	@Override
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
 		super.extractNonceFromAuthorizationEndpointRequestParameters();
 
-		skipIfMissing(null, new String[] {"nonce"}, ConditionResult.INFO,
-			CheckForInvalidCharsInNonce.class, ConditionResult.WARNING);
-		skipIfMissing(null, new String[] {"nonce"}, ConditionResult.INFO,
-			CheckNonceLength.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(CheckForInvalidCharsInNonce.class, ConditionResult.FAILURE, "OID4VP-ID2-5.2");
+		callAndContinueOnFailure(CheckNonceMinimumLength.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(CheckNonceMaximumLength.class, ConditionResult.WARNING);
 	}
 }
