@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantParameters;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-path",
 	displayName = "OpenID Shared Signals Framework: Validate Stream Control (Error Paths)",
-	summary = "This test verifies the behavior of the stream control.",
+	summary = "This test verifies the behavior of the stream control for error cases.",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",

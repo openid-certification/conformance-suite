@@ -135,4 +135,10 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 		fireTestFinished();
 	}
 
+
+	@Override
+	public void cleanup() {
+		callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.INFO);
+		super.cleanup();
+	}
 }
