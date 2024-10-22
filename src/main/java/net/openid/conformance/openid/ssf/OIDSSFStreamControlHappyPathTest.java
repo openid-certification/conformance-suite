@@ -47,6 +47,8 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 
 		eventLog.runBlock("Fetch Transmitter Metadata", this::fetchTransmitterMetadata);
 
+		eventLog.runBlock("Validate TLS Connection", this::validateTlsConnection);
+
 		// see https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		// OID_CAEP_INTEROP https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		eventLog.runBlock("Prepare Transmitter Access", () -> {
@@ -138,7 +140,9 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 
 	@Override
 	public void cleanup() {
-		callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.INFO);
-		super.cleanup();
+		eventLog.runBlock("Cleanup", () -> {
+			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.INFO);
+			super.cleanup();
+		});
 	}
 }
