@@ -7,13 +7,16 @@ import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.util.TLSTestValueExtractor;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -42,6 +45,13 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 			JsonObject transmitterMetadata = JsonParser.parseString(transmitterMetadataJson).getAsJsonObject();
 			logSuccess("Successfully parsed transmitter metadata", transmitterMetadata);
 			env.putObject("transmitter_metadata", transmitterMetadata);
+
+			String issuerUrl = OIDFJSON.getString(transmitterMetadata.get("issuer"));
+			try {
+				env.putObject("tls", TLSTestValueExtractor.extractTlsFromUrl(issuerUrl));
+			} catch (MalformedURLException e) {
+				throw error("Failed to parse URL", e, args("url", issuerUrl));
+			}
 			return env;
 		} catch (JsonSyntaxException e) {
 			throw error(e, args("json", transmitterMetadataJson));
