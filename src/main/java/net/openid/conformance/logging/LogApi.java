@@ -57,6 +57,7 @@ import java.security.SignatureException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -94,6 +95,9 @@ public class LogApi {
 
 	@Autowired
 	private TestPlanService planService;
+
+	@Value("${net.openid.conformance.logging.logapi.certification-package-failed-tests-exception-list}")
+	private String[] certificationPackageFailedTestExceptionList;
 
 	@GetMapping(value = "/log", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get all test logs with paging", description = "Return all published logs when public data is requested, otherwise all test logs if user is admin, or only the user's test logs")
@@ -472,6 +476,7 @@ public class LogApi {
 			variant = ((Plan) testPlan).getVariant().toString();
 		}
 
+		List<String> failedTestExceptionList = Arrays.asList(certificationPackageFailedTestExceptionList);
 		for (Plan.Module module : modules) {
 			String testModuleName = module.getTestModule();
 			List<String> instances = module.getInstances();
@@ -495,11 +500,14 @@ public class LogApi {
 				if(!status.equals(TestModule.Status.FINISHED.name()) ||
 					result.equals(TestModule.Result.FAILED.name()) ||
 					result.equals(TestModule.Result.UNKNOWN.name())) {
-					JsonObject failedTestInfo = new JsonObject();
-					failedTestInfo.addProperty("testId", testId);
-					failedTestInfo.addProperty("status", status);
-					failedTestInfo.addProperty("result", result);
-					failedTests.add(testModuleName, failedTestInfo);
+
+					if(!failedTestExceptionList.contains(testModuleName)) {
+						JsonObject failedTestInfo = new JsonObject();
+						failedTestInfo.addProperty("testId", testId);
+						failedTestInfo.addProperty("status", status);
+						failedTestInfo.addProperty("result", result);
+						failedTests.add(testModuleName, failedTestInfo);
+					}
 				}
 			} else {
 				JsonObject failedTestInfo = new JsonObject();
