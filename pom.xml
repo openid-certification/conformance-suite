@@ -272,6 +272,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<arguments>
+						<argument>--fintechlabs.devmode=true</argument>
+						<argument>--spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite</argument>
+						<argument>--fintechlabs.base_url=https://localhost.emobix.co.uk:8443</argument>
+						<argument>--fintechlabs.base_mtls_url=https://localhost.emobix.co.uk:8444</argument>
+					</arguments>
+				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
