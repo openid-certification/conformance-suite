@@ -57,16 +57,16 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 			callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
 		});
 
-//		try {
-//			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
-//		} catch (Exception ignore) {
-//		}
-//		try {
-//			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
-//			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-//			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.5");
-//		} catch (Exception ignore) {
-//		}
+		try {
+			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
+		} catch (Exception ignore) {
+		}
+		try {
+			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.5");
+		} catch (Exception ignore) {
+		}
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
 			callAndStopOnFailure(OIDSSFCreateStreamConfigCall.class, "OIDSSF-7.1.1.1", "CAEPIOP-2.3.8.2");
