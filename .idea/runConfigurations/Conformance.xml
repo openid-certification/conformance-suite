@@ -1,32 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Conformance" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <additionalParameters>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="fintechlabs.devmode" />
-        <option name="value" value="true" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="spring.data.mongodb.uri" />
-        <option name="value" value="mongodb://127.0.0.1:27017/test_suite" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="fintechlabs.external_url_override" />
-        <option name="value" value="https://www.heenan.me.uk" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="fintechlabs.base_url" />
-        <option name="value" value="https://localhost.emobix.co.uk:8443" />
-      </param>
-      <param>
-        <option name="enabled" value="true" />
-        <option name="name" value="fintechlabs.base_mtls_url" />
-        <option name="value" value="https://localhost.emobix.co.uk:8444" />
-      </param>
-    </additionalParameters>
+    <option name="ACTIVE_PROFILES" value="dev" />
     <option name="ENABLE_JMX_AGENT" value="false" />
     <module name="conformance-suite" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="net.openid.conformance.Application" />
