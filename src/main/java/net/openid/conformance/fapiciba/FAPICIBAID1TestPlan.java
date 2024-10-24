@@ -27,7 +27,7 @@ import java.util.Map;
 		FAPICIBAID1EnsureOtherScopeOrderSucceeds.class,
 		FAPICIBAID1EnsureRequestedExpiryAsStringSucceeds.class,
 
-		// Possible failure caseSetClientAuthenticationAudIssuerIdentifierToBackchannelAuthenticationEndpoint
+		// Possible failure case
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,
 
 		// Negative tests for request objects

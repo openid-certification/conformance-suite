@@ -30,7 +30,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-ensure-client-assertion-with-iss-aud-succeeds",
 	displayName = "OIDCC: client_assertion with AS issuer ID succeeds at the token endpoint",
-	summary = "This test passes a client assertion where 'aud' is the Authorization Server's Issuer ID instead of the token endpoint. The server should accept this value.",
+	summary = "This test passes a client assertion where 'aud' is the Authorization Server's Issuer ID instead of the token endpoint. Per RFC7523-3 and Connect Core 1.0 - 3, the AS must verify that it is the intended audience, but only recommended a value. The AS should accept the AS Issuer ID as valid, but as a recommended value, the AS may reject it with a valid error response and the test will end with a WARNING, which will not affect certification.",
 	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "client_secret_basic", "client_secret_post", "mtls", "none" })
