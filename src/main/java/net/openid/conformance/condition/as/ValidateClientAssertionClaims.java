@@ -90,6 +90,8 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 	}
 
 	protected void validateAud(Environment env) {
+		String issuer = env.getString("server", "issuer");
+
 		String tokenEndpoint = env.getString("server", "token_endpoint");
 		if (Strings.isNullOrEmpty(tokenEndpoint)) {
 			throw error("Couldn't find issuer or client or token endpoint values in the test configuration to test the assertion");
@@ -107,13 +109,15 @@ public class ValidateClientAssertionClaims extends AbstractCondition {
 		}
 
 		if (aud.isJsonArray()) {
-			if (!aud.getAsJsonArray().contains(new JsonPrimitive(tokenEndpoint)) &&
+			if (!aud.getAsJsonArray().contains(new JsonPrimitive(issuer)) &&
+				!aud.getAsJsonArray().contains(new JsonPrimitive(tokenEndpoint)) &&
 				!aud.getAsJsonArray().contains(new JsonPrimitive(mtlsTokenEndpoint))) {
 				throw error("aud not found", args("expected", tokenEndpoints, "actual", aud));
 			}
 		} else {
 			String audStr = OIDFJSON.getString(aud);
-			if (!audStr.equals(tokenEndpoint) &&
+			if (!audStr.equals(issuer) &&
+				!audStr.equals(tokenEndpoint) &&
 				!audStr.equals(mtlsTokenEndpoint)) {
 				throw error("aud mismatch", args("expected", tokenEndpoints, "actual", aud));
 			}

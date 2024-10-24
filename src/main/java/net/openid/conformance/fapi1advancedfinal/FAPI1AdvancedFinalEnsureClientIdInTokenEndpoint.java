@@ -2,7 +2,6 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidGrant;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
@@ -53,7 +52,7 @@ public class FAPI1AdvancedFinalEnsureClientIdInTokenEndpoint extends AbstractFAP
 	}
 
 	@Override
-	protected void requestAuthorizationCode() {
+	protected void processTokenEndpointResponse() {
 		/* This test ends up using an authorization code for client1.
 		 * For MTLS, it passes the client_id for client2 but the tls cert for client 1.
 		 * For private_key_jwt, it passes the client_id and a client_assertion for client 2, but signed
@@ -64,7 +63,6 @@ public class FAPI1AdvancedFinalEnsureClientIdInTokenEndpoint extends AbstractFAP
 		 * - It must be a 'invalid_grant' error (assuming the check for the client_id matching the authorization code is performed first).
 		 * The specs don't appear to define an order for these two checks. It may have been preferable for this test to only trigger one possible error.
 		 */
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-19");
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
