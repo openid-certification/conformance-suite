@@ -1351,6 +1351,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");
 		validateRedirectUriInRequestObject();
+		if (authorizationRequestType == AuthorizationRequestType.RAR){
+			callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
+		}
 	}
 
 	protected void validateRedirectUriInRequestObject() {
