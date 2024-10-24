@@ -1223,6 +1223,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected void createTokenEndpointResponse() {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+		if (authorizationRequestType == AuthorizationRequestType.RAR) {
+			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
+		}
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {

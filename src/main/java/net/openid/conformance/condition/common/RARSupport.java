@@ -11,6 +11,9 @@ import net.openid.conformance.testmodule.Environment;
 
 public class RARSupport {
 
+
+	// OP Test SUPPORT
+
 	public static class ExtractRARFromConfig extends AbstractCondition {
 
 		@Override
@@ -50,21 +53,59 @@ public class RARSupport {
 	}
 
 
+	public static class AddRARToAuthorizationEndpointRequest extends AbstractCondition {
+
+		@Override
+		@PreEnvironment(required = {"authorization_endpoint_request","rar"})
+		@PostEnvironment(required = "authorization_endpoint_request")
+		public Environment evaluate(Environment env) {
+
+			JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
+
+			JsonArray payload = getJsonArrayFromEnvironment(env, "rar", "payload","Rich Authorization Request on Test config", true);
+
+			authorizationEndpointRequest.add("authorization_details", payload);
+
+			logSuccess("Added rich request parameter to request", authorizationEndpointRequest);
+
+			return env;
+
+		}
+
+	}
+
+	public static class CheckForAuthorizationDetailsInTokenResponse extends AbstractCondition {
+
+		@Override
+		@PreEnvironment(required = "token_endpoint_response")
+		public Environment evaluate(Environment env) {
+			JsonArray permissions = getJsonArrayFromEnvironment(env,"token_endpoint_response","authorization_details", "authorization_details in token response", true);
+
+			for (JsonElement element : permissions) {
+				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
+					logFailure("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
+					return env;
+				}
+			}
+
+			logSuccess("Found an authorization_details",
+					args("authorization_details", env.getElementFromObject("token_endpoint_response", "authorization_details")));
+			return env;
+		}
+
+	}
+
+
+
+	// RP Test SUPPORT
+
 
 	public static class EnsureRequestObjectContainValidRAR extends AbstractCondition {
 
 		@Override
 		@PreEnvironment(required = { "authorization_request_object", "config" })
+		@PostEnvironment(required = "rich_authorization_request")
 		public Environment evaluate(Environment env) {
-
-			JsonElement claimsElement = env.getElementFromObject("authorization_request_object", "claims");
-
-			JsonObject claims = claimsElement.getAsJsonObject();
-			JsonElement authorizationDetailsObject = claims.get("authorization_details");
-			if (authorizationDetailsObject == null || !authorizationDetailsObject.isJsonArray()) {
-				logFailure("Request Object does not specify an authorization_details claims", claims);
-				return env;
-			}
 
 			JsonElement rarTypeValues = env.getElementFromObject("config", "resource.authorization_details_types_supported");
 			JsonArray supportedTypes = new JsonArray();
@@ -74,7 +115,7 @@ public class RARSupport {
 				supportedTypes.add(rarTypeValues);
 			}
 
-			JsonArray auth_details = authorizationDetailsObject.getAsJsonArray();
+			JsonArray auth_details = getJsonArrayFromEnvironment(env, "authorization_request_object", "claims.authorization_details", "authorization_details claim under request object", true);
 			for (JsonElement element : auth_details) {
 				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
 					logFailure("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
@@ -92,35 +133,35 @@ public class RARSupport {
 				}
 			}
 
-
-			logSuccess("Rich request found and every type is supported");
+			JsonObject rich_authorization_request = new JsonObject();
+			rich_authorization_request.add("rar", auth_details );
+			env.putObject("rich_authorization_request", rich_authorization_request);
+			logSuccess("Rich request found and every type is supported", rich_authorization_request);
 			return env;
 
 		}
 
 	}
 
-
-	public static class AddRARToAuthorizationEndpointRequest extends AbstractCondition {
+	public static class AddRarToTokenEndpointResponse extends AbstractCondition {
 
 		@Override
-		@PreEnvironment(required = {"authorization_endpoint_request","rar"})
-		@PostEnvironment(required = "authorization_endpoint_request")
+		@PostEnvironment(required = "token_endpoint_response")
 		public Environment evaluate(Environment env) {
 
-			JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
+			JsonArray auth_details = getJsonArrayFromEnvironment(env, "rich_authorization_request", "rar", "authorization_details from request object", true);
 
-			JsonObject rar = env.getObject("rar");
+			JsonObject tokenEndpointResponse = env.getObject("token_endpoint_response");
 
-			JsonArray payload = rar.getAsJsonArray("payload");
+			tokenEndpointResponse.add("authorization_details", auth_details);
 
-			authorizationEndpointRequest.add("authorization_details", payload);
-
-			logSuccess("Added rich request parameter to request", authorizationEndpointRequest);
+			logSuccess("RAR payload included on token endpoint response", tokenEndpointResponse);
 
 			return env;
 
 		}
 
 	}
+
+
 }

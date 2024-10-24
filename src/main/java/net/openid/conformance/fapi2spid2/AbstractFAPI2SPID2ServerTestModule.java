@@ -792,6 +792,10 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		else {
 			callAndStopOnFailure(ExpectNoIdTokenInTokenResponse.class);
 		}
+
+		if (isRarRequest){
+			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RAR-7");
+		}
 	}
 
 	protected void createDpopForTokenEndpoint() {
