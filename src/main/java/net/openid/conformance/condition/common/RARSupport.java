@@ -8,6 +8,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class RARSupport {
 
@@ -122,9 +123,9 @@ public class RARSupport {
 					return env;
 				}
 				boolean supported = false;
-				String elementType = element.getAsJsonObject().get("type").getAsString();
+				String elementType = OIDFJSON.getString(element.getAsJsonObject().get("type"));
 				for(JsonElement supportedType : supportedTypes) {
-					if (supportedType.getAsString().equals(elementType)) {
+					if (OIDFJSON.getString(supportedType).equals(elementType)) {
 						supported = true;
 					}
 				}
