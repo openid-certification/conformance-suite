@@ -78,7 +78,11 @@
   };
 
   # https://devenv.sh/languages/
-  languages.java.enable = true;
+  languages.java = {
+    enable = true;
+    maven.enable = true;
+  };
+
   languages.python = {
     enable = true;
     venv = {
