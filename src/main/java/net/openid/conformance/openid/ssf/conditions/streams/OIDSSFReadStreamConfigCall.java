@@ -13,7 +13,7 @@ public class OIDSSFReadStreamConfigCall extends AbstractOIDSSFStreamConfigCall {
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 		super.handleClientResponse(env, responseCode, responseBody, responseHeaders, fullResponse);
-		env.putString("stream_id", env.getString("resource_endpoint_response_full","body_json.stream_id"));
+		env.putString("ssf", "stream_id", env.getString("resource_endpoint_response_full", "body_json.stream_id"));
 		return env;
 	}
 
