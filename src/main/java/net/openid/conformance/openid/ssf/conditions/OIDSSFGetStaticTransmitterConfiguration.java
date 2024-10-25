@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.MalformedURLException;
 
-public class OIDSSFGetStaticTransmitterConfiguration extends OIDSSFGetDynamicTransmitterConfiguration{
+public class OIDSSFGetStaticTransmitterConfiguration extends OIDSSFGetDynamicTransmitterConfiguration {
 
 	@NotNull
 	@Override

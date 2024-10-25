@@ -17,7 +17,7 @@ public class OIDSSFReplaceStreamConfigCall extends AbstractOIDSSFStreamConfigCal
 	protected void prepareRequest(Environment env) {
 
 		env.putString("resource", "resourceMethod", "PUT");
-		String streamId = env.getString("stream_id");
+		String streamId = getStreamId(env);
 
 		env.putString("resource_request_entity",
 			new Gson().toJson(

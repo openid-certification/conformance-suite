@@ -20,7 +20,7 @@ public class OIDSSFUpdateStreamStatusCall extends AbstractOIDSSFStreamConfigCall
 
 	protected String createResourceRequestEntityString(Environment env) {
 
-		String streamId = env.getString("stream_id");
+		String streamId = getStreamId(env);
 
 		return new Gson().toJson(
 			Map.of(
