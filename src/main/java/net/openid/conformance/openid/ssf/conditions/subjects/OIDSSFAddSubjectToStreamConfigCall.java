@@ -22,7 +22,7 @@ public class OIDSSFAddSubjectToStreamConfigCall extends AbstractOIDSSFStreamConf
 	protected void prepareRequest(Environment env) {
 
 		env.putString("resource", "resourceMethod", "POST");
-		String streamId = env.getString("stream_id");
+		String streamId = getStreamId(env);
 
 		env.putString("resource_request_entity", new Gson().toJson(
 			Map.of(

@@ -13,6 +13,7 @@ import net.openid.conformance.variant.VariantSelection;
 		OIDSSFStreamControlHappyPathTest.class,
 		OIDSSFStreamControlErrorResponseTest.class,
 		OIDSSFStreamSubjectControlHappyPathTest.class,
+		OIDSSFTransmitterEventsTest.class,
 	}
 )
 public class OIDSSFTransmitterTestPlan implements TestPlan {
