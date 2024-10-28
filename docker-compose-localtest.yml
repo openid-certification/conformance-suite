@@ -1,4 +1,3 @@
-version: '3'
 services:
   oidcc-provider:
     # To start just the provider to run tests against for dev use:

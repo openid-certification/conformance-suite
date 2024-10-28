@@ -4,7 +4,6 @@
 # $ docker compose -f docker-compose-dev-linux-nodocker.yml up --remove-orphans
 # Run/Debug Application.main() with program arguments
 # --fintechlabs.devmode=true --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite
-# version: '3' # version is obsolete
 services:
   mongodb:
     image: mongo:5.0.24

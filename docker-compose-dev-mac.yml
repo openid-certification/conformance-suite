@@ -3,7 +3,6 @@
 # faster on a mac (cutting startup time for the java app approximately
 # in half)
 # See https://docs.docker.com/docker-for-mac/osxfs-caching/
-version: '3'
 services:
   mongodb:
     image: mongo:5.0.24
