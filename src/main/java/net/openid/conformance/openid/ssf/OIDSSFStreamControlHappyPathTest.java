@@ -11,6 +11,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamCo
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamStatusCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamStatusCall;
+import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ServerMetadata;
@@ -25,12 +26,12 @@ import net.openid.conformance.variant.VariantParameters;
 	configurationFields = {
 		"ssf.transmitter.issuer",
 		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
-		"ssf.transmitter.access_token"
 	}
 )
 @VariantParameters({
 	ServerMetadata.class,
 	SsfDeliveryMode.class,
+	SsfAuthMode.class,
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
 	"ssf.transmitter.configuration_metadata_endpoint",
@@ -38,6 +39,14 @@ import net.openid.conformance.variant.VariantParameters;
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {
 	"ssf.transmitter.issuer",
 	"ssf.transmitter.metadata_suffix",
+})
+@VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
+	"ssf.transmitter.access_token"
+})
+@VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
+	"ssf.transmitter.auth.client_id",
+	"ssf.transmitter.auth.client_secret",
+	"ssf.transmitter.auth.token_endpoint",
 })
 public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 
