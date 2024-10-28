@@ -2,12 +2,15 @@ package net.openid.conformance.openid.ssf;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12OrLater;
 import net.openid.conformance.condition.common.EnsureTLS13OrLater;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGetStaticTransmitterConfiguration;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFObtainTransmitterAccessToken;
+import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ServerMetadata;
 
@@ -40,6 +43,20 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-6.2");
 				break;
 		}
+	}
+
+	protected void obtainTransmitterAccessToken() {
+		switch (getVariant(SsfAuthMode.class)) {
+			case STATIC:
+				callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
+				break;
+			case DYNAMIC:
+				// TODO fetch token via client credentials grant
+				callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+
+				break;
+		}
+
 	}
 
 	protected void validateTlsConnection() {
