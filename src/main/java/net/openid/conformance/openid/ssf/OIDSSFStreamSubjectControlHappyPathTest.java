@@ -8,6 +8,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.CheckTransmitterMeta
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFAddSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFRemoveSubjectToStreamConfigCall;
+import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ServerMetadata;
@@ -22,11 +23,11 @@ import net.openid.conformance.variant.VariantParameters;
 	configurationFields = {
 		"ssf.transmitter.issuer",
 		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
-		"ssf.transmitter.access_token"
 	}
 )
 @VariantParameters({
 	ServerMetadata.class,
+	SsfAuthMode.class,
 	SsfDeliveryMode.class,
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value="static", configurationFields = {
@@ -35,6 +36,14 @@ import net.openid.conformance.variant.VariantParameters;
 @VariantConfigurationFields(parameter = ServerMetadata.class, value="discovery", configurationFields = {
 	"ssf.transmitter.issuer",
 	"ssf.transmitter.metadata_suffix",
+})
+@VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
+	"ssf.transmitter.access_token"
+})
+@VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
+	"ssf.transmitter.auth.client_id",
+	"ssf.transmitter.auth.client_secret",
+	"ssf.transmitter.auth.token_endpoint",
 })
 public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTest {
 
@@ -64,8 +73,8 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTest 
 
 		// see https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		// OID_CAEP_INTEROP https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
-		eventLog.runBlock("Prepare Transmitter Access", () -> {
-			callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
+		eventLog.runBlock("Prepare Transmitter Access Token", () -> {
+			obtainTransmitterAccessToken();
 		});
 
 		// ensure stream exists
