@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantSelection;
 public class OIDSSFTransmitterTestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
-		return "OpenID SSF Transmitter";
+		return "OpenID SSF Transmitter 1.0";
 	}
 
 }
