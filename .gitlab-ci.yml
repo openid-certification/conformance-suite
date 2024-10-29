@@ -83,7 +83,7 @@ test:
   allow_failure:
     exit_codes:
       - 16
-  image: python:3.10-alpine3.15
+  image: python:3.13-alpine3.20
   only:
     refs:
       - branches
@@ -109,7 +109,7 @@ compare_client:
 check-trailing-whitespace:
   interruptible: true
   stage: build
-  image: python:3.10-alpine3.15
+  image: python:3.13-alpine3.20
   script:
     - apk add -U git
     - ./scripts/checkwhitespace.py
@@ -273,7 +273,7 @@ stop_normal:
 .deployment_test: &deployment_test
   stage: test
   interruptible: true
-  image: python:3.10-alpine3.20
+  image: python:3.13-alpine3.20
   only:
     refs:
       - branches
@@ -636,7 +636,7 @@ local_test:
 
   function set_up_for_running_test_plan() {
     install_test_dependencies
-    pip install httpx
+    pip install httpx pyparsing
   }
 
   function run_client_test_plan() {
