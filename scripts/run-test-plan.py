@@ -17,6 +17,7 @@ import time
 import traceback
 
 from conformance import Conformance
+from test_plan_parser import parse_test
 
 # Modules list here are deliberately not run, as they have known problems
 # Can be overriden by using the 'selected_modules' mechanism, as is done to run the dcr happy path test in the OP against RP tests
@@ -51,29 +52,8 @@ sys.stdout = timestamp_filter()
 # test_plan_name[variant=value][variant2=value2]:optional-run-only-module-named-test{optestplan}optestconfig
 # optestplan/config are only used when running the rp tests against the op tests
 def split_name_and_variant(test_plan):
-    modules = None
-    op_test = None
-    op_config = None
-    test_plan = test_plan.replace('+', ' ')
-    if '{' in test_plan:
-        (test_plan, op_test) = test_plan.split("{", 1)
-        (op_test, op_config) = op_test.split("}", 1)
-    if ':' in test_plan:
-        (test_plan, module) = test_plan.split(":", 1)
-        modules = module.split(",")
-    if '[' in test_plan:
-        name = re.match(r'^[^\[]*', test_plan).group(0)
-        vs = re.finditer(r'\[([^=\]]*)=([^\]]*)\]', test_plan)
-        variant = { v.group(1) : v.group(2) for v in vs }
-        return (name, variant, modules, op_test, op_config)
-    elif '(' in test_plan:
-        #only for oidcc RP tests
-        matches = re.match(r'(.*)\((.*)\)$', test_plan)
-        name = matches.group(1)
-        oidcc_configfile = matches.group(2)
-        return (name, oidcc_configfile, modules, op_test, op_config)
-    else:
-        return (test_plan, None, modules, op_test, op_config)
+    return parse_test(test_plan)
+
 
 #Run OIDCC RP tests
 #OIDCC RP tests use a configuration file instead of providing all options in run-tests.sh
@@ -231,10 +211,14 @@ async def run_test_plan(test_plan, config_file, output_dir, client_certs):
     for k,v in client_certs.items():
         json_config = json_config.replace('{'+ k + '}', v)
 
-    (test_plan_name, variant, selected_modules, op_plan, op_config) = split_name_and_variant(test_plan)
-    if test_plan_name.startswith('oidcc-client-'):
-        #for oidcc client tests 'variant' will contain the rp tests configuration file name
-        return await run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
+    test_plan_obj = split_name_and_variant(test_plan)
+    test_plan_name = test_plan_obj["test"]["test_name"]
+    variant = test_plan_obj["test"]["variants"] if "variants" in test_plan_obj["test"] else {}
+    selected_modules = test_plan_obj["test"]["modules"] if "modules" in test_plan_obj["test"] else []
+    op_plan = test_plan_obj["op_test"] if "op_test" in test_plan_obj else None
+    # if test_plan_name.startswith('oidcc-client-'):
+    #     #for oidcc client tests 'variant' will contain the rp tests configuration file name
+    #     return await run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
     brazil_client_scope = ''
     if variant != None and 'brazil_client_scope' in variant.keys():
         brazil_client_scope = variant['brazil_client_scope']
@@ -252,7 +236,7 @@ async def run_test_plan(test_plan, config_file, output_dir, client_certs):
     elif "alias" in parsed_config:
         parallel_jobs = 1
         print("{}: Config '{}' contains alias '{}' - not running tests in parallel. If the test supports dynamic client registration and you have enabled it, you can remove the alias from your configuration file to speed up tests.".format(plan_id, config_file, parsed_config["alias"]))
-    if selected_modules == None:
+    if selected_modules == None or len(selected_modules) == 0:
         plan_modules = [module for module in test_plan_info['modules'] if module['testModule'] not in ignored_modules]
     else:
         plan_modules = [module for module in test_plan_info['modules'] if get_string_name_for_module_with_variant(module) in selected_modules]
@@ -263,12 +247,13 @@ async def run_test_plan(test_plan, config_file, output_dir, client_certs):
     test_time_taken = {}  # key is module_id
     overall_start_time = time.time()
     plan_results = []
+    test_info["test_plan_name"] = test_plan_name
     print('Created test plan, new id: {}'.format(plan_id))
     print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
     print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
     queue = asyncio.Queue()
     for moduledict in plan_modules:
-        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config, client_certs))
+        queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, plan_results, output_dir, brazil_client_scope, parsed_config, client_certs))
     await run_queue(queue, parallel_jobs)
 
     overall_time = time.time() - overall_start_time
@@ -290,7 +275,7 @@ async def run_test_plan(test_plan, config_file, output_dir, client_certs):
     return plan_results
 
 
-async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, op_config, plan_results, output_dir, brazil_client_scope, parsed_config, client_certs):
+async def run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, plan_results, output_dir, brazil_client_scope, parsed_config, client_certs):
     module=moduledict['testModule']
     module_with_variants = get_string_name_for_module_with_variant(moduledict)
     test_start_time = time.time()
@@ -317,10 +302,29 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
 
         if state == "WAITING":
             # If it's a client test, we need to run the client.
-            # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
-            if op_plan != None:
-                # the 'client' is our own OP tests
-                plan_results.extend(await run_test_plan(op_plan, op_config, output_dir, client_certs))
+            if op_plan is not None and len(op_plan) > 0:
+                op_plan = op_plan[0]
+                if op_plan["test_plan"]["test_name"] == "sample-openid-client-nodejs":
+                    client_metadata_defaults = op_plan["variants"] if "variants" in op_plan else {}
+                    client_metadata_defaults_str = json.dumps(client_metadata_defaults)
+                    alias = parsed_config["alias"]
+                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
+                    os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
+
+                    other_environment_vars_for_script = op_plan["test_plan"]["enviroment"] if "enviroment" in op_plan["test_plan"] else {}
+                    for envvarname, val in other_environment_vars_for_script.items():
+                        os.putenv(envvarname, val)
+                    # Pass module variant into VARIANT in environment for distinguishing oidcc-client tests which have the same module id
+                    variantstr = json.dumps(variant)
+                    os.putenv('VARIANT', variantstr)
+                    os.putenv('MODULE_NAME', module)
+
+                    subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
+
+                    await conformance.wait_for_state(module_id, ["FINISHED"])
+                else:
+                    # the 'client' is our own OP tests
+                    plan_results.extend(await run_test_plan(op_plan, op_plan["config"], output_dir, client_certs))
             elif re.match(r'fapi-rw-id2-client-.*', module) or \
                 re.match(r'fapi1-advanced-final-client-.*', module):
                 print("FAPI client test: " + module + " " + json.dumps(variant))
@@ -526,7 +530,7 @@ def show_plan_results(plan_result, analyzed_result):
         format(len(test_info), successful_conditions, number_of_failures, number_of_warnings, overall_time))
     print('\n{}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 
-    if len(test_info) != len(plan_modules):
+    if len(test_info) - 1 != len(plan_modules):
         print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
         return
 
@@ -619,7 +623,7 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
         'counts_unexpected': counts_unexpected
     }
 
-    if (not have_ignored_modules and len(test_info) != len(plan_modules) or incomplete != 0):
+    if (not have_ignored_modules and (len(test_info) - 1) != len(plan_modules) or incomplete != 0):
         return {'plan_did_not_complete': 'NOT_COMPLETE', 'detail_plan_result': detail_plan_result}
     elif (counts_unexpected['UNEXPECTED_FAILURES']
           or counts_unexpected['UNEXPECTED_WARNINGS']
@@ -654,9 +658,8 @@ def analyze_result_logs(module_id, test_name, variant, test_result, plan_result,
     unexpected_skip = False
     expected_skip_did_not_happen = False
 
-    test_plan = plan_result['test_plan']
+    # test_plan = plan_result['test_plan']
     config_filename = plan_result['config_file']
-    (test_plan_name, _, _, _, _) = split_name_and_variant(test_plan)
 
     def is_expected_for_this_test(obj):
         """
@@ -864,7 +867,8 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
             print(failure('{} - {}: '.format(test_plan, config_filename)))
             overall_test_results = detail_plan_result['overall_test_results']
             counts_unexpected = detail_plan_result['counts_unexpected']
-            (test_plan_name, variant, _, _, _) = split_name_and_variant(test_plan)
+            test_plan_obj = split_name_and_variant(test_plan)
+            variant = test_plan_obj.test.variants
 
             if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
                 print(failure('\tUnexpected failure: '))

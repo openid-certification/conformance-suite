@@ -630,7 +630,7 @@ local_test:
 
   function set_up_for_running_test_plan() {
     install_test_dependencies
-    pip install httpx
+    pip install httpx pyparsing
   }
 
   function run_client_test_plan() {
