@@ -269,7 +269,7 @@ stop_normal:
 .deployment_test: &deployment_test
   stage: test
   interruptible: true
-  image: python:3.10-alpine3.15
+  image: python:3.10-alpine3.20
   only:
     refs:
       - branches
