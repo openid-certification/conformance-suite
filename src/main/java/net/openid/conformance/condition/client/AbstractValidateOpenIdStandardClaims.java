@@ -30,6 +30,10 @@ public abstract class AbstractValidateOpenIdStandardClaims extends AbstractCondi
 			if (OIDFJSON.getString(elt).isBlank()) {
 				return false;
 			}
+			// Not explicitly stated in any spec, but we've seen servers return this incorrectly as a user's name
+			if (OIDFJSON.getString(elt).equalsIgnoreCase("null")) {
+				return false;
+			}
 			return true;
 		}
 	};
