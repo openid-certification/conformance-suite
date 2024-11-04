@@ -4,16 +4,17 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs404;
-import net.openid.conformance.openid.ssf.conditions.OIDSSFObtainTransmitterAccessToken;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFInjectDummyStreamId;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFAttemptCreateStreamConfigCallWithBrokenInput;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFAttemptCreateStreamConfigCallWithInvalidToken;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFAttemptDeleteStreamConfigCallWithInvalidToken;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFAttemptReadStreamConfigCallWithInvalidToken;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFAttemptReadStreamConfigCallWithUnknownStreamId;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectInvalidAccessTokenOverride;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
@@ -27,16 +28,13 @@ import net.openid.conformance.variant.VariantParameters;
 		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
 	}
 )
-@VariantParameters({ServerMetadata.class, SsfAuthMode.class, SsfDeliveryMode.class,})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
+@VariantParameters({SsfServerMetadata.class, SsfAuthMode.class, SsfDeliveryMode.class,})
+@VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
+@VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
 	"ssf.transmitter.access_token"
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
-	"ssf.transmitter.auth.client_id",
-	"ssf.transmitter.auth.client_secret",
-	"ssf.transmitter.auth.token_endpoint",
 })
 public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 
@@ -46,9 +44,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 
 		eventLog.runBlock("Fetch Transmitter Metadata", this::fetchTransmitterMetadata);
 
-		eventLog.runBlock("Prepare Transmitter Access", () -> {
-			callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
-		});
+		eventLog.runBlock("Prepare Transmitter Access", this::obtainTransmitterAccessToken);
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
 
@@ -59,7 +55,10 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 			call(exec().unmapKey("endpoint_response"));
 
 			// 401	if authorization failed or it is missing
-			callAndStopOnFailure(OIDSSFAttemptCreateStreamConfigCallWithInvalidToken.class, "OIDSSF-7.1.1.1");
+			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
+			callAndContinueOnFailure(OIDSSFCreateStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
+			call(exec().unmapKey("access_token"));
+
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
@@ -71,7 +70,9 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 
 		eventLog.runBlock("Read Stream Configuration", () -> {
 			// 401	if authorization failed or it is missing
-			callAndStopOnFailure(OIDSSFAttemptReadStreamConfigCallWithInvalidToken.class, "OIDSSF-7.1.1.2");
+			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
+			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+			call(exec().unmapKey("access_token"));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
 			call(exec().unmapKey("endpoint_response"));
@@ -101,7 +102,10 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 
 		eventLog.runBlock("Delete Stream Configuration", () -> {
 			// check 401	if authorization failed or it is missing
-			callAndStopOnFailure(OIDSSFAttemptDeleteStreamConfigCallWithInvalidToken.class, "OIDSSF-7.1.1.2");
+			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
+			callAndStopOnFailure(OIDSSFInjectDummyStreamId.class);
+			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+			call(exec().unmapKey("access_token"));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
 			call(exec().unmapKey("endpoint_response"));

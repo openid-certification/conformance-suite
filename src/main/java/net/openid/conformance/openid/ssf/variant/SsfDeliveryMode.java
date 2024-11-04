@@ -4,8 +4,8 @@ import net.openid.conformance.variant.VariantParameter;
 
 @VariantParameter(
 	name = "ssf_delivery_mode",
-	displayName = "Delivery Mode",
-	description = "Whether the server supports PUSH or PULL based delivery mode."
+	displayName = "SSF Delivery Mode",
+	description = "Whether the SSF server supports PUSH or PULL based delivery mode."
 )
 public enum SsfDeliveryMode {
 

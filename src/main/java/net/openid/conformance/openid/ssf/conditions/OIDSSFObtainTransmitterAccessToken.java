@@ -15,7 +15,8 @@ public class OIDSSFObtainTransmitterAccessToken extends AbstractCondition {
 
 		if (accessTokenFromConfig != null) {
 			log("Obtained transmitter access token from config");
-			env.putString("transmitter_access_token", accessTokenFromConfig);
+			env.putString("access_token", "value", accessTokenFromConfig);
+			env.putString("access_token", "type", "Bearer");
 		}
 
 		logSuccess("Added transmitter access token");

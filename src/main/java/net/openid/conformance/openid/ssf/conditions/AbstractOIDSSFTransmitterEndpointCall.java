@@ -21,7 +21,7 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 	}
 
 	protected boolean throwOnClientResponseException() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -66,18 +66,12 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 		return env.getString("transmitter_metadata", "remove_subject_endpoint");
 	}
 
-	protected String getVerficationEndpointUrl(Environment env) {
+	protected String getVerificationEndpointUrl(Environment env) {
 		return env.getString("transmitter_metadata", "verification_endpoint");
 	}
 
 	protected void configureAccessToken(Environment env) {
-		String transmitterAccessToken = getTransmitterAccessToken(env);
-		env.putString("access_token", "value", transmitterAccessToken);
-		env.putString("access_token", "type", "Bearer");
-	}
 
-	protected String getTransmitterAccessToken(Environment env) {
-		return env.getString("transmitter_access_token");
 	}
 
 	@Override
