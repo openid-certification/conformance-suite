@@ -22,6 +22,7 @@ public class OIDSSFUpdateStreamStatusCall extends AbstractOIDSSFStreamConfigCall
 
 		String streamId = getStreamId(env);
 
+		// TODO check all allowed stream status values: "enabled,paused,disabled"
 		return new Gson().toJson(
 			Map.of(
 				"stream_id", streamId,

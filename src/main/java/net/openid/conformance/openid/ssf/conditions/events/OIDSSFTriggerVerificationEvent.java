@@ -17,7 +17,7 @@ public class OIDSSFTriggerVerificationEvent extends AbstractOIDSSFTransmitterEnd
 
 	@Override
 	protected String getResourceEndpointUrl(Environment env) {
-		return getVerficationEndpointUrl(env);
+		return getVerificationEndpointUrl(env);
 	}
 
 	@Override

@@ -14,6 +14,8 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamSt
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -28,26 +30,6 @@ import net.openid.conformance.variant.VariantParameters;
 		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
 	}
 )
-@VariantParameters({
-	ServerMetadata.class,
-	SsfDeliveryMode.class,
-	SsfAuthMode.class,
-})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
-	"ssf.transmitter.configuration_metadata_endpoint",
-})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {
-	"ssf.transmitter.issuer",
-	"ssf.transmitter.metadata_suffix",
-})
-@VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
-	"ssf.transmitter.access_token"
-})
-@VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
-	"ssf.transmitter.auth.client_id",
-	"ssf.transmitter.auth.client_secret",
-	"ssf.transmitter.auth.token_endpoint",
-})
 public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 
 	@Override
@@ -60,9 +42,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 
 		// see https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		// OID_CAEP_INTEROP https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
-		eventLog.runBlock("Prepare Transmitter Access", () -> {
-			callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
-		});
+		eventLog.runBlock("Prepare Transmitter Access", this::obtainTransmitterAccessToken);
 
 //		try {
 //			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
