@@ -11,6 +11,7 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureHttpsUrlsTransmi
 import net.openid.conformance.openid.ssf.conditions.OIDSSFRequiredFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFSpecVersionTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -20,8 +21,8 @@ import net.openid.conformance.variant.VariantParameters;
 
 })
 @VariantParameters({ServerMetadata.class, SsfDeliveryMode.class,})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
+@VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
+@VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
 public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 
 	@Override

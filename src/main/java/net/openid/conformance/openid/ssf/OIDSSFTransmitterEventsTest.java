@@ -10,6 +10,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamCo
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -18,17 +19,14 @@ import net.openid.conformance.variant.VariantParameters;
 @PublishTestModule(testName = "openid-ssf-transmitter-events", displayName = "OpenID Shared Signals Framework: Validate Transmitter Events", summary = "This test verifies the structure and handling of transmitter events.", profile = "OIDSSF", configurationFields = {
 
 })
-@VariantParameters({ServerMetadata.class, SsfAuthMode.class, SsfDeliveryMode.class,})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
+@VariantParameters({SsfServerMetadata.class, SsfAuthMode.class, SsfDeliveryMode.class,})
+@VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
+@VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
 @VariantConfigurationFields(parameter = SsfDeliveryMode.class, value = "push", configurationFields = {"ssf.transmitter.push_endpoint",})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
 	"ssf.transmitter.access_token"
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
-	"ssf.transmitter.auth.client_id",
-	"ssf.transmitter.auth.client_secret",
-	"ssf.transmitter.auth.token_endpoint",
 })
 public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTest {
 
@@ -46,7 +44,7 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTest {
 		});
 
 		eventLog.runBlock("Prepare Transmitter Access", () -> {
-			callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
+			obtainTransmitterAccessToken();
 		});
 
 //		try {
