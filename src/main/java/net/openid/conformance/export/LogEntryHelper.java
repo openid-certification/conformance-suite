@@ -93,7 +93,7 @@ public class LogEntryHelper {
 		specLinks.put("CID-SP-", "https://cdn.connectid.com.au/specifications/digitalid-fapi-profile-01.html#section");
 		specLinks.put("CID-IDA-", "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html#section");
 		specLinks.put("CID-PURPOSE-", "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section");
-		specLinks.put("OIDFED-", "https://openid.github.io/federation/main.html#section-"); // "https://openid.net/specs/openid-federation-1_0.html#section-"
+		specLinks.put("OIDFED-", "https://openid.net/specs/openid-federation-1_0-40.html#section-");
 	}
 
 	private Document logEntry;
