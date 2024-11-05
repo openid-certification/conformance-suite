@@ -9,6 +9,8 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWTUtil;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -27,7 +29,7 @@ public class CallFederationEndpoint extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "federation_endpoint_url")
-	@PostEnvironment(required = { "federation_http_response", "federation_response_body", "federation_response_header" } )
+	@PostEnvironment(required = { "federation_http_response", "federation_response_jwt" } )
 	public Environment evaluate(Environment env) {
 
 		String entityStatementUrl = env.getString("federation_endpoint_url");
@@ -54,13 +56,8 @@ public class CallFederationEndpoint extends AbstractCondition {
 
 		if (!Strings.isNullOrEmpty(jwtString)) {
 			try {
-				SignedJWT jwt = SignedJWT.parse(jwtString);
-				JsonObject entityStatementBody = JsonParser.parseString(jwt.getJWTClaimsSet().toString()).getAsJsonObject();
-				JsonObject entityStatementHeader = JsonParser.parseString(jwt.getHeader().toString()).getAsJsonObject();
-				logSuccess("Successfully parsed signed JWT", entityStatementBody);
-				env.putString("federation_response", jwtString);
-				env.putObject("federation_response_body", entityStatementBody);
-				env.putObject("federation_response_header", entityStatementHeader);
+				JsonObject jwtAsJsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtString);
+				env.putObject("federation_response_jwt", jwtAsJsonObject);
 				return env;
 			} catch (ParseException e) {
 				throw error("Failed to parse entity statement as a signed JWT", e, args("jwt", jwtString));

@@ -9,10 +9,10 @@ import net.openid.conformance.testmodule.Environment;
 public class ValidateAuthorityHints extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "federation_response_body" } )
+	@PreEnvironment(required = { "federation_response_jwt" } )
 	public Environment evaluate(Environment env) {
 
-		JsonElement authorityHintsElement = env.getElementFromObject("federation_response_body", "authority_hints");
+		JsonElement authorityHintsElement = env.getElementFromObject("federation_response_jwt", "claims.authority_hints");
 		if (authorityHintsElement == null) {
 			throw error("authority_hints is required in entity configurations of entities that have at least one superior",
 					args("authority_hints", authorityHintsElement));
