@@ -7,19 +7,20 @@ import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractVerifyJwsSignature;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
 
 public class VerifyEntityStatmentSignature extends AbstractVerifyJwsSignature {
 
 	@Override
-	@PreEnvironment(strings = "federation_response", required = { "server_jwks", "federation_response_header"} )
+	@PreEnvironment(required = { "server_jwks", "federation_response_jwt"} )
 	public Environment evaluate(Environment env) {
 
 		JsonObject entityStatementJwks = env.getObject("server_jwks");
-		JsonObject entityStatementHeader = env.getObject("federation_response_header");
+		JsonObject entityStatementHeader = env.getElementFromObject("federation_response_jwt", "header").getAsJsonObject();
 		try {
-			String entityStatementB64 = env.getString("federation_response");
+			String entityStatementB64 = OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value"));
 			SignedJWT entityStatement = SignedJWT.parse(entityStatementB64);
 			JWKSet serverJwks = JWKSet.parse(entityStatementJwks.toString());
 			if(!verifySignature(entityStatement, serverJwks)){
