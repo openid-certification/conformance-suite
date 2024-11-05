@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 
@@ -110,7 +111,7 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 	protected JsonArray buildTrustChain(List<String> path) {
 		eventLog.startBlock("Building trust chain from %s to %s".formatted(path.get(0), path.get(path.size() - 1)));
 		JsonArray trustChain = new JsonArray();
-		trustChain.add(env.getString("primary_entity_statement"));
+		trustChain.add(env.getString("primary_entity_statement_jwt", "value"));
 
 		if (path.size() == 1) {
 			return trustChain;
@@ -128,13 +129,13 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 			env.putString("expected_sub", sub);
 			callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 			callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
-			trustChain.add(env.getString("federation_response"));
+			trustChain.add(OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value")));
 		}
 
 		String trustAnchorEntityIdentifier = path.get(path.size() - 1);
 		env.putString("federation_endpoint_url", appendWellKnown(trustAnchorEntityIdentifier));
 		callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
-		trustChain.add(env.getString("federation_response"));
+		trustChain.add(OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value")));
 		eventLog.endBlock();
 
 		return trustChain;
