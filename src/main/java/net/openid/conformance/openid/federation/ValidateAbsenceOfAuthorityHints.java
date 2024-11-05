@@ -8,10 +8,10 @@ import net.openid.conformance.testmodule.Environment;
 public class ValidateAbsenceOfAuthorityHints extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "federation_response_body" } )
+	@PreEnvironment(required = { "federation_response_jwt" } )
 	public Environment evaluate(Environment env) {
 
-		JsonElement authorityHintsElement = env.getElementFromObject("federation_response_body", "authority_hints");
+		JsonElement authorityHintsElement = env.getElementFromObject("federation_response_jwt", "claims.authority_hints");
 
 		if (authorityHintsElement != null && !authorityHintsElement.isJsonNull()) {
 			throw error("authority_hints must not be present in Subordinate Statements", args("authority_hints", authorityHintsElement));
