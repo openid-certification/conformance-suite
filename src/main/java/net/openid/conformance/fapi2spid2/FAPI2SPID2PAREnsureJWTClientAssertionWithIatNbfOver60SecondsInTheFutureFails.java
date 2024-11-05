@@ -3,7 +3,7 @@ package net.openid.conformance.fapi2spid2;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIatNbfOver60SecondsInTheFutureToClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
-import net.openid.conformance.condition.client.CheckPAREndpointResponse401WitInvalidClientError;
+import net.openid.conformance.condition.client.CheckPAREndpointResponse401WithInvalidClientError;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -44,7 +44,7 @@ public class FAPI2SPID2PAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFu
 
 	@Override
 	protected void processParResponse() {
-		callAndContinueOnFailure(CheckPAREndpointResponse401WitInvalidClientError.class, Condition.ConditionResult.FAILURE, "PAR-2.3", "RFC6749-4.1.2.1");
+		callAndContinueOnFailure(CheckPAREndpointResponse401WithInvalidClientError.class, Condition.ConditionResult.FAILURE, "PAR-2.3", "RFC6749-4.1.2.1");
 
 		fireTestFinished();
 	}

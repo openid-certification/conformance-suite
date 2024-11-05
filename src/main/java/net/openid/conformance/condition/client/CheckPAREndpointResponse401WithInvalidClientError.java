@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 /**
  * PAR-2.3 : This class checks for correct HTTP response status code from PAR endpoint
  */
-public class CheckPAREndpointResponse401WitInvalidClientError extends AbstractCondition {
+public class CheckPAREndpointResponse401WithInvalidClientError extends AbstractCondition {
 
 	private static final int HTTP_STATUS_UNAUTHORIZED = 401;
 
