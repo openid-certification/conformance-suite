@@ -11,11 +11,11 @@ import java.util.Set;
 public class ValidateFederationEntityMetadata extends AbstractValidateMetadata {
 
 	@Override
-	@PreEnvironment(required = { "federation_response_body" } )
+	@PreEnvironment(required = { "federation_response_jwt" } )
 	public Environment evaluate(Environment env) {
 
 		String metadataName = "federation_entity";
-		JsonElement metadataElement = env.getElementFromObject("federation_response_body", "metadata." + metadataName);
+		JsonElement metadataElement = env.getElementFromObject("federation_response_jwt", "claims.metadata." + metadataName);
 
 		if (metadataElement == null) {
 			logSuccess(String.format("Entity statement does not contain the %s metadata claim", metadataName));

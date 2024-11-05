@@ -11,7 +11,7 @@ public class ExtractFederationListEndpoint extends AbstractCondition {
 	@PostEnvironment(strings = "federation_list_endpoint")
 	public Environment evaluate(Environment env) {
 
-		String listEndpoint = OIDFJSON.getString(env.getElementFromObject("federation_response_body", "metadata.federation_entity.federation_list_endpoint"));
+		String listEndpoint = OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "claims.metadata.federation_entity.federation_list_endpoint"));
 
 		env.putString("federation_list_endpoint", listEndpoint);
 

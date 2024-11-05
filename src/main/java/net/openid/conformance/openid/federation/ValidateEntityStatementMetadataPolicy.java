@@ -14,10 +14,10 @@ import java.util.Set;
 public class ValidateEntityStatementMetadataPolicy extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "federation_response_body" } )
+	@PreEnvironment(required = { "federation_response_jwt" } )
 	public Environment evaluate(Environment env) {
 
-		JsonElement metadataPolicyClaim = env.getElementFromObject("federation_response_body", "metadata_policy");
+		JsonElement metadataPolicyClaim = env.getElementFromObject("federation_response_jwt", "claims.metadata_policy");
 		if (metadataPolicyClaim == null) {
 			logSuccess("Entity statement does not contain the metadata claim");
 			return env;

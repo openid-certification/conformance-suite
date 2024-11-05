@@ -10,16 +10,16 @@ import net.openid.conformance.testmodule.Environment;
 public class ExtractTrustChainFromResolveResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "federation_response_body")
+	@PreEnvironment(required = "federation_response_jwt")
 	public Environment evaluate(Environment env) {
 
-		JsonElement trustChainElement = env.getElementFromObject("federation_response_body", "trust_chain");
+		JsonElement trustChainElement = env.getElementFromObject("federation_response_jwt", "claims.trust_chain");
 		if (trustChainElement == null) {
 			logSuccess("Resolve response does not contain a trust_chain element. Skipping extraction.");
 			return env;
 		}
 
-		JsonArray trustChain = env.getElementFromObject("federation_response_body", "trust_chain").getAsJsonArray();
+		JsonArray trustChain = trustChainElement.getAsJsonArray();
 		JsonObject trustChainFromResolver = new JsonObject();
 		trustChainFromResolver.add("trust_chain", trustChain);
 		env.putObject("trust_chain_from_resolver", trustChainFromResolver);

@@ -160,7 +160,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	}
 
 	protected void validateSubordinateStatements() {
-		JsonElement authorityHintsElement = env.getElementFromObject("federation_response_body", "authority_hints");
+		JsonElement authorityHintsElement = env.getElementFromObject("federation_response_jwt", "claims.authority_hints");
 		if (authorityHintsElement != null) {
 			JsonArray authorityHints = authorityHintsElement.getAsJsonArray();
 			for (JsonElement authorityHintElement : authorityHints) {
@@ -224,9 +224,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	protected List<String> findPath(String fromEntity, String toTrustAnchor, List<String> path) throws CyclicPathException {
 
 		if (path.isEmpty()) {
-			env.mapKey("federation_response_body", "primary_entity_statement_body");
+			env.mapKey("federation_response_jwt", "primary_entity_statement_jwt");
 		} else {
-			env.unmapKey("federation_response_body");
+			env.unmapKey("federation_response_jwt");
 			String currentWellKnownUrl = appendWellKnown(fromEntity);
 			env.putString("federation_endpoint_url", currentWellKnownUrl);
 			callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
@@ -242,7 +242,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			return path;
 		}
 
-		JsonElement authorityHintsElement = env.getElementFromObject("federation_response_body", "authority_hints");
+		JsonElement authorityHintsElement = env.getElementFromObject("federation_response_jwt", "claims.authority_hints");
 		if (authorityHintsElement == null) {
 			return null;
 		}
