@@ -7,11 +7,11 @@ import net.openid.conformance.testmodule.Environment;
 public class ValidateOAuthAuthorizationServerMetadata extends AbstractValidateMetadata {
 
 	@Override
-	@PreEnvironment(required = { "federation_response_body" } )
+	@PreEnvironment(required = { "federation_response_jwt" } )
 	public Environment evaluate(Environment env) {
 
 		String metadataName = "oauth_authorization_server";
-		JsonElement metadataElement = env.getElementFromObject("federation_response_body", "metadata." + metadataName);
+		JsonElement metadataElement = env.getElementFromObject("federation_response_jwt", "claims.metadata." + metadataName);
 
 		if (metadataElement == null) {
 			logSuccess(String.format("Entity statement does not contain the %s metadata claim", metadataName));

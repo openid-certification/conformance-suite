@@ -16,7 +16,6 @@ public class CallFederationEndpointAndExpectError extends AbstractCallProtectedR
 
 	@Override
 	@PreEnvironment(strings = { "federation_endpoint_url" })
-	@PostEnvironment(required = "federation_response_body")
 	public Environment evaluate(Environment env) {
 		return callProtectedResource(env);
 	}
