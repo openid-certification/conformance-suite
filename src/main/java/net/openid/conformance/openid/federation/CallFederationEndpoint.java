@@ -62,7 +62,7 @@ public class CallFederationEndpoint extends AbstractCondition {
 			} catch (ParseException e) {
 				throw error("Failed to parse entity statement as a signed JWT", e, args("jwt", jwtString));
 			} catch (JsonSyntaxException e) {
-				throw error(e, args("json", jwtString));
+				throw error(e, args("jwt", jwtString));
 			}
 		} else {
 			throw error("Empty entity statement", args("federation_response", jwtString));
