@@ -4,21 +4,13 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
-import net.openid.conformance.openid.ssf.conditions.OIDSSFObtainTransmitterAccessToken;
 import net.openid.conformance.openid.ssf.conditions.streams.CheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamStatusCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamStatusCall;
-import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
-import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.ServerMetadata;
-import net.openid.conformance.variant.VariantConfigurationFields;
-import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-happy-path",
