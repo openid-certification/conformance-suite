@@ -32,12 +32,17 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 				"events_requested",
 				Set.of(
 					"https://schemas.openid.net/secevent/caep/event-type/session-revoked",
-					"https://schemas.openid.net/secevent/caep/event-type/credential-change",
-					"https://schemas.openid.net/secevent/caep/event-type/device-compliance-change"
+					"https://schemas.openid.net/secevent/caep/event-type/credential-change"
 				),
+				"format", "iss_sub",
 				"description", "Stream for Receiver OIDF Conformance Test-Suite",
-				"delivery", Map.of("method", "urn:ietf:rfc:8935", "endpoint_url", "https://receiver.example.com/events"),
-				"audience", "https://localhost.emobix.co.uk:8443"
+				 "delivery", Map.of("method", "urn:ietf:rfc:8935", "endpoint_url", "https://receiver.example.com/events"),
+//				"delivery", Map.of( //
+//					"method", "https://schemas.openid.net/secevent/risc/delivery-method/push", //
+//					"endpoint_url", "https://receiver.example.com/events", //
+//					"authorization_header", "{authorizationHeaderValue}" //
+//					)
+				 "audience", "https://localhost.emobix.co.uk:8443"
 			)
 		);
 	}

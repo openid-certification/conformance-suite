@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
+import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
@@ -23,6 +25,8 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFGetStaticTransmitterCo
 import net.openid.conformance.openid.ssf.conditions.OIDSSFObtainTransmitterAccessToken;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.sequence.client.CreateDpopProofSteps;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
@@ -158,8 +162,19 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 						throw new UnsupportedOperationException("TODO implement me");
 //						break;
 					case PRIVATE_KEY_JWT:
-						throw new UnsupportedOperationException("TODO implement me");
-//						break;
+
+						callAndStopOnFailure(ExtractJWKSDirectFromClientConfiguration.class);
+						callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+						call(sequence(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class));
+
+						boolean dpop = false;
+						if (dpop) {
+							callAndStopOnFailure(GenerateDpopKey.class);
+							call(CreateDpopProofSteps.createTokenEndpointDpopSteps());
+						}
+
+						// throw new UnsupportedOperationException("TODO implement me");
+						break;
 					case MTLS:
 						throw new UnsupportedOperationException("TODO implement me");
 //						break;
