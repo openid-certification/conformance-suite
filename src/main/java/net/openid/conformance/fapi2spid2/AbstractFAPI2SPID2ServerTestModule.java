@@ -149,6 +149,7 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
+import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
@@ -172,6 +173,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -189,7 +191,8 @@ import java.util.function.Supplier;
 	FAPI2SenderConstrainMethod.class,
 	FAPI2ID2OPProfile.class,
 	FAPIOpenIDConnect.class,
-	FAPIResponseMode.class
+	FAPIResponseMode.class,
+	AuthorizationRequestType.class,
 })
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
@@ -221,6 +224,9 @@ import java.util.function.Supplier;
 	"client.scope", // scope is always openid
 	"client2.scope"
 })
+@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
+	"resource.richAuthorizationRequest",
+})
 public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -233,6 +239,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	protected Boolean brazilPayments; // whether using Brazil payments APIs
 	protected Boolean profileRequiresMtlsEverywhere;
 	protected Boolean useDpopAuthCodeBinding;
+	protected Boolean isRarRequest;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -293,6 +300,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		isBrazil = getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
+		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
 		useDpopAuthCodeBinding = false;
 
 		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
@@ -300,8 +308,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			variant == FAPI2ID2OPProfile.OPENBANKING_UK ||
 			variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
 			variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-			variant == FAPI2ID2OPProfile.CONNECTID_AU; // https://gitlab.com/idmvp/specifications/-/issues/29
-
+			variant == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
+			variant == FAPI2ID2OPProfile.CBUAE;
 		callAndStopOnFailure(CreateRedirectUri.class);
 
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -317,13 +325,15 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(FetchServerKeys.class);
+		callAndContinueOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
 		callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
-
+		if (isRarRequest) {
+			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
+		}
 		whichClient = 1;
 
 		// Set up the client configuration
@@ -342,7 +352,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 	protected void setupResourceEndpoint() {
 		// Set up the resource endpoint configuration
-		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU ) {
 			// always use the MTLS version if available, as ConnectID always uses mtls sender constraining
 			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-5");
 		} else {
@@ -485,10 +495,10 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
-											   boolean isOpenId,
-											   boolean isJarm,
-											   boolean usePkce,
-											   Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
+											boolean isOpenId,
+											boolean isJarm,
+											boolean usePkce,
+											Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
 			this.isOpenId = isOpenId;
 			this.isJarm = isJarm;
@@ -540,6 +550,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, profileAuthorizationEndpointSetupSteps);
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
 			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-5", "CID-IDA-5.2-10"));
+		}
+		if (isRarRequest){
+			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
 		}
 		return seq;
 	}
@@ -777,6 +790,10 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 		else {
 			callAndStopOnFailure(ExpectNoIdTokenInTokenResponse.class);
+		}
+
+		if (isRarRequest){
+			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RAR-7");
 		}
 	}
 
@@ -1140,6 +1157,14 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "connectid_au")
 	public void setupConnectId() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		preAuthorizationSteps = null;
+		profileAuthorizationEndpointSetupSteps = null;
+		profileIdTokenValidationSteps = null;
+	}
+
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "cbuae")
+	public void setupCbuaeFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = null;

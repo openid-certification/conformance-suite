@@ -15,4 +15,6 @@ public @interface VariantParameter {
 
 	String description() default "";
 
+	String defaultValue() default "";
+
 }

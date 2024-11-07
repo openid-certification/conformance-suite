@@ -22,6 +22,7 @@ import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfiguration;
 import net.openid.conformance.condition.as.AddSubjectTypesSupportedPairwiseToServerConfiguration;
 import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddSupportedAuthorizationTypesToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedToServerConfiguration;
@@ -138,6 +139,7 @@ import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
@@ -197,6 +199,7 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
@@ -220,7 +223,8 @@ import org.springframework.web.servlet.view.RedirectView;
 	FAPIResponseMode.class,
 	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
-	FAPI2SenderConstrainMethod.class
+	FAPI2SenderConstrainMethod.class,
+		AuthorizationRequestType.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -244,6 +248,9 @@ import org.springframework.web.servlet.view.RedirectView;
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {
 	"client.scope", // scope is always openid
 	"client2.scope"
+})
+@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
+		"resource.authorization_details_types_supported"
 })
 public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
@@ -272,6 +279,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
 
 	protected FAPI2AuthRequestMethod fapi2AuthRequestMethod;
+
+	protected AuthorizationRequestType authorizationRequestType;
 
 	protected boolean startingShutdown = false;
 
@@ -328,12 +337,14 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		fapiClientType = getVariant(FAPIClientType.class);
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
+		authorizationRequestType = getVariant(AuthorizationRequestType.class);
 
 		profileRequiresMtlsEverywhere =
 			profile == FAPI2ID2OPProfile.OPENBANKING_UK ||
 			profile == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
 			profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-			profile == FAPI2ID2OPProfile.CONNECTID_AU; // https://gitlab.com/idmvp/specifications/-/issues/29
+			profile == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
+			profile == FAPI2ID2OPProfile.CBUAE;
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
@@ -352,6 +363,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				call(condition(AddSubjectTypesSupportedToServerConfiguration.class).requirement("OIDCD-3"));
 			}
 		}
+
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1");
@@ -411,6 +423,10 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			} else {
 				exposePath("accounts_endpoint", ACCOUNTS_PATH);
 			}
+		}
+
+		if (authorizationRequestType == AuthorizationRequestType.RAR){
+			callAndStopOnFailure(AddSupportedAuthorizationTypesToServerConfiguration.class);
 		}
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
@@ -1022,7 +1038,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			if(requireResourceServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 			}
-			if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+			if (profile == FAPI2ID2OPProfile.CONNECTID_AU || profile == FAPI2ID2OPProfile.CBUAE ) {
 				// for ConnectID we use the userinfo endpoint as the resource endpoint, so this is the end of the test
 				resourceEndpointCallComplete();
 			} else {
@@ -1031,7 +1047,6 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(user, HttpStatus.OK);
 		}
 		return responseEntity;
-
 	}
 
 	protected Object jwksEndpoint() {
@@ -1208,6 +1223,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 	protected void createTokenEndpointResponse() {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+		if (authorizationRequestType == AuthorizationRequestType.RAR) {
+			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
+		}
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
@@ -1291,7 +1309,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		}
 
 		/*
-		 	- Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
+			- Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
 			- O `STATUS` será alterado para `AUTHORISED` somente após autenticação e confirmação por parte do
 				usuário na instituição transmissora dos dados.
 		 */
@@ -1337,6 +1355,9 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");
 		validateRedirectUriInRequestObject();
+		if (authorizationRequestType == AuthorizationRequestType.RAR){
+			callAndContinueOnFailure(RARSupport.EnsureRequestObjectContainValidRAR.class, ConditionResult.FAILURE, "RAR-2.0");
+		}
 	}
 
 	protected void validateRedirectUriInRequestObject() {

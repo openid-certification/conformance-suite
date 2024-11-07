@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au" })
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae" })
 public class FAPI2SPID2EnsureServerHandlesNonMatchingIntentId extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

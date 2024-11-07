@@ -14,6 +14,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAl
 import net.openid.conformance.condition.client.CheckDiscEndpointPARSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256;
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseModesSupportedContainsJwt;
+import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationRequestTypesSupportedContainsTestType;
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
 import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
@@ -31,6 +32,7 @@ import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSu
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointScopesSupported;
+import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseIssParameterSupportedIsTrue;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -99,6 +101,11 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 	@VariantSetup(parameter = FAPIOpenIDConnect.class, value = "openid_connect")
 	public void setupOidc() {
 		oidcChecks = OidcDiscoveryEndpointChecks.class;
+	}
+
+	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "cbuae")
+	public void setupCBUAE() {
+		profileSpecificChecks = OpenBankingUAEDiscoveryEndpointChecks.class;
 	}
 
 	@Override
@@ -218,6 +225,18 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-5");
 			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, Condition.ConditionResult.WARNING, "BrazilOB-5.2.2-6");
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-7");
+		}
+	}
+
+	public static class OpenBankingUAEDiscoveryEndpointChecks extends AbstractConditionSequence {
+
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointAuthorizationRequestTypesSupportedContainsTestType.class, Condition.ConditionResult.WARNING);
+
 		}
 	}
 }

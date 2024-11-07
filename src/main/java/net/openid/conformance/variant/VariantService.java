@@ -93,7 +93,7 @@ public class VariantService {
 		return p;
 	}
 
-	private static Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant(VariantSelection variant,
+	private static Map<ParameterHolder<? extends Enum<?>>, Enum<?>> typedVariant(VariantSelection variant,
 			Map<String, ParameterHolder<? extends Enum<?>>> variantParametersByName) {
 		// Ignore any unknown parameters
 		return variant.getVariant().entrySet().stream()
@@ -217,12 +217,19 @@ public class VariantService {
 			this.parameterClass = parameterClass;
 			this.variantParameter = parameterClass.getAnnotation(VariantParameter.class);
 			this.valuesByString = values().stream().collect(toMap(T::toString, identity()));
+			String defaultValue = parameterClass.getAnnotation(VariantParameter.class).defaultValue();
+			if (!defaultValue.equals("")) {
+				this.valuesByString.put("default", this.valuesByString.get(defaultValue));
+			}
 		}
 
 		// We compare against the toString() value of each constant, so that variant values can include spaces etc.
 		T valueOf(String s) {
 			T v = valuesByString.get(s);
 			if (v == null) {
+				if (valuesByString.containsKey("default")){
+					return valuesByString.get("default");
+				}
 				throw new IllegalArgumentException("Illegal value for variant parameter %s: \"%s\"".formatted(variantParameter.name(), s));
 			}
 			return v;
@@ -232,6 +239,13 @@ public class VariantService {
 			return List.of(parameterClass.getEnumConstants());
 		}
 
+		public boolean hasDefault() {
+			return valuesByString.containsKey("default");
+		}
+
+		public T defaultValue() {
+			return valuesByString.get("default");
+		}
 	}
 
 	/**
@@ -454,7 +468,7 @@ public class VariantService {
 					selectedStringVariants.putAll(preselectedVariants);
 				}
 
-				Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> selectedVariant = typedVariant(new VariantSelection(selectedStringVariants), parametersByName);
+				Map<ParameterHolder<? extends Enum<?>>, Enum<?>> selectedVariant = typedVariant(new VariantSelection(selectedStringVariants), parametersByName);
 				if (!testPlanModuleWithVariant.module.isApplicableForVariant(selectedVariant)) {
 					return;
 				}
@@ -613,14 +627,18 @@ public class VariantService {
 			return isApplicableForVariant(typedVariant(variant, parametersByName));
 		}
 
-		boolean isApplicableForVariant(Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> variant) {
+		boolean isApplicableForVariant(Map<ParameterHolder<? extends Enum<?>>, Enum<?>> variant) {
 			return parameters.stream()
 					.allMatch(p -> {
 						Object v = variant.get(p.parameter);
 						if (v == null) {
-							throw new RuntimeException("TestModule '%s' requires a value for variant '%s'".formatted(
-								this.info.testName(),
-								p.parameter.variantParameter.name()));
+							if (p.parameter.hasDefault()){
+								v = p.parameter.defaultValue();
+							} else {
+								throw new RuntimeException("TestModule '%s' requires a value for variant '%s'".formatted(
+										this.info.testName(),
+										p.parameter.variantParameter.name()));
+							}
 						}
 						return p.allowedValues.contains(v);
 					});
@@ -642,7 +660,7 @@ public class VariantService {
 		}
 
 		public TestModule newInstance(VariantSelection variant) {
-			Map<ParameterHolder<? extends Enum<?>>, ? extends Enum<?>> typedVariant = typedVariant(variant, parametersByName);
+			Map<ParameterHolder<? extends Enum<?>>, Enum<?>> typedVariant = typedVariant(variant, parametersByName);
 
 			// Validate the supplied parameters
 
@@ -650,8 +668,16 @@ public class VariantService {
 
 			Set<ParameterHolder<?>> missingParameters = Sets.difference(declaredParameters, typedVariant.keySet());
 			if (!missingParameters.isEmpty()) {
-				throw new IllegalArgumentException("Missing values for required variant parameters: " +
-						missingParameters.stream().map(p -> p.variantParameter.name()).collect(joining(", ")));
+				//checking the missing parameters has default value
+				if(missingParameters.stream().filter(t -> !t.hasDefault()).findFirst().isPresent()) {
+					throw new IllegalArgumentException("Missing values for required variant parameters: " +
+							missingParameters.stream().map(p -> p.variantParameter.name()).collect(joining(", ")));
+				} else {
+					//every missing parameter has a default value
+					missingParameters.stream().forEach(t-> {
+						typedVariant.put(t, t.defaultValue());
+					});
+				}
 			}
 
 			// Note: supplying extra variant parameters is not an error - some modules in a test plan may require the
