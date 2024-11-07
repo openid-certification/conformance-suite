@@ -20,6 +20,7 @@ import java.util.Map;
 		FAPI1AdvancedFinalEnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPI1AdvancedFinalEnsureValidPKCESucceeds.class,
 		FAPI1AdvancedFinalEnsureOtherScopeOrderSucceeds.class,
+		FAPI1AdvancedFinalAccessTokenTypeHeaderCaseSensitivity.class,
 
 		// Possible failure case
 		FAPI1AdvancedFinalEnsureResponseModeQuery.class,
