@@ -2,8 +2,10 @@ package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIatNbfExpOver60SecondsInTheFutureToClientAuthenticationAssertionClaims;
+import net.openid.conformance.condition.client.CallPAREndpoint;
+import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
-import net.openid.conformance.condition.client.CheckPAREndpointResponse401WithInvalidClientError;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -44,7 +46,11 @@ public class FAPI2SPID2PAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFu
 
 	@Override
 	protected void processParResponse() {
-		callAndContinueOnFailure(CheckPAREndpointResponse401WithInvalidClientError.class, Condition.ConditionResult.FAILURE, "PAR-2.3", "RFC6749-4.1.2.1");
+
+		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "PAR-2.3", "RFC6749-4.1.2.1", "RFC6749-5.2");
+		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "PAR-2.3", "RFC6749-4.1.2.1", "RFC6749-5.2");
+		env.unmapKey("endpoint_response");
 
 		fireTestFinished();
 	}
