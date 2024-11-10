@@ -1,7 +1,5 @@
 import pyparsing as pp
 
-from collections import namedtuple
-
 # BNF:
 #
 # name :: alphanum + '-_'
