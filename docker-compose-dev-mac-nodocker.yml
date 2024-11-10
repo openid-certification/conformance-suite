@@ -10,7 +10,6 @@
 # --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite
 # This should only be used for development; when running the suite use
 # the docker containers for consistency
-version: '3'
 services:
   mongodb:
     image: mongo:5.0.24
