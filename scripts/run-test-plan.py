@@ -200,7 +200,8 @@ async def run_queue(q, parallel_jobs):
     await asyncio.gather(*workers, return_exceptions=True)
     print("workers gathered")
 
-async def run_test_plan(test_plan, config_file, output_dir, client_certs):
+async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
+    test_plan = test_plan_obj['test']['test_name']
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     start_section(test_plan, "Results", True)
     with open(config_file) as f:
@@ -211,8 +212,8 @@ async def run_test_plan(test_plan, config_file, output_dir, client_certs):
     for k,v in client_certs.items():
         json_config = json_config.replace('{'+ k + '}', v)
 
-    test_plan_obj = split_name_and_variant(test_plan)
-    test_plan_name = test_plan_obj["test"]["test_name"]
+
+    test_plan_name = test_plan
     variant = test_plan_obj["test"]["variants"] if "variants" in test_plan_obj["test"] else {}
     selected_modules = test_plan_obj["test"]["modules"] if "modules" in test_plan_obj["test"] else []
     op_plan = test_plan_obj["op_test"] if "op_test" in test_plan_obj else None
@@ -324,7 +325,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                     await conformance.wait_for_state(module_id, ["FINISHED"])
                 else:
                     # the 'client' is our own OP tests
-                    plan_results.extend(await run_test_plan(op_plan, op_plan["config"], output_dir, client_certs))
+                    plan_results.extend(await run_test_plan({"test":op_plan["test_plan"]}, op_plan["config"], output_dir, client_certs))
             elif re.match(r'fapi-rw-id2-client-.*', module) or \
                 re.match(r'fapi1-advanced-final-client-.*', module):
                 print("FAPI client test: " + module + " " + json.dumps(variant))
@@ -1023,7 +1024,8 @@ def end_section(name):
     sys.stderr.flush()
 
 async def run_test_plan_wrapper(plan_name, config_json, export_dir, client_certs):
-    result = await run_test_plan(plan_name, config_json, export_dir, client_certs)
+    test_plan_obj = split_name_and_variant(plan_name)
+    result = await run_test_plan(test_plan_obj, config_json, export_dir, client_certs)
     if isinstance(result, list):
         results.extend(result)
     else:
