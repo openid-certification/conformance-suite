@@ -14,7 +14,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-par-ensure-jwt-client-assertions-nbf-over-60-seconds-in-the-future-fails",
 	displayName = "FAPI2-Security-Profile-ID2: ensure jwt client assertions with nbf over 60 seconds in the future fails at the par endopint",
-	summary = "This test makes a PAR request with a client assertion 'nbf' of >60 seconds in the future. This must be rejected by the authentication server as per 'https://bitbucket.org/openid/fapi/pull-requests/497/diff'",
+	summary = "This test checks the clock skew handling of the PAR endpoint as per https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-5.3.2.1-2.14. The test makes a PAR request with a client assertion with iat, nbf and exp set > 60s into the future. We expect the request to fail and a server response with status code 400 or 401 with error codes invalid_request or invalid_client.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
