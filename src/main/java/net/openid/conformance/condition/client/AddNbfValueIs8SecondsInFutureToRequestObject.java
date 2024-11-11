@@ -23,7 +23,7 @@ public class AddNbfValueIs8SecondsInFutureToRequestObject extends AbstractCondit
 
 		env.putObject("request_object_claims", requestObjectClaims);
 
-		logSuccess("Added nbf value to request object which is 10 seconds in the future", args("request_object_claims", requestObjectClaims, "nbf_is_10_seconds_in_the_future", nbf));
+		logSuccess("Added nbf value to request object which is 8 seconds in the future", args("request_object_claims", requestObjectClaims, "nbf_is_8_seconds_in_the_future", nbf));
 
 		return env;
 
