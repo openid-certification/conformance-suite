@@ -1,6 +1,6 @@
 services:
   mongodb:
-    image: mongo:5.0.24
+    image: mongo:6.0.13
     volumes:
      - ./mongo/data:/data/db
   httpd:

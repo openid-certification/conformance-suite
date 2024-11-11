@@ -4,6 +4,6 @@ name: conformance-suite
 version: 0.1.1
 dependencies:
     - name: mongodb
-      # this is currently the latest release from https://artifacthub.io/packages/helm/bitnami/mongodb/ that uses mongo 5.0.x
-      version: "12.1.31"
+      # this is currently the latest release from https://artifacthub.io/packages/helm/bitnami/mongodb/ that uses mongo 6.0.x
+      version: "13.18.5"
       repository: "https://charts.bitnami.com/bitnami"

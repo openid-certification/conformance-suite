@@ -501,21 +501,25 @@ local_test:
     while [ -z "$MONGO_POD" ]; do echo -n .; sleep 5; get_mongo_pod; done; echo
     echo "Using pod: $MONGO_POD"
     echo -n "Connecting to mongodb"
-    while ! kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- mongo mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
+    while ! kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- mongosh mongodb://localhost/test_suite --eval "db.version()" > /dev/null 2>&1; do echo -n .; sleep 1; done; echo
     # despite the db.version check we've seen instances of the insert failing - give it an extra few seconds to settle
     sleep 2
     echo "Inserting CI token"
     CI_TOKEN=$( dd bs=64 count=1 < /dev/urandom | base64 - | tr -d '\n=' )
     kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- \
-      mongo mongodb://localhost/test_suite --eval \
-        "db.API_TOKEN.update({ _id: \"ci_token\" }, { _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null }, { upsert: true })"
+      mongosh mongodb://localhost/test_suite --eval \
+        "db.API_TOKEN.updateOne({ _id: \"ci_token\" }, { \$set: { _id: \"ci_token\", owner: { sub: \"ci\", iss: \"${CI_ENVIRONMENT_URL}\" }, info: {}, token: \"${CI_TOKEN}\", expires: null } }, { upsert: true })"
     echo "Inserting preset tokens"
     OLDIFS=$IFS
     IFS='|'
     for token in ${PRESET_CI_TOKENS}; do
+      # Split the token into filter and document object strings.
+      filter=$(echo $token | cut -d "," -f 1 )
+      document=$(echo $token | cut -d "," -f 2- )
+
       kubectl -n ${KUBE_NAMESPACE} exec $MONGO_POD -- \
-        mongo mongodb://localhost/test_suite --eval \
-          "db.API_TOKEN.update($token, { upsert: true })"
+        mongosh mongodb://localhost/test_suite --eval \
+          "db.API_TOKEN.updateOne($filter, { \$set: $document }, { upsert: true })"
     done
     IFS=$OLDIFS
 
