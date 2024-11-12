@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckSupportedDeliveryMethods;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckTransmitterMetadataIssuer;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFDefaultSubjectsTransmitterMetadataCheck;
@@ -54,12 +55,18 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
 		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1");
 		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1.1", "CAEPIOP-2.3.7");
+		callAndContinueOnFailure(OIDSSFCheckSupportedDeliveryMethods.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1", "OIDSSF-7.1.1");
 
-		// treat transmitter_metadata as "server" metadata to leverage existing checks
-		env.mapKey("server", "transmitter_metadata");
-
-		callAndStopOnFailure(CheckJwksUri.class);
-		callAndStopOnFailure(FetchServerKeys.class);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		// Workaround because we cannot use env.mapKey("server","ssf.transmitter_metadata")
+		env.putObject("transmitter_metadata", env.getElementFromObject("ssf", "transmitter_metadata").getAsJsonObject());
+		try {
+			// treat transmitter_metadata as "server" metadata to leverage existing checks
+			env.mapKey("server", "transmitter_metadata");
+			callAndStopOnFailure(CheckJwksUri.class);
+			callAndStopOnFailure(FetchServerKeys.class);
+			callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		} finally {
+			env.removeObject("transmitter_metadata");
+		}
 	}
 }

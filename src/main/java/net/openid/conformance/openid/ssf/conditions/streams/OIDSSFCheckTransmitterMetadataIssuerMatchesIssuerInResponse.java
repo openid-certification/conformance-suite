@@ -8,10 +8,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "transmitter_metadata")
+	@PreEnvironment(required = "ssf")
 	public Environment evaluate(Environment env) {
 
-		String metadataIssuer = OIDFJSON.getString(env.getElementFromObject("transmitter_metadata", "issuer"));
+		String metadataIssuer = OIDFJSON.getString(env.getElementFromObject("ssf", "transmitter_metadata.issuer"));
 
 		String responseIssuer = env.getString("endpoint_response", "body_json.iss");
 

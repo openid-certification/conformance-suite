@@ -30,7 +30,7 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = {"transmitter_metadata_endpoint_response", "transmitter_metadata"})
+	@PostEnvironment(required = {"transmitter_metadata_endpoint_response", "ssf"})
 	public Environment evaluate(Environment env) {
 
 		String metadataEndpointUrl = buildMetadataEndpointUrl(env);
@@ -44,7 +44,7 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 		try {
 			JsonObject transmitterMetadata = JsonParser.parseString(transmitterMetadataJson).getAsJsonObject();
 			logSuccess("Successfully parsed transmitter metadata", transmitterMetadata);
-			env.putObject("transmitter_metadata", transmitterMetadata);
+			env.putObject("ssf","transmitter_metadata", transmitterMetadata);
 
 			String issuerUrl = OIDFJSON.getString(transmitterMetadata.get("issuer"));
 			try {

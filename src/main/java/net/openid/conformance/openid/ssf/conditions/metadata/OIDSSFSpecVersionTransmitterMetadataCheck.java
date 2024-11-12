@@ -9,10 +9,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class OIDSSFSpecVersionTransmitterMetadataCheck extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"transmitter_metadata"})
+	@PreEnvironment(required = {"ssf"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject transmitterMetadata = env.getObject("transmitter_metadata");
+		JsonObject transmitterMetadata = env.getElementFromObject("ssf","transmitter_metadata").getAsJsonObject();
 
 		if (!transmitterMetadata.has("spec_version")) {
 			log("Skipping missing optional spec_version field in transmitter_metadata");

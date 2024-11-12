@@ -11,10 +11,10 @@ import java.util.Set;
 public class OIDSSFDefaultSubjectsTransmitterMetadataCheck extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"transmitter_metadata"})
+	@PreEnvironment(required = {"ssf"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject transmitterMetadata = env.getObject("transmitter_metadata");
+		JsonObject transmitterMetadata = env.getElementFromObject("ssf","transmitter_metadata").getAsJsonObject();
 
 		if (!transmitterMetadata.has("default_subjects")) {
 			log("Skipping missing optional default_subjects field");

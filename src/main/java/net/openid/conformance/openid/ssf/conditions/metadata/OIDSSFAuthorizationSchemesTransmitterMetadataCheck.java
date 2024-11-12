@@ -10,10 +10,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class OIDSSFAuthorizationSchemesTransmitterMetadataCheck extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"transmitter_metadata"})
+	@PreEnvironment(required = {"ssf"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject transmitterMetadata = env.getObject("transmitter_metadata");
+		JsonObject transmitterMetadata = env.getElementFromObject("ssf","transmitter_metadata").getAsJsonObject();
 
 		if (!transmitterMetadata.has("authorization_schemes")) {
 			throw error("Missing required field authorization_schemes!");

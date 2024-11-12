@@ -15,7 +15,7 @@ public class OIDSSFCheckTransmitterMetadataIssuer extends CheckDiscEndpointIssue
 
 	@Override
 	protected JsonElement getResponseIssuerElement(Environment env) {
-		return env.getElementFromObject("transmitter_metadata", "issuer");
+		return env.getElementFromObject("ssf", "transmitter_metadata.issuer");
 	}
 
 	@Override
@@ -25,8 +25,14 @@ public class OIDSSFCheckTransmitterMetadataIssuer extends CheckDiscEndpointIssue
 
 	@Override
 	public Environment evaluate(Environment env) {
-		env.mapKey("server", "transmitter_metadata");
-		return super.evaluate(env);
+		// Workaround because we cannot use env.mapKey("server","ssf.transmitter_metadata")
+		env.putObject("transmitter_metadata", env.getElementFromObject("ssf", "transmitter_metadata").getAsJsonObject());
+		try {
+			env.mapKey("server", "transmitter_metadata");
+			return super.evaluate(env);
+		} finally {
+			env.removeObject("transmitter_metadata");
+		}
 	}
 
 	@Override
