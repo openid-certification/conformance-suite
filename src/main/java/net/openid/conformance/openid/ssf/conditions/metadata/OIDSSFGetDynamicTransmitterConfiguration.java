@@ -1,4 +1,4 @@
-package net.openid.conformance.openid.ssf.conditions;
+package net.openid.conformance.openid.ssf.conditions.metadata;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
