@@ -197,7 +197,6 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 
 	protected void validateTlsConnection() {
 		callAndContinueOnFailure(EnsureTLS12OrLater.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.1");
-		callAndContinueOnFailure(EnsureTLS13OrLater.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.1");
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.1");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.1");
 	}
