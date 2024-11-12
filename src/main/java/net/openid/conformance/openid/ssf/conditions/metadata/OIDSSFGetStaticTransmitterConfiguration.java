@@ -1,4 +1,4 @@
-package net.openid.conformance.openid.ssf.conditions;
+package net.openid.conformance.openid.ssf.conditions.metadata;
 
 import net.openid.conformance.condition.util.TLSTestValueExtractor;
 import net.openid.conformance.testmodule.Environment;
