@@ -22,10 +22,10 @@ public class OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck extends AbstractCondi
 	);
 
 	@Override
-	@PreEnvironment(required = {"transmitter_metadata"})
+	@PreEnvironment(required = {"ssf"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject transmitterMetadata = env.getObject("transmitter_metadata");
+		JsonObject transmitterMetadata = env.getElementFromObject("ssf","transmitter_metadata").getAsJsonObject();
 
 		Set<String> nonHttpsEndpoints = ENDPOINT_FIELDS.stream()
 			.filter(transmitterMetadata::has)

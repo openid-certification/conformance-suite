@@ -51,23 +51,23 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 	protected abstract String getResourceEndpointUrl(Environment env);
 
 	protected String getConfigurationEndpointUrl(Environment env) {
-		return env.getString("transmitter_metadata", "configuration_endpoint");
+		return env.getString("ssf", "transmitter_metadata.configuration_endpoint");
 	}
 
 	protected String getStatusEndpointUrl(Environment env) {
-		return env.getString("transmitter_metadata", "status_endpoint");
+		return env.getString("ssf", "transmitter_metadata.status_endpoint");
 	}
 
 	protected String getAddSubjectEndpointUrl(Environment env) {
-		return env.getString("transmitter_metadata", "add_subject_endpoint");
+		return env.getString("ssf", "transmitter_metadata.add_subject_endpoint");
 	}
 
 	protected String getRemoveSubjectEndpointUrl(Environment env) {
-		return env.getString("transmitter_metadata", "remove_subject_endpoint");
+		return env.getString("ssf", "transmitter_metadata.remove_subject_endpoint");
 	}
 
 	protected String getVerificationEndpointUrl(Environment env) {
-		return env.getString("transmitter_metadata", "verification_endpoint");
+		return env.getString("ssf", "transmitter_metadata.verification_endpoint");
 	}
 
 	protected void configureAccessToken(Environment env) {
@@ -82,7 +82,7 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 	protected void prepareRequest(Environment env) {
 	}
 
-	@PreEnvironment(required = {"config", "transmitter_metadata"})
+	@PreEnvironment(required = {"config", "ssf"})
 	@Override
 	public Environment evaluate(Environment env) {
 

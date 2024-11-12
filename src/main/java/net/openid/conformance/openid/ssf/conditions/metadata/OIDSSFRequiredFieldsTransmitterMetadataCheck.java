@@ -17,10 +17,10 @@ public class OIDSSFRequiredFieldsTransmitterMetadataCheck extends AbstractCondit
 	);
 
 	@Override
-	@PreEnvironment(required = {"transmitter_metadata"})
+	@PreEnvironment(required = {"ssf"})
 	public Environment evaluate(Environment env) {
 
-		JsonObject transmitterMetadata = env.getObject("transmitter_metadata");
+		JsonObject transmitterMetadata = env.getElementFromObject("ssf","transmitter_metadata").getAsJsonObject();
 		Set<String> missingFields = REQUIRED_FIELDS.stream().filter(field -> !transmitterMetadata.has(field)).collect(Collectors.toCollection(LinkedHashSet::new));
 
 		if (!missingFields.isEmpty()) {
