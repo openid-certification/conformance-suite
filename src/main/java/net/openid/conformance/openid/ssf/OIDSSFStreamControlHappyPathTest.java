@@ -61,6 +61,8 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
 			callAndContinueOnFailure(CheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
+
+			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING,"OIDSSF-7.1.4.1", "OIDCAEP-3");
 			// TODO check: In the event that there are no Event Streams configured, the Transmitter MUST return an empty list.
 			// TODO check: stream configuration response
 			call(exec().unmapKey("endpoint_response"));
