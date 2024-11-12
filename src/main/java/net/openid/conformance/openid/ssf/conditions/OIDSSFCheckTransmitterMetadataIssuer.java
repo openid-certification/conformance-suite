@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.testmodule.Environment;
 import org.jetbrains.annotations.NotNull;
 
-public class CheckTransmitterMetadataIssuer extends CheckDiscEndpointIssuer {
+public class OIDSSFCheckTransmitterMetadataIssuer extends CheckDiscEndpointIssuer {
 
 	@NotNull
 	@Override
