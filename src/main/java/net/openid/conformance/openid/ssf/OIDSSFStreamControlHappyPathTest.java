@@ -88,22 +88,32 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 //			call(exec().unmapKey("endpoint_response"));
 //		});
 
+		String statusEndpoint = env.getString("transmitter_metadata", "status_endpoint");
 		eventLog.runBlock("Read Stream Status", () -> {
-			// stream status
-			callAndStopOnFailure(OIDSSFReadStreamStatusCall.class, "OIDSSF-7.1.2.1");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.1");
-			// TODO check: status response
-			call(exec().unmapKey("endpoint_response"));
+			if (statusEndpoint != null) {
+				// stream status
+				callAndStopOnFailure(OIDSSFReadStreamStatusCall.class, "OIDSSF-7.1.2.1");
+				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.1");
+				// TODO check: status response
+				call(exec().unmapKey("endpoint_response"));
+			} else {
+				eventLog.log("Skipping unsupported Read Stream Status Checks, because status_endpoint is missing in ssf-configuration", args());
+			}
 		});
 
 		eventLog.runBlock("Update Stream Status", () -> {
-			callAndStopOnFailure(OIDSSFUpdateStreamStatusCall.class, "OIDSSF-7.1.2.2");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
-			// TODO check: status response
-			call(exec().unmapKey("endpoint_response"));
+			if (statusEndpoint != null) {
+				callAndStopOnFailure(OIDSSFUpdateStreamStatusCall.class, "OIDSSF-7.1.2.2");
+				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
+				// TODO check: status response
+				call(exec().unmapKey("endpoint_response"));
+			} else {
+				eventLog.log("Skipping unsupported Update Stream Status Checks, because status_endpoint is missing in ssf-configuration.", args());
+			}
 		});
+
 
 		eventLog.runBlock("Delete Stream Configuration", () -> {
 			callAndStopOnFailure(OIDSSFDeleteStreamConfigCall.class, "OIDSSF-7.1.1.5", "CAEPIOP-2.3.8.2");
