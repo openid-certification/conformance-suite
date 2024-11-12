@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.openid.ssf.conditions.streams.CheckTransmitterMetadataIssuerMatchesIssuerInResponse;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupportedEventsForStream;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
@@ -36,16 +37,16 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 		// OID_CAEP_INTEROP https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		eventLog.runBlock("Prepare Transmitter Access", this::obtainTransmitterAccessToken);
 
-//		try {
-//			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
-//		} catch (Exception ignore) {
-//		}
-//		try {
-//			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
-//			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-//			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.5");
-//		} catch (Exception ignore) {
-//		}
+		try {
+			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
+		} catch (Exception ignore) {
+		}
+		try {
+			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.5");
+		} catch (Exception ignore) {
+		}
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
 			callAndStopOnFailure(OIDSSFCreateStreamConfigCall.class, "OIDSSF-7.1.1.1", "CAEPIOP-2.3.8.2");
