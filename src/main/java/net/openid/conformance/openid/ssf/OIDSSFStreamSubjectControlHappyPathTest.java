@@ -51,8 +51,8 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTest 
 		eventLog.runBlock("Fetch Transmitter Metadata", () -> {
 			fetchTransmitterMetadata();
 
-			String addSubjectEndpoint = env.getString("transmitter_metadata", "add_subject_endpoint");
-			String removeSubjectEndpoint = env.getString("transmitter_metadata", "remove_subject_endpoint");
+			String addSubjectEndpoint = env.getString("ssf", "transmitter_metadata.add_subject_endpoint");
+			String removeSubjectEndpoint = env.getString("ssf", "transmitter_metadata.remove_subject_endpoint");
 
 			if (addSubjectEndpoint == null) {
 				fireTestSkipped("This transmitter does not support the 'add_subject_endpoint'.");

@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupportedEventsForStream;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConfigCall;
@@ -63,6 +64,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
 
 			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING,"OIDSSF-7.1.4.1", "OIDCAEP-3");
+			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "CAEPIOP-2.3.8.1");
 			// TODO check: In the event that there are no Event Streams configured, the Transmitter MUST return an empty list.
 			// TODO check: stream configuration response
 			call(exec().unmapKey("endpoint_response"));
@@ -91,7 +93,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 //			call(exec().unmapKey("endpoint_response"));
 //		});
 
-		String statusEndpoint = env.getString("transmitter_metadata", "status_endpoint");
+		String statusEndpoint = env.getString("ssf", "transmitter_metadata.status_endpoint");
 		eventLog.runBlock("Read Stream Status", () -> {
 			if (statusEndpoint != null) {
 				// stream status
