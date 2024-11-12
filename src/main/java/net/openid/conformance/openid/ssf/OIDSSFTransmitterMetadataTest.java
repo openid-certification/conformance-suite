@@ -4,7 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
-import net.openid.conformance.openid.ssf.conditions.CheckTransmitterMetadataIssuer;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFCheckTransmitterMetadataIssuer;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFDefaultSubjectsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck;
@@ -48,7 +48,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 	private void validateTransmitterMetadata() {
 
 
-		callAndContinueOnFailure(CheckTransmitterMetadataIssuer.class, Condition.ConditionResult.WARNING, "OIDSSF-6.2");
+		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.WARNING, "OIDSSF-6.2");
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-6.1", "CAEPIOP-2.3.7");
 		callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.1");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
