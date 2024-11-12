@@ -5,7 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class CheckTransmitterMetadataIssuerMatchesIssuerInResponse extends AbstractCondition {
+public class OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "transmitter_metadata")
