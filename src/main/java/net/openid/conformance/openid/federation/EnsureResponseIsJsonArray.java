@@ -17,20 +17,19 @@ public class EnsureResponseIsJsonArray extends AbstractCheckEndpointContentTypeR
 	public Environment evaluate(Environment env) {
 
 		JsonObject endpointResponse = env.getObject("endpoint_response");
-		JsonElement endpointResponseBody = endpointResponse.get("body");
+		JsonElement body = endpointResponse.get("body");
 		try {
-			String bodyString = OIDFJSON.getString(endpointResponseBody);
-			JsonArray body = JsonParser.parseString(bodyString).getAsJsonArray();
-			if (body == null || body.isJsonNull()) {
-				throw error("Endpoint response is not a JSON array", args("endpoint_response", body));
+			String bodyString = OIDFJSON.getString(body);
+			JsonArray endpointResponseBody = JsonParser.parseString(bodyString).getAsJsonArray();
+			if (endpointResponseBody == null || endpointResponseBody.isJsonNull()) {
+				throw error("Endpoint response body is not a JSON array", args("endpoint_response_body", body));
 			}
-
 			env.putString("endpoint_response_body", bodyString);
 
-			logSuccess("Endpoint response is a JSON array.");
+			logSuccess("Endpoint response body is a JSON array.");
 			return env;
 		} catch (JsonSyntaxException | OIDFJSON.UnexpectedJsonTypeException e) {
-			throw error("Failed to parse endpoint response body JSON", args("body", endpointResponseBody));
+			throw error("Failed to parse endpoint response body JSON", args("body", body));
 		}
 	}
 
