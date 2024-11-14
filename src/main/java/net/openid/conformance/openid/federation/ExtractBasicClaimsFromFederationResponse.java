@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class ExtractBasicClaimsFromEntityStatement extends AbstractCondition {
+public class ExtractBasicClaimsFromFederationResponse extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "federation_response_jwt")

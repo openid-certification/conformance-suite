@@ -4,8 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.ClientRegistration;
@@ -38,21 +36,23 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		callAndStopOnFailure(ValidateTrustAnchor.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 
 		String entityIdentifier = env.getString("config", "federation.entity_identifier");
-		eventLog.startBlock("Fetch Entity Configuration for %s".formatted(entityIdentifier));
+		eventLog.startBlock("Retrieve Entity Configuration for %s".formatted(entityIdentifier));
+
+		callAndStopOnFailure(ExtractEntityIdentiferFromConfig.class, Condition.ConditionResult.FAILURE);
+
 		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
 			// This case is perhaps not applicable in the general case,
 			// but f ex the leaf entities in the Swedish sandbox federation
 			// do not publish their own entity configurations.
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
-			callAndStopOnFailure(ExtractEntityStatementUrlFromConfig.class, Condition.ConditionResult.FAILURE);
-			callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 		} else {
-			callAndStopOnFailure(ExtractEntityStatementUrlFromConfig.class, Condition.ConditionResult.FAILURE);
-			callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
-			callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 			validateEntityStatementResponse();
 		}
 		eventLog.endBlock();
+
+		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+		callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -62,15 +62,15 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		String entityStatementUrl = env.getString("federation_endpoint_url");
 
 		eventLog.startBlock("Validate basic claims in Entity Statement for %s".formatted(entityStatementUrl));
-		callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+		callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		env.putString("expected_iss", stripWellKnown(entityStatementUrl));
 		env.putString("expected_sub", stripWellKnown(entityStatementUrl));
-		call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
+		call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate JWKs and signature in Entity Statement for %s".formatted(entityStatementUrl));
 		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-		call(sequence(ValidateEntityStatementSignatureSequence.class));
+		call(sequence(ValidateFederationResponseSignatureSequence.class));
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate metadata in Entity Statement for %s".formatted(entityStatementUrl));
@@ -105,8 +105,26 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	}
 
 	protected void validateEntityStatementResponse() {
-		env.mapKey("endpoint_response", "federation_http_response");
+		env.mapKey("endpoint_response", "federation_endpoint_response");
 		call(sequence(ValidateEntityStatementResponseSequence.class));
+		env.unmapKey("endpoint_response");
+	}
+
+	protected void validateListResponse() {
+		env.mapKey("endpoint_response", "federation_endpoint_response");
+		call(sequence(ValidateListResponseSequence.class));
+		env.unmapKey("endpoint_response");
+	}
+
+	protected void validateFetchResponse() {
+		env.mapKey("endpoint_response", "federation_endpoint_response");
+		call(sequence(ValidateEntityStatementResponseSequence.class));
+		env.unmapKey("endpoint_response");
+	}
+
+	protected void validateResolveResponse() {
+		env.mapKey("endpoint_response", "federation_endpoint_response");
+		call(sequence(ValidateResolveResponseSequence.class));
 		env.unmapKey("endpoint_response");
 	}
 
@@ -169,20 +187,17 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 				// Get the entity statement for the superior
 				env.putString("federation_endpoint_url", authorityHintUrl);
-				callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+				callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 				validateEntityStatementResponse();
+				callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
 				validateEntityStatement();
 
 				eventLog.startBlock("Validating subordinate statement by immediate superior %s".formatted(authorityHint));
 
 				// Verify that the primary entity is present in the list endpoint result
 				callAndContinueOnFailure(ExtractFederationListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
-				callAndContinueOnFailure(CallListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
-
-				env.mapKey("endpoint_response", "federation_list_endpoint_response");
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.2");
-				callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.2");
-				env.unmapKey("endpoint_response");
+				callAndContinueOnFailure(CallListEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
+				validateListResponse();
 
 				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1");
 
@@ -190,17 +205,15 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
 				callAndContinueOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 				callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
-				callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
-				env.mapKey("endpoint_response", "federation_http_response");
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-				callAndContinueOnFailure(EnsureContentTypeEntityStatementJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-				env.unmapKey("endpoint_response");
+				callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
+				validateEntityStatementResponse();
+				callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
 
-				call(sequence(ValidateEntityStatementSignatureSequence.class));
+				call(sequence(ValidateFederationResponseSignatureSequence.class));
 
-				callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-				call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
+				callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+				call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
 
 				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 				// No authority hints in subordinate statements
@@ -227,9 +240,13 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			env.mapKey("federation_response_jwt", "primary_entity_statement_jwt");
 		} else {
 			env.unmapKey("federation_response_jwt");
+
 			String currentWellKnownUrl = appendWellKnown(fromEntity);
 			env.putString("federation_endpoint_url", currentWellKnownUrl);
-			callAndStopOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+
+			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+			validateEntityStatementResponse();
+			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
 		}
 
 		if (path.contains(fromEntity)) {

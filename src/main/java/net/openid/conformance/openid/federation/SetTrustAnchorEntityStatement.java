@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class SetTrustAnchorEntityStatement extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "federation_http_response", "federation_response_jwt" } )
+	@PreEnvironment(required = { "federation_endpoint_response", "federation_response_jwt" } )
 	@PostEnvironment(
 		required = { "trust_anchor_entity_statement_jwt" },
 		strings = { "trust_anchor_entity_statement_iss", "trust_anchor_entity_statement_sub" })

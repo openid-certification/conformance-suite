@@ -35,15 +35,22 @@ public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends Abstract
 		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
 		eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));
-		callAndContinueOnFailure(CallFederationEndpointAndExpectError.class, Condition.ConditionResult.WARNING, "OIDFED-8.1.2");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-		callAndContinueOnFailure(EnsureResponseIsJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-		env.mapKey("authorization_endpoint_response", "endpoint_response_body");
-		skipIfMissing(new String[]{"authorization_endpoint_response"}, null, Condition.ConditionResult.FAILURE, EnsureNotFoundError.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-		env.unmapKey("authorization_endpoint_response");
+		callAndContinueOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "OIDFED-8.1.2");
+		validateFetchEndpointErrorResponse();
 		eventLog.endBlock();
 
 		fireTestFinished();
+	}
+
+	private void validateFetchEndpointErrorResponse() {
+		env.mapKey("endpoint_response", "federation_endpoint_response");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		callAndContinueOnFailure(EnsureResponseIsJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		env.unmapKey("endpoint_response");
+
+		env.mapKey("authorization_endpoint_response", "endpoint_response_body");
+		skipIfMissing(new String[]{"authorization_endpoint_response"}, null, Condition.ConditionResult.FAILURE, EnsureNotFoundError.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		env.unmapKey("authorization_endpoint_response");
 	}
 
 }
