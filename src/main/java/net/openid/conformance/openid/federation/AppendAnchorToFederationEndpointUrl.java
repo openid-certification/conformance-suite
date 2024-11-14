@@ -5,7 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class AppendAnchorToEntityStatementUrl extends AbstractCondition {
+public class AppendAnchorToFederationEndpointUrl extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config", strings = { "federation_endpoint_url" })

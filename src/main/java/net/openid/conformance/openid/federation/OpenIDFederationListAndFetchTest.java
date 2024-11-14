@@ -4,8 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -46,12 +44,8 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 		JsonArray listEndpointResponse;
 		if (listEndpoint != null) {
 			eventLog.startBlock(String.format("Retrieving entities from federation_list_endpoint %s", listEndpoint));
-			callAndContinueOnFailure(CallListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
-			env.mapKey("endpoint_response", "federation_list_endpoint_response");
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.2");
-			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.2");
-			callAndContinueOnFailure(EnsureResponseIsJsonArray.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.2");
-			env.unmapKey("endpoint_response");
+			callAndContinueOnFailure(CallListEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
+			validateListResponse();
 			eventLog.endBlock();
 
 			listEndpointResponse = JsonParser.parseString(env.getString("endpoint_response_body")).getAsJsonArray();
@@ -59,8 +53,9 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 				String entityIdentifier = OIDFJSON.getString(listElement);
 				eventLog.startBlock(String.format("Validating entity statement for %s", entityIdentifier));
 				env.putString("federation_endpoint_url", appendWellKnown(entityIdentifier));
-				callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+				callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 				validateEntityStatementResponse();
+				callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
 				validateEntityStatement();
 				eventLog.endBlock();
 			}
@@ -81,18 +76,15 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 
 			eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));
 
-			callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
+			callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
+			validateFetchResponse();
+			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.1");
 
-			env.mapKey("endpoint_response", "federation_http_response");
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-			callAndContinueOnFailure(EnsureContentTypeEntityStatementJwt.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-			env.unmapKey("endpoint_response");
-
-			callAndContinueOnFailure(ExtractBasicClaimsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-			call(sequence(ValidateEntityStatementBasicClaimsSequence.class));
+			callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+			call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
 
 			callAndContinueOnFailure(ExtractJWKsFromPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-			call(sequence(ValidateEntityStatementSignatureSequence.class));
+			call(sequence(ValidateFederationResponseSignatureSequence.class));
 
 			callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 
