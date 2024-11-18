@@ -12,6 +12,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamCo
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamStatusCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamStatusCall;
+import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -50,6 +51,10 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTest {
 		}
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
+
+			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
+			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
+
 			callAndStopOnFailure(OIDSSFCreateStreamConfigCall.class, "OIDSSF-7.1.1.1", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");

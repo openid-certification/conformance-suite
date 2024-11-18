@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
@@ -96,6 +97,7 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 
 		env.putString("base_url", baseUrl);
+		env.putString("external_url_override", externalUrlOverride);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
@@ -159,7 +161,6 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 						break;
 					case CLIENT_SECRET_JWT:
 						throw new UnsupportedOperationException("TODO implement me");
-//						break;
 					case PRIVATE_KEY_JWT:
 
 						callAndStopOnFailure(ExtractJWKSDirectFromClientConfiguration.class);
@@ -176,7 +177,6 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 						break;
 					case MTLS:
 						throw new UnsupportedOperationException("TODO implement me");
-//						break;
 					case NONE:
 					default:
 						break;
