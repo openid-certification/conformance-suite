@@ -15,7 +15,7 @@ public class OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse extends
 
 		String responseIssuer = env.getString("endpoint_response", "body_json.iss");
 
-		if (!removeSlashEndpointURL(metadataIssuer).equals(removeSlashEndpointURL(responseIssuer))) {
+		if (responseIssuer == null || !removeSlashEndpointURL(metadataIssuer).equals(removeSlashEndpointURL(responseIssuer))) {
 			throw error("Issuer in response does not match issuer from transmitter metadata", args("metadata_issuer", metadataIssuer, "response_issuer", responseIssuer));
 		}
 

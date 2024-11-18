@@ -43,11 +43,29 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 			validateTransmitterMetadata();
 		});
 
+		eventLog.runBlock("Fetch OAuth Protected Resource Metadata", () -> {
+			// TODO fetch OAuth protected resource metadata
+			// https://ssf.caep.dev/.well-known/oauth-protected-resource
+		});
+
+		eventLog.runBlock("Validate OAuth Protected Resource Metadata", () -> {
+			// TODO Validate OAuth protected resource metadata
+			// CAEPIOP-2.7.2.1
+			// check supported scopes:
+			// prefix ssf
+			// ssf.manage, ssf.read, ssf.manage.poll, but also ssf.manage.create, ssf.manage.update
+			/*
+			"scopes_supported": [
+				"ssf.manage",
+				"ssf.read"
+				],
+			 */
+		});
+
 		fireTestFinished();
 	}
 
 	private void validateTransmitterMetadata() {
-
 
 		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.WARNING, "OIDSSF-6.2");
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-6.1", "CAEPIOP-2.3.7");

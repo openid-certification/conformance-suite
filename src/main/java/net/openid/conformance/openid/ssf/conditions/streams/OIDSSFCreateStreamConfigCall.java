@@ -2,10 +2,12 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,44 +34,55 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 
 	protected String createResourceRequestEntityString(Environment env) {
 
-		JsonObject deliveryObject = env.getElementFromObject("ssf", "delivery").getAsJsonObject();
+		Set<String> eventsRequested = Set.of( //
+				"https://schemas.openid.net/secevent/caep/event-type/session-revoked", //
+				"https://schemas.openid.net/secevent/caep/event-type/credential-change" //
+		);
 
-		String deliveryMethod = OIDFJSON.getString(deliveryObject.get("delivery_method"));
+		Map<String, Object> streamConfig = new LinkedHashMap<>( //
+				Map.of( //
+						"events_requested", eventsRequested, //
+						"format", "iss_sub", //
+						"description", "Stream for Receiver OIDF Conformance Test-Suite", //
+						// TODO make audience configurable
+						"audience", "https://localhost.emobix.co.uk:8443" //
+				) //
+		);
 
-		Map<String, Object> delivery = null;
-		if (SsfDeliveryMode.PUSH.getAlias().equals(deliveryMethod)) {
-
-			String deliveryEndpoint = createPushDeliveryEndpointUrl(env);
-
-			String authHeader = null;
-			if (deliveryObject.has("authorization_header")) {
-				authHeader = OIDFJSON.getString(deliveryObject.get("authorization_header"));
-			}
-
-			delivery = new LinkedHashMap<>();
-			delivery.put("method", deliveryMethod);
-			delivery.put("endpoint_url", deliveryEndpoint);
-			if (authHeader != null) {
-				delivery.put("authorization_header", authHeader);
-			}
-		}
-
-		Map<String, Object> streamConfig = new LinkedHashMap<>(Map.of(
-				"events_requested",
-				Set.of(
-						"https://schemas.openid.net/secevent/caep/event-type/session-revoked",
-						"https://schemas.openid.net/secevent/caep/event-type/credential-change"
-				),
-				"format", "iss_sub",
-				"description", "Stream for Receiver OIDF Conformance Test-Suite",
-				"audience", "https://localhost.emobix.co.uk:8443"
-		));
-
+		JsonObject delivery = createDeliveryObject(env);
 		if (delivery != null) {
 			streamConfig.put("delivery", delivery);
 		}
 
 		return new Gson().toJson(streamConfig);
+	}
+
+	protected JsonObject createDeliveryObject(Environment env) {
+
+		String deliveryMethod = env.getString("ssf", "delivery_method");
+
+		if (!SsfDeliveryMode.PUSH.getAlias().equals(deliveryMethod)) {
+			return null;
+		}
+
+		String deliveryEndpoint = createPushDeliveryEndpointUrl(env);
+
+		String authHeader = null;
+		JsonElement authorizationHeaderEl = env.getElementFromObject("config", "ssf.transmitter.push_endpoint_authorization_header");
+		if (authorizationHeaderEl != null) {
+			String pushAuthorizationHeader = OIDFJSON.getString(authorizationHeaderEl);
+			if (StringUtils.hasText(pushAuthorizationHeader)) {
+				authHeader = pushAuthorizationHeader;
+			}
+		}
+
+		JsonObject delivery = new JsonObject();
+		delivery.addProperty("method", deliveryMethod);
+		delivery.addProperty("endpoint_url", deliveryEndpoint);
+		if (authHeader != null) {
+			delivery.addProperty("authorization_header", authHeader);
+		}
+		return delivery;
 	}
 
 	@Override
