@@ -139,6 +139,10 @@ check-trailing-whitespace:
   # there's a race condition between 'find_deploy_url' and the actual deploy where we could end up with multiple
   # deployments to the same url - use a resource_group to avoid multiple deploy jobs running at the same time
   resource_group: deploy
+  # our default timeout is quite long (120 minutes) due to the long running test jobs. Deploy jobs should never take
+  # that long, if they haven't completed within a few minutes something has gone badly wrong and it's pointless waiting
+  # longer as that prevents other deploy jobs running.
+  timeout: 10 minutes
   script:
     - kubectl config get-contexts
     - kubectl config use-context $KUBE_CONTEXT

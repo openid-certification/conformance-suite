@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -21,6 +22,11 @@ public abstract class AbstractCheckErrorFromParEndpointResponseError extends Abs
 	@Override
 	protected String getError(Environment env) {
 		JsonObject resp = env.getElementFromObject(CallPAREndpoint.RESPONSE_KEY, "body_json").getAsJsonObject();
-		return OIDFJSON.getString(resp.getAsJsonPrimitive("error"));
+
+		JsonPrimitive error = resp.getAsJsonPrimitive("error");
+		if (error == null) {
+			throw error("Expected 'error' field is not present in PAR response");
+		}
+		return OIDFJSON.getString(error);
 	}
 }
