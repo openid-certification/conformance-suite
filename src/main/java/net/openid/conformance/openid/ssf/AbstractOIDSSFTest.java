@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.ssf;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
@@ -20,76 +19,76 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12OrLater;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFObtainTransmitterAccessToken;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
-import net.openid.conformance.openid.ssf.conditions.OIDSSFObtainTransmitterAccessToken;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
-import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
 @VariantParameters({
-	ServerMetadata.class,
-	SsfServerMetadata.class,
-	SsfDeliveryMode.class,
-	SsfAuthMode.class,
-	ClientRegistration.class,
-	ClientAuthType.class,
+		ServerMetadata.class,
+		SsfServerMetadata.class,
+		SsfDeliveryMode.class,
+		SsfAuthMode.class,
+		ClientRegistration.class,
+		ClientAuthType.class,
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
-	"server.token_endpoint",
+		"server.token_endpoint",
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "discovery", configurationFields = {
-	"server.discoveryUrl"
+		"server.discoveryUrl"
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {
-	"ssf.transmitter.configuration_metadata_endpoint",
+		"ssf.transmitter.configuration_metadata_endpoint",
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {
-	"ssf.transmitter.issuer",
-	"ssf.transmitter.metadata_suffix",
+		"ssf.transmitter.issuer",
+		"ssf.transmitter.metadata_suffix",
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
-	"ssf.transmitter.access_token"
+		"ssf.transmitter.access_token"
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
-	"client.scope",
+		"client.scope",
 })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
-	"client.client_id",
-	"client.scope",
+		"client.client_id",
+		"client.scope",
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = {
-	"client.client_secret"
+		"client.client_secret"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = {
-	"client.client_secret"
+		"client.client_secret"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_jwt", configurationFields = {
-	"client.client_secret",
-	"client.client_secret_jwt_alg"
+		"client.client_secret",
+		"client.client_secret_jwt_alg"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
-	"client.jwks"
+		"client.jwks"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
-	"mtls.key",
-	"mtls.cert",
-	"mtls.ca"
+		"mtls.key",
+		"mtls.cert",
+		"mtls.ca"
 })
 @VariantHidesConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
-	"client.client_id",
-	"client.client_secret",
-	"client.scope",
-	"server.token_endpoint",
+		"client.client_id",
+		"client.client_secret",
+		"client.scope",
+		"server.token_endpoint",
 })
 public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 
@@ -140,7 +139,7 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 						break;
 				}
 
-				switch(getVariant(ClientRegistration.class)) {
+				switch (getVariant(ClientRegistration.class)) {
 					case STATIC_CLIENT:
 						callAndStopOnFailure(GetStaticClientConfiguration.class);
 						break;
