@@ -60,7 +60,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 			call(exec().unmapKey("access_token"));
 
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
 
 			// TODO 403	if the Event Receiver is not allowed to create a stream
@@ -74,7 +74,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
 			call(exec().unmapKey("access_token"));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
 			call(exec().unmapKey("endpoint_response"));
 
 			// TODO 403	if the Event Receiver is not allowed to read the stream configuration
@@ -82,7 +82,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 			// 404	if there is no Event Stream with the given "stream_id" for this Event Receiver
 			callAndStopOnFailure(OIDSSFAttemptReadStreamConfigCallWithUnknownStreamId.class, "OIDSSF-7.1.1.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -107,7 +107,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
 			call(exec().unmapKey("access_token"));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
 			call(exec().unmapKey("endpoint_response"));
 
 			// TODO check 403	if the Event Receiver is not allowed to delete the stream

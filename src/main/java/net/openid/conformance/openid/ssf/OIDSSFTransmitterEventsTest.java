@@ -1,16 +1,13 @@
 package net.openid.conformance.openid.ssf;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationAuthorizationHeader;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
@@ -18,7 +15,6 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerifica
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
@@ -26,8 +22,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
 @PublishTestModule(testName = "openid-ssf-transmitter-events", displayName = "OpenID Shared Signals Framework: Validate Transmitter Events", summary = "This test verifies the structure and handling of transmitter events.", profile = "OIDSSF", configurationFields = {
@@ -70,11 +64,11 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTest {
 //		}
 
 		SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
-
-
 		// ensure stream exists
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
+
+			env.putString("ssf","delivery_method", deliveryMode.getAlias());
 
 			JsonObject deliveryObject = new JsonObject();
 			deliveryObject.addProperty("delivery_method", deliveryMode.getAlias());
@@ -99,7 +93,7 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTest {
 		eventLog.runBlock("Trigger verification event", () -> {
 			// Send verification event
 			//
-			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2");
+			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
 
@@ -132,17 +126,6 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTest {
 		});
 
 		fireTestFinished();
-	}
-
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		if ("ssf-push".equals(path)) {
-			env.putObject("ssf", "push_request", requestParts);
-			return ResponseEntity.noContent().build();
-		}
-
-		return super.handleHttp(path, req, res, session, requestParts);
 	}
 
 	@Override

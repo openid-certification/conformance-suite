@@ -1,6 +1,9 @@
 package net.openid.conformance.openid.ssf;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
@@ -24,6 +27,7 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTra
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
@@ -34,6 +38,7 @@ import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
+import org.springframework.http.ResponseEntity;
 
 @VariantParameters({
 		ServerMetadata.class,
@@ -42,6 +47,7 @@ import net.openid.conformance.variant.VariantParameters;
 		SsfAuthMode.class,
 		ClientRegistration.class,
 		ClientAuthType.class,
+		SsfProfile.class,
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
 		"server.token_endpoint",
@@ -99,6 +105,8 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 		env.putString("external_url_override", externalUrlOverride);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
+
+		env.putString("ssf","profile", getVariant(SsfProfile.class).name());
 
 		setStatus(Status.CONFIGURED);
 
@@ -197,5 +205,16 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureTLS12OrLater.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.1");
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.1");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.1");
+	}
+
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		if ("ssf-push".equals(path)) {
+			env.putObject("ssf", "push_request", requestParts);
+			return ResponseEntity.noContent().build();
+		}
+
+		return super.handleHttp(path, req, res, session, requestParts);
 	}
 }
