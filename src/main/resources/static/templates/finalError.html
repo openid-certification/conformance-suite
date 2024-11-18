@@ -6,4 +6,12 @@
         <% _.each(error.stacktrace, function(v) { %>
         <li><%- v %></li> <% }); %>
     </ul>
+
+    <div id="causeStacktrace" class="collapse">
+        <h1>Cause:</h1>
+        <ul>
+            <% _.each(error.cause_stacktrace, function(v) { %>
+            <li><%- v %></li> <% }); %>
+        </ul>
+    </div>
 </div>
