@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,17 +32,26 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 
 	protected String createResourceRequestEntityString(Environment env) {
 
-		String deliveryMethod = env.getString("ssf", "delivery_method");
+		JsonObject deliveryObject = env.getElementFromObject("ssf", "delivery").getAsJsonObject();
+
+		String deliveryMethod = OIDFJSON.getString(deliveryObject.get("delivery_method"));
+
 		Map<String, Object> delivery = null;
 		if (SsfDeliveryMode.PUSH.getAlias().equals(deliveryMethod)) {
 
 			String deliveryEndpoint = createPushDeliveryEndpointUrl(env);
 
+			String authHeader = null;
+			if (deliveryObject.has("authorization_header")) {
+				authHeader = OIDFJSON.getString(deliveryObject.get("authorization_header"));
+			}
+
 			delivery = new LinkedHashMap<>();
 			delivery.put("method", deliveryMethod);
 			delivery.put("endpoint_url", deliveryEndpoint);
-			// TODO make some auth header configurable
-			delivery.put("authorization_header", "someAuthHeaderValue");
+			if (authHeader != null) {
+				delivery.put("authorization_header", authHeader);
+			}
 		}
 
 		Map<String, Object> streamConfig = new LinkedHashMap<>(Map.of(
@@ -52,11 +62,6 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 				),
 				"format", "iss_sub",
 				"description", "Stream for Receiver OIDF Conformance Test-Suite",
-//				"delivery", Map.of( //
-//					"method", "https://schemas.openid.net/secevent/risc/delivery-method/push", //
-//					"endpoint_url", "https://receiver.example.com/events", //
-//					"authorization_header", "{authorizationHeaderValue}" //
-//					)
 				"audience", "https://localhost.emobix.co.uk:8443"
 		));
 

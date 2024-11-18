@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.ssf.conditions.events;
 
 import com.google.gson.JsonObject;
-import com.nimbusds.jwt.JWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWTUtil;
@@ -13,7 +12,7 @@ public class OIDSSFParseVerificationEventToken extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String tokenString = getSecurityEventTokenString(env);
+		String tokenString = env.getString("ssf", "verification.jwt");
 
 		JsonObject tokenJsonObject;
 		try {
@@ -30,7 +29,4 @@ public class OIDSSFParseVerificationEventToken extends AbstractCondition {
 		return env;
 	}
 
-	protected String getSecurityEventTokenString(Environment env) {
-		return env.getString("ssf", "verification.jwt");
-	}
 }
