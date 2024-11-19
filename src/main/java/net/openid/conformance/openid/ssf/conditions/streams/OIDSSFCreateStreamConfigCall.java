@@ -7,6 +7,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
@@ -35,18 +37,18 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 	protected String createResourceRequestEntityString(Environment env) {
 
 		Set<String> eventsRequested = Set.of( //
-				"https://schemas.openid.net/secevent/caep/event-type/session-revoked", //
-				"https://schemas.openid.net/secevent/caep/event-type/credential-change" //
+			"https://schemas.openid.net/secevent/caep/event-type/session-revoked", //
+			"https://schemas.openid.net/secevent/caep/event-type/credential-change" //
 		);
 
 		Map<String, Object> streamConfig = new LinkedHashMap<>( //
-				Map.of( //
-						"events_requested", eventsRequested, //
-						"format", "iss_sub", //
-						"description", "Stream for Receiver OIDF Conformance Test-Suite", //
-						// TODO make audience configurable
-						"audience", "https://localhost.emobix.co.uk:8443" //
-				) //
+			Map.of( //
+				"events_requested", eventsRequested, //
+				"format", "iss_sub", //
+				"description", "Stream for Receiver OIDF Conformance Test-Suite", //
+				// TODO make audience configurable
+				"audience", "https://localhost.emobix.co.uk:8443" //
+			) //
 		);
 
 		JsonObject delivery = createDeliveryObject(env);
@@ -61,12 +63,36 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 
 		String deliveryMethod = env.getString("ssf", "delivery_method");
 
-		if (!SsfDeliveryMode.PUSH.getAlias().equals(deliveryMethod)) {
-			return null;
+		if (SsfDeliveryMode.PUSH.getAlias().equals(deliveryMethod)) {
+			return createPushDelivery(env, deliveryMethod);
 		}
 
-		String deliveryEndpoint = createPushDeliveryEndpointUrl(env);
+		if (SsfDeliveryMode.POLL.getAlias().equals(deliveryMethod)) {
+			JsonObject delivery = new JsonObject();
+			delivery.addProperty("method", deliveryMethod);
+			return delivery;
+		}
 
+		throw error("Unsupported delivery method " + deliveryMethod);
+	}
+
+	protected JsonObject createPushDelivery(Environment env, String deliveryMethod) {
+
+		JsonObject delivery = new JsonObject();
+		delivery.addProperty("method", deliveryMethod);
+
+		String pushDeliveryEndpoint = createPushDeliveryEndpointUrl(env);
+		delivery.addProperty("endpoint_url", pushDeliveryEndpoint);
+
+		String authHeader = getPushDeliveryAuthorizationHeader(env);
+		if (authHeader != null) {
+			delivery.addProperty("authorization_header", authHeader);
+		}
+		return delivery;
+	}
+
+	@Nullable
+	private static String getPushDeliveryAuthorizationHeader(Environment env) {
 		String authHeader = null;
 		JsonElement authorizationHeaderEl = env.getElementFromObject("config", "ssf.transmitter.push_endpoint_authorization_header");
 		if (authorizationHeaderEl != null) {
@@ -75,14 +101,7 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 				authHeader = pushAuthorizationHeader;
 			}
 		}
-
-		JsonObject delivery = new JsonObject();
-		delivery.addProperty("method", deliveryMethod);
-		delivery.addProperty("endpoint_url", deliveryEndpoint);
-		if (authHeader != null) {
-			delivery.addProperty("authorization_header", authHeader);
-		}
-		return delivery;
+		return authHeader;
 	}
 
 	@Override
