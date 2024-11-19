@@ -45,7 +45,7 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 			JsonObject transmitterMetadata = JsonParser.parseString(transmitterMetadataJson).getAsJsonObject();
 			logSuccess("Successfully parsed transmitter metadata", transmitterMetadata);
 			env.putObject("ssf","transmitter_metadata", transmitterMetadata);
-
+			env.putObject("server", transmitterMetadata);
 			String issuerUrl = OIDFJSON.getString(transmitterMetadata.get("issuer"));
 			try {
 				env.putObject("tls", TLSTestValueExtractor.extractTlsFromUrl(issuerUrl));
