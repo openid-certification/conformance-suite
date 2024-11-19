@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -13,7 +14,14 @@ public class OIDSSFCheckStreamDeliveryMethod extends AbstractCondition {
 	@PreEnvironment(required = "ssf")
 	public Environment evaluate(Environment env) {
 
-		JsonObject supportedDeliveryObject = env.getElementFromObject("ssf", "stream.delivery").getAsJsonObject();
+		JsonElement streamDeliveryEl = env.getElementFromObject("ssf", "stream.delivery");
+		if (streamDeliveryEl == null) {
+			logFailure("Could not find delivery object in stream configuration",
+				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
+			return env;
+		}
+
+		JsonObject supportedDeliveryObject = streamDeliveryEl.getAsJsonObject();
 		if (supportedDeliveryObject == null) {
 			logFailure("Could not find delivery object in stream configuration",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));

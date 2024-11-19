@@ -48,6 +48,9 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
 
+			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
+			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
+
 			// 400	if the request cannot be parsed
 			callAndStopOnFailure(OIDSSFAttemptCreateStreamConfigCallWithBrokenInput.class, "OIDSSF-7.1.1.1");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
