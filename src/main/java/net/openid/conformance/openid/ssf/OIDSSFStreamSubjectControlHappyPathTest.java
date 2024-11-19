@@ -75,6 +75,9 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTest 
 
 		// ensure stream exists
 		eventLog.runBlock("Create Stream Configuration", () -> {
+			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
+			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
+
 			callAndStopOnFailure(OIDSSFCreateStreamConfigCall.class, "OIDSSF-7.1.1.1", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");

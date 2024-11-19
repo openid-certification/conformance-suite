@@ -6,10 +6,12 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.condition.client.WaitForOneSecond;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoint;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
@@ -107,10 +109,12 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTest {
 			switch (deliveryMode) {
 				case POLL: {
 					// TODO add support for polling delivery
+					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-7.1.4.1");
+					env.mapKey("ssf_polling_response","resource_endpoint_response_full");
+					callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
 				}
 				break;
 				case PUSH: {
-					// TODO support to read push delivery
 					// wait for data received on dynamic endpoint (needs to be reachable externally!)
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-7.1.4.1");
 				}
