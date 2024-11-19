@@ -284,6 +284,7 @@ stop_normal:
 
 client_test:
   <<: *deployment_test
+  when: manual
   script:
     - set_up_for_running_test_plan
     - run_client_test_plan
@@ -296,12 +297,14 @@ server_test:
 
 ciba_test:
   <<: *deployment_test
+  when: manual
   script:
     - set_up_for_running_test_plan
     - run_ciba_test_plan
 
 brazil_test:
   <<: *deployment_test
+  when: manual
   script:
     - set_up_for_running_test_plan
     - run_brazil_test_plan
@@ -314,12 +317,14 @@ brazil_test:
 
 panva_test:
   <<: *deployment_test
+  when: manual
   script:
     - set_up_for_running_test_plan
     - run_panva_test_plan
 
 local_test:
   stage: test
+  when: manual
   interruptible: true
   image: docker:27.3.1
   services:

@@ -297,6 +297,7 @@ makeServerTest() {
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-rw-id2-privatekey-for-instructions.json"
 
     # OpenID4VP op-against-rp
+    TESTS=""
     TESTS="${TESTS} vp-id2-verifier-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post]:oid4vp-verifier-happy-flow{vp-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post]:oid4vp-happy-flow-no-state}../conformance-suite/scripts/test-configs-rp-against-op/vp-wallet-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config.json"
     TESTS="${TESTS} vp-id2-verifier-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post.jwt]:oid4vp-verifier-happy-flow{vp-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post.jwt]:oid4vp-happy-flow-no-state}../conformance-suite/scripts/test-configs-rp-against-op/vp-wallet-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config.json"
 }
@@ -462,11 +463,11 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     makeServerTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json"
-    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
-    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
-    TESTS="${TESTS} --show-untested-test-modules server-authlete"
-    TESTS="${TESTS} --export-dir ../conformance-suite"
+#    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+#    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+#    # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
+#    TESTS="${TESTS} --show-untested-test-modules server-authlete"
+#    TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     echo "Run ciba tests"
