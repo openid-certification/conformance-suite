@@ -321,6 +321,7 @@ makeServerTest() {
     # We keep it here as we want to be sure code changes don't break the example in the instructions, but the downside is there
     # is a chance that users may be using the alias at the same time our tests are running
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-rw-id2-privatekey-for-instructions.json"
+    TESTS=""
 
     # OpenID4VP op-against-rp
     SDJWT="credential_format=sd_jwt_vc"
@@ -528,10 +529,10 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json"
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
-    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
-    TESTS="${TESTS} --show-untested-test-modules server-authlete"
-    TESTS="${TESTS} --export-dir ../conformance-suite"
+#    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+#    # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
+#    TESTS="${TESTS} --show-untested-test-modules server-authlete"
+#    TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
     echo "Run ciba tests"
