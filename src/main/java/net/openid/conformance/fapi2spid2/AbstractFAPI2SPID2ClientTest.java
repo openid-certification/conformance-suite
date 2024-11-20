@@ -109,7 +109,7 @@ import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
-import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimForPAREndpoint;
+import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerAsString;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
@@ -948,7 +948,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
-				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2")).then(condition(ValidateClientAssertionAudClaimForPAREndpoint.class).onFail(ConditionResult.WARNING).requirements("PAR-2").dontStopOnFailure())
+				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2")).then(condition(ValidateClientAssertionAudClaimIsIssuerAsString.class).onFail(ConditionResult.FAILURE).requirements("FAPI2-SP-ID2-5.3.2.1-5").dontStopOnFailure())
 			);
 		} else {
 			call(sequence(validateClientAuthenticationSteps));
@@ -1080,7 +1080,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			checkMtlsCertificate();
 		}
 
-		call(sequence(validateClientAuthenticationSteps));
+		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
+				then(condition(ValidateClientAssertionAudClaimIsIssuerAsString.class).onFail(ConditionResult.FAILURE).requirements("FAPI2-SP-ID2-5.3.2.1-5").dontStopOnFailure())
+			);
+		} else {
+			call(sequence(validateClientAuthenticationSteps));
+		}
 
 		Object tokenResponseOb =  handleTokenEndpointGrantType(requestId);
 		if(isDpopConstrain()) {
