@@ -1489,6 +1489,59 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 params: params
             };
         }
+
+        function copyRequestAsCurl(event) {
+            // Find the closest parent with the "logItem" class
+            const logItemDiv = event.target.closest(".logItem");
+            if (!logItemDiv) {
+                console.error("Could not find the log item container.");
+                return;
+            }
+
+            // Extract request description using the existing function
+            const requestDescription = extractRequestDescription(logItemDiv);
+
+            // Generate cURL command
+            const curlCommand = generateCurlCommandFromRequestDescrition(requestDescription);
+
+            // Copy the cURL command to the clipboard
+            navigator.clipboard.writeText(curlCommand).then(() => {
+                console.log("cURL command copied to clipboard!.");
+            }).catch(err => {
+                console.error("Failed to copy cURL command: ", err);
+            });
+        }
+
+        function extractRequestDescription(logItemDiv) {
+            return [...logItemDiv.querySelectorAll(".moreInfo dt")]
+                .reduce((map, it) => {
+                    let key = it.previousElementSibling.title;
+                    let value = it.innerText.trim();
+                    if ("request_headers" === key) {
+                        // parse request_headers to easy command generation
+                        value = JSON.parse(value);
+                    }
+                    map[key] = value;
+                    return map;
+                }, {});
+        }
+
+        function generateCurlCommandFromRequestDescrition(requestDescription) {
+            const method = requestDescription.request_method || "GET";
+            const url = requestDescription.request_uri || "";
+            const headers = requestDescription.request_headers || {};
+            const body = requestDescription.request_body || "";
+
+            const headerStrings = Object.entries(headers)
+                .map(([key, value]) => `-H "${key}: ${value}"`)
+                .join(" ");
+
+            const curlCommand = `curl -X ${method} "${url}" ${headerStrings} ${
+                body ? `--data '${body}'` : ""
+            }`;
+
+            return curlCommand;
+        }
     </script>
 
 

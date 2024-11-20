@@ -1,6 +1,7 @@
             <span class="log-http">
                 <% if (http == 'request') { %>
-                    <span class="badge bg-info"><span class="bi bi-arrow-right"></span> REQUEST</span>
+                <span class="badge bg-info"><span class="bi bi-arrow-right"></span>REQUEST</span>
+                <span class="badge bg-secondary bi bi-clipboard user-select-none" onclick="copyRequestAsCurl(event)" title="Generate cURL command for request" role="button" style="display: inline-block;">&nbsp;cURL</span>
                 <% } else if (http == 'response') { %>
                     <span class="badge bg-info"><span class="bi bi-arrow-left"></span> RESPONSE</span>
                 <% } else if (http == 'incoming') { %>
