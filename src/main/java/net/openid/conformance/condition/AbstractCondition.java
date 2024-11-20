@@ -127,7 +127,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			if (errorsLogged > 0) {
 				// the condition has logged a warning/failure so must throw an error, otherwise the test result will
 				// not be updated
-				throw new ConditionError(testId, "Test condition needs to throw error() if it logs failures/warnings");
+				throw new RuntimeException("Test condition needs to throw error() if it logs failures/warnings");
 			}
 
 			// check the environment to make sure the condition did what it claimed to
