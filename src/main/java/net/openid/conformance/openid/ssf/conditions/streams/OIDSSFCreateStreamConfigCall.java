@@ -7,8 +7,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
@@ -36,6 +34,8 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 
 	protected String createResourceRequestEntityString(Environment env) {
 
+		String audience = env.getString("config", "ssf.stream.audience");
+
 		Set<String> eventsRequested = Set.of( //
 			"https://schemas.openid.net/secevent/caep/event-type/session-revoked", //
 			"https://schemas.openid.net/secevent/caep/event-type/credential-change" //
@@ -47,7 +47,7 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 				"format", "iss_sub", //
 				"description", "Stream for Receiver OIDF Conformance Test-Suite", //
 				// TODO make audience configurable
-				"audience", "https://localhost.emobix.co.uk:8443" //
+				"audience", audience //
 			) //
 		);
 
@@ -91,7 +91,6 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 		return delivery;
 	}
 
-	@Nullable
 	private static String getPushDeliveryAuthorizationHeader(Environment env) {
 		String authHeader = null;
 		JsonElement authorizationHeaderEl = env.getElementFromObject("config", "ssf.transmitter.push_endpoint_authorization_header");
