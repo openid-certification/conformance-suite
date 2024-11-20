@@ -19,12 +19,12 @@ public class OIDSSFCheckStreamAudience extends AbstractCondition {
 			throw error("Missing audience, stream does not contain an 'aud' claim");
 		}
 
-		if (givenAud.isJsonArray() && givenAud.getAsJsonArray().contains(new JsonPrimitive(expectedAud))) {
+		if (givenAud.isJsonArray() && !givenAud.getAsJsonArray().contains(new JsonPrimitive(expectedAud))) {
 			throw error("aud claim values does not include the expected audience",
 				args("expected", expectedAud, "actual", givenAud.getAsJsonArray()));
 		}
 
-		if (!expectedAud.equals(OIDFJSON.getString(givenAud))) {
+		if (givenAud.getAsJsonPrimitive().isString() && !expectedAud.equals(OIDFJSON.getString(givenAud))) {
 			throw error("aud claim value does not include the expected audience",
 				args("expected", expectedAud, "actual", OIDFJSON.getString(givenAud)));
 		}
