@@ -89,8 +89,7 @@ public class RARSupport {
 
 			for (JsonElement element : permissions) {
 				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
-					logFailure("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
-					return env;
+					throw error("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
 				}
 			}
 
@@ -122,8 +121,7 @@ public class RARSupport {
 			JsonArray auth_details = getJsonArrayFromEnvironment(env, "authorization_request_object", "claims.authorization_details", "authorization_details claim under request object", true);
 			for (JsonElement element : auth_details) {
 				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
-					logFailure("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
-					return env;
+					throw error("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
 				}
 				boolean supported = false;
 				String elementType = OIDFJSON.getString(element.getAsJsonObject().get("type"));
@@ -133,7 +131,7 @@ public class RARSupport {
 					}
 				}
 				if (!supported) {
-					logFailure("The authorization_details claims has entries with unsupported `type`", element.getAsJsonObject());
+					throw error("The authorization_details claims has entries with unsupported `type`", args("bad_entry", element.getAsJsonObject(), "supportedTypes", supportedTypes));
 				}
 			}
 
