@@ -33,6 +33,7 @@ import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
@@ -110,6 +111,9 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 		env.putObject("config", config);
 
 		env.putString("ssf","profile", getVariant(SsfProfile.class).name());
+
+		env.putString("alias", OIDFJSON.getString(config.get("alias")));
+		exposeEnvString("alias");
 
 		setStatus(Status.CONFIGURED);
 
