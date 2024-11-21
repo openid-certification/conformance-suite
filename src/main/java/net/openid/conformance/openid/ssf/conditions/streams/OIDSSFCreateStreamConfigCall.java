@@ -81,7 +81,7 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 		JsonObject delivery = new JsonObject();
 		delivery.addProperty("method", deliveryMethod);
 
-		String pushDeliveryEndpoint = createPushDeliveryEndpointUrl(env);
+		String pushDeliveryEndpoint = env.getString("ssf", "push_delivery_endpoint_url");
 		delivery.addProperty("endpoint_url", pushDeliveryEndpoint);
 
 		String authHeader = getPushDeliveryAuthorizationHeader(env);
@@ -109,15 +109,5 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 		JsonObject streamConfigObject = env.getElementFromObject("resource_endpoint_response_full", "body_json").getAsJsonObject();
 		env.putObject("ssf", "stream", streamConfigObject);
 		return env;
-	}
-
-	protected String createPushDeliveryEndpointUrl(Environment env) {
-
-		String baseUrl = env.getString("base_url");
-		String externalUrlOverride = env.getString("external_url_override");
-		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
-			baseUrl = externalUrlOverride;
-		}
-		return "${baseUrl}/ssf-push".replace("${baseUrl}", baseUrl);
 	}
 }
