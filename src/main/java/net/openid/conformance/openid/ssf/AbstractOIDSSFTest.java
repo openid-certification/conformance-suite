@@ -23,7 +23,7 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12OrLater;
-import net.openid.conformance.openid.ssf.conditions.OIDSSFObtainTransmitterAccessToken;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
@@ -142,7 +142,7 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 	protected void obtainTransmitterAccessToken() {
 		switch (getVariant(SsfAuthMode.class)) {
 			case STATIC:
-				callAndStopOnFailure(OIDSSFObtainTransmitterAccessToken.class);
+				callAndStopOnFailure(OIDSSFExtractTransmitterAccessTokenFromConfig.class);
 				return;
 
 			case DYNAMIC:
