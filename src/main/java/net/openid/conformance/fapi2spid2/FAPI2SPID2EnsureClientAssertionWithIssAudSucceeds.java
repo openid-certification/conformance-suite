@@ -2,26 +2,23 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
-import net.openid.conformance.condition.client.SignClientAuthenticationAssertion;
-import net.openid.conformance.condition.client.UpdateClientAuthenticationAssertionClaimsWithISSAud;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-id2-ensure-client-assertion-with-iss-aud-succeeds",
-	displayName = "FAPI2-Security-Profile-ID2: ensure client_assertion with AS issuer ID succeeds at the token endpoint",
-	summary = "This test passes a client assertion where 'aud' is the Authorization Server's Issuer ID instead of the token endpoint. Per RFC7523-3 and Connect Core 1.0 - 3, the AS must verify that it is the intended audience, but only recommended a value. The AS should accept the AS Issuer ID as valid, but as a recommended value, the AS may reject it with a valid error response and the test will end with a WARNING, which will not affect certification.",
+	testName = "fapi2-security-profile-id2-ensure-client-assertion-with-token-endpoint-aud-succeeds",
+	displayName = "FAPI2-Security-Profile-ID2: ensure client_assertion with AS token endpoint url as aud succeeds at the token endpoint",
+	summary = "This test passes a client assertion to the token endpoint where 'aud' is the Authorization Server's token endpoint instead of the Issuer ID. As per FAPI2 'NOTE: In order to facilitate interoperability the authorization server should also accept its token endpoint URL or the URL of the endpoint at which the assertion was received in the aud claim received in client authentication assertions', but as a recommended ('should') value, the AS may reject it with a valid error response and the test will end with a WARNING, which will not affect certification.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -45,10 +42,7 @@ public class FAPI2SPID2EnsureClientAssertionWithIssAudSucceeds extends AbstractF
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-		callAndStopOnFailure(UpdateClientAuthenticationAssertionClaimsWithISSAud.class);
-		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		call(new CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest());
 	}
 
 	@Override
