@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,7 +34,7 @@ import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.AbstractTestModule;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
@@ -41,6 +42,8 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.springframework.http.ResponseEntity;
+
+import java.util.Objects;
 
 @VariantParameters({
 		ServerMetadata.class,
@@ -112,8 +115,13 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 
 		env.putString("ssf","profile", getVariant(SsfProfile.class).name());
 
-		env.putString("alias", OIDFJSON.getString(config.get("alias")));
-		exposeEnvString("alias");
+		exposeEnvString("alias", "config","alias");
+
+		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.PUSH) {
+			String pushDeliveryEndpointUrl = createPushDeliveryEndpointUrl(env);
+			env.putString("ssf", "push_delivery_endpoint_url", pushDeliveryEndpointUrl);
+			exposeEnvString("pushDeliveryEndpointUrl", "ssf", "push_delivery_endpoint_url");
+		}
 
 		setStatus(Status.CONFIGURED);
 
@@ -161,6 +169,7 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 						callAndStopOnFailure(GetStaticClientConfiguration.class);
 						break;
 					case DYNAMIC_CLIENT:
+						throw new UnsupportedOperationException("Dynamic clients are not supported for SSF Tests");
 					default:
 						break;
 				}
@@ -225,5 +234,15 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 		}
 
 		return super.handleHttp(path, req, res, session, requestParts);
+	}
+
+	protected String createPushDeliveryEndpointUrl(Environment env) {
+
+		String baseUrl = env.getString("base_url");
+		String externalUrlOverride = env.getString("external_url_override");
+		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
+			baseUrl = externalUrlOverride;
+		}
+		return "${baseUrl}/ssf-push".replace("${baseUrl}", baseUrl);
 	}
 }
