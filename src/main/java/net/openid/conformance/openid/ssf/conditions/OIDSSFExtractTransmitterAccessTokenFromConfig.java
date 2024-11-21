@@ -4,7 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class OIDSSFObtainTransmitterAccessToken extends AbstractCondition {
+public class OIDSSFExtractTransmitterAccessTokenFromConfig extends AbstractCondition {
 
 	@PreEnvironment(required = {"config"})
 	@Override
