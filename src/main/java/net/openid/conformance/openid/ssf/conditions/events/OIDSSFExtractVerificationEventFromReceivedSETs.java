@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.ssf.conditions.events;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jwt.JWT;
 import net.openid.conformance.condition.AbstractCondition;
