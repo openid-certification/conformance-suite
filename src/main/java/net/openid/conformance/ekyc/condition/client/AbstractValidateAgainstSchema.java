@@ -17,12 +17,12 @@ public abstract class AbstractValidateAgainstSchema extends AbstractCondition {
 	private static ObjectMapper mapper = new ObjectMapper();
 
 	protected static Set<ValidationMessage> checkRequestSchema(String jsonToValidate) throws IOException {
-		String schemaFile = "json-schemas/ekyc/verified_claims_request-12.json";
+		String schemaFile = "json-schemas/ekyc-ida/12/verified_claims_request.json";
 		return checkSchema(jsonToValidate, schemaFile);
 	}
 
 	protected static Set<ValidationMessage> checkResponseSchema(String jsonToValidate) throws IOException {
-		String schemaFile = "json-schemas/ekyc/verified_claims-12.json";
+		String schemaFile = "json-schemas/ekyc-ida/12/verified_claims.json";
 		return checkSchema(jsonToValidate, schemaFile);
 	}
 
@@ -31,7 +31,10 @@ public abstract class AbstractValidateAgainstSchema extends AbstractCondition {
 
 		JsonNode schemaNode = mapper.readTree(inputStream);
 
-		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(schemaNode));
+		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(schemaNode), builder ->
+			// This creates a mapping from $id which starts with https://bitbucket.org/openid/ekyc-ida/raw/master/schema/ to the retrieval URI resources:json-schemas/ekyc-ida/12/
+			builder.schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://bitbucket.org/openid/ekyc-ida/raw/master/schema/", "resource:json-schemas/ekyc-ida/12/"))
+		);
 		JsonSchema schema = factory.getSchema(schemaNode);
 
 		JsonNode node = mapper.readTree(jsonToValidate);
