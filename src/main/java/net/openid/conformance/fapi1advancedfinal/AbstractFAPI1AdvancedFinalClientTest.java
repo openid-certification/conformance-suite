@@ -103,6 +103,7 @@ import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeFragment;
 import net.openid.conformance.condition.as.SetParEndpointToMtlsParEndpoint;
 import net.openid.conformance.condition.as.SetRequestParameterSupportedToTrueInServerConfiguration;
+import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
@@ -336,6 +337,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
+		callAndStopOnFailure(SetRsaAltServerJwks.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		if(isBrazil()) {

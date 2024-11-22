@@ -1,7 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.as.ForceIdTokenToBeSignedWithAltRS256;
-import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -30,12 +29,6 @@ public class FAPI2SPID2ClientTestInvalidAlternateAlg extends AbstractFAPI2SPID2C
 	@Override
 	protected void addCustomSignatureOfIdToken(){
 		callAndStopOnFailure(ForceIdTokenToBeSignedWithAltRS256.class,"OIDCC-3.1.3.7-8");
-	}
-
-	@Override
-	protected void configureServerJWKS() {
-		super.configureServerJWKS();
-		callAndStopOnFailure(SetRsaAltServerJwks.class);
 	}
 
 	@Override
