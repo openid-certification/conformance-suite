@@ -1,5 +1,5 @@
 {
-    "$id": "https://openid.net/schemas/ekyc-ida/12/claims_schema.json",
+    "$id": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$defs": {
         "E.164_type": {
