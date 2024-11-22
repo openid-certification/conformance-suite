@@ -1,0 +1,164 @@
+{
+    "$id": "https://openid.net/schemas/ekyc-ida/12/claims_schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "E.164_type": {
+            "type": "string",
+            "pattern": "^[+]?([0-9]{5,15})$"
+        },
+        "ICAO_nationalities_type": {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{2}[a-zA-Z]?$"
+        },
+        "ISO_country_code_type": {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{2}[a-zA-Z]?$"
+        },
+        "birthdate_type": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[01][0-9]-[0-3][0-9]$"
+        },
+        "claims_type": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "object",
+                    "properties": {
+                        "country": {
+                            "type": "string"
+                        },
+                        "country_code": {
+                            "$ref": "#/$defs/ISO_country_code_type"
+                        },
+                        "formatted": {
+                            "type": "string"
+                        },
+                        "locality": {
+                            "type": "string"
+                        },
+                        "postal_code": {
+                            "type": "string"
+                        },
+                        "region": {
+                            "type": "string"
+                        },
+                        "street_address": {
+                            "type": "string"
+                        }
+                    },
+                    "minProperties": 1
+                },
+                "also_known_as": {
+                    "type": "string"
+                },
+                "birth_family_name": {
+                    "type": "string"
+                },
+                "birth_given_name": {
+                    "type": "string"
+                },
+                "birth_middle_name": {
+                    "type": "string"
+                },
+                "birthdate": {
+                    "$ref": "#/$defs/birthdate_type"
+                },
+                "email": {
+                    "$ref": "#/$defs/email_type"
+                },
+                "email_verified": {
+                    "type": "boolean"
+                },
+                "family_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "given_name": {
+                    "type": "string"
+                },
+                "locale": {
+                    "$ref": "#/$defs/locale_type"
+                },
+                "middle_name": {
+                    "type": "string"
+                },
+                "msisdn": {
+                    "$ref": "#/$defs/E.164_type"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nationalities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ICAO_nationalities_type"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "phone_number": {
+                    "$ref": "#/$defs/phone_number_type"
+                },
+                "phone_number_verified": {
+                    "type": "boolean"
+                },
+                "picture": {
+                    "type": "string"
+                },
+                "place_of_birth": {
+                    "type": "object",
+                    "properties": {
+                        "country": {
+                            "$ref": "#/$defs/ISO_country_code_type"
+                        },
+                        "locality": {
+                            "type": "string"
+                        },
+                        "region": {
+                            "type": "string"
+                        }
+                    },
+                    "minProperties": 1
+                },
+                "preferred_username": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "string"
+                },
+                "salutation": {
+                    "type": "string"
+                },
+                "sub": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "number"
+                },
+                "website": {
+                    "type": "string"
+                },
+                "zoneinfo": {
+                    "type": "string"
+                }
+            }
+        },
+        "email_type": {
+            "type": "string",
+            "pattern": "^[^@]{1,}@([^@.])+([.][^@]{1,})+$"
+        },
+        "locale_type": {
+            "type": "string",
+            "pattern": "^[a-zA-Z]{2}[-_][A-Z]{2}[a-zA-Z]?$"
+        },
+        "phone_number_type": {
+            "type": "string",
+            "pattern": "^[+]?([0-9]{5,15})(;ext[0-9]{0,9})?$"
+        }
+    }
+}
