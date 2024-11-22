@@ -7,6 +7,7 @@ package net.openid.conformance.variant;
 )
 public enum VPClientIdScheme {
 
+	DID,
 	PRE_REGISTERED,
 	REDIRECT_URI,
 	X509_SAN_DNS;
