@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class CheckNonceLength_UnitTest {
+public class CheckNonceMaximumLength_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -23,7 +23,7 @@ public class CheckNonceLength_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CheckNonceLength cond;
+	private CheckNonceMaximumLength cond;
 
 
 	/**
@@ -32,13 +32,13 @@ public class CheckNonceLength_UnitTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 
-		cond = new CheckNonceLength();
+		cond = new CheckNonceMaximumLength();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link  CheckNonceLength#evaluate(Environment)}.
+	 * Test method for {@link  CheckNonceMaximumLength#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noErrors() {
@@ -48,7 +48,7 @@ public class CheckNonceLength_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link  CheckNonceLength#evaluate(Environment)}.
+	 * Test method for {@link  CheckNonceMaximumLength#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_invalidLength() {
