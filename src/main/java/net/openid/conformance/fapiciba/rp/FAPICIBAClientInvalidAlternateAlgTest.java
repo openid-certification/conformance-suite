@@ -1,6 +1,6 @@
 package net.openid.conformance.fapiciba.rp;
 
-import net.openid.conformance.condition.as.ForceIdTokenToBeSignedWithRS256;
+import net.openid.conformance.condition.as.ForceIdTokenToBeSignedWithAltRS256;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -21,7 +21,7 @@ public class FAPICIBAClientInvalidAlternateAlgTest extends AbstractFAPI1CIBAClie
 
 	@Override
 	protected void addCustomSignatureOfIdToken(){
-		callAndStopOnFailure(ForceIdTokenToBeSignedWithRS256.class,"OIDCC-3.1.3.7-8");
+		callAndStopOnFailure(ForceIdTokenToBeSignedWithAltRS256.class,"OIDCC-3.1.3.7-8");
 	}
 
 	@Override
