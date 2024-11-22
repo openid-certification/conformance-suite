@@ -53,12 +53,14 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.ParseVpTokenAsMdoc;
 import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
+import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToDID;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
+import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -94,6 +96,9 @@ import org.springframework.http.ResponseEntity;
 	VPClientIdScheme.class,
 	VPResponseMode.class,
 	VPRequestMethod.class
+})
+@VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "did", configurationFields = {
+	"client.client_id"
 })
 @VariantConfigurationFields(parameter = VPClientIdScheme.class, value = "pre_registered", configurationFields = {
 	"client.client_id"
@@ -160,6 +165,7 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 		}
 
 		switch (clientIdScheme) {
+			case DID:
 			case PRE_REGISTERED:
 				// client id has been set already in config
 				break;
@@ -366,6 +372,9 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseMode.class);
 
 			switch (clientIdScheme) {
+				case DID:
+					callAndStopOnFailure(SetAuthorizationEndpointRequestClientIdSchemeToDID.class, "OID4VP-5.7");
+					break;
 				case PRE_REGISTERED:
 					// pre-registered is the default, we can omit the client_id_scheme
 					// FIXME: try passing client_id_scheme=pre-registered for one of tests
@@ -546,6 +555,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 			case REQUEST_URI_SIGNED:
 				seq = createAuthorizationRedirectStepsSignedRequestUri();
 				switch (clientIdScheme) {
+					case DID:
+						//Remove x5c header, only the kid header is mandatory for DIDs, which is set in the jwks parameter
+						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObject.class));
+						break;
 					case X509_SAN_DNS:
 						// x5c header is mandatory for x509 san dns (and/or mdl profile)
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeX5cHeader.class));
