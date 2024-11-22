@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateSdJwtHolderBindingSignature extends AbstractVerifyJwsSignature {
+public class ValidateSdJwtKeyBindingSignature extends AbstractVerifyJwsSignature {
 
 	@Override
 	@PreEnvironment(required = { "sdjwt" })

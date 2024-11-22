@@ -63,11 +63,11 @@ public class ParseVpTokenAsSdJwt extends AbstractCondition {
 		try {
 			String bindingJwt = sdJwt.getBindingJwt();
 			if (bindingJwt == null) {
-				throw error("SD-JWT does not containg a holder binding", args("sdjwt", sdJwtStr));
+				throw error("SD-JWT does not contain a key binding", args("sdjwt", sdJwtStr));
 			}
 			bindJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(bindingJwt);
 		} catch (ParseException e) {
-			throw error("Parsing SD-JWT binding jwt failed", e, args("sdjwt", sdJwtStr));
+			throw error("Parsing SD-JWT key binding jwt failed", e, args("sdjwt", sdJwtStr));
 		}
 
 		JsonObject jsonObject = new JsonObject();

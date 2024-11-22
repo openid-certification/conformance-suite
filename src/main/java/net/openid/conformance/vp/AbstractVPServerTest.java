@@ -61,7 +61,7 @@ import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateSdJwtHolderBindingSignature;
+import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -473,10 +473,10 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 				// FIXME type
 				// FIXME status
 
-				eventLog.startBlock(currentClientString() + "Verify holder binding JWT");
+				eventLog.startBlock(currentClientString() + "Verify key binding JWT");
 				// https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#name-key-binding-jwt
 
-				callAndContinueOnFailure(ValidateSdJwtHolderBindingSignature.class, ConditionResult.FAILURE, "SDJWT-5.10");
+				callAndContinueOnFailure(ValidateSdJwtKeyBindingSignature.class, ConditionResult.FAILURE, "SDJWT-5.10");
 
 				callAndContinueOnFailure(CheckTypInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-5.10");
 				// alg is checked during signature validation
