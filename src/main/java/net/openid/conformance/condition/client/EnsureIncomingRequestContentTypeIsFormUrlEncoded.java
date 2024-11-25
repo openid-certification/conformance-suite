@@ -16,8 +16,13 @@ public class EnsureIncomingRequestContentTypeIsFormUrlEncoded extends AbstractCo
 		if (Strings.isNullOrEmpty(contentType)) {
 			throw error("Incoming request does not have a content-type value");
 		}
-		if (!contentType.equals(expected)) {
-			throw error("Incoming content-type header does not have the expected value", args("content_type", contentType, "expected", expected));
+
+		// As per https://github.com/openid/OpenID4VP/pull/235 we probably shouldn't be allowing charset values,
+		// but Spring is currently fairly insistent on sending them in the OP against RP tests.
+		String mimeType = contentType.split(";")[0].trim();
+
+		if (!mimeType.equalsIgnoreCase(expected)) {
+			throw error("Incoming content-type header does not have the expected value", args("content_type", mimeType, "expected", expected));
 		}
 
 		logSuccess("Incoming content-type header has the expected value", args("content_type", contentType, "expected", expected));
