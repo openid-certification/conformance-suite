@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.as;
 
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -25,6 +24,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWKUtil;
 
 import java.security.KeyPair;
 import java.text.ParseException;
@@ -72,6 +72,9 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 			}
 			JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
 
+			JWKSet newJwkSet = new JWKSet(jwkKeys);
+			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(newJwkSet);
+
 			for(JWK jwkKey : jwkKeys) {
 				JWSVerifier verifier = null;
 				try {
@@ -97,7 +100,9 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 						logSuccess("Request object signature validated using a key in the client's JWKS " +
 											"and using the client's registered request_object_signing_alg",
 										args("request_object_signing_alg", alg,
-												"jwk", jwkKey.toString(), "request_object", requestObject));
+											"jwk", jwkKey.toString(),
+											"keys", publicJwks,
+											"request_object", requestObject));
 						return env;
 					} else {
 						// failed to verify with this key, moving on
@@ -112,7 +117,7 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 			// if we got here, it hasn't been verified by any key
 			throw error("Unable to verify request object signature based on client keys",
 				args("jwt_header", jwt.getHeader().toString(),
-					"keys", new GsonBuilder().setPrettyPrinting().create().toJson(jwkKeys),
+					"keys", publicJwks,
 					"clientJwks", clientJwks,
 					"requestObject", requestObject)
 				);
