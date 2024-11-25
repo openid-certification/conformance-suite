@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInBindingJwt;
+import net.openid.conformance.condition.as.CheckForUnexpectedParametersInBindingJwtHeader;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
@@ -482,11 +484,13 @@ public abstract class AbstractVPServerTest extends AbstractRedirectServerTestMod
 
 				callAndContinueOnFailure(CheckTypInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				// alg is checked during signature validation
+				callAndContinueOnFailure(CheckForUnexpectedParametersInBindingJwtHeader.class, ConditionResult.WARNING, "SDJWT-4.3");
 
 				callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				callAndContinueOnFailure(ValidateSdJwtKbSdHash.class, ConditionResult.FAILURE, "SDJWT-4.3");
+				callAndContinueOnFailure(CheckForUnexpectedClaimsInBindingJwt.class, ConditionResult.WARNING, "SDJWT-4.3");
 
 				// FIXME: verify disclosures have different nonces if there are multiple
 
