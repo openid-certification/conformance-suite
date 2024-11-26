@@ -21,7 +21,7 @@ public class ExtractAccountRequestIdFromAccountRequestsEndpointResponse extends 
 		String path;
 		if (obApiVersion == 2) {
 			path = "Data.AccountRequestId";
-		} else if (obApiVersion == 3) {
+		} else if ((obApiVersion == 3) || (obApiVersion == 4)) {
 			path = "Data.ConsentId";
 		} else {
 			throw error("ob_api_version "+obApiVersion+" not supported");

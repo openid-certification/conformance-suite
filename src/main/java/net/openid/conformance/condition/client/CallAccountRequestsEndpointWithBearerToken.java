@@ -35,6 +35,7 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 	private static final String ACCOUNT_REQUESTS_RESOURCE_V2 = "account-requests";
 	// As per https://openbanking.atlassian.net/wiki/spaces/DZ/pages/937820271/Account+and+Transaction+API+Specification+-+v3.1
 	private static final String ACCOUNT_REQUESTS_RESOURCE_V3 = "account-access-consents";
+	private static final String ACCOUNT_REQUESTS_RESOURCE_V4 = "account-access-consents";
 
 	@Override
 	@PreEnvironment(required = { "access_token", "resource", "account_requests_endpoint_request", "resource_endpoint_request_headers" })
@@ -66,14 +67,18 @@ public class CallAccountRequestsEndpointWithBearerToken extends AbstractConditio
 		// [participant-path-prefix]/open-banking/[version]/[resource-group]/[resource]/[resource-id]/[sub-resource]
 		// [version] The version of the APIs expressed as /v[major-version].[minor-version]/.
 		String urlPath;
-		if (resourceEndpoint.contains("/v3.")) {
+		if (resourceEndpoint.contains("/v4.")) {
+			urlPath = ACCOUNT_REQUESTS_RESOURCE_V4;
+			env.putInteger("ob_api_version", 4);
+			log("Found '/v4.' in the resource url, using OB V4 API '"+urlPath+"'", args("resource_endpoint", resourceEndpoint));
+		} else if (resourceEndpoint.contains("/v3.")) {
 			urlPath = ACCOUNT_REQUESTS_RESOURCE_V3;
 			env.putInteger("ob_api_version", 3);
 			log("Found '/v3.' in the resource url, using OB V3 API '"+urlPath+"'", args("resource_endpoint", resourceEndpoint));
-		} else {
+		}  else {
 			urlPath = ACCOUNT_REQUESTS_RESOURCE_V2;
 			env.putInteger("ob_api_version", 2);
-			log("'/v3.' not found in the resource url, defaulting to OB V1/V2 API '"+urlPath+"'", args("resource_endpoint", resourceEndpoint));
+			log("'/v3.' or '/v4.' not found in the resource url, defaulting to OB V1/V2 API '"+urlPath+"'", args("resource_endpoint", resourceEndpoint));
 		}
 
 		JsonObject requestHeaders = env.getObject("resource_endpoint_request_headers");
