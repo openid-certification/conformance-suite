@@ -173,6 +173,15 @@ public class ValidateUserInfoStandardClaims_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_errorWithStringContainingNull() {
+		assertThrows(ConditionError.class, () -> {
+			userInfo.addProperty("name", "null");
+			env.putObject("userinfo", userInfo);
+			cond.execute(env);
+		});
+	}
+
+	@Test
 	public void testEvaluate_errorWithEmailVerifiedIsNotBoolean() {
 		assertThrows(ConditionError.class, () -> {
 			userInfo.addProperty("email_verified", "true");
