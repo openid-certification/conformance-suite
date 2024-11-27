@@ -209,7 +209,7 @@ public class ExtractIdTokenFromTokenResponse_UnitTest {
 				{
 				    "keys": [
 				        {
-				            "kid": "9bX0NjJpuo7TxJ08HtSWeh8iHqBuHGETPJL-1NXeRIg",
+				            "kid": "cch81rlolSC_10P_vwg3HBTk9tgsfwk6AOZ01Avw2gE",
 				            "alg": "PS256",
 				            "use": "sig",
 				            "kty": "RSA",
