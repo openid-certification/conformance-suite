@@ -17,25 +17,26 @@ public class CheckForInvalidCharsInNonce extends AbstractCondition {
 		List<String> invalidCharacters = new ArrayList<>();
 		String       nonce = env.getString("nonce");
 
-		if (! Strings.isNullOrEmpty(nonce)) {
-			// Ensure the nonce contains only URL safe characters.
-			for (int i = 0; i < nonce.length(); i++) {
-				String charAsString = String.valueOf(nonce.charAt(i));
+		if (Strings.isNullOrEmpty(nonce)) {
+			throw error("nonce is empty");
+		}
+		// Ensure the nonce contains only URL safe characters.
+		for (int i = 0; i < nonce.length(); i++) {
+			String charAsString = String.valueOf(nonce.charAt(i));
 
-				if (! charAsString.matches("[A-Za-z0-9\\-_\\.~]")) {
-					if (! invalidCharacters.contains(charAsString)) {
-						invalidCharacters.add(charAsString);
-					}
+			if (! charAsString.matches("[A-Za-z0-9\\-_\\.~]")) {
+				if (! invalidCharacters.contains(charAsString)) {
+					invalidCharacters.add(charAsString);
 				}
-			}
-
-			if (! invalidCharacters.isEmpty()) {
-				throw error("Non URL safe characters found in nonce. This may introduce interoperability issues.",
-					args("nonce", nonce, "invalid_chars", invalidCharacters));
 			}
 		}
 
-		logSuccess("Nonce is empty or contains only URL safe characters");
+		if (! invalidCharacters.isEmpty()) {
+			throw error("Non URL safe characters found in nonce. This may introduce interoperability issues.",
+				args("nonce", nonce, "invalid_chars", invalidCharacters));
+		}
+
+		logSuccess("Nonce contains only URL safe characters");
 		return env;
 	}
 }
