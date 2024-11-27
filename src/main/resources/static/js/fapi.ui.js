@@ -628,7 +628,7 @@ var FAPI_UI = {
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
 			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
 			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
-			"SDJWT-" : "https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-05.html#section-",
+			"SDJWT-" : "https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-",
 			"SDJWTVC-" : "https://datatracker.ietf.org/doc/draft-ietf-oauth-sd-jwt-vc/#section-",
 			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0-ID3.html#section-",
 			"DPOP-" : "https://www.rfc-editor.org/rfc/rfc9449#section-",
