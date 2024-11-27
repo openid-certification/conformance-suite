@@ -1619,10 +1619,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             if (error.status == 500) {
                                 try {
                                     const errorObj = JSON.parse(textError);
-
-                                    // We have code that throws RunTimeException for bad variant selections etc; the error message we provide only seems to appear in the trace
-                                    if (errorObj.trace != null && errorObj.trace.length > 0) {
-                                        message = errorObj.trace.split("\n")[0].replace("java.lang.RuntimeException: ", "");
+                                    if(errorObj.message) {
+                                        message = errorObj.message;
+                                    } else {
+                                        // We have code that throws RunTimeException for bad variant selections etc; the error message we provide only seems to appear in the trace
+                                        if (errorObj.trace != null && errorObj.trace.length > 0) {
+                                            message = errorObj.trace.split("\n")[0].replace("java.lang.RuntimeException: ", "");
+                                        }
                                     }
                                 } catch (e) {
                                     // just use the message we already have
