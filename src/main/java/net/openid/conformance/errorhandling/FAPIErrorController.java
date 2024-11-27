@@ -21,7 +21,13 @@ public class FAPIErrorController extends AbstractErrorController {
 
 	@RequestMapping(value = "/error")
 	public Object handleError(HttpServletRequest request) {
-		Map<String, Object> map = getErrorAttributes(request, ErrorAttributeOptions.of(ErrorAttributeOptions.Include.STACK_TRACE));
+		Map<String, Object> map = getErrorAttributes(request, ErrorAttributeOptions.of(
+			ErrorAttributeOptions.Include.STACK_TRACE,
+			ErrorAttributeOptions.Include.ERROR,
+			ErrorAttributeOptions.Include.MESSAGE,
+			ErrorAttributeOptions.Include.PATH,
+			ErrorAttributeOptions.Include.STATUS,
+			ErrorAttributeOptions.Include.EXCEPTION));
 
 		String path = (String) map.get("path");
 		if (!Strings.isNullOrEmpty(path) && path.contains("/api/")) {
