@@ -11,7 +11,6 @@ public class AustraliaConnectIdCheckClaimsSupported extends AbstractValidateJson
 	private static final String environmentVariable = "claims_supported";
 
 	public static final String[] ConnectIdMandatoryToSupportClaims = {
-		"name",
 		"given_name",
 		"middle_name",
 		"family_name",
