@@ -15,6 +15,7 @@ import subprocess
 import sys
 import time
 import traceback
+import urllib.parse
 
 from conformance import Conformance
 
@@ -226,6 +227,7 @@ async def run_test_plan(test_plan, config_file, output_dir, client_certs):
     with open(config_file) as f:
         json_config = f.read()
     json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
+    json_config = json_config.replace('{HOSTNAME}', urllib.parse.urlsplit(os.environ['CONFORMANCE_SERVER']).hostname)
     json_config = json_config.replace('{BASEURLMTLS}', os.environ['CONFORMANCE_SERVER_MTLS'])
 
     for k,v in client_certs.items():
