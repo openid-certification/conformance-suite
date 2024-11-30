@@ -1,11 +1,13 @@
-package net.openid.conformance.variant;
+package net.openid.conformance.vpid2wallet;
+
+import net.openid.conformance.variant.VariantParameter;
 
 @VariantParameter(
 	name = "response_mode",
 	displayName = "Response Mode",
 	description = "The response_mode that will be used."
 )
-public enum VPResponseMode
+public enum VPID2WalletResponseMode
 {
 	DIRECT_POST("direct_post"),
 	DIRECT_POST_JWT("direct_post.jwt"),
@@ -15,7 +17,7 @@ public enum VPResponseMode
 
 	private final String modeValue;
 
-	private VPResponseMode(String responseMode) {
+	private VPID2WalletResponseMode(String responseMode) {
 		modeValue = responseMode;
 	}
 

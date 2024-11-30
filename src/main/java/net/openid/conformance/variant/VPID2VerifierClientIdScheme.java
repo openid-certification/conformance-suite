@@ -5,11 +5,8 @@ package net.openid.conformance.variant;
 	displayName = "Client Id Scheme",
 	description = "The client_id_scheme your software supports. ."
 )
-public enum VPClientIdScheme {
+public enum VPID2VerifierClientIdScheme {
 
-	DID,
-	PRE_REGISTERED,
-	REDIRECT_URI,
 	X509_SAN_DNS;
 
 	@Override

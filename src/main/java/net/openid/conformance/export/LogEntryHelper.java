@@ -73,7 +73,8 @@ public class LogEntryHelper {
 		specLinks.put("RFC9396-", "https://tools.ietf.org/html/rfc9396#section-");
 		specLinks.put("OBSP-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#");
 		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");
-		specLinks.put("OID4VP-", "https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section.");
+		specLinks.put("OID4VP-ID2-", "https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section.");
+		specLinks.put("OID4VP-ID3-", "https://openid.net/specs/openid-4-verifiable-presentations-1_0-23.html#section.");
 		specLinks.put("HAIP-", "https://github.com/vcstuff/oid4vc-haip-sd-jwt-vc/blob/main/draft-oid4vc-haip-sd-jwt-vc.md#");
 		specLinks.put("OIDCD-", "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.");
 		specLinks.put("OIDCBCL-", "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.");

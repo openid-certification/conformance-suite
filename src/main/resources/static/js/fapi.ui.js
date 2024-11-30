@@ -618,7 +618,8 @@ var FAPI_UI = {
 			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#",
 			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.",
 			"HAIP-" : "https://github.com/vcstuff/oid4vc-haip-sd-jwt-vc/blob/main/draft-oid4vc-haip-sd-jwt-vc.md#",
-			"OID4VP-" : "https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section.",
+			"OID4VP-ID2-" : "https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section.",
+			"OID4VP-ID3-" : "https://openid.net/specs/openid-4-verifiable-presentations-1_0-23.html#section.", // update this when ID3 vote has finished
 			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.",
 			"OIDCBCL-" : "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.",
 			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.",

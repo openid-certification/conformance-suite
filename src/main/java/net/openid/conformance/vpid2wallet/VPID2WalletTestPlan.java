@@ -1,12 +1,8 @@
-package net.openid.conformance.vp;
+package net.openid.conformance.vpid2wallet;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.CredentialFormat;
-import net.openid.conformance.variant.VPClientIdScheme;
-import net.openid.conformance.variant.VPRequestMethod;
-import net.openid.conformance.variant.VPResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
@@ -14,22 +10,22 @@ import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan(
-	testPlanName = "vp-test-plan",
+	testPlanName = "oid4vp-id2-wallet-test-plan",
 	displayName = "OpenID for Verifiable Presentations ID2: Test a wallet - alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.wallettest
 )
-public class VPID2TestPlan implements TestPlan {
+public class VPID2WalletTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
 					// positive tests
-					VPID2HappyFlowNoState.class,
-					VPID2HappyFlowWithStateAndRedirect.class,
+					VPID2WalletHappyFlowNoState.class,
+					VPID2WalletHappyFlowWithStateAndRedirect.class,
 
 					// negative tests
-					VPID2ResponseUriNotClientId.class,
-					VPID2InvalidRequestObjectSignature.class
+					VPID2WalletResponseUriNotClientId.class,
+					VPID2WalletInvalidRequestObjectSignature.class
 
 					// negative tests:
 					// try sending a redirect_uri in auth request with response_mode=direct_post
@@ -51,15 +47,15 @@ public class VPID2TestPlan implements TestPlan {
 
 		String certProfile = "OID4VPID2";
 
-		if (responseMode.equals(VPResponseMode.W3C_DC_API_JWT.toString())) {
+		if (responseMode.equals(VPID2WalletResponseMode.W3C_DC_API_JWT.toString())) {
 			throw new RuntimeException(String.format("Invalid configuration for %s: Encrypted w3c responses not supported yet - please email " + AbstractCondition.SUPPORT_EMAIL + " if you have a wallet that supports it",
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		if (credentialFormat.equals(CredentialFormat.ISO_MDL.toString()) &&
-			responseMode.equals(VPResponseMode.DIRECT_POST_JWT.toString()) &&
-			requestMethod.equals(VPRequestMethod.REQUEST_URI_SIGNED.toString()) &&
-			clientIDScheme.equals(VPClientIdScheme.X509_SAN_DNS.toString())) {
+		if (credentialFormat.equals(VPID2WalletCredentialFormat.ISO_MDL.toString()) &&
+			responseMode.equals(VPID2WalletResponseMode.DIRECT_POST_JWT.toString()) &&
+			requestMethod.equals(VPID2WalletRequestMethod.REQUEST_URI_SIGNED.toString()) &&
+			clientIDScheme.equals(VPID2WalletClientIdScheme.X509_SAN_DNS.toString())) {
 			certProfile += " ISO 18013-7";
 		} else {
 			certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode;

@@ -5,15 +5,15 @@ package net.openid.conformance.variant;
 	displayName = "Request Method",
 	description = "Whether the authorization request to the Wallet is send in the URL query directly, or via a unsigned or signed request_uri."
 )
-public enum VPRequestMethod
+public enum VPID2VerifierRequestMethod
 {
 	// URL_QUERY("url_query"),
-	REQUEST_URI_UNSIGNED("request_uri_unsigned"),
+//	REQUEST_URI_UNSIGNED("request_uri_unsigned"),
 	REQUEST_URI_SIGNED("request_uri_signed");
 
 	private final String requestMethod;
 
-	private VPRequestMethod(String requestMethodIn) {
+	private VPID2VerifierRequestMethod(String requestMethodIn) {
 		requestMethod = requestMethodIn;
 	}
 

@@ -1,4 +1,4 @@
-package net.openid.conformance.vp;
+package net.openid.conformance.vpid2wallet;
 
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
@@ -6,21 +6,20 @@ import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.VPRequestMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.jetbrains.annotations.NotNull;
 
 @PublishTestModule(
-	testName = "oid4vp-negative-test-invalid-request-object-signature",
-	displayName = "OID4VP: Request object signature not valid",
+	testName = "oid4vp-id2-wallet-negative-test-invalid-request-object-signature",
+	displayName = "OID4VPID2: Request object signature not valid",
 	summary = "Makes a request where the signature on the request object JWS is invalid. The wallet should display an error, a screenshot of which must be uploaded.",
 	profile = "OID4VP-ID2",
 	configurationFields = {
 		"client.presentation_definition"
 	}
 )
-@VariantNotApplicable(parameter = VPRequestMethod.class, values={"request_uri_unsigned"})
-public class VPID2InvalidRequestObjectSignature extends AbstractVPServerTest {
+@VariantNotApplicable(parameter = VPID2WalletRequestMethod.class, values={"request_uri_unsigned"})
+public class VPID2WalletInvalidRequestObjectSignature extends AbstractVPID2WalletTest {
 	@NotNull
 	@Override
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
@@ -35,7 +34,7 @@ public class VPID2InvalidRequestObjectSignature extends AbstractVPServerTest {
 	@Override
 	protected void createPlaceholder() {
 		// FIXME use a better placeholder with a better message
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OID4VP-6.2");
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OID4VP-ID2-6.2");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
 	}

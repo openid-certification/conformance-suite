@@ -1,4 +1,4 @@
-package net.openid.conformance.vpverifier;
+package net.openid.conformance.vpid2verifier;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -73,11 +73,11 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
-import net.openid.conformance.variant.CredentialFormatVerifierTests;
 import net.openid.conformance.variant.OIDCCClientAuthType;
-import net.openid.conformance.variant.VPClientIdSchemeVerifierTests;
-import net.openid.conformance.variant.VPRequestMethodVerifierTests;
-import net.openid.conformance.variant.VPResponseModeVerifierTests;
+import net.openid.conformance.variant.VPID2VerifierClientIdScheme;
+import net.openid.conformance.variant.VPID2VerifierCredentialFormat;
+import net.openid.conformance.variant.VPID2VerifierRequestMethod;
+import net.openid.conformance.variant.VPID2VerifierResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
@@ -86,15 +86,15 @@ import java.time.Instant;
 
 
 @VariantParameters({
-	CredentialFormatVerifierTests.class,
-	VPClientIdSchemeVerifierTests.class,
-	VPResponseModeVerifierTests.class,
-	VPRequestMethodVerifierTests.class
+	VPID2VerifierCredentialFormat.class,
+	VPID2VerifierClientIdScheme.class,
+	VPID2VerifierResponseMode.class,
+	VPID2VerifierRequestMethod.class
 })
 public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
-	protected VPClientIdSchemeVerifierTests clientIdScheme;
-	protected VPResponseModeVerifierTests responseMode;
-	protected VPRequestMethodVerifierTests clientRequestType;
+	protected VPID2VerifierClientIdScheme clientIdScheme;
+	protected VPID2VerifierResponseMode responseMode;
+	protected VPID2VerifierRequestMethod clientRequestType;
 	protected OIDCCClientAuthType clientAuthType;
 
 	protected boolean receivedAuthorizationRequest;
@@ -125,13 +125,13 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 			waitTimeoutSeconds = OIDFJSON.getInt(config.get("waitTimeoutSeconds"));
 		}
 
-		responseMode = getVariant(VPResponseModeVerifierTests.class);
+		responseMode = getVariant(VPID2VerifierResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
 
-		clientIdScheme = getVariant(VPClientIdSchemeVerifierTests.class);
+		clientIdScheme = getVariant(VPID2VerifierClientIdScheme.class);
 		env.putString("client_id_scheme", clientIdScheme.toString());
 
-		clientRequestType = getVariant(VPRequestMethodVerifierTests.class);
+		clientRequestType = getVariant(VPID2VerifierRequestMethod.class);
 
 		configureServerConfiguration();
 
@@ -358,7 +358,7 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 	}
 
 	protected void extractAuthorizationEndpointRequestParameters() {
-		if(clientRequestType == VPRequestMethodVerifierTests.REQUEST_URI_SIGNED) {
+		if(clientRequestType == VPID2VerifierRequestMethod.REQUEST_URI_SIGNED) {
 			fetchAndProcessRequestUri();
 //		} else if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
 //			callAndStopOnFailure(ExtractRequestObject.class, "OIDCC-6.1");
@@ -367,7 +367,7 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 //			callAndStopOnFailure(EnsureRequestDoesNotContainRequestObject.class, "OIDCC-6.1");
 		}
 
-		if(clientRequestType == VPRequestMethodVerifierTests.REQUEST_URI_SIGNED) {
+		if(clientRequestType == VPID2VerifierRequestMethod.REQUEST_URI_SIGNED) {
 			validateRequestObject();
 			callAndStopOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class);
 			skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
@@ -474,7 +474,7 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");
 
 		// FIXME probably need to somehow validate the x5c header is trusted/valid for the client
-		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-FIXME");
+		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-ID3-5.10.4");
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
