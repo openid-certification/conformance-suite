@@ -143,8 +143,6 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-6.2");
 				break;
 		}
-
-		callAndStopOnFailure(FetchServerKeys.class);
 	}
 
 	protected void obtainTransmitterAccessToken() {
