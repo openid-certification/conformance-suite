@@ -8,6 +8,8 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,7 +38,15 @@ public class FetchOauthProtectedResourceMetadata extends AbstractCondition {
 			try {
 				RestTemplate restTemplate = createRestTemplate(env);
 
-				String oauthProtectedResourceMetadata = restTemplate.getForObject(oauthResourceMedatataUrl, String.class);
+				ResponseEntity<String> oauthProtectedResourceMetadataResponse = restTemplate.getForEntity(oauthResourceMedatataUrl, String.class);
+				if (!HttpStatus.OK.equals(oauthProtectedResourceMetadataResponse.getStatusCode())) {
+					throw error("Protected OAuth resource metadata could not be fetched", args("status_code", oauthProtectedResourceMetadataResponse.getStatusCode().value()));
+				}
+
+				String oauthProtectedResourceMetadata = oauthProtectedResourceMetadataResponse.getBody();
+				if (oauthProtectedResourceMetadata == null) {
+					throw error("Did not find oauth_protected_resource_metadata");
+				}
 
 				log("Found OAuth protected resource metadata set string", args("oauth_protected_resource_metadata", oauthProtectedResourceMetadata));
 
