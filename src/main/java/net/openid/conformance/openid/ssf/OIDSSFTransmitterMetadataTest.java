@@ -1,9 +1,13 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckJwksUri;
+import net.openid.conformance.condition.client.DeriveOauthProtectedResourceMetadataUri;
+import net.openid.conformance.condition.client.FetchOauthProtectedResourceMetadata;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckScopesWithOauthProtectedResourceMetadata;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckSupportedDeliveryMethods;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckTransmitterMetadataIssuer;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
@@ -46,20 +50,12 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 		eventLog.runBlock("Fetch OAuth Protected Resource Metadata", () -> {
 			// TODO fetch OAuth protected resource metadata
 			// https://ssf.caep.dev/.well-known/oauth-protected-resource
+			callAndContinueOnFailure(DeriveOauthProtectedResourceMetadataUri.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.3");
+			callAndContinueOnFailure(FetchOauthProtectedResourceMetadata.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.3");
 		});
 
 		eventLog.runBlock("Validate OAuth Protected Resource Metadata", () -> {
-			// TODO Validate OAuth protected resource metadata
-			// CAEPIOP-2.7.2.1
-			// check supported scopes:
-			// prefix ssf
-			// ssf.manage, ssf.read, ssf.manage.poll, but also ssf.manage.create, ssf.manage.update
-			/*
-			"scopes_supported": [
-				"ssf.manage",
-				"ssf.read"
-				],
-			 */
+			callAndContinueOnFailure(OIDSSFCheckScopesWithOauthProtectedResourceMetadata.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2.1");
 		});
 
 		fireTestFinished();
@@ -76,15 +72,20 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 		callAndContinueOnFailure(OIDSSFCheckSupportedDeliveryMethods.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1", "OIDSSF-7.1.1");
 
 		// Workaround because we cannot use env.mapKey("server","ssf.transmitter_metadata")
-		env.putObject("transmitter_metadata", env.getElementFromObject("ssf", "transmitter_metadata").getAsJsonObject());
-		try {
+		JsonObject transmitterMetadata = env.getElementFromObject("ssf", "transmitter_metadata").getAsJsonObject();
+		env.putObject("transmitter_metadata", transmitterMetadata);
+
+		if (transmitterMetadata.has("jwks_uri")) {
 			// treat transmitter_metadata as "server" metadata to leverage existing checks
 			env.mapKey("server", "transmitter_metadata");
-			callAndStopOnFailure(CheckJwksUri.class);
-			callAndStopOnFailure(FetchServerKeys.class);
-			callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		} finally {
-			env.removeObject("transmitter_metadata");
+			try {
+				callAndStopOnFailure(CheckJwksUri.class);
+				callAndStopOnFailure(FetchServerKeys.class);
+				callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+			} finally {
+				env.removeObject("transmitter_metadata");
+				env.unmapKey("server");
+			}
 		}
 	}
 }

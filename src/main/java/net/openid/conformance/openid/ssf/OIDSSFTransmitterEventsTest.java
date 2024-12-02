@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
+import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoint;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationAuthorizationHeader;
@@ -45,6 +46,8 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTest {
 
 		eventLog.runBlock("Fetch Transmitter Metadata", () -> {
 			fetchTransmitterMetadata();
+
+			callAndStopOnFailure(FetchServerKeys.class);
 		});
 
 		eventLog.runBlock("Validate TLS Connection", () -> {
