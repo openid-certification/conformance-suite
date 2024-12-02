@@ -35,7 +35,7 @@ public class CreateRandomClientNotificationToken extends AbstractCondition {
 			{'/','/'},
 		};
 		RandomStringGenerator generator = new RandomStringGenerator.Builder()
-			.withinRange(pairs).build();
+			.withinRange(pairs).get();
 		// we always include exactly one of the allowed trailing =s
 		String token = generator.generate(requestedLength()-1) + "=";
 

@@ -35,7 +35,7 @@ public class CreateRandomCodeVerifier extends AbstractCondition {
 		final SecureRandom rand = new SecureRandom();
 		RandomStringGenerator generator = new RandomStringGenerator.Builder()
 			.usingRandom(rand::nextInt)
-			.withinRange(pairs).build();
+			.withinRange(pairs).get();
 		// test maximum permitted length
 		String verifier = generator.generate(128);
 
