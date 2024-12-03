@@ -11,7 +11,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
 	displayName = "FAPI2-Security-Profile-ID2: ensure request object with nbf 8 seconds in the future is accepted",
-	summary = "",
+	summary = "This test ensures the Authorization Server accepts request objects with a nbf claim slightly in the future (e.g., 8 seconds) to account for clock skew. It verifies robustness against minor time discrepancies, avoiding unnecessary request rejections.",
 	profile = "FAPI2-Security-Profile-ID2",
 	configurationFields = {
 		"server.discoveryUrl",
