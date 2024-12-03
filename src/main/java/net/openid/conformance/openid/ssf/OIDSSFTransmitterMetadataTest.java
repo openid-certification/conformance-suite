@@ -7,10 +7,10 @@ import net.openid.conformance.condition.client.DeriveOauthProtectedResourceMetad
 import net.openid.conformance.condition.client.FetchOauthProtectedResourceMetadata;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
-import net.openid.conformance.openid.ssf.conditions.metadata.OIDFSSFCheckRequiredFieldConfigurationEndpoint;
-import net.openid.conformance.openid.ssf.conditions.metadata.OIDFSSFCheckRequiredFieldJwksUri;
-import net.openid.conformance.openid.ssf.conditions.metadata.OIDFSSFCheckRequiredFieldStatusEndpoint;
-import net.openid.conformance.openid.ssf.conditions.metadata.OIDFSSFCheckRequiredFieldVerificationEndpoint;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldConfigurationEndpoint;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldJwksUri;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldStatusEndpoint;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldVerificationEndpoint;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckScopesWithOauthProtectedResourceMetadata;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckSupportedDeliveryMethods;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckTransmitterMetadataIssuer;
@@ -20,6 +20,7 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureHttpsUr
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFRequiredFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFSpecVersionTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ServerMetadata;
@@ -69,15 +70,22 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTest {
 
 		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.WARNING, "OIDSSF-6.2");
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-6.1", "CAEPIOP-2.3.7");
-		callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.1");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
 		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1");
-		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1.1", "CAEPIOP-2.3.7");
+		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class,
+				isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
+						? Condition.ConditionResult.FAILURE
+						: Condition.ConditionResult.WARNING
+				, "OIDSSF-6.1.1", "CAEPIOP-2.3.7");
 		callAndContinueOnFailure(OIDSSFCheckSupportedDeliveryMethods.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1", "OIDSSF-7.1.1");
-		callAndContinueOnFailure(OIDFSSFCheckRequiredFieldJwksUri.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.3");
-		callAndContinueOnFailure(OIDFSSFCheckRequiredFieldConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.4");
-		callAndContinueOnFailure(OIDFSSFCheckRequiredFieldStatusEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.5");
-		callAndContinueOnFailure(OIDFSSFCheckRequiredFieldVerificationEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.6");
+
+		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.1");
+			callAndContinueOnFailure(OIDSSFCheckRequiredFieldJwksUri.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.3");
+			callAndContinueOnFailure(OIDSSFCheckRequiredFieldConfigurationEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.4");
+			callAndContinueOnFailure(OIDSSFCheckRequiredFieldStatusEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.5");
+			callAndContinueOnFailure(OIDSSFCheckRequiredFieldVerificationEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.6");
+		}
 
 		// Workaround because we cannot use env.mapKey("server","ssf.transmitter_metadata")
 		JsonObject transmitterMetadata = env.getElementFromObject("ssf", "transmitter_metadata").getAsJsonObject();

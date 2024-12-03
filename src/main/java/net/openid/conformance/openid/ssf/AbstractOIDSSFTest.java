@@ -243,4 +243,8 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 		}
 		return "${baseUrl}/ssf-push".replace("${baseUrl}", baseUrl);
 	}
+
+	protected boolean isSsfProfileEnabled(SsfProfile profile) {
+		return profile.equals(getVariant(SsfProfile.class));
+	}
 }

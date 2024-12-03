@@ -1,6 +1,6 @@
 package net.openid.conformance.openid.ssf.conditions.metadata;
 
-public class OIDFSSFCheckRequiredFieldConfigurationEndpoint extends AbstractOIDFSSFRequiredFieldCheck {
+public class OIDSSFCheckRequiredFieldConfigurationEndpoint extends AbstractOIDSSFRequiredFieldCheck {
 
 	@Override
 	protected String getRequiredFieldName() {
