@@ -1,4 +1,4 @@
-package net.openid.conformance.vp;
+package net.openid.conformance.vpid2wallet;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
@@ -7,8 +7,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oid4vp-happy-flow-with-state-and-redirect",
-	displayName = "OID4VP: Happy flow test with state parameter and a redirect back to the verifier",
+	testName = "oid4vp-id2-wallet-happy-flow-with-state-and-redirect",
+	displayName = "OID4VPID2: Happy flow test with state parameter and a redirect back to the verifier",
 	summary = "Performs the normal flow, but with a 'state', a longer 'nonce', a random authorization endpoint parameter (which must be ignored) and the response_uri response returns a redirect_uri which the wallet must open",
 	profile = "OID4VP-ID2",
 	configurationFields = {
@@ -17,7 +17,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
-public class VPID2HappyFlowWithStateAndRedirect extends AbstractVPServerTest {
+public class VPID2WalletHappyFlowWithStateAndRedirect extends AbstractVPID2WalletTest {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

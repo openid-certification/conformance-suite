@@ -5,14 +5,13 @@ package net.openid.conformance.variant;
 	displayName = "Credential Format",
 	description = "The credential format that will be returned by the Wallet."
 )
-public enum CredentialFormat
+public enum VPID2VerifierCredentialFormat
 {
-	SD_JWT_VC("sd_jwt_vc"),
-	ISO_MDL("iso_mdl");
+	SD_JWT_VC("sd_jwt_vc");
 
 	private final String modeValue;
 
-	private CredentialFormat(String responseMode) {
+	private VPID2VerifierCredentialFormat(String responseMode) {
 		modeValue = responseMode;
 	}
 
