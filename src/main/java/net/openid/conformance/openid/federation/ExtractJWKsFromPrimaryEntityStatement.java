@@ -16,7 +16,7 @@ public class ExtractJWKsFromPrimaryEntityStatement extends AbstractCondition {
 		JsonObject jwks = env.getElementFromObject("primary_entity_statement_body", "jwks").getAsJsonObject();
 		env.putObject("server_jwks", jwks);
 
-		logSuccess("Extracted JKWS from entity statement", args("server_jwks", jwks));
+		logSuccess("Extracted JWKs from entity statement", args("server_jwks", jwks));
 
 		return env;
 	}
