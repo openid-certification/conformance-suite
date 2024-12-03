@@ -6,7 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public abstract class AbstractOIDFSSFRequiredFieldCheck extends AbstractCondition {
+public abstract class AbstractOIDSSFRequiredFieldCheck extends AbstractCondition {
 
 	@PreEnvironment(required = {"ssf"})
 	@Override
