@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNbfValueIs8SecondsInFutureToRequestObject;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -36,6 +37,9 @@ public class FAPI2SPID2EnsureRequestObjectWithNbf8SecondsInTheFutureIsAccepted e
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps()
 			.replace(AddNbfToRequestObject.class,
-				condition(AddNbfValueIs8SecondsInFutureToRequestObject.class).requirement("FAPI2-5.3.2.1"));
+				condition(AddNbfValueIs8SecondsInFutureToRequestObject.class)
+					.onFail(Condition.ConditionResult.WARNING)
+					.dontStopOnFailure()
+					.requirement("FAPI2-5.3.2.1"));
 	}
 }
