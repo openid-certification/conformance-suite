@@ -16,6 +16,11 @@ import java.util.List;
 
 public class CompareTrustChains extends AbstractCondition {
 
+	// Remove claims we don't want to compare:
+	// - iat and exp are time based,
+	// - trust_marks are signed jwts currently out of scope
+	protected static final List<String> ENTITY_STATEMENT_CLAIMS_TO_NOT_COMPARE = List.of("iat", "exp", "trust_marks");
+
 	@Override
 	@PreEnvironment(required = { "trust_chains" } )
 	public Environment evaluate(Environment env) {
@@ -29,8 +34,7 @@ public class CompareTrustChains extends AbstractCondition {
 		}
 
 		List<String> entityStatementClaimsToCompare = new ArrayList<>(EntityUtils.STANDARD_ENTITY_STATEMENT_CLAIMS);
-		// Remove claims we don't want to compare: iat and exp are time based, trust_marks are signed jwts
-		entityStatementClaimsToCompare.removeAll(List.of("iat", "exp", "trust_marks"));
+		entityStatementClaimsToCompare.removeAll(ENTITY_STATEMENT_CLAIMS_TO_NOT_COMPARE);
 
 		List<String> diffs = new ArrayList<>();
 		for (int i = 0; i < manualChain.size(); i++) {
@@ -49,7 +53,7 @@ public class CompareTrustChains extends AbstractCondition {
 					String sub = OIDFJSON.getString(resolvedElm.getAsJsonObject().get("sub"));
 					String diffMessage =
 						"The entity statement at index %d in the trust chain " +
-							"(issued by %s for subject %s) mismatch on the following claims: %s";
+							"(issued by %s for subject %s) mismatches on the following claims: %s";
 					diffs.add(diffMessage.formatted(i, iss, sub, String.join(", ", diff)));
 				}
 			} catch (ParseException e) {
