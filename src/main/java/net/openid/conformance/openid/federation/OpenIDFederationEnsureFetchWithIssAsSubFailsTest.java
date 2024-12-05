@@ -36,7 +36,7 @@ public class OpenIDFederationEnsureFetchWithIssAsSubFailsTest extends AbstractOp
 		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
 		eventLog.startBlock(String.format("Retrieving subordinate statement from %s", env.getString("federation_endpoint_url")));
-		callAndContinueOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "OIDFED-8.1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
 		validateFetchEndpointErrorResponse();
 		eventLog.endBlock();
 
