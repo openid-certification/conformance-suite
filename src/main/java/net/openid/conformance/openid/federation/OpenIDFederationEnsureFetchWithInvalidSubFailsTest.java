@@ -35,7 +35,7 @@ public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends Abstract
 		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
 		eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));
-		callAndContinueOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.WARNING, "OIDFED-8.1.2");
+		callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
 		validateFetchEndpointErrorResponse();
 		eventLog.endBlock();
 
