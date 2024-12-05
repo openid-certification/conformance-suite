@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.ClientRegistration;
@@ -74,7 +76,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate metadata in Entity Statement for %s".formatted(entityStatementUrl));
-		callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
+		callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5");
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate Federation Entity metadata for %s".formatted(entityStatementUrl));
@@ -118,8 +120,19 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 	protected void validateFetchResponse() {
 		env.mapKey("endpoint_response", "federation_endpoint_response");
-		call(sequence(ValidateEntityStatementResponseSequence.class));
+		call(sequence(ValidateFetchResponseSequence.class));
 		env.unmapKey("endpoint_response");
+	}
+
+	protected void validateFetchErrorResponse() {
+		env.mapKey("endpoint_response", "federation_endpoint_response");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		callAndContinueOnFailure(EnsureResponseIsJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		env.unmapKey("endpoint_response");
+
+		env.mapKey("authorization_endpoint_response", "endpoint_response_body");
+		skipIfMissing(new String[]{"authorization_endpoint_response"}, null, Condition.ConditionResult.FAILURE, EnsureNotFoundError.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		env.unmapKey("authorization_endpoint_response");
 	}
 
 	protected void validateResolveResponse() {
@@ -198,8 +211,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				callAndStopOnFailure(ExtractFederationListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 				callAndStopOnFailure(CallListEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
 				validateListResponse();
-
-				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1");
+				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2");
 
 				// Get the entity statement from the Superior's fetch endpoint
 				env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
@@ -207,8 +219,8 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
 				callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
-				validateEntityStatementResponse();
-				callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+				validateFetchResponse();
+				callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.2");
 
 				call(sequence(ValidateFederationResponseSignatureSequence.class));
 
@@ -221,7 +233,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				// No federation_entity metadata in subordinate statements
 				callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1");
 				// Only Subordinate Statements may include this claim.
-				callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
+				callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-6.1.2");
 
 				eventLog.endBlock();
 			}

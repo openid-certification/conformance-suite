@@ -78,7 +78,7 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 
 			callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 			validateFetchResponse();
-			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.1");
+			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.2");
 
 			callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 			call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
