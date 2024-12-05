@@ -88,7 +88,7 @@ public class ValidateOpenIDRelyingPartyMetadataSequence extends AbstractConditio
 			.dontStopOnFailure());
 
 		call(condition(ValidateDefaultAcrValues.class)
-			.skipIfElementMissing("client", "require_auth_time")
+			.skipIfElementMissing("client", "default_acr_values")
 			.onSkip(Condition.ConditionResult.INFO)
 			.requirements("OIDCR-2")
 			.onFail(Condition.ConditionResult.FAILURE)
@@ -102,7 +102,7 @@ public class ValidateOpenIDRelyingPartyMetadataSequence extends AbstractConditio
 			.dontStopOnFailure());
 
 		call(condition(ValidateRequestUris.class)
-			.skipIfElementMissing("client", "initiate_login_uri")
+			.skipIfElementMissing("client", "request_uris")
 			.onSkip(Condition.ConditionResult.INFO)
 			.requirements("OIDCR-2")
 			.onFail(Condition.ConditionResult.FAILURE)
