@@ -48,9 +48,9 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 
 		eventLog.startBlock("Fetching entity configuration for trust anchor %s".formatted(trustAnchor));
 		env.putString("federation_endpoint_url", appendWellKnown(trustAnchor));
-		callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 		validateFetchResponse();
-		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.2");
 
 		callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		callAndContinueOnFailure(SetTrustAnchorEntityStatement.class, Condition.ConditionResult.FAILURE);
@@ -87,7 +87,7 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 
 		callAndStopOnFailure(CallResolveEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.3.1");
 		validateResolveResponse();
-		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.3.1");
+		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.3.2");
 
 		env.putString("expected_iss", env.getString("config", "federation.trust_anchor"));
 		callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
@@ -129,9 +129,9 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpen
 			String sub = path.get(i - 1);
 			env.putString("expected_sub", sub);
 			callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
-			callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+			callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 			validateFetchResponse();
-			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.2");
 			trustChain.add(OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value")));
 		}
 
