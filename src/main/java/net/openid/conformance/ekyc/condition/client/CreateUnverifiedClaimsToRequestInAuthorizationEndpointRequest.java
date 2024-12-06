@@ -9,7 +9,41 @@ import net.openid.conformance.condition.client.AbstractAddClaimToAuthorizationEn
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.List;
+
 public class CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest extends AbstractAddClaimToAuthorizationEndpointRequest {
+	// as per https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+	public static final List<String> eKycClaims = List.of(
+		"sub",
+		"name",
+		"given_name",
+		"family_name",
+		"middle_name",
+		"nickname",
+		"preferred_username",
+		"profile",
+		"picture",
+		"website",
+		"email",
+		"email_verified",
+		"gender",
+		"birthdate",
+		"zoneinfo",
+		"locale",
+		"phone_number",
+		"phone_number_verified",
+		"address",
+		"updated_at",
+		"place_of_birth",
+		"nationalities",
+		"birth_family_name",
+		"birth_given_name",
+		"birth_middle_name",
+		"salutation",
+		"title",
+		"msisdn",
+		"also_known_as"
+	);
 
 	/**
 	 * unverified_claims_to_request must be like
@@ -46,6 +80,9 @@ public class CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest exten
 				continue;
 			}
 			if("sub".equals(OIDFJSON.getString(claimName))) {
+				continue;
+			}
+			if(!eKycClaims.contains(OIDFJSON.getString(claimName))) {
 				continue;
 			}
 			JsonObject claimInfo = new JsonObject();
