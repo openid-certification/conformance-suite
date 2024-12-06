@@ -14,7 +14,8 @@ public class ValidateEvidenceSupportedInServerConfiguration extends AbstractCond
 	public Environment evaluate(Environment env) {
 		JsonElement jsonElement = env.getElementFromObject("server", "evidence_supported");
 		if(jsonElement == null) {
-			throw error("evidence_supported is not set in server metadata and is required by the identity assurance specification.");
+			logSuccess("evidence_supported is not set in server metadata");
+			return env;
 		}
 		if(!jsonElement.isJsonArray()) {
 			throw error("evidence_supported must be a json array", args("actual", jsonElement));
