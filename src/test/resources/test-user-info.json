@@ -10,11 +10,11 @@
             "evidence": [
                 {
                     "method": "pipp",
-                    "type": "id_document"
+                    "type": "document"
                 },
                 {
                     "method": "pipp",
-                    "type": "utility_bill"
+                    "type": "electronic_record"
                 }
             ],
             "trust_framework": "de_aml"
