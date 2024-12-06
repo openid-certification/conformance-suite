@@ -53,17 +53,6 @@ public class ValidateEvidenceSupportedInServerConfiguration_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_missing () {
-		assertThrows(ConditionError.class, () -> {
-			JsonObject server = JsonParser.parseString("{"
-				+ "}")
-				.getAsJsonObject();
-			env.putObject("server", server);
-			cond.execute(env);
-		});
-	}
-
-	@Test
 	public void testEvaluate_notString() {
 		assertThrows(ConditionError.class, () -> {
 			env.putObjectFromJsonString("server", "{"

@@ -21,7 +21,7 @@
                     "evidence": [
                         {
                             "type": {
-                                "value": "id_document"
+                                "value": "document"
                             }
                         }
                     ]

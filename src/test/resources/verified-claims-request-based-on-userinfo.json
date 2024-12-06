@@ -14,12 +14,12 @@
                     "evidence": [
                         {
                             "type": {
-                                "value": "id_document"
+                                "value": "document"
                             }
                         },
                         {
                             "type": {
-                                "value": "utility_bill"
+                                "value": "electronic_record"
                             }
                         }
                     ]
