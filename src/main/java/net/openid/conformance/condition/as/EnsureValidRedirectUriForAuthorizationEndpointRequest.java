@@ -33,6 +33,9 @@ public class EnsureValidRedirectUriForAuthorizationEndpointRequest extends Abstr
 		}
 		try {
 			String actual = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.REDIRECT_URI);
+			if (actual == null) {
+				throw error("redirect_uri is not present in authorization request", args("auth_request",  env.getObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY)));
+			}
 			try {
 				URI uri = new URI(actual);
 				if(uri.getFragment()!=null) {
