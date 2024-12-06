@@ -1512,12 +1512,17 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         function extractRequestDescription(logItemDiv) {
             return [...logItemDiv.querySelectorAll(".moreInfo dt")]
                 .reduce((map, it) => {
-                    let key = it.previousElementSibling.title;
+                    let key = it.previousElementSibling.textContent;
+                    if (!key) {
+                        return map;
+                    }
+
                     let value = it.innerText.trim();
-                    if ("request_headers" === key) {
-                        // parse request_headers to easy command generation
+                    if (["request_headers", "request_mutual_tls"].includes(key)) {
+                        // parse request_headers for CURL command generation
                         value = JSON.parse(value);
                     }
+
                     map[key] = value;
                     return map;
                 }, {});
@@ -1533,7 +1538,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 .map(([key, value]) => `-H "${key}: ${value}"`)
                 .join(" ");
 
-            const curlCommand = `curl -X ${method} "${url}" ${headerStrings} ${
+            let mtlsParams = requestDescription.request_mutual_tls ? "--cert client.crt --key client.key --cacert ca.crt " : "";
+
+            const curlCommand = `curl ${mtlsParams}-X ${method} "${url}" ${headerStrings} ${
                 body ? `--data '${body}'` : ""
             }`;
 
