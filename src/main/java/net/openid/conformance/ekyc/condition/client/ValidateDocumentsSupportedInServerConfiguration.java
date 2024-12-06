@@ -20,8 +20,7 @@ public class ValidateDocumentsSupportedInServerConfiguration extends AbstractCon
 		}
 		JsonArray evidenceSupported = getJsonArrayFromEnvironment(env, "server", "evidence_supported", "evidence_supported in authorization server metadata");
 		JsonElement documentsSupportedElement = env.getElementFromObject("server", "documents_supported");
-		if(evidenceSupported.contains(new JsonPrimitive("document")) ||
-			evidenceSupported.contains(new JsonPrimitive("id_document"))){
+		if(evidenceSupported.contains(new JsonPrimitive("document"))){
 			if(documentsSupportedElement==null) {
 				throw error("documents_supported is required when evidence_supported contains document or id_document");
 			}
