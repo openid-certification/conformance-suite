@@ -54,11 +54,14 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 					"trust_frameworks_supported", supportedTrustFrameworks));
 		}
 
-		JsonArray evidenceSupported = opMetadata.get("evidence_supported").getAsJsonArray();
+		JsonArray evidenceSupported = opMetadata.get("evidence_supported") != null ? opMetadata.get("evidence_supported").getAsJsonArray() : null;
 		JsonElement evidenceArrayElement = verification.get("evidence");
 		if(evidenceArrayElement!=null) {
 			if(!evidenceArrayElement.isJsonArray()) {
 				throw error("evidence must be an array", args("actual", evidenceArrayElement));
+			}
+			if(evidenceSupported == null) {
+				throw error("Evidence is returned but evidence_supported could not be found in OP metadata", args("evidence", evidenceArrayElement));
 			}
 			JsonArray evidences = evidenceArrayElement.getAsJsonArray();
 			for (JsonElement evidenceElement : evidences) {
