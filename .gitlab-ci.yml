@@ -90,9 +90,9 @@ test:
 
 compare_cloud:
   <<: *compare
-  needs: ["server_test", "ciba_test", "brazil_test", "panva_test"]
+  needs: ["server_test", "ciba_test", "ekyc_test", "brazil_test", "panva_test"]
   script:
-    - run_compare server_test ciba_test brazil_test panva_test
+    - run_compare server_test ciba_test ekyc_test brazil_test panva_test
 
 compare_local:
   <<: *compare
@@ -306,11 +306,11 @@ brazil_test:
     - set_up_for_running_test_plan
     - run_brazil_test_plan
 
-#ekyc_test:
-#  <<: *deployment_test
-#  script:
-#    - set_up_for_running_test_plan
-#    - run_ekyc_test_plan
+ekyc_test:
+  <<: *deployment_test
+  script:
+    - set_up_for_running_test_plan
+    - run_ekyc_test_plan
 
 panva_test:
   <<: *deployment_test
