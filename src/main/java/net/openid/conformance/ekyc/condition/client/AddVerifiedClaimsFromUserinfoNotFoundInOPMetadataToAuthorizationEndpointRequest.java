@@ -136,47 +136,49 @@ public class AddVerifiedClaimsFromUserinfoNotFoundInOPMetadataToAuthorizationEnd
 		} else {
 			attachmentsSupported = new JsonArray();
 		}
-		JsonArray evidencesInUserinfo = verificationInUserinfo.get("evidence").getAsJsonArray();
-		JsonArray evidenceRequest = new JsonArray();
-		for(JsonElement evidenceElementFromUserinfo : evidencesInUserinfo) {
-			JsonObject evidenceInUserinfo = evidenceElementFromUserinfo.getAsJsonObject();
+		if (verificationInUserinfo.has("evidence")) {
+			JsonArray evidencesInUserinfo = verificationInUserinfo.get("evidence").getAsJsonArray();
+			JsonArray evidenceRequest = new JsonArray();
+			for (JsonElement evidenceElementFromUserinfo : evidencesInUserinfo) {
+				JsonObject evidenceInUserinfo = evidenceElementFromUserinfo.getAsJsonObject();
 
-			if(!evidenceSupported.contains(evidenceInUserinfo.get("type"))) {
-				verificationElementMismatchCount++;
-				JsonObject evidence = new JsonObject();
-				//type
-				JsonObject evidenceType = new JsonObject();
-				evidenceType.addProperty("value", OIDFJSON.getString(evidenceInUserinfo.get("type")));
-				evidence.add("type", evidenceType);
-				//TODO add evidence type specific items
+				if (!evidenceSupported.contains(evidenceInUserinfo.get("type"))) {
+					verificationElementMismatchCount++;
+					JsonObject evidence = new JsonObject();
+					//type
+					JsonObject evidenceType = new JsonObject();
+					evidenceType.addProperty("value", OIDFJSON.getString(evidenceInUserinfo.get("type")));
+					evidence.add("type", evidenceType);
+					//TODO add evidence type specific items
 
-				//attachments
-				if (evidenceInUserinfo.has("attachments")) {
-					evidence.add("attachments", JsonNull.INSTANCE);
-					JsonArray attachmentsInUserinfo = evidenceInUserinfo.getAsJsonArray();
-					for(JsonElement attachmentElement : attachmentsInUserinfo) {
-						JsonObject attachmentObject = attachmentElement.getAsJsonObject();
-						if(attachmentObject.has("url")) {
-							//external attachment
-							if(!attachmentsSupported.contains(new JsonPrimitive("external"))) {
-								verificationElementMismatchCount++;
+					//attachments
+					if (evidenceInUserinfo.has("attachments")) {
+						evidence.add("attachments", JsonNull.INSTANCE);
+						JsonArray attachmentsInUserinfo = evidenceInUserinfo.getAsJsonArray();
+						for (JsonElement attachmentElement : attachmentsInUserinfo) {
+							JsonObject attachmentObject = attachmentElement.getAsJsonObject();
+							if (attachmentObject.has("url")) {
+								//external attachment
+								if (!attachmentsSupported.contains(new JsonPrimitive("external"))) {
+									verificationElementMismatchCount++;
+								}
+							} else if (attachmentObject.has("content")) {
+								//embedded
+								if (!attachmentsSupported.contains(new JsonPrimitive("embedded"))) {
+									verificationElementMismatchCount++;
+								}
+							} else {
+								throw error("Unexpected attachment in userinfo", args("attachment", attachmentElement));
 							}
-						} else if(attachmentObject.has("content")) {
-							//embedded
-							if(!attachmentsSupported.contains(new JsonPrimitive("embedded"))) {
-								verificationElementMismatchCount++;
-							}
-						} else {
-							throw error("Unexpected attachment in userinfo", args("attachment", attachmentElement));
 						}
 					}
-				}
 
-				evidenceRequest.add(evidence);
+					evidenceRequest.add(evidence);
+				}
 			}
-		}
-		if(evidenceRequest.size()>0) {
-			verification.add("evidence", evidenceRequest);
+			if(evidenceRequest.size()>0) {
+				verification.add("evidence", evidenceRequest);
+			}
 		}
 		rv.add("verification", verification);
 		if(verificationElementMismatchCount==0 && claimsNotFoundInClaimsInVerifiedClaimsSupported==0) {
