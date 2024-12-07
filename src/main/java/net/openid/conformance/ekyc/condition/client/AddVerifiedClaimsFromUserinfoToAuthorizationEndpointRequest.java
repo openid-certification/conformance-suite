@@ -97,26 +97,28 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends
 			verification.add("verification_process", getConstrainableElementWithValue(verificationInUserinfo.get("verification_process")));
 		}
 
-		JsonArray evidencesInUserinfo = verificationInUserinfo.get("evidence").getAsJsonArray();
-		JsonArray evidenceRequest = new JsonArray();
-		for(JsonElement evidenceElementFromUserinfo : evidencesInUserinfo) {
-			JsonObject evidence = new JsonObject();
-			JsonObject evidenceInUserinfo = evidenceElementFromUserinfo.getAsJsonObject();
+		if (verificationInUserinfo.has("evidence")) {
+			JsonArray evidencesInUserinfo = verificationInUserinfo.get("evidence").getAsJsonArray();
+			JsonArray evidenceRequest = new JsonArray();
+			for(JsonElement evidenceElementFromUserinfo : evidencesInUserinfo) {
+				JsonObject evidence = new JsonObject();
+				JsonObject evidenceInUserinfo = evidenceElementFromUserinfo.getAsJsonObject();
 
-			//type
-			JsonObject evidenceType = new JsonObject();
-			evidenceType.addProperty("value", OIDFJSON.getString(evidenceInUserinfo.get("type")));
-			evidence.add("type", evidenceType);
-			//TODO add evidence type specific items
+				//type
+				JsonObject evidenceType = new JsonObject();
+				evidenceType.addProperty("value", OIDFJSON.getString(evidenceInUserinfo.get("type")));
+				evidence.add("type", evidenceType);
+				//TODO add evidence type specific items
 
-			//attachments
-			if(evidenceInUserinfo.has("attachments")) {
-				evidence.add("attachments", JsonNull.INSTANCE);
+				//attachments
+				if(evidenceInUserinfo.has("attachments")) {
+					evidence.add("attachments", JsonNull.INSTANCE);
+				}
+
+				evidenceRequest.add(evidence);
 			}
-
-			evidenceRequest.add(evidence);
+			verification.add("evidence", evidenceRequest);
 		}
-		verification.add("evidence", evidenceRequest);
 		rv.add("verification", verification);
 		return rv;
 	}
