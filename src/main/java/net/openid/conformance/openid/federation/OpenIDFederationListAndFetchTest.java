@@ -28,11 +28,12 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 		setStatus(Status.RUNNING);
 
 		callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-		String listEndpoint = env.getString("federation_list_endpoint");
-		if (listEndpoint == null) {
+		if (env.getString("federation_list_endpoint") == null) {
 			fireTestSkipped("Entity metadata does not contain a federation_list_endpoint.");
 		}
 
+		callAndStopOnFailure(ExtractFederationListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
+		String listEndpoint = env.getString("federation_endpoint_url");
 		String fetchEndpoint = env.getString("federation_fetch_endpoint");
 		JsonArray listedEntities = validateListEndpoint(listEndpoint);
 		validateFetchEndpoint(fetchEndpoint, listedEntities);
