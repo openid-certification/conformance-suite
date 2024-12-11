@@ -102,21 +102,18 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 	}
 
 	protected void validateDocumentsSupported(JsonObject opMetadata, JsonArray evidences){
-		//documents_supported: REQUIRED when evidence_supported contains "document" or "id_document".
+		//documents_supported: REQUIRED when evidence_supported contains "document".
 		// JSON array containing all identity document types utilized by the OP for identity verification.
 		JsonElement documentsSupportedElement = opMetadata.get("documents_supported");
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.get("type").equals(new JsonPrimitive("id_document")) ||
-				evidence.get("type").equals(new JsonPrimitive("document"))) {
+			if (evidence.get("type").equals(new JsonPrimitive("document"))) {
 				JsonObject documentObject = null;
 				if(evidence.has("document")) {
 					documentObject = evidence.get("document").getAsJsonObject();
-				} else if(evidence.has("id_document")) {
-					documentObject = evidence.get("id_document").getAsJsonObject();
 				}
 				if(documentObject==null) {
-					throw error("Evidence does not contain document or id_document", args("evidence", evidenceElement));
+					throw error("Evidence does not contain document", args("evidence", evidenceElement));
 				}
 				JsonElement documentType = documentObject.get("type");
 
@@ -142,8 +139,7 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 		JsonElement docMethodsSupportedElement = opMetadata.get("documents_methods_supported");
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.get("type").equals(new JsonPrimitive("document")) ||
-				evidence.get("type").equals(new JsonPrimitive("id_document"))) {
+			if (evidence.get("type").equals(new JsonPrimitive("document"))) {
 				JsonElement method = evidence.get("method");
 				if (method == null) {
 					continue;
@@ -370,19 +366,18 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				}
 			}
 
-			//documents_supported: REQUIRED when evidence_supported contains "document" or "id_document".
+			//documents_supported: REQUIRED when evidence_supported contains "document"".
 			// JSON array containing all identity document types utilized by the OP for identity verification.
-			if (evidenceSupported.contains(new JsonPrimitive("document")) || evidenceSupported.contains(new JsonPrimitive("id_document"))) {
+			if (evidenceSupported.contains(new JsonPrimitive("document"))) {
 				JsonElement documentsSupportedElement = opMetadata.get("documents_supported");
 				if(documentsSupportedElement==null) {
-					throw error("documents_supported is REQUIRED when evidence_supported contains document or id_document " +
+					throw error("documents_supported is REQUIRED when evidence_supported contains document" +
 						"but documents_supported could not be found in OP metadata");
 				}
 				JsonArray documentsSupported = documentsSupportedElement.getAsJsonArray();
 				for (JsonElement evidenceElement : evidences) {
 					JsonObject evidence = evidenceElement.getAsJsonObject();
-					if (evidence.get("type").equals(new JsonPrimitive("id_document")) ||
-						evidence.get("type").equals(new JsonPrimitive("document"))) {
+					if (evidence.get("type").equals(new JsonPrimitive("document"))) {
 						JsonObject documentObject = evidence.get("document").getAsJsonObject();
 						JsonElement documentType = documentObject.get("type");
 						if (documentsSupported.contains(documentType)) {
@@ -401,8 +396,7 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				JsonArray docMethodsSupported = opMetadata.get("documents_methods_supported").getAsJsonArray();
 				for (JsonElement evidenceElement : evidences) {
 					JsonObject evidence = evidenceElement.getAsJsonObject();
-					if (evidence.get("type").equals(new JsonPrimitive("document")) ||
-						evidence.get("type").equals(new JsonPrimitive("id_document"))) {
+					if (evidence.get("type").equals(new JsonPrimitive("document"))) {
 						JsonElement method = evidence.get("method");
 						if (docMethodsSupported.contains(method)) {
 							logSuccess("method is one of the supported values advertised in OP metadata",
