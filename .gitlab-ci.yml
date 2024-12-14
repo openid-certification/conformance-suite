@@ -51,7 +51,7 @@ upload:
   needs: ["build"]
   image: docker:27.4.0
   services:
-    - docker:dind
+    - docker:27.4.0-dind
   variables:
     DOCKER_DRIVER: overlay2
   script:
