@@ -33,6 +33,7 @@ public class ExtractVerifiedClaimsFromUserinfoResponse extends AbstractCondition
 				env.putObject("verified_claims_response", envHolder);
 			}
 			envHolder.add("userinfo", verifiedClaimsElement);
+			logSuccess("Extracted verified claims from UserInfo", args("userinfo verified_claims", verifiedClaimsElement));
 			return env;
 		}
 		log("userinfo response does not contain verified_claims");
