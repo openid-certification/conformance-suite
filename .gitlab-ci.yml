@@ -49,7 +49,7 @@ upload:
   stage: upload
   interruptible: true
   needs: ["build"]
-  image: docker:24.0.7-git
+  image: docker:27.4.0
   services:
     - docker:dind
   variables:
@@ -321,7 +321,7 @@ panva_test:
 local_test:
   stage: test
   interruptible: true
-  image: docker:27.3.1
+  image: docker:27.4.0
   services:
     - docker:dind
   needs: ["build"]
