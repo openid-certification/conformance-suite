@@ -16,8 +16,12 @@ public class EnsureUserinfoDoesNotContainVerifiedClaims extends AbstractConditio
 		String userinfoResponse = env.getString("resource_endpoint_response");
 		JsonObject parsedUserinfo = JsonParser.parseString(userinfoResponse).getAsJsonObject();
 		if(parsedUserinfo.has("verified_claims")) {
-			throw error("userinfo response unexpectedly contains verified_claims",
-				args("userinfo", parsedUserinfo));
+
+			JsonObject verifiedClaims = parsedUserinfo.getAsJsonObject("verified_claims");
+			if(!verifiedClaims.isEmpty()) {   // empty verified_claims object is valid
+				throw error("userinfo response unexpectedly contains verified_claims",
+					args("userinfo", parsedUserinfo));
+			}
 		}
 		logSuccess("userinfo does not contain verified_claims as expected");
 		return env;
