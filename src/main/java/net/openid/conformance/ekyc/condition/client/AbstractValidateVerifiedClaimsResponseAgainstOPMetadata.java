@@ -108,14 +108,14 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
 			if (evidence.get("type").equals(new JsonPrimitive("document"))) {
-				JsonObject documentObject = null;
-				if(evidence.has("document")) {
-					documentObject = evidence.get("document").getAsJsonObject();
+				JsonObject documentDetailsObject = null;
+				if(evidence.has("document_details")) {
+					documentDetailsObject = evidence.get("document_details").getAsJsonObject();
 				}
-				if(documentObject==null) {
-					throw error("Evidence does not contain document", args("evidence", evidenceElement));
+				if(documentDetailsObject==null) {
+					throw error("Evidence does not contain document_details", args("evidence", evidenceElement));
 				}
-				JsonElement documentType = documentObject.get("type");
+				JsonElement documentType = documentDetailsObject.get("type");
 
 				if(documentsSupportedElement==null) {
 					throw error("Evidence type is " + evidence.get("type") + " but documents_supported could not be found in OP metadata");
