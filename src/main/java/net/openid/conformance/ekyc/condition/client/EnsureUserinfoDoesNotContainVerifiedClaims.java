@@ -26,5 +26,4 @@ public class EnsureUserinfoDoesNotContainVerifiedClaims extends AbstractConditio
 		logSuccess("userinfo does not contain verified_claims as expected");
 		return env;
 	}
-
 }
