@@ -119,7 +119,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 </div>
                 <div class="modal-body">
                     <div class="wrapLongStrings">
-                        <pre id="config row-bg-light p-1"></pre>
+                        <pre id="config" class="row-bg-light p-1"></pre>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -265,12 +265,24 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     // wire up configuration button
                     $('.showConfigBtn', row).click(function(evt) {
                         evt.preventDefault();
-                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
-                        $('#configTestId').html(_.escape(data.testId));
 
-                        var myModalEl = document.getElementById('configModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+                        fetch('/api/plan/' + encodeURIComponent(data.planId) + (public ? '?public=true' : ''))
+                            .then((response) => {
+                                if (!response.ok) {
+                                    return Promise.reject(response);
+                                }
+
+                                return response.json();
+                            }).then(jsonData => {
+
+
+                            $('#config').html(_.escape(JSON.stringify(jsonData.config, null, 4)));
+                            $('#configTestId').html(_.escape(data.testId));
+
+                            var myModalEl = document.getElementById('configModal');
+                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                            modal.show();
+                        });
                     });
                 },
                 order: [[5, "desc"]] // sort by the "date" column, descending, by default

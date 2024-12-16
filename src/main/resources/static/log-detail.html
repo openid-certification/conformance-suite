@@ -459,12 +459,27 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     if (document.getElementById('showConfigBtn') !== null) {
                         document.getElementById('showConfigBtn').onclick = function(evt) {
                             evt.preventDefault();
-                            document.getElementById('config').innerHTML = _.escape(JSON.stringify(data.config, null, 4));
-                            document.getElementById('configTestId').innerHTML = _.escape(testId);
 
-                            var myModalEl = document.getElementById('configModal');
-                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                            modal.show();
+
+                            if (!public && data.planId) {
+                                fetch('/api/plan/' + encodeURIComponent(data.planId) + (public ? '?public=true' : ''))
+                                    .then((response) => {
+                                        if (!response.ok) {
+                                            return Promise.reject(response);
+                                        }
+
+                                        return response.json();
+                                    }).then(jsonData => {
+
+                                        document.getElementById('config').innerHTML = _.escape(JSON.stringify(jsonData.config, null, 4));
+                                        document.getElementById('configTestId').innerHTML = _.escape(data.testId);
+
+                                        var myModalEl = document.getElementById('configModal');
+                                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                                        modal.show();
+
+                                    });
+                            }
                         };
                     }
 
