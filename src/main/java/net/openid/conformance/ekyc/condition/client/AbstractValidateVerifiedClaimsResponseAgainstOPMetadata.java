@@ -75,7 +75,7 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				}
 			}
 			validateDocumentsSupported (opMetadata, evidences);
-			validateDocumentsMethodsSupported (opMetadata, evidences);
+			validateDocumentsCheckMethodsSupported(opMetadata, evidences);
 			validateDocumentsValidationMethodsSupported (opMetadata, evidences);
 			validateDocumentsVerificationMethodsSupported (opMetadata, evidences);
 			validateElectronicRecordsSupported (opMetadata, evidences);
@@ -133,9 +133,10 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 		}
 	}
 
-	protected void validateDocumentsMethodsSupported(JsonObject opMetadata, JsonArray evidences){
+	protected void validateDocumentsCheckMethodsSupported(JsonObject opMetadata, JsonArray evidences){
 		//documents_methods_supported: OPTIONAL. JSON array containing the validation &
 		// verification process the OP supports (see @!predefined_values)
+		// TODO need update to final spec from documents_methods_supported to documents_check_methods_supported
 		JsonElement docMethodsSupportedElement = opMetadata.get("documents_methods_supported");
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
