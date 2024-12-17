@@ -3,12 +3,20 @@
 {
   env.GREET = "OIDF - Conformance - Local dev env";
 
-  packages = [ pkgs.git ];
+  packages = [
+    pkgs.git
+    pkgs.ngrok
+  ];
 
   scripts.hello.exec = "echo $GREET";
 
   enterShell = ''
     hello
+
+    export EXTERNAL_URL=`curl -s localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"`
+
+    echo "In order to run CIBA tests, please make sure ngrok account is created"
+
   '';
 
   dotenv.enable = true;
@@ -21,6 +29,12 @@
   # todo integrate the building, starting conformance and running the CI tests
   enterTest = ''
   '';
+
+  processes = {
+    ngrok = {
+      exec = "${pkgs.ngrok}/bin/ngrok http https://localhost.emobix.co.uk:8443 --log stdout";
+    };
+  };
 
   services.mongodb.enable = true;
   services.nginx = {
@@ -85,9 +99,15 @@
 
   languages.python = {
     enable = true;
-    package = pkgs.python313;
-    venv = {
+    package = pkgs.python312;
+    venv.enable = true;
+  };
+
+  languages.javascript = {
+    enable = true;
+    npm = {
       enable = true;
+      install.enable = true;
     };
   };
 

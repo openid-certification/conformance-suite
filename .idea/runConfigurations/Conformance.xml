@@ -2,7 +2,13 @@
   <configuration default="false" name="Conformance" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="dev" />
     <option name="ENABLE_JMX_AGENT" value="false" />
+    <option name="envFilePaths">
+      <option value="$PROJECT_DIR$/resolve_external_url.sh" />
+    </option>
     <module name="conformance-suite" />
+    <selectedOptions>
+      <option name="environmentVariables" />
+    </selectedOptions>
     <option name="SPRING_BOOT_MAIN_CLASS" value="net.openid.conformance.Application" />
     <option name="UPDATE_ACTION_UPDATE_POLICY" value="UpdateClassesAndTriggerFile" />
     <option name="VM_PARAMETERS" value="-Djdk.tls.maxHandshakeMessageSize=65536" />
