@@ -165,119 +165,142 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
          *
          */
         function loadAvailableLogs(public) {
-            return $('#logsListing').DataTable({
-                serverSide: true,
-                ajax: {
-                    url: '/api/log' + (public ? '?public=true' : ''),
-                    cache: true,
-                    data: function(data) {
-                        // Translate query parameters into a simpler schema
-                        return {
-                            draw: data.draw,
-                            start: data.start,
-                            length: data.length,
-                            search: data.search.value,
-                            order: _.map(data.order, function(x) {
-                                return data.columns[x.column].data + ',' + x.dir;
-                            }).join(',')
-                        };
-                    },
-                    error: function(jqxhr, status, error) {
-                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                            code: jqxhr.status,
-                            error: error
-                        });
-                    }
-                },
-                columns: [
-                    {
-                        title: 'Instance ID',
-                        data: 'testId',
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.LOG_DETAIL({ id: data, public: public }); }
-                        }
-                    },
-                    {
-                        title: 'Config',
-                        data: null,
-                        render: {
-                            display: function() { return FAPI_UI.logTemplates.CONFIG(); }
+            return new Promise((resolve, reject) => {
+                const dataTable = $('#logsListing').DataTable({
+                    serverSide: true,
+                    ajax: {
+                        url: '/api/log' + (public ? '?public=true' : ''),
+                        cache: true,
+                        data: function(data) {
+                            // Translate query parameters into a simpler schema
+                            return {
+                                draw: data.draw,
+                                start: data.start,
+                                length: data.length,
+                                search: data.search.value,
+                                order: _.map(data.order, function(x) {
+                                    return data.columns[x.column].data + ',' + x.dir;
+                                }).join(',')
+                            };
                         },
-                        createdCell: function(cell) { $(cell).addClass('configColumn'); },
-                        orderable: false,
-                        visible: !public
-                    },
-                    {
-                        title: 'Name',
-                        data: 'testName',
-                        render: $('#logsListing').DataTable.render.text()
-                    },
-                    {
-                        title: 'Variant',
-                        data: 'variant',
-                        defaultContent: '',
-                        render: {
-                            display: function(v) { return FAPI_UI.formatVariant(v); }
+                        error: function(jqxhr, status, error) {
+                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
+                                code: jqxhr.status,
+                                error: error
+                            });
                         }
                     },
-                    {
-                        title: 'Description',
-                        data: 'description',
-                        render: $('#logsListing').DataTable.render.text(),
-                        defaultContent: ''
-                    },
-                    {
-                        title: 'Started',
-                        data: 'started',
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
-                        }
-                    },
-                    {
-                        title: 'Plan ID',
-                        data: 'planId',
-                        defaultContent: '',
-                        render: {
-                            display: function(data) {
-                                if (data)
-                                    return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data, public: public });
-                                else
-                                    return '';
+                    columns: [
+                        {
+                            title: 'Instance ID',
+                            data: 'testId',
+                            render: {
+                                display: function(data) { return FAPI_UI.logTemplates.LOG_DETAIL({ id: data, public: public }); }
                             }
-                        }
-                    },
-                    {
-                        title: 'Status',
-                        data: 'status',
-                        defaultContent: ''
-                    },
-                    {
-                        title: 'Result',
-                        data: 'result',
-                        defaultContent: ''
-                    },
-                    {
-                        title: 'Owner',
-                        data: function(row) { return { owner: row.owner ? row.owner : {} }; },
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
                         },
-                        visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin
-                    }
-                ],
-                createdRow: function(row, data) {
-                    // wire up configuration button
-                    $('.showConfigBtn', row).click(function(evt) {
-                        evt.preventDefault();
-                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
-                        $('#configTestId').html(_.escape(data.testId));
+                        {
+                            title: 'Config',
+                            data: null,
+                            render: {
+                                display: function() { return FAPI_UI.logTemplates.CONFIG(); }
+                            },
+                            createdCell: function(cell) { $(cell).addClass('configColumn'); },
+                            orderable: false,
+                            visible: !public
+                        },
+                        {
+                            title: 'Name',
+                            data: 'testName',
+                            render: $('#logsListing').DataTable.render.text()
+                        },
+                        {
+                            title: 'Variant',
+                            data: 'variant',
+                            defaultContent: '',
+                            render: {
+                                display: function(v) { return FAPI_UI.formatVariant(v); }
+                            }
+                        },
+                        {
+                            title: 'Description',
+                            data: 'description',
+                            render: $('#logsListing').DataTable.render.text(),
+                            defaultContent: ''
+                        },
+                        {
+                            title: 'Started',
+                            data: 'started',
+                            render: {
+                                display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
+                            }
+                        },
+                        {
+                            title: 'Plan ID',
+                            data: 'planId',
+                            defaultContent: '',
+                            render: {
+                                display: function(data) {
+                                    if (data)
+                                        return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data, public: public });
+                                    else
+                                        return '';
+                                }
+                            }
+                        },
+                        {
+                            title: 'Status',
+                            data: 'status',
+                            defaultContent: ''
+                        },
+                        {
+                            title: 'Result',
+                            data: 'result',
+                            defaultContent: ''
+                        },
+                        {
+                            title: 'Owner',
+                            data: function(row) { return { owner: row.owner ? row.owner : {} }; },
+                            render: {
+                                display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
+                            },
+                            visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin
+                        }
+                    ],
+                    createdRow: function(row, data) {
+                        // wire up configuration button
+                        $('.showConfigBtn', row).click(function(evt) {
+                            evt.preventDefault();
 
-                        var myModalEl = document.getElementById('configModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
-                    });
-                },
-                order: [[5, "desc"]] // sort by the "date" column, descending, by default
+                            fetch('/api/plan/' + encodeURIComponent(data.planId) + (public ? '?public=true' : ''))
+                                .then((response) => {
+                                    if (!response.ok) {
+                                        return Promise.reject(response);
+                                    }
+
+                                    return response.json();
+                                }).then(jsonData => {
+
+
+                                $('#config').html(_.escape(JSON.stringify(jsonData.config, null, 4)));
+                                $('#configTestId').html(_.escape(data.testId));
+
+                                var myModalEl = document.getElementById('configModal');
+                                var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+                                modal.show();
+                            });
+                        });
+                    },
+                    order: [[5, "desc"]] // sort by the "date" column, descending, by default
+                });
+
+                dataTable.on('xhr.dt', function() {
+                    resolve(dataTable); // Resolve with the DataTable instance if needed
+                });
+
+                // Handle potential errors (optional)
+                dataTable.on('error.dt', function(e, settings, techNote, message) {
+                    reject(new Error(message));
+                });
             });
         }
     </script>
