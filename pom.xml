@@ -464,12 +464,12 @@
 			<dependency>
 				<groupId>org.htmlunit</groupId>
 				<artifactId>htmlunit</artifactId>
-				<version>3.9.0</version>
+				<version>4.7.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.seleniumhq.selenium</groupId>
 				<artifactId>htmlunit3-driver</artifactId>
-				<version>4.16.0</version>
+				<version>4.27.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
