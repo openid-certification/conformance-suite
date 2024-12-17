@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -17,7 +19,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -40,6 +44,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -50,8 +55,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @Order(2)
-class WebSecurityOidcLoginConfig
-{
+class WebSecurityOidcLoginConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 
@@ -81,6 +85,22 @@ class WebSecurityOidcLoginConfig
 
 	@Autowired(required = false)
 	private CorsConfigurable additionalCorsConfiguration;
+
+	@Bean
+	public InMemoryClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
+		try {
+			List<ClientRegistration> registrations = new ArrayList<>(
+				new OAuth2ClientPropertiesMapper(properties).asClientRegistrations().values());
+			return new InMemoryClientRegistrationRepository(registrations);
+		} catch (Exception e) {
+			if (devmode) {
+				logger.warn("Failed to load client registrations. Error: {}", e.getMessage());
+				return new InMemoryClientRegistrationRepository(Map.of());
+			} else {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 
 	@Bean
 	public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
@@ -278,9 +298,9 @@ class WebSecurityOidcLoginConfig
 	private RequestMatcher publicRequestMatcher(String... patterns) {
 
 		return new AndRequestMatcher(
-				new OrRequestMatcher(
-					Arrays.stream(patterns).map(AntPathRequestMatcher::new).collect(Collectors.toList())),
-				new PublicRequestMatcher());
+			new OrRequestMatcher(
+				Arrays.stream(patterns).map(AntPathRequestMatcher::new).collect(Collectors.toList())),
+			new PublicRequestMatcher());
 	}
 
 }
