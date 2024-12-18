@@ -59,7 +59,7 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithoutExpFails extends Abstra
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2","PAR-2.3");
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
 		fireTestFinished();
 	}

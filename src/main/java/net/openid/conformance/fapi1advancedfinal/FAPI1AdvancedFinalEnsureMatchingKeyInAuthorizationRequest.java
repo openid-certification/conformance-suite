@@ -63,7 +63,7 @@ public class FAPI1AdvancedFinalEnsureMatchingKeyInAuthorizationRequest extends A
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2","PAR-2.3");
 
 		fireTestFinished();
 	}
