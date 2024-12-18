@@ -76,8 +76,6 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 			}
 			validateDocumentsSupported (opMetadata, evidences);
 			validateEvidenceCheckDetailsCheckMethodsSupported(opMetadata, evidences);
-			validateDocumentsValidationMethodsSupported (opMetadata, evidences);
-			validateDocumentsVerificationMethodsSupported (opMetadata, evidences);
 			validateElectronicRecordsSupported (opMetadata, evidences);
 			validateAttachmentsSupported (opMetadata, evidences);
 			validateDigestAlgorithmsSupported (opMetadata, evidences);
@@ -170,63 +168,6 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				}
 			}
 		}
-	}
-
-	protected void validateDocumentsValidationMethodsSupported(JsonObject opMetadata, JsonArray evidences) {
-		//documents_validation_methods_supported: OPTIONAL. JSON array containing the document
-		// validation methods the OP supports (see @!predefined_values).
-		JsonElement validationMethodsSupportedElement = opMetadata.get("documents_validation_methods_supported");
-		for (JsonElement evidenceElement : evidences) {
-			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.has("validation_method")) {
-				JsonObject validationMethod = evidence.get("validation_method").getAsJsonObject();
-				JsonElement validationType = validationMethod.get("type");
-
-				if(validationMethodsSupportedElement==null) {
-					throw error("Evidence validation_method type is " + validationType + " but documents_validation_methods_supported could not be found in OP metadata");
-				}
-
-				JsonArray validationMethodsSupported = validationMethodsSupportedElement.getAsJsonArray();
-				if (validationMethodsSupported.contains(validationType)) {
-					logSuccess("Evidence validation_method type is one of the supported values advertised in OP metadata",
-						args("validation_method_type", validationType,
-							"documents_validation_methods_supported", validationMethodsSupported));
-				} else {
-					throw error("Evidence validation_method type is not one of the supported values advertised in OP metadata",
-						args("validation_method_type", validationType,
-							"documents_validation_methods_supported", validationMethodsSupported));
-				}
-			}
-		}
-	}
-
-	protected void validateDocumentsVerificationMethodsSupported(JsonObject opMetadata, JsonArray evidences) {
-		//documents_verification_methods_supported: OPTIONAL. JSON array containing the verification
-		// methods the OP supports (see @!predefined_values).
-		JsonElement verificationMethodsSupportedElement = opMetadata.get("documents_verification_methods_supported");
-		for (JsonElement evidenceElement : evidences) {
-			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.has("verification_method")) {
-				JsonObject verificationMethod = evidence.get("verification_method").getAsJsonObject();
-				JsonElement verificationType = verificationMethod.get("type");
-
-				if(verificationMethodsSupportedElement==null) {
-					throw error("Evidence verification_method type is " + verificationType + " but documents_verification_methods_supported could not be found in OP metadata");
-				}
-
-				JsonArray verificationMethodsSupported = verificationMethodsSupportedElement.getAsJsonArray();
-				if (verificationMethodsSupported.contains(verificationType)) {
-					logSuccess("verification_method type is one of the supported values advertised in OP metadata",
-						args("verification_method_type", verificationType,
-							"documents_verification_methods_supported", verificationMethodsSupported));
-				} else {
-					throw error("verification_method type is not one of the supported values advertised in OP metadata",
-						args("verification_method_type", verificationType,
-							"documents_verification_methods_supported", verificationMethodsSupported));
-				}
-			}
-		}
-
 	}
 
 	protected void validateElectronicRecordsSupported (JsonObject opMetadata, JsonArray evidences) {
