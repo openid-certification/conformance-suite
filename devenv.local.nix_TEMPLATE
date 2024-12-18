@@ -1,0 +1,12 @@
+{ pkgs, lib, config, inputs, ... }:
+
+{
+
+# THIS IS A TEMPLATE FILE
+# If you want this to become effective, duplicate it with name `devenv.local.nix`
+# and change accordingly
+
+# If you want ngrok to be disable entirely, uncomment line below
+#	env.DISABLE_NGROK = "true";
+
+}

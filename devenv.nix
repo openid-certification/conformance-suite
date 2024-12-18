@@ -30,15 +30,17 @@
   enterTest = ''
   '';
 
-  processes = {
-    ngrok = {
-      exec = "${pkgs.ngrok}/bin/ngrok http https://localhost.emobix.co.uk:8443 --log stdout";
-    };
+  processes.ngrok = {
+
+      exec = ''
+       [ "a$DISABLE_NGROK" == "atrue" ] ||  ${pkgs.ngrok}/bin/ngrok http https://localhost.emobix.co.uk:8443 --log stdout
+       '';
+
   };
 
   services.mongodb.enable = true;
   services.nginx = {
-    enable = true;
+        enable = true;
         httpConfig = ''
             ssl_protocols       TLSv1.3;
             ssl_prefer_server_ciphers on;
