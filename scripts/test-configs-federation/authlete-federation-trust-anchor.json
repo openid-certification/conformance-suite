@@ -1,0 +1,18 @@
+{
+    "alias": "fed",
+    "description": "fed",
+    "federation": {
+        "entity_identifier": "https://trust-anchor.authlete.net/",
+        "trust_anchor": "https://trust-anchor.authlete.net/",
+        "trust_anchor_jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "n": "mgFfwOfrcxxe99ilMGbW1muiss1uegcJ3FjK4j7_Pxql_uba5qgdQppH3TOGj1v-0MaAvLPZEiyHOEDS4m7jmGCZsY49u4DAkmGwTVHAxxdx46VAwGvYRCuIwza-1pY8uMUrRlyAnV4GJdH_DX7A_xlXoZ2OWOX01ow7wKxAXDw6HYi3-bbWI8LOMhfasIskm1bCIUc1wWhC97TL7EaxVoCJZh34mwHDXBU3e6toQrXVvs3fZAhx2YIK8qPEUBkqflHTb_cYmJCGynSI6KI6yZHI9G_kWpeJSFKwxLYZSNVUnj9tdjrUoOEU51qeMFrmZ-VomU1ZhAZSOSt_bplvlw",
+                    "kid": "N9YhIF3mA4QWza3FX8Czrghwu_tHfhm77v50WdDH6a4"
+                }
+            ]
+        }
+    }
+}

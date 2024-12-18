@@ -318,6 +318,12 @@ panva_test:
     - set_up_for_running_test_plan
     - run_panva_test_plan
 
+federation_test:
+  <<: *deployment_test
+  script:
+    - set_up_for_running_test_plan
+    - run_federation_test_plan
+
 local_test:
   stage: test
   interruptible: true
@@ -662,6 +668,11 @@ local_test:
   function run_panva_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --panva-tests-only
+  }
+
+  function run_federation_test_plan() {
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ../conformance-suite/.gitlab-ci/run-tests.sh --federation-tests
   }
 
   function scale_down(){
