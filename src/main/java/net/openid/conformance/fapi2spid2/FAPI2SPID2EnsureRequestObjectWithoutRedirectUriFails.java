@@ -66,7 +66,7 @@ public class FAPI2SPID2EnsureRequestObjectWithoutRedirectUriFails extends Abstra
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
 		fireTestFinished();
 	}
