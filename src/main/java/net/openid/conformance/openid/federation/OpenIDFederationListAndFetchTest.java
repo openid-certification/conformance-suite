@@ -56,8 +56,11 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 				env.putString("federation_endpoint_url", appendWellKnown(entityIdentifier));
 				callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 				validateEntityStatementResponse();
-				callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
-				validateEntityStatement();
+
+				callAndContinueOnFailure(ExtractJWTFromFederationEndpointResponse.class,  Condition.ConditionResult.FAILURE, "OIDFED-9");
+				if (env.containsObject("federation_response_jwt")) {
+					validateEntityStatement();
+				}
 				eventLog.endBlock();
 			}
 		} else {
@@ -79,21 +82,22 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 
 			callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 			validateFetchResponse();
-			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.2");
 
-			callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-			call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
+			callAndContinueOnFailure(ExtractJWTFromFederationEndpointResponse.class,  Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+			if (env.containsObject("federation_response_jwt")) {
+				callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+				call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
 
-			callAndContinueOnFailure(ExtractJWKsFromPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-			call(sequence(ValidateFederationResponseSignatureSequence.class));
+				callAndContinueOnFailure(ExtractJWKsFromPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+				call(sequence(ValidateFederationResponseSignatureSequence.class));
 
-			callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
+				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
 
-			callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-			callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1");
+				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+				callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1");
 
-			callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-6.1.2");
-
+				callAndContinueOnFailure(ValidateEntityStatementMetadataPolicy.class, Condition.ConditionResult.FAILURE, "OIDFED-6.1.2");
+			}
 			eventLog.endBlock();
 		}
 	}

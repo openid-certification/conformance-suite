@@ -24,6 +24,7 @@ public class ExtractJWTFromFederationEndpointResponse extends AbstractCondition 
 			logSuccess("Extracted JWT from federation endpoint response", args("fereation_response_jwt", jwtAsJsonObject));
 			return env;
 		} catch (ParseException e) {
+			env.removeObject("federation_response_jwt");
 			throw error("Failed to parse JWT from federation endpoint response", e, args("jwt", jwt));
 		}
 	}
