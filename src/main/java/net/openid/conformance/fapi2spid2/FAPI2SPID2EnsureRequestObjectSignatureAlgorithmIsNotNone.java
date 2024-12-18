@@ -80,7 +80,7 @@ public class FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends Ab
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2","PAR-2.3");
 
 		fireTestFinished();
 	}

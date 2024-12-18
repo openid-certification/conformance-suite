@@ -72,7 +72,7 @@ public class FAPI2SPID2EnsureMatchingKeyInAuthorizationRequest extends AbstractF
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2");
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2","PAR-2.3");
 
 		fireTestFinished();
 	}
