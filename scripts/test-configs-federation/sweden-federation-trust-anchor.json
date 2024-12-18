@@ -1,0 +1,19 @@
+{
+    "alias": "fed",
+    "description": "fed",
+    "federation": {
+        "entity_identifier": "https://sandbox.swedenconnect.se/oidfed/trust-anchor",
+        "trust_anchor": "https://sandbox.swedenconnect.se/oidfed/trust-anchor",
+        "trust_anchor_jwks": {
+            "keys": [
+                {
+                    "kty": "EC",
+                    "crv": "P-256",
+                    "kid": "sandbox-ta-1",
+                    "x": "nO5KEWW_fJ2KEzeusOB1MwoUinXkz8OR2rh0EpcBtK4",
+                    "y": "u71gEjKE1poHA6tSu1hk_mJEETEyZpRaf8TqdK9LRU8"
+                }
+            ]
+        }
+    }
+}

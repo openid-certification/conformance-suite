@@ -722,7 +722,7 @@ def analyze_result_logs(module_id, test_name, variant, test_result, plan_result,
                 expected_block = expected_failure_obj['current-block']
                 expected_result = expected_failure_obj['expected-result']
 
-                if (expected_block == block_msg
+                if ((expected_block == block_msg or expected_block == '*')
                     and expected_condition == log_entry['src']):
 
                     # check and list all expected failure
@@ -1269,11 +1269,6 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        # Exclude federation modules as we don't have tests for those yet
-        if re.match(r'openid-federation-*', m):
-            untested_test_modules.remove(m)
-            continue
-
         client_test = re.match(r'fapi-rw-id2-client-.*', m) or \
                       re.match(r'fapi1-advanced-final-client-.*', m) or \
                       re.match(r'fapi2-security-profile-id2-client-.*', m) or \
@@ -1281,6 +1276,7 @@ async def main():
         ciba_op_test = re.match(r'fapi-ciba-id1.*', m)
         rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
         ekyc_test = re.match(r'ekyc-server-', m)
+        federation_test = re.match(r'openid-federation-', m)
         fapi1r = all_test_modules[m]['profile'] in ['FAPI-R']
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
         oidcc = all_test_modules[m]['profile'] in ['OIDCC']
@@ -1302,21 +1298,25 @@ async def main():
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or oid4vp:
+            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or oid4vp or federation_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
             # we've not yet setup fapi2 brazil dcr or uk test runs
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or (fapi2 and (brazildcr or obuk)) or oid4vp:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or federation_test or (fapi2 and (brazildcr or obuk)) or oid4vp:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':
-            if ekyc_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp:
+            if ekyc_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or federation_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':
             if not ekyc_test:
+                untested_test_modules.remove(m)
+                continue
+        elif show_untested == 'federation':
+            if not federation_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'all-except-logout':
