@@ -75,7 +75,7 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				}
 			}
 			validateDocumentsSupported (opMetadata, evidences);
-			validateDocumentsCheckMethodsSupported(opMetadata, evidences);
+			validateEvidenceCheckDetailsCheckMethodsSupported(opMetadata, evidences);
 			validateDocumentsValidationMethodsSupported (opMetadata, evidences);
 			validateDocumentsVerificationMethodsSupported (opMetadata, evidences);
 			validateElectronicRecordsSupported (opMetadata, evidences);
@@ -133,30 +133,40 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 		}
 	}
 
-	protected void validateDocumentsCheckMethodsSupported(JsonObject opMetadata, JsonArray evidences){
-		//documents_methods_supported: OPTIONAL. JSON array containing the validation &
-		// verification process the OP supports (see @!predefined_values)
-		// TODO need update to final spec from documents_methods_supported to documents_check_methods_supported
-		JsonElement docMethodsSupportedElement = opMetadata.get("documents_methods_supported");
+	protected void validateEvidenceCheckDetailsCheckMethodsSupported(JsonObject opMetadata, JsonArray evidences){
+		//documents_check_methods_supported: OPTIONAL. JSON array containing the  check methods the OP
+		// supports for evidences types "document", "electronic_record, "vouch"
+		// (see @!predefined_values)
+		JsonElement docCheckMethodsSupportedElement = opMetadata.get("documents_check_methods_supported");
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.get("type").equals(new JsonPrimitive("document"))) {
-				JsonElement method = evidence.get("method");
-				if (method == null) {
+			// only type (document, electronic_record, vouch) has a check_details, electronic_signature does not have one
+			JsonElement evidenceType = evidence.get("type");
+			if (evidenceType.equals(new JsonPrimitive("document")) ||
+				evidenceType.equals(new JsonPrimitive("electronic_record")) ||
+				evidenceType.equals(new JsonPrimitive("vouch"))) {
+				JsonObject checkDetails = evidence.getAsJsonObject("check_details");
+				if(checkDetails == null) {
+					log("evidence does not contain check_details", args("evidence", evidence));
+					continue;
+				}
+				JsonElement checkMethod = checkDetails.get("check_method");
+				if (checkMethod == null) {
+					log("evidence does not contain check_details.check_method", args("evidence", evidence));
 					continue;
 				}
 
-				if(docMethodsSupportedElement==null) {
-					throw error("Evidence document method is " + method + " but documents_methods_supported could not be found in OP metadata");
+				if(docCheckMethodsSupportedElement==null) {
+					throw error("Evidence document check method is " + checkMethod + " but documents_check_methods_supported could not be found in OP metadata");
 				}
 
-				JsonArray docMethodsSupported = docMethodsSupportedElement.getAsJsonArray();
-				if (docMethodsSupported.contains(method)) {
-					logSuccess("method is one of the supported values advertised in OP metadata",
-						args("method", method, "documents_methods_supported", docMethodsSupported));
+				JsonArray docCheckMethodsSupported = docCheckMethodsSupportedElement.getAsJsonArray();
+				if (docCheckMethodsSupported.contains(checkMethod)) {
+					logSuccess("check method is one of the supported values advertised in OP metadata",
+						args("check method", checkMethod, "documents_check_methods_supported", docCheckMethodsSupported));
 				} else {
-					throw error("method is not one of the supported values advertised in OP metadata",
-						args("method", method, "documents_methods_supported", docMethodsSupported));
+					throw error("check method is not one of the supported values advertised in OP metadata",
+						args("check method", checkMethod, "documents_check_methods_supported", docCheckMethodsSupported));
 				}
 			}
 		}
