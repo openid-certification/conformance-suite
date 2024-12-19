@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.events;
 import com.google.gson.JsonObject;
 import com.nimbusds.jwt.JWT;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
@@ -12,10 +13,16 @@ import java.text.ParseException;
 public class OIDSSFExtractVerificationEventFromReceivedSETs extends AbstractCondition {
 
 	@Override
+	@PreEnvironment(required = "ssf_polling_response")
 	public Environment evaluate(Environment env) {
 
 		JsonObject ssfPollingResponse = env.getObject("ssf_polling_response");
-		JsonObject setsObject = ssfPollingResponse.getAsJsonObject("body_json").getAsJsonObject("sets");
+		JsonObject bodyJson = ssfPollingResponse.getAsJsonObject("body_json");
+		if (bodyJson == null) {
+			throw error("Missing json body in polling response", args("polling_response", ssfPollingResponse));
+		}
+
+		JsonObject setsObject = bodyJson.getAsJsonObject("sets");
 		for (var setEntry : setsObject.entrySet()) {
 
 			// String setKey = setEntry.getKey();
@@ -35,8 +42,6 @@ public class OIDSSFExtractVerificationEventFromReceivedSETs extends AbstractCond
 			}
 		}
 
-		logFailure("Could not find verification event in polling response", args("polling_response", ssfPollingResponse));
-
-		return env;
+		throw error("Could not find verification event in polling response", args("polling_response", ssfPollingResponse));
 	}
 }
