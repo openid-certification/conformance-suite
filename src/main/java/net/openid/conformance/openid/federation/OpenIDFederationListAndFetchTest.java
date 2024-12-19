@@ -45,6 +45,7 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 		JsonArray listEndpointResponse;
 		if (listEndpoint != null) {
 			eventLog.startBlock(String.format("Retrieving entities from federation_list_endpoint %s", listEndpoint));
+			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 			callAndStopOnFailure(CallListEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
 			validateListResponse();
 			eventLog.endBlock();
@@ -54,6 +55,7 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 				String entityIdentifier = OIDFJSON.getString(listElement);
 				eventLog.startBlock(String.format("Validating entity statement for %s", entityIdentifier));
 				env.putString("federation_endpoint_url", appendWellKnown(entityIdentifier));
+				callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 				callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 				validateEntityStatementResponse();
 
@@ -76,6 +78,7 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 
 			env.putString("federation_endpoint_url", fetchEndpoint);
 			env.putString("expected_sub", entityIdentifier);
+			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 			callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
 			eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));
@@ -85,13 +88,13 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 
 			callAndContinueOnFailure(ExtractJWTFromFederationEndpointResponse.class,  Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
 			if (env.containsObject("federation_response_jwt")) {
-				callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+				callAndContinueOnFailure(ExtractRegisteredClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 				call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
 
 				callAndContinueOnFailure(ExtractJWKsFromPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 				call(sequence(ValidateFederationResponseSignatureSequence.class));
 
-				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
+				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.INFO, "OIDFED-5.1.1");
 
 				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 				callAndContinueOnFailure(ValidateAbsenceOfFederationEntityMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1");
