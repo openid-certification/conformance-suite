@@ -297,7 +297,21 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 						"expected", s,
 						"result", builder.getOnSkip(),
 						"requirements", builder.getRequirements()
-					// TODO: log the environment here?
+						// TODO: log the environment here?
+					));
+					updateResultFromConditionFailure(builder.getOnSkip());
+					return;
+				}
+			}
+			for (String s : builder.getSkipIfLongsMissing()) {
+				if (env.getLong(s) == null) {
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find long integer in environment: " + s);
+					eventLog.log(condition.getMessage(), args(
+						"msg", "Skipped evaluation due to missing required long integer: " + s,
+						"expected", s,
+						"result", builder.getOnSkip(),
+						"requirements", builder.getRequirements()
+						// TODO: log the environment here?
 					));
 					updateResultFromConditionFailure(builder.getOnSkip());
 					return;

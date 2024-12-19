@@ -59,7 +59,7 @@ public class ValidateEntityMetadataClaims_UnitTest {
 
 		ConditionError exception = assertThrows(ConditionError.class, () -> validateEntityStatementMetadataCond.execute(env));
 
-		assertEquals("ValidateEntityStatementMetadata: The metadata claim contains invalid entity types", exception.getMessage());
+		assertEquals("ValidateEntityStatementMetadata: The metadata claim contains non-standard entity types", exception.getMessage());
 	}
 
 	@Test
