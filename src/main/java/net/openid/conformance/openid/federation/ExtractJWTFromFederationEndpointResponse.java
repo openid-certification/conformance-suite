@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -17,13 +18,20 @@ public class ExtractJWTFromFederationEndpointResponse extends AbstractCondition 
 	@PostEnvironment(required = { "federation_response_jwt" })
 	public Environment evaluate(Environment env) {
 
-		String jwt = OIDFJSON.getString(env.getElementFromObject("federation_endpoint_response", "body"));
+		JsonElement federationEndpointResponseBody = env.getElementFromObject("federation_endpoint_response", "body");
+		if (federationEndpointResponseBody == null ||
+			!federationEndpointResponseBody.isJsonPrimitive() ||
+			!federationEndpointResponseBody.getAsJsonPrimitive().isString()) {
+			throw error("The response body is expected to contain a JWT string", args("jwt", federationEndpointResponseBody));
+		}
+
+		String jwt = OIDFJSON.getString(federationEndpointResponseBody);
 		try {
 			JsonObject jwtAsJsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(jwt);
 			env.putObject("federation_response_jwt", jwtAsJsonObject);
-			logSuccess("Extracted JWT from federation endpoint response", args("fereation_response_jwt", jwtAsJsonObject));
+			logSuccess("Extracted JWT from federation endpoint response", args("federation_response_jwt", jwtAsJsonObject));
 			return env;
-		} catch (ParseException e) {
+		} catch (ParseException | OIDFJSON.UnexpectedJsonTypeException e) {
 			env.removeObject("federation_response_jwt");
 			throw error("Failed to parse JWT from federation endpoint response", e, args("jwt", jwt));
 		}

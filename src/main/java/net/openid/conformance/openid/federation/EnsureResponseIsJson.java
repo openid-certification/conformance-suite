@@ -25,7 +25,7 @@ public class EnsureResponseIsJson extends AbstractCheckEndpointContentTypeReturn
 			env.putObject("endpoint_response_body", endpointResponseBody);
 			logSuccess("Endpoint response is JSON");
 			return env;
-		} catch (JsonSyntaxException e) {
+		} catch (JsonSyntaxException | OIDFJSON.UnexpectedJsonTypeException e) {
 			throw error("Endpoint response is not JSON", args("endpoint_response_body", body));
 		}
 

@@ -1,13 +1,11 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 public class ValidateEntityStatementSub extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = { "expected_sub", "federation_response_sub" } )
 	public Environment evaluate(Environment env) {
 
 		String sub = env.getString("federation_response_sub");

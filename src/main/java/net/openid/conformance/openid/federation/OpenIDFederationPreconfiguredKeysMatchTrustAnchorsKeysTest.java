@@ -56,6 +56,7 @@ public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends 
 
 		eventLog.startBlock("Retrieving entity configuration for trust anchor %s".formatted(trustAnchor));
 		env.putString("federation_endpoint_url", appendWellKnown(trustAnchor));
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 		validateEntityStatementResponse();
 		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
