@@ -48,12 +48,16 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			// do not publish their own entity configurations.
 			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
 		} else {
+			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 			validateEntityStatementResponse();
 		}
 		eventLog.endBlock();
 
 		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+		if (ServerMetadata.DISCOVERY.equals(getVariant(ServerMetadata.class))) {
+			validateEntityStatement();
+		}
 		callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 
 		setStatus(Status.CONFIGURED);
@@ -64,7 +68,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		String entityStatementUrl = env.getString("federation_endpoint_url");
 
 		eventLog.startBlock("Validate basic claims in Entity Statement for %s".formatted(entityStatementUrl));
-		callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+		callAndContinueOnFailure(ExtractRegisteredClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		env.putString("expected_iss", stripWellKnown(entityStatementUrl));
 		env.putString("expected_sub", stripWellKnown(entityStatementUrl));
 		call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
@@ -76,7 +80,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate metadata in Entity Statement for %s".formatted(entityStatementUrl));
-		callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5");
+		callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.INFO, "OIDFED-5");
 		eventLog.endBlock();
 
 		eventLog.startBlock("Validate Federation Entity metadata for %s".formatted(entityStatementUrl));
@@ -200,6 +204,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 				// Get the entity statement for the superior
 				env.putString("federation_endpoint_url", authorityHintUrl);
+				callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 				callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 				validateEntityStatementResponse();
 				callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
@@ -209,6 +214,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
 				// Verify that the primary entity is present in the list endpoint result
 				callAndStopOnFailure(ExtractFederationListEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
+				callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 				callAndStopOnFailure(CallListEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2.1");
 				validateListResponse();
 				callAndContinueOnFailure(VerifyPrimaryEntityPresenceInSubordinateListing.class, Condition.ConditionResult.FAILURE, "OIDFED-8.2");
@@ -216,18 +222,19 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 				// Get the entity statement from the Superior's fetch endpoint
 				env.putString("expected_sub", env.getString("primary_entity_statement_iss"));
 				callAndStopOnFailure(ExtractFederationFetchEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
-				callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
+				callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 
+				callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 				callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 				validateFetchResponse();
 				callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.2");
 
 				call(sequence(ValidateFederationResponseSignatureSequence.class));
 
-				callAndContinueOnFailure(ExtractBasicClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+				callAndContinueOnFailure(ExtractRegisteredClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 				call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
 
-				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.1");
+				callAndContinueOnFailure(ValidateEntityStatementMetadata.class, Condition.ConditionResult.INFO, "OIDFED-5.1.1");
 				// No authority hints in subordinate statements
 				callAndContinueOnFailure(ValidateAbsenceOfAuthorityHints.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 				// No federation_entity metadata in subordinate statements
@@ -256,6 +263,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			String currentWellKnownUrl = appendWellKnown(fromEntity);
 			env.putString("federation_endpoint_url", currentWellKnownUrl);
 
+			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 			validateEntityStatementResponse();
 			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");

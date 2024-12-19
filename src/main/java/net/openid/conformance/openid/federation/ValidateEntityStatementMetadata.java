@@ -37,7 +37,7 @@ public class ValidateEntityStatementMetadata extends AbstractCondition {
 		Set<String> difference = new HashSet<>(keys);
 		difference.removeAll(validEntityTypes);
 		if (!difference.isEmpty()) {
-			throw error("The metadata claim contains invalid entity types", args("expected", validEntityTypes, "actual", keys));
+			throw error("The metadata claim contains non-standard entity types", args("standard", validEntityTypes, "actual", keys));
 		}
 
 		logSuccess("Entity statement contains a valid metadata claim", args("metadata", metadata));
