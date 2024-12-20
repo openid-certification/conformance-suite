@@ -45,7 +45,8 @@ public class OIDSSFTriggerVerificationEvent extends AbstractOIDSSFTransmitterEnd
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 		super.handleClientResponse(env, responseCode, responseBody, responseHeaders, fullResponse);
-		logSuccess("Got a response from the verification endpoint", args("body", responseBody, "headers", responseHeaders, "status_code", responseCode));
+		logSuccess("Got a response from the verification endpoint",
+			args("body", responseBody, "headers", responseHeaders, "status_code", responseCode, "state", env.getString("ssf", "verification.state")));
 		return env;
 	}
 }
