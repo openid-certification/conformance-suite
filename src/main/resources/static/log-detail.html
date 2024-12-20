@@ -1538,9 +1538,21 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 .map(([key, value]) => `-H "${key}: ${value}"`)
                 .join(" ");
 
-            let mtlsParams = requestDescription.request_mutual_tls ? "--cert client.crt --key client.key --cacert ca.crt " : "";
+            let requestMutualTls = requestDescription.request_mutual_tls;
+            let mtlsParams = requestMutualTls ? "--insecure --cert \"$CLIENT_CERT\" --key \"$CLIENT_KEY\"" : "";
 
-            const curlCommand = `curl ${mtlsParams}-X ${method} "${url}" ${headerStrings} ${
+            let curlCommandProlog = "";
+            if (requestMutualTls) {
+                let mtlsSetupProlog = `
+CLIENT_CERT=/tmp/conformance_tests_client.crt
+CLIENT_KEY=/tmp/conformance_tests_client.key
+echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.cert}\n-----END CERTIFICATE-----" > "$CLIENT_CERT"
+echo "-----BEGIN PRIVATE KEY-----\n${requestDescription.request_mutual_tls.key}\n-----END PRIVATE KEY-----" > "$CLIENT_KEY"
+`;
+                curlCommandProlog += mtlsSetupProlog
+            }
+
+            let curlCommand = `${curlCommandProlog} curl ${mtlsParams} -X ${method} "${url}" ${headerStrings} ${
                 body ? `--data '${body}'` : ""
             }`;
 
