@@ -10,6 +10,11 @@ public class OIDSSFDeleteStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 	}
 
 	@Override
+	protected Object getBody(Environment env) {
+		return null;
+	}
+
+	@Override
 	protected String getEndpointName() {
 		return "delete stream configuration";
 	}
