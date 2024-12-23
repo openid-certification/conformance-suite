@@ -2,12 +2,10 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SignRequestObject;
@@ -39,7 +37,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-public class FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractFAPI2SPID2PARInvalidRequestObjectJWS {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -69,20 +67,6 @@ public class FAPI2SPID2EnsureRequestObjectSignatureAlgorithmIsNotNone extends Ab
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(SignRequestObject.class,
 						condition(SerializeRequestObjectWithNullAlgorithm.class));
-	}
-
-	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2","PAR-2.3");
-
-		fireTestFinished();
 	}
 
 	@Override
