@@ -1,8 +1,5 @@
 package net.openid.conformance.fapi2spid2;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRedirectUriMissingErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -28,7 +25,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2SPID2EnsureRedirectUriInAuthorizationRequest extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2EnsureRedirectUriInAuthorizationRequest extends AbstractFAPI2SPID2PARInvalidRequestOrInvalidRequestObject {
 
 	@Override
 	protected void createPlaceholder() {
@@ -43,20 +40,6 @@ public class FAPI2SPID2EnsureRedirectUriInAuthorizationRequest extends AbstractF
 
 		// Remove the redirect URL
 		env.getObject("authorization_endpoint_request").remove("redirect_uri");
-	}
-
-	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
-
-		fireTestFinished();
 	}
 
 }
