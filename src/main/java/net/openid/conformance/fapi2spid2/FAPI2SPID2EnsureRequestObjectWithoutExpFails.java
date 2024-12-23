@@ -2,13 +2,11 @@ package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestObjectInvalidRequestUriOrAccessDeniedError;
 import net.openid.conformance.condition.client.EnsureInvalidRequestInvalidRequestUriOrAccessDeniedError;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectMissingExpClaimErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -38,7 +36,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-public class FAPI2SPID2EnsureRequestObjectWithoutExpFails extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2EnsureRequestObjectWithoutExpFails extends AbstractFAPI2SPID2PARInvalidRequestObject {
 
 	@Override
 	protected void createPlaceholder() {
@@ -51,20 +49,6 @@ public class FAPI2SPID2EnsureRequestObjectWithoutExpFails extends AbstractFAPI2S
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.skip(AddExpToRequestObject.class, "NOT adding exp to request object");
-	}
-
-	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
-
-		fireTestFinished();
 	}
 
 	@Override
