@@ -1,10 +1,7 @@
 package net.openid.conformance.fapi2spid2;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CreateBadRedirectUriByAppending;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -35,7 +32,7 @@ import jakarta.servlet.http.HttpSession;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2SPID2EnsureRegisteredRedirectUri extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2EnsureRegisteredRedirectUri extends AbstractFAPI2SPID2PARInvalidRequestOrInvalidRequestObject {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -45,20 +42,6 @@ public class FAPI2SPID2EnsureRegisteredRedirectUri extends AbstractFAPI2SPID2Exp
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("redirect_uri");
-	}
-
-	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
-		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
-
-		fireTestFinished();
 	}
 
 	@Override
