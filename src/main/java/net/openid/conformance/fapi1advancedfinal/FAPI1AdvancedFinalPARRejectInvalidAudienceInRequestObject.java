@@ -3,9 +3,7 @@ package net.openid.conformance.fapi1advancedfinal;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddPAREndpointAsAudToRequestObject;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectInvalidAudienceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -38,7 +36,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value"
 })
-public class FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject extends AbstractFAPI1AdvancedFinalInvalidRequestObject {
 
 	@Override
 	protected void createPlaceholder() {
@@ -51,20 +49,6 @@ public class FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject extends A
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps().
 			replace(AddAudToRequestObject.class, condition(AddPAREndpointAsAudToRequestObject.class).requirements("FAPI1-ADV-5.2.2-15", "JAR-4"));
-	}
-
-	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
-
-		fireTestFinished();
 	}
 
 	@Override
