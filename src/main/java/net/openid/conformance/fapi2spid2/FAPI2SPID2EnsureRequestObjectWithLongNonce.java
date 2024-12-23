@@ -2,13 +2,11 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestObjectWithLongNonceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
@@ -39,7 +37,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
-public class FAPI2SPID2EnsureRequestObjectWithLongNonce extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2EnsureRequestObjectWithLongNonce extends AbstractFAPI2SPID2PARInvalidRequestError {
 
 	@Override
 	protected void createPlaceholder() {
@@ -55,20 +53,6 @@ public class FAPI2SPID2EnsureRequestObjectWithLongNonce extends AbstractFAPI2SPI
 		cmd.putInteger("requested_nonce_length", 384);
 		return super.makeCreateAuthorizationRequestSteps()
 				.insertBefore(CreateRandomNonceValue.class, cmd);
-	}
-
-	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
-		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
-
-		fireTestFinished();
 	}
 
 	@Override
