@@ -716,15 +716,21 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		skipIfElementMissing("backchannel_request_object", "claims.id_token_hint", ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
 		if(isBrazil()) {
-			callAndStopOnFailure(ExtractIdTokenHintFromBackchannelEndpointRequest.class, ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 
-			env.mapKey("id_token", "id_token_hint");
-			env.mapKey("authorization_endpoint_request", "backchannel_request_object");
-			callAndContinueOnFailure(ValidateIdTokenHasRequiredBrazilHeaders.class, ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
-			call(new PerformStandardIdTokenChecks().replace(ValidateIdToken.class, condition(ValidateIdTokenExcludingIat.class)));
-			callAndContinueOnFailure(VerifyIdTokenValidityIsMinimum180Days.class, ConditionResult.WARNING, "BrazilCIBA-5.2.2");
-			env.unmapKey("authorization_endpoint_request");
-			env.unmapKey("id_token");
+			if(env.getElementFromObject("backchannel_request_object", "claims.id_token_hint") != null) {
+				callAndStopOnFailure(ExtractIdTokenHintFromBackchannelEndpointRequest.class, ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+				env.mapKey("id_token", "id_token_hint");
+				env.mapKey("authorization_endpoint_request", "backchannel_request_object");
+				callAndContinueOnFailure(ValidateIdTokenHasRequiredBrazilHeaders.class, ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+				call(new PerformStandardIdTokenChecks().replace(ValidateIdToken.class, condition(ValidateIdTokenExcludingIat.class)));
+				callAndContinueOnFailure(VerifyIdTokenValidityIsMinimum180Days.class, ConditionResult.WARNING, "BrazilCIBA-5.2.2");
+				env.unmapKey("authorization_endpoint_request");
+				env.unmapKey("id_token");
+			} else if (env.getElementFromObject("backchannel_request_object", "claims.login_hint") != null) {
+				callAndContinueOnFailure(EnsureLoginHintEqualsConsentId.class, ConditionResult.FAILURE);
+			} else {
+				throw new TestFailureException(getId(), "Open Finance/Insurance Brazil requires either id_token_hint or login_hint.");
+			}
 
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
