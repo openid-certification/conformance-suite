@@ -1,6 +1,6 @@
 {
     "alias": "oidf-fapi-ciba-brazil-op-test",
-    "description": "FAPI-CIBA BR-OB OP test config (with id_token_hint) for running against RP tests",
+    "description": "FAPI-CIBA BR-OB OP test config (with login_hint) for running against RP tests",
     "server": {
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-ciba-brazil-rp-test/.well-known/openid-configuration",
         "jwks": {
@@ -44,8 +44,7 @@
         "client_id": "a201cc12-fff6-40d7-92eb-8ca5e0c7fc0a",
         "scope": "openid payments",
         "acr_value": "urn:brasil:openbanking:loa3",
-        "obtain_id_token": "{BASEURL}test/a/oidf-fapi-ciba-brazil-rp-test/token/obtain",
-        "hint_type": "id_token_hint",
+        "hint_type": "login_hint",
         "jwks": {
             "keys": [
                 {

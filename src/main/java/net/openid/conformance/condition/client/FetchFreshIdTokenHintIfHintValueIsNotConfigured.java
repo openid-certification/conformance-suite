@@ -9,16 +9,17 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.web.client.RestTemplate;
 
-public class FetchFreshIdTokenIfHintValueIsNotConfigured extends AbstractCondition {
+public class FetchFreshIdTokenHintIfHintValueIsNotConfigured extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"config"})
 	public Environment evaluate(Environment env) {
 
 		String obtainIdTokenUrl = env.getString("config", "client.obtain_id_token");
+		String hintType = env.getString("config", "client.hint_type");
 		String freshIdToken = null;
 		String currentlyConfiguredHintValue = env.getString("config", "client.hint_value");
-		if (Strings.isNullOrEmpty(currentlyConfiguredHintValue) && obtainIdTokenUrl != null && "id_token_hint".equals(env.getString("config", "client.hint_type"))) {
+		if (Strings.isNullOrEmpty(currentlyConfiguredHintValue) && obtainIdTokenUrl != null && "id_token_hint".equals(hintType)) {
 			try {
 				RestTemplate restTemplate = createRestTemplate(env);
 				String jsonString = restTemplate.getForObject(obtainIdTokenUrl, String.class, ImmutableMap.of());
@@ -29,7 +30,7 @@ public class FetchFreshIdTokenIfHintValueIsNotConfigured extends AbstractConditi
 				throw error("Failed to obtain fresh id token", e);
 			}
 		} else {
-			logSuccess("Using configured hint_value", args("hint_value", currentlyConfiguredHintValue));
+			logSuccess("Using configured hint_value", args("hint_type", hintType, hintType, currentlyConfiguredHintValue));
 		}
 
 		return env;
