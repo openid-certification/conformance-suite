@@ -1,6 +1,6 @@
 {
     "alias": "oidf-fapi-ciba-brazil-rp-test",
-    "description": "FAPI-CIBA BR-OB RP test config (with id_token_hint) for running against OP tests",
+    "description": "FAPI-CIBA BR-OB RP test config (with login_hint)for running against OP tests",
     "server": {
         "jwks": {
             "keys": [
