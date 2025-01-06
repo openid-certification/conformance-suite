@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs404;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFInjectDummyStreamId;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFAttemptCreateStreamConfigCallWithBrokenInput;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFAttemptReadStreamConfigCallWithUnknownStreamId;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequenceWithInvalidAccessToken;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectInvalidAccessTokenOverride;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
@@ -58,8 +58,9 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTest {
 			call(exec().unmapKey("endpoint_response"));
 
 			// 401	if authorization failed or it is missing
-			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
-			callAndContinueOnFailure(OIDSSFCreateStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
+//			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
+//			callAndContinueOnFailure(OIDSSFCreateStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
+			call(sequence(OIDSSFCreateStreamConditionSequenceWithInvalidAccessToken.class));
 			call(exec().unmapKey("access_token"));
 
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));

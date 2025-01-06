@@ -194,8 +194,6 @@ public abstract class AbstractOIDSSFTest extends AbstractTestModule {
 							callAndStopOnFailure(GenerateDpopKey.class);
 							call(CreateDpopProofSteps.createTokenEndpointDpopSteps());
 						}
-
-						// throw new UnsupportedOperationException("TODO implement me");
 						break;
 					case MTLS:
 						throw new UnsupportedOperationException("TODO implement me");
