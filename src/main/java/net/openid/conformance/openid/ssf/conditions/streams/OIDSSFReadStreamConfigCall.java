@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 
@@ -18,7 +19,12 @@ public class OIDSSFReadStreamConfigCall extends AbstractOIDSSFStreamConfigCall {
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 		super.handleClientResponse(env, responseCode, responseBody, responseHeaders, fullResponse);
-		env.putObject("ssf","stream", env.getElementFromObject("resource_endpoint_response_full", "body_json").getAsJsonObject());
+		JsonElement endpointResponseFullJsonElement = env.getElementFromObject("resource_endpoint_response_full", "body_json");
+		if (endpointResponseFullJsonElement.isJsonObject()) {
+			env.putObject("ssf", "stream", endpointResponseFullJsonElement.getAsJsonObject());
+		} else if (endpointResponseFullJsonElement.isJsonArray()) {
+			env.putArray("ssf", "streams", endpointResponseFullJsonElement.getAsJsonArray());
+		}
 		return env;
 	}
 

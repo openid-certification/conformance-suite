@@ -794,7 +794,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		try {
 			JsonElement jsonRoot = JsonParser.parseString(jsonString);
-			if (jsonRoot == null || !jsonRoot.isJsonObject()) {
+			if (jsonRoot == null || !(jsonRoot.isJsonObject() || jsonRoot.isJsonArray())) {
 				if (allowParseFailure) {
 					return responseInfo;
 				}
@@ -803,10 +803,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 					args("response", jsonString));
 			}
 
-			JsonObject bodyJson = jsonRoot.getAsJsonObject();
+			JsonElement bodyJson = null;
+			if (jsonRoot.isJsonObject()) {
+				bodyJson = jsonRoot.getAsJsonObject();
+			}
 
+			if (jsonRoot.isJsonArray()) {
+				bodyJson = jsonRoot.getAsJsonArray();
+			}
 			responseInfo.add("body_json", bodyJson);
-
 		} catch (JsonParseException e) {
 			if (allowParseFailure) {
 				return responseInfo;
