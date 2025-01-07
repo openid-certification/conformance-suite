@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -153,6 +154,10 @@ public class Environment {
 	}
 
 	public void putObject(String key, String path, JsonObject value) {
+		putElement(key, path, value);
+	}
+
+	public void putArray(String key, String path, JsonArray value) {
 		putElement(key, path, value);
 	}
 
