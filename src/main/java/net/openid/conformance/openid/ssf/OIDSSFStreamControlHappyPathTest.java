@@ -4,15 +4,15 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupportedEventsForStream;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamStatusCall;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReplaceStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReplaceStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamStatusCall;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
@@ -94,7 +94,8 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 
 		// this is still not supported in the caep.dev reference env :-/
 		eventLog.runBlock("Replace Stream Configuration", () -> {
-			callAndStopOnFailure(OIDSSFReplaceStreamConfigCall.class, "OIDSSF-7.1.1.4", "CAEPIOP-2.3.8.2");
+
+			call(sequence(OIDSSFReplaceStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.4");
 			// TODO check for 202 responses
