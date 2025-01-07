@@ -108,7 +108,10 @@ public abstract class AbstractCallProtectedResource extends AbstractCondition {
 				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			}
 
-			if (HttpMethod.POST.equals(method) && headers.getContentType() == null) {
+			if (HttpMethod.POST.equals(method)
+				|| HttpMethod.PUT.equals(method)
+				|| HttpMethod.PATCH.equals(method)
+				&& headers.getContentType() == null) {
 				// See https://bitbucket.org/openid/connect/issues/1137/is-content-type-application-x-www-form
 				headers.setContentType(getContentType(env));
 			}
