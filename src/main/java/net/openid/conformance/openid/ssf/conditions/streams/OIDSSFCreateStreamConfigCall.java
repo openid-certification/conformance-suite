@@ -22,8 +22,11 @@ public class OIDSSFCreateStreamConfigCall extends AbstractOIDSSFStreamConfigCall
 	}
 
 	protected String createResourceRequestEntityString(Environment env) {
-		JsonObject streamConfig = env.getElementFromObject("ssf", "stream.config").getAsJsonObject();
-		return new Gson().toJson(streamConfig);
+		return new Gson().toJson(createResourceRequestEntity(env));
+	}
+
+	protected JsonObject createResourceRequestEntity(Environment env) {
+		return env.getElementFromObject("ssf", "stream.config").getAsJsonObject();
 	}
 
 	@Override

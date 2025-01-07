@@ -1,12 +1,9 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
-import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.Map;
-import java.util.Set;
-
-public class OIDSSFReplaceStreamConfigCall extends AbstractOIDSSFStreamConfigCall {
+public class OIDSSFReplaceStreamConfigCall extends OIDSSFCreateStreamConfigCall {
 
 	@Override
 	protected String getEndpointName() {
@@ -14,25 +11,18 @@ public class OIDSSFReplaceStreamConfigCall extends AbstractOIDSSFStreamConfigCal
 	}
 
 	@Override
-	protected void prepareRequest(Environment env) {
-
-		env.putString("resource", "resourceMethod", "PUT");
+	protected JsonObject createResourceRequestEntity(Environment env) {
+		JsonObject streamConfig = super.createResourceRequestEntity(env);
 		String streamId = getStreamId(env);
+		streamConfig.addProperty("stream_id", streamId);
+		streamConfig.addProperty("description", "Replaced Stream for Receiver OIDF Conformance Test-Suite");
 
-		env.putString("resource_request_entity",
-			new Gson().toJson(
-				Map.of(
-					"stream_id", streamId,
-					"events_requested",
-					Set.of(
-						"https://schemas.openid.net/secevent/caep/event-type/session-revoked",
-						"https://schemas.openid.net/secevent/caep/event-type/credential-change",
-						"https://schemas.openid.net/secevent/caep/event-type/device-compliance-change"
-					),
-					"description", "Replaced Stream for Receiver OIDF Conformance Test-Suite",
-					"delivery", Map.of("method", "urn:ietf:rfc:8935", "endpoint_url", "https://receiver.example.com/events"),
-					"audience", "https://localhost.emobix.co.uk:8443"
-				)
-			));
+		return streamConfig;
+	}
+
+	@Override
+	protected void prepareRequest(Environment env) {
+		super.prepareRequest(env);
+		env.putString("resource", "resourceMethod", "PUT");
 	}
 }
