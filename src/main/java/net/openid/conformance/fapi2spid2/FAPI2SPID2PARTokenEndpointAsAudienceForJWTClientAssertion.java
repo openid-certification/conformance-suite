@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.UpdateClientAuthenticationAsserti
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 
@@ -33,6 +34,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
 })
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {
+		"cbuae"
+})
 public class FAPI2SPID2PARTokenEndpointAsAudienceForJWTClientAssertion extends AbstractFAPI2SPID2ServerTestModule {
 	/*
 	PAR-2.0
@@ -46,7 +50,7 @@ public class FAPI2SPID2PARTokenEndpointAsAudienceForJWTClientAssertion extends A
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
 		call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().replace(
-			UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
+				UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
 			condition(AddTokenEndpointAsAudToClientAuthenticationAssertionClaims.class).requirement("PAR-2")));
 	}
 }
