@@ -13,7 +13,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamCo
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamStatusCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReplaceStreamConditionSequence;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamStatusCall;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -82,7 +82,11 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 
 		// this is still not supported in the caep.dev reference env :-/
 		eventLog.runBlock("Update Stream Configuration", () -> {
-			callAndStopOnFailure(OIDSSFUpdateStreamConfigCall.class, "OIDSSF-7.1.1.3", "CAEPIOP-2.3.8.2");
+
+			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
+			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
+
+			call(sequence(OIDSSFUpdateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.3");
 			// TODO check for 202 response
@@ -120,7 +124,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 
 		eventLog.runBlock("Update Stream Status", () -> {
 			if (statusEndpoint != null) {
-				callAndStopOnFailure(OIDSSFUpdateStreamStatusCall.class, "OIDSSF-7.1.2.2");
+				callAndStopOnFailure(OIDSSFUpdateStreamStatusCall.class, "OIDSSF-7.1.2.1", "OIDSSF-7.1.2.2");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
 				// TODO check: status response
