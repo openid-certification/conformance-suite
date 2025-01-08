@@ -5,10 +5,13 @@ import net.openid.conformance.condition.client.AddIatNbfExpOver60SecondsInTheFut
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
+import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaimsWithIssAudience;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -39,9 +42,15 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2SPID2PAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails extends AbstractFAPI2SPID2ServerTestModule {
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
-		call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().insertAfter(
-			CreateClientAuthenticationAssertionClaims.class,
-			condition(AddIatNbfExpOver60SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6")));
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CBUAE){
+			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest().insertAfter(
+					CreateClientAuthenticationAssertionClaimsWithIssAudience.class,
+					condition(AddIatNbfExpOver60SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6")));
+		} else {
+			call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().insertAfter(
+					CreateClientAuthenticationAssertionClaims.class,
+					condition(AddIatNbfExpOver60SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6")));
+		}
 	}
 
 	@Override

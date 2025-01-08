@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointRespon
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
+import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaimsWithIssAudience;
 import net.openid.conformance.condition.client.SignClientAuthenticationAssertion;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
@@ -16,6 +17,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -56,7 +58,11 @@ public class FAPI2SPID2EnsureSignedClientAssertionWithRS256Fails extends Abstrac
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 
-		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CBUAE){
+			callAndStopOnFailure(CreateClientAuthenticationAssertionClaimsWithIssAudience.class);
+		} else {
+			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
+		}
 
 		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI2-SP-ID2-5.4");
 
