@@ -10,7 +10,6 @@ public class OIDSSFUpdateStreamStatusCall extends AbstractOIDSSFStreamConfigCall
 	@Override
 	protected void prepareRequest(Environment env) {
 		env.putString("resource", "resourceMethod", "POST");
-
 		addResourceRequestEntity(env);
 	}
 
