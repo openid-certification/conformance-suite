@@ -19,6 +19,7 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
@@ -617,6 +618,76 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return placeholder;
 	}
 
+
+	static HttpClientBuilder sharedHttpClientBuilder = null;
+	static Object sharedHttpClientBuilderLock = new Object();
+
+	public static HttpClientBuilder createSharedHttpClientBuilder()
+			throws NoSuchAlgorithmException, KeyManagementException {
+
+		synchronized (sharedHttpClientBuilderLock){
+			if (sharedHttpClientBuilder == null) {
+
+				KeyManager[] km = null;
+
+				TrustManager[] trustAllCerts = {
+						new X509TrustManager() {
+
+							@Override
+							public X509Certificate[] getAcceptedIssuers() {
+								return new X509Certificate[0];
+							}
+
+							@Override
+							public void checkServerTrusted(X509Certificate[] chain, String authType) {
+							}
+
+							@Override
+							public void checkClientTrusted(X509Certificate[] chain, String authType) {
+							}
+						}
+				};
+
+				SSLContext sc = SSLContext.getInstance("TLS");
+				sc.init(km, trustAllCerts, new java.security.SecureRandom());
+
+				SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
+						.setSslContext(sc)
+						.setTlsVersions( new String[]{"TLSv1.2", "TLSv1.3"})
+						.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+						.build();
+
+				HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
+				builder.setDefaultRequestConfig(RequestConfig.custom().build());
+
+				Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+						.register("https", sslConnectionFactory)
+						.register("http", new PlainConnectionSocketFactory())
+						.build();
+
+				PoolingHttpClientConnectionManager ccm = new PoolingHttpClientConnectionManager(registry);
+//				int timeout = 60; // seconds
+
+//				ccm.setConnectionConfig(ConnectionConfig.custom()
+//						.setConnectTimeout(Timeout.ofSeconds(timeout))
+//						.setSocketTimeout(Timeout.ofSeconds(timeout))
+//						.setTimeToLive(Timeout.ofSeconds(timeout))
+//						.build());
+
+
+				builder.setConnectionManager(ccm);
+				builder.disableRedirectHandling();
+				builder.disableAutomaticRetries();
+
+				sharedHttpClientBuilder = builder;
+			}
+		}
+
+
+		return sharedHttpClientBuilder;
+	}
+
+
 	/*
 	 * Create an HTTP Client for use in calling outbound to other services
 	 */
@@ -631,6 +702,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 			km = MtlsKeystoreBuilder.configureMtls(env);
 
+		} else {
+			return createSharedHttpClientBuilder().build();
 		}
 
 		TrustManager[] trustAllCerts = {
