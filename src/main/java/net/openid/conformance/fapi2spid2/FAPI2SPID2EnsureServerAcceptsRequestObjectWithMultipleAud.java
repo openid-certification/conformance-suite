@@ -5,6 +5,8 @@ import net.openid.conformance.condition.client.AddMultipleAudToRequestObject;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-id2-ensure-request-object-with-multiple-aud-succeeds",
@@ -27,6 +29,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"mtls2.ca",
 		"resource.resourceUrl"
 	}
+)
+@VariantNotApplicable(
+		parameter = FAPI2ID2OPProfile.class,
+		values = "cbuae"
 )
 public class FAPI2SPID2EnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPI2SPID2ServerTestModule {
 
