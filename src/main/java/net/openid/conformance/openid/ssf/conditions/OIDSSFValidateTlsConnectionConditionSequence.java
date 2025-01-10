@@ -6,7 +6,7 @@ import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12OrLater;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-public class ValidateTlsConnectionConditionSequence extends AbstractConditionSequence {
+public class OIDSSFValidateTlsConnectionConditionSequence extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {

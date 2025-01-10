@@ -36,9 +36,12 @@ import net.openid.conformance.variant.VariantParameters;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
-@PublishTestModule(testName = "openid-ssf-transmitter-events", displayName = "OpenID Shared Signals Framework: Validate Transmitter Events", summary = "This test verifies the structure and handling of transmitter events.", profile = "OIDSSF", configurationFields = {
-
-})
+@PublishTestModule(
+	testName = "openid-ssf-transmitter-events",
+	displayName = "OpenID Shared Signals Framework: Validate Transmitter Events",
+	summary = "This test verifies the structure and handling of transmitter events. The test triggers multiple verification event and tries to obtain the verification events via the configured delivery mechanism.",
+	profile = "OIDSSF"
+)
 @VariantParameters({SsfServerMetadata.class, SsfAuthMode.class, SsfDeliveryMode.class,})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})

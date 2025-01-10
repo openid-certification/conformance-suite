@@ -7,6 +7,7 @@ import net.openid.conformance.variant.VariantSelection;
 @PublishTestPlan(
 	testPlanName = "openid-ssf-transmitter-test-plan",
 	displayName = "OpenID Shared Signals Framework: Transmitter test (alpha - INCOMPLETE/INCORRECT, please email certification team if interested)",
+	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Transmitter.",
 	profile = TestPlan.ProfileNames.ssftest,
 	testModules = {
 		OIDSSFTransmitterMetadataTest.class,
