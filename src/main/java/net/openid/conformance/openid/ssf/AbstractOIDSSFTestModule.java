@@ -17,7 +17,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
-import net.openid.conformance.openid.ssf.conditions.ValidateTlsConnectionConditionSequence;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
@@ -158,7 +158,7 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 					callAndStopOnFailure(GetStaticClientConfiguration.class);
 					break;
 				case DYNAMIC_CLIENT:
-					throw new UnsupportedOperationException("Dynamic clients are not supported for SSF Tests");
+					throw new UnsupportedOperationException("Dynamic clients are not supported for SSF Tests at the moment");
 				default:
 					break;
 			}
@@ -206,7 +206,7 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 	}
 
 	protected void validateTlsConnection() {
-		call(sequence(ValidateTlsConnectionConditionSequence.class));
+		call(sequence(OIDSSFValidateTlsConnectionConditionSequence.class));
 	}
 
 	protected boolean isSsfProfileEnabled(SsfProfile profile) {

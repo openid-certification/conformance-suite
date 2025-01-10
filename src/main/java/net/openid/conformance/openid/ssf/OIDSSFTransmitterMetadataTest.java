@@ -27,9 +27,12 @@ import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
-@PublishTestModule(testName = "openid-ssf-transmitter-metadata", displayName = "OpenID Shared Signals Framework: Validate Transmitter Metadata", summary = "This test verifies the behavior of the transmitter metadata.", profile = "OIDSSF", configurationFields = {
-
-})
+@PublishTestModule(
+	testName = "openid-ssf-transmitter-metadata",
+	displayName = "OpenID Shared Signals Framework: Validate Transmitter Metadata",
+	summary = "This test verifies the information of the transmitter metadata.",
+	profile = "OIDSSF"
+)
 @VariantParameters({ServerMetadata.class, SsfDeliveryMode.class,})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
