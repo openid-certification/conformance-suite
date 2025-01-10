@@ -28,6 +28,12 @@ public abstract class AbstractOIDSSFStreamConfigCall extends AbstractOIDSSFTrans
 	}
 
 	protected String getStreamId(Environment env) {
+
+		String override = env.getString("ssf", "stream.stream_id_override");
+		if (override != null) {
+			return override;
+		}
+
 		return env.getString("ssf", "stream.stream_id");
 	}
 }
