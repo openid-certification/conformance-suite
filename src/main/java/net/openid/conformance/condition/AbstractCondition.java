@@ -7,7 +7,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import net.openid.conformance.condition.util.MtlsKeystoreBuilder;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
@@ -15,27 +14,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
-import org.apache.hc.core5.http.config.Registry;
-import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.util.Timeout;
-import org.ehcache.Cache;
-import org.ehcache.CacheManager;
-import org.ehcache.config.CacheConfiguration;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.ExpiryPolicyBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.ehcache.spi.loaderwriter.CacheLoaderWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -44,10 +23,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -63,13 +38,15 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+
+import static net.openid.conformance.condition.util.HttpClientBuilderFactory.createMtlsHttpClientBuilder;
+import static net.openid.conformance.condition.util.HttpClientBuilderFactory.createSharedHttpClientBuilder;
 
 
 public abstract class AbstractCondition implements Condition, DataUtils {
@@ -628,127 +605,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 
-	static HttpClientBuilder sharedHttpClientBuilder = null;
-	static Object sharedHttpClientBuilderLock = new Object();
-
-
-	public static HttpClientBuilder createSharedHttpClientBuilder()
-			throws NoSuchAlgorithmException, KeyManagementException {
-
-		synchronized (sharedHttpClientBuilderLock){
-			if (sharedHttpClientBuilder == null) {
-
-				KeyManager[] km = null;
-
-				TrustManager[] trustAllCerts = {
-						new X509TrustManager() {
-
-							@Override
-							public X509Certificate[] getAcceptedIssuers() {
-								return new X509Certificate[0];
-							}
-
-							@Override
-							public void checkServerTrusted(X509Certificate[] chain, String authType) {
-							}
-
-							@Override
-							public void checkClientTrusted(X509Certificate[] chain, String authType) {
-							}
-						}
-				};
-
-				SSLContext sc = SSLContext.getInstance("TLS");
-				sc.init(km, trustAllCerts, new java.security.SecureRandom());
-
-				SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
-						.setSslContext(sc)
-						.setTlsVersions( new String[]{"TLSv1.2", "TLSv1.3"})
-						.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-						.build();
-
-				HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
-				builder.setDefaultRequestConfig(RequestConfig.custom().build());
-
-				Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-						.register("https", sslConnectionFactory)
-						.register("http", new PlainConnectionSocketFactory())
-						.build();
-
-				PoolingHttpClientConnectionManager ccm = new PoolingHttpClientConnectionManager(registry);
-
-				int timeout = 60;
-				ccm.setDefaultConnectionConfig(ConnectionConfig.custom()
-						.setConnectTimeout(Timeout.ofSeconds(timeout))
-						.setSocketTimeout(Timeout.ofSeconds(timeout))
-						.setTimeToLive(Timeout.ofSeconds(5))
-						.build());
-				builder.setConnectionManager(ccm);
-				builder.disableRedirectHandling();
-				builder.disableAutomaticRetries();
-
-				sharedHttpClientBuilder = builder;
-			}
-		}
-
-
-		return sharedHttpClientBuilder;
-	}
-
-	static class ComparableEnvironment {
-		private Environment env;
-		public ComparableEnvironment(Environment env){
-			this.env = env;
-		}
-
-		public Environment getEnv(){
-			return this.env;
-		}
-
-		@Override
-		public boolean equals(Object that) {
-			String thisClientCert = this.env.getString("mutual_tls_authentication", "cert");
-			String thatClientCert = ((ComparableEnvironment)that).env.getString("mutual_tls_authentication", "cert");
-			return thisClientCert.equals(thatClientCert);
-		}
-
-		@Override
-		public int hashCode() {
-			return env.getString("mutual_tls_authentication", "cert").hashCode();
-		}
-	}
-	static Cache<ComparableEnvironment, KeyManager[]> clientMtlsCache;
-
-	static {
-		CacheConfiguration<ComparableEnvironment, KeyManager[]> cacheConfiguration = CacheConfigurationBuilder.newCacheConfigurationBuilder(ComparableEnvironment.class, KeyManager[].class,
-						ResourcePoolsBuilder.heap(1000))
-				.withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(10)))
-				.withLoaderWriter(new CacheLoaderWriter<>() {
-					@Override
-					public KeyManager[] load(ComparableEnvironment env) throws Exception {
-						return MtlsKeystoreBuilder.configureMtls(env.getEnv());
-
-					}
-
-					@Override
-					public void write(ComparableEnvironment key, KeyManager[] value) throws Exception {
-
-					}
-
-					@Override
-					public void delete(ComparableEnvironment key) throws Exception {
-
-					}
-				})
-				.build();
-
-		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
-				.build(true);
-
-		clientMtlsCache = cacheManager.createCache("client_mtls", cacheConfiguration);
-
-	}
-
 	/*
 	 * Create an HTTP Client for use in calling outbound to other services
 	 */
@@ -761,56 +617,8 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		// initialize MTLS if it's available
 		if (env.containsObject("mutual_tls_authentication")) {
 
-			KeyManager[] km = clientMtlsCache.get(new ComparableEnvironment(env));
-			TrustManager[] trustAllCerts = {
-					new X509TrustManager() {
+			builder = createMtlsHttpClientBuilder(env);
 
-						@Override
-						public X509Certificate[] getAcceptedIssuers() {
-							return new X509Certificate[0];
-						}
-
-						@Override
-						public void checkServerTrusted(X509Certificate[] chain, String authType) {
-						}
-
-						@Override
-						public void checkClientTrusted(X509Certificate[] chain, String authType) {
-						}
-					}
-			};
-
-			SSLContext sc = SSLContext.getInstance("TLS");
-			sc.init(km, trustAllCerts, new java.security.SecureRandom());
-
-			SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
-					.setSslContext(sc)
-					.setTlsVersions(new String[]{"TLSv1.2", "TLSv1.3"} )
-					.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-					.build();
-
-			builder = HttpClientBuilder.create().useSystemProperties();
-			builder.setDefaultRequestConfig(RequestConfig.custom().build());
-
-			Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-					.register("https", sslConnectionFactory)
-					.register("http", new PlainConnectionSocketFactory())
-					.build();
-
-			BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-			int timeout = 60; // seconds
-			ccm.setConnectionConfig(ConnectionConfig.custom()
-					.setConnectTimeout(Timeout.ofSeconds(timeout))
-					.setSocketTimeout(Timeout.ofSeconds(timeout))
-					.setTimeToLive(Timeout.ofSeconds(timeout))
-					.build());
-
-
-			builder.setConnectionManager(ccm);
-
-			builder.disableRedirectHandling();
-
-			builder.disableAutomaticRetries();
 		} else {
 			builder = createSharedHttpClientBuilder();
 		}
@@ -948,4 +756,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		return responseInfo;
 	}
+
+
 }
