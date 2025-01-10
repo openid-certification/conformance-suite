@@ -375,6 +375,10 @@ makeFederationTests() {
     TESTS="${TESTS} openid-federation-test-plan[server_metadata=discovery][client_registration=static_client] ../conformance-suite/scripts/test-configs-federation/sweden-federation-trust-anchor.json"
 }
 
+makeSsfTests() {
+#    TESTS="${TESTS} openid-ssf-test-plan[server_metadata=discovery][client_registration=static_client] ../conformance-suite/scripts/test-configs-ssf/xxxx.json"
+}
+
 makeLocalProviderTests() {
     # OIDCC certification tests - server supports discovery, using dcr
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
@@ -540,6 +544,15 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
+elif [ "$#" -eq 1 ] && [ "$1" = "--ssf-tests" ]; then
+    echo "Run ssf tests"
+    makeSsfTests
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ssf.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-ssf.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules ssf"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
 elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests-only" ]; then
     echo "Run panva tests"
     makePanvaTests
@@ -547,7 +560,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests-only" ]; then
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests|--federation-tests]"
+    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests|--federation-tests|--ssf-tests]"
     exit 1
 fi
 
