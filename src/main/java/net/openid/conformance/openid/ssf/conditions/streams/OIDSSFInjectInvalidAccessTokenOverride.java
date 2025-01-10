@@ -16,4 +16,10 @@ public class OIDSSFInjectInvalidAccessTokenOverride extends AbstractCondition {
 
 		return env;
 	}
+
+	public static void undo(Environment env) {
+		env.unmapKey("access_token");
+		env.removeElement("invalid_access_token", "value");
+		env.removeElement("invalid_access_token", "type");
+	}
 }

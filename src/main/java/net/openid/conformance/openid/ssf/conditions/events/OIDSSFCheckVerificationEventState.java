@@ -17,8 +17,7 @@ public class OIDSSFCheckVerificationEventState extends AbstractCondition {
 		String verificationEventKey = "https://schemas.openid.net/secevent/ssf/event-type/verification";
 		JsonElement eventsEL = eventsObject.get(verificationEventKey);
 		if (eventsEL == null) {
-			logFailure("Expected to find verification events object", args("missing_key", verificationEventKey, "events_object", eventsObject));
-			return env;
+			throw error("Expected to find verification events object", args("missing_key", verificationEventKey, "events_object", eventsObject));
 		}
 
 		JsonObject verificationEventObject = eventsEL.getAsJsonObject();
@@ -26,8 +25,7 @@ public class OIDSSFCheckVerificationEventState extends AbstractCondition {
 		String expectedVerificationState = env.getString("ssf", "verification.state");
 		String actualVerificationState = OIDFJSON.getString(verificationEventObject.get("state"));
 		if (!actualVerificationState.equals(expectedVerificationState)) {
-			logFailure("Verification state check failed due to state mismatch", args("expected_state", expectedVerificationState, "actual_state", actualVerificationState, "claims", setClaimsJsonObject));
-			return env;
+			throw error("Verification state check failed due to state mismatch", args("expected_state", expectedVerificationState, "actual_state", actualVerificationState, "claims", setClaimsJsonObject));
 		}
 
 		logSuccess("Verified verification event state", args("expected_state", expectedVerificationState, "actual_state", actualVerificationState));

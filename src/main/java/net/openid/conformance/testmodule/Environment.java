@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -163,6 +164,33 @@ public class Environment {
 
 	public void putString(String key, String path, String value) {
 		putElement(key, path, new JsonPrimitive(value));
+	}
+
+	public void removeElement(String key, String path) {
+
+		JsonObject o = getObject(key);
+		if (o == null) {
+			throw new NoSuchElementException("No object with key %s found in path %s".formatted(key, path));
+		}
+
+		ArrayList<String> pathSegments = Lists.newArrayList(Splitter.on('.').split(path));
+		int lastIndex = pathSegments.size() - 1;
+		String lastSegment = pathSegments.get(lastIndex);
+		pathSegments.remove(lastIndex);
+
+		for (String pathSegment: pathSegments) {
+			JsonElement nextO = o.get(pathSegment);
+			if (nextO == null) {
+				throw new NoSuchElementException("No object with key %s found in path %s".formatted(key, path));
+			} else if (nextO.isJsonObject()) {
+				// object already exists
+			} else {
+				throw new UnexpectedTypeException("putObject(%s, %s, obj) found a non-object of type %s in the path at %s".formatted(
+					key, path, nextO.getClass().getSimpleName(), pathSegment));
+			}
+			o = (JsonObject) nextO;
+		}
+		o.remove(lastSegment);
 	}
 
 	public JsonObject putObjectFromJsonString(String key, String json) {
