@@ -1022,7 +1022,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected void waitForPlaceholders() {
 		// set up a listener to wait for either an error callback or an image upload
 		executionManager.runInBackground(() -> {
-			long delayMillis = 1000; // wait for a second before we check the first time
+			long delayMillis = 100; // wait for a second before we check the first time
 
 			Thread.sleep(delayMillis);
 
