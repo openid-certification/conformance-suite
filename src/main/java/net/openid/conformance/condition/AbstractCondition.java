@@ -633,23 +633,29 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		HttpClient httpClient = createHttpClient(env, restrictAllowedTLSVersions);
 
+		return createRestTemplate(httpClient, env.getObject("mutual_tls_authentication"));
+	}
+
+
+	protected RestTemplate createRestTemplate(HttpClient httpClient, JsonObject mutualAuth) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
+
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
-		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.getObject("mutual_tls_authentication")));
+		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, mutualAuth));
 
 		List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
 
 		// fix the StringHttpMessageConverter, but retaining other default converters, as we do use them,
 		// e.g. the map -> urlencoded-form body one
 		converters.stream()
-			.filter(converter -> converter instanceof StringHttpMessageConverter)
-			.forEach(converter -> {
-				StringHttpMessageConverter stringHttpMessageConverter = (StringHttpMessageConverter) converter;
-				// the default StringHttpMessageConverter will convert to Latin1, so override it
-				stringHttpMessageConverter.setDefaultCharset(StandardCharsets.UTF_8);
-				// Stop StringHttpMessageConverter from adding a default Accept-Charset header
-				stringHttpMessageConverter.setWriteAcceptCharset(false);
-			});
+				.filter(converter -> converter instanceof StringHttpMessageConverter)
+				.forEach(converter -> {
+					StringHttpMessageConverter stringHttpMessageConverter = (StringHttpMessageConverter) converter;
+					// the default StringHttpMessageConverter will convert to Latin1, so override it
+					stringHttpMessageConverter.setDefaultCharset(StandardCharsets.UTF_8);
+					// Stop StringHttpMessageConverter from adding a default Accept-Charset header
+					stringHttpMessageConverter.setWriteAcceptCharset(false);
+				});
 
 		return restTemplate;
 	}
