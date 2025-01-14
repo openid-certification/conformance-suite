@@ -8,6 +8,17 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
+import org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializer;
+import org.apache.hc.client5.http.impl.cache.ehcache.EhcacheHttpCacheStorage;
+import org.apache.hc.core5.util.TimeValue;
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.ehcache.config.CacheConfiguration;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,8 +29,27 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 
 public class FetchServerKeys extends AbstractCondition {
+
+	static Cache<String, byte[]> serverKeysCache;
+	static EhcacheHttpCacheStorage<byte[]> serverKeysStorage;
+	static CacheConfig cfgCache = CacheConfig.custom().setHeuristicCachingEnabled(true).setHeuristicCoefficient(.5f).setHeuristicDefaultLifetime(TimeValue.of(Duration.ofMinutes(2))).build();
+	static {
+		CacheConfiguration<String, byte[]> cacheConfiguration = CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, byte[].class,
+						ResourcePoolsBuilder.heap(1000))
+				.build();
+
+		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
+				.build(true);
+
+		serverKeysCache = cacheManager.createCache("discovery_cache", cacheConfiguration);
+
+
+		serverKeysStorage = new EhcacheHttpCacheStorage<>(serverKeysCache, cfgCache,new HttpByteArrayCacheEntrySerializer());
+
+	}
 
 	@Override
 	@PreEnvironment(required = "server")
@@ -34,7 +64,7 @@ public class FetchServerKeys extends AbstractCondition {
 			log("Fetching server key", args("jwks_uri", jwksUri));
 
 			try {
-				RestTemplate restTemplate = createRestTemplate(env);
+				RestTemplate restTemplate = createRestTemplate(CachingHttpClientBuilder.create().setCacheConfig(cfgCache).setHttpCacheStorage(serverKeysStorage).build(), null);
 
 				String jwkString = restTemplate.getForObject(jwksUri, String.class);
 
