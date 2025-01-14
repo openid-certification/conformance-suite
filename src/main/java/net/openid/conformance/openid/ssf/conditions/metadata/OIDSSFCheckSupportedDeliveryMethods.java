@@ -24,9 +24,7 @@ public class OIDSSFCheckSupportedDeliveryMethods extends AbstractCondition {
 
 		JsonElement supportedDeliveryMethodsEl = env.getElementFromObject("ssf", "transmitter_metadata.delivery_methods_supported");
 		if (supportedDeliveryMethodsEl == null) {
-			logFailure("Could not find delivery_methods_supported in transmitter_metadata",
-				args("transmitter_metadata", env.getElementFromObject("ssf", "transmitter_metadata")));
-			return env;
+			throw error("Couldn't find delivery_methods_supported in transmitter_metadata", args("transmitter_metadata", env.getElementFromObject("ssf", "transmitter_metadata")));
 		}
 
 		List<String> supportedDeliveryMethods = OIDFJSON.convertJsonArrayToList(supportedDeliveryMethodsEl.getAsJsonArray());
@@ -34,7 +32,7 @@ public class OIDSSFCheckSupportedDeliveryMethods extends AbstractCondition {
 		Set<String> unknownDeliveryMethods = findUnknownDeliveryMethods(supportedDeliveryMethods);
 
 		if (!unknownDeliveryMethods.isEmpty()) {
-			logFailure("Found unknown delivery methods in transmitter_metadata",
+			throw error("Found unknown delivery methods in transmitter_metadata",
 				args("unknown_delivery_methods", unknownDeliveryMethods,
 					"delivery_methods_supported", supportedDeliveryMethods,
 					"standard_delivery_methods", STANDARD_DELIVERY_METHODS));

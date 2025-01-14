@@ -24,6 +24,10 @@ public class OIDSSFReadStreamConfigCall extends AbstractOIDSSFStreamConfigCall {
 			env.putObject("ssf", "stream", endpointResponseFullJsonElement.getAsJsonObject());
 		} else if (endpointResponseFullJsonElement.isJsonArray()) {
 			env.putArray("ssf", "streams", endpointResponseFullJsonElement.getAsJsonArray());
+
+			if (!endpointResponseFullJsonElement.getAsJsonArray().isEmpty()) {
+				env.putObject("ssf", "stream", endpointResponseFullJsonElement.getAsJsonArray().get(0).getAsJsonObject());
+			}
 		}
 		return env;
 	}

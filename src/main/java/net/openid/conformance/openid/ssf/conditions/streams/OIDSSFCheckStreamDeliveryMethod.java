@@ -16,31 +16,26 @@ public class OIDSSFCheckStreamDeliveryMethod extends AbstractCondition {
 
 		JsonElement streamDeliveryEl = env.getElementFromObject("ssf", "stream.delivery");
 		if (streamDeliveryEl == null) {
-			logFailure("Could not find delivery object in stream configuration",
+			throw error("Could not find delivery object in stream configuration",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
-			return env;
 		}
 
 		JsonObject supportedDeliveryObject = streamDeliveryEl.getAsJsonObject();
 		if (supportedDeliveryObject == null) {
-			logFailure("Could not find delivery object in stream configuration",
+			throw error("Could not find delivery object in stream configuration",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
-			return env;
 		}
 
 		String deliveryMethod = OIDFJSON.getString(supportedDeliveryObject.get("method"));
 		if (deliveryMethod == null) {
-			logFailure("Could not find delivery method in stream configuration",
+			throw error("Could not find delivery method in stream configuration",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
-			return env;
 		}
 
-
 		if (!SsfConstants.STANDARD_DELIVERY_METHODS.contains(deliveryMethod)) {
-			logFailure("Found unknown delivery method in stream configuration",
+			throw error("Found unknown delivery method in stream configuration",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream"),
 					"unknown_delivery_method", deliveryMethod));
-			return env;
 		}
 
 		logSuccess("The delivery method found matches the standard delivery methods",

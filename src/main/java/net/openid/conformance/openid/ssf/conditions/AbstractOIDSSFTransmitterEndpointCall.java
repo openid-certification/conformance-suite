@@ -26,17 +26,18 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 
 	@Override
 	protected Environment handleClientResponseException(Environment env, RestClientResponseException e) {
-		if (throwOnClientResponseException()) {
-			return super.handleClientResponseException(env, e);
-		}
-
-		log("Received error from the resource endpoint", args("code", e.getStatusCode().value(), "status", e.getStatusText()));
 
 		JsonObject errorEndpointResponse = new JsonObject();
 		errorEndpointResponse.addProperty("status", e.getStatusCode().value());
 		errorEndpointResponse.addProperty("endpoint_name", getEndpointName());
 
 		env.putObject("resource_endpoint_response_full", errorEndpointResponse);
+
+		if (throwOnClientResponseException()) {
+			return super.handleClientResponseException(env, e);
+		}
+
+		log("Received error from the resource endpoint", args("code", e.getStatusCode().value(), "status", e.getStatusText()));
 
 		return env;
 	}

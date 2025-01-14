@@ -10,6 +10,6 @@ public class OIDSSFCreateStreamConditionSequence extends AbstractConditionSequen
 		callAndStopOnFailure(OIDSSFPrepareStreamConfigObjectAddRequestedEvents.class, "OIDSSF-7.1.1.1");
 		// callAndStopOnFailure(OIDSSFPrepareStreamConfigObjectAddAudience.class, "OIDSSF-7.1.1.1");
 		callAndContinueOnFailure(OIDSSFPrepareStreamConfigObjectSetDeliveryMethod.class, "OIDSSF-7.1.1.1");
-		callAndStopOnFailure(OIDSSFCreateStreamConfigCall.class, "OIDSSF-7.1.1.1", "CAEPIOP-2.3.8.2");
+		callAndContinueOnFailure(OIDSSFCreateStreamConfigCall.class, "OIDSSF-7.1.1.1", "CAEPIOP-2.3.8.2");
 	}
 }
