@@ -44,7 +44,9 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractValidateJWKs extends AbstractCondition {
 
+
 	protected void checkJWKs(JsonElement jwks, boolean checkPrivatePart) {
+
 
 		checkValidStructureInJwks(jwks);
 

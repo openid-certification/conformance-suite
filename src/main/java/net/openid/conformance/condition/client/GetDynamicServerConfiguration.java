@@ -8,22 +8,11 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.hc.client5.http.impl.cache.CacheConfig;
-import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
-import org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializer;
-import org.apache.hc.core5.util.TimeValue;
-import org.ehcache.Cache;
-import org.ehcache.CacheManager;
-import org.ehcache.config.CacheConfiguration;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import org.apache.hc.client5.http.impl.cache.ehcache.EhcacheHttpCacheStorage;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -31,27 +20,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.time.Duration;
+
+import static net.openid.conformance.condition.util.HttpClientBuilderFactory.createSharedCacheableHttpClientBuilder;
 
 public class GetDynamicServerConfiguration extends AbstractCondition {
-
-	static Cache<String, byte[]> discoveryCache;
-	static EhcacheHttpCacheStorage<byte[]> cacheStorage;
-	static CacheConfig cfgCache = CacheConfig.custom().setHeuristicCachingEnabled(true).setHeuristicDefaultLifetime(TimeValue.of(Duration.ofMinutes(2))).build();
-	static {
-		CacheConfiguration<String, byte[]> cacheConfiguration = CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, byte[].class,
-						ResourcePoolsBuilder.heap(1000))
-				.build();
-
-		CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder()
-				.build(true);
-
-		discoveryCache = cacheManager.createCache("discovery_cache", cacheConfiguration);
-
-
-		cacheStorage = new EhcacheHttpCacheStorage<>(discoveryCache, cfgCache,new HttpByteArrayCacheEntrySerializer());
-
-	}
 
 
 	@Override
@@ -92,7 +64,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 		// fetch the value
 		String jsonString;
 		try {
-			RestTemplate restTemplate = createRestTemplate(CachingHttpClientBuilder.create().setCacheConfig(cfgCache).setHttpCacheStorage(cacheStorage).build(), null);
+			RestTemplate restTemplate = createRestTemplate(createSharedCacheableHttpClientBuilder().build(), null);
 			ResponseEntity<String> response = restTemplate.exchange(discoveryUrl, HttpMethod.GET, null, String.class);
 			JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
 
