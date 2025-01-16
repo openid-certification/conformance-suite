@@ -4,10 +4,13 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckPAREndpointResponse201WithNoError;
-import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
+import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaimsWithIssAudience;
+import net.openid.conformance.condition.client.UpdateClientAuthenticationAssertionClaimsWithISSAud;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 
@@ -39,9 +42,15 @@ import org.springframework.http.HttpStatus;
 public class FAPI2SPID2PAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted extends AbstractFAPI2SPID2ServerTestModule {
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
-		call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().insertAfter(
-			CreateClientAuthenticationAssertionClaims.class,
-			condition(AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5",  "RFC7519-4.1.6")));
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CBUAE){
+			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest().insertAfter(
+					CreateClientAuthenticationAssertionClaimsWithIssAudience.class,
+					condition(AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6")));
+		} else {
+			call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().insertAfter(
+					UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
+					condition(AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6")));
+		}
 	}
 
 	@Override

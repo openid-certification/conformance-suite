@@ -21,6 +21,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		FAPI2SPID2HappyFlow.class,
 		FAPI2SPID2UserRejectsAuthentication.class,
 		FAPI2SPID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
+		FAPI2SPID2EnsureServerAcceptsRequestObjectWithIssAud.class,
 		FAPI2SPID2EnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPI2SPID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
 		FAPI2SPID2EnsureOtherScopeOrderSucceeds.class,
@@ -116,7 +117,13 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 
 		FAPI2SPID2PARRejectRequestUriInParAuthorizationRequest.class,
 
-		FAPI2SPID2ParWithoutDuplicateParameters.class
+		FAPI2SPID2ParWithoutDuplicateParameters.class,
+
+		//negative private key authentication
+		FAPI2SPID2PAREndpointAsArrayAudienceFails.class,
+		FAPI2SPID2PAREndpointAsAudienceFails.class,
+		FAPI2SPID2PARTokenEndpointAsAudienceFails.class
+
 	);
 
 	public static List<ModuleListEntry> testModulesWithVariants() {

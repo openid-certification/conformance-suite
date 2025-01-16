@@ -11,8 +11,10 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromToken
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -42,7 +44,11 @@ public class FAPI2SPID2EnsureClientAssertionWithIssAudSucceeds extends AbstractF
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
-		call(new CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest());
+		if(getVariant(FAPI2ID2OPProfile.class) != FAPI2ID2OPProfile.CBUAE) {
+			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest());
+		} else {
+			call(new CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest());
+		}
 	}
 
 	@Override

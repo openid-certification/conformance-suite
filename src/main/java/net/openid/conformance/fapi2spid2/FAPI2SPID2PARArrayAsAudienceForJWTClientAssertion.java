@@ -7,6 +7,7 @@ import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAsser
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 
@@ -34,6 +35,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
+})
+@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {
+		"cbuae"
 })
 public class FAPI2SPID2PARArrayAsAudienceForJWTClientAssertion extends AbstractFAPI2SPID2ServerTestModule {
 	/*
