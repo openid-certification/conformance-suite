@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectWithNbfOver60ClaimErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -37,7 +38,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-public class FAPI2SPID2EnsureRequestObjectWithNbfOver60Fails extends AbstractFAPI2SPID2PARInvalidRequestObjectExpNbf {
+public class FAPI2SPID2EnsureRequestObjectWithNbfOver60Fails extends AbstractFAPI2SPID2PARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -51,6 +52,11 @@ public class FAPI2SPID2EnsureRequestObjectWithNbfOver60Fails extends AbstractFAP
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddNbfToRequestObject.class,
 						condition(AddNbfValueIs70MinutesInPastToRequestObject.class).requirements("FAPI2-MS-ID1-5.3.1-3"));
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.3", "PAR-2.1-3");
 	}
 
 	@Override

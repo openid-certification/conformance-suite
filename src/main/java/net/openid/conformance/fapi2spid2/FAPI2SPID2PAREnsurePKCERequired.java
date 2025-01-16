@@ -2,6 +2,7 @@ package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectPkceMissingErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -28,7 +29,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2SPID2PAREnsurePKCERequired extends AbstractFAPI2SPID2PARInvalidRequestPKCE {
+public class FAPI2SPID2PAREnsurePKCERequired extends AbstractFAPI2SPID2PARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -40,6 +41,11 @@ public class FAPI2SPID2PAREnsurePKCERequired extends AbstractFAPI2SPID2PARInvali
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		return makeCreateAuthorizationRequestSteps(false);
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "RFC7636-4.4.1");
 	}
 
 	@Override

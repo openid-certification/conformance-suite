@@ -1,10 +1,9 @@
 package net.openid.conformance.fapi2spid2;
 
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 
-public class AbstractFAPI2SPID2PARInvalidRequestObject extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+
+public abstract class AbstractFAPI2SPID2PARExpectingAuthorizationEndpointPlaceholderOrCallback extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void processParResponse() {
@@ -15,8 +14,11 @@ public class AbstractFAPI2SPID2PARInvalidRequestObject extends AbstractFAPI2SPID
 			return;
 		}
 
-		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+		processParErrorResponse();
 
 		fireTestFinished();
 	}
+
+	protected abstract void processParErrorResponse();
+
 }

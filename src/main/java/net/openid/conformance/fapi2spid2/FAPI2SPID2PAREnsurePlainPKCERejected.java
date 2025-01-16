@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreatePlainCodeChallenge;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectPlainPkceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -30,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2SPID2PAREnsurePlainPKCERejected extends AbstractFAPI2SPID2PARInvalidRequestPKCE {
+public class FAPI2SPID2PAREnsurePlainPKCERejected extends AbstractFAPI2SPID2PARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -46,6 +47,11 @@ public class FAPI2SPID2PAREnsurePlainPKCERejected extends AbstractFAPI2SPID2PARI
 		return super.makeCreateAuthorizationRequestSteps()
 			.then(condition(CreatePlainCodeChallenge.class))
 			.then(condition(AddCodeChallengeToAuthorizationEndpointRequest.class));
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "RFC7636-4.4.1");
 	}
 
 	@Override

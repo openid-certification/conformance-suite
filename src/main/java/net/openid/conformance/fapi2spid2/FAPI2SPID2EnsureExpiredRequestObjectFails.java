@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectExpiredRequestObjectClaimErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -37,7 +38,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-public class FAPI2SPID2EnsureExpiredRequestObjectFails extends AbstractFAPI2SPID2PARInvalidRequestObject {
+public class FAPI2SPID2EnsureExpiredRequestObjectFails extends AbstractFAPI2SPID2PARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -59,6 +60,11 @@ public class FAPI2SPID2EnsureExpiredRequestObjectFails extends AbstractFAPI2SPID
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddExpToRequestObject.class,
 						condition(AddExpiredExpToRequestObject.class).requirement("RFC7519-4.1.4"));
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 	}
 
 	@Override
