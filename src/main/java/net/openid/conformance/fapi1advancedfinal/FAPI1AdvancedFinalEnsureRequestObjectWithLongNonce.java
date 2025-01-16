@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestObjectWithLongNonceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
@@ -34,7 +35,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureRequestObjectWithLongNonce extends AbstractFAPI1AdvancedFinalPARInvalidRequest {
+public class FAPI1AdvancedFinalEnsureRequestObjectWithLongNonce extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -50,6 +51,11 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithLongNonce extends Abstract
 		cmd.putInteger("requested_nonce_length", 384);
 		return super.makeCreateAuthorizationRequestSteps()
 				.insertBefore(CreateRandomNonceValue.class, cmd);
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 	}
 
 	@Override

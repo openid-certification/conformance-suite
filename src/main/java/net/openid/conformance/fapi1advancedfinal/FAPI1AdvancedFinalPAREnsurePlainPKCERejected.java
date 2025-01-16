@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreatePlainCodeChallenge;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectPlainPkceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -35,7 +36,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value" // PKCE is only required by FAPI1-Adv when using PAR
 })
-public class FAPI1AdvancedFinalPAREnsurePlainPKCERejected extends AbstractFAPI1AdvancedFinalPARInvalidRequestPKCE {
+public class FAPI1AdvancedFinalPAREnsurePlainPKCERejected extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -51,6 +52,11 @@ public class FAPI1AdvancedFinalPAREnsurePlainPKCERejected extends AbstractFAPI1A
 		return super.makeCreateAuthorizationRequestSteps()
 			.then(condition(CreatePlainCodeChallenge.class))
 			.then(condition(AddCodeChallengeToAuthorizationEndpointRequest.class));
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "RFC7636-4.4.1");
 	}
 
 	@Override

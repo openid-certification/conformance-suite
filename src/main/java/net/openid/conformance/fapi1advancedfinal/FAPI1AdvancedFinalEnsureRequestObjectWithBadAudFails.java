@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectWithBadAudClaimErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -34,7 +35,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureRequestObjectWithBadAudFails extends AbstractFAPI1AdvancedFinalInvalidRequestObject {
+public class FAPI1AdvancedFinalEnsureRequestObjectWithBadAudFails extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -48,6 +49,11 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithBadAudFails extends Abstra
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddAudToRequestObject.class,
 						condition(AddBadAudToRequestObject.class).requirements("OIDCC-6.1", "RFC7519-4.1.3"));
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 	}
 
 	@Override

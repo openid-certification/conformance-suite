@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectRequestObjectUnverifiableErrorPage;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SignRequestObject;
@@ -34,7 +35,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractFAPI1AdvancedFinalInvalidRequestObjectErrorJWS {
+public class FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -64,6 +65,11 @@ public class FAPI1AdvancedFinalEnsureRequestObjectSignatureAlgorithmIsNotNone ex
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(SignRequestObject.class,
 						condition(SerializeRequestObjectWithNullAlgorithm.class));
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2","PAR-2.3");
 	}
 
 	@Override

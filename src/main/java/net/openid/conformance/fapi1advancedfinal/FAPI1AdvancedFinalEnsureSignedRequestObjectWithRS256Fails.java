@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectSignedRS256RequestObjectErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.util.JWKUtil;
@@ -33,7 +34,7 @@ import net.openid.conformance.util.JWKUtil;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends AbstractFAPI1AdvancedFinalInvalidRequestObjectErrorJWS {
+public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -67,6 +68,10 @@ public class FAPI1AdvancedFinalEnsureSignedRequestObjectWithRS256Fails extends A
 		super.createAuthorizationRequestObject();
 
 		env.unmapKey("client_jwks");
+	}
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.2","PAR-2.3");
 	}
 
 	@Override

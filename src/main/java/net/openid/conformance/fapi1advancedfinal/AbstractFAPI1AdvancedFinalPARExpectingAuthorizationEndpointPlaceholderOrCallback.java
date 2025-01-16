@@ -4,7 +4,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 
-public class AbstractFAPI1AdvancedFinalInvalidRequestObject extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
+
+public abstract class AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
+
 
 	@Override
 	protected void processParResponse() {
@@ -15,8 +17,12 @@ public class AbstractFAPI1AdvancedFinalInvalidRequestObject extends AbstractFAPI
 			return;
 		}
 
+		processParErrorResponse();
+
 		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 
 		fireTestFinished();
 	}
+
+	protected abstract void processParErrorResponse();
 }

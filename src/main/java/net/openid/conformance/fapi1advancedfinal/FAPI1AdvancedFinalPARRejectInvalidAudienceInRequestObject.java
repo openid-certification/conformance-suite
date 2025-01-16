@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddPAREndpointAsAudToRequestObject;
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
 import net.openid.conformance.condition.client.ExpectInvalidAudienceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -36,7 +37,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value"
 })
-public class FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject extends AbstractFAPI1AdvancedFinalInvalidRequestObject {
+public class FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -52,6 +53,11 @@ public class FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject extends A
 	}
 
 	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
+	}
+
+	@Override
 	protected void onAuthorizationCallbackResponse() {
 		// This may be overly strict; https://tools.ietf.org/html/draft-ietf-oauth-jwsreq-26#section-4 only says 'should':
 		// > The value of "aud" should be the value of the Authorization Server (AS) "issuer" as defined in RFC8414
@@ -59,4 +65,5 @@ public class FAPI1AdvancedFinalPARRejectInvalidAudienceInRequestObject extends A
 		callAndContinueOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE);
 		fireTestFinished();
 	}
+
 }

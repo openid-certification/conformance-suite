@@ -1,14 +1,15 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.CreateBadRedirectUriByAppending;
-import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
-import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.testmodule.TestFailureException;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CreateBadRedirectUriByAppending;
+import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectError;
+import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
+import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.testmodule.TestFailureException;
 
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-registered-redirect-uri",
@@ -32,7 +33,7 @@ import jakarta.servlet.http.HttpSession;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureRegisteredRedirectUri extends AbstractFAPI1AdvancedFinalPARInvalidRequestOrInvalidRequestObject {
+public class FAPI1AdvancedFinalEnsureRegisteredRedirectUri extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -69,5 +70,10 @@ public class FAPI1AdvancedFinalEnsureRegisteredRedirectUri extends AbstractFAPI1
 			return super.handleHttp(path, req, res, session, requestParts);
 		}
 
+	}
+
+	@Override
+	protected void processParErrorResponse() {
+		callAndContinueOnFailure(EnsurePARInvalidRequestOrInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "PAR-2.3");
 	}
 }
