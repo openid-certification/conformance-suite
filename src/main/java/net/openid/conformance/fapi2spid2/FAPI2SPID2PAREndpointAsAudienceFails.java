@@ -55,8 +55,8 @@ public class FAPI2SPID2PAREndpointAsAudienceFails extends AbstractFAPI2SPID2Serv
 	@Override
 	protected void processParResponse() {
 		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "PAR-2.3", "RFC6749-4.1.2.1", "RFC6749-5.2");
-		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "PAR-2.3", "RFC6749-4.1.2.1", "RFC6749-5.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "CBUAE");
+		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "CBUAE");
 		env.unmapKey("endpoint_response");
 
 		fireTestFinished();
