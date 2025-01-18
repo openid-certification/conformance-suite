@@ -27,7 +27,7 @@ metadata:
       proxy_set_header X-Forwarded-Uri $request_uri;
       proxy_set_header X-Ssl-Cipher $ssl_cipher;
       proxy_set_header X-Ssl-Protocol $ssl_protocol;
-      proxy_set_header Client-Cert $ssl_client_cert;
+      proxy_set_header X-Ssl-Cert $ssl_client_cert;
       proxy_set_header Forwarded 'by=$remote_addr;for=10.0.0.1;host=$host;proto=$scheme';
       add_header 'Access-Control-Allow-Origin' '*';
       add_header 'Access-Control-Allow-Methods' 'GET, POST, HEAD, OPTIONS';
@@ -62,10 +62,6 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/auth-tls-verify-depth: "5"
-    nginx.ingress.kubernetes.io/auth-tls-verify-client: "optional_no_ca"
-    nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
-    nginx.ingress.kubernetes.io/auth-tls-secret: "default/ca-secret"
     nginx.org/location-snippets: |
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
@@ -79,6 +75,8 @@ metadata:
       add_header 'Access-Control-Allow-Origin' '*';
       add_header 'Access-Control-Allow-Methods' 'GET, POST, HEAD, OPTIONS';
       proxy_pass_request_headers on;
+    nginx.org/server-snippets: |
+      ssl_verify_client   optional_no_ca;
     httpd-server-snippet: |
       RequestHeader set X-Ssl-Cipher "%{SSL_CIPHER}s"
       RequestHeader set X-Ssl-Protocol "%{SSL_PROTOCOL}s"
