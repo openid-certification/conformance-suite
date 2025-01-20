@@ -16,6 +16,7 @@ import java.util.List;
 public class ConditionCallBuilder implements TestExecutionUnit {
 
 	private Class<? extends Condition> conditionClass = null;
+	private Condition condition = null;
 	private List<String> requirements = new ArrayList<>();
 	private ConditionResult onFail = ConditionResult.FAILURE;
 	private ConditionResult onSkip = ConditionResult.INFO;
@@ -33,6 +34,13 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	public ConditionCallBuilder(Class<? extends Condition> conditionClass) {
 		assert conditionClass != null; // the condition class can't be null
 		this.conditionClass = conditionClass;
+	}
+
+	public ConditionCallBuilder condition(Condition condition) {
+		assert condition != null; // the condition can't be null
+		assert conditionClass.isInstance(condition); // the condition must have the same type as the condition class
+		this.condition = condition;
+		return this;
 	}
 
 	/**
@@ -212,6 +220,15 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 
 
 	// getters
+
+	/**
+	 * Get the Condition to be called. Can not be null.
+	 *
+	 * @return the condition
+	 */
+	public Condition getCondition() {
+		return condition;
+	}
 
 	/**
 	 * Get the Condition class to be constructed and called. Can not be null.
