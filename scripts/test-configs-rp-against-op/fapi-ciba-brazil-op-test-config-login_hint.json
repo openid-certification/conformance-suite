@@ -1,5 +1,5 @@
 {
-    "alias": "oidf-fapi-ciba-brazil-op-test",
+    "alias": "oidf-fapi-ciba-brazil-op-login-hint-test",
     "description": "FAPI-CIBA BR-OB OP test config (with login_hint) for running against RP tests",
     "server": {
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-ciba-brazil-rp-test/.well-known/openid-configuration",
