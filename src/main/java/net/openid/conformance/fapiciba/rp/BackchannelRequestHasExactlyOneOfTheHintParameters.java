@@ -22,10 +22,6 @@ public class BackchannelRequestHasExactlyOneOfTheHintParameters extends Abstract
 				args("login_hint", loginHint, "login_hint_token", loginHintToken, "id_token_hint", idTokenHint));
 		}
 
-		if(idTokenHint != null) {
-			env.putString("id_token_hint", idTokenHint);
-		}
-
 		logSuccess("Backchannel authentication request contains one of the required hint parameters");
 
 		return env;

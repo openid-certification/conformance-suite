@@ -128,7 +128,7 @@ import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthReques
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FetchFreshIdTokenIfHintValueIsNotConfigured;
+import net.openid.conformance.condition.client.FetchFreshIdTokenHintIfHintValueIsNotConfigured;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateMTLSCertificateFromJWKs;
 import net.openid.conformance.condition.client.GeneratePS256ClientJWKsWithKeyID;
@@ -138,7 +138,7 @@ import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetHintTypeToIdTokenHint;
+import net.openid.conformance.condition.client.SetLoginHintToConsentIdIfHintValueIsNotConfigured;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
@@ -260,9 +260,6 @@ import java.util.function.Supplier;
 	"mtls2.key",
 	"mtls2.ca"
 })
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.hint_type"
-})
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	// for variants to fill in by calling the setup... family of methods
@@ -342,13 +339,15 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	{
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(SetHintTypeToIdTokenHint.class);
 			// In order to address the chicken-and-problem of requiring id_token_hint, the RP tests will expose
 			// a /token/obtain endpoint to fetch a recently signed id token for the given environment.
 			// If there is an id_token_hint configured in the hint_value, then it will be used.
 			// If not, and if there is a config `client.obtain_id_token` containing a URL to the /token/obtain endpoint,
 			// then a fresh id token will be fetched and used as the id_token_hint value.
-			callAndStopOnFailure(FetchFreshIdTokenIfHintValueIsNotConfigured.class);
+			callAndStopOnFailure(FetchFreshIdTokenHintIfHintValueIsNotConfigured.class);
+			// If a login_hint has been configured in the hint_value field in the configuration,
+			// it will be used as the login_hint. If not, then we take the Brazil consent_id and use that as login_hint.
+			callAndStopOnFailure(SetLoginHintToConsentIdIfHintValueIsNotConfigured.class);
 		}
 	}
 
