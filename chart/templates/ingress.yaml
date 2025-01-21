@@ -29,8 +29,6 @@ metadata:
       proxy_set_header X-Ssl-Protocol $ssl_protocol;
       proxy_set_header X-Ssl-Cert $ssl_client_cert;
       proxy_set_header Forwarded 'by=10.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
-      add_header 'Access-Control-Allow-Origin' '*';
-      add_header 'Access-Control-Allow-Methods' 'GET, POST, HEAD, OPTIONS';
       proxy_pass_request_headers on;
 spec:
   ingressClassName: 'nginx'
@@ -72,8 +70,6 @@ metadata:
       proxy_set_header X-Ssl-Protocol $ssl_protocol;
       proxy_set_header X-Ssl-Cert $ssl_client_cert;
       proxy_set_header Forwarded 'by=$remote_addr;for=10.0.0.1;host=$host;proto=$scheme';
-      add_header 'Access-Control-Allow-Origin' '*';
-      add_header 'Access-Control-Allow-Methods' 'GET, POST, HEAD, OPTIONS';
       proxy_pass_request_headers on;
     nginx.org/server-snippets: |
       ssl_verify_client   optional_no_ca;
