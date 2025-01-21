@@ -25,7 +25,7 @@ stages:
 #  - template: Security/License-Scanning.gitlab-ci.yml
 
 .maven: &maven
-  image: maven:3-openjdk-17
+  image: maven:3-eclipse-temurin-17
   interruptible: true
   variables:
     MAVEN_CONFIG: $CI_PROJECT_DIR/.m2

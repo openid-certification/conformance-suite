@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17
 COPY target/fapi-test-suite.jar /server/
 ENV BASE_URL https://localhost:8443
 ENV BASE_MTLS_URL https://localhost:8444
