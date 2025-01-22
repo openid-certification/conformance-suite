@@ -32,7 +32,7 @@
         "variant": "*",
         "configuration-filename": "*authlete-federation-trust-anchor.json",
         "current-block": "*",
-        "condition": "EnsureResponseIsJson",
+        "condition": "EnsureResponseIsJsonObject",
         "expected-result": "failure",
         "comment": "-"
     },
@@ -60,7 +60,7 @@
         "variant": "*",
         "configuration-filename": "*authlete-federation-trust-anchor.json",
         "current-block": "*",
-        "condition": "EnsureResponseIsJson",
+        "condition": "EnsureResponseIsJsonObject",
         "expected-result": "failure",
         "comment": "-"
     },

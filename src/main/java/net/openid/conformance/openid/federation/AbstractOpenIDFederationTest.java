@@ -150,6 +150,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			env.mapKey("client", "openid_relying_party_metadata");
 			call(sequence(ValidateOpenIDRelyingPartyMetadataSequence.class));
 			callAndContinueOnFailure(ValidateClientRegistrationTypes.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.2");
+			callAndContinueOnFailure(ValidateClientRegistrationTypesValues.class, Condition.ConditionResult.WARNING, "OIDFED-5.1.2");
 			env.unmapKey("client");
 			env.removeObject("openid_relying_party_metadata");
 		}
@@ -160,6 +161,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			env.mapKey("server", "openid_provider_metadata");
 			call(new ValidateDiscoveryMetadataSequence(getVariant(ClientRegistration.class)));
 			callAndContinueOnFailure(ValidateClientRegistrationTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
+			callAndContinueOnFailure(ValidateClientRegistrationTypesSupportedValues.class, Condition.ConditionResult.WARNING, "OIDFED-5.1.3");
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,
 				ValidateFederationRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,
