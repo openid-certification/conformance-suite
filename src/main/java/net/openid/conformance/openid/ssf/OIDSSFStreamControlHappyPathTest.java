@@ -4,6 +4,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
+import net.openid.conformance.openid.federation.EnsureResponseIsJson;
+import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckExpectedJsonResponseContents;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupportedEventsForStream;
@@ -63,6 +66,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
 			callAndContinueOnFailure(OIDSSFCheckStreamAudience.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
+			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "CAEPIOP-2.3.8.1");
 
 			call(exec().unmapKey("endpoint_response"));
 		});
@@ -123,15 +127,22 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 		});
 
 		eventLog.runBlock("Update Stream Status", () -> {
-			if (statusEndpoint != null) {
-				callAndStopOnFailure(OIDSSFUpdateStreamStatusCall.class, "OIDSSF-7.1.2.1", "OIDSSF-7.1.2.2");
+			if (statusEndpoint == null) {
+				eventLog.log("Skipping unsupported Update Stream Status Checks, because status_endpoint is missing in ssf-configuration.", args());
+				return;
+			}
+
+			for(StreamStatus status : StreamStatus.values()) {
+				eventLog.log(getName(), "Update stream status to " + status);
+				callAndContinueOnFailure(new OIDSSFUpdateStreamStatusCall(status), Condition.ConditionResult.FAILURE, "OIDSSF-7.1.2.1", "OIDSSF-7.1.2.2", "CAEPIOP-2.3.5");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
+				callAndContinueOnFailure(EnsureResponseIsJson.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
 				// TODO check: status response
-				call(exec().unmapKey("endpoint_response"));
-			} else {
-				eventLog.log("Skipping unsupported Update Stream Status Checks, because status_endpoint is missing in ssf-configuration.", args());
+				callAndContinueOnFailure(new OIDSSFCheckExpectedJsonResponseContents(args("status", status.name())), Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
 			}
+
+			call(exec().unmapKey("endpoint_response"));
 		});
 
 

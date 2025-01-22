@@ -133,6 +133,8 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-6.2");
 				break;
 		}
+
+		exposeEnvString("ssf_transmitter_metadata_url", "ssf","transmitter_metadata_url");
 	}
 
 	protected void obtainTransmitterAccessToken() {

@@ -17,6 +17,7 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 		env.putObject("resource_endpoint_response_full", fullResponse);
+		env.putString("endpoint_response_body_string", responseBody);
 		return env;
 	}
 

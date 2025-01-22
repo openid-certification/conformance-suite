@@ -1,11 +1,22 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.Gson;
+import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
 import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
 
 public class OIDSSFUpdateStreamStatusCall extends AbstractOIDSSFStreamConfigCall {
+
+	protected StreamStatus status;
+
+	public OIDSSFUpdateStreamStatusCall() {
+		this(StreamStatus.enabled);
+	}
+
+	public OIDSSFUpdateStreamStatusCall(StreamStatus status) {
+		this.status = status;
+	}
 
 	@Override
 	protected void prepareRequest(Environment env) {
@@ -21,12 +32,11 @@ public class OIDSSFUpdateStreamStatusCall extends AbstractOIDSSFStreamConfigCall
 
 		String streamId = getStreamId(env);
 
-		// TODO check all allowed stream status values: "enabled,paused,disabled"
 		return new Gson().toJson(
 			Map.of(
 				"stream_id", streamId,
-				"status", "paused",
-				"reason", "Updated Stream status for Receiver OIDF Conformance Test-Suite"
+				"status", status.name(),
+				"reason", "Updated Stream status for Receiver OIDF Conformance Test-Suite to " + status.name()
 			)
 		);
 	}

@@ -14,4 +14,8 @@ public final class SsfConstants {
 		DELIVERY_METHOD_PUSH_RFC_8935_URI,
 		DELIVERY_METHOD_POLL_RFC_8936_URI
 	);
+
+	public enum StreamStatus {
+		enabled, paused, disabled;
+	}
 }

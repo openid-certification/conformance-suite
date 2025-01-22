@@ -34,6 +34,7 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 	public Environment evaluate(Environment env) {
 
 		String metadataEndpointUrl = buildMetadataEndpointUrl(env);
+		env.putString("ssf","transmitter_metadata_url", metadataEndpointUrl);
 
 		String transmitterMetadataJson = fetchTransmitterMetadata(env, metadataEndpointUrl);
 

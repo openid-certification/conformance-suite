@@ -217,6 +217,10 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
 		}
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.4.1");
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.4.1");
+		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			// ensure subjectFormat is one of emaiul, iss_sub, opaque
+			// callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
+		}
 		callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-10.3.1.1");
 	}
 
