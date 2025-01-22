@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 public abstract class AbstractTestModule implements TestModule, DataUtils {
@@ -416,8 +415,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * Create a new condition call builder, which can be passed to call()
 	 */
 	protected ConditionCallBuilder condition(Condition condition) {
-		Objects.requireNonNull(condition);
-		return condition(condition.getClass()).condition(condition);
+		return new ConditionCallBuilder(condition);
 	}
 
 	/**

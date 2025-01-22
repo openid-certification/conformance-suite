@@ -58,6 +58,13 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	/**
 	 * Create a call to a new condition
 	 */
+	protected ConditionCallBuilder condition(Condition condition) {
+		return new ConditionCallBuilder(condition);
+	}
+
+	/**
+	 * Create a call to a new condition
+	 */
 	protected ConditionCallBuilder condition(Class<? extends Condition> conditionClass) {
 		return new ConditionCallBuilder(conditionClass);
 	}
@@ -241,9 +248,30 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 
 	/**
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 *
+	 * onFail is set to FAILURE
+	 *
+	 */
+	protected void callAndStopOnFailure(Condition condition, String... requirements) {
+		call(condition(condition)
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirements(requirements));
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 */
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
+			.requirements(requirements)
+			.onFail(onFail));
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 */
+	protected void callAndStopOnFailure(Condition condition, Condition.ConditionResult onFail, String... requirements) {
+		call(condition(condition)
 			.requirements(requirements)
 			.onFail(onFail));
 	}
@@ -264,9 +292,33 @@ public abstract class AbstractConditionSequence implements ConditionSequence, Da
 	/**
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
 	 *
+	 * onFail is set to INFO if requirements is null or empty, WARNING if requirements are specified
+	 *
+	 */
+	protected void callAndContinueOnFailure(Condition condition, String... requirements) {
+		call(condition(condition)
+			.onFail((requirements == null || requirements.length == 0) ? Condition.ConditionResult.INFO : Condition.ConditionResult.WARNING)
+			.requirements(requirements)
+			.dontStopOnFailure());
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
+	 *
 	 */
 	protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
+			.requirements(requirements)
+			.onFail(onFail)
+			.dontStopOnFailure());
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
+	 *
+	 */
+	protected void callAndContinueOnFailure(Condition condition, Condition.ConditionResult onFail, String... requirements) {
+		call(condition(condition)
 			.requirements(requirements)
 			.onFail(onFail)
 			.dontStopOnFailure());
