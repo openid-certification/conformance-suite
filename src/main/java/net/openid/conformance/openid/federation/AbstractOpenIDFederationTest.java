@@ -131,7 +131,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	protected void validateFetchErrorResponse() {
 		env.mapKey("endpoint_response", "federation_endpoint_response");
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-		callAndContinueOnFailure(EnsureResponseIsJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		callAndContinueOnFailure(EnsureResponseIsJsonObject.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
 		env.unmapKey("endpoint_response");
 
 		env.mapKey("authorization_endpoint_response", "endpoint_response_body");

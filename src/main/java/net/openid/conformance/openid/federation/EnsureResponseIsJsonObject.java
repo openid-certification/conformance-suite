@@ -10,7 +10,7 @@ import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeR
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class EnsureResponseIsJson extends AbstractCheckEndpointContentTypeReturned {
+public class EnsureResponseIsJsonObject extends AbstractCheckEndpointContentTypeReturned {
 
 	@Override
 	@PreEnvironment(required = "endpoint_response")
@@ -26,7 +26,7 @@ public class EnsureResponseIsJson extends AbstractCheckEndpointContentTypeReturn
 			logSuccess("Endpoint response is JSON");
 			return env;
 		} catch (JsonSyntaxException | OIDFJSON.UnexpectedJsonTypeException e) {
-			throw error("Endpoint response is not JSON", args("endpoint_response_body", body));
+			throw error("Endpoint response is not a valid JSON object", args("endpoint_response_body", body));
 		}
 
 	}
