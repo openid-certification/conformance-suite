@@ -4,7 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
-import net.openid.conformance.openid.federation.EnsureResponseIsJson;
+import net.openid.conformance.openid.federation.EnsureResponseIsJsonObject;
 import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckExpectedJsonResponseContents;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
@@ -137,14 +137,13 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 				callAndContinueOnFailure(new OIDSSFUpdateStreamStatusCall(status), Condition.ConditionResult.FAILURE, "OIDSSF-7.1.2.1", "OIDSSF-7.1.2.2", "CAEPIOP-2.3.5");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
-				callAndContinueOnFailure(EnsureResponseIsJson.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
+				callAndContinueOnFailure(EnsureResponseIsJsonObject.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
 				// TODO check: status response
 				callAndContinueOnFailure(new OIDSSFCheckExpectedJsonResponseContents(args("status", status.name())), Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
 			}
 
 			call(exec().unmapKey("endpoint_response"));
 		});
-
 
 		eventLog.runBlock("Delete Stream Configuration", () -> {
 			callAndStopOnFailure(OIDSSFDeleteStreamConfigCall.class, "OIDSSF-7.1.1.5", "CAEPIOP-2.3.8.2");
