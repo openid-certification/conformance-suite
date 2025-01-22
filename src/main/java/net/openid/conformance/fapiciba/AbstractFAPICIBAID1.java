@@ -1194,7 +1194,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatusNot200.class, Condition.ConditionResult.INFO);
 
 			int httpStatus = env.getInteger("token_endpoint_response_http_status");
-			if(httpStatus == HttpStatus.SERVICE_UNAVAILABLE.value()){
+			if(httpStatus == org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503){
 				verifyTokenEndpointResponseIs503Error();
 				return;
 			} else {

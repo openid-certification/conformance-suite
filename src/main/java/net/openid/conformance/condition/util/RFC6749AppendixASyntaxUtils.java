@@ -18,7 +18,7 @@ public class RFC6749AppendixASyntaxUtils {
 				{'{', '~'},
 			};
 			puncts = new RandomStringGenerator.Builder().
-				withinRange(pairs).get().generate(punctuationCount);
+				withinRange(pairs).build().generate(punctuationCount);
 		}
 		String numbers = generateNumberChar(numberCount);
 		String alphas = generateAlphaChar(alphaCount);
@@ -41,7 +41,7 @@ public class RFC6749AppendixASyntaxUtils {
 				{'{', '~'},
 			};
 			puncts = new RandomStringGenerator.Builder().
-				withinRange(pairs).get().generate(punctuationCount);
+				withinRange(pairs).build().generate(punctuationCount);
 		}
 		String numbers = generateNumberChar(numberCount);
 		String alphas = generateAlphaChar(alphaCount);
@@ -56,7 +56,7 @@ public class RFC6749AppendixASyntaxUtils {
 				{'A', 'Z'}
 			};
 			alphas = new RandomStringGenerator.Builder().
-				withinRange(pairs).get().generate(alphaCount);
+				withinRange(pairs).build().generate(alphaCount);
 		}
 		return alphas ;
 	}
@@ -66,7 +66,7 @@ public class RFC6749AppendixASyntaxUtils {
 		if(numberCount>0) {
 			numbers = new RandomStringGenerator.Builder().
 				withinRange(48, 57).    //0 to 9
-				get().generate(numberCount);
+				build().generate(numberCount);
 		}
 		return numbers;
 	}
