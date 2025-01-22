@@ -111,10 +111,34 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 * onFail is set to FAILURE
 	 *
 	 */
+	protected void callAndStopOnFailure(Condition condition, String... requirements) {
+		call(condition(condition)
+			.onFail(Condition.ConditionResult.FAILURE)
+			.requirements(requirements));
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 *
+	 * onFail is set to FAILURE
+	 *
+	 */
 	protected void callAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
 		call(condition(conditionClass)
 			.onFail(Condition.ConditionResult.FAILURE)
 			.requirements(requirements));
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
+	 */
+	protected void callAndStopOnFailure(Condition condition, Condition.ConditionResult onFail, String... requirements) {
+		if (onFail != Condition.ConditionResult.FAILURE) {
+			throw new TestFailureException(getId(), "callAndStopOnFailure called with onFail != ConditionResult.FAILURE");
+		}
+		call(condition(condition)
+			.requirements(requirements)
+			.onFail(onFail));
 	}
 
 	/**
@@ -138,7 +162,16 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	/**
 	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
-	 *
+	 */
+	protected void callAndContinueOnFailure(Condition condition, Condition.ConditionResult onFail, String... requirements) {
+		call(condition(condition)
+			.requirements(requirements)
+			.onFail(onFail)
+			.dontStopOnFailure());
+	}
+
+	/**
+	 * Create and evaluate a Condition in the current environment. Log but ignore if the Condition fails.
 	 */
 	protected void callAndContinueOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
 		call(condition(conditionClass)
@@ -265,10 +298,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		try {
 
-			// create a new condition object from the class above
-			Condition condition = builder.getConditionClass()
+			Condition condition = builder.getCondition();
+			if (condition == null) {
+				// create a new condition object from the class above
+				condition = builder.getConditionClass()
 					.getDeclaredConstructor()
 					.newInstance();
+			}
 			condition.setProperties(id, eventLog, builder.getOnFail(), builder.getRequirements());
 
 			logger.info(getId() + ": " + (builder.isStopOnFailure() ? ">>" : "}}") + " Calling Condition " + builder.getConditionClass().getSimpleName());
@@ -373,6 +409,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 */
 	protected ConditionCallBuilder condition(Class<? extends Condition> conditionClass) {
 		return new ConditionCallBuilder(conditionClass);
+	}
+
+	/**
+	 * Create a new condition call builder, which can be passed to call()
+	 */
+	protected ConditionCallBuilder condition(Condition condition) {
+		return new ConditionCallBuilder(condition);
 	}
 
 	/**

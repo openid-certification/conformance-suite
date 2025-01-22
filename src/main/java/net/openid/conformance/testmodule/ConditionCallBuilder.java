@@ -16,6 +16,7 @@ import java.util.List;
 public class ConditionCallBuilder implements TestExecutionUnit {
 
 	private Class<? extends Condition> conditionClass = null;
+	private Condition condition = null;
 	private List<String> requirements = new ArrayList<>();
 	private ConditionResult onFail = ConditionResult.FAILURE;
 	private ConditionResult onSkip = ConditionResult.INFO;
@@ -24,6 +25,17 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	private List<String> skipIfStringsMissing = new ArrayList<>();
 	private List<String> skipIfLongsMissing = new ArrayList<>();
 	private List<Pair<String, String>> skipIfElementsMissing = new ArrayList<>();
+
+	/**
+	 * Create a new condition call based on the given condition class.
+	 *
+	 * @param condition The Condition that will be handed to the executor.
+	 */
+	public ConditionCallBuilder(Condition condition) {
+		assert condition != null; // the condition can't be null
+		this.condition = condition;
+		this.conditionClass = condition.getClass();
+	}
 
 	/**
 	 * Create a new condition call based on the given condition class.
@@ -212,6 +224,15 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 
 
 	// getters
+
+	/**
+	 * Get the Condition to be called. May be null.
+	 *
+	 * @return the condition
+	 */
+	public Condition getCondition() {
+		return condition;
+	}
 
 	/**
 	 * Get the Condition class to be constructed and called. Can not be null.
