@@ -29,18 +29,22 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	/**
 	 * Create a new condition call based on the given condition class.
 	 *
+	 * @param condition The Condition that will be handed to the executor.
+	 */
+	public ConditionCallBuilder(Condition condition) {
+		assert condition != null; // the condition can't be null
+		this.condition = condition;
+		this.conditionClass = condition.getClass();
+	}
+
+	/**
+	 * Create a new condition call based on the given condition class.
+	 *
 	 * @param conditionClass The Condition that will be handed to the executor.
 	 */
 	public ConditionCallBuilder(Class<? extends Condition> conditionClass) {
 		assert conditionClass != null; // the condition class can't be null
 		this.conditionClass = conditionClass;
-	}
-
-	public ConditionCallBuilder condition(Condition condition) {
-		assert condition != null; // the condition can't be null
-		assert conditionClass.isInstance(condition); // the condition must have the same type as the condition class
-		this.condition = condition;
-		return this;
 	}
 
 	/**
@@ -222,7 +226,7 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	// getters
 
 	/**
-	 * Get the Condition to be called. Can not be null.
+	 * Get the Condition to be called. May be null.
 	 *
 	 * @return the condition
 	 */
