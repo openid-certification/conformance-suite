@@ -1,0 +1,245 @@
+[
+    {
+        "test-name": "openid-federation-list-and-fetch",
+        "variant": "*",
+        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "ValidateClientGrantTypes",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+    {
+        "test-name": "openid-federation-list-and-fetch",
+        "variant": "*",
+        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "OIDCCValidateClientRedirectUris",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+
+    {
+        "test-name": "openid-federation-ensure-fetch-with-invalid-sub-fails",
+        "variant": "*",
+        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "EnsureContentTypeJson",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+    {
+        "test-name": "openid-federation-ensure-fetch-with-invalid-sub-fails",
+        "variant": "*",
+        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "EnsureResponseIsJsonObject",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+    {
+        "test-name": "openid-federation-ensure-fetch-with-invalid-sub-fails",
+        "variant": "*",
+        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "EnsureNotFoundError",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+
+    {
+        "test-name": "openid-federation-ensure-fetch-with-iss-as-sub-fails",
+        "variant": "*",
+        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "EnsureContentTypeJson",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+    {
+        "test-name": "openid-federation-ensure-fetch-with-iss-as-sub-fails",
+        "variant": "*",
+        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "EnsureResponseIsJsonObject",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+    {
+        "test-name": "openid-federation-ensure-fetch-with-iss-as-sub-fails",
+        "variant": "*",
+        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "EnsureNotFoundError",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+
+    {
+        "test-name": "openid-federation-entity-configuration",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-bankid.json",
+        "current-block": "*",
+        "condition": "ValidateEntityStatementExp",
+        "expected-result": "failure",
+        "comment": "It's a static entity statement and permanently expired."
+    },
+    {
+        "test-name": "openid-federation-entity-configuration",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-bankid.json",
+        "current-block": "*",
+        "condition": "CheckJwksUri",
+        "expected-result": "failure",
+        "comment": "The OP metadata doesn't specify a jwks_uri"
+    },
+    {
+        "test-name": "openid-federation-entity-configuration",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-bankid.json",
+        "current-block": "*",
+        "condition": "FetchServerKeys",
+        "expected-result": "failure",
+        "comment": "The OP metadata doesn't specify a jwks_uri"
+    },
+
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-bankid.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeIs200",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-bankid.json",
+        "current-block": "*",
+        "condition": "EnsureContentTypeResolveResponseJwt",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-bankid.json",
+        "current-block": "*",
+        "condition": "ExtractJWTFromFederationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+
+    {
+        "test-name": "openid-federation-entity-configuration",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-intermediate.json",
+        "current-block": "*",
+        "condition": "ValidateAbsenceOfFederationEntityMetadata",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+
+    {
+        "test-name": "openid-federation-list-and-fetch",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-intermediate.json",
+        "current-block": "*",
+        "condition": "EnsureContentTypeEntityStatementJwt",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+    {
+        "test-name": "openid-federation-list-and-fetch",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-intermediate.json",
+        "current-block": "*",
+        "condition": "ExtractJWTFromFederationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+    {
+        "test-name": "openid-federation-list-and-fetch",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-intermediate.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeIs200",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+    {
+        "test-name": "openid-federation-list-and-fetch",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-intermediate.json",
+        "current-block": "*",
+        "condition": "ValidateAbsenceOfAuthorityHints",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-intermediate.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeIs200",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-intermediate.json",
+        "current-block": "*",
+        "condition": "EnsureContentTypeResolveResponseJwt",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-intermediate.json",
+        "current-block": "*",
+        "condition": "ExtractJWTFromFederationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+
+    {
+        "test-name": "openid-federation-list-and-fetch",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "ValidateAbsenceOfFederationEntityMetadata",
+        "expected-result": "failure",
+        "comment": "-"
+    },
+
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeIs200",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "EnsureContentTypeResolveResponseJwt",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+    {
+        "test-name": "openid-federation-compare-trust-chain-to-resolve",
+        "variant": "*",
+        "configuration-filename": "*sweden-federation-trust-anchor.json",
+        "current-block": "*",
+        "condition": "ExtractJWTFromFederationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    }
+]

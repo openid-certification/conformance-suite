@@ -19,11 +19,16 @@ public class EntityUtils {
 		"iat",
 		"exp",
 		"jwks",
+		"authority_hints",
 		"metadata",
 		"metadata_policy",
+		"constraints",
+		"crit",
+		"metadata_policy_crit",
 		"trust_marks",
-		"authority_hints",
-		"constraints"
+		"trust_mark_issuers",
+		"trust_mark_owners",
+		"source_endpoint"
 	);
 
 	public static String appendWellKnown(String entityIdentifier) {

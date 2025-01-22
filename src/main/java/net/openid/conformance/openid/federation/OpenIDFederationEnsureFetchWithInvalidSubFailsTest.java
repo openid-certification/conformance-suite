@@ -1,8 +1,6 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.UUID;
@@ -32,15 +30,12 @@ public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends Abstract
 
 		env.putString("federation_endpoint_url", fetchEndpoint);
 		env.putString("expected_sub", "https://%s".formatted(UUID.randomUUID().toString()));
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 		callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
 
 		eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));
-		callAndContinueOnFailure(CallFederationEndpointAndExpectError.class, Condition.ConditionResult.WARNING, "OIDFED-8.1.2");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-		callAndContinueOnFailure(EnsureResponseIsJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-		env.mapKey("authorization_endpoint_response", "endpoint_response_body");
-		skipIfMissing(new String[]{"authorization_endpoint_response"}, null, Condition.ConditionResult.FAILURE, EnsureNotFoundError.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-		env.unmapKey("authorization_endpoint_response");
+		callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
+		validateFetchErrorResponse();
 		eventLog.endBlock();
 
 		fireTestFinished();

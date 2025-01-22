@@ -9,7 +9,8 @@ import java.util.Date;
 
 public class ValidateEntityStatementExp extends AbstractCondition {
 
-	private final int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
+	// 5 minute allowable skew for testing. The number 5 is arbitrary and not mentioned in the specification.
+	private final int timeSkewMillis = 5 * 60 * 1000;
 
 	@Override
 	public Environment evaluate(Environment env) {

@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
 
 
-public class ExtractEntityStatementUrlFromConfig extends AbstractCondition {
+public class ExtractEntityIdentiferFromConfig extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
@@ -19,7 +19,7 @@ public class ExtractEntityStatementUrlFromConfig extends AbstractCondition {
 		String entityStatementUrl = appendWellKnown(entityIdentifier);
 		env.putString("federation_endpoint_url", entityStatementUrl);
 
-		logSuccess("Constructed entity statement URL based on configured issuer", args("federation_endpoint_url", entityStatementUrl));
+		logSuccess("Set federation endpoint URL to configured entity identifier", args("federation_endpoint_url", entityStatementUrl));
 
 		return env;
 	}

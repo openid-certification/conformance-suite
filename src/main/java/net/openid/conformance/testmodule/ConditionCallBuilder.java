@@ -22,6 +22,7 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	private boolean stopOnFailure = true;
 	private List<String> skipIfObjectsMissing = new ArrayList<>();
 	private List<String> skipIfStringsMissing = new ArrayList<>();
+	private List<String> skipIfLongsMissing = new ArrayList<>();
 	private List<Pair<String, String>> skipIfElementsMissing = new ArrayList<>();
 
 	/**
@@ -143,6 +144,21 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	}
 
 	/**
+	 * Add a long reference to search the Environment for prior to execution. If no long
+	 * is found in the Environment at runtime, the condition is not evaluated and the result
+	 * stored in onSkip is logged.
+	 *
+	 * See Environment.getLong(String)
+	 *
+	 * @param skipIfLongMissing the long reference to search for
+	 * @return this builder
+	 */
+	public ConditionCallBuilder skipIfLongMissing(String skipIfLongMissing) {
+		this.skipIfLongsMissing.add(skipIfLongMissing);
+		return this;
+	}
+
+	/**
 	 * Add several string references to search the Environment for prior to execution. If any
 	 * of these strings are not found in the Environment at runtime, the condition is not evaluated
 	 * and the result stored in onSkip is logged.
@@ -155,6 +171,23 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	public ConditionCallBuilder skipIfStringsMissing(String... skipIfStringsMissing) {
 		if (skipIfStringsMissing != null) {
 			Collections.addAll(this.skipIfStringsMissing, skipIfStringsMissing);
+		}
+		return this;
+	}
+
+	/**
+	 * Add several long references to search the Environment for prior to execution. If any
+	 * of these longs are not found in the Environment at runtime, the condition is not evaluated
+	 * and the result stored in onSkip is logged.
+	 *
+	 * See Environment.getLong(String)
+	 *
+	 * @param skipIfLongsMissing the string references to search for
+	 * @return this builder
+	 */
+	public ConditionCallBuilder skipIfLongsMissing(String... skipIfLongsMissing) {
+		if (skipIfLongsMissing != null) {
+			Collections.addAll(this.skipIfLongsMissing, skipIfLongsMissing);
 		}
 		return this;
 	}
@@ -241,6 +274,15 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	 */
 	public List<String> getSkipIfStringsMissing() {
 		return skipIfStringsMissing;
+	}
+
+	/**
+	 * If any of these longs are missing from the Environment, the condition call is skipped. Defaults to an empty list.
+	 *
+	 * @return the list of longs to search for
+	 */
+	public List<String> getSkipIfLongsMissing() {
+		return skipIfLongsMissing;
 	}
 
 	/**

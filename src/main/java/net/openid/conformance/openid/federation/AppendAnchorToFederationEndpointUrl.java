@@ -5,7 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class AppendAnchorToEntityStatementUrl extends AbstractCondition {
+public class AppendAnchorToFederationEndpointUrl extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config", strings = { "federation_endpoint_url" })
@@ -16,14 +16,14 @@ public class AppendAnchorToEntityStatementUrl extends AbstractCondition {
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(endpoint);
 		if (anchor != null) {
-			builder = builder.queryParam("anchor", anchor);
+			builder = builder.queryParam("trust_anchor", anchor);
 		}
 
 		String endpointUrlWithAnchorParam = builder.build().toUriString();
 
 		env.putString("federation_endpoint_url", endpointUrlWithAnchorParam);
 
-		logSuccess("Appended anchor parameter to endpoint", args("federation_endpoint_url", endpointUrlWithAnchorParam, "anchor", anchor));
+		logSuccess("Appended anchor parameter to endpoint", args("federation_endpoint_url", endpointUrlWithAnchorParam, "trust_anchor", anchor));
 
 		return env;
 	}

@@ -341,6 +341,14 @@ makeEkycTests() {
     TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=mtls][server_metadata=discovery][response_type=code][client_registration=static_client][response_mode=default] yesdotcom-ekyc.json"
 }
 
+makeFederationTests() {
+    TESTS="${TESTS} openid-federation-test-plan[server_metadata=discovery][client_registration=static_client] ../conformance-suite/scripts/test-configs-federation/authlete-federation-fapidev-as.json"
+    TESTS="${TESTS} openid-federation-test-plan[server_metadata=discovery][client_registration=static_client] ../conformance-suite/scripts/test-configs-federation/authlete-federation-trust-anchor.json"
+    TESTS="${TESTS} openid-federation-test-plan[server_metadata=static][client_registration=static_client] ../conformance-suite/scripts/test-configs-federation/sweden-federation-bankid.json"
+    TESTS="${TESTS} openid-federation-test-plan[server_metadata=discovery][client_registration=static_client] ../conformance-suite/scripts/test-configs-federation/sweden-federation-intermediate.json"
+    TESTS="${TESTS} openid-federation-test-plan[server_metadata=discovery][client_registration=static_client] ../conformance-suite/scripts/test-configs-federation/sweden-federation-trust-anchor.json"
+}
+
 makeLocalProviderTests() {
     # OIDCC certification tests - server supports discovery, using dcr
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
@@ -488,6 +496,15 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ekyc"
     TESTS="${TESTS} --export-dir ../conformance-suite"
+elif [ "$#" -eq 1 ] && [ "$1" = "--federation-tests" ]; then
+    echo "Run federation tests"
+    makeFederationTests
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-federation.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-federation.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules federation"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
 elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     echo "Run local provider tests"
     makeLocalProviderTests
@@ -504,7 +521,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests-only" ]; then
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests]"
+    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests|--federation-tests]"
     exit 1
 fi
 

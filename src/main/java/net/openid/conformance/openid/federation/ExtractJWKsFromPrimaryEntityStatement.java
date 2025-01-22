@@ -9,14 +9,14 @@ import net.openid.conformance.testmodule.Environment;
 public class ExtractJWKsFromPrimaryEntityStatement extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "primary_entity_statement_body")
+	@PreEnvironment(required = "primary_entity_statement_jwt")
 	@PostEnvironment(required = { "server_jwks" })
 	public Environment evaluate(Environment env) {
 
-		JsonObject jwks = env.getElementFromObject("primary_entity_statement_body", "jwks").getAsJsonObject();
+		JsonObject jwks = env.getElementFromObject("primary_entity_statement_jwt", "claims.jwks").getAsJsonObject();
 		env.putObject("server_jwks", jwks);
 
-		logSuccess("Extracted JKWS from entity statement", args("server_jwks", jwks));
+		logSuccess("Extracted JWKs from entity statement", args("server_jwks", jwks));
 
 		return env;
 	}

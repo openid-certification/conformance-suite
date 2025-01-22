@@ -54,9 +54,12 @@ public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends 
 			throw new TestFailureException(getId(), "A trust chain from %s to %s can not be constructed".formatted(fromEntity, trustAnchor));
 		}
 
-		eventLog.startBlock("Fetching entity configuration for trust anchor %s".formatted(trustAnchor));
+		eventLog.startBlock("Retrieving entity configuration for trust anchor %s".formatted(trustAnchor));
 		env.putString("federation_endpoint_url", appendWellKnown(trustAnchor));
-		callAndContinueOnFailure(CallFederationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		validateEntityStatementResponse();
+		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
 		callAndContinueOnFailure(ExtractJWKsFromEntityStatement.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		eventLog.endBlock();
 

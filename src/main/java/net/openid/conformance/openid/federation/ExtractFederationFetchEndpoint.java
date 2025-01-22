@@ -9,11 +9,11 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class ExtractFederationFetchEndpoint extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "federation_response_body" })
+	@PreEnvironment(required = { "federation_response_jwt" })
 	@PostEnvironment(strings = "federation_endpoint_url")
 	public Environment evaluate(Environment env) {
 
-		String fetchEndpoint = OIDFJSON.getString(env.getElementFromObject("federation_response_body", "metadata.federation_entity.federation_fetch_endpoint"));
+		String fetchEndpoint = OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "claims.metadata.federation_entity.federation_fetch_endpoint"));
 		env.putString("federation_endpoint_url", fetchEndpoint);
 
 		logSuccess("Extracted federation fetch endpoint", args("federation_endpoint_url", fetchEndpoint));

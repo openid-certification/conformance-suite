@@ -13,10 +13,10 @@ import java.util.Set;
 public class ValidateEntityStatementMetadata extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "federation_response_body" } )
+	@PreEnvironment(required = { "federation_response_jwt" } )
 	public Environment evaluate(Environment env) {
 
-		JsonElement metadataClaim = env.getElementFromObject("federation_response_body", "metadata");
+		JsonElement metadataClaim = env.getElementFromObject("federation_response_jwt", "claims.metadata");
 		if (metadataClaim == null) {
 			logSuccess("Entity statement does not contain the metadata claim");
 			return env;
@@ -37,7 +37,7 @@ public class ValidateEntityStatementMetadata extends AbstractCondition {
 		Set<String> difference = new HashSet<>(keys);
 		difference.removeAll(validEntityTypes);
 		if (!difference.isEmpty()) {
-			throw error("The metadata claim contains invalid entity types", args("expected", validEntityTypes, "actual", keys));
+			throw error("The metadata claim contains non-standard entity types", args("standard", validEntityTypes, "actual", keys));
 		}
 
 		logSuccess("Entity statement contains a valid metadata claim", args("metadata", metadata));
