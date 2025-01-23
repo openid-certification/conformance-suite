@@ -66,27 +66,42 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             // workaround https://gitlab.com/openid/conformance-suite/-/issues/766 by assuming that the post completes
             // after 5 seconds
-            //setTimeout(function(){ assumeComplete(); }, 5000);
+            var timeoutId = setTimeout(function(){ assumeComplete(); }, 5000);
 
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', [[${implicitSubmitUrl}]], true);
-            xhr.setRequestHeader('Content-type', 'text/plain');
-            xhr.onload = function () {
-                console.log("implicit submit complete")
-                document.querySelector('#complete a').setAttribute("href", returnUrl);
-                document.getElementById('complete').classList.add('show');
-                submitComplete = true;
-                // add a hidden tag so that Selenium can detect we're done processing
-                document.getElementById('complete').insertAdjacentHTML('beforeend', '<span id="submission_complete" hidden></span>');
-            };
+            function createxhr() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', [[${implicitSubmitUrl}]], true);
+                xhr.setRequestHeader('Content-type', 'text/plain');
+                xhr.onload = function () {
+                    submitComplete = true;
+                    console.log("implicit submit complete")
+                    document.querySelector('#complete a').setAttribute("href", returnUrl);
+                    document.getElementById('complete').classList.add('show');
+                    // add a hidden tag so that Selenium can detect we're done processing
+                    document.getElementById('complete').insertAdjacentHTML('beforeend', '<span id="submission_complete" hidden></span>');
+                };
+                xhr.onabort = function () {
+                    console.log("implicit submit abort")
+                };
+                xhr.ontimeout = function () {
+                    console.log("implicit submit timeout")
+                };
+                return xhr;
+            }
+
+            var xhr = createxhr();
             xhr.onerror = function () {
                 console.log("implicit submit error: " + xhr.status + " " + xhr.responseText);
-            };
-            xhr.onabort = function () {
-                console.log("implicit submit abort")
-            };
-            xhr.ontimeout = function () {
-                console.log("implicit submit timeout")
+                // workaround for https://gitlab.com/openid/conformance-suite/-/issues/1458 - try again in 2 seconds
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(function(){ assumeComplete(); }, 5000);
+                setTimeout(function() {
+                    newxhr = createxhr();
+                    newxhr.onerror = function () {
+                        console.log("second implicit submit error: " + xhr.status + " " + xhr.responseText);
+                    }
+                }, 2000);
+                xhr.send(hash);
             };
             xhr.send(hash);
         });
