@@ -66,7 +66,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             // workaround https://gitlab.com/openid/conformance-suite/-/issues/766 by assuming that the post completes
             // after 5 seconds
-            setTimeout(function(){ assumeComplete(); }, 5000);
+            //setTimeout(function(){ assumeComplete(); }, 5000);
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', [[${implicitSubmitUrl}]], true);
