@@ -129,7 +129,7 @@ public class BrowserControl implements DataUtils {
 		if (browserCommands == null) {
 			browserCommands = new JsonArray();
 		}
-		this.verboseLogging = false;
+		this.verboseLogging = true;
 		JsonElement browserVerbose = config.get("browser_verbose");
 		if (browserVerbose != null) {
 			this.verboseLogging = OIDFJSON.getBoolean(browserVerbose);
