@@ -79,6 +79,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 // add a hidden tag so that Selenium can detect we're done processing
                 document.getElementById('complete').insertAdjacentHTML('beforeend', '<span id="submission_complete" hidden></span>');
             };
+            xhr.onerror = function () {
+                console.log("implicit submit error")
+            };
+            xhr.onabort = function () {
+                console.log("implicit submit abort")
+            };
+            xhr.ontimeout = function () {
+                console.log("implicit submit timeout")
+            };
             xhr.send(hash);
         });
     </script>
