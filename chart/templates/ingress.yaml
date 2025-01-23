@@ -30,6 +30,9 @@ metadata:
       proxy_set_header X-Ssl-Cert $ssl_client_cert;
       proxy_set_header Forwarded 'by=10.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
       proxy_pass_request_headers on;
+    nginx.org/server-snippets: |
+      client_header_buffer_size 32k;
+      large_client_header_buffers 4 32k;
 spec:
   ingressClassName: 'nginx'
   tls:
@@ -73,6 +76,8 @@ metadata:
       proxy_pass_request_headers on;
     nginx.org/server-snippets: |
       ssl_verify_client   optional_no_ca;
+      client_header_buffer_size 32k;
+      large_client_header_buffers 4 32k;
     httpd-server-snippet: |
       RequestHeader set X-Ssl-Cipher "%{SSL_CIPHER}s"
       RequestHeader set X-Ssl-Protocol "%{SSL_PROTOCOL}s"
