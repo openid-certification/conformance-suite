@@ -69,26 +69,6 @@
         "comment": "Authlete doesn't support POST with access token in body, which is not required"
     },
     {
-        "test-name": "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
-        "variant": {
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json",
-        "current-block": "Verify authorization endpoint response",
-        "condition": "ValidateIdTokenACRClaimAgainstRequest",
-        "expected-result": "failure",
-        "comment": "RP tests currently don't return requested acr values"
-    },
-    {
-        "test-name": "fapi1-advanced-final-ensure-request-object-with-multiple-aud-succeeds",
-        "variant": "*",
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-op-test-config.json",
-        "current-block": "Verify token endpoint response",
-        "condition": "ValidateIdTokenACRClaimAgainstRequest",
-        "expected-result": "failure",
-        "comment": "RP tests currently don't return requested acr values"
-    },
-    {
         "test-name": "fapi2-security-profile-id2-dpop-negative-tests",
         "variant": {
             "openid": "openid_connect",
