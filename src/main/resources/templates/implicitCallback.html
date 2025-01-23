@@ -80,7 +80,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 document.getElementById('complete').insertAdjacentHTML('beforeend', '<span id="submission_complete" hidden></span>');
             };
             xhr.onerror = function () {
-                console.log("implicit submit error")
+                console.log("implicit submit error: " + xhr.status + " " + xhr.responseText);
             };
             xhr.onabort = function () {
                 console.log("implicit submit abort")
