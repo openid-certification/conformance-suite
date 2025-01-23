@@ -37,9 +37,9 @@ import java.time.Duration;
 
 public class HttpClientBuilderFactory {
 
-	static TrustManager[] trustAllCerts = {new X509TrustAll()};
+	private static final TrustManager[] trustAllCerts = {new X509TrustAll()};
 
-	static HttpClientBuilder sharedHttpClientBuilder = null;
+	private static final HttpClientBuilder sharedHttpClientBuilder;
 
 	static HttpClientBuilder sharedCachedHttpClientBuilder = null;
 
