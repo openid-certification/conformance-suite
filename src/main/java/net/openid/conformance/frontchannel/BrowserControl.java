@@ -522,7 +522,7 @@ public class BrowserControl implements DataUtils {
 					// if waiting for an element, the next parameter can be a regexp to be matched
 					// and the final parameter can be 'update-image-placeholder' to mark an image placeholder as satisfied
 
-					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
+					int timeoutSeconds = OIDFJSON.getInt(command.get(3))*30;
 					String regexp = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
 					String action = command.size() >= 6 ? OIDFJSON.getString(command.get(5)) : null;
 					boolean updateImagePlaceHolder = false;
