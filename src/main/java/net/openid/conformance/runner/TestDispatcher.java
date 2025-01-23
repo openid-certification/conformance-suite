@@ -175,7 +175,7 @@ public class TestDispatcher implements DataUtils {
 					response = test.handleHttp(restOfPath, req, res, session, requestParts);
 				} else if (path.startsWith(TEST_MTLS_PATH)) {
 					if (headers.get("x-test-mtls-called-on-wrong-host") != null) {
-						throw new TestFailureException(test.getId(), "The " + path + " must be called on the mtls hostname, see the url in the 'exported values' section.");
+						throw new TestFailureException(test.getId(), "The endpoint " + path + " has been called using the conformance suite's base hostname, but must be called on the MTLS supporting hostname. See the 'Exported Values' section of the log for a running test to see the correct url to use.");
 					}
 					response = test.handleHttpMtls(restOfPath, req, res, session, requestParts);
 				} else {
