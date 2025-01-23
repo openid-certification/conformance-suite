@@ -134,7 +134,7 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 				break;
 		}
 
-		exposeEnvString("ssf_transmitter_metadata_url", "ssf","transmitter_metadata_url");
+		exposeEnvString("ssf_metadata_url", "ssf","transmitter_metadata_url");
 	}
 
 	protected void obtainTransmitterAccessToken() {
