@@ -191,13 +191,13 @@ def main():
     tests_to_retry = []
     for key in res.keys():
 
-        test_modules = res[key]
-
+        task = res[key][0]
+        result = res[key][1]
         succeded = {}
         failed = {}
         all_passed = True
         failed_tests_links = []
-        for test, results in test_modules.items():
+        for test, results in result.items():
             if test == 'variant':
                 continue
             test_info = results['info'] if 'info' in results else {}

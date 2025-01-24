@@ -10,7 +10,8 @@ class ResultQueue:
 
     def add_task_result(self, task: TestTask, result):
         with self._lock:
-            self._all_results[(task.config, task.plan_config_filename)] = result
+            src = task.config['src']
+            self._all_results[src] = (task, result)
 
     def get_task_results(self):
         with self._lock:
