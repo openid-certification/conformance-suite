@@ -553,9 +553,9 @@ else
 fi
 
 
-if [ "$NEW_RUNNER" = true ] ; then
+#if [ "$NEW_RUNNER" = true ] ; then
   export CONFORMANCE_SUITE_PRIVATE=../conformance-suite-private/
   echo ${TESTS} | xargs ../conformance-suite/scripts/conformance_runner.py
-else
-  echo ${TESTS} | xargs ../conformance-suite/scripts/run-test-plan.py
-fi
+#else
+#  echo ${TESTS} | xargs ../conformance-suite/scripts/run-test-plan.py
+#fi
