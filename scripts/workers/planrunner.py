@@ -52,13 +52,11 @@ class PlanRunner(threading.Thread):
             try:
                 logger.debug(f"queue {task.queue_name} - got a task")
                 self._status_queue.plan_starting(task.queue_name, task.config)
-
-                (test_plan_name, variant, selected_modules, op_plan, op_config) = split_name_and_variant(task.config)
-                if test_plan_name.startswith('oidcc-client-'):
-                    #for oidcc client tests 'variant' will contain the rp tests configuration file name
-                    # run_test_plan_oidcc_rp(test_plan_name, config_file, json_config, variant, output_dir)
-                    logger.debug(failure(f"queue {task.queue_name} - oidcc-client test found"))
-                    continue
+                test_plan_name = task.config["test"]["test_name"]
+                variant = task.config["test"]["variants"]
+                selected_modules = task.config["test"]["modules"]
+                op_plan = task.config["op_test"]
+                op_config = task.config["op_test"]["config_file"]
 
                 brazil_client_scope = ''
                 if variant != None and 'brazil_client_scope' in variant.keys():
@@ -125,47 +123,64 @@ class PlanRunner(threading.Thread):
 
             if state == "WAITING":
                 # If it's a client test, we need to run the client.
-                # please note oidcc client tests are handled in a separate method. only FAPI ones will reach here
+                if op_plan is not None and len(op_plan) > 0:
+                    if op_plan["test_name"] == "sample-openid-client-nodejs":
+                        client_metadata_defaults = op_plan["variants"] if "variants" in op_plan else {}
+                        client_metadata_defaults_str = json.dumps(client_metadata_defaults)
+                        alias = parsed_config["alias"]
+                        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
+                        os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
 
-                if op_plan != None:
-                    # the 'client' is our own OP tests
-                    op_tests = {}
-                    module_info['op'] = op_tests
-                    op_modules = {}
-                    op_tests['tests'] = op_modules
+                        other_environment_vars_for_script = op_plan["environment"] if "environment" in op_plan else {}
+                        for envvarname, val in other_environment_vars_for_script.items():
+                            os.putenv(envvarname, val)
+                        # Pass module variant into VARIANT in environment for distinguishing oidcc-client tests which have the same module id
+                        variantstr = json.dumps(variant)
+                        os.putenv('VARIANT', variantstr)
+                        os.putenv('MODULE_NAME', module)
+                        os.putenv('NODE_TLS_REJECT_UNAUTHORIZED','0')
 
+                        subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
+                        self._conformance_server.wait_for_state(module_id, ["FINISHED"])
+                    else:
+                        # the 'client' is our own OP tests
+                        op_tests = {}
+                        module_info['op'] = op_tests
+                        op_modules = {}
+                        op_tests['tests'] = op_modules
+                        op_test_plan_name = op_plan["test_name"]
+                        op_variant = op_plan["variants"] if "variants" in op_plan else {}
+                        op_selected_modules = op_plan["modules"] if "modules" in op_plan else {}
 
-                    (op_test_plan_name, op_variant, op_selected_modules, op_plan_dummy, op_config_dummy) = split_name_and_variant(op_plan)
+                        op_tests['variant'] = op_variant
+                        op_tests['config'] = op_config
 
-                    op_tests['variant'] = op_variant
-                    op_tests['config'] = op_config
+                        logger.debug(f"queue {task.queue_name} - running test: {test_plan_name} - {moduledict['testModule']} - Creating OP test: {op_test_plan_name}")
 
-                    logger.debug(f"queue {task.queue_name} - running test: {test_plan_name} - {moduledict['testModule']} - Creating OP test: {op_test_plan_name}")
+                        (op_json_config, op_parsed_config) = self._config_parser.parse(op_config)
+                        op_test_plan_info = self._conformance_server.create_test_plan(op_test_plan_name, op_json_config, op_variant)
+                        op_plan_id = op_test_plan_info['id']
+                        op_test_info = {}
 
-                    (op_json_config, op_parsed_config) = self._config_parser.parse(op_config)
-                    op_test_plan_info = self._conformance_server.create_test_plan(op_test_plan_name, op_json_config, op_variant)
-                    op_plan_id = op_test_plan_info['id']
-                    op_test_info = {}
-
-                    op_plan_modules = [module for module in op_test_plan_info['modules'] if get_string_name_for_module_with_variant(module) in op_selected_modules]
-                    for op_moduledict in op_plan_modules:
-                        op_module = op_moduledict['testModule']
-                        logger.debug(f"queue {task.queue_name} - running test: {test_plan_name} - {moduledict['testModule']} - running OP test: {op_test_plan_name} - {op_module}")
-                        op_module_with_variants = get_string_name_for_module_with_variant(op_moduledict)
-                        op_module_info = {}
-                        op_modules[op_test_plan_name] = op_module_info
-                        op_test_module_info = self._conformance_server.create_test_from_plan_with_variant(op_plan_id, op_module,
-                                                           op_moduledict.get('variant'))
-                        op_module_id = op_test_module_info['id']
-                        op_module_info['id'] = op_module_id
-                        op_test_info[get_string_name_for_module_with_variant(op_moduledict)] = op_module_info
-                        try:
-                            self._conformance_server.wait_for_state(op_module_id, ["FINISHED"])
-                        except Exception as e:
-                            traceback.print_exc()
-                            print('Exception: Test {} {} failed to run to completion: {}'.format(op_module_with_variants, op_module_id, e))
-                        op_module_info['info'] = self._conformance_server.get_module_info(op_module_id)
-                        op_module_info['logs'] = self._conformance_server.get_test_log(op_module_id)
+                        op_plan_modules = [module for module in op_test_plan_info['modules'] if get_string_name_for_module_with_variant(module) in op_selected_modules]
+                        for op_moduledict in op_plan_modules:
+                            op_module = op_moduledict['testModule']
+                            logger.debug(f"queue {task.queue_name} - running test: {test_plan_name} - {moduledict['testModule']} - running OP test: {op_test_plan_name} - {op_module}")
+                            op_module_with_variants = get_string_name_for_module_with_variant(op_moduledict)
+                            op_module_info = {}
+                            op_modules[op_test_plan_name] = op_module_info
+                            op_test_module_info = self._conformance_server.create_test_from_plan_with_variant(op_plan_id, op_module,
+                                                               op_moduledict.get('variant'))
+                            op_module_id = op_test_module_info['id']
+                            op_module_info['id'] = op_module_id
+                            op_test_info[get_string_name_for_module_with_variant(op_moduledict)] = op_module_info
+                            try:
+                                self._conformance_server.wait_for_state(op_module_id, ["FINISHED"])
+                            except Exception as e:
+                                traceback.print_exc()
+                                print('Exception: Test {} {} failed to run to completion: {}'.format(op_module_with_variants, op_module_id, e))
+                            op_module_info['info'] = self._conformance_server.get_module_info(op_module_id)
+                            op_module_info['logs'] = self._conformance_server.get_test_log(op_module_id)
 
 
                 elif re.match(r'fapi-rw-id2-client-.*', module) or \

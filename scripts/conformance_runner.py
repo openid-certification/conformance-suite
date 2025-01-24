@@ -24,10 +24,9 @@ import fnmatch
 # require to be executed before importing old code
 the_sysout = sys.stdout
 from run_test_plan import parser_args_cli, load_expected_problems, success, failure
+from test_plan_parser import test_plan
 
 sys.stdout = the_sysout
-
-plans = ["1", "2", "3", "4", "5", "6"]
 
 FORMAT = '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
 isTTY = False and sys.stdout.isatty()
@@ -144,10 +143,14 @@ def main():
     conformance_server = ConformanceServer(api_url_base, token, verify_ssl)
     client_certs = load_client_certs()
 
-    to_run = split_params(' '.join(params).replace('\\', ''))
-    if len(params) % 2 == 1:
-        print("Error: run-test-plan.py: must have even number of parameters")
-        sys.exit(1)
+    to_run = []
+
+    cmd_line = ' '.join(params)
+    for tokens, start, end  in test_plan.scan_string(cmd_line):
+        test = cmd_line[start:end]
+        a_test = tokens[0]
+        a_test["src"] = test
+        to_run.append((a_test, a_test["test"]["config_file"]))
 
     expected_failures_list = []
     if args.expected_failures_file:
