@@ -377,6 +377,8 @@ makeFederationTests() {
 
 makeSsfTests() {
 #    TESTS="${TESTS} openid-ssf-test-plan[server_metadata=discovery][client_registration=static_client] ../conformance-suite/scripts/test-configs-ssf/xxxx.json"
+    echo "SSF not implemented yet"
+    TESTS="${TESTS}"
 }
 
 makeLocalProviderTests() {
