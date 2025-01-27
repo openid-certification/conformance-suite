@@ -23,25 +23,30 @@ public class OIDSSFExtractVerificationEventFromReceivedSETs extends AbstractCond
 		}
 
 		JsonObject setsObject = bodyJson.getAsJsonObject("sets");
-		for (var setEntry : setsObject.entrySet()) {
 
-			// String setKey = setEntry.getKey();
-			String setJwt = OIDFJSON.getString(setEntry.getValue());
-
-			try {
-				JWT jwt = JWTUtil.parseJWT(setJwt);
-				JsonObject claimsObject = JWTUtil.jwtClaimsSetAsJsonObject(jwt);
-				JsonObject eventsClaim = claimsObject.getAsJsonObject("events");
-				if (eventsClaim != null && eventsClaim.has("https://schemas.openid.net/secevent/ssf/event-type/verification")) {
-					env.putString("ssf", "verification.jwt", setJwt);
-					logSuccess("Found verification event in polling response", args("events_claim", eventsClaim, "polling_response", ssfPollingResponse));
-					return env;
-				}
-			} catch (ParseException e) {
-				throw error("Couldn't parse SET JWT", e);
-			}
+		var setEntry = setsObject.entrySet().stream().findFirst().orElse(null);
+		if (setEntry == null) {
+			throw error("Could not find verification event in empty polling response", args("polling_response", ssfPollingResponse));
 		}
 
-		throw error("Could not find verification event in polling response", args("polling_response", ssfPollingResponse));
+		// String setKey = setEntry.getKey();
+		String setJwt = OIDFJSON.getString(setEntry.getValue());
+
+		JsonObject eventsClaim;
+		try {
+			JWT jwt = JWTUtil.parseJWT(setJwt);
+			JsonObject claimsObject = JWTUtil.jwtClaimsSetAsJsonObject(jwt);
+			eventsClaim = claimsObject.getAsJsonObject("events");
+		} catch (ParseException e) {
+			throw error("Couldn't parse SET JWT", e);
+		}
+
+		if (eventsClaim == null || !eventsClaim.has("https://schemas.openid.net/secevent/ssf/event-type/verification")) {
+			throw error("Couldn't find verification event in polling response", args("events", eventsClaim, "polling_response", ssfPollingResponse));
+		}
+
+		env.putString("ssf", "verification.jwt", setJwt);
+		logSuccess("Found verification event in polling response", args("events_claim", eventsClaim, "polling_response", ssfPollingResponse));
+		return env;
 	}
 }
