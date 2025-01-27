@@ -33,7 +33,7 @@ public class OIDSSFAuthorizationSchemesTransmitterMetadataCheck extends Abstract
 		}
 
 		if (!rfc6749Found) {
-			throw error("Missing required authorization_scheme with spec_urn urn:ietf:rfc:6749");
+			throw error("Missing required authorization_scheme with spec_urn 'urn:ietf:rfc:6749'", args("authorization_schemes", authorizationSchemes));
 		}
 
 		logSuccess("Found required authorization_schemes", args("authorization_schemes", authorizationSchemes));
