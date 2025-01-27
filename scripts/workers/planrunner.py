@@ -52,11 +52,12 @@ class PlanRunner(threading.Thread):
             try:
                 logger.debug(f"queue {task.queue_name} - got a task")
                 self._status_queue.plan_starting(task.queue_name, task.config)
-                test_plan_name = task.config["test"]["test_name"]
-                variant = task.config["test"]["variants"]
-                selected_modules = task.config["test"]["modules"]
+                test_obj = task.config["test"]
+                test_plan_name = test_obj["test_name"]
+                variant = test_obj["variants"] if "variants" in test_obj else None
+                selected_modules = test_obj["modules"] if "modules" in test_obj else None
                 op_plan = task.config["op_test"]
-                op_config = task.config["op_test"]["config_file"]
+                op_config = op_plan["config_file"] if op_plan is not None and "config_file" in op_plan else None
 
                 brazil_client_scope = ''
                 if variant != None and 'brazil_client_scope' in variant.keys():
@@ -75,17 +76,21 @@ class PlanRunner(threading.Thread):
 
                 test_info = {}  # key is module name
                 test_info["variant"] = variant
+                test_info["url"] = test_plan_info["url"]
                 test_time_taken = {}  # key is testname
                 overall_start_time = time.time()
                 for moduledict in plan_modules:
-                    logger.info(f"queue {task.queue_name} - starting test: {test_plan_name} ({plan_id}) - {moduledict['testModule']}")
+                    logger.info(
+                        f"queue {task.queue_name} - starting test: {test_plan_name} ({plan_id}) - {moduledict['testModule']}")
                     test_start_time = time.time()
                     self.run_test_module(task, test_plan_name, moduledict, plan_id, test_info,
                                          variant, op_plan, op_config, brazil_client_scope, task.parsed_config)
                     time_taken = time.time() - test_start_time
                     test_time_taken[moduledict['testModule']] = time_taken
-                    logger.info(f"queue {task.queue_name} - finished test: {test_plan_name} ({plan_id}) - {moduledict['testModule']} - {time_taken} seconds")
-                logger.info(f"queue {task.queue_name} - finished test: {test_plan_name} ({plan_id}) - {time.time() - overall_start_time} seconds")
+                    logger.info(
+                        f"queue {task.queue_name} - finished test: {test_plan_name} ({plan_id}) - {moduledict['testModule']} - {time_taken} seconds")
+                logger.info(
+                    f"queue {task.queue_name} - finished test: {test_plan_name} ({plan_id}) - {time.time() - overall_start_time} seconds")
                 self._result_queue.add_task_result(task, test_info)
                 logger.debug(f"queue {task.queue_name} - plan {plan_id}  marking finished")
                 self._status_queue.plan_finished(task.queue_name, plan_id)
@@ -97,8 +102,8 @@ class PlanRunner(threading.Thread):
                 self._task_queue.task_completed(task)
                 logger.debug(f"queue {task.queue_name} task completed")
 
-    def run_test_module(self, task, test_plan_name,  moduledict, plan_id, test_info, variant, op_plan, op_config,
-                         brazil_client_scope, parsed_config):
+    def run_test_module(self, task, test_plan_name, moduledict, plan_id, test_info, variant, op_plan, op_config,
+                        brazil_client_scope, parsed_config):
         module = moduledict['testModule']
         module_with_variants = get_string_name_for_module_with_variant(moduledict)
 
@@ -107,10 +112,11 @@ class PlanRunner(threading.Thread):
 
         try:
             test_module_info = self._conformance_server.create_test_from_plan_with_variant(plan_id, module,
-                                                                                    moduledict.get('variant'))
+                                                                                           moduledict.get('variant'))
             module_id = test_module_info['id']
             module_info['id'] = module_id
-            test_info[get_string_name_for_module_with_variant(moduledict)] = module_info
+            module_info['url'] = test_module_info['url']
+            test_info[module_with_variants] = module_info
 
             state = self._conformance_server.wait_for_state(module_id, ["CONFIGURED", "WAITING", "FINISHED"])
             if state == "CONFIGURED":
@@ -138,7 +144,7 @@ class PlanRunner(threading.Thread):
                         variantstr = json.dumps(variant)
                         os.putenv('VARIANT', variantstr)
                         os.putenv('MODULE_NAME', module)
-                        os.putenv('NODE_TLS_REJECT_UNAUTHORIZED','0')
+                        os.putenv('NODE_TLS_REJECT_UNAUTHORIZED', '0')
 
                         subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
                         self._conformance_server.wait_for_state(module_id, ["FINISHED"])
@@ -155,30 +161,37 @@ class PlanRunner(threading.Thread):
                         op_tests['variant'] = op_variant
                         op_tests['config'] = op_config
 
-                        logger.debug(f"queue {task.queue_name} - running test: {test_plan_name} - {moduledict['testModule']} - Creating OP test: {op_test_plan_name}")
+                        logger.debug(
+                            f"queue {task.queue_name} - running test: {test_plan_name} - {module} - Creating OP test: {op_test_plan_name}")
 
                         (op_json_config, op_parsed_config) = self._config_parser.parse(op_config)
-                        op_test_plan_info = self._conformance_server.create_test_plan(op_test_plan_name, op_json_config, op_variant)
+                        op_test_plan_info = self._conformance_server.create_test_plan(op_test_plan_name, op_json_config,
+                                                                                      op_variant)
                         op_plan_id = op_test_plan_info['id']
                         op_test_info = {}
 
-                        op_plan_modules = [module for module in op_test_plan_info['modules'] if get_string_name_for_module_with_variant(module) in op_selected_modules]
+                        op_plan_modules = [module for module in op_test_plan_info['modules'] if
+                                           get_string_name_for_module_with_variant(module) in op_selected_modules]
                         for op_moduledict in op_plan_modules:
                             op_module = op_moduledict['testModule']
-                            logger.debug(f"queue {task.queue_name} - running test: {test_plan_name} - {moduledict['testModule']} - running OP test: {op_test_plan_name} - {op_module}")
+                            logger.debug(
+                                f"queue {task.queue_name} - running test: {test_plan_name} - {module} - running OP test: {op_test_plan_name} - {op_module}")
                             op_module_with_variants = get_string_name_for_module_with_variant(op_moduledict)
                             op_module_info = {}
                             op_modules[op_test_plan_name] = op_module_info
-                            op_test_module_info = self._conformance_server.create_test_from_plan_with_variant(op_plan_id, op_module,
-                                                               op_moduledict.get('variant'))
+                            op_test_module_info = self._conformance_server.create_test_from_plan_with_variant(
+                                op_plan_id, op_module,
+                                op_moduledict.get('variant'))
                             op_module_id = op_test_module_info['id']
                             op_module_info['id'] = op_module_id
+                            op_module_info['url'] = op_test_module_info["url"]
                             op_test_info[get_string_name_for_module_with_variant(op_moduledict)] = op_module_info
                             try:
                                 self._conformance_server.wait_for_state(op_module_id, ["FINISHED"])
                             except Exception as e:
                                 traceback.print_exc()
-                                print('Exception: Test {} {} failed to run to completion: {}'.format(op_module_with_variants, op_module_id, e))
+                                print('Exception: Test {} {} failed to run to completion: {}'.format(
+                                    op_module_with_variants, op_module_id, e))
                             op_module_info['info'] = self._conformance_server.get_module_info(op_module_id)
                             op_module_info['logs'] = self._conformance_server.get_test_log(op_module_id)
 
@@ -246,6 +259,7 @@ class PlanRunner(threading.Thread):
         except Exception as e:
             traceback.print_exc()
             print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
+
         if module_id != '':
             module_info['info'] = self._conformance_server.get_module_info(module_id)
             module_info['logs'] = self._conformance_server.get_test_log(module_id)

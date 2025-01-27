@@ -32,6 +32,7 @@ class TestTask:
 
 class TaskQueue:
     def __init__(self):
+        self._none_queue = None
         self._all_queues = {}
         self._running_queues = {}
         self._priority_queue = queue.PriorityQueue()
@@ -47,16 +48,20 @@ class TaskQueue:
     def fill_priority_queue(self):
         for alias, aQueue in self._all_queues.items():
             self._priority_queue.put(PrioritizedItem(-1 * len(aQueue), aQueue))
+            if alias is None:
+                self._none_queue = aQueue
 
     def get_a_task(self) -> TestTask:
         logger.debug("pulling items from priority queue")
         aQueue = self._priority_queue.get().item
         task = aQueue.popleft()
         logger.debug(f"priority - picked from queue {task.queue_name}")
-        if len(aQueue) > 0:
+        if task.queue_name is not None and len(aQueue) > 0:
             self._running_queues[task.queue_name] = aQueue
         with self._lock:
             self._pending_executions += 1
+        if task.queue_name is None and len(aQueue) > 0:
+            self._priority_queue.put(PrioritizedItem(-1 * len(aQueue), aQueue))
         return task
 
     def task_completed(self, task: TestTask):
@@ -67,6 +72,11 @@ class TaskQueue:
             logger.info(f"queue {queue_name} - tasks to go {len(aQueue)}")
             self._priority_queue.put(PrioritizedItem(-1 * len(aQueue), aQueue))
             logger.debug(f"queue {queue_name} - queue included on priority queue")
+        elif queue_name is None:
+            if len(self._none_queue) > 0:
+                logger.info(f"queue {queue_name} - tasks to go {len(self._none_queue)}")
+            else:
+                logger.info(f"queue {queue_name} - queue cleared. it is done")
         else:
             logger.info(f"queue {queue_name} - queue cleared. it is done")
         with self._lock:
@@ -94,7 +104,7 @@ class TaskQueue:
                 all_done = all_done and len(aQueue) == 0
             if all_done:
                 with self._lock:
-                    all_done = self._pending_executions == 0
+                    all_done = self._pending_executions <= 0
 
             if with_dump_state:
                 self.dump_state_logger()

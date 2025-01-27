@@ -67,7 +67,9 @@ class ConformanceServer(object):
 
         if response.status_code != 201:
             raise Exception("create_test_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
-        return response.json()
+        response_obj = response.json()
+        response_obj["url"] = f"{self.api_url_base}plan-detail.html?plan={response_obj['id']}"
+        return response_obj
 
     def create_test(self, test_name, configuration):
         api_url = '{0}api/runner'.format(self.api_url_base)
@@ -85,7 +87,9 @@ class ConformanceServer(object):
 
         if response.status_code != 201:
             raise Exception("create_test_from_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
-        return response.json()
+        response_obj = response.json()
+        response_obj["url"] = f"{self.api_url_base}plan-detail.html?plan={response_obj['id']}"
+        return response_obj
 
     def create_test_from_plan_with_variant(self, plan_id, test_name, variant):
         api_url = '{0}api/runner'.format(self.api_url_base)
@@ -96,7 +100,9 @@ class ConformanceServer(object):
 
         if response.status_code != 201:
             raise Exception("create_test_from_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
-        return response.json()
+        response_obj = response.json()
+        response_obj["url"] = f"{self.api_url_base}log-detail.html?log={response_obj['id']}"
+        return response_obj
 
     def get_module_info(self, module_id):
         api_url = '{0}api/info/{1}'.format(self.api_url_base, module_id)

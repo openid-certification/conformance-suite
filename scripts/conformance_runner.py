@@ -176,7 +176,7 @@ def main():
     monitor = MonitorWorker(isTTY=isTTY, task_queue=taskQueue)
 
     runners = []
-    result_queue = ResultQueue()
+    result_queue = ResultQueue(expected_failures_list)
     runners.extend([PlanRunner(task_queue=taskQueue,
                                status_queue=monitor,
                                conformance_server=conformance_server,
@@ -188,59 +188,33 @@ def main():
     # all the tests are executed and we need to present the details
     res = result_queue.get_task_results()
 
-    tests_to_retry = []
+    tests_to_retry = res["tests_to_retry"]
+    del res["tests_to_retry"]
     for key in res.keys():
+        val = res[key]
+        if val["failed"] > 0:
+            continue
 
-        task = res[key][0]
-        result = res[key][1]
-        succeded = {}
-        failed = {}
-        all_passed = True
-        failed_tests_links = []
-        for test, results in result.items():
-            if test == 'variant':
-                continue
-            test_info = results['info'] if 'info' in results else {}
-            test_result = test_info['result'] if 'result' in test_info else "FAILED"
-            all_passed = all_passed and test_result == "PASSED"
-            if test_result == "PASSED" or test_result == "WARNING" or test_result == "REVIEW":
-                succeded[test] = test_result
-            else:
-                if expected_failure(expected_failures_list, test_info['testName'],  test_modules["variant"], key[1], results):
-                    succeded[test] = test_result
-                else:
-                    failed[test] = test_result
-                    failed_tests_links.append(f"{api_url_base}log-detail.html?log={results['id']}")
-            if 'op' in results:
-                op_tests = results['op']
-                op_variant = op_tests['variant']
-                op_config = op_tests['config']
-                op_modules = op_tests['tests']
-                for op_test_name, op_module in op_modules.items():
+        # log all the errors
+        logger.info(success(f"test {key} - {val["succeeded"]} succeeded, {val["expected_failed"]} expected failure "))
 
-                    op_test_info = op_module['info'] if 'info' in op_module else {}
-                    op_test_result = op_test_info['result'] if 'result' in op_test_info else "FAILED"
-                    if op_test_result == "PASSED" or op_test_result == "REVIEW":
-                        succeded[op_test_name] = op_test_info
-                    else:
-                        if expected_failure(expected_failures_list, op_test_info['testName'],  op_variant, op_config, op_module):
-                            succeded[op_test_name] = op_test_info
-                        else:
-                            failed[op_test_name] = op_test_info
-                            failed_tests_links.append(f"{api_url_base}/log-detail.html?log={op_module['id']}")
+    first_error = True
+    for key in res.keys():
+        val = res[key]
+        if val["failed"] == 0:
+            continue
+        if first_error:
+            first_error = False
+            logger.info(failure(f"THESE TESTS HAVE FAILED:"))
+        logger.info(failure(f"test {key} - {val["failed"]} failures,  {val["succeeded"]} succeeded, {val["expected_failed"]} expected failure "))
+        logger.info("Check out the test links below")
+        for url in val["failed_tests_links"]:
+            logger.info(url)
 
-        if not failed:
-            logger.info(success(f"test {key[0]} - succeeded {len(succeded)}"))
-        else:
-            tests_to_retry.append(key)
-            logger.info(failure(f"test {key[0]} - succeeded {len(succeded)}, failed {len(failed)}"))
-            for failed_test in failed_tests_links:
-                logger.info(failure(f"failed test: {failed_test}"))
-
-    if tests_to_retry:
+    if not first_error:
         logger.info(failure(f"creating retry file with {len(tests_to_retry)} elements"))
         for key in tests_to_retry:
-            logger.info(failure(f"{key[0]} {key[1]}"))
+            print(f"{key}")
 
     if tests_to_retry :
         sys.exit(1)
