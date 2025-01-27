@@ -206,7 +206,7 @@ def main():
             if test_result == "PASSED" or test_result == "WARNING" or test_result == "REVIEW":
                 succeded[test] = test_result
             else:
-                if expected_failure(expected_failures_list, test_info['testName'],  test_modules["variant"], key[1], results):
+                if expected_failure(expected_failures_list, test_info['testName'],  test_info["variant"], key[1], results):
                     succeded[test] = test_result
                 else:
                     failed[test] = test_result
@@ -230,17 +230,17 @@ def main():
                             failed_tests_links.append(f"{api_url_base}/log-detail.html?log={op_module['id']}")
 
         if not failed:
-            logger.info(success(f"test {key[0]} - succeeded {len(succeded)}"))
+            logger.info(success(f"test {key} - succeeded {len(succeded)}"))
         else:
             tests_to_retry.append(key)
-            logger.info(failure(f"test {key[0]} - succeeded {len(succeded)}, failed {len(failed)}"))
+            logger.info(failure(f"test {key} - succeeded {len(succeded)}, failed {len(failed)}"))
             for failed_test in failed_tests_links:
                 logger.info(failure(f"failed test: {failed_test}"))
 
     if tests_to_retry:
         logger.info(failure(f"creating retry file with {len(tests_to_retry)} elements"))
         for key in tests_to_retry:
-            logger.info(failure(f"{key[0]} {key[1]}"))
+            logger.info(failure(f"{key}"))
 
     if tests_to_retry :
         sys.exit(1)
