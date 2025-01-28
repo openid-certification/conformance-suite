@@ -504,7 +504,8 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
         'plan_name': plan_result['test_plan'],
         'plan_config_file': plan_result['config_file'],
         'overall_test_results': overall_test_results,
-        'counts_unexpected': counts_unexpected
+        'counts_unexpected': counts_unexpected,
+        'variant': variant
     }
 
     if (not have_ignored_modules and (len(test_info) - 1) != len(plan_modules) or incomplete != 0):
@@ -752,7 +753,7 @@ def summary_unexpected_failures_all_test_plan(detail_plan_results):
             overall_test_results = detail_plan_result['overall_test_results']
             counts_unexpected = detail_plan_result['counts_unexpected']
             test_plan_obj = test_plan
-            variant = test_plan_obj.test.variants
+            variant = detail_plan_result['variant']
 
             if counts_unexpected['UNEXPECTED_FAILURES'] > 0:
                 print(failure('\tUnexpected failure: '))
