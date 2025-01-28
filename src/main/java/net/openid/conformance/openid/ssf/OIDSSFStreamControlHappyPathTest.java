@@ -132,7 +132,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 				return;
 			}
 
-			for(StreamStatus status : StreamStatus.values()) {
+			for (StreamStatus status : StreamStatus.values()) {
 				eventLog.log(getName(), "Update stream status to " + status);
 				callAndContinueOnFailure(new OIDSSFUpdateStreamStatusCall(status), Condition.ConditionResult.FAILURE, "OIDSSF-7.1.2.1", "OIDSSF-7.1.2.2", "CAEPIOP-2.3.5");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));

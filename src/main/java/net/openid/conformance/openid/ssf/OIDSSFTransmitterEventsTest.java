@@ -122,7 +122,7 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
 				eventLog.runBlock("Verify verification event received via PUSH delivery mode", () -> {
 
 					// wait for data received on dynamic endpoint (needs to be reachable externally!)
-					callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(new OIDSSFExtractVerificationEventFromPushRequest(eventLog), "OIDSSF-7.1.4.1");
 
 					verifySetInResponse();
 
