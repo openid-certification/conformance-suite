@@ -1147,6 +1147,11 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
+        #we don't have automated tests for SSF tests
+        if re.match(r'(openid-ssf-.*)',m):
+            untested_test_modules.remove(m)
+            continue
+
         # We're not requiring FAPI-CIBA RP testing for the negative tests for now, just the happy one
         if re.match(r'fapi-ciba-id1-client-.+-test',m):
             untested_test_modules.remove(m)
