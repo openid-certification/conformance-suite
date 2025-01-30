@@ -8,6 +8,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,6 +19,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+
+import static net.openid.conformance.condition.util.HttpClientBuilderFactory.createSharedCacheableHttpClientBuilder;
 
 public class FetchServerKeys extends AbstractCondition {
 
@@ -34,9 +37,9 @@ public class FetchServerKeys extends AbstractCondition {
 			log("Fetching server key", args("jwks_uri", jwksUri));
 
 			try {
-				RestTemplate restTemplate = createRestTemplate(env);
+				RestTemplate restTemplate = createRestTemplate(createSharedCacheableHttpClientBuilder().build(), null);
 
-				String jwkString = restTemplate.getForObject(jwksUri, String.class);
+				String jwkString = restTemplate.exchange(jwksUri, HttpMethod.GET,null, String.class).getBody();
 
 				log("Found JWK set string", args("jwk_string", jwkString));
 

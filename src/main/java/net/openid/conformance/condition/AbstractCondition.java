@@ -7,7 +7,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import net.openid.conformance.condition.util.MtlsKeystoreBuilder;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
@@ -15,18 +14,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
-import org.apache.hc.core5.http.config.Registry;
-import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -35,10 +23,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -54,12 +38,15 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+
+import static net.openid.conformance.condition.util.HttpClientBuilderFactory.createMtlsHttpClientBuilder;
+import static net.openid.conformance.condition.util.HttpClientBuilderFactory.createSharedHttpClientBuilder;
 
 
 public abstract class AbstractCondition implements Condition, DataUtils {
@@ -617,6 +604,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return placeholder;
 	}
 
+
 	/*
 	 * Create an HTTP Client for use in calling outbound to other services
 	 */
@@ -624,67 +612,18 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException,
 				KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
 
-		KeyManager[] km = null;
 
+		HttpClientBuilder builder;
 		// initialize MTLS if it's available
 		if (env.containsObject("mutual_tls_authentication")) {
 
-			km = MtlsKeystoreBuilder.configureMtls(env);
+			builder = createMtlsHttpClientBuilder(env);
 
+		} else {
+			builder = createSharedHttpClientBuilder();
 		}
+		return builder.build();
 
-		TrustManager[] trustAllCerts = {
-			new X509TrustManager() {
-
-				@Override
-				public X509Certificate[] getAcceptedIssuers() {
-					return new X509Certificate[0];
-				}
-
-				@Override
-				public void checkServerTrusted(X509Certificate[] chain, String authType) {
-				}
-
-				@Override
-				public void checkClientTrusted(X509Certificate[] chain, String authType) {
-				}
-			}
-		};
-
-		SSLContext sc = SSLContext.getInstance("TLS");
-		sc.init(km, trustAllCerts, new java.security.SecureRandom());
-
-		SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
-			.setSslContext(sc)
-			.setTlsVersions(restrictAllowedTLSVersions ? new String[]{"TLSv1.2", "TLSv1.3"} : null)
-			.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-			.build();
-
-		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
-		builder.setDefaultRequestConfig(RequestConfig.custom().build());
-
-		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-			.register("https", sslConnectionFactory)
-			.register("http", new PlainConnectionSocketFactory())
-			.build();
-
-		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-		int timeout = 60; // seconds
-		ccm.setConnectionConfig(ConnectionConfig.custom()
-			.setConnectTimeout(Timeout.ofSeconds(timeout))
-			.setSocketTimeout(Timeout.ofSeconds(timeout))
-			.setTimeToLive(Timeout.ofSeconds(timeout))
-			.build());
-
-
-		builder.setConnectionManager(ccm);
-
-		builder.disableRedirectHandling();
-
-		builder.disableAutomaticRetries();
-
-		HttpClient httpClient = builder.build();
-		return httpClient;
 	}
 
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
@@ -694,23 +633,29 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		HttpClient httpClient = createHttpClient(env, restrictAllowedTLSVersions);
 
+		return createRestTemplate(httpClient, env.getObject("mutual_tls_authentication"));
+	}
+
+
+	protected RestTemplate createRestTemplate(HttpClient httpClient, JsonObject mutualAuth) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
+
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
-		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.getObject("mutual_tls_authentication")));
+		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, mutualAuth));
 
 		List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
 
 		// fix the StringHttpMessageConverter, but retaining other default converters, as we do use them,
 		// e.g. the map -> urlencoded-form body one
 		converters.stream()
-			.filter(converter -> converter instanceof StringHttpMessageConverter)
-			.forEach(converter -> {
-				StringHttpMessageConverter stringHttpMessageConverter = (StringHttpMessageConverter) converter;
-				// the default StringHttpMessageConverter will convert to Latin1, so override it
-				stringHttpMessageConverter.setDefaultCharset(StandardCharsets.UTF_8);
-				// Stop StringHttpMessageConverter from adding a default Accept-Charset header
-				stringHttpMessageConverter.setWriteAcceptCharset(false);
-			});
+				.filter(converter -> converter instanceof StringHttpMessageConverter)
+				.forEach(converter -> {
+					StringHttpMessageConverter stringHttpMessageConverter = (StringHttpMessageConverter) converter;
+					// the default StringHttpMessageConverter will convert to Latin1, so override it
+					stringHttpMessageConverter.setDefaultCharset(StandardCharsets.UTF_8);
+					// Stop StringHttpMessageConverter from adding a default Accept-Charset header
+					stringHttpMessageConverter.setWriteAcceptCharset(false);
+				});
 
 		return restTemplate;
 	}
@@ -817,4 +762,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		return responseInfo;
 	}
+
+
 }

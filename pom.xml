@@ -131,6 +131,10 @@
 			<artifactId>httpclient5</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5-cache</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 		</dependency>
@@ -243,8 +247,12 @@
 			<version>3.0.1u2</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>3.10.8</version>
+		</dependency>
 
-		<!-- introduced when migrating to springboot 2.4 -->
 	</dependencies>
 	<build>
 		<plugins>
