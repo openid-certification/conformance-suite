@@ -70,7 +70,7 @@ public class DecryptResponse extends AbstractCondition {
 
 			env.putObject("authorization_endpoint_response", claims);
 
-			logSuccess("Found and decrypted the authorization reponse", jsonObject);
+			logSuccess("Found and decrypted the authorization response", jsonObject);
 
 			return env;
 
