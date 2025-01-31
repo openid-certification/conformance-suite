@@ -66,6 +66,7 @@ import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
+import net.openid.conformance.condition.client.ValidateFormBodyContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Url;
@@ -418,8 +419,8 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 				callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromFormBody.class, ConditionResult.FAILURE);
 				break;
 			case DIRECT_POST_JWT:
+				callAndStopOnFailure(ValidateFormBodyContainsOnlyResponse.class, "OID4VP-ID3-7.3");
 				// currently only supports encrypted-not-signed as used by mdl
-				// FIXME: verify no parameters other than response
 				callAndStopOnFailure(DecryptResponse.class);
 				// FIXME: need to validate jwe header
 				// FIXME iss, exp and aud MUST be omitted in the JWT Claims Set of the JWE
