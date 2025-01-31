@@ -423,7 +423,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 			case DIRECT_POST_JWT:
 				callAndStopOnFailure(ValidateFormBodyContainsOnlyResponse.class, "OID4VP-ID3-7.3");
 				// currently only supports encrypted-not-signed as used by mdl
-				callAndStopOnFailure(DecryptResponse.class);
+				callAndStopOnFailure(DecryptResponse.class, "OID4VP-ID3-7.3");
 				// FIXME: need to validate jwe header
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-ID3-7.3");
