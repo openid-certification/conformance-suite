@@ -27,7 +27,8 @@ public class EncryptVPResponse extends AbstractJWEEncryptString
 		String response = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY).toString();
 
 		String encryptedResponse = encrypt("client", response, clientSecret, clientJwks, alg, enc,
-			"authorization_encrypted_response_alg", "authorization_encrypted_response_enc");
+			"authorization_encrypted_response_alg", "authorization_encrypted_response_enc",
+			"json");
 
 		log("Encrypted the response", args("response", encryptedResponse,
 			"authorization_encrypted_response_alg", alg,

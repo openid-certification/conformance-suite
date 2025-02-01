@@ -204,12 +204,12 @@
 		<dependency>
 			<groupId>com.android.identity</groupId>
 			<artifactId>identity-mdoc-jvm</artifactId>
-			<version>202408.1</version>
+			<version>202411.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.android.identity</groupId>
 			<artifactId>identity-jvm</artifactId>
-			<version>202408.1</version>
+			<version>202411.1</version>
 		</dependency>
 
 		<dependency>

@@ -23,20 +23,25 @@ import java.text.ParseException;
  */
 public abstract class AbstractJWEEncryptString extends AbstractCondition {
 
+	public String encrypt(String destination, String stringToBeEncrypted, String clientSecret, JsonObject jwksJsonObject,
+						  String alg, String enc, String algMetadataName, String encMetadataName) {
+		return encrypt(destination, stringToBeEncrypted, clientSecret, jwksJsonObject, alg, enc, algMetadataName, encMetadataName, "JWT");
+	}
+
 	/**
 	 *
 	 * @param destination the entity the object is for (usually client or server)
 	 * @param stringToBeEncrypted e.g the id_token as string
 	 * @param clientSecret null if encryptor has no secret, e.g using private_key_jwt
 	 * @param jwksJsonObject null if destination does not have a jwks
-	 * @param alg
-	 * @param enc
+	 * @param alg as per JWE RFC
+	 * @param enc as per JWE RFC
 	 * @param algMetadataName used for logging only
 	 * @param encMetadataName used for logging only
-	 * @return
+	 * @return string containing resulting JWE
 	 */
 	public String encrypt(String destination, String stringToBeEncrypted, String clientSecret, JsonObject jwksJsonObject,
-						  String alg, String enc, String algMetadataName, String encMetadataName) {
+						  String alg, String enc, String algMetadataName, String encMetadataName, String cty) {
 
 		if(alg == null) {
 			throw error(algMetadataName + " is not defined for the " + destination + ". This is a bug in the test module. skipIfElementMissing should be used");
@@ -98,7 +103,7 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 		}
 
 		JWEHeader.Builder jweHeaderBuilder = new JWEHeader.Builder(algorithm, encryptionMethod)
-			.contentType("JWT"); // required to indicate nested JWT
+			.contentType(cty);
 		if(!Strings.isNullOrEmpty(recipientJWK.getKeyID())) {
 			jweHeaderBuilder.keyID(recipientJWK.getKeyID());
 		}
