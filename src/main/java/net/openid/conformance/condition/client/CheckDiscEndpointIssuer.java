@@ -5,24 +5,28 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.jetbrains.annotations.NotNull;
 
 public class CheckDiscEndpointIssuer extends AbstractCondition {
 
 	@Override
 	@PostEnvironment(required = { "server", "config" } )
 	public Environment evaluate(Environment env) {
-		JsonElement issuerElement = env.getElementFromObject("server", "issuer");
+
+		String endpointLabel = getEndpointLabel();
+
+		JsonElement issuerElement = getResponseIssuerElement(env);
 
 		if (issuerElement == null || issuerElement.isJsonObject()) {
 
-			throw error("issuer is missing from discovery endpoint document");
+			throw error("issuer is missing from " + endpointLabel + " endpoint document");
 		}
-
-		String discoveryUrl = env.getString("config", "server.discoveryUrl");
 
 		String issuerUrl = OIDFJSON.getString(issuerElement);
 
-		final String removingPartInUrl = ".well-known/openid-configuration";
+		String discoveryUrl = getConfigurationUrl(env);
+
+		final String removingPartInUrl = getConfigurationEndpoint();
 		if (discoveryUrl.endsWith(removingPartInUrl)) {
 
 			discoveryUrl = discoveryUrl.substring(0, discoveryUrl.length() - removingPartInUrl.length());
@@ -34,9 +38,26 @@ public class CheckDiscEndpointIssuer extends AbstractCondition {
 			throw error("issuer listed in the discovery document is not consistent with the location the discovery document was retrieved from. These must match to prevent impersonation attacks.", args("discovery_url", discoveryUrl, "issuer", issuerUrl));
 		}
 
-		logSuccess("issuer is consistent with the discovery endpoint");
+		logSuccess("issuer is consistent with the " + endpointLabel + " endpoint");
 
 		return env;
+	}
+
+	protected String getEndpointLabel() {
+		return "discovery";
+	}
+
+	protected String getConfigurationUrl(Environment env) {
+		return env.getString("config", "server.discoveryUrl");
+	}
+
+	protected JsonElement getResponseIssuerElement(Environment env) {
+		return env.getElementFromObject("server", "issuer");
+	}
+
+	@NotNull
+	protected String getConfigurationEndpoint() {
+		return ".well-known/openid-configuration";
 	}
 
 	private String removeSlashEndpointURL(String url) {

@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public abstract class AbstractTestModule implements TestModule, DataUtils {
@@ -867,12 +868,41 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	/**
 	 * Expose a value from the environment so the user sees it in the frontend
+	 * <p>
+	 * The value is extracted from env by the given {@code key}.
+	 * If a non null {@code sourceKey} is given then env value given by {@code sourceKey}
+	 * and the optional {@code sourcePath} is used.
+	 * </p>
+	 * The resulting value is exposed as {@code key}.
+	 *
+	 * @param key key to expose
+	 * @param sourceKey the key to lookup in the env. This is optional.
+	 * @param sourcePath the path to lookup in the env key value. This is optional. Only considered when sourceKey is not null.
+	 */
+	protected void exposeEnvString(String key, String sourceKey, String sourcePath) {
+
+		Objects.requireNonNull(key, "must not be null");
+
+		String val;
+		if (sourceKey == null) {
+			// ignore path if sourceKey is missing
+			val = env.getString(key);
+		} else if (sourcePath == null) {
+			val = env.getString(sourceKey);
+		} else {
+			val = env.getString(sourceKey, sourcePath);
+		}
+
+		expose(key, val);
+	}
+
+	/**
+	 * Expose a value from the environment so the user sees it in the frontend
 	 *
 	 * @param key
 	 */
 	protected void exposeEnvString(String key) {
-		String val = env.getString(key);
-		expose(key, val);
+		exposeEnvString(key, null, null);
 	}
 
 	@Override

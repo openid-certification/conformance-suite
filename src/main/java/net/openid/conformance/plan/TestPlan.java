@@ -13,6 +13,7 @@ public interface TestPlan {
 		String rptest = "Test a Relying Party / OAuth2 Client";
 		String rplogouttest = "Test a Relying Party / OAuth2 Client Logout Support";
 		String optest = "Test an OpenID Provider / Authorization Server";
+		String ssftest = "Test Shared Signals Framework Support";
 		String ekyctest = "Test an eKYC & IDA OpenID Provider";
 		String wallettest = "Test a OpenID4VP wallet";
 		String verifierTest = "Test a OpenID4VP Verifier";

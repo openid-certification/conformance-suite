@@ -179,6 +179,94 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                             <div class="config-form-container">
+                                <h3 class="config-form-container-header">SSF Transmitter</h3>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Transmitter Issuer</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Transmitter's issuer URL."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ssf.transmitter.issuer"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Transmitter Configuration URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Transmitter's Configuration URL."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ssf.transmitter.configuration_metadata_endpoint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Transmitter Metadata Suffix</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Suffix to append to the ssf-configuration URL."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ssf.transmitter.metadata_suffix"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Transmitter access_token</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Access token to use in SSF request. This may be left empty, in which case the request will not contain an access token."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ssf.transmitter.access_token"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Push Endpoint URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Receiver endpoint URL to push events to on PUSH delivery mode."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ssf.transmitter.push_endpoint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Push Authorization Header</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Authorization header value to use with the PUSH delivery mode."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ssf.transmitter.push_endpoint_authorization_header"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">SSF Stream Audience</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Audience to use for the SSF Stream."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ssf.stream.audience" required></input>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="config-form-container">
                                 <h3 class="config-form-container-header">Server</h3>
 
                                 <div class="row config-form-element-container">
@@ -1246,6 +1334,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                         </div>
+
                         <div id="JSONInput" class="tab-pane">
                             <textarea autocomplete="off" autocorrect="off" autocapitalize="off"
                                       spellcheck="false" id="config" placeholder="{JSON data}"></textarea>
@@ -1582,12 +1671,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     createUrl += '&variant=' + encodeURIComponent(JSON.stringify(selectedVariant));
                 }
 
+                let planConfig = document.getElementById("config").value;
                 fetch(createUrl, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: document.getElementById("config").value,
+                    body: planConfig,
                 })
                 .then((response) => {
                     if (!response.ok) {
