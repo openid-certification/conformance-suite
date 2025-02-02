@@ -1,24 +1,5 @@
 [
     {
-        "test-name": "openid-federation-list-and-fetch",
-        "variant": "*",
-        "configuration-filename": "*authlete-federation-trust-anchor.json",
-        "current-block": "*",
-        "condition": "ValidateClientGrantTypes",
-        "expected-result": "failure",
-        "comment": "-"
-    },
-    {
-        "test-name": "openid-federation-list-and-fetch",
-        "variant": "*",
-        "configuration-filename": "*authlete-federation-trust-anchor.json",
-        "current-block": "*",
-        "condition": "OIDCCValidateClientRedirectUris",
-        "expected-result": "failure",
-        "comment": "-"
-    },
-
-    {
         "test-name": "openid-federation-ensure-fetch-with-invalid-sub-fails",
         "variant": "*",
         "configuration-filename": "*authlete-federation-trust-anchor.json",
