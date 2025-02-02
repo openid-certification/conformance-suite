@@ -35,12 +35,10 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 	 *    been registered, the client MUST include a redirection URI with the
 	 *    authorization request using the "redirect_uri" request parameter.
 	 */
-	private static final List<String> REQUIRED_DUPLICATES = Arrays.asList(new String[] {
-		"response_type",
+	private static final List<String> REQUIRED_DUPLICATES = Arrays.asList("response_type",
 		"client_id",
 		"scope",
-		"redirect_uri"
-	});
+		"redirect_uri");
 
 	/**
 	 * @param includeDuplicates If true include the duplicate parameters required by RFC6749/OIDC - if false,

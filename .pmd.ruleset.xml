@@ -24,11 +24,12 @@
 		     Do be careful about using volatile elsewhere as per
 		     https://docs.oracle.com/javase/specs/jls/se8/html/jls-8.html#jls-8.3.1.4 -->
 		<exclude name="AvoidUsingVolatile"/>
+		<exclude name="AvoidSynchronizedStatement"/>
 	</rule>
 	<rule ref="category/java/documentation.xml/CommentContent"
 		  message="Please don't use the @author annotation, reliable authorship information can already be found in git">
 		<properties>
-			<property name="disallowedTerms" value="@author"/>
+			<property name="forbiddenRegex" value="@author"/>
 		</properties>
 	</rule>
 
@@ -41,10 +42,8 @@
 
 		<!-- These are excluded just because the codebase, at the time PMD was added, raised a number of these
 		  warnings. No analysis has been done on whether they're good checks to exclude. -->
-		<exclude name="DataflowAnomalyAnalysis"/>
 		<exclude name="AvoidDuplicateLiterals"/>
 		<exclude name="NullAssignment"/>
-		<exclude name="EmptyIfStmt"/>
 		<exclude name="AvoidInstanceofChecksInCatchClause"/>
 		<exclude name="UseLocaleWithCaseConversions"/>
 		<exclude name="AvoidFieldNameMatchingMethodName"/>
@@ -52,6 +51,7 @@
 		<exclude name="EmptyCatchBlock"/>
 		<exclude name="NonStaticInitializer"/>
 		<exclude name="TestClassWithoutTestCases"/>
+		<exclude name="ConstructorCallsOverridableMethod"/>
 	</rule>
 
 	<rule ref="category/java/codestyle.xml">
@@ -81,6 +81,13 @@
 		<exclude name="ClassNamingConventions"/>
 		<exclude name="UseUnderscoresInNumericLiterals"/>
 		<exclude name="EmptyControlStatement"/>
+		<exclude name="UseExplicitTypes"/>
+		<exclude name="UnnecessaryCast"/>
+		<exclude name="UnnecessaryBoxing"/>
+		<exclude name="BooleanGetMethodName"/>
+		<exclude name="UseDiamondOperator"/>
+		<exclude name="LambdaCanBeMethodReference"/>
+		<exclude name="UnnecessaryFullyQualifiedName"/>
 	</rule>
 
 	<rule ref="category/java/bestpractices.xml">
@@ -96,12 +103,12 @@
 		<exclude name="AvoidReassigningParameters"/>
 		<exclude name="UseTryWithResources"/>
 		<exclude name="DoubleBraceInitialization"/>
-		<exclude name="SwitchStmtsShouldHaveDefault"/>
-		<!-- a potentially useful rule, but triggers loads of false positives as we have many real classes that have
-		 'Test' in their name, and isn't configurable enough -->
-		<exclude name="JUnit4TestShouldUseTestAnnotation"/>
 		<exclude name="ArrayIsStoredDirectly"/>
 		<exclude name="UseCollectionIsEmpty"/>
+		<exclude name="LooseCoupling"/>
+		<exclude name="NonExhaustiveSwitch"/>
+		<exclude name="ExhaustiveSwitchHasDefault"/>
+		<exclude name="UnitTestShouldUseTestAnnotation"/>
 	</rule>
 	<!--
 	   We should probably enable more rules one day

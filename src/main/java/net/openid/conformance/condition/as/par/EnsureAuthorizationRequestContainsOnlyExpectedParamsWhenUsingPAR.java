@@ -14,7 +14,7 @@ public class EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR ex
 	@Override
 	@PreEnvironment(required = { "authorization_endpoint_http_request_params"})
 	public Environment evaluate(Environment env) {
-		List<String> expectedParams = Arrays.asList(new String[]{"client_id", "request_uri"});
+		List<String> expectedParams = Arrays.asList("client_id", "request_uri");
 		JsonObject paramsObject = env.getObject("authorization_endpoint_http_request_params");
 		ArrayList<String> unexpectedParams = new ArrayList<>();
 

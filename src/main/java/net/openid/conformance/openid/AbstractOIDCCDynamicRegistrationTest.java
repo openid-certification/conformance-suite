@@ -201,7 +201,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 			eventLog.startBlock("Unregister dynamically registered client");
 
 			call(condition(UnregisterDynamicallyRegisteredClient.class)
-				.skipIfObjectsMissing(new String[]{"client"})
+				.skipIfObjectsMissing("client")
 				.onSkip(ConditionResult.INFO)
 				.onFail(ConditionResult.WARNING)
 				.dontStopOnFailure());
