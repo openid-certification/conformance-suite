@@ -11,7 +11,7 @@ public class GenerateKSAAccountConsentId extends AbstractCondition {
 	@PostEnvironment(strings = "account_request_id")
 	public Environment evaluate(Environment env) {
 
-		String acct = "urn:SAMA:"+ RandomStringUtils.randomAlphanumeric(10);
+		String acct = "urn:SAMA:"+ RandomStringUtils.secure().nextAlphanumeric(10);
 
 		env.putString("account_request_id", acct);
 

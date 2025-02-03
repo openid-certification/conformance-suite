@@ -17,10 +17,10 @@ public class AddRandomLocationClaimsToAuthorizationEndpointRequest extends Abstr
 	public Environment evaluate(Environment env) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		String locationStr = RandomStringUtils.randomAlphanumeric(10);
+		String locationStr = RandomStringUtils.secure().nextAlphanumeric(10);
 		JsonObject claimsObject = getClaimsForLocation(authorizationEndpointRequest, locationStr);
 		List<String> claimsToAdd = new ArrayList<>();
-		claimsToAdd.add(RandomStringUtils.randomAlphanumeric(10));
+		claimsToAdd.add(RandomStringUtils.secure().nextAlphanumeric(10));
 		addRequestsForClaims(claimsObject, claimsToAdd);
 
 		logSuccess("Added a request for claims to be returned in a random location to the authorization_endpoint_request. As per spec, 'Any members used that are not understood MUST be ignored.'.",

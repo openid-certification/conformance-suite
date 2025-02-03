@@ -34,7 +34,7 @@ public class CreateClientAuthenticationAssertionClaimsWithIssAudience extends Ab
 		}
 
 		claims.addProperty("aud", audience);
-		claims.addProperty("jti", RandomStringUtils.randomAlphanumeric(20));
+		claims.addProperty("jti", RandomStringUtils.secure().nextAlphanumeric(20));
 
 		Instant iat = Instant.now();
 		Instant exp = iat.plusSeconds(60);

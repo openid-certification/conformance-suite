@@ -18,7 +18,7 @@ public class AddRandomSuffixToIssuerInServerConfiguration extends AbstractCondit
 		JsonObject server = env.getObject("server");
 
 		String currentIssuer = OIDFJSON.getString(server.get("issuer"));
-		String newIssuer = currentIssuer + RandomStringUtils.randomAlphanumeric(10);
+		String newIssuer = currentIssuer + RandomStringUtils.secure().nextAlphanumeric(10);
 		server.addProperty("issuer", newIssuer);
 		env.putObject("server", server);
 		env.putString("issuer", newIssuer);

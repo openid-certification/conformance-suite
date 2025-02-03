@@ -68,7 +68,7 @@ public class TestPlanApi implements DataUtils {
 		@Parameter(description = "Configuration json") @RequestBody JsonObject config,
 		Model m) {
 
-		String id = RandomStringUtils.randomAlphanumeric(13);
+		String id = RandomStringUtils.secure().nextAlphanumeric(13);
 
 		VariantService.TestPlanHolder holder = variantService.getTestPlan(planName);
 

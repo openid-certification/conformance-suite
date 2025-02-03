@@ -15,8 +15,8 @@ public class AddRandomParameterToAuthorizationEndpointRequest extends AbstractCo
 	public Environment evaluate(Environment env) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
-		String parameter = RandomStringUtils.randomAlphanumeric(16);
-		String value = RandomStringUtils.randomAlphanumeric(16);
+		String parameter = RandomStringUtils.secure().nextAlphanumeric(16);
+		String value = RandomStringUtils.secure().nextAlphanumeric(16);
 		authorizationEndpointRequest.addProperty(parameter, value);
 
 		logSuccess("Added a  authorization_endpoint_request. As per spec, 'The authorization server MUST ignore" +

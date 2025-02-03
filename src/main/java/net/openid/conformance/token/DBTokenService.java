@@ -35,7 +35,7 @@ public class DBTokenService implements TokenService {
 	@Override
 	public Map createToken(boolean permanent) {
 
-		String id = RandomStringUtils.randomAlphanumeric(13);
+		String id = RandomStringUtils.secure().nextAlphanumeric(13);
 
 		byte[] tokenBytes = new byte[TOKEN_BYTES];
 		new SecureRandom().nextBytes(tokenBytes);

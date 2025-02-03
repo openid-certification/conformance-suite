@@ -18,7 +18,7 @@ public class CreateDpopClaims extends AbstractCondition {
 
 		JsonObject claims = new JsonObject();
 
-		claims.addProperty("jti", RandomStringUtils.randomAlphanumeric(20));
+		claims.addProperty("jti", RandomStringUtils.secure().nextAlphanumeric(20));
 
 		Instant iat = Instant.now();
 

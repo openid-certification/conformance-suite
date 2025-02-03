@@ -33,9 +33,9 @@ public class GenerateSessionState extends AbstractCondition {
 	@PostEnvironment(required = { "session_state_data"})
 	public Environment evaluate(Environment env) {
 		JsonObject sessionStateData = new JsonObject();
-		String salt = RandomStringUtils.randomAlphanumeric(50);
+		String salt = RandomStringUtils.secure().nextAlphanumeric(50);
 		//this is actually a session id but the spec calls it "OP browser state"
-		String opBrowserState = RandomStringUtils.randomAlphanumeric(50);
+		String opBrowserState = RandomStringUtils.secure().nextAlphanumeric(50);
 
 		String sessionState;
 		String clientId = env.getString("client", "client_id");

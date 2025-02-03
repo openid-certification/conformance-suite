@@ -43,7 +43,7 @@ public class AddFAPIFinancialIdToRequestHeaders_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		// create a random financial ID so we know it's getting copied
-		financialId = RandomStringUtils.randomAlphanumeric(30);
+		financialId = RandomStringUtils.secure().nextAlphanumeric(30);
 
 		resourceConfig = new JsonObject();
 		resourceConfig.addProperty("institution_id", financialId);
