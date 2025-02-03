@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.10</version>
+		<version>3.4.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -199,14 +199,14 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.multipaz</groupId>
-			<artifactId>multipaz-jvm</artifactId>
-			<version>0.90</version>
+			<groupId>com.android.identity</groupId>
+			<artifactId>identity-mdoc-jvm</artifactId>
+			<version>202411.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.multipaz</groupId>
-			<artifactId>multipaz-doctypes-jvm</artifactId>
-			<version>0.90</version>
+			<groupId>com.android.identity</groupId>
+			<artifactId>identity-jvm</artifactId>
+			<version>202411.1</version>
 		</dependency>
 
 		<dependency>
@@ -224,7 +224,7 @@
 		<dependency>
 			<groupId>com.networknt</groupId>
 			<artifactId>json-schema-validator</artifactId>
-			<version>1.5.6</version>
+			<version>1.5.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -253,21 +253,6 @@
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-datetime-jvm</artifactId>
 			<version>0.6.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jetbrains.kotlinx</groupId>
-			<artifactId>kotlinx-io-bytestring-jvm</artifactId>
-			<version>0.4.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jetbrains.kotlinx</groupId>
-			<artifactId>kotlinx-serialization-json</artifactId>
-			<version>1.7.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jetbrains.kotlinx</groupId>
-			<artifactId>kotlinx-coroutines-core-jvm</artifactId>
-			<version>1.8.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
@@ -324,6 +309,7 @@
 						<arg>-Xlint:-processing</arg>
 						<arg>-Xlint:unchecked</arg>
 						<arg>-Xlint:deprecation</arg>
+						<arg>-Werror</arg>
 						<!-- As per https://errorprone.info/docs/installation -->
 						<arg>-XDcompilePolicy=simple</arg>
 						<arg>-Xplugin:ErrorProne -XepExcludedPaths:.*/src/test/.* -Xep:JavaUtilDate:OFF  -Xep:OperatorPrecedence:OFF -Xep:InconsistentCapitalization:OFF -Xep:DefaultCharset:OFF -Xep:DoubleBraceInitialization:OFF -Xep:EmptyBlockTag:OFF -Xep:EmptyCatch:OFF -Xep:JavaInstantGetSecondsGetNano:OFF -Xep:EnumOrdinal:OFF -Xep:GetClassOnEnum:OFF -Xep:StringSplitter:OFF -Xep:MissingSummary:OFF -Xep:StringCaseLocaleUsage:OFF</arg>
