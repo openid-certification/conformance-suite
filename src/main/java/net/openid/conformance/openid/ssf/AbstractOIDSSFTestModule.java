@@ -52,13 +52,11 @@ import java.util.Objects;
 	"server.discoveryUrl"
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {
-	"ssf.transmitter.configuration_metadata_endpoint",
-	"ssf.stream.audience",
+	"ssf.transmitter.configuration_metadata_endpoint"
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {
 	"ssf.transmitter.issuer",
-	"ssf.transmitter.metadata_suffix",
-	"ssf.stream.audience",
+	"ssf.transmitter.metadata_suffix"
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
 	"ssf.transmitter.access_token"
