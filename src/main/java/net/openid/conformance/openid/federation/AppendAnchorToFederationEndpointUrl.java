@@ -14,7 +14,7 @@ public class AppendAnchorToFederationEndpointUrl extends AbstractCondition {
 		String anchor = env.getString("config", "federation.trust_anchor");
 		String endpoint = env.getString("federation_endpoint_url");
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(endpoint);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
 		if (anchor != null) {
 			builder = builder.queryParam("trust_anchor", anchor);
 		}

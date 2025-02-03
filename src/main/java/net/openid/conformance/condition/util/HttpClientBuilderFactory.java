@@ -10,11 +10,10 @@ import org.apache.hc.client5.http.impl.cache.ehcache.EhcacheHttpCacheStorage;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.util.TimeValue;
@@ -50,7 +49,7 @@ public class HttpClientBuilderFactory {
 	static {
 		KeyManager[] km = null;
 
-		SSLContext sc = null;
+		SSLContext sc;
 		try {
 			sc = SSLContext.getInstance("TLS");
 		} catch (NoSuchAlgorithmException e) {
@@ -62,21 +61,18 @@ public class HttpClientBuilderFactory {
 			throw new RuntimeException(e);
 		}
 
-		SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
-				.setSslContext(sc)
-				.setTlsVersions( new String[]{"TLSv1.2", "TLSv1.3"})
-				.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-				.build();
+		TlsSocketStrategy tlsStrategy = (TlsSocketStrategy) ClientTlsStrategyBuilder.create()
+			.setSslContext(sc)
+			.setTlsVersions("TLSv1.2", "TLSv1.3")
+			.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+			.build();
 
 		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
 		builder.setDefaultRequestConfig(RequestConfig.custom().build());
 
-		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-				.register("https", sslConnectionFactory)
-				.register("http", new PlainConnectionSocketFactory())
-				.build();
-
-		PoolingHttpClientConnectionManager ccm = new PoolingHttpClientConnectionManager(registry);
+		PoolingHttpClientConnectionManager ccm = PoolingHttpClientConnectionManagerBuilder.create()
+			.setTlsSocketStrategy(tlsStrategy)
+			.build();
 
 		int timeout = 60;
 		ccm.setDefaultConnectionConfig(ConnectionConfig.custom()
@@ -121,7 +117,7 @@ public class HttpClientBuilderFactory {
 	}
 
 	static class ComparableEnvironment {
-		private Environment env;
+		private final Environment env;
 		public ComparableEnvironment(Environment env){
 			this.env = env;
 		}
@@ -173,14 +169,11 @@ public class HttpClientBuilderFactory {
 
 	}
 
-
-
-
 	public static HttpClientBuilder createMtlsHttpClientBuilder(Environment env) throws KeyManagementException {
 		KeyManager[] km = clientMtlsCache.get(new ComparableEnvironment(env));
 
 
-		SSLContext sc = null;
+		SSLContext sc;
 		try {
 			sc = SSLContext.getInstance("TLS");
 		} catch (NoSuchAlgorithmException e) {
@@ -189,21 +182,20 @@ public class HttpClientBuilderFactory {
 		}
 		sc.init(km, trustAllCerts, new java.security.SecureRandom());
 
-		SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
-				.setSslContext(sc)
-				.setTlsVersions(new String[]{"TLSv1.2", "TLSv1.3"} )
-				.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-				.build();
+		TlsSocketStrategy tlsStrategy = (TlsSocketStrategy) ClientTlsStrategyBuilder.create()
+			.setSslContext(sc)
+			.setTlsVersions("TLSv1.2", "TLSv1.3")
+			.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+			.build();
 
 		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
 		builder.setDefaultRequestConfig(RequestConfig.custom().build());
 
-		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-				.register("https", sslConnectionFactory)
-				.register("http", new PlainConnectionSocketFactory())
-				.build();
+		Registry<TlsSocketStrategy> registry = RegistryBuilder.<TlsSocketStrategy>create()
+			.register("https", tlsStrategy)
+			.build();
 
-		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+		BasicHttpClientConnectionManager ccm = BasicHttpClientConnectionManager.create(registry);
 		int timeout = 60; // seconds
 		ccm.setConnectionConfig(ConnectionConfig.custom()
 				.setConnectTimeout(Timeout.ofSeconds(timeout))

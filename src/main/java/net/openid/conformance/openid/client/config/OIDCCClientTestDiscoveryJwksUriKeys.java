@@ -23,7 +23,7 @@ public class OIDCCClientTestDiscoveryJwksUriKeys extends AbstractOIDCCClientTest
 	/**
 	 * We will append this random value to the end of the jwks uri to make it random per test
 	 */
-	private String randomJwksUriSuffix = RandomStringUtils.randomAlphabetic(10);
+	private String randomJwksUriSuffix = RandomStringUtils.secure().nextAlphabetic(10);
 
 	@Override
 	protected boolean finishTestIfAllRequestsAreReceived() {

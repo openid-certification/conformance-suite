@@ -24,7 +24,7 @@ public class BuildRedirectToEndSessionEndpoint extends AbstractCondition {
 		}
 
 		// send a front channel request to start things off
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(endSessionEndpoint);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endSessionEndpoint);
 
 		for (String key : endSessionEndpointRequest.keySet()) {
 			JsonElement element = endSessionEndpointRequest.get(key);

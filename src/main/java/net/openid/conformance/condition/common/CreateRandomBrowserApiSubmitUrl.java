@@ -20,7 +20,7 @@ public class CreateRandomBrowserApiSubmitUrl extends AbstractCondition {
 		}
 
 		// create a random submission URL
-		String path = "browser_api/" + RandomStringUtils.randomAlphanumeric(20);
+		String path = "browser_api/" + RandomStringUtils.secure().nextAlphanumeric(20);
 
 		JsonObject o = new JsonObject();
 		o.addProperty("path", path);

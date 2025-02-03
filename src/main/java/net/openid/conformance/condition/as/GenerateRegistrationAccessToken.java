@@ -11,7 +11,7 @@ public class GenerateRegistrationAccessToken extends AbstractCondition {
 	@PostEnvironment(strings = { "registration_access_token" })
 	public Environment evaluate(Environment env) {
 
-		String accessToken = RandomStringUtils.randomAlphanumeric(50);
+		String accessToken = RandomStringUtils.secure().nextAlphanumeric(50);
 
 		logSuccess("Generated registration access token", args("access_token", accessToken));
 

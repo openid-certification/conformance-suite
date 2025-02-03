@@ -22,7 +22,7 @@ public class FAPIBrazilGenerateNewConsentResponse extends AbstractCondition {
 	@PostEnvironment(strings = {"consent_id"}, required = {"consent_response", "consent_response_headers"})
 	public Environment evaluate(Environment env) {
 
-		String consentId = "urn:conformance:oidf:" + RandomStringUtils.randomAlphanumeric(10);
+		String consentId = "urn:conformance:oidf:" + RandomStringUtils.secure().nextAlphanumeric(10);
 
 		env.putString("consent_id", consentId);
 		JsonObject consentResponse = new JsonObject();

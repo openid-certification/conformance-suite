@@ -585,7 +585,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected String createBrowserInteractionPlaceholder(String msg) {
-		String placeholder = RandomStringUtils.randomAlphanumeric(10);
+		String placeholder = RandomStringUtils.secure().nextAlphanumeric(10);
 		if (getRequirements().isEmpty()) {
 			log(msg, args("upload", placeholder, "result", ConditionResult.REVIEW));
 		} else {
@@ -595,7 +595,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected String createBrowserInteractionPlaceholder() {
-		String placeholder = RandomStringUtils.randomAlphanumeric(10);
+		String placeholder = RandomStringUtils.secure().nextAlphanumeric(10);
 		if (getRequirements().isEmpty()) {
 			log(args("upload", placeholder, "result", ConditionResult.REVIEW));
 		} else {

@@ -14,7 +14,7 @@ public class AppendSubToFederationEndpointUrl extends AbstractCondition {
 		String sub = env.getString("expected_sub");
 		String endpoint = env.getString("federation_endpoint_url");
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(endpoint);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
 		if (sub != null) {
 			builder = builder.queryParam("sub", sub);
 		}

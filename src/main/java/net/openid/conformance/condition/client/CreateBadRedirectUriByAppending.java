@@ -19,7 +19,7 @@ public class CreateBadRedirectUriByAppending extends AbstractCondition {
 		}
 
 		// create a random redirect URI, by appending a random path, which shouldn't be registered with the server
-		String badRedirectPath = RandomStringUtils.randomAlphanumeric(10);
+		String badRedirectPath = RandomStringUtils.secure().nextAlphanumeric(10);
 		String redirectUri = baseUrl + "/callback/" + badRedirectPath;
 		env.putString("redirect_uri", redirectUri);
 		env.putString("bad_redirect_path", badRedirectPath);

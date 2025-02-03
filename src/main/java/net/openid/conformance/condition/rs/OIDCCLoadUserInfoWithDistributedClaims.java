@@ -16,7 +16,7 @@ public class OIDCCLoadUserInfoWithDistributedClaims extends AbstractCondition {
 
 		user.addProperty("sub", "user-subject-1234531");
 
-		String accessToken = RandomStringUtils.randomAlphanumeric(20);
+		String accessToken = RandomStringUtils.secure().nextAlphanumeric(20);
 		env.putString("distributed_claims_access_token", accessToken);
 
 		JsonObject distClaims = new JsonObject();

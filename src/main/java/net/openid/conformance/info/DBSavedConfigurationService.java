@@ -53,7 +53,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 		clearOldConfigs(user);
 
 		DBObject document = BasicDBObjectBuilder.start()
-			.add("_id", RandomStringUtils.randomAlphanumeric(30))
+			.add("_id", RandomStringUtils.secure().nextAlphanumeric(30))
 			.add("owner", user)
 			.add("testName", testName)
 			.add("config", config)
@@ -76,7 +76,7 @@ public class DBSavedConfigurationService implements SavedConfigurationService {
 		clearOldConfigs(user);
 
 		DBObject document = BasicDBObjectBuilder.start()
-			.add("_id", RandomStringUtils.randomAlphanumeric(30))
+			.add("_id", RandomStringUtils.secure().nextAlphanumeric(30))
 			.add("owner", user)
 			.add("planName", planName)
 			.add("config", config)
