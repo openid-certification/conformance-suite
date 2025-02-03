@@ -200,7 +200,7 @@ public class Fapi2DPoPNegativeConditions {
 		public void changeClaim(JsonObject claims, Environment env) {
 			String existingJTI = env.getString("jti");
 			if(existingJTI == null || existingJTI.equals("")){
-				existingJTI = RandomStringUtils.randomAlphanumeric(15);
+				existingJTI = RandomStringUtils.secure().nextAlphanumeric(15);
 				env.putString("jti", existingJTI);
 			}
 			claims.addProperty("jti", existingJTI);

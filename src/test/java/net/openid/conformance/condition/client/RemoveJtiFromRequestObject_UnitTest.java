@@ -36,7 +36,7 @@ public class RemoveJtiFromRequestObject_UnitTest {
 
 		JsonObject requestObjectClaims = new JsonObject();
 
-		String jti = RandomStringUtils.randomAlphanumeric(20);
+		String jti = RandomStringUtils.secure().nextAlphanumeric(20);
 
 		requestObjectClaims.addProperty("jti", jti);
 

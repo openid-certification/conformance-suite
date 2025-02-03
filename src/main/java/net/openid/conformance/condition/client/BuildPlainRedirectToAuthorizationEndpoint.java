@@ -30,7 +30,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 		}
 
 		// send a front channel request to start things off
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(authorizationEndpoint);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(authorizationEndpoint);
 
 		for (String key : authorizationEndpointRequest.keySet()) {
 			JsonElement element = authorizationEndpointRequest.get(key);

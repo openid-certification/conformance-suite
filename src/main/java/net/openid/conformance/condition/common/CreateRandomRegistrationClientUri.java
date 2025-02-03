@@ -29,9 +29,9 @@ public class CreateRandomRegistrationClientUri extends AbstractCondition {
 		// https://datatracker.ietf.org/doc/html/rfc7592#appendix-B specifies no particular
 		// form for this uri - we use a random one (rather than one, say, containing the client_id) to
 		// ensure the client does not try to construct the url itself.
-		String path = "clienturi/" + RandomStringUtils.randomAlphanumeric(64);
-		String queryVar = RandomStringUtils.randomAlphanumeric(16);
-		String queryVal = RandomStringUtils.randomAlphanumeric(16);
+		String path = "clienturi/" + RandomStringUtils.secure().nextAlphanumeric(64);
+		String queryVar = RandomStringUtils.secure().nextAlphanumeric(16);
+		String queryVal = RandomStringUtils.secure().nextAlphanumeric(16);
 
 		JsonObject o = new JsonObject();
 		o.addProperty("path", path);

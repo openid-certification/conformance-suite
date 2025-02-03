@@ -15,7 +15,7 @@ public class CheckMatchingCallbackParameters extends AbstractCondition {
 	@PreEnvironment(strings = "redirect_uri", required = "callback_query_params")
 	public Environment evaluate(Environment env) {
 
-		UriComponents redirectUri = UriComponentsBuilder.fromHttpUrl(env.getString("redirect_uri")).build();
+		UriComponents redirectUri = UriComponentsBuilder.fromUriString(env.getString("redirect_uri")).build();
 
 		Map<String, String> params = redirectUri.getQueryParams().toSingleValueMap();
 

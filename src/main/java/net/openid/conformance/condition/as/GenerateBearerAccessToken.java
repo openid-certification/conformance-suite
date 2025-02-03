@@ -11,7 +11,7 @@ public class GenerateBearerAccessToken extends AbstractCondition {
 	@PostEnvironment(strings = { "access_token", "token_type" })
 	public Environment evaluate(Environment env) {
 
-		String accessToken = RandomStringUtils.randomAlphanumeric(50);
+		String accessToken = RandomStringUtils.secure().nextAlphanumeric(50);
 
 		logSuccess("Generated access token", args("access_token", accessToken));
 

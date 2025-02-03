@@ -84,11 +84,11 @@ public class TemplateProcessor {
 		return UUID.randomUUID().toString();
 	}
 	public static String id(String name, Object env){
-		return RandomStringUtils.random(10,false,true);
+		return RandomStringUtils.secure().next(10,false,true);
 	}
 
 	public static String name(String name, Object env){
-		return RandomStringUtils.random(10,true,false);
+		return RandomStringUtils.secure().next(10,true,false);
 	}
 
 
