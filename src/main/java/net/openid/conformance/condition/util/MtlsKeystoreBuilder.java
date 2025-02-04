@@ -42,7 +42,7 @@ public class MtlsKeystoreBuilder {
 			chain.addAll(generateCertificateChainFromDER(caBytes));
 		}
 
-		KeyStore keystore = KeyStore.getInstance("JKS");
+		KeyStore keystore = KeyStore.getInstance("PKCS12");
 		keystore.load(null);
 		keystore.setCertificateEntry("cert-alias", cert);
 		keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
