@@ -12,7 +12,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"and expects a happy path flow, i.e the request must succeed.",
 	profile = "OIDCC",
 	configurationFields = {
-		"ekyc_verified_claims_request"
+		"ekyc_verified_claims_request",
+		"ekyc_unverified_claims_names",
+		"ekyc_verified_claims_names"
 	}
 )
 public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCore {
