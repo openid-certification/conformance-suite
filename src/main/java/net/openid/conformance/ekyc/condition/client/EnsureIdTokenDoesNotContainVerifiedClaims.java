@@ -16,7 +16,7 @@ public class EnsureIdTokenDoesNotContainVerifiedClaims extends AbstractCondition
 			JsonObject verifiedClaims = verifiedClaimsElement.getAsJsonObject();
 			if(verifiedClaims.has("claims")) { // look in the claims object
 				JsonObject claims = verifiedClaims.getAsJsonObject("claims");
-				if(!claims.isEmpty()) {
+				if(!claims.isEmpty()) { // claims can be empty per https://openid.net/specs/openid-ida-verified-claims-1_0.htm - 5.3
 					throw error("id_token unexpectedly contains verified_claims",
 						args("verified_claims", verifiedClaimsElement));
 				}

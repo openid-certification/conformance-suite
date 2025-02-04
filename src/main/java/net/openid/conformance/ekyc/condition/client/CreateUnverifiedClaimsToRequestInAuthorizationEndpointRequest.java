@@ -13,6 +13,7 @@ import java.util.List;
 
 public class CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest extends AbstractAddClaimToAuthorizationEndpointRequest {
 	// as per https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+	// and https://openid.net/specs/openid-connect-4-ida-claims-1_0.html
 	public static final List<String> eKycClaims = List.of(
 		"sub",
 		"name",

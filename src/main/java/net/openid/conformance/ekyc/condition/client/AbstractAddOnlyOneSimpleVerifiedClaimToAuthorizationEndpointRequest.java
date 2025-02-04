@@ -24,6 +24,9 @@ public abstract class AbstractAddOnlyOneSimpleVerifiedClaimToAuthorizationEndpoi
 		verifiedClaims.add("verification", verification);
 		JsonObject claims = new JsonObject();
 
+		// This section of code to get select the verified claim is to ensure interoperability
+		// with Authlete server, since using the first claim from the list does not work
+		// This will be changed to use user configurable claims as requested by the WG
 		boolean hasGivenName = verifiedClaimsSupportedElement.getAsJsonArray().contains(new JsonPrimitive("given_name"));
 		boolean hasFamilyName = verifiedClaimsSupportedElement.getAsJsonArray().contains(new JsonPrimitive("family_name"));
 		JsonElement claimName;
