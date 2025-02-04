@@ -14,6 +14,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoin
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventContainsStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
@@ -207,6 +208,9 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		}
+
+		callAndContinueOnFailure(OIDSSFEnsureEventContainsStreamAudience.class, Condition.ConditionResult.WARNING, "RFC7519-4.1.3");
+
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.4.1");
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.4.1");
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
