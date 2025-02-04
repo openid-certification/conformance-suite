@@ -67,19 +67,38 @@ public class CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest exten
 		if(claimsSupportedElement==null) {
 			throw error("claims_supported element in server configuration is required for this test");
 		}
+		JsonArray claimsSupportedArray = claimsSupportedElement.getAsJsonArray();
 		JsonElement verifiedClaimsSupportedElement = env.getElementFromObject("server", "claims_in_verified_claims_supported");
 		if(verifiedClaimsSupportedElement==null) {
 			throw error("claims_in_verified_claims_supported element in server configuration is required for this test");
 		}
-		//skip sub and anything that exists in claims_in_verified_claims_supported and only add 1 or 2 (even if more than 2 claims match)
-		JsonArray claimsSupportedArray = claimsSupportedElement.getAsJsonArray();
+
+		JsonElement unverifiedClaimsElement = env.getElementFromObject("config", "ekyc_unverified_claims_names");
+		JsonArray requestedUnverifiedClaimsList;
+		int maxRequestedClaims = 1;
+		if(null != unverifiedClaimsElement) {
+			if(unverifiedClaimsElement.isJsonArray()) {
+				requestedUnverifiedClaimsList = unverifiedClaimsElement.getAsJsonArray();
+				maxRequestedClaims = requestedUnverifiedClaimsList.size();
+			} else if(unverifiedClaimsElement.isJsonPrimitive()) {
+				requestedUnverifiedClaimsList = new JsonArray();
+				requestedUnverifiedClaimsList.add(unverifiedClaimsElement);
+			} else {
+				throw error("ekyc_unverified_claims_names is not JSON array or primitive", args("ekyc_unverified_claims_names", unverifiedClaimsElement));
+			}
+		} else {
+			requestedUnverifiedClaimsList = claimsSupportedArray;  // use claims from claims_supported
+		}
+
 		JsonArray verifiedClaimsSupportedArray = verifiedClaimsSupportedElement.getAsJsonArray();
 		int matchedClaimCount = 0;
 		JsonObject unverifiedClaimsToRequest = new JsonObject();
-		for(JsonElement claimName : claimsSupportedArray) {
-			if(verifiedClaimsSupportedArray.contains(claimName)) {
+		for(JsonElement claimName : requestedUnverifiedClaimsList) {
+			// check server supports the claim in claims_supported or claims_in_verified_claims_supported metadata
+			if(!verifiedClaimsSupportedArray.contains(claimName) && !claimsSupportedArray.contains(claimName)) {
 				continue;
 			}
+			//skip sub and anything that doesn't exist in eKycClaims
 			if("sub".equals(OIDFJSON.getString(claimName))) {
 				continue;
 			}
@@ -90,7 +109,7 @@ public class CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest exten
 			claimInfo.addProperty("essential", false);
 			unverifiedClaimsToRequest.add(OIDFJSON.getString(claimName), claimInfo);
 			matchedClaimCount++;
-			if(matchedClaimCount>1) {
+			if(matchedClaimCount > maxRequestedClaims) {
 				break;
 			}
 		}
