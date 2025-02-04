@@ -9,7 +9,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public abstract class AbstractAddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequest extends AbstractAddVerifiedClaimToAuthorizationEndpointRequest {
+public abstract class AbstractAddVerifiedClaimsToAuthorizationEndpointRequest extends AbstractAddVerifiedClaimToAuthorizationEndpointRequest {
 	@Override
 	@PreEnvironment(required = {"server", "authorization_endpoint_request", "config"})
 	@PostEnvironment(required = "authorization_endpoint_request")
