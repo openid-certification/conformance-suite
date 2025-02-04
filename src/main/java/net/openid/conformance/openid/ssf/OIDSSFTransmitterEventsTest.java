@@ -10,7 +10,6 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.WaitFor5Seconds;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoint;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
@@ -23,8 +22,8 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificati
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfVerificationEventToken;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
@@ -69,16 +68,9 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
 			obtainTransmitterAccessToken();
 		});
 
-		try {
-			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
-		} catch (Exception ignore) {
-		}
-		try {
-			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.5");
-		} catch (Exception ignore) {
-		}
+		eventLog.runBlock("Clean stream environment if necessary", () -> {
+			cleanUpStreamConfigurationIfNecessary();
+		});
 
 		SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 		// ensure stream exists
@@ -234,16 +226,12 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
 
 	/**
 	 * Provides a dynamic endpoint for handling SSF Push requests from sent from transmitters.
-	 * @param path
-	 *            The path that was called
-	 * @param req
-	 *            The request that passed to the server
-	 * @param res
-	 *            A response that will be sent from the server
-	 * @param session
-	 *            Session details
-	 * @param requestParts
-	 *            elements from the request parsed out into a json object for use in condition classes
+	 *
+	 * @param path         The path that was called
+	 * @param req          The request that passed to the server
+	 * @param res          A response that will be sent from the server
+	 * @param session      Session details
+	 * @param requestParts elements from the request parsed out into a json object for use in condition classes
 	 * @return
 	 */
 	@Override
