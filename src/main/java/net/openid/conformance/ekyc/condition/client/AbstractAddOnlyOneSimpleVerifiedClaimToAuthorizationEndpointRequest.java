@@ -3,6 +3,7 @@ package net.openid.conformance.ekyc.condition.client;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -22,7 +23,20 @@ public abstract class AbstractAddOnlyOneSimpleVerifiedClaimToAuthorizationEndpoi
 		verification.add("trust_framework", JsonNull.INSTANCE);
 		verifiedClaims.add("verification", verification);
 		JsonObject claims = new JsonObject();
-		JsonElement claimName = verifiedClaimsSupportedElement.getAsJsonArray().get(0);
+
+		// This section of code to get select the verified claim is to ensure interoperability
+		// with Authlete server, since using the first claim from the list does not work
+		// This will be changed to use user configurable claims as requested by the WG
+		boolean hasGivenName = verifiedClaimsSupportedElement.getAsJsonArray().contains(new JsonPrimitive("given_name"));
+		boolean hasFamilyName = verifiedClaimsSupportedElement.getAsJsonArray().contains(new JsonPrimitive("family_name"));
+		JsonElement claimName;
+		if (hasGivenName) {
+			claimName = new JsonPrimitive("given_name");
+		} else if(hasFamilyName) {
+			claimName = new JsonPrimitive("family_name");
+		} else {
+			claimName = verifiedClaimsSupportedElement.getAsJsonArray().get(0);
+		}
 		claims.add(OIDFJSON.getString(claimName), getClaimValue());
 
 		verifiedClaims.add("claims", claims);

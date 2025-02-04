@@ -10,6 +10,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends AbstractCondition {
 
 
@@ -97,26 +100,58 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends
 			verification.add("verification_process", getConstrainableElementWithValue(verificationInUserinfo.get("verification_process")));
 		}
 
-		JsonArray evidencesInUserinfo = verificationInUserinfo.get("evidence").getAsJsonArray();
-		JsonArray evidenceRequest = new JsonArray();
-		for(JsonElement evidenceElementFromUserinfo : evidencesInUserinfo) {
-			JsonObject evidence = new JsonObject();
-			JsonObject evidenceInUserinfo = evidenceElementFromUserinfo.getAsJsonObject();
+		if (verificationInUserinfo.has("evidence")) {
+			JsonArray evidencesInUserinfo = verificationInUserinfo.get("evidence").getAsJsonArray();
+			JsonArray evidenceRequest = new JsonArray();
+			for(JsonElement evidenceElementFromUserinfo : evidencesInUserinfo) {
+				JsonObject evidence = new JsonObject();
+				JsonObject evidenceInUserinfo = evidenceElementFromUserinfo.getAsJsonObject();
 
-			//type
-			JsonObject evidenceType = new JsonObject();
-			evidenceType.addProperty("value", OIDFJSON.getString(evidenceInUserinfo.get("type")));
-			evidence.add("type", evidenceType);
-			//TODO add evidence type specific items
+				//type
+				JsonObject evidenceType = new JsonObject();
+				evidenceType.addProperty("value", OIDFJSON.getString(evidenceInUserinfo.get("type")));
+				evidence.add("type", evidenceType);
+				//TODO add evidence type specific items (doucument, electornic_record, vouch, electronic_signature)
+				if(OIDFJSON.getString(evidenceInUserinfo.get("type")).equals("document")) {
+					if(evidenceInUserinfo.has("document_details")) {
+						JsonObject documentDetailsInEvidence = evidenceInUserinfo.getAsJsonObject("document_details");
+						JsonObject documentDetails = new JsonObject();
+						documentDetails.add("type", getConstrainableElementWithValue(documentDetailsInEvidence.get("type")));
 
-			//attachments
-			if(evidenceInUserinfo.has("attachments")) {
-				evidence.add("attachments", JsonNull.INSTANCE);
+						List<String> documentDetailsElements = Arrays.asList("document_number", "serial_number", "date_of_issuance", "date_of_expiry" );
+						for(String documentDetailsElement : documentDetailsElements ) {
+							if(documentDetailsInEvidence.has(documentDetailsElement)) {
+								documentDetails.add(documentDetailsElement, JsonNull.INSTANCE);
+							}
+						}
+
+						if(documentDetailsInEvidence.has("issuer")) {
+							JsonObject issuer = new JsonObject();
+							JsonObject issuerInDocumentDetails = documentDetailsInEvidence.getAsJsonObject("issuer");
+							List<String> issuerElements = Arrays.asList("name", "country_code", "jurisdiction", "date_of_issuance", "date_of_expiry" /* "address */);
+							for(String issuerElement : issuerElements) {
+								if(issuerInDocumentDetails.has(issuerElement)) {
+									issuer.add(issuerElement, JsonNull.INSTANCE);
+								}
+							}
+							documentDetails.add("issuer", issuer);
+						}
+
+						// TODO add derived claims object
+
+						evidence.add("document_details", documentDetails);
+					}
+				}
+
+				//attachments
+				if(evidenceInUserinfo.has("attachments")) {
+					evidence.add("attachments", JsonNull.INSTANCE);
+				}
+
+				evidenceRequest.add(evidence);
 			}
-
-			evidenceRequest.add(evidence);
+			verification.add("evidence", evidenceRequest);
 		}
-		verification.add("evidence", evidenceRequest);
 		rv.add("verification", verification);
 		return rv;
 	}

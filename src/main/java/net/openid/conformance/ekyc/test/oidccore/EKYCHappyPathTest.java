@@ -7,7 +7,7 @@ import net.openid.conformance.ekyc.condition.client.EnsureVerifiedClaimsSupporte
 import net.openid.conformance.ekyc.condition.client.ValidateAttachmentsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDigestAlgorithmsSupportedInServerConfiguration;
-import net.openid.conformance.ekyc.condition.client.ValidateDocumentsMethodsSupportedInServerConfiguration;
+import net.openid.conformance.ekyc.condition.client.ValidateDocumentsCheckMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsValidationMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsVerificationMethodsSupportedInServerConfiguration;
@@ -52,9 +52,9 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 		//documents_supported: JSON array containing all identity documents utilized by the OP for identity verification.
 		validateDocumentsSupportedInServerConfiguration();
 
-		//documents_methods_supported: OPTIONAL. JSON array containing the validation & verification process the
+		//documents_check_methods_supported: OPTIONAL. JSON array containing the validation & verification process the
 		// OP supports (see @!predefined_values).
-		validateDocumentsMethodsSupportedInServerConfiguration();
+		validateDocumentsCheckMethodsSupportedInServerConfiguration();
 
 		validateDocumentsValidationMethodsSupportedInServerConfiguration();
 
@@ -82,8 +82,8 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 		callAndContinueOnFailure(ValidateDocumentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
-	protected void validateDocumentsMethodsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDocumentsMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+	protected void validateDocumentsCheckMethodsSupportedInServerConfiguration() {
+		callAndContinueOnFailure(ValidateDocumentsCheckMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
 	protected void validateDocumentsValidationMethodsSupportedInServerConfiguration() {

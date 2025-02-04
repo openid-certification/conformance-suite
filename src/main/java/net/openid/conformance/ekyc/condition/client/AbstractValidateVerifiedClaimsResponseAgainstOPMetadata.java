@@ -54,11 +54,14 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 					"trust_frameworks_supported", supportedTrustFrameworks));
 		}
 
-		JsonArray evidenceSupported = opMetadata.get("evidence_supported").getAsJsonArray();
+		JsonArray evidenceSupported = opMetadata.get("evidence_supported") != null ? opMetadata.get("evidence_supported").getAsJsonArray() : null;
 		JsonElement evidenceArrayElement = verification.get("evidence");
 		if(evidenceArrayElement!=null) {
 			if(!evidenceArrayElement.isJsonArray()) {
 				throw error("evidence must be an array", args("actual", evidenceArrayElement));
+			}
+			if(evidenceSupported == null) {
+				throw error("Evidence is returned but evidence_supported could not be found in OP metadata", args("evidence", evidenceArrayElement));
 			}
 			JsonArray evidences = evidenceArrayElement.getAsJsonArray();
 			for (JsonElement evidenceElement : evidences) {
@@ -72,9 +75,7 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				}
 			}
 			validateDocumentsSupported (opMetadata, evidences);
-			validateDocumentsMethodsSupported (opMetadata, evidences);
-			validateDocumentsValidationMethodsSupported (opMetadata, evidences);
-			validateDocumentsVerificationMethodsSupported (opMetadata, evidences);
+			validateEvidenceCheckDetailsCheckMethodsSupported(opMetadata, evidences);
 			validateElectronicRecordsSupported (opMetadata, evidences);
 			validateAttachmentsSupported (opMetadata, evidences);
 			validateDigestAlgorithmsSupported (opMetadata, evidences);
@@ -99,23 +100,20 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 	}
 
 	protected void validateDocumentsSupported(JsonObject opMetadata, JsonArray evidences){
-		//documents_supported: REQUIRED when evidence_supported contains "document" or "id_document".
+		//documents_supported: REQUIRED when evidence_supported contains "document".
 		// JSON array containing all identity document types utilized by the OP for identity verification.
 		JsonElement documentsSupportedElement = opMetadata.get("documents_supported");
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.get("type").equals(new JsonPrimitive("id_document")) ||
-				evidence.get("type").equals(new JsonPrimitive("document"))) {
-				JsonObject documentObject = null;
-				if(evidence.has("document")) {
-					documentObject = evidence.get("document").getAsJsonObject();
-				} else if(evidence.has("id_document")) {
-					documentObject = evidence.get("id_document").getAsJsonObject();
+			if (evidence.get("type").equals(new JsonPrimitive("document"))) {
+				JsonObject documentDetailsObject = null;
+				if(evidence.has("document_details")) {
+					documentDetailsObject = evidence.get("document_details").getAsJsonObject();
 				}
-				if(documentObject==null) {
-					throw error("Evidence does not contain document or id_document", args("evidence", evidenceElement));
+				if(documentDetailsObject==null) {
+					throw error("Evidence does not contain document_details", args("evidence", evidenceElement));
 				}
-				JsonElement documentType = documentObject.get("type");
+				JsonElement documentType = documentDetailsObject.get("type");
 
 				if(documentsSupportedElement==null) {
 					throw error("Evidence type is " + evidence.get("type") + " but documents_supported could not be found in OP metadata");
@@ -133,90 +131,43 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 		}
 	}
 
-	protected void validateDocumentsMethodsSupported(JsonObject opMetadata, JsonArray evidences){
-		//documents_methods_supported: OPTIONAL. JSON array containing the validation &
-		// verification process the OP supports (see @!predefined_values)
-		JsonElement docMethodsSupportedElement = opMetadata.get("documents_methods_supported");
+	protected void validateEvidenceCheckDetailsCheckMethodsSupported(JsonObject opMetadata, JsonArray evidences){
+		//documents_check_methods_supported: OPTIONAL. JSON array containing the  check methods the OP
+		// supports for evidences types "document", "electronic_record, "vouch"
+		// (see @!predefined_values)
+		JsonElement docCheckMethodsSupportedElement = opMetadata.get("documents_check_methods_supported");
 		for (JsonElement evidenceElement : evidences) {
 			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.get("type").equals(new JsonPrimitive("document")) ||
-				evidence.get("type").equals(new JsonPrimitive("id_document"))) {
-				JsonElement method = evidence.get("method");
-				if (method == null) {
+			// only type (document, electronic_record, vouch) has a check_details, electronic_signature does not have one
+			JsonElement evidenceType = evidence.get("type");
+			if (evidenceType.equals(new JsonPrimitive("document")) ||
+				evidenceType.equals(new JsonPrimitive("electronic_record")) ||
+				evidenceType.equals(new JsonPrimitive("vouch"))) {
+				JsonObject checkDetails = evidence.getAsJsonObject("check_details");
+				if(checkDetails == null) {
+					log("evidence does not contain check_details", args("evidence", evidence));
+					continue;
+				}
+				JsonElement checkMethod = checkDetails.get("check_method");
+				if (checkMethod == null) {
+					log("evidence does not contain check_details.check_method", args("evidence", evidence));
 					continue;
 				}
 
-				if(docMethodsSupportedElement==null) {
-					throw error("Evidence document method is " + method + " but documents_methods_supported could not be found in OP metadata");
+				if(docCheckMethodsSupportedElement==null) {
+					throw error("Evidence document check method is " + checkMethod + " but documents_check_methods_supported could not be found in OP metadata");
 				}
 
-				JsonArray docMethodsSupported = docMethodsSupportedElement.getAsJsonArray();
-				if (docMethodsSupported.contains(method)) {
-					logSuccess("method is one of the supported values advertised in OP metadata",
-						args("method", method, "documents_methods_supported", docMethodsSupported));
+				JsonArray docCheckMethodsSupported = docCheckMethodsSupportedElement.getAsJsonArray();
+				if (docCheckMethodsSupported.contains(checkMethod)) {
+					logSuccess("check method is one of the supported values advertised in OP metadata",
+						args("check method", checkMethod, "documents_check_methods_supported", docCheckMethodsSupported));
 				} else {
-					throw error("method is not one of the supported values advertised in OP metadata",
-						args("method", method, "documents_methods_supported", docMethodsSupported));
+					throw error("check method is not one of the supported values advertised in OP metadata",
+						args("check method", checkMethod, "documents_check_methods_supported", docCheckMethodsSupported));
 				}
 			}
 		}
-	}
-
-	protected void validateDocumentsValidationMethodsSupported(JsonObject opMetadata, JsonArray evidences) {
-		//documents_validation_methods_supported: OPTIONAL. JSON array containing the document
-		// validation methods the OP supports (see @!predefined_values).
-		JsonElement validationMethodsSupportedElement = opMetadata.get("documents_validation_methods_supported");
-		for (JsonElement evidenceElement : evidences) {
-			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.has("validation_method")) {
-				JsonObject validationMethod = evidence.get("validation_method").getAsJsonObject();
-				JsonElement validationType = validationMethod.get("type");
-
-				if(validationMethodsSupportedElement==null) {
-					throw error("Evidence validation_method type is " + validationType + " but documents_validation_methods_supported could not be found in OP metadata");
-				}
-
-				JsonArray validationMethodsSupported = validationMethodsSupportedElement.getAsJsonArray();
-				if (validationMethodsSupported.contains(validationType)) {
-					logSuccess("Evidence validation_method type is one of the supported values advertised in OP metadata",
-						args("validation_method_type", validationType,
-							"documents_validation_methods_supported", validationMethodsSupported));
-				} else {
-					throw error("Evidence validation_method type is not one of the supported values advertised in OP metadata",
-						args("validation_method_type", validationType,
-							"documents_validation_methods_supported", validationMethodsSupported));
-				}
-			}
-		}
-	}
-
-	protected void validateDocumentsVerificationMethodsSupported(JsonObject opMetadata, JsonArray evidences) {
-		//documents_verification_methods_supported: OPTIONAL. JSON array containing the verification
-		// methods the OP supports (see @!predefined_values).
-		JsonElement verificationMethodsSupportedElement = opMetadata.get("documents_verification_methods_supported");
-		for (JsonElement evidenceElement : evidences) {
-			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if (evidence.has("verification_method")) {
-				JsonObject verificationMethod = evidence.get("verification_method").getAsJsonObject();
-				JsonElement verificationType = verificationMethod.get("type");
-
-				if(verificationMethodsSupportedElement==null) {
-					throw error("Evidence verification_method type is " + verificationType + " but documents_verification_methods_supported could not be found in OP metadata");
-				}
-
-				JsonArray verificationMethodsSupported = verificationMethodsSupportedElement.getAsJsonArray();
-				if (verificationMethodsSupported.contains(verificationType)) {
-					logSuccess("verification_method type is one of the supported values advertised in OP metadata",
-						args("verification_method_type", verificationType,
-							"documents_verification_methods_supported", verificationMethodsSupported));
-				} else {
-					throw error("verification_method type is not one of the supported values advertised in OP metadata",
-						args("verification_method_type", verificationType,
-							"documents_verification_methods_supported", verificationMethodsSupported));
-				}
-			}
-		}
-
 	}
 
 	protected void validateElectronicRecordsSupported (JsonObject opMetadata, JsonArray evidences) {
@@ -367,19 +318,18 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				}
 			}
 
-			//documents_supported: REQUIRED when evidence_supported contains "document" or "id_document".
+			//documents_supported: REQUIRED when evidence_supported contains "document"".
 			// JSON array containing all identity document types utilized by the OP for identity verification.
-			if (evidenceSupported.contains(new JsonPrimitive("document")) || evidenceSupported.contains(new JsonPrimitive("id_document"))) {
+			if (evidenceSupported.contains(new JsonPrimitive("document"))) {
 				JsonElement documentsSupportedElement = opMetadata.get("documents_supported");
 				if(documentsSupportedElement==null) {
-					throw error("documents_supported is REQUIRED when evidence_supported contains document or id_document " +
+					throw error("documents_supported is REQUIRED when evidence_supported contains document" +
 						"but documents_supported could not be found in OP metadata");
 				}
 				JsonArray documentsSupported = documentsSupportedElement.getAsJsonArray();
 				for (JsonElement evidenceElement : evidences) {
 					JsonObject evidence = evidenceElement.getAsJsonObject();
-					if (evidence.get("type").equals(new JsonPrimitive("id_document")) ||
-						evidence.get("type").equals(new JsonPrimitive("document"))) {
+					if (evidence.get("type").equals(new JsonPrimitive("document"))) {
 						JsonObject documentObject = evidence.get("document").getAsJsonObject();
 						JsonElement documentType = documentObject.get("type");
 						if (documentsSupported.contains(documentType)) {
@@ -398,8 +348,7 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				JsonArray docMethodsSupported = opMetadata.get("documents_methods_supported").getAsJsonArray();
 				for (JsonElement evidenceElement : evidences) {
 					JsonObject evidence = evidenceElement.getAsJsonObject();
-					if (evidence.get("type").equals(new JsonPrimitive("document")) ||
-						evidence.get("type").equals(new JsonPrimitive("id_document"))) {
+					if (evidence.get("type").equals(new JsonPrimitive("document"))) {
 						JsonElement method = evidence.get("method");
 						if (docMethodsSupported.contains(method)) {
 							logSuccess("method is one of the supported values advertised in OP metadata",

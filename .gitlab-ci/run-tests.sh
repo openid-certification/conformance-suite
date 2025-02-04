@@ -364,7 +364,7 @@ makeCIBATest() {
 }
 
 makeEkycTests() {
-    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=mtls][server_metadata=discovery][response_type=code][client_registration=static_client][response_mode=default] yesdotcom-ekyc.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=private_key_jwt][server_metadata=discovery][response_type=code][client_registration=dynamic_client][response_mode=default] authlete-ekyc-privatekey.json"
 }
 
 makeFederationTests() {

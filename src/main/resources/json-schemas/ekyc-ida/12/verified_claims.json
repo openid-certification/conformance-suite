@@ -1,0 +1,577 @@
+{
+    "$id": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/verified_claims.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "_claim_sources": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/aggregated_claims"
+                },
+                {
+                    "$ref": "#/$defs/distributed_claims"
+                }
+            ]
+        },
+        "aggregated_claims": {
+            "required": [
+                "JWT"
+            ],
+            "properties": {
+                "JWT": {
+                    "type": "string"
+                }
+            }
+        },
+        "attachments": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {
+                        "$ref": "#/$defs/external_attachment"
+                    },
+                    {
+                        "$ref": "#/$defs/embedded_attachment"
+                    }
+                ]
+            },
+            "minItems": 1
+        },
+        "check_details": {
+            "type": "array",
+            "prefixItems": [
+                {
+                    "check_id": {
+                        "type": "string"
+                    },
+                    "check_method": {
+                        "type": "string"
+                    },
+                    "organization": {
+                        "type": "string"
+                    },
+                    "time": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            ]
+        },
+        "digest": {
+            "type": "object",
+            "required": [
+                "alg",
+                "value"
+            ],
+            "properties": {
+                "alg": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string",
+                    "contentEncoding": "base64"
+                }
+            }
+        },
+        "distributed_claims": {
+            "required": [
+                "endpoint",
+                "access_token"
+            ],
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                }
+            }
+        },
+        "distributed_claims_available_def": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+                "$ref": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/verified_claims_request.json#/$defs/verified_claims_def"
+            }
+        },
+        "document_details": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "date_of_expiry": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "date_of_issuance": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "document_number": {
+                    "$ref": "#/$defs/document_number"
+                },
+                "issuer": {
+                    "type": "object",
+                    "properties": {
+                        "country": {
+                            "type": "string"
+                        },
+                        "country_code": {
+                            "type": "string"
+                        },
+                        "formatted": {
+                            "type": "string"
+                        },
+                        "jurisdiction": {
+                            "type": "string"
+                        },
+                        "locality": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "postal_code": {
+                            "type": "string"
+                        },
+                        "region": {
+                            "type": "string"
+                        },
+                        "street_address": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "number": {
+                    "$ref": "#/$defs/document_number"
+                },
+                "serial_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "document_number": {
+            "type": "string"
+        },
+        "embedded_attachment": {
+            "type": "object",
+            "required": [
+                "content_type",
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "contentEncoding": "base64"
+                },
+                "content_type": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "txn": {
+                    "type": "string"
+                }
+            }
+        },
+        "evidence": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "electronic_signature",
+                        "document",
+                        "electronic_record",
+                        "vouch"
+                    ]
+                },
+                "attachments": {
+                    "$ref": "#/$defs/attachments"
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "value": "electronic_signature"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "derived_claims": {
+                                "$ref": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json#/$defs/claims_type"
+                            },
+                            "issuer": {
+                                "type": "string"
+                            },
+                            "serial_number": {
+                                "type": "string"
+                            },
+                            "signature_type": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "else": true
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "value": "document"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "check_details": {
+                                "$ref": "#/$defs/check_details"
+                            },
+                            "derived_claims": {
+                                "$ref": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json#/$defs/claims_type"
+                            },
+                            "document_details": {
+                                "$ref": "#/$defs/document_details"
+                            },
+                            "method": {
+                                "type": "string"
+                            },
+                            "time": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    },
+                    "else": true
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "value": "electronic_record"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "check_details": {
+                                "$ref": "#/$defs/check_details"
+                            },
+                            "derived_claims": {
+                                "$ref": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json#/$defs/claims_type"
+                            },
+                            "record": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "created_at": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "date_of_expiry": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "source": {
+                                        "type": "object",
+                                        "properties": {
+                                            "country": {
+                                                "type": "string"
+                                            },
+                                            "country_code": {
+                                                "type": "string"
+                                            },
+                                            "formatted": {
+                                                "type": "string"
+                                            },
+                                            "jurisdiction": {
+                                                "type": "string"
+                                            },
+                                            "locality": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "postal_code": {
+                                                "type": "string"
+                                            },
+                                            "region": {
+                                                "type": "string"
+                                            },
+                                            "street_address": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "time": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    },
+                    "else": true
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "value": "vouch"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "attestation": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "date_of_expiry": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "date_of_issuance": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "reference_number": {
+                                        "type": "string"
+                                    },
+                                    "voucher": {
+                                        "type": "object",
+                                        "properties": {
+                                            "birthdate": {
+                                                "type": "string",
+                                                "format": "date"
+                                            },
+                                            "country": {
+                                                "type": "string"
+                                            },
+                                            "formatted": {
+                                                "type": "string"
+                                            },
+                                            "locality": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "occupation": {
+                                                "type": "string"
+                                            },
+                                            "organization": {
+                                                "type": "string"
+                                            },
+                                            "postal_code": {
+                                                "type": "string"
+                                            },
+                                            "region": {
+                                                "type": "string"
+                                            },
+                                            "street_address": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "check_details": {
+                                "$ref": "#/$defs/check_details"
+                            },
+                            "derived_claims": {
+                                "$ref": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json#/$defs/claims_type"
+                            },
+                            "time": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    },
+                    "else": true
+                }
+            ]
+        },
+        "external_attachment": {
+            "type": "object",
+            "required": [
+                "digest",
+                "url"
+            ],
+            "properties": {
+                "access_token": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "digest": {
+                    "$ref": "#/$defs/digest"
+                },
+                "expires_in": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "txn": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri"
+                }
+            }
+        },
+        "verified_claims_def": {
+            "type": "object",
+            "required": [
+                "verification",
+                "claims"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "claims": {
+                    "$ref": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json#/$defs/claims_type"
+                },
+                "verification": {
+                    "type": "object",
+                    "required": [
+                        "trust_framework"
+                    ],
+                    "additionalProperties": true,
+                    "properties": {
+                        "assurance_level": {
+                            "type": "string"
+                        },
+                        "assurance_process": {
+                            "type": "object",
+                            "properties": {
+                                "assurance_details": {
+                                    "type": "array",
+                                    "prefixItems": [
+                                        {
+                                            "assurance_classification": {
+                                                "type": "string"
+                                            },
+                                            "assurance_type": {
+                                                "type": "string"
+                                            },
+                                            "evidence_ref": {
+                                                "type": "array",
+                                                "items": [
+                                                    {
+                                                        "check_id": {
+                                                            "type": "string"
+                                                        },
+                                                        "evidence_metadata": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "evidence_classification": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                "policy": {
+                                    "type": "string"
+                                },
+                                "procedure": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "evidence": {
+                            "type": "array",
+                            "items": {
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/$defs/evidence"
+                                    }
+                                ]
+                            },
+                            "minItems": 1
+                        },
+                        "time": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "trust_framework": {
+                            "type": "string"
+                        },
+                        "verification_process": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "additionalProperties": true,
+    "properties": {
+        "_claim_names": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "verified_claims": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "$ref": "#/$defs/distributed_claims_available_def"
+                        }
+                    ]
+                }
+            }
+        },
+        "_claim_sources": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+                "$ref": "#/$defs/_claim_sources"
+            }
+        },
+        "verified_claims": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/verified_claims_def"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/verified_claims_def"
+                    }
+                }
+            ]
+        }
+    }
+}

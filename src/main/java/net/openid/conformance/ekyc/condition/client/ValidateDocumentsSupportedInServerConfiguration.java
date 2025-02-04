@@ -9,17 +9,20 @@ import net.openid.conformance.testmodule.Environment;
 
 public class ValidateDocumentsSupportedInServerConfiguration extends AbstractCondition {
 
-	//documents_supported: REQUIRED when evidence_supported contains "document" or "id_document".
+	//documents_supported: REQUIRED when evidence_supported contains "document".
 	// JSON array containing all identity document types utilized by the OP for identity verification.
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
+		if(null == env.getElementFromObject("server", "evidence_supported")) {
+			logSuccess("evidence_supported in authorization server metadata is not set");
+			return env;
+		}
 		JsonArray evidenceSupported = getJsonArrayFromEnvironment(env, "server", "evidence_supported", "evidence_supported in authorization server metadata");
 		JsonElement documentsSupportedElement = env.getElementFromObject("server", "documents_supported");
-		if(evidenceSupported.contains(new JsonPrimitive("document")) ||
-			evidenceSupported.contains(new JsonPrimitive("id_document"))){
+		if(evidenceSupported.contains(new JsonPrimitive("document"))){
 			if(documentsSupportedElement==null) {
-				throw error("documents_supported is required when evidence_supported contains document or id_document");
+				throw error("documents_supported is required when evidence_supported contains document");
 			}
 			if(documentsSupportedElement.isJsonArray()){
 				//TODO I assumed this must have at least one entry
