@@ -16,11 +16,13 @@ public class EnsureUserinfoDoesNotContainVerifiedClaims extends AbstractConditio
 		String userinfoResponse = env.getString("resource_endpoint_response");
 		JsonObject parsedUserinfo = JsonParser.parseString(userinfoResponse).getAsJsonObject();
 		if(parsedUserinfo.has("verified_claims")) {
-
 			JsonObject verifiedClaims = parsedUserinfo.getAsJsonObject("verified_claims");
-			if(!verifiedClaims.isEmpty()) {   // empty verified_claims object is valid
-				throw error("userinfo response unexpectedly contains verified_claims",
-					args("userinfo", parsedUserinfo));
+			if(verifiedClaims.has("claims")) {
+				JsonObject claims = verifiedClaims.getAsJsonObject("claims");
+				if(!claims.isEmpty()) { // claims may be empty per https://openid.net/specs/openid-ida-verified-claims-1_0.htm - 5.3
+					throw error("userinfo response unexpectedly contains verified_claims",
+						args("userinfo", parsedUserinfo));
+				}
 			}
 		}
 		logSuccess("userinfo does not contain verified_claims as expected");
