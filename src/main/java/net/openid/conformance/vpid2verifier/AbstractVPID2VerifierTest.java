@@ -34,10 +34,8 @@ import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
-import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientIdScheme;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
-import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
@@ -344,14 +342,6 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, ConditionResult.FAILURE, "RFC7517-9.2");
 	}
 
-
-	protected void validateAuthorizationCodeGrantType() {
-		callAndStopOnFailure(ValidateAuthorizationCode.class, "OIDCC-3.1.3.2");
-
-		callAndContinueOnFailure(ValidateRedirectUriForTokenEndpointRequest.class, ConditionResult.FAILURE, "OIDCC-3.1.3.2");
-
-	}
-
 	protected void fetchAndProcessRequestUri() {
 		callAndStopOnFailure(FetchRequestUriAndExtractRequestObject.class, "OIDCC-6.2");
 		callAndStopOnFailure(EnsureRequestUriIsHttps.class, "OIDCC-6.2");
@@ -571,17 +561,6 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 	 */
 	protected void customizeAuthorizationEndpointResponseParams() {
 
-	}
-
-	protected Object generateFormPostResponse() {
-		JsonObject responseParams = env.getObject("authorization_endpoint_response_params");
-		String formActionUrl = OIDFJSON.getString(responseParams.remove("redirect_uri"));
-
-		return new ModelAndView("formPostResponseMode",
-			ImmutableMap.of(
-				"formAction", formActionUrl,
-				"formParameters", responseParams
-			));
 	}
 
 	protected void redirectFromAuthorizationEndpoint() {
