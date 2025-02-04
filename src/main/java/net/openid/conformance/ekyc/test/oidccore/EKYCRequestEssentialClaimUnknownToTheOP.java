@@ -14,6 +14,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		" The unknown claim must be omitted from responses.",
 	profile = "OIDCC",
 	configurationFields = {
+		"ekyc_unverified_claims_names",
+		"ekyc_verified_claims_names"
 	}
 )
 public class EKYCRequestEssentialClaimUnknownToTheOP extends AbstractEKYCTestWithOIDCCore {

@@ -16,7 +16,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"This test will be skipped if userinfo data is not provided in configuration.",
 	profile = "OIDCC",
 	configurationFields = {
-		"ekyc_userinfo"
+		"ekyc_userinfo",
+		"ekyc_unverified_claims_names",
+		"ekyc_verified_claims_names"
 	}
 )
 public class EKYCTestUserinfoContainsDataNotAdvertisedInOPMetadata extends AbstractEKYCTestWithOIDCCore {
