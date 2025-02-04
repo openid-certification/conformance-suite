@@ -1,7 +1,7 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingEmptyJsonObject;
+import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsToAuthorizationEndpointRequestUsingEmptyJsonObject;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -21,6 +21,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class EKYCHappyPathTestEmptyObjects extends AbstractEKYCTestWithOIDCCore {
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingEmptyJsonObject.class, Condition.ConditionResult.WARNING, "IA-6");
+		callAndContinueOnFailure(AddVerifiedClaimsToAuthorizationEndpointRequestUsingEmptyJsonObject.class, Condition.ConditionResult.WARNING, "IA-6");
 	}
 }
