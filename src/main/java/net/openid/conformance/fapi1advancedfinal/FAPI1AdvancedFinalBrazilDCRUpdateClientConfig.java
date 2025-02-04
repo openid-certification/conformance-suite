@@ -87,6 +87,7 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfig extends AbstractFAPI1
 		eventLog.startBlock("Try to change redirect uri using bad MTLS certificate");
 		callAndStopOnFailure(GenerateFakeMTLSCertificate.class);
 		env.mapKey("mutual_tls_authentication", "fake_mutual_tls_authentication");
+		env.putString("fresh_mtls_keymanager", "true");
 		updateClientConfigWithTlsIssue();
 		env.unmapKey("mutual_tls_authentication");
 
@@ -94,6 +95,7 @@ public class FAPI1AdvancedFinalBrazilDCRUpdateClientConfig extends AbstractFAPI1
 		env.mapKey("mutual_tls_authentication", "none_existent_key");
 		updateClientConfigWithTlsIssue();
 		env.unmapKey("mutual_tls_authentication");
+		env.putString("fresh_mtls_keymanager", "false");
 
 		updateClientConfigWithBadAccessToken();
 

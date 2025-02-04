@@ -21,7 +21,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue extends Abstr
 	@Override
 	protected void callRegistrationEndpoint() {
 		mapToWrongMTLS();
-
+		env.putString("fresh_mtls_keymanager", "true");
 		eventLog.startBlock("Call dynamic client registration endpoint with no/bad certificate");
 
 		callAndStopOnFailure(CallDynamicRegistrationEndpointAllowingTLSFailure.class);
@@ -42,7 +42,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCRMTLSIssue extends Abstr
 		}
 
 		env.unmapKey("mutual_tls_authentication");
-
+		env.putString("fresh_mtls_keymanager", "false");
 		eventLog.startBlock("Call dynamic client registration endpoint with correct certificate");
 
 		super.callRegistrationEndpoint();

@@ -21,6 +21,7 @@ public abstract class AbstractFAPI2SPID2BrazilDCRMTLSIssue extends AbstractFAPI2
 	@Override
 	protected void callRegistrationEndpoint() {
 		mapToWrongMTLS();
+		env.putString("fresh_mtls_keymanager", "true");
 
 		eventLog.startBlock("Call dynamic client registration endpoint with no/bad certificate");
 
@@ -42,6 +43,7 @@ public abstract class AbstractFAPI2SPID2BrazilDCRMTLSIssue extends AbstractFAPI2
 		}
 
 		env.unmapKey("mutual_tls_authentication");
+		env.putString("fresh_mtls_keymanager", "false");
 
 		eventLog.startBlock("Call dynamic client registration endpoint with correct certificate");
 
@@ -54,6 +56,7 @@ public abstract class AbstractFAPI2SPID2BrazilDCRMTLSIssue extends AbstractFAPI2
 
 		eventLog.startBlock("Call client configuration endpoint with no/bad certificate");
 		mapToWrongMTLS();
+		env.putString("fresh_mtls_keymanager", "true");
 
 		callAndStopOnFailure(CallClientConfigurationEndpointAllowingTLSFailure.class, "OIDCD-4.2");
 		boolean sslError = env.getBoolean(CallClientConfigurationEndpointAllowingTLSFailure.RESPONSE_SSL_ERROR_KEY);
@@ -80,7 +83,7 @@ public abstract class AbstractFAPI2SPID2BrazilDCRMTLSIssue extends AbstractFAPI2
 		callAndContinueOnFailure(UnregisterDynamicallyRegisteredClientExpectingFailure.class, Condition.ConditionResult.FAILURE, "BrazilOBDCR-9.3.2-4", "RFC7592-2.3");
 
 		env.unmapKey("mutual_tls_authentication");
-
+		env.putString("fresh_mtls_keymanager", "false");
 		eventLog.startBlock("Deregister client");
 
 		deleteClient();
