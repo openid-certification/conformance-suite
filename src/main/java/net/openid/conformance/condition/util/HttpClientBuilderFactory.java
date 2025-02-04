@@ -177,7 +177,13 @@ public class HttpClientBuilderFactory {
 
 
 	public static HttpClientBuilder createMtlsHttpClientBuilder(Environment env) throws KeyManagementException {
-		KeyManager[] km = clientMtlsCache.get(new ComparableEnvironment(env));
+		KeyManager[] km = null;
+		try {
+			km = MtlsKeystoreBuilder.configureMtls(env);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		//clientMtlsCache.get(new ComparableEnvironment(env));
 
 
 		SSLContext sc = null;
