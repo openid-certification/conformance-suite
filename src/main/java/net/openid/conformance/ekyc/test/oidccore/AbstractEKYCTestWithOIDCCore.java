@@ -3,7 +3,7 @@ package net.openid.conformance.ekyc.test.oidccore;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
-import net.openid.conformance.ekyc.condition.client.AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingJsonNull;
+import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromIdToken;
@@ -32,7 +32,7 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerTe
 	}
 
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequestUsingJsonNull.class, Condition.ConditionResult.WARNING, "IA-6");
+		callAndContinueOnFailure(AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull.class, Condition.ConditionResult.WARNING, "IA-6");
 	}
 
 	@Override
