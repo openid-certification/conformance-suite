@@ -1547,16 +1547,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 CLIENT_CERT=/tmp/conformance_tests_client.crt
 echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.cert}\n-----END CERTIFICATE-----" > "$CLIENT_CERT"
 CLIENT_KEY=/tmp/conformance_tests_client.key
-echo "-----BEGIN PRIVATE KEY-----\n${requestDescription.request_mutual_tls.key}\n-----END PRIVATE KEY-----" > "$CLIENT_KEY"
+echo "-----BEGIN PRIVATE KEY-----\n${requestDescription.request_mutual_tls.key}\n-----END PRIVATE KEY-----\n" > "$CLIENT_KEY"
 `;
 
                 if (requestMutualTls.ca) {
+                    // add CA cert to client_cert file
                     mtlsSetupProlog += `
-CA_CERT=/tmp/conformance_tests_client_ca.key
-echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.ca}\n-----END CERTIFICATE-----" > "$CA_CERT"
+echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.ca}\n-----END CERTIFICATE-----" >> "$CLIENT_CERT"
 `;
-
-                    mtlsParams += ` --cacert \"$CA_CERT\"`;
                 }
 
                 curlCommandProlog += mtlsSetupProlog
