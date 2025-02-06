@@ -1,7 +1,6 @@
 package net.openid.conformance.runner;
 
 import com.google.common.base.Strings;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.JsonObject;
 import com.vdurmont.semver4j.Semver;
 import io.swagger.v3.oas.annotations.Operation;
@@ -131,7 +130,7 @@ public class TestRunner implements DataUtils {
 	@Autowired
 	private VariantService variantService;
 
-	private ExecutorService executorService = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("test-executor-%d").build());
+	private ExecutorService executorService = Executors.newCachedThreadPool();
 	private ExecutorCompletionService<Object> executorCompletionService = new ExecutorCompletionService<>(executorService);
 	private FutureWatcher futureWatcher = new FutureWatcher();
 

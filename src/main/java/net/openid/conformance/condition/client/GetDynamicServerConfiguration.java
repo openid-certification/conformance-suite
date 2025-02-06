@@ -21,10 +21,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-import static net.openid.conformance.condition.util.HttpClientBuilderFactory.createSharedCacheableHttpClientBuilder;
-
 public class GetDynamicServerConfiguration extends AbstractCondition {
-
 
 	@Override
 	@PreEnvironment(required = "config")
@@ -55,50 +52,49 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 		}
 
 		// get out the server configuration component
-		if (Strings.isNullOrEmpty(discoveryUrl)) {
-			throw error("Couldn't find or construct a discovery URL");
-		}
+		if (!Strings.isNullOrEmpty(discoveryUrl)) {
+			// do an auto-discovery here
 
-
-
-		// fetch the value
-		String jsonString;
-		try {
-			RestTemplate restTemplate = createRestTemplate(createSharedCacheableHttpClientBuilder().build(), null);
-			ResponseEntity<String> response = restTemplate.exchange(discoveryUrl, HttpMethod.GET, null, String.class);
-			JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
-
-			env.putObject("discovery_endpoint_response", responseInfo);
-
-			jsonString = response.getBody();
-		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-			throw error("Error creating HTTP client", e);
-		} catch (RestClientException e) {
-			String msg = "Unable to fetch server configuration from " + discoveryUrl;
-			if (e.getCause() != null) {
-				msg += " - " +e.getCause().getMessage();
-			}
-			throw error(msg, e);
-		}
-
-		if (!Strings.isNullOrEmpty(jsonString)) {
+			// fetch the value
+			String jsonString;
 			try {
-				JsonObject serverConfig = JsonParser.parseString(jsonString).getAsJsonObject();
+				RestTemplate restTemplate = createRestTemplate(env);
+				ResponseEntity<String> response = restTemplate.exchange(discoveryUrl, HttpMethod.GET, null, String.class);
+				JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
 
-				logSuccess("Successfully parsed server configuration", serverConfig);
+				env.putObject("discovery_endpoint_response", responseInfo);
 
-				env.putObject("server", serverConfig);
+				jsonString = response.getBody();
+			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+				throw error("Error creating HTTP client", e);
+			} catch (RestClientException e) {
+				String msg = "Unable to fetch server configuration from " + discoveryUrl;
+				if (e.getCause() != null) {
+					msg += " - " +e.getCause().getMessage();
+				}
+				throw error(msg, e);
+			}
 
-				return env;
-			} catch (JsonSyntaxException e) {
-				throw error(e, args("json", jsonString));
+			if (!Strings.isNullOrEmpty(jsonString)) {
+				try {
+					JsonObject serverConfig = JsonParser.parseString(jsonString).getAsJsonObject();
+
+					logSuccess("Successfully parsed server configuration", serverConfig);
+
+					env.putObject("server", serverConfig);
+
+					return env;
+				} catch (JsonSyntaxException e) {
+					throw error(e, args("json", jsonString));
+				}
+
+			} else {
+				throw error("empty server configuration");
 			}
 
 		} else {
-			throw error("empty server configuration");
+			throw error("Couldn't find or construct a discovery URL");
 		}
-
-
 
 	}
 
