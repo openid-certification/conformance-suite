@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
@@ -38,7 +37,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-public class FAPI2SPID2EnsureRequestObjectWithoutNbfFails extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2EnsureRequestObjectWithoutNbfFails extends AbstractFAPI2SPID2PARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -54,17 +53,8 @@ public class FAPI2SPID2EnsureRequestObjectWithoutNbfFails extends AbstractFAPI2S
 	}
 
 	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
+	protected void processParErrorResponse() {
 		callAndContinueOnFailure(EnsurePARInvalidRequestObjectError.class, Condition.ConditionResult.FAILURE, "JAR-6.3", "PAR-2.1-3");
-
-		fireTestFinished();
 	}
 
 	@Override
