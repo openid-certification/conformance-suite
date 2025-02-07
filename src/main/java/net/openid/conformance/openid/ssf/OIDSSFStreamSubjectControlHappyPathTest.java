@@ -3,8 +3,8 @@ package net.openid.conformance.openid.ssf;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFAddSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFRemoveSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
@@ -41,7 +41,7 @@ import net.openid.conformance.variant.VariantParameters;
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
 })
-public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTestModule {
+public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
 	public void start() {

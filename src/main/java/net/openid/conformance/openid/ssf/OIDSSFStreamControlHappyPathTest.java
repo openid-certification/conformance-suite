@@ -31,7 +31,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
 	}
 )
-public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
+public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
 	public void start() {
