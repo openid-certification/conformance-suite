@@ -40,7 +40,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI2SPID2EnsureResponseTypeCodeIdTokenFails extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI2SPID2EnsureResponseTypeCodeIdTokenFails extends AbstractFAPI2SPID2PARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -58,21 +58,12 @@ public class FAPI2SPID2EnsureResponseTypeCodeIdTokenFails extends AbstractFAPI2S
 	}
 
 	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
+	protected void processParErrorResponse() {
 		call(exec().mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, ConditionResult.FAILURE, "PAR-2.3");
 		// we only raise a warning here as per https://bitbucket.org/openid/fapi/issues/618/certification-conformance-strictness-of
 		callAndContinueOnFailure(EnsurePARUnsupportedResponseTypeOrInvalidRequestOrUnauthorizedClientError.class, Condition.ConditionResult.WARNING, "PAR-2.3");
 		call(exec().unmapKey("endpoint_response"));
-
-		fireTestFinished();
 	}
 
 	@Override
