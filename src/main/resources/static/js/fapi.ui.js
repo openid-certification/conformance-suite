@@ -549,12 +549,14 @@ var FAPI_UI = {
 		},
 
 		removeFromObject : function(obj, key) {
-			var elements = key.split('.');
-			if (elements.length > 1) {
-				this.removeFromObject(obj[elements[0]], elements.splice(1).join('.'));
-			} else {
-				if (obj !== undefined && _.isObject(obj) && _.isArray(elements) && elements.length) {
-					delete(obj[elements[0]]);
+			if(obj != undefined) {
+				var elements = key.split('.');
+				if (elements.length > 1) {
+					this.removeFromObject(obj[elements[0]], elements.splice(1).join('.'));
+				} else {
+					if (_.isObject(obj) && _.isArray(elements) && elements.length) {
+						delete(obj[elements[0]]);
+					}
 				}
 			}
 		},
