@@ -1,0 +1,89 @@
+### Get SSF Metadata
+GET {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/ssf-configuration
+
+
+### Get Stream
+GET {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams
+Authorization: Bearer {{transmitterToken}}
+
+> {%
+    client.global.set("stream_id", response.body['stream_id'])
+%}
+
+### Create Stream (Push)
+POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "delivery": {
+    "method": "urn:ietf:rfc:8935",
+    "endpoint_url": "https://tdworkshops.ngrok.de/auth/realms/ssf-demo/ssf/push/caepdev",
+    "authorization_header": "dummyAuthToken"
+  },
+  "events_requested": [
+    "https://schemas.openid.net/secevent/caep/event-type/session-revoked",
+    "https://schemas.openid.net/secevent/caep/event-type/credential-change",
+    "https://schemas.openid.net/secevent/caep/event-type/device-compliance-change",
+    "https://schemas.openid.net/secevent/caep/event-type/token-claims-change",
+    "https://schemas.openid.net/secevent/caep/event-type/assurance-level-change"
+  ],
+  "description": "This field is optional. Remove this field if not needed."
+}
+
+> {%
+    client.global.set("stream_id", response.body['stream_id'])
+%}
+
+### Create Stream (Poll)
+POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "delivery": {
+    "method": "urn:ietf:rfc:8936"
+  },
+  "events_requested": [
+    "https://schemas.openid.net/secevent/caep/event-type/session-revoked",
+    "https://schemas.openid.net/secevent/caep/event-type/credential-change",
+    "https://schemas.openid.net/secevent/caep/event-type/device-compliance-change",
+    "https://schemas.openid.net/secevent/caep/event-type/token-claims-change",
+    "https://schemas.openid.net/secevent/caep/event-type/assurance-level-change"
+  ],
+  "description": "This field is optional. Remove this field if not needed."
+}
+
+> {%
+    client.global.set("stream_id", response.body['stream_id'])
+%}
+
+### Trigger verification event
+POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/verify
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "stream_id": "{{ stream_id }}",
+  "state": "dummyState"
+}
+
+### Delete Stream
+DELETE {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams?stream_id={{ stream_id }}
+Authorization: Bearer {{transmitterToken}}
+
+### Poll events
+POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams/poll
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+Accept: application/json
+
+{"returnImmediately":true,"maxEvents":100}
+
+### Acknowledge events
+POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams/poll
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+Accept: application/json
+
+{"returnImmediately":true,"maxEvents":0, "ack":  ["NDdmYjQ3NzctOTY5NC00YjEyLWJjOTktMTNjM2FmZWI3MDJi", "YTQ2YjFmODAtNGVkMy00MjBmLTk2MmEtNDdiMDZlZDQyMDli"]}
