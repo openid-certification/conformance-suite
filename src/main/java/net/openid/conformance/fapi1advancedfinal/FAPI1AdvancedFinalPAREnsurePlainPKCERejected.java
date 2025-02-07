@@ -2,7 +2,6 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCodeChallengeToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CreatePlainCodeChallenge;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
@@ -37,7 +36,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = {
 	"by_value" // PKCE is only required by FAPI1-Adv when using PAR
 })
-public class FAPI1AdvancedFinalPAREnsurePlainPKCERejected extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI1AdvancedFinalPAREnsurePlainPKCERejected extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -56,17 +55,8 @@ public class FAPI1AdvancedFinalPAREnsurePlainPKCERejected extends AbstractFAPI1A
 	}
 
 	@Override
-	protected void processParResponse() {
-		// the server could reject this at the par endpoint, or at the authorization endpoint
-		Integer http_status = env.getInteger(CallPAREndpoint.RESPONSE_KEY, "status");
-		if (http_status >= 200 && http_status < 300) {
-			super.processParResponse();
-			return;
-		}
-
+	protected void processParErrorResponse() {
 		callAndContinueOnFailure(EnsurePARInvalidRequestError.class, Condition.ConditionResult.FAILURE, "RFC7636-4.4.1");
-
-		fireTestFinished();
 	}
 
 	@Override
