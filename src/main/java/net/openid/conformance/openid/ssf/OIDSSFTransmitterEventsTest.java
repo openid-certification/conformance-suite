@@ -44,7 +44,7 @@ import org.springframework.util.StringUtils;
 @VariantConfigurationFields(parameter = SsfDeliveryMode.class, value = "push", configurationFields = {"ssf.transmitter.push_endpoint", "ssf.transmitter.push_endpoint_authorization_header"})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {"ssf.transmitter.access_token"})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {})
-public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
+public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
 	public void start() {

@@ -1,8 +1,8 @@
 package net.openid.conformance.openid.ssf.conditions;
 
-import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.BaseUrlUtil;
 
 public class OIDSSFConfigurePushDeliveryMethod extends AbstractCondition {
 
@@ -18,12 +18,7 @@ public class OIDSSFConfigurePushDeliveryMethod extends AbstractCondition {
 	}
 
 	protected String createPushDeliveryEndpointUrl(Environment env) {
-
-		String baseUrl = env.getString("base_url");
-		String externalUrlOverride = env.getString("external_url_override");
-		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
-			baseUrl = externalUrlOverride;
-		}
+		String baseUrl = BaseUrlUtil.resolveEffectiveBaseUrl(env);
 		return "${baseUrl}/ssf-push".replace("${baseUrl}", baseUrl);
 	}
 }
