@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AddPresentationSubmissionToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddVpTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
@@ -15,6 +16,8 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemb
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
+import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
+import net.openid.conformance.condition.as.CreateSdJwtVpToken;
 import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -507,9 +510,12 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 			CheckRequestObjectClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
 
+		callAndStopOnFailure(CreateSdJwtVpToken.class);
+		callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
 		callAndStopOnFailure(AddVpTokenToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
+		callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
 
 		customizeAuthorizationEndpointResponseParams();
 
