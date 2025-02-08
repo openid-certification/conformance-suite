@@ -3,18 +3,12 @@ package net.openid.conformance.openid.ssf.conditions.events;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.client.WaitFor5Seconds;
-import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.concurrent.TimeUnit;
+
 public class OIDSSFExtractVerificationEventFromPushRequest extends AbstractCondition {
-
-	private final TestInstanceEventLog eventLog;
-
-	public OIDSSFExtractVerificationEventFromPushRequest(TestInstanceEventLog eventLog) {
-		this.eventLog = eventLog;
-	}
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -36,8 +30,6 @@ public class OIDSSFExtractVerificationEventFromPushRequest extends AbstractCondi
 	}
 
 	private JsonObject waitForPushRequestObject(Environment env) {
-		WaitFor5Seconds wait = new WaitFor5Seconds();
-		wait.setProperties(getTestId(), eventLog, ConditionResult.WARNING);
 
 		JsonObject pushRequestObject;
 		for (int i = 0; i < 5; i++) {
@@ -51,9 +43,21 @@ public class OIDSSFExtractVerificationEventFromPushRequest extends AbstractCondi
 				}
 			}
 			log("Waiting for push request object");
-			wait.evaluate(env);
+			waitSeconds(5);
 		}
 
 		return null;
+	}
+
+	private void waitSeconds(int expectedWaitSeconds) {
+		logSuccess("Pausing for " + expectedWaitSeconds + " seconds");
+
+		try {
+			TimeUnit.SECONDS.sleep(expectedWaitSeconds);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		logSuccess("Woke up after " + expectedWaitSeconds + " seconds sleep");
 	}
 }

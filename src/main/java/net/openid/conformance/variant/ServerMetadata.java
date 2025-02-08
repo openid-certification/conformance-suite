@@ -2,8 +2,8 @@ package net.openid.conformance.variant;
 
 @VariantParameter(
 	name = "server_metadata",
-	displayName = "Server metadata location",
-	description = "Whether the server supports discovery (i.e. has a '/.well-known/openid-configuration') or requires the endpoints to be statically configured. If your server supports discovery then it is recommended to use dynamic - it means less manual actions are required to run the tests."
+	displayName = "Auth server metadata location",
+	description = "Whether the auth server supports discovery (i.e. has a '/.well-known/openid-configuration') or requires the endpoints to be statically configured. If your server supports discovery then it is recommended to use dynamic - it means less manual actions are required to run the tests."
 )
 public enum ServerMetadata {
 
