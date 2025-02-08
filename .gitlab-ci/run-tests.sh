@@ -323,8 +323,14 @@ makeServerTest() {
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi-rw-id2-privatekey-for-instructions.json"
 
     # OpenID4VP op-against-rp
-    TESTS="${TESTS} oid4vp-id2-verifier-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post]:oid4vp-id2-wallet-happy-flow-no-state}../conformance-suite/scripts/test-configs-rp-against-op/vp-wallet-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config.json"
-    TESTS="${TESTS} oid4vp-id2-verifier-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post.jwt]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[credential_format=sd_jwt_vc][client_id_scheme=x509_san_dns][request_method=request_uri_signed][response_mode=direct_post.jwt]:oid4vp-id2-wallet-happy-flow-no-state}../conformance-suite/scripts/test-configs-rp-against-op/vp-wallet-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config.json"
+    SDJWT="credential_format=sd_jwt_vc"
+    MDL="credential_format=iso_mdl"
+    SANDNS="client_id_scheme=x509_san_dns"
+    SIGNEDREQ="request_method=request_uri_signed"
+    DIRECTPOST="response_mode=direct_post"
+    CONFIGS="../conformance-suite/scripts/test-configs-rp-against-op"
+    TESTS="${TESTS} oid4vp-id2-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-id2-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config.json"
+    TESTS="${TESTS} oid4vp-id2-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config.json"
 }
 
 makeCIBATest() {
