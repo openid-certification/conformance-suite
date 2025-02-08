@@ -626,6 +626,7 @@ var FAPI_UI = {
 			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section.",
 			"OIDCRIL-" : "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.",
 			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-",
+			"ISO18013-7-" : "https://www.iso.org/standard/82772.html#",
 			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
 			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
 			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
