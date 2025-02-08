@@ -558,7 +558,9 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		callAndStopOnFailure(CallDirectPostEndpoint.class);
 
 		call(exec().mapKey("endpoint_response", "direct_post_response"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-ID3-8.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VP-ID3-8.2");
+		callAndContinueOnFailure(ValidateDirectPostResponse.class, ConditionResult.WARNING, "OID4VP-ID3-8.2");
 	}
 
 	/**
