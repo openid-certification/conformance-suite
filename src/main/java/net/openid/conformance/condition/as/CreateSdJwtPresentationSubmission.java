@@ -36,7 +36,7 @@ public class CreateSdJwtPresentationSubmission extends AbstractCondition {
 		JsonObject jsonRoot = JsonParser.parseString(ps).getAsJsonObject();
 		env.putObject("presentation_submission", jsonRoot);
 
-		logSuccess("Create SD-JWT presentation_submission", args("presentation_submission", jsonRoot));
+		logSuccess("Created SD-JWT presentation_submission", args("presentation_submission", jsonRoot));
 
 		return env;
 
