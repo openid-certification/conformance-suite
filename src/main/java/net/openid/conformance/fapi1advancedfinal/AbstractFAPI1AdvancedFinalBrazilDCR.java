@@ -243,7 +243,7 @@ public abstract class AbstractFAPI1AdvancedFinalBrazilDCR extends AbstractFAPI1A
 		eventLog.startBlock("Unregister dynamically registered client");
 
 		call(condition(UnregisterDynamicallyRegisteredClient.class)
-			.skipIfObjectsMissing(new String[] {"client"})
+			.skipIfObjectsMissing("client")
 			.onSkip(Condition.ConditionResult.INFO)
 			.onFail(Condition.ConditionResult.FAILURE)
 			.dontStopOnFailure());

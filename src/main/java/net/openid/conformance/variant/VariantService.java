@@ -150,7 +150,7 @@ public class VariantService {
 	private static <T extends ParameterHolder<? extends Enum<?>>> Collector<T, ?, T> toSingleParameter() {
 		return collectingAndThen(
 				reducing((p1, p2) -> {
-					if (p1 == p2) {
+					if (p1.equals(p2)) {
 						return p1;
 					} else {
 						throw new RuntimeException("Variant parameter declaration includes multiple parameters with name: " + p1.variantParameter.name());

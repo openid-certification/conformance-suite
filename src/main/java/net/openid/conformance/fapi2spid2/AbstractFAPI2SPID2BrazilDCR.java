@@ -224,7 +224,7 @@ public abstract class AbstractFAPI2SPID2BrazilDCR extends AbstractFAPI2SPID2Serv
 		eventLog.startBlock("Unregister dynamically registered client");
 
 		call(condition(UnregisterDynamicallyRegisteredClient.class)
-			.skipIfObjectsMissing(new String[] {"client"})
+			.skipIfObjectsMissing("client")
 			.onSkip(Condition.ConditionResult.INFO)
 			.onFail(Condition.ConditionResult.WARNING)
 			.dontStopOnFailure());
