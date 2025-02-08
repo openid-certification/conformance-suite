@@ -188,5 +188,16 @@
         "condition": "CheckForUnexpectedParametersInVpAuthorizationRequest",
         "expected-result": "warning",
         "comment": "The OP test deliberately sends an unknown parameter to ensure it's ignored"
+    },
+    {
+        "test-name": "oid4vp-id2-verifier-happy-flow",
+        "variant": {
+            "credential_format": "iso_mdl"
+        },
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect.json",
+        "current-block": "Authorization endpoint",
+        "condition": "CheckForUnexpectedParametersInVpClientMetadata",
+        "expected-result": "warning",
+        "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
     }
 ]

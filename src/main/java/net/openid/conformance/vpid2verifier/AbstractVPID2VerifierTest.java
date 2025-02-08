@@ -16,6 +16,8 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemb
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
+import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
+import net.openid.conformance.condition.as.CreateMdocVpToken;
 import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
 import net.openid.conformance.condition.as.CreateSdJwtVpToken;
 import net.openid.conformance.condition.as.EncryptVPResponse;
@@ -484,8 +486,17 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 			CheckRequestObjectClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
 
-		callAndStopOnFailure(CreateSdJwtVpToken.class);
-		callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
+		switch (getVariant(VPID2VerifierCredentialFormat.class)) {
+			case SD_JWT_VC -> {
+				callAndStopOnFailure(CreateSdJwtVpToken.class);
+				callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
+			}
+			case ISO_MDL -> {
+				callAndStopOnFailure(CreateMdocVpToken.class);
+				callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
+			}
+		}
+
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
 		callAndStopOnFailure(AddVpTokenToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
