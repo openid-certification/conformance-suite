@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddVpTokenToAuthorizationEndpointResponseParams extends AbstractCondition {
+public class AddPresentationSubmissionToAuthorizationEndpointResponseParams extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY)
@@ -15,11 +15,11 @@ public class AddVpTokenToAuthorizationEndpointResponseParams extends AbstractCon
 
 		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 
-		String vpToken = env.getString("vp_token");
+		JsonObject presentationSubmission = env.getObject("presentation_submission");
+		params.add("presentation_submission", presentationSubmission);
 
-		params.addProperty("vp_token", vpToken);
-
-		logSuccess("Added vp_token to authorization endpoint response params", args(CreateAuthorizationEndpointResponseParams.ENV_KEY, params));
+		log("Added presentation_submission to authorization endpoint response params",
+			args("presentation_submission", presentationSubmission));
 
 		return env;
 

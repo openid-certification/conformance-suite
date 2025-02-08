@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AddPresentationSubmissionToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddVpTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
@@ -15,6 +16,8 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemb
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
+import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
+import net.openid.conformance.condition.as.CreateSdJwtVpToken;
 import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -34,10 +37,9 @@ import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
-import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientIdScheme;
+import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
-import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
@@ -63,6 +65,7 @@ import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSigne
 import net.openid.conformance.condition.client.BuildUnsignedRequestToDirectPostEndpoint;
 import net.openid.conformance.condition.client.CallDirectPostEndpoint;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
@@ -81,8 +84,7 @@ import net.openid.conformance.variant.VPID2VerifierResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.time.Instant;
+import org.springframework.web.servlet.view.RedirectView;
 
 
 @VariantParameters({
@@ -223,45 +225,22 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
-
-		if(getStatus()==Status.FINISHED && path.equals("jwks")) {
-			//TODO temporary fix, until a finish-test endpoint is added
-			//don't change state. we finish the test after userinfo but clients may send
-			//a request to jwks endpoint when userinfo response is signed
-		} else {
-			setStatus(Status.RUNNING);
-		}
+		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
 
 		env.putObject(requestId, requestParts);
 
-		call(exec().mapKey("client_request", requestId));
-
-		validateTlsForIncomingHttpRequest();
-
-		call(exec().unmapKey("client_request"));
-
 		Object responseObject = handleClientRequestForPath(requestId, path, servletResponse);
 
-		if(getStatus()==Status.FINISHED && path.equals(getJwksPath())) {
-			//TODO temporary fix, until a finish-test endpoint is added
-			//we want to allow jwks calls after the test is finished
+		if (finishTestIfAllRequestsAreReceived()) {
+			fireTestFinished();
 		} else {
-			if (finishTestIfAllRequestsAreReceived()) {
-				// probably not right
-				fireTestFinished();
-			} else {
-				setStatus(Status.WAITING);
-			}
+			setStatus(Status.WAITING);
 		}
 
 		return responseObject;
 	}
-
-	protected void validateTlsForIncomingHttpRequest() {
-	}
-
 	protected Object handleClientRequestForPath(String requestId, String path, HttpServletResponse servletResponse){
 
 		if (path.equals("authorize")) {
@@ -273,13 +252,9 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 	}
 
 	/**
-	 * returns true if fireTestFinished is called
-	 *
-	 * @return
+	 * @return true if fireTestFinished should be called
 	 */
 	protected boolean finishTestIfAllRequestsAreReceived() {
-//		boolean fireTestFinishedCalled = false;
-		// FIXME wait for redirect uri to be called
 		return testFinished;
 	}
 
@@ -342,14 +317,6 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, ConditionResult.FAILURE, "RFC7517-9.2");
-	}
-
-
-	protected void validateAuthorizationCodeGrantType() {
-		callAndStopOnFailure(ValidateAuthorizationCode.class, "OIDCC-3.1.3.2");
-
-		callAndContinueOnFailure(ValidateRedirectUriForTokenEndpointRequest.class, ConditionResult.FAILURE, "OIDCC-3.1.3.2");
-
 	}
 
 	protected void fetchAndProcessRequestUri() {
@@ -517,9 +484,12 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 			CheckRequestObjectClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
 
+		callAndStopOnFailure(CreateSdJwtVpToken.class);
+		callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
 		callAndStopOnFailure(AddVpTokenToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
+		callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
 
 		customizeAuthorizationEndpointResponseParams();
 
@@ -527,25 +497,19 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 
 		Object viewToReturn;
 
-		redirectFromAuthorizationEndpoint();
+		String redirectTo = env.getString("direct_post_response", "body_json.redirect_uri");
+		if (redirectTo != null) {
+			viewToReturn = new RedirectView(redirectTo, false, false, false);
+		} else {
+			viewToReturn = new ModelAndView("resultCaptured",
+				ImmutableMap.of(
+					"returnUrl", "/log-detail.html?log=" + getId()
+				));
+		}
 
-		exposeEnvString("authorization_endpoint_response_redirect");
-
-		// FIXME need to redirect to post uri response eventually if it's there
-//		String redirectTo = env.getString("authorization_endpoint_response_redirect");
-
-//		viewToReturn = new RedirectView(redirectTo, false, false, false);
-
-		viewToReturn = new ModelAndView("resultCaptured",
-			ImmutableMap.of(
-				"returnUrl", "/log-detail.html?log=" + getId()
-			));
-
-		env.putString("auth_time", Long.toString(Instant.now().getEpochSecond()));
+		testFinished = true;
 
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
-
-		testFinished = true; // FIXME just a hack, probably not right
 
 		return viewToReturn;
 	}
@@ -562,7 +526,9 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		callAndStopOnFailure(CallDirectPostEndpoint.class);
 
 		call(exec().mapKey("endpoint_response", "direct_post_response"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-ID3-8.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VP-ID3-8.2");
+		callAndContinueOnFailure(ValidateDirectPostResponse.class, ConditionResult.WARNING, "OID4VP-ID3-8.2");
 	}
 
 	/**
@@ -571,22 +537,6 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 	 */
 	protected void customizeAuthorizationEndpointResponseParams() {
 
-	}
-
-	protected Object generateFormPostResponse() {
-		JsonObject responseParams = env.getObject("authorization_endpoint_response_params");
-		String formActionUrl = OIDFJSON.getString(responseParams.remove("redirect_uri"));
-
-		return new ModelAndView("formPostResponseMode",
-			ImmutableMap.of(
-				"formAction", formActionUrl,
-				"formParameters", responseParams
-			));
-	}
-
-	protected void redirectFromAuthorizationEndpoint() {
-		// FIXME need to follow redirect uri?
-		//callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.3.2.5");
 	}
 
 	/**
