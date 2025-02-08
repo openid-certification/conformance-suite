@@ -7,7 +7,8 @@ package net.openid.conformance.variant;
 )
 public enum VPID2VerifierCredentialFormat
 {
-	SD_JWT_VC("sd_jwt_vc");
+	SD_JWT_VC("sd_jwt_vc"),
+	ISO_MDL("iso_mdl");
 
 	private final String modeValue;
 
