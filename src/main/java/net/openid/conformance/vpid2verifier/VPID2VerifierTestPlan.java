@@ -8,6 +8,7 @@ import net.openid.conformance.variant.VPID2VerifierRequestMethod;
 import net.openid.conformance.variant.VPID2VerifierResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,12 @@ public class VPID2VerifierTestPlan implements TestPlan {
 		String clientIDScheme = v.get("client_id_scheme");
 
 		String certProfile = "OID4VPID2 Verifier";
+
+		if (credentialFormat.equals(VPID2VerifierCredentialFormat.ISO_MDL.toString()) &&
+			!responseMode.equals(VPID2VerifierResponseMode.DIRECT_POST_JWT.toString())) {
+			throw new RuntimeException(String.format("Invalid configuration for %s: Direct POST JWT must be used for ISO mDL as the JWE header apu is needed to validate the mdoc device binding.",
+				MethodHandles.lookup().lookupClass().getSimpleName()));
+		}
 
 		if (credentialFormat.equals(VPID2VerifierCredentialFormat.ISO_MDL.toString()) &&
 			responseMode.equals(VPID2VerifierResponseMode.DIRECT_POST_JWT.toString()) &&
