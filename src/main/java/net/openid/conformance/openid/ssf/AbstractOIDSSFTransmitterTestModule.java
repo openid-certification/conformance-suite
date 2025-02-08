@@ -53,12 +53,10 @@ import net.openid.conformance.variant.VariantParameters;
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {
 	"ssf.transmitter.configuration_metadata_endpoint",
-	"ssf.stream.audience",
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {
 	"ssf.transmitter.issuer",
 	"ssf.transmitter.metadata_suffix",
-	"ssf.stream.audience",
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
 	"ssf.transmitter.access_token"
@@ -95,7 +93,6 @@ import net.openid.conformance.variant.VariantParameters;
 	"server.token_endpoint",
 })
 public abstract class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
-
 
 	protected void fetchTransmitterMetadata() {
 
