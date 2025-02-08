@@ -330,7 +330,7 @@ makeServerTest() {
     DIRECTPOST="response_mode=direct_post"
     CONFIGS="../conformance-suite/scripts/test-configs-rp-against-op"
     TESTS="${TESTS} oid4vp-id2-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-id2-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config.json"
-    TESTS="${TESTS} oid4vp-id2-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config.json"
+    TESTS="${TESTS} oid4vp-id2-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
 }
 
 makeCIBATest() {

@@ -179,5 +179,14 @@
         "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
         "expected-result": "failure",
         "comment": "Private key aud validation for CBUAE is not implemented"
+    },
+    {
+        "test-name": "oid4vp-id2-verifier-happy-flow",
+        "variant": "*",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect.json",
+        "current-block": "Authorization endpoint",
+        "condition": "CheckForUnexpectedParametersInVpAuthorizationRequest",
+        "expected-result": "warning",
+        "comment": "The OP test deliberately sends an unknown parameter to ensure it's ignored"
     }
 ]
