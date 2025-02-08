@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import net.openid.conformance.condition.Condition;
 import  net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
@@ -8,6 +9,8 @@ import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200Or404;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204Or404;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.GenerateDpopKey;
@@ -18,6 +21,8 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAcce
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
@@ -48,12 +53,10 @@ import net.openid.conformance.variant.VariantParameters;
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {
 	"ssf.transmitter.configuration_metadata_endpoint",
-	"ssf.stream.audience",
 })
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {
 	"ssf.transmitter.issuer",
 	"ssf.transmitter.metadata_suffix",
-	"ssf.stream.audience",
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
 	"ssf.transmitter.access_token"
@@ -91,7 +94,6 @@ import net.openid.conformance.variant.VariantParameters;
 })
 public abstract class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
-
 	protected void fetchTransmitterMetadata() {
 
 		switch (getVariant(SsfServerMetadata.class)) {
@@ -104,6 +106,24 @@ public abstract class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSF
 		}
 
 		exposeEnvString("ssf_metadata_url", "ssf","transmitter_metadata_url");
+	}
+
+	protected void cleanUpStreamConfigurationIfNecessary() {
+		try {
+			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.INFO, "CAEPIOP-2.3.8.2");
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200Or404.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1.2");
+		} catch (Exception ignore) {
+		}
+		boolean danglingStreamConfigFound = env.getElementFromObject("ssf", "stream") != null && env.getElementFromObject("ssf", "streams") != null;
+		if (danglingStreamConfigFound) {
+			try {
+				callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.INFO, "CAEPIOP-2.3.8.2");
+				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs204Or404.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1.5");
+			} catch (Exception ignore) {
+			}
+		}
 	}
 
 	protected void obtainTransmitterAccessToken() {
