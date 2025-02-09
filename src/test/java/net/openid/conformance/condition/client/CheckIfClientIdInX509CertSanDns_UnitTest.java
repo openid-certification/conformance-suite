@@ -79,7 +79,7 @@ public class CheckIfClientIdInX509CertSanDns_UnitTest {
 	@Test
 	public void testEvaluate_success() {
 
-		env.putString("config", "client.client_id", "demo.certification.openid.net");
+		env.putString("orig_client_id", "demo.certification.openid.net");
 
 		cond.execute(env);
 	}
