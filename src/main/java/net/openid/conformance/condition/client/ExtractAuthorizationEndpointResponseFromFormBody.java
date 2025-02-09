@@ -10,14 +10,14 @@ public class ExtractAuthorizationEndpointResponseFromFormBody extends AbstractCo
 
 	@Override
 	@PreEnvironment(required = "incoming_request")
-	@PostEnvironment(required = "authorization_endpoint_response")
+	@PostEnvironment(required = "original_authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
 
 		JsonObject formBody = (JsonObject) env.getElementFromObject("incoming_request", "body_form_params");
 		if (formBody == null) {
 			throw error("No form body in incoming request or content-type not application/x-www-form-urlencoded");
 		}
-		env.putObject("authorization_endpoint_response", formBody);
+		env.putObject("original_authorization_endpoint_response", formBody);
 
 		logSuccess("Extracted the authorization response", formBody);
 
