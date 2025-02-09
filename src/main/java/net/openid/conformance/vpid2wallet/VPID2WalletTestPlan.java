@@ -53,6 +53,13 @@ public class VPID2WalletTestPlan implements TestPlan {
 		}
 
 		if (credentialFormat.equals(VPID2WalletCredentialFormat.ISO_MDL.toString()) &&
+			!responseMode.equals(VPID2WalletResponseMode.DIRECT_POST_JWT.toString())) {
+			throw new RuntimeException(String.format("Invalid configuration for %s: Direct POST JWT must be used for ISO mDL as the JWE header apu is needed to validate the mdoc device binding.",
+				MethodHandles.lookup().lookupClass().getSimpleName()));
+		}
+
+
+		if (credentialFormat.equals(VPID2WalletCredentialFormat.ISO_MDL.toString()) &&
 			responseMode.equals(VPID2WalletResponseMode.DIRECT_POST_JWT.toString()) &&
 			requestMethod.equals(VPID2WalletRequestMethod.REQUEST_URI_SIGNED.toString()) &&
 			clientIDScheme.equals(VPID2WalletClientIdScheme.X509_SAN_DNS.toString())) {

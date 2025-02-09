@@ -12,6 +12,7 @@ import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.util.JWEUtil;
 import net.openid.conformance.util.JWKUtil;
@@ -25,7 +26,7 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 
 	public String encrypt(String destination, String stringToBeEncrypted, String clientSecret, JsonObject jwksJsonObject,
 						  String alg, String enc, String algMetadataName, String encMetadataName) {
-		return encrypt(destination, stringToBeEncrypted, clientSecret, jwksJsonObject, alg, enc, algMetadataName, encMetadataName, "JWT");
+		return encrypt(destination, stringToBeEncrypted, clientSecret, jwksJsonObject, alg, enc, algMetadataName, encMetadataName, "JWT", null, null);
 	}
 
 	/**
@@ -41,7 +42,7 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 	 * @return string containing resulting JWE
 	 */
 	public String encrypt(String destination, String stringToBeEncrypted, String clientSecret, JsonObject jwksJsonObject,
-						  String alg, String enc, String algMetadataName, String encMetadataName, String cty) {
+						  String alg, String enc, String algMetadataName, String encMetadataName, String cty, Base64URL apu, Base64URL apv) {
 
 		if(alg == null) {
 			throw error(algMetadataName + " is not defined for the " + destination + ". This is a bug in the test module. skipIfElementMissing should be used");
@@ -106,6 +107,12 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 			.contentType(cty);
 		if(!Strings.isNullOrEmpty(recipientJWK.getKeyID())) {
 			jweHeaderBuilder.keyID(recipientJWK.getKeyID());
+		}
+		if (apu != null) {
+			jweHeaderBuilder.agreementPartyUInfo(apu);
+		}
+		if (apv != null) {
+			jweHeaderBuilder.agreementPartyVInfo(apv);
 		}
 		JWEObject jweObject = new JWEObject(
 				jweHeaderBuilder.build(),
