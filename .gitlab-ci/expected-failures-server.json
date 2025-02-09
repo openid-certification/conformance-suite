@@ -183,7 +183,7 @@
     {
         "test-name": "oid4vp-id2-verifier-happy-flow",
         "variant": "*",
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect.json",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect*.json",
         "current-block": "Authorization endpoint",
         "condition": "CheckForUnexpectedParametersInVpAuthorizationRequest",
         "expected-result": "warning",
@@ -194,7 +194,7 @@
         "variant": {
             "credential_format": "iso_mdl"
         },
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect.json",
+        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect*.json",
         "current-block": "Authorization endpoint",
         "condition": "CheckForUnexpectedParametersInVpClientMetadata",
         "expected-result": "warning",
