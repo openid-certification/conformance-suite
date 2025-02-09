@@ -1175,7 +1175,7 @@ async def main():
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
         oidcc = all_test_modules[m]['profile'] in ['OIDCC']
         fapi2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']
-        oid4vp = all_test_modules[m]['profile'] in ['OID4VP-ID2']
+        oid4vp = all_test_modules[m]['profile'] in ['OID4VP-ID2', 'OID4VP-ID3']
         brazildcr = re.match(r'.*brazil.*dcr.*', m)
         obuk = re.match(r'.*ensure-server-handles-non-matching-intent-id.*', m) or \
           re.match(r'.*test-essential-acr-sca-claim.*', m)
@@ -1198,6 +1198,7 @@ async def main():
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
             # we've not yet setup fapi2 brazil dcr or uk test runs
+            # vp we do run in the OP-against-RP tests but not the full set
             if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or federation_test or (fapi2 and (brazildcr or obuk)) or oid4vp:
                 untested_test_modules.remove(m)
                 continue
