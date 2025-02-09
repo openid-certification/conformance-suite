@@ -20,7 +20,7 @@ public class ValidateJWEBodyDoesNotIncludeIssExpAud extends AbstractCondition {
 		}
 
 		if (!unexpected.isEmpty()) {
-			throw error("The JWE body contains one of more of iss/exp/aud claims", args("unexpected", unexpected));
+			throw error("The JWE body contains one or more of iss/exp/aud claims", args("unexpected", unexpected));
 		}
 
 		logSuccess("The JWE body does not does not contain iss/exp/aud claims");

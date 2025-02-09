@@ -439,7 +439,8 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 		JsonObject response = new JsonObject();
 		switch (credentialFormat) {
 			case ISO_MDL:
-				// iso mdl spec requires that redirect uri is always returned
+				// iso mdl spec requires that redirect uri is always returned, so we return it in all test modules
+				// for other credential formats some test modules return a valid response without redirect uri
 				populateDirectPostResponseWithRedirectUri(response);
 				break;
 			default:

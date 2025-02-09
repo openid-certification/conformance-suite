@@ -3,7 +3,6 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -19,7 +18,7 @@ public class CallDirectPostEndpoint extends AbstractCallOAuthEndpoint {
 
 		return callDirectPostEndpoint(env, new DefaultResponseErrorHandler() {
 			@Override
-			public boolean hasError(@NotNull ClientHttpResponse response) throws IOException {
+			public boolean hasError(ClientHttpResponse response) throws IOException {
 				// Treat all http status codes as 'not an error', so spring never throws an exception due to the http
 				// status code meaning the rest of our code can handle http status codes how it likes
 				return false;
