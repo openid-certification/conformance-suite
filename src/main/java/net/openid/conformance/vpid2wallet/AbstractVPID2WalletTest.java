@@ -222,6 +222,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 		configureStaticClient();
 
 		exposeEnvString("client_id");
+		env.putString("orig_client_id", env.getString( "client_id"));
 
 		completeClientConfiguration();
 	}

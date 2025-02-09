@@ -12,6 +12,7 @@ import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParam
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpClientMetadata;
+import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
@@ -34,12 +35,12 @@ import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
+import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
-import net.openid.conformance.condition.as.ValidateClientIdScheme;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -205,6 +206,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 	protected void configureClientConfiguration() {
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
+		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-ID3-5.10.1");
 		processAndValidateClientJwks();
 		validateClientMetadata();
 	}
@@ -404,7 +406,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 		//}
 		callAndContinueOnFailure(EnsureResponseTypeIsVpToken.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMode.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateClientIdScheme.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckNoClientIdSchemeParameter.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 
 		callAndContinueOnFailure(EnsureMatchingClientId.class, ConditionResult.FAILURE,"OIDCC-3.1.2.1");
