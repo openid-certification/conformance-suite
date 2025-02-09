@@ -582,4 +582,4 @@ else
     exit 1
 fi
 
-echo ${TESTS} | xargs ../conformance-suite/scripts/run-test-plan.py
+echo ${TESTS} | xargs -s 100000 ../conformance-suite/scripts/run-test-plan.py
