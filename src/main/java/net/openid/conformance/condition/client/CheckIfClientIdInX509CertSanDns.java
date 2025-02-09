@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
 import net.openid.conformance.condition.PreEnvironment;
@@ -15,7 +14,7 @@ import java.util.List;
 public class CheckIfClientIdInX509CertSanDns extends AbstractGetSigningKey {
 
 	@Override
-	@PreEnvironment(required = {"config", "client_jwks"})
+	@PreEnvironment(required = {"client_jwks"}, strings = "orig_client_id")
 	public Environment evaluate(Environment env) {
 		JsonObject jwks = env.getObject("client_jwks");
 		JWK jwk = getSigningKey("client", jwks);
@@ -49,10 +48,7 @@ public class CheckIfClientIdInX509CertSanDns extends AbstractGetSigningKey {
 			}
 		});
 
-		String client_id = env.getString("config", "client.client_id");
-		if (Strings.isNullOrEmpty(client_id)) {
-			throw error("No client_id found in configuration");
-		}
+		String client_id = env.getString("orig_client_id");
 
 		if (!dnsNames.contains(client_id)) {
 			throw error("x509_san_dns client_id is not present in the x5c certificate SAN in the client_jwks x5c parameter. This must cause the wallet to reject the request due to the client_id used not being authorized.",
