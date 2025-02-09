@@ -16,9 +16,9 @@ import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriAsRedirectUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddVPID2SdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CheckAudInBindingJwt;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
@@ -356,7 +356,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 					callAndStopOnFailure(AddIsoMdocClientMetadataToAuthorizationRequest.class);
 					break;
 				case SD_JWT_VC:
-					callAndStopOnFailure(AddSdJwtClientMetadataToAuthorizationRequest.class);
+					callAndStopOnFailure(AddVPID2SdJwtClientMetadataToAuthorizationRequest.class);
 					break;
 			}
 			switch (responseMode) {

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CreateSdJwtVpToken extends AbstractCondition {
+public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 
 	public String keyBindingJwt(ECKey privateKey, String aud, String nonce, String sdHash) {
 		// as per https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-4.3
@@ -117,7 +117,7 @@ public class CreateSdJwtVpToken extends AbstractCondition {
 
 		Map<String, Object> claims = builder.build();
 		JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
-			.type(new JOSEObjectType("dc+sd-jwt"));
+			.type(new JOSEObjectType("vc+sd-jwt"));
 		if (credentialSigningJwk.getX509CertChain() != null) {
 			headerBuilder.x509CertChain(credentialSigningJwk.getX509CertChain());
 		}

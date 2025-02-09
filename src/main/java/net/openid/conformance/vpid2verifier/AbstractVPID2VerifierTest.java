@@ -18,8 +18,8 @@ import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponsePa
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
 import net.openid.conformance.condition.as.CreateMdocVpToken;
-import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
-import net.openid.conformance.condition.as.CreateSdJwtVpToken;
+import net.openid.conformance.condition.as.CreateVPID2SdJwtPresentationSubmission;
+import net.openid.conformance.condition.as.CreateVPID2SdJwtVpToken;
 import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -488,8 +488,8 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 
 		switch (getVariant(VPID2VerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
-				callAndStopOnFailure(CreateSdJwtVpToken.class);
-				callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
+				callAndStopOnFailure(CreateVPID2SdJwtVpToken.class);
+				callAndStopOnFailure(CreateVPID2SdJwtPresentationSubmission.class);
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMdocVpToken.class);
