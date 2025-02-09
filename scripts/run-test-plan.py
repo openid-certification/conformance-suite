@@ -1003,6 +1003,9 @@ async def main():
     expected_failures_list = []
     if args.expected_failures_file:
         expected_failures_list = load_expected_problems(args.expected_failures_file)
+        print('Loaded {} expected failures from {}'.format(len(expected_failures_list), args.expected_failures_file))
+    else:
+        print('No expected failures file specified')
 
     expected_skips_list = []
     if args.expected_skips_file:
