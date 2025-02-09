@@ -22,17 +22,18 @@ public class CreateSdJwtPresentationSubmission extends AbstractCondition {
 
 		String descriptKey = OIDFJSON.getString(foo.get("id"));
 
-		String ps = "{\n" +
-			"      \"id\": \"vFB9qd4_0P-7fWRBBKHZx\",\n" +
-			"      \"definition_id\": \""+id+"\",\n" +
-			"      \"descriptor_map\": [\n" +
-			"        {\n" +
-			"          \"id\": \""+descriptKey+"\",\n" +
-			"          \"format\": \"dc+sd-jwt\",\n" +
-			"          \"path\": \"$\"\n" +
-			"        }\n" +
-			"      ]\n" +
-			"    }";
+		String ps = """
+			{
+				"id": "vFB9qd4_0P-7fWRBBKHZx",
+				"definition_id": "%s",
+				"descriptor_map": [
+					{
+						"id": "%s",
+						"format": "dc+sd-jwt",
+						"path": "$"
+					}
+				]
+			}""".formatted(id, descriptKey);
 		JsonObject jsonRoot = JsonParser.parseString(ps).getAsJsonObject();
 		env.putObject("presentation_submission", jsonRoot);
 
