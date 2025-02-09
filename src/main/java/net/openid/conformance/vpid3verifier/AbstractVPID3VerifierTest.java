@@ -79,7 +79,6 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
-import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.VPID3VerifierClientIdScheme;
 import net.openid.conformance.variant.VPID3VerifierCredentialFormat;
 import net.openid.conformance.variant.VPID3VerifierRequestMethod;
@@ -100,7 +99,6 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 	protected VPID3VerifierClientIdScheme clientIdScheme;
 	protected VPID3VerifierResponseMode responseMode;
 	protected VPID3VerifierRequestMethod clientRequestType;
-	protected OIDCCClientAuthType clientAuthType;
 
 	protected boolean receivedAuthorizationRequest;
 	protected boolean testFinished = false;
