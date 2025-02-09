@@ -52,15 +52,7 @@ public class VPID3WalletTestPlan implements TestPlan {
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-
-		if (credentialFormat.equals(VPID3WalletCredentialFormat.ISO_MDL.toString()) &&
-			responseMode.equals(VPID3WalletResponseMode.DIRECT_POST_JWT.toString()) &&
-			requestMethod.equals(VPID3WalletRequestMethod.REQUEST_URI_SIGNED.toString()) &&
-			clientIDScheme.equals(VPID3WalletClientIdScheme.X509_SAN_DNS.toString())) {
-			certProfile += " ISO 18013-7";
-		} else {
-			certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode;
-		}
+		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode;
 
 		return certProfile;
 	}
