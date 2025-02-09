@@ -127,7 +127,6 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 	protected VPID3WalletRequestMethod requestMethod;
 	protected VPID3WalletCredentialFormat credentialFormat;
 	protected VPID3WalletClientIdScheme clientIdScheme;
-	protected Boolean pre_id2 = null;
 	protected TestState testState = TestState.INITIAL;
 
 	@Override
@@ -181,14 +180,6 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("response_uri");
-
-		pre_id2 = env.getBoolean("config", "pre_id2");
-		if (pre_id2 == null) {
-			pre_id2 = false;
-		}
-		if (pre_id2) {
-			callAndContinueOnFailure(WarningAboutTestingOldSpec.class, ConditionResult.WARNING);
-		}
 
 		callAndStopOnFailure(GetStaticServerConfiguration.class);
 
@@ -399,12 +390,6 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 
 	protected ConditionSequence createAuthorizationRequestSequence() {
 		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(responseMode, credentialFormat, clientIdScheme);
-
-		if (pre_id2) {
-			createAuthorizationRequestSteps = createAuthorizationRequestSteps.
-				replace(AddResponseUriToAuthorizationEndpointRequest.class,
-					condition(AddResponseUriAsRedirectUriToAuthorizationEndpointRequest.class));
-		}
 
 		return createAuthorizationRequestSteps;
 	}
