@@ -14,7 +14,7 @@ public class ExtractBrowserApiResponse extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "incoming_request")
-	@PostEnvironment(required = "authorization_endpoint_response")
+	@PostEnvironment(required = "original_authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
 		JsonElement body = env.getElementFromObject("incoming_request", "body");
 		// as the http request we're processing here is sent by our own javascript code in log-detail.html
@@ -57,7 +57,7 @@ public class ExtractBrowserApiResponse extends AbstractCondition {
 		}
 
 		JsonObject data = dataEl.getAsJsonObject();
-		env.putObject("authorization_endpoint_response", data);
+		env.putObject("original_authorization_endpoint_response", data);
 
 		logSuccess("Browser API result captured and successfully parsed", args("api_result", result));
 

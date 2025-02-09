@@ -56,7 +56,7 @@ public class DecryptResponse_UnitTest {
 			}
 			""";
 
-		env.putString("incoming_request", "body_form_params.response", response);
+		env.putString("original_authorization_endpoint_response", "response", response);
 		env.putObjectFromJsonString("client_jwks", jwks);
 
 		cond.execute(env);
