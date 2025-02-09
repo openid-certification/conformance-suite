@@ -44,6 +44,7 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
+import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -64,10 +65,10 @@ import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameI
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
+import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateFormBodyContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
 import net.openid.conformance.condition.client.ValidateJWEHeaderApvIsAuthRequestNonce;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
@@ -412,32 +413,22 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 
 		setStatus(Status.RUNNING);
 
+		switch (responseMode) {
+			case DIRECT_POST:
+			case DIRECT_POST_JWT:
+				break;
+			case W3C_DC_API:
+			case W3C_DC_API_JWT:
+				throw new TestFailureException(getId(), "Direct post response received but result was expected to be returned from the Browser API");
+		}
+
 		call(exec().startBlock("Direct post endpoint").mapKey("incoming_request", requestId));
 		setStateToResponseReceived();
 		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.FAILURE);
 
-		switch (responseMode) {
-			case DIRECT_POST:
-				callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromFormBody.class, ConditionResult.FAILURE);
-				break;
-			case DIRECT_POST_JWT:
-				callAndStopOnFailure(ValidateFormBodyContainsOnlyResponse.class, "OID4VP-ID3-7.3");
-				// currently only supports encrypted-not-signed as used by mdl
-				callAndStopOnFailure(DecryptResponse.class, "OID4VP-ID3-7.3");
-				// FIXME: need to validate jwe header
-				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
-				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-ID3-7.3");
-				if (credentialFormat == VPID2WalletCredentialFormat.ISO_MDL) {
-					callAndContinueOnFailure(ExtractMDocGeneratedNonceFromJWEHeaderApu.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
-					callAndContinueOnFailure(ValidateJWEHeaderApvIsAuthRequestNonce.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
-				}
-				break;
-			case W3C_DC_API:
-			case W3C_DC_API_JWT:
-				throw new TestFailureException(getId(), "Direct post response received but result was expected to be returned from the Browser API");
-		}
+		callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromFormBody.class, ConditionResult.FAILURE);
 
 		processReceivedResponse();
 
@@ -459,8 +450,29 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 			.body(response.toString());
 	}
 
+	// This is called for both the browser API response and the regular direct post response
+	// The received response has been stored in original_authorization_endpoint_response,
+	// and is unpacked (decrypted etc. if necessary) into authorization_endpoint_response
 	private void processReceivedResponse() {
-		// FIXME: decryption doesn't work for browser API
+		switch (responseMode) {
+			case DIRECT_POST:
+			case W3C_DC_API:
+				callAndStopOnFailure(ExtractAuthorizationEndpointResponse.class, ConditionResult.FAILURE);
+				break;
+			case DIRECT_POST_JWT:
+			case W3C_DC_API_JWT:
+				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-ID3-7.3");
+				// currently only supports encrypted-not-signed as used by mdl
+				callAndStopOnFailure(DecryptResponse.class, "OID4VP-ID3-7.3");
+				// FIXME: need to validate jwe header
+				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-ID3-7.3");
+				if (credentialFormat == VPID2WalletCredentialFormat.ISO_MDL) {
+					callAndContinueOnFailure(ExtractMDocGeneratedNonceFromJWEHeaderApu.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
+					callAndContinueOnFailure(ValidateJWEHeaderApvIsAuthRequestNonce.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
+				}
+				break;
+		}
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
@@ -646,6 +658,15 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 			setStatus(Status.RUNNING);
 			call(exec().startBlock("Process Browser API result").mapKey("incoming_request", requestId));
 			setStateToResponseReceived();
+
+			switch (responseMode) {
+				case DIRECT_POST:
+				case DIRECT_POST_JWT:
+					throw new TestFailureException(getId(), "Browser API response received but result was expected to be returned to the direct post endpoint");
+				case W3C_DC_API:
+				case W3C_DC_API_JWT:
+					break;
+			}
 
 			callAndStopOnFailure(ExtractBrowserApiResponse.class);
 

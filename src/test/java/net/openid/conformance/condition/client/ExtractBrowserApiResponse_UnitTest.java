@@ -48,8 +48,8 @@ public class ExtractBrowserApiResponse_UnitTest {
 
 		cond.execute(env);
 
-		assertThat(env.getObject("authorization_endpoint_response")).isNotNull();
-		assertThat(env.getString("authorization_endpoint_response", "vp_token")).isNotNull();
+		assertThat(env.getObject("original_authorization_endpoint_response")).isNotNull();
+		assertThat(env.getString("original_authorization_endpoint_response", "vp_token")).isNotNull();
 	}
 
 }
