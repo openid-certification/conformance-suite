@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class CreateSdJwtPresentationSubmission extends AbstractCondition {
+public class CreateVPID2SdJwtPresentationSubmission extends AbstractCondition {
 
 	@Override
 	@PostEnvironment(required = "presentation_submission")
@@ -28,7 +28,7 @@ public class CreateSdJwtPresentationSubmission extends AbstractCondition {
 			"      \"descriptor_map\": [\n" +
 			"        {\n" +
 			"          \"id\": \""+descriptKey+"\",\n" +
-			"          \"format\": \"dc+sd-jwt\",\n" +
+			"          \"format\": \"vc+sd-jwt\",\n" +
 			"          \"path\": \"$\"\n" +
 			"        }\n" +
 			"      ]\n" +
