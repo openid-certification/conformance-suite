@@ -120,6 +120,10 @@ public final class OIDFJSON {
 		return json.getAsNumber();
 	}
 
+	public static boolean isNull(JsonElement jsonElement) {
+		return jsonElement == null || jsonElement.isJsonNull();
+	}
+
 	/**
 	 * Thrown if the value is JsonNull
 	 */

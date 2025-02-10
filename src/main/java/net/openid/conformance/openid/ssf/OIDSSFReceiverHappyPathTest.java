@@ -1,7 +1,10 @@
 package net.openid.conformance.openid.ssf;
 
-import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
-import net.openid.conformance.condition.client.WaitFor30Seconds;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFGenerateCaepEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFUseValidSubject;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForSetAcknowledgment;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForStreamReadiness;
+import net.openid.conformance.openid.ssf.mock.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -10,7 +13,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test verifies the receiver stream management and event delivery. The test generates a dynamic transmitter and waits for a receiver to register a stream. Then the testsuite will generate some supported events and deliver it to the receiver via the configured delivery mechanism. The testsuite will then wait for acknowledgement of those events.",
 	profile = "OIDSSF",
 	configurationFields = {
-		"ssf.stream.audience"
+		"ssf.transmitter.access_token",
+		"ssf.stream.audience",
+		"ssf.subjects.valid",
+		"ssf.subjects.invalid"
 	}
 )
 public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModule {
@@ -20,13 +26,38 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 		setStatus(Status.RUNNING);
 
 		eventLog.runBlock("Generate Transmitter Metadata", () -> {
-			callAndStopOnFailure(OIDCCGenerateServerJWKs.class);
+			callAndStopOnFailure(OIDSSFGenerateServerJWKs.class);
+		});
+
+		eventLog.runBlock("Setup subjects", () -> {
+			callAndStopOnFailure(OIDSSFUseValidSubject.class);
 		});
 
 		eventLog.runBlock("Wait for receiver stream creation", () -> {
-			eventLog.log(getName(), "Waiting for receiver");
-			callAndStopOnFailure(WaitFor30Seconds.class);
+			callAndStopOnFailure(OIDSSFWaitForStreamReadiness.class);
 		});
+
+		eventLog.runBlock("Emit CAEP event: Session Revoked", () -> {
+			callAndStopOnFailure(new OIDSSFGenerateCaepEvent(OIDSSFGenerateCaepEvent.CAEP_SESSION_REVOKED));
+			callAndStopOnFailure(OIDSSFWaitForSetAcknowledgment.class);
+		});
+
+		eventLog.runBlock("Emit CAEP event: Credentials Changed", () -> {
+			callAndStopOnFailure(new OIDSSFGenerateCaepEvent(OIDSSFGenerateCaepEvent.CAEP_CREDENTIALS_CHANGED));
+			callAndStopOnFailure(OIDSSFWaitForSetAcknowledgment.class);
+		});
+
+//		eventLog.runBlock("Wait for receiver interaction", () -> {
+//			eventLog.log(getName(), "Waiting for receiver 1");
+//			callAndStopOnFailure(WaitFor30Seconds.class);
+//
+//			eventLog.log(getName(), "Waiting for receiver 2");
+//			callAndStopOnFailure(WaitFor30Seconds.class);
+//
+//			eventLog.log(getName(), "Waiting for receiver 3");
+//			callAndStopOnFailure(WaitFor30Seconds.class);
+//
+//		});
 
 		fireTestFinished();
 	}
