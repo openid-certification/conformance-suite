@@ -19,15 +19,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ParseVpTokenAsSdJwt extends AbstractCondition {
+public class ParseCredentialAsSdJwt extends AbstractCondition {
 
 	private static final Gson gson = new Gson();
 
 	@Override
-	@PreEnvironment(strings = "vp_token")
+	@PreEnvironment(strings = "credential")
 	@PostEnvironment(required = "sdjwt")
 	public Environment evaluate(Environment env) {
-		String sdJwtStr = env.getString("vp_token");
+		String sdJwtStr = env.getString("credential");
 
 		SDJWT sdJwt;
 		try {

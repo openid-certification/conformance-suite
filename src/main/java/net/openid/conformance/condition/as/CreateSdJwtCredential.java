@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CreateSdJwtVpToken extends AbstractCondition {
+public class CreateSdJwtCredential extends AbstractCondition {
 
 	public String keyBindingJwt(ECKey privateKey, String aud, String nonce, String sdHash) {
 		// as per https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-4.3
@@ -65,7 +65,7 @@ public class CreateSdJwtVpToken extends AbstractCondition {
 
 
 	@Override
-	@PostEnvironment(strings = "vp_token")
+	@PostEnvironment(strings = "credential")
 	public Environment evaluate(Environment env) {
 
 		// Create a private key for the credential key binding
@@ -154,9 +154,9 @@ public class CreateSdJwtVpToken extends AbstractCondition {
 
 		String vpToken = sdJwt.toString();
 
-		env.putString("vp_token", vpToken);
+		env.putString("credential", vpToken);
 
-		log("Created an SD JWT for vp_token", args("vp_token", vpToken));
+		log("Created an SD JWT credential", args("credential", vpToken));
 
 		return env;
 

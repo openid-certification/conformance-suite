@@ -13,11 +13,11 @@ import java.util.Set;
 
 public class ParseVpTokenAsMdoc extends AbstractMdocSessionTranscript {
 	@Override
-	@PreEnvironment(strings = "vp_token")
+	@PreEnvironment(strings = "credential")
 //	@PostEnvironment(required = "mdoc")
 	public Environment evaluate(Environment env) {
 		// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure as defined in ISO/IEC 18013-5.
-		String mdocBase64 = env.getString("vp_token");
+		String mdocBase64 = env.getString("credential");
 
 		byte[] bytes = new Base64URL(mdocBase64).decode();
 
@@ -44,7 +44,7 @@ public class ParseVpTokenAsMdoc extends AbstractMdocSessionTranscript {
 				args("cbor_diagnostic", diagnostics));
 		}
 
-		logSuccess("Parsed mdoc & validate device-signed data", args("cbor_diagnostic", diagnostics));
+		logSuccess("Parsed mdoc & validated device-signed data", args("cbor_diagnostic", diagnostics));
 
 		return env;
 	}

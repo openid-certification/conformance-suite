@@ -14,7 +14,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class ParseVpTokenAsSdJwt_UnitTest {
+public class ParseCredentialAsSdJwt_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,7 +22,7 @@ public class ParseVpTokenAsSdJwt_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ParseVpTokenAsSdJwt cond;
+	private ParseCredentialAsSdJwt cond;
 
 	/*
 	 * @throws java.lang.Exception
@@ -30,7 +30,7 @@ public class ParseVpTokenAsSdJwt_UnitTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 
-		cond = new ParseVpTokenAsSdJwt();
+		cond = new ParseCredentialAsSdJwt();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
@@ -55,11 +55,11 @@ public class ParseVpTokenAsSdJwt_UnitTest {
 			"Vtb2JpeC5jby51azo4NDQzL3Rlc3QvYS9vaWRmLXZjLXRlc3QvY2FsbGJhY2sifQ.oEXwTsJiOq2da037fl2cbKKzPCq4iPYReQPnQA8ZtWxG" +
 			"74D3CoYRCyPT6GrL-H8xi1PUI7AAvGmsJaStDZifPA";
 
-		env.putString("vp_token", sdJwtStr);
+		env.putString("credential", sdJwtStr);
 
 		cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("vp_token");
+		verify(env, atLeastOnce()).getString("credential");
 	}
 
 }

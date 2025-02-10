@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 public class AddPresentationSubmissionToAuthorizationEndpointResponseParams extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY)
+	@PreEnvironment(required = { CreateAuthorizationEndpointResponseParams.ENV_KEY, "presentation_submission" })
 	@PostEnvironment(required = CreateAuthorizationEndpointResponseParams.ENV_KEY)
 	public Environment evaluate(Environment env) {
 

@@ -35,6 +35,7 @@ public class VPID3VerifierTestPlan implements TestPlan {
 		String credentialFormat = v.get("credential_format");
 		String requestMethod = v.get("request_method");
 		String clientIDScheme = v.get("client_id_scheme");
+		String queryLanguage = v.get("query_language");
 
 		String certProfile = "OID4VPID3 Verifier";
 
@@ -44,7 +45,7 @@ public class VPID3VerifierTestPlan implements TestPlan {
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode;
+		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode + " " + queryLanguage;
 
 		return certProfile;
 	}

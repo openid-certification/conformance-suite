@@ -328,6 +328,8 @@ makeServerTest() {
     SANDNS="client_id_scheme=x509_san_dns"
     SIGNEDREQ="request_method=request_uri_signed"
     DIRECTPOST="response_mode=direct_post"
+    DCQL="query_language=dcql"
+    PEX="query_language=presentation_exchange"
     CONFIGS="../conformance-suite/scripts/test-configs-rp-against-op"
 
     # VP ID2
@@ -336,11 +338,17 @@ makeServerTest() {
     TESTS="${TESTS} oid4vp-id2-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
     TESTS="${TESTS} oid4vp-id2-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-verifier-happy-flow{oid4vp-id2-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id2-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect-alt.json"
 
-    # VP ID3
-    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-id3-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config.json"
-    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id3-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
-    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id3-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
-    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-id3-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect-alt.json"
+    # VP ID3 - DCQL
+    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST][$DCQL]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST][$DCQL]:oid4vp-id3-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config.json"
+    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$DCQL]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$DCQL]:oid4vp-id3-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
+    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$DCQL]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$DCQL]:oid4vp-id3-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
+    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$DCQL]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$DCQL]:oid4vp-id3-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect-alt.json"
+
+    # VP ID3 - Presentation Exchange
+    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST][$PEX]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST][$PEX]:oid4vp-id3-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config.json"
+    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$PEX]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$PEX]:oid4vp-id3-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
+    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$PEX]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$PEX]:oid4vp-id3-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
+    TESTS="${TESTS} oid4vp-id3-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$PEX]:oid4vp-id3-verifier-happy-flow{oid4vp-id3-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt][$PEX]:oid4vp-id3-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config.json ${CONFIGS}/vp-verifier-test-config-with-redirect-alt.json"
 }
 
 makeCIBATest() {

@@ -49,11 +49,11 @@ import net.openid.conformance.condition.client.ExtractAuthorizationEndpointRespo
 import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEHeaderApu;
-import net.openid.conformance.condition.client.ExtractVpToken;
+import net.openid.conformance.condition.client.ExtractVpTokenPE;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
+import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseVpTokenAsMdoc;
-import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToDID;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
@@ -68,13 +68,14 @@ import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader
 import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
+import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
 import net.openid.conformance.condition.client.ValidateJWEHeaderApvIsAuthRequestNonce;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
+import net.openid.conformance.condition.client.ValidatePresentationSubmission;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
-import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
@@ -479,9 +480,10 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 
 		// vp token may be an object containing multiple tokens, https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
 		// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assume only a single token here
-		callAndStopOnFailure(ExtractVpToken.class, ConditionResult.FAILURE);
+		callAndStopOnFailure(ExtractVpTokenPE.class, ConditionResult.FAILURE);
 
-		// FIXME: extract / verify presentation_submission
+		callAndContinueOnFailure(ValidatePresentationSubmission.class, ConditionResult.FAILURE, "OID4VP-ID3-7.1");
+		// FIXME: verify presentation_submission?
 
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
@@ -489,12 +491,12 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 		switch (credentialFormat) {
 			case ISO_MDL:
 				// mdoc
-				callAndContinueOnFailure(ValidateVpTokenIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
 				callAndStopOnFailure(ParseVpTokenAsMdoc.class);
 				break;
 
 			case SD_JWT_VC:
-				callAndStopOnFailure(ParseVpTokenAsSdJwt.class, ConditionResult.FAILURE);
+				callAndStopOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE);
 
 				eventLog.startBlock(currentClientString() + "Verify credential JWT");
 				// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
