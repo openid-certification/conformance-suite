@@ -12,9 +12,9 @@ import java.security.NoSuchAlgorithmException;
 public class ValidateSdJwtKbSdHash extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "sdjwt", strings = "vp_token")
+	@PreEnvironment(required = "sdjwt", strings = "credential")
 	public Environment evaluate(Environment env) {
-		String sdJwtStr = env.getString("vp_token");
+		String sdJwtStr = env.getString("credential");
 
 		int lastIndexOf = sdJwtStr.lastIndexOf("~");
 		if(lastIndexOf < 0) {

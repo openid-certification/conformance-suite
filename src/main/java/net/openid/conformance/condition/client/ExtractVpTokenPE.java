@@ -6,11 +6,11 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ExtractVpToken extends AbstractCondition {
+public class ExtractVpTokenPE extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_response")
-	@PostEnvironment(strings = {"vp_token"})
+	@PostEnvironment(strings = {"credential"})
 	public Environment evaluate(Environment env) {
 		String vpToken = env.getString("authorization_endpoint_response", "vp_token");
 
@@ -18,8 +18,8 @@ public class ExtractVpToken extends AbstractCondition {
 			throw error("Missing vp_token parameter");
 		}
 
-		logSuccess("vp_token found", args("vp_token", vpToken));
-		env.putString("vp_token", vpToken);
+		logSuccess("vp_token parsed", args("credential", vpToken));
+		env.putString("credential", vpToken);
 
 		return env;
 	}
