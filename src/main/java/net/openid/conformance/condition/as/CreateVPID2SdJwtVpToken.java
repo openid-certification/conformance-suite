@@ -65,7 +65,7 @@ public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 
 
 	@Override
-	@PostEnvironment(strings = "vp_token")
+	@PostEnvironment(strings = "credential")
 	public Environment evaluate(Environment env) {
 
 		// Create a private key for the credential key binding
@@ -154,9 +154,9 @@ public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 
 		String vpToken = sdJwt.toString();
 
-		env.putString("vp_token", vpToken);
+		env.putString("credential", vpToken);
 
-		log("Created an SD JWT for vp_token", args("vp_token", vpToken));
+		log("Created an SD JWT for vp_token", args("credential", vpToken));
 
 		return env;
 

@@ -1,96 +1,10 @@
 {
     "alias": "oidf-vp-test-verifier",
-    "description": "OID4VP RP against OP (wallet test - PE )",
+    "description": "OID4VP RP against OP (wallet test - DCQL)",
     "server": {
         "authorization_endpoint": "{BASEURL}test/a/oidf-vp-test-wallet/authorize"
     },
     "client": {
-        "presentation_definition": {
-            "id": "mDL",
-            "input_descriptors": [
-                {
-                    "id": "org.iso.18013.5.1.mDL",
-                    "format": {
-                        "mso_mdoc": {
-                            "alg": [
-                                "ES256"
-                            ]
-                        }
-                    },
-                    "constraints": {
-                        "fields": [
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['birth_date']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['document_number']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['driving_privileges']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['expiry_date']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['family_name']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['given_name']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['issue_date']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['issuing_authority']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['issuing_country']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['portrait']"
-                                ],
-                                "intent_to_retain": false
-                            },
-                            {
-                                "path": [
-                                    "$['org.iso.18013.5.1']['un_distinguishing_sign']"
-                                ],
-                                "intent_to_retain": false
-                            }
-                        ],
-                        "limit_disclosure": "required"
-                    }
-                }
-            ]
-        },
         "jwks": {
             "keys": [
                 {
@@ -105,6 +19,31 @@
                     "x": "0_3S7HedSywaxlekdt6Or8pkcR13hQaCPMqt9cuZBVc",
                     "y": "ZVXSCL3HlnMQWKrwMyIAe5wsAIWd3Eu1misKFr3POdA",
                     "alg": "ES256"
+                }
+            ]
+        },
+        "dcql": {
+            "credentials": [
+                {
+                    "id": "my_credential",
+                    "format": "mso_mdoc",
+                    "meta": {
+                        "doctype_value": "org.iso.7367.1.mVRC"
+                    },
+                    "claims": [
+                        {
+                            "path": [
+                                "org.iso.7367.1",
+                                "vehicle_holder"
+                            ]
+                        },
+                        {
+                            "path": [
+                                "org.iso.18013.5.1",
+                                "first_name"
+                            ]
+                        }
+                    ]
                 }
             ]
         }
@@ -136,5 +75,4 @@
             ]
         }
     ]
-
 }

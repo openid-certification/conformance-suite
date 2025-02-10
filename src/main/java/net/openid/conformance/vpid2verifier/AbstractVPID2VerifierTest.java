@@ -6,8 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AddPeVpTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddPresentationSubmissionToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddVpTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
@@ -17,7 +17,7 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValu
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
-import net.openid.conformance.condition.as.CreateMdocVpToken;
+import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateVPID2SdJwtPresentationSubmission;
 import net.openid.conformance.condition.as.CreateVPID2SdJwtVpToken;
 import net.openid.conformance.condition.as.EncryptVPResponse;
@@ -490,14 +490,14 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateVPID2SdJwtPresentationSubmission.class);
 			}
 			case ISO_MDL -> {
-				callAndStopOnFailure(CreateMdocVpToken.class);
+				callAndStopOnFailure(CreateMdocCredential.class);
 				callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
 			}
 		}
 
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
-		callAndStopOnFailure(AddVpTokenToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
+		callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
 		callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
 
 		customizeAuthorizationEndpointResponseParams();

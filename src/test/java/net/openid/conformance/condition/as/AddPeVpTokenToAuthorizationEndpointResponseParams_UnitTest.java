@@ -14,7 +14,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class AddVpTokenToAuthorizationEndpointResponseParams_UnitTest {
+public class AddPeVpTokenToAuthorizationEndpointResponseParams_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,11 +22,11 @@ public class AddVpTokenToAuthorizationEndpointResponseParams_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private AddVpTokenToAuthorizationEndpointResponseParams cond;
+	private AddPeVpTokenToAuthorizationEndpointResponseParams cond;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new AddVpTokenToAuthorizationEndpointResponseParams();
+		cond = new AddPeVpTokenToAuthorizationEndpointResponseParams();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 

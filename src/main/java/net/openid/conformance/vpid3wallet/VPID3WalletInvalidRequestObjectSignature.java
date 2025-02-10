@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 	summary = "Makes a request where the signature on the request object JWS is invalid. The wallet should display an error, a screenshot of which must be uploaded.",
 	profile = "OID4VP-ID3",
 	configurationFields = {
-		"client.presentation_definition"
 	}
 )
 @VariantNotApplicable(parameter = VPID3WalletRequestMethod.class, values={"request_uri_unsigned"})

@@ -12,7 +12,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Performs the normal flow, but with a 'state', a longer 'nonce', a random authorization endpoint parameter (which must be ignored) and the response_uri response returns a redirect_uri which the wallet must open",
 	profile = "OID4VP-ID3",
 	configurationFields = {
-		"client.presentation_definition",
 		"server.authorization_endpoint"
 	}
 )

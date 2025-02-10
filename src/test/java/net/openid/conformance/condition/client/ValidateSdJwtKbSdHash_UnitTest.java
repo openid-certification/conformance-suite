@@ -69,7 +69,7 @@ public class ValidateSdJwtKbSdHash_UnitTest {
 				"lI4VWJIcUZmMG9GTjFrTm1PVzZBdlYzQUp4bjNXTncifQ.BraAy1HQ2rHF6WyG1gtnnf" +
 				"tqJIVkNMTfrWXWsTqaZ7anoaHKPBcbBegET5c0IAHMjQOIkj7xFL4mWmf5gjQlww";
 
-		env.putString("vp_token", sdJwtStr);
+		env.putString("credential", sdJwtStr);
 
 		env.putString("sdjwt", "binding.claims.sd_hash", "taqonN2gZHHzR8UbHqFf0oFN1kNmOW6AvV3AJxn3WNw");
 
@@ -83,7 +83,7 @@ public class ValidateSdJwtKbSdHash_UnitTest {
 
 		cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("vp_token");
+		verify(env, atLeastOnce()).getString("credential");
 	}
 
 	@Test
@@ -94,7 +94,7 @@ public class ValidateSdJwtKbSdHash_UnitTest {
 
 			cond.execute(env);
 
-			verify(env, atLeastOnce()).getString("vp_token");
+			verify(env, atLeastOnce()).getString("credential");
 
 		});
 	}

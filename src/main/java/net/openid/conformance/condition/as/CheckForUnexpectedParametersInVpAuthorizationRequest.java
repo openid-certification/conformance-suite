@@ -11,6 +11,7 @@ import java.util.List;
 public class CheckForUnexpectedParametersInVpAuthorizationRequest extends AbstractCondition {
 	public static List<String> expectedAuthRequestParams = List.of(
 		"presentation_definition",
+		"dcql_query",
 		"client_id",
 		"client_id_scheme",
 		"response_uri",
