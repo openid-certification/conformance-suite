@@ -1,17 +1,34 @@
 ### Get SSF Metadata
-GET {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/ssf-configuration
+GET {{issuer}}/test/a/{{testAlias}}/ssf/ssf-configuration
 
+### Get SSF JWKS
+GET {{issuer}}/test/a/{{testAlias}}/ssf/jwks
 
 ### Get Stream
-GET {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams
+GET {{issuer}}/test/a/{{testAlias}}/ssf/streams
 Authorization: Bearer {{transmitterToken}}
 
 > {%
     client.global.set("stream_id", response.body['stream_id'])
 %}
 
+### Get Stream by streamId
+GET {{issuer}}/test/a/{{testAlias}}/ssf/streams?stream_id{{stream_id}}
+Authorization: Bearer {{transmitterToken}}
+
+### Get Stream by unknown streamId
+GET {{issuer}}/test/a/{{testAlias}}/ssf/streams?stream_id=00000000000
+Authorization: Bearer {{transmitterToken}}
+
+### Get Stream by streamId with missing auth
+GET {{issuer}}/test/a/{{testAlias}}/ssf/streams?stream_id{{stream_id}}
+
+### Get Stream by streamId with invalid auth
+GET {{issuer}}/test/a/{{testAlias}}/ssf/streams?stream_id{{stream_id}}
+Authorization: Bearer {{insufficientTransmitterToken}}
+
 ### Create Stream (Push)
-POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams
+POST {{issuer}}/test/a/{{testAlias}}/ssf/streams
 Authorization: Bearer {{transmitterToken}}
 Content-Type: application/json
 
@@ -28,7 +45,7 @@ Content-Type: application/json
     "https://schemas.openid.net/secevent/caep/event-type/token-claims-change",
     "https://schemas.openid.net/secevent/caep/event-type/assurance-level-change"
   ],
-  "description": "This field is optional. Remove this field if not needed."
+  "description": "Test stream with push."
 }
 
 > {%
@@ -36,7 +53,7 @@ Content-Type: application/json
 %}
 
 ### Create Stream (Poll)
-POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams
+POST {{issuer}}/test/a/{{testAlias}}/ssf/streams
 Authorization: Bearer {{transmitterToken}}
 Content-Type: application/json
 
@@ -51,15 +68,95 @@ Content-Type: application/json
     "https://schemas.openid.net/secevent/caep/event-type/token-claims-change",
     "https://schemas.openid.net/secevent/caep/event-type/assurance-level-change"
   ],
-  "description": "This field is optional. Remove this field if not needed."
+  "description": "Test stream with poll."
 }
 
 > {%
     client.global.set("stream_id", response.body['stream_id'])
 %}
 
+### Replace Stream (Poll)
+PUT {{issuer}}/test/a/{{testAlias}}/ssf/streams
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "stream_id": {{stream_id}},
+  "delivery": {
+    "method": "urn:ietf:rfc:8936"
+  },
+  "events_requested": [
+    "https://schemas.openid.net/secevent/caep/event-type/session-revoked",
+    "https://schemas.openid.net/secevent/caep/event-type/credential-change",
+    "https://schemas.openid.net/secevent/caep/event-type/device-compliance-change",
+    "https://schemas.openid.net/secevent/caep/event-type/token-claims-change",
+    "https://schemas.openid.net/secevent/caep/event-type/assurance-level-change"
+  ],
+  "description": "Test stream replaced with poll."
+}
+
+> {%
+    client.global.set("stream_id", response.body['stream_id'])
+%}
+
+### Update Stream by streamId
+PATCH {{issuer}}/test/a/{{testAlias}}/ssf/streams
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "stream_id": {{stream_id}},
+  "description" : "Test stream updated"
+}
+
+### Check stream status by streamId
+GET {{issuer}}/test/a/{{testAlias}}/ssf/status?stream_id={{stream_id}}
+Authorization: Bearer {{transmitterToken}}
+
+### Update stream status to pause
+POST {{issuer}}/test/a/{{testAlias}}/ssf/status
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "stream_id": {{stream_id}},
+  "status": "paused",
+  "reason": "Disabled by administrator action."
+}
+
+### Update stream status to enabled
+POST {{issuer}}/test/a/{{testAlias}}/ssf/status
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "stream_id": {{stream_id}},
+  "status": "enabled"
+}
+
+### Update stream status to invalid state
+POST {{issuer}}/test/a/{{testAlias}}/ssf/status
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "stream_id": {{stream_id}},
+  "status": "invalid"
+}
+
+### Update stream status to disbaled state
+POST {{issuer}}/test/a/{{testAlias}}/ssf/status
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+
+{
+  "stream_id": {{stream_id}},
+  "status": "disabled"
+}
+
+
 ### Trigger verification event
-POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/verify
+POST {{issuer}}/test/a/{{testAlias}}/ssf/verify
 Authorization: Bearer {{transmitterToken}}
 Content-Type: application/json
 
@@ -69,21 +166,34 @@ Content-Type: application/json
 }
 
 ### Delete Stream
-DELETE {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams?stream_id={{ stream_id }}
+DELETE {{issuer}}/test/a/{{testAlias}}/ssf/streams?stream_id={{ stream_id }}
 Authorization: Bearer {{transmitterToken}}
 
 ### Poll events
-POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams/poll
+POST {{issuer}}/test/a/{{testAlias}}/ssf/streams/poll
 Authorization: Bearer {{transmitterToken}}
 Content-Type: application/json
 Accept: application/json
 
 {"returnImmediately":true,"maxEvents":100}
 
+> {%
+    client.global.set("pollingResponse", response.body['sets'])
+%}
+
 ### Acknowledge events
-POST {{issuer}}/test/a/ssf-receiver-demo-caepdev/ssf/streams/poll
+POST {{issuer}}/test/a/{{testAlias}}/ssf/streams/poll
 Authorization: Bearer {{transmitterToken}}
 Content-Type: application/json
 Accept: application/json
 
-{"returnImmediately":true,"maxEvents":0, "ack":  ["NDdmYjQ3NzctOTY5NC00YjEyLWJjOTktMTNjM2FmZWI3MDJi", "YTQ2YjFmODAtNGVkMy00MjBmLTk2MmEtNDdiMDZlZDQyMDli"]}
+{"returnImmediately":true,"maxEvents":0, "ack":  ["f6bf022a-afb3-4ca0-9292-83cc083b3be6"]}
+
+
+### Report errors
+POST {{issuer}}/test/a/{{testAlias}}/ssf/streams/poll
+Authorization: Bearer {{transmitterToken}}
+Content-Type: application/json
+Accept: application/json
+
+{"returnImmediately":true,"maxEvents":0, "err":  ["aeb9c05c-8a80-48a2-a866-6d87be728de0"]}

@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -58,6 +60,11 @@ public class Environment {
 	 * Set up a lock for threading purposes
 	 */
 	private ReentrantLock lock = new ReentrantLock(true); // set with fairness policy to get up control to the longest waiting thread
+
+	/**
+	 * Holds the named j.u.c.l.conditions
+	 */
+	private Map<String, Condition> lockConditions = new HashMap<>();
 
 	// key for storing native values directly
 	private static final String NATIVE_VALUES = "_NATIVE_VALUES";
@@ -398,6 +405,19 @@ public class Environment {
 	}
 
 	/**
+	 * Executes the given Runnable while holding the {@link Environment#lock}.
+	 * @param runnable
+	 */
+	public void doWithLock(Runnable runnable) {
+		lock.lock();
+		try {
+			runnable.run();
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	/**
 	 * If the key is mapped to another value, get the underlying value. Otherwise return the input key itself.
 	 *
 	 * This lookup does not chain to multiple levels -- if "to" is itself a mapping to something else and does not otherwise
@@ -606,6 +626,48 @@ public class Environment {
 	public void removeNativeValue(String key) {
 		JsonObject natives = getObject(NATIVE_VALUES);
 		natives.remove(key);
+	}
+
+	/**
+	 * Registers a new {@link Condition} with the given {@code conditionKey}.
+	 * @param conditionKey
+	 */
+	public void registerLockCondition(String conditionKey) {
+		lockConditions.put(conditionKey, lock.newCondition());
+	}
+
+	/**
+	 * Awaits a signal from the {@link Condition} with the given {@code conditionKey}.
+	 *
+	 * @param conditionKey
+	 * @param time
+	 * @param timeUnit
+	 * @return
+	 */
+	@SuppressWarnings("all")
+	public boolean awaitLockCondition(String conditionKey, long time, TimeUnit timeUnit) {
+		Condition condition = lockConditions.get(conditionKey);
+		if (condition == null) {
+			throw new RuntimeException("Condition '" + conditionKey + "' not found");
+		}
+		try { // awaitCondition is called in a loop
+			return condition.await(time, timeUnit);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Signal the {@link Condition} with the given {@code conditionKey}.
+	 *
+	 * @param conditionKey
+	 */
+	public void signalLockCondition(String conditionKey) {
+		Condition condition = lockConditions.get(conditionKey);
+		if (condition == null) {
+			throw new RuntimeException("Condition '" + conditionKey + "' not found");
+		}
+		condition.signalAll();
 	}
 
 	/**
