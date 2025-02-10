@@ -1,6 +1,5 @@
 package net.openid.conformance.vpid2wallet;
 
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
@@ -46,11 +45,6 @@ public class VPID2WalletTestPlan implements TestPlan {
 		String clientIDScheme = v.get("client_id_scheme");
 
 		String certProfile = "OID4VPID2";
-
-		if (responseMode.equals(VPID2WalletResponseMode.W3C_DC_API_JWT.toString())) {
-			throw new RuntimeException(String.format("Invalid configuration for %s: Encrypted w3c responses not supported yet - please email " + AbstractCondition.SUPPORT_EMAIL + " if you have a wallet that supports it",
-				MethodHandles.lookup().lookupClass().getSimpleName()));
-		}
 
 		if (credentialFormat.equals(VPID2WalletCredentialFormat.ISO_MDL.toString()) &&
 			!responseMode.equals(VPID2WalletResponseMode.DIRECT_POST_JWT.toString())) {

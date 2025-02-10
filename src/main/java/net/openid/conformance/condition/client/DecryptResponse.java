@@ -24,17 +24,14 @@ import java.text.ParseException;
 public class DecryptResponse extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "incoming_request")
+	@PreEnvironment(required = "original_authorization_endpoint_response")
 	@PostEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		JsonObject formBody = (JsonObject) env.getElementFromObject("incoming_request", "body_form_params");
-		if (formBody == null) {
-			throw error("No form body in incoming request or content-type not application/x-www-form-urlencoded");
-		}
+		JsonObject formBody = env.getObject("original_authorization_endpoint_response");
 		JsonElement responseEl = formBody.get("response");
 		if (responseEl == null) {
-			throw error("Incoming form body does not contain 'response' parameter");
+			throw error("Incoming auth response does not contain 'response' parameter");
 		}
 		String tokenString = OIDFJSON.getString(responseEl);
 
