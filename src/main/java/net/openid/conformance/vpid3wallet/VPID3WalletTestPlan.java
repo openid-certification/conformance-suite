@@ -48,8 +48,8 @@ public class VPID3WalletTestPlan implements TestPlan {
 		String certProfile = "OID4VPID3";
 
 		if (credentialFormat.equals(VPID3WalletCredentialFormat.ISO_MDL.toString()) &&
-			!responseMode.equals(VPID3WalletResponseMode.DIRECT_POST_JWT.toString())) {
-			throw new RuntimeException(String.format("Invalid configuration for %s: Direct POST JWT must be used for ISO mDL as the JWE header apu is needed to validate the mdoc device binding.",
+			responseMode.equals(VPID3WalletResponseMode.DIRECT_POST.toString())) {
+			throw new RuntimeException(String.format("Invalid configuration for %s: Direct POST (without JWT) cannot be used for ISO mDL as the JWE header apu is needed to validate the mdoc device binding.",
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 

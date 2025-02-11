@@ -287,8 +287,16 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				callAndStopOnFailure(CreateRandomBrowserApiSubmitUrl.class);
 				String submitUrl = env.getString("browser_api_submit", "fullUrl");
 
-				JsonObject request;
-				request = env.getObject("authorization_endpoint_request");
+				JsonObject request = null;
+				switch (requestMethod) {
+					case REQUEST_URI_UNSIGNED -> {
+						request = env.getObject("authorization_endpoint_request");
+					}
+					case REQUEST_URI_SIGNED -> {
+						request = new JsonObject();
+						request.addProperty("request", env.getString("request_object"));
+					}
+				}
 
 				eventLog.log(getName(), args("msg", "Calling browser API",
 					"request", request,
@@ -297,7 +305,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				browser.requestCredential(request, submitUrl);
 				setStatus(Status.WAITING);
 
-				eventLog.log(getName(), "The wallet should be opened using the Browser API button, and should then fetch the request_uri");
+				eventLog.log(getName(), "The wallet should be opened using the Browser API button, and should then parse the request and return the results via the API");
 				break;
 			case DIRECT_POST_JWT:
 			case DIRECT_POST:
@@ -309,11 +317,13 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 	}
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
+		private VPID3WalletRequestMethod requestMethod;
 		private VPID3WalletResponseMode responseMode;
 		private VPID3WalletCredentialFormat credentialFormat;
 		private VPID3WalletQueryLanguage queryLanguage;
 
-		public CreateAuthorizationRequestSteps(VPID3WalletResponseMode responseMode, VPID3WalletCredentialFormat credentialFormat, VPID3WalletQueryLanguage queryLanguage) {
+		public CreateAuthorizationRequestSteps(VPID3WalletRequestMethod requestMethod, VPID3WalletResponseMode responseMode, VPID3WalletCredentialFormat credentialFormat, VPID3WalletQueryLanguage queryLanguage) {
+			this.requestMethod = requestMethod;
 			this.responseMode = responseMode;
 			this.credentialFormat = credentialFormat;
 			this.queryLanguage = queryLanguage;
@@ -328,11 +338,15 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				case DIRECT_POST_JWT:
 					break;
 				case W3C_DC_API:
-					browserUnsigned = true;
-					browserApi = true;
-					break;
 				case W3C_DC_API_JWT:
 					browserApi = true;
+					switch (requestMethod) {
+						case REQUEST_URI_UNSIGNED -> {
+							browserUnsigned = true;
+						}
+						case REQUEST_URI_SIGNED -> {
+						}
+					}
 					break;
 			}
 
@@ -394,7 +408,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 	}
 
 	protected ConditionSequence createAuthorizationRequestSequence() {
-		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(responseMode, credentialFormat, queryLanguage);
+		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(requestMethod, responseMode, credentialFormat, queryLanguage);
 
 		return createAuthorizationRequestSteps;
 	}
