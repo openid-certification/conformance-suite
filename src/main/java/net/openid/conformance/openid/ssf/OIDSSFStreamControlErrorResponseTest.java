@@ -2,7 +2,6 @@ package net.openid.conformance.openid.ssf;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs404;
@@ -97,7 +96,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 		// expect 409	if the Transmitter does not support multiple streams per Receiver
 		eventLog.runBlock("Create Stream: Attempt to create multiple stream configuration with same access token", () -> {
 
-			cleanupDanglingStreamDefinition();
+			cleanUpStreamConfigurationIfNecessary();
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 
@@ -243,20 +242,6 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 		});
 
 		fireTestFinished();
-	}
-
-	private void cleanupDanglingStreamDefinition() {
-		// cleanup dangling existing stream definition
-		try {
-			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
-		} catch (Exception ignore) {
-		}
-		try {
-			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.8.2");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.5");
-		} catch (Exception ignore) {
-		}
 	}
 
 }
