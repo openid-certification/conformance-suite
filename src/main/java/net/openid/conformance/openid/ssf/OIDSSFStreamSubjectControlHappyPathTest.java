@@ -3,8 +3,9 @@ package net.openid.conformance.openid.ssf;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFAddSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFRemoveSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
@@ -98,7 +99,7 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTestM
 		eventLog.runBlock("Remove Subject from Stream Configuration", () -> {
 			callAndStopOnFailure(OIDSSFRemoveSubjectToStreamConfigCall.class, "OIDSSF-7.1.3.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.3.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.3.2");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
