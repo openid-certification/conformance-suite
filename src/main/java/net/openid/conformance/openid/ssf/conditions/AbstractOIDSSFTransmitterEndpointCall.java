@@ -35,10 +35,10 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 		errorEndpointResponse.addProperty("endpoint_name", getEndpointName());
 		errorEndpointResponse.addProperty("body", e.getResponseBodyAsString());
 		MediaType responseContentType = e.getResponseHeaders().getContentType();
-		if (MediaType.APPLICATION_JSON.equals(responseContentType) ||
-			// deal with funky vendor specific constent types like application/vnd.foo.bar+json
+		if (responseContentType != null && (MediaType.APPLICATION_JSON.equals(responseContentType) ||
+			// deal with funky vendor specific content types like application/vnd.foo.bar+json
 			(MediaType.APPLICATION_JSON.getType().equals(responseContentType.getType())
-				&& responseContentType.getSubtype().endsWith(MediaType.APPLICATION_JSON.getSubtype()))
+				&& responseContentType.getSubtype().endsWith(MediaType.APPLICATION_JSON.getSubtype())))
 		) {
 			JsonElement bodyJson = JsonParser.parseString(e.getResponseBodyAsString());
 			errorEndpointResponse.add("body_json", bodyJson);
