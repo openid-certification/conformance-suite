@@ -2,9 +2,6 @@ package net.openid.conformance.openid.ssf;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
@@ -33,7 +30,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
 @PublishTestModule(
@@ -226,26 +222,5 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
 			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.INFO);
 			super.cleanup();
 		});
-	}
-
-	/**
-	 * Provides a dynamic endpoint for handling SSF Push requests from sent from transmitters.
-	 *
-	 * @param path         The path that was called
-	 * @param req          The request that passed to the server
-	 * @param res          A response that will be sent from the server
-	 * @param session      Session details
-	 * @param requestParts elements from the request parsed out into a json object for use in condition classes
-	 * @return
-	 */
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-
-		if ("ssf-push".equals(path)) {
-			env.putObject("ssf", "push_request", requestParts);
-			return ResponseEntity.noContent().build();
-		}
-
-		return super.handleHttp(path, req, res, session, requestParts);
 	}
 }
