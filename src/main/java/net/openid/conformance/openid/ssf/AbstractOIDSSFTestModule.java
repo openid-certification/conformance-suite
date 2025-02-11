@@ -256,7 +256,7 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 
 		if ("ssf-push".equals(path)) {
 			env.putObject("ssf", "push_request", requestParts);
-			return ResponseEntity.noContent().build();
+			return ResponseEntity.accepted().build();
 		}
 
 		return super.handleHttp(path, req, res, session, requestParts);
