@@ -5,7 +5,7 @@ import net.openid.conformance.variant.VariantParameter;
 @VariantParameter(
 	name = "request_method",
 	displayName = "Request Method",
-	description = "Whether the authorization request to the Wallet is send in the URL query directly, or via a unsigned or signed request_uri."
+	description = "Whether the authorization request to the Wallet is send via a unsigned or signed request_uri. For the W3C DC API, this controls if the request is a JSON object or a signed JWT."
 )
 public enum VPID3WalletRequestMethod
 {
