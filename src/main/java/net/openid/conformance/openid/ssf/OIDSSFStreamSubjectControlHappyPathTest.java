@@ -63,15 +63,11 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTestM
 			}
 		});
 
-		eventLog.runBlock("Validate TLS Connection", () ->{
-			validateTlsConnection();
-		});
+		eventLog.runBlock("Validate TLS Connection", this::validateTlsConnection);
 
 		// see https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		// OID_CAEP_INTEROP https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
-		eventLog.runBlock("Prepare Transmitter Access Token", () -> {
-			obtainTransmitterAccessToken();
-		});
+		eventLog.runBlock("Prepare Transmitter Access Token", this::obtainTransmitterAccessToken);
 
 		// ensure stream exists
 		eventLog.runBlock("Create Stream Configuration", () -> {
@@ -97,7 +93,7 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTestM
 		});
 
 		// remove subject(s)
-		eventLog.runBlock("Remove Subject to Stream Configuration", () -> {
+		eventLog.runBlock("Remove Subject from Stream Configuration", () -> {
 			callAndStopOnFailure(OIDSSFRemoveSubjectToStreamConfigCall.class, "OIDSSF-7.1.3.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.3.2");
