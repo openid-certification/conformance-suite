@@ -4,6 +4,7 @@ import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "oid4vp-id3-wallet-happy-flow-no-state",
@@ -15,6 +16,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	}
 )
 
+// Because state & redirect uri aren't used in browser API this test doesn't do anything substantially different
+// to the other happy flow test. Though the names / behaviour / description etc could be improved.
+@VariantNotApplicable(parameter = VPID3WalletResponseMode.class, values={"w3c_dc_api", "w3c_dc_api.jwt"})
 public class VPID3WalletHappyFlowNoState extends AbstractVPID3WalletTest {
 
 	@Override
