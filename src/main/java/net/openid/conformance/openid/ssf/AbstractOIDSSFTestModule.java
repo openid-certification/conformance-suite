@@ -256,6 +256,8 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 
 		if ("ssf-push".equals(path)) {
 			env.putObject("ssf", "push_request", requestParts);
+			// see: RFC 8935 Push-Based Security Event Token (SET) Delivery Using HTTP
+			// https://www.rfc-editor.org/rfc/rfc8935.html#section-2.2
 			return ResponseEntity.accepted().build();
 		}
 
