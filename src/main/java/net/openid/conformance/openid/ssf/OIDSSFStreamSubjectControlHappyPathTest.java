@@ -69,6 +69,8 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTestM
 		// OID_CAEP_INTEROP https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
 		eventLog.runBlock("Prepare Transmitter Access Token", this::obtainTransmitterAccessToken);
 
+		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
+
 		// ensure stream exists
 		eventLog.runBlock("Create Stream Configuration", () -> {
 			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
