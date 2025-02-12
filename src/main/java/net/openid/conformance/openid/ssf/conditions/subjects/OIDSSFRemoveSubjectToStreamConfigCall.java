@@ -10,7 +10,7 @@ public class OIDSSFRemoveSubjectToStreamConfigCall extends AbstractOIDSSFStreamC
 
 	@Override
 	protected String getEndpointName() {
-		return "Remove subject to stream configuration";
+		return "Remove subject from stream configuration";
 	}
 
 	@Override
@@ -30,5 +30,10 @@ public class OIDSSFRemoveSubjectToStreamConfigCall extends AbstractOIDSSFStreamC
 				"subject", Map.of("format", "email", "email", "example.user@example.com")
 			)
 		));
+	}
+
+	@Override
+	protected boolean requireJsonResponseBody() {
+		return false;
 	}
 }

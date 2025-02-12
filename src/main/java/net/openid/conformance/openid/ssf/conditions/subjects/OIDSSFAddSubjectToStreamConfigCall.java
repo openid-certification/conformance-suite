@@ -32,4 +32,9 @@ public class OIDSSFAddSubjectToStreamConfigCall extends AbstractOIDSSFStreamConf
 			)
 		));
 	}
+
+	@Override
+	protected boolean requireJsonResponseBody() {
+		return false;
+	}
 }
