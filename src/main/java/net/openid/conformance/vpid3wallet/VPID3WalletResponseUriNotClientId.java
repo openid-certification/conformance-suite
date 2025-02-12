@@ -22,7 +22,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = VPID3WalletClientIdScheme.class, values={"x509_san_dns"})
 
 // For BrowserAPI Response URI isn't used
-@VariantNotApplicable(parameter = VPID3WalletResponseMode.class, values={"w3c_dc_api", "w3c_dc_api.jwt"})
+@VariantNotApplicable(parameter = VPID3WalletResponseMode.class, values={"dc_api", "dc_api.jwt"})
 
 public class VPID3WalletResponseUriNotClientId extends AbstractVPID3WalletTest {
 	@Override
