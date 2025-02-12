@@ -113,7 +113,7 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
-@VariantConfigurationFields(parameter = VPID3WalletResponseMode.class, value = "w3c_dc_api.jwt", configurationFields = {
+@VariantConfigurationFields(parameter = VPID3WalletResponseMode.class, value = "dc_api.jwt", configurationFields = {
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
@@ -170,8 +170,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 			case DIRECT_POST_JWT:
 				callAndStopOnFailure(CreateDirectPostResponseUri.class);
 				break;
-			case W3C_DC_API_JWT:
-			case W3C_DC_API:
+			case DC_API_JWT:
+			case DC_API:
 				break;
 		}
 
@@ -243,10 +243,10 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 		}
 		switch (responseMode) {
 			case DIRECT_POST:
-			case W3C_DC_API:
+			case DC_API:
 				break;
 			case DIRECT_POST_JWT:
-			case W3C_DC_API_JWT:
+			case DC_API_JWT:
 				// assume response is encrypted so a key is required
 				jwksRequired = true;
 				encryptionKeyRequired = true;
@@ -282,8 +282,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 		createAuthorizationRequest();
 		createAuthorizationRedirect();
 		switch (responseMode) {
-			case W3C_DC_API:
-			case W3C_DC_API_JWT:
+			case DC_API:
+			case DC_API_JWT:
 				callAndStopOnFailure(CreateRandomBrowserApiSubmitUrl.class);
 				String submitUrl = env.getString("browser_api_submit", "fullUrl");
 
@@ -337,8 +337,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				case DIRECT_POST:
 				case DIRECT_POST_JWT:
 					break;
-				case W3C_DC_API:
-				case W3C_DC_API_JWT:
+				case DC_API:
+				case DC_API_JWT:
 					browserApi = true;
 					switch (requestMethod) {
 						case REQUEST_URI_UNSIGNED -> {
@@ -388,10 +388,10 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 			}
 			switch (responseMode) {
 				case DIRECT_POST:
-				case W3C_DC_API:
+				case DC_API:
 					break;
 				case DIRECT_POST_JWT:
-				case W3C_DC_API_JWT:
+				case DC_API_JWT:
 					callAndStopOnFailure(AddEncryptionParametersToClientMetadata.class);
 					break;
 			}
@@ -421,8 +421,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 			case DIRECT_POST:
 			case DIRECT_POST_JWT:
 				break;
-			case W3C_DC_API:
-			case W3C_DC_API_JWT:
+			case DC_API:
+			case DC_API_JWT:
 				throw new TestFailureException(getId(), "Direct post response received but result was expected to be returned from the Browser API");
 		}
 
@@ -460,11 +460,11 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 	private void processReceivedResponse() {
 		switch (responseMode) {
 			case DIRECT_POST:
-			case W3C_DC_API:
+			case DC_API:
 				callAndStopOnFailure(ExtractAuthorizationEndpointResponse.class, ConditionResult.FAILURE);
 				break;
 			case DIRECT_POST_JWT:
-			case W3C_DC_API_JWT:
+			case DC_API_JWT:
 				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-ID3-7.3");
 				// currently only supports encrypted-not-signed as used by mdl
 				callAndStopOnFailure(DecryptResponse.class, "OID4VP-ID3-7.3");
@@ -579,8 +579,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 			case DIRECT_POST:
 			case DIRECT_POST_JWT:
 				return false;
-			case W3C_DC_API:
-			case W3C_DC_API_JWT:
+			case DC_API:
+			case DC_API_JWT:
 				break;
 		}
 		return true;
@@ -686,8 +686,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				case DIRECT_POST:
 				case DIRECT_POST_JWT:
 					throw new TestFailureException(getId(), "Browser API response received but result was expected to be returned to the direct post endpoint");
-				case W3C_DC_API:
-				case W3C_DC_API_JWT:
+				case DC_API:
+				case DC_API_JWT:
 					break;
 			}
 
