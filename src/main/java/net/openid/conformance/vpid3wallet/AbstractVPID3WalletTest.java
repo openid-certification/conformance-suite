@@ -1,4 +1,4 @@
-package net.openid.conformance.vpid2wallet;
+package net.openid.conformance.vpid3wallet;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -9,16 +9,16 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInBindingJwt;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInBindingJwtHeader;
+import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddResponseUriAsRedirectUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddVPID2SdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CheckAudInBindingJwt;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
@@ -55,9 +55,6 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.ParseVpTokenAsMdoc;
 import net.openid.conformance.condition.client.ParseVpTokenAsSdJwt;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToDID;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
@@ -75,7 +72,6 @@ import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.ValidateVpTokenIsUnpaddedBase64Url;
-import net.openid.conformance.condition.client.WarningAboutTestingOldSpec;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
 import net.openid.conformance.condition.common.CreateRandomRequestUri;
@@ -94,40 +90,39 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 @VariantParameters({
-	VPID2WalletCredentialFormat.class,
-	VPID2WalletClientIdScheme.class,
-	VPID2WalletResponseMode.class,
-	VPID2WalletRequestMethod.class
+	VPID3WalletCredentialFormat.class,
+	VPID3WalletClientIdScheme.class,
+	VPID3WalletResponseMode.class,
+	VPID3WalletRequestMethod.class
 })
-@VariantConfigurationFields(parameter = VPID2WalletClientIdScheme.class, value = "did", configurationFields = {
+@VariantConfigurationFields(parameter = VPID3WalletClientIdScheme.class, value = "did", configurationFields = {
 	"client.client_id"
 })
-@VariantConfigurationFields(parameter = VPID2WalletClientIdScheme.class, value = "pre_registered", configurationFields = {
+@VariantConfigurationFields(parameter = VPID3WalletClientIdScheme.class, value = "pre_registered", configurationFields = {
 	"client.client_id"
 })
-@VariantConfigurationFields(parameter = VPID2WalletClientIdScheme.class, value = "x509_san_dns", configurationFields = {
+@VariantConfigurationFields(parameter = VPID3WalletClientIdScheme.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
 })
-@VariantConfigurationFields(parameter = VPID2WalletResponseMode.class, value = "direct_post.jwt", configurationFields = {
+@VariantConfigurationFields(parameter = VPID3WalletResponseMode.class, value = "direct_post.jwt", configurationFields = {
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
-@VariantConfigurationFields(parameter = VPID2WalletResponseMode.class, value = "w3c_dc_api.jwt", configurationFields = {
+@VariantConfigurationFields(parameter = VPID3WalletResponseMode.class, value = "w3c_dc_api.jwt", configurationFields = {
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
-public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTestModule {
+public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTestModule {
 	protected enum TestState {
 		INITIAL,
 		REQUEST_SENT, // if there's a request uri, this state is only used after it has been called
 		RESPONSE_RECEIVED,
 	}
 
-	protected VPID2WalletResponseMode responseMode;
-	protected VPID2WalletRequestMethod requestMethod;
-	protected VPID2WalletCredentialFormat credentialFormat;
-	protected VPID2WalletClientIdScheme clientIdScheme;
-	protected Boolean pre_id2 = null;
+	protected VPID3WalletResponseMode responseMode;
+	protected VPID3WalletRequestMethod requestMethod;
+	protected VPID3WalletCredentialFormat credentialFormat;
+	protected VPID3WalletClientIdScheme clientIdScheme;
 	protected TestState testState = TestState.INITIAL;
 
 	@Override
@@ -147,11 +142,12 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 			return;
 		}
 
-		responseMode = getVariant(VPID2WalletResponseMode.class);
+		responseMode = getVariant(VPID3WalletResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
-		credentialFormat = getVariant(VPID2WalletCredentialFormat.class);
-		requestMethod = getVariant(VPID2WalletRequestMethod.class);
-		clientIdScheme = getVariant(VPID2WalletClientIdScheme.class);
+		credentialFormat = getVariant(VPID3WalletCredentialFormat.class);
+		requestMethod = getVariant(VPID3WalletRequestMethod.class);
+		clientIdScheme = getVariant(VPID3WalletClientIdScheme.class);
+		env.putString("client_id_scheme", clientIdScheme.toString());
 
 		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
 		env.putInteger("requested_nonce_length", 16);
@@ -182,14 +178,6 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("response_uri");
 
-		pre_id2 = env.getBoolean("config", "pre_id2");
-		if (pre_id2 == null) {
-			pre_id2 = false;
-		}
-		if (pre_id2) {
-			callAndContinueOnFailure(WarningAboutTestingOldSpec.class, ConditionResult.WARNING);
-		}
-
 		callAndStopOnFailure(GetStaticServerConfiguration.class);
 
 		// make sure the server configuration passes some basic sanity checks
@@ -198,7 +186,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 		// Set up the client configuration
 		configureClient();
 
-		if (credentialFormat == VPID2WalletCredentialFormat.ISO_MDL) {
+		if (credentialFormat == VPID3WalletCredentialFormat.ISO_MDL) {
 			// ISO spec always creates a redirect returned from response_uri
 			callAndStopOnFailure(CreateRedirectUri.class);
 		}
@@ -219,10 +207,10 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 
 	protected void configureClient() {
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class);
 		configureStaticClient();
 
 		exposeEnvString("client_id");
-		env.putString("orig_client_id", env.getString( "client_id"));
 
 		completeClientConfiguration();
 	}
@@ -265,7 +253,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 	}
 
 	protected void completeClientConfiguration() {
-		if (clientIdScheme == VPID2WalletClientIdScheme.X509_SAN_DNS) {
+		if (clientIdScheme == VPID3WalletClientIdScheme.X509_SAN_DNS) {
 			callAndContinueOnFailure(CheckIfClientIdInX509CertSanDns.class, ConditionResult.FAILURE);
 		}
 	}
@@ -308,14 +296,12 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 	}
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
-		private VPID2WalletResponseMode responseMode;
-		private VPID2WalletCredentialFormat credentialFormat;
-		private VPID2WalletClientIdScheme clientIdScheme;
+		private VPID3WalletResponseMode responseMode;
+		private VPID3WalletCredentialFormat credentialFormat;
 
-		public CreateAuthorizationRequestSteps(VPID2WalletResponseMode responseMode, VPID2WalletCredentialFormat credentialFormat, VPID2WalletClientIdScheme clientIdScheme) {
+		public CreateAuthorizationRequestSteps(VPID3WalletResponseMode responseMode, VPID3WalletCredentialFormat credentialFormat) {
 			this.responseMode = responseMode;
 			this.credentialFormat = credentialFormat;
-			this.clientIdScheme = clientIdScheme;
 		}
 
 		@Override
@@ -357,7 +343,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 					callAndStopOnFailure(AddIsoMdocClientMetadataToAuthorizationRequest.class);
 					break;
 				case SD_JWT_VC:
-					callAndStopOnFailure(AddVPID2SdJwtClientMetadataToAuthorizationRequest.class);
+					callAndStopOnFailure(AddSdJwtClientMetadataToAuthorizationRequest.class);
 					break;
 			}
 			switch (responseMode) {
@@ -374,23 +360,6 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseMode.class);
 
-			switch (clientIdScheme) {
-				case DID:
-					callAndStopOnFailure(SetAuthorizationEndpointRequestClientIdSchemeToDID.class, "OID4VP-ID2-5.7");
-					break;
-				case PRE_REGISTERED:
-					// pre-registered is the default, we can omit the client_id_scheme
-					// FIXME: try passing client_id_scheme=pre-registered for one of tests
-					break;
-				case REDIRECT_URI:
-					callAndStopOnFailure(SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri.class, "OID4VP-ID2-5.7");
-					break;
-				case X509_SAN_DNS:
-					// use x509_san_dns as per the only one that's supported B.3.1.3.1	Static set of Wallet Metadata in IOS 18013-7
-					callAndStopOnFailure(SetAuthorizationEndpointRequestClientIdSchemeToX509SanDns.class, "OID4VP-ID2-5.7");
-					break;
-			}
-
 		}
 	}
 
@@ -399,13 +368,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 	}
 
 	protected ConditionSequence createAuthorizationRequestSequence() {
-		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(responseMode, credentialFormat, clientIdScheme);
-
-		if (pre_id2) {
-			createAuthorizationRequestSteps = createAuthorizationRequestSteps.
-				replace(AddResponseUriToAuthorizationEndpointRequest.class,
-					condition(AddResponseUriAsRedirectUriToAuthorizationEndpointRequest.class));
-		}
+		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(responseMode, credentialFormat);
 
 		return createAuthorizationRequestSteps;
 	}
@@ -468,7 +431,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 				// FIXME: need to validate jwe header
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-ID3-7.3");
-				if (credentialFormat == VPID2WalletCredentialFormat.ISO_MDL) {
+				if (credentialFormat == VPID3WalletCredentialFormat.ISO_MDL) {
 					callAndContinueOnFailure(ExtractMDocGeneratedNonceFromJWEHeaderApu.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
 					callAndContinueOnFailure(ValidateJWEHeaderApvIsAuthRequestNonce.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
 				}

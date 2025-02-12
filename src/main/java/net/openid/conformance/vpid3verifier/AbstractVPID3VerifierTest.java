@@ -1,4 +1,4 @@
-package net.openid.conformance.vpid2verifier;
+package net.openid.conformance.vpid3verifier;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -12,14 +12,15 @@ import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParam
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpClientMetadata;
+import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
 import net.openid.conformance.condition.as.CreateMdocVpToken;
-import net.openid.conformance.condition.as.CreateVPID2SdJwtPresentationSubmission;
-import net.openid.conformance.condition.as.CreateVPID2SdJwtVpToken;
+import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
+import net.openid.conformance.condition.as.CreateSdJwtVpToken;
 import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -34,12 +35,12 @@ import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
+import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
-import net.openid.conformance.condition.as.ValidateClientIdScheme;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -79,10 +80,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.OIDCCClientAuthType;
-import net.openid.conformance.variant.VPID2VerifierClientIdScheme;
-import net.openid.conformance.variant.VPID2VerifierCredentialFormat;
-import net.openid.conformance.variant.VPID2VerifierRequestMethod;
-import net.openid.conformance.variant.VPID2VerifierResponseMode;
+import net.openid.conformance.variant.VPID3VerifierClientIdScheme;
+import net.openid.conformance.variant.VPID3VerifierCredentialFormat;
+import net.openid.conformance.variant.VPID3VerifierRequestMethod;
+import net.openid.conformance.variant.VPID3VerifierResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
@@ -90,15 +91,15 @@ import org.springframework.web.servlet.view.RedirectView;
 
 
 @VariantParameters({
-	VPID2VerifierCredentialFormat.class,
-	VPID2VerifierClientIdScheme.class,
-	VPID2VerifierResponseMode.class,
-	VPID2VerifierRequestMethod.class
+	VPID3VerifierCredentialFormat.class,
+	VPID3VerifierClientIdScheme.class,
+	VPID3VerifierResponseMode.class,
+	VPID3VerifierRequestMethod.class
 })
-public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
-	protected VPID2VerifierClientIdScheme clientIdScheme;
-	protected VPID2VerifierResponseMode responseMode;
-	protected VPID2VerifierRequestMethod clientRequestType;
+public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
+	protected VPID3VerifierClientIdScheme clientIdScheme;
+	protected VPID3VerifierResponseMode responseMode;
+	protected VPID3VerifierRequestMethod clientRequestType;
 	protected OIDCCClientAuthType clientAuthType;
 
 	protected boolean receivedAuthorizationRequest;
@@ -129,13 +130,13 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 			waitTimeoutSeconds = OIDFJSON.getInt(config.get("waitTimeoutSeconds"));
 		}
 
-		responseMode = getVariant(VPID2VerifierResponseMode.class);
+		responseMode = getVariant(VPID3VerifierResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
 
-		clientIdScheme = getVariant(VPID2VerifierClientIdScheme.class);
+		clientIdScheme = getVariant(VPID3VerifierClientIdScheme.class);
 		env.putString("client_id_scheme", clientIdScheme.toString());
 
-		clientRequestType = getVariant(VPID2VerifierRequestMethod.class);
+		clientRequestType = getVariant(VPID3VerifierRequestMethod.class);
 
 		configureServerConfiguration();
 
@@ -205,6 +206,7 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 
 	protected void configureClientConfiguration() {
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
+		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-ID3-5.10.1");
 		processAndValidateClientJwks();
 		validateClientMetadata();
 	}
@@ -327,7 +329,7 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 	}
 
 	protected void extractAuthorizationEndpointRequestParameters() {
-		if(clientRequestType == VPID2VerifierRequestMethod.REQUEST_URI_SIGNED) {
+		if(clientRequestType == VPID3VerifierRequestMethod.REQUEST_URI_SIGNED) {
 			fetchAndProcessRequestUri();
 //		} else if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
 //			callAndStopOnFailure(ExtractRequestObject.class, "OIDCC-6.1");
@@ -336,7 +338,7 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 //			callAndStopOnFailure(EnsureRequestDoesNotContainRequestObject.class, "OIDCC-6.1");
 		}
 
-		if(clientRequestType == VPID2VerifierRequestMethod.REQUEST_URI_SIGNED) {
+		if(clientRequestType == VPID3VerifierRequestMethod.REQUEST_URI_SIGNED) {
 			validateRequestObject();
 			callAndStopOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class);
 			skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
@@ -404,7 +406,7 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		//}
 		callAndContinueOnFailure(EnsureResponseTypeIsVpToken.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMode.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(ValidateClientIdScheme.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckNoClientIdSchemeParameter.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 
 		callAndContinueOnFailure(EnsureMatchingClientId.class, ConditionResult.FAILURE,"OIDCC-3.1.2.1");
@@ -486,10 +488,10 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 		skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 			CheckRequestObjectClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
 
-		switch (getVariant(VPID2VerifierCredentialFormat.class)) {
+		switch (getVariant(VPID3VerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
-				callAndStopOnFailure(CreateVPID2SdJwtVpToken.class);
-				callAndStopOnFailure(CreateVPID2SdJwtPresentationSubmission.class);
+				callAndStopOnFailure(CreateSdJwtVpToken.class);
+				callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMdocVpToken.class);

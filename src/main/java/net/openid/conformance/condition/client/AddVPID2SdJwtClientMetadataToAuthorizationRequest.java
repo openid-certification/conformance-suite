@@ -7,7 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddSdJwtClientMetadataToAuthorizationRequest extends AbstractCondition {
+public class AddVPID2SdJwtClientMetadataToAuthorizationRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "authorization_endpoint_request"})
@@ -27,7 +27,7 @@ public class AddSdJwtClientMetadataToAuthorizationRequest extends AbstractCondit
 		sdJwtContents.add("sd-jwt_alg_values", algValues);
 		sdJwtContents.add("kb-jwt_alg_values", algValues);
 		JsonObject sdJwt = new JsonObject();
-		sdJwt.add("dc+sd-jwt", sdJwtContents);
+		sdJwt.add("vc+sd-jwt", sdJwtContents);
 		clientMetaData.add("vp_formats", sdJwt);
 
 		authorizationEndpointRequest.add("client_metadata", clientMetaData);
