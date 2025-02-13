@@ -7,14 +7,15 @@ import com.android.identity.cbor.DiagnosticOption;
 import com.android.identity.cbor.Simple;
 import com.android.identity.crypto.Algorithm;
 import com.android.identity.crypto.Crypto;
-import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jose.util.Base64;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractMdocSessionTranscript extends AbstractCondition {
-	public byte[] createSessionTranscript(String clientId, String responseUri, String nonce, String mdocGeneratedNonce) {
+	public void createSessionTranscript(Environment env, String clientId, String responseUri, String nonce, String mdocGeneratedNonce) {
 		// the contents of the handover / session transcript is as defined in ISO 18013 part 7 section B.4.4
 
 		Map<String, String> sessionTranscriptInput = Map.of(
@@ -56,10 +57,14 @@ public abstract class AbstractMdocSessionTranscript extends AbstractCondition {
 
 		String diagnostics = Cbor.INSTANCE.toDiagnostics(sessionTranscript,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
+
+		String transcript_b64 = Base64.encode(sessionTranscript).toString();
+
+		env.putString("session_transcript", transcript_b64);
+
 		log("Created session transcript",
 			args("session_transcript_input", sessionTranscriptInput,
-				"session_transcript_b64", Base64URL.encode(sessionTranscript).toString(),
+				"session_transcript_b64", transcript_b64,
 				"cbor_diagnostic", diagnostics));
-		return sessionTranscript;
 	}
 }

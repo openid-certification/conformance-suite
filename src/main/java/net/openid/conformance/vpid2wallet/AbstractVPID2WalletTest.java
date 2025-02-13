@@ -41,6 +41,7 @@ import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
+import net.openid.conformance.condition.client.CreateVerifierIsoMdlAnnexBSessionTranscript;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
@@ -492,6 +493,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 			case ISO_MDL:
 				// mdoc
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
+				callAndStopOnFailure(CreateVerifierIsoMdlAnnexBSessionTranscript.class);
 				callAndStopOnFailure(ParseVpTokenAsMdoc.class);
 				break;
 

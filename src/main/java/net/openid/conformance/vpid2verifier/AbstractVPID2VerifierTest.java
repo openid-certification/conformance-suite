@@ -17,9 +17,11 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValu
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
+import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateVPID2SdJwtPresentationSubmission;
 import net.openid.conformance.condition.as.CreateVPID2SdJwtVpToken;
+import net.openid.conformance.condition.as.CreateWalletIsoMdlAnnexBSessionTranscript;
 import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -490,6 +492,8 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateVPID2SdJwtPresentationSubmission.class);
 			}
 			case ISO_MDL -> {
+				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
+				callAndStopOnFailure(CreateWalletIsoMdlAnnexBSessionTranscript.class);
 				callAndStopOnFailure(CreateMdocCredential.class);
 				callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
 			}

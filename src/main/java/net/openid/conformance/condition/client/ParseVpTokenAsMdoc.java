@@ -4,16 +4,17 @@ import com.android.identity.cbor.Cbor;
 import com.android.identity.cbor.DiagnosticOption;
 import com.android.identity.mdoc.response.DeviceResponseParser;
 import com.nimbusds.jose.util.Base64URL;
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.as.AbstractMdocSessionTranscript;
 import net.openid.conformance.testmodule.Environment;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
-public class ParseVpTokenAsMdoc extends AbstractMdocSessionTranscript {
+public class ParseVpTokenAsMdoc extends AbstractCondition {
 	@Override
-	@PreEnvironment(strings = "credential")
+	@PreEnvironment(strings = { "credential", "session_transcript" })
 //	@PostEnvironment(required = "mdoc")
 	public Environment evaluate(Environment env) {
 		// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure as defined in ISO/IEC 18013-5.
@@ -24,11 +25,7 @@ public class ParseVpTokenAsMdoc extends AbstractMdocSessionTranscript {
 		String diagnostics = Cbor.INSTANCE.toDiagnostics(bytes,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
 
-		String clientId = env.getString("config", "client.client_id");
-		String responseUri = env.getString("response_uri");
-		String nonce =  env.getString("nonce");
-		String mdocGeneratedNonce = env.getString("mdoc_generated_nonce");
-		byte[] sessionTranscript = createSessionTranscript(clientId, responseUri, nonce, mdocGeneratedNonce);
+		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 
 		DeviceResponseParser parser = new DeviceResponseParser(bytes, sessionTranscript);
 		DeviceResponseParser.DeviceResponse response = parser.parse();
