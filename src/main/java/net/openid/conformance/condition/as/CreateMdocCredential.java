@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class CreateMdocVpToken extends AbstractMdocSessionTranscript {
+public class CreateMdocCredential extends AbstractMdocSessionTranscript {
 
 	@Override
-	@PostEnvironment(strings = "vp_token")
+	@PostEnvironment(strings = "credential")
 	public Environment evaluate(Environment env) {
 		byte[] nonceBytes = new byte[16];
 		new SecureRandom().nextBytes(nonceBytes);
@@ -34,7 +34,7 @@ public class CreateMdocVpToken extends AbstractMdocSessionTranscript {
 
 		byte[] mdoc = TestAppUtils.INSTANCE.generateEncodedDeviceResponse(mdocConsentFields, sessionTranscript);
 
-		env.putString("vp_token", Base64URL.encode(mdoc).toString());
+		env.putString("credential", Base64URL.encode(mdoc).toString());
 
 		String diagnostics = Cbor.INSTANCE.toDiagnostics(mdoc,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));

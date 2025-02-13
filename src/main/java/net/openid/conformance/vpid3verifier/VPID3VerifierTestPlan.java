@@ -2,9 +2,7 @@ package net.openid.conformance.vpid3verifier;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.VPID3VerifierClientIdScheme;
 import net.openid.conformance.variant.VPID3VerifierCredentialFormat;
-import net.openid.conformance.variant.VPID3VerifierRequestMethod;
 import net.openid.conformance.variant.VPID3VerifierResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
@@ -37,6 +35,7 @@ public class VPID3VerifierTestPlan implements TestPlan {
 		String credentialFormat = v.get("credential_format");
 		String requestMethod = v.get("request_method");
 		String clientIDScheme = v.get("client_id_scheme");
+		String queryLanguage = v.get("query_language");
 
 		String certProfile = "OID4VPID3 Verifier";
 
@@ -46,14 +45,7 @@ public class VPID3VerifierTestPlan implements TestPlan {
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		if (credentialFormat.equals(VPID3VerifierCredentialFormat.ISO_MDL.toString()) &&
-			responseMode.equals(VPID3VerifierResponseMode.DIRECT_POST_JWT.toString()) &&
-			requestMethod.equals(VPID3VerifierRequestMethod.REQUEST_URI_SIGNED.toString()) &&
-			clientIDScheme.equals(VPID3VerifierClientIdScheme.X509_SAN_DNS.toString())) {
-			certProfile += " ISO 18013-7";
-		} else {
-			certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode;
-		}
+		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode + " " + queryLanguage;
 
 		return certProfile;
 	}

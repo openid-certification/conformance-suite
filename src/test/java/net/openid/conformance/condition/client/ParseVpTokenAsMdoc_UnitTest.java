@@ -43,7 +43,7 @@ public class ParseVpTokenAsMdoc_UnitTest {
 		String mdocStr = IOUtils.resourceToString("ParseVpTokenAsMdoc/mdoc.txt", StandardCharsets.UTF_8, getClass().getClassLoader());
 		mdocStr = mdocStr.replace("\n", "");
 
-		env.putString("vp_token", mdocStr);
+		env.putString("credential", mdocStr);
 
 		env.putString("config", "client.client_id", "localhost.emobix.co.uk");
 		env.putString("response_uri", "https://localhost.emobix.co.uk:8443/test/a/oidf-vp-test-verifier/responseuri");
@@ -52,7 +52,7 @@ public class ParseVpTokenAsMdoc_UnitTest {
 
 		cond.execute(env);
 
-		verify(env, atLeastOnce()).getString("vp_token");
+		verify(env, atLeastOnce()).getString("credential");
 	}
 
 	/*

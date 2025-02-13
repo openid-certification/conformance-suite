@@ -14,7 +14,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "Makes a request where the response_uri is not the client_id. The wallet must display an error, a screenshot of which must be uploaded.",
 	profile = "OID4VP-ID3",
 	configurationFields = {
-		"client.presentation_definition"
 	}
 )
 // For x509 dns the client_id we try would need to be on a different hostname; but even this is permitted by the specs in some cases:

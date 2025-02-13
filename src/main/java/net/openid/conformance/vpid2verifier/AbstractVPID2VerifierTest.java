@@ -6,8 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AddPeVpTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddPresentationSubmissionToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddVpTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
@@ -17,7 +17,7 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValu
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
-import net.openid.conformance.condition.as.CreateMdocVpToken;
+import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateVPID2SdJwtPresentationSubmission;
 import net.openid.conformance.condition.as.CreateVPID2SdJwtVpToken;
 import net.openid.conformance.condition.as.EncryptVPResponse;
@@ -78,7 +78,6 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
-import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.VPID2VerifierClientIdScheme;
 import net.openid.conformance.variant.VPID2VerifierCredentialFormat;
 import net.openid.conformance.variant.VPID2VerifierRequestMethod;
@@ -99,7 +98,6 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 	protected VPID2VerifierClientIdScheme clientIdScheme;
 	protected VPID2VerifierResponseMode responseMode;
 	protected VPID2VerifierRequestMethod clientRequestType;
-	protected OIDCCClientAuthType clientAuthType;
 
 	protected boolean receivedAuthorizationRequest;
 	protected boolean testFinished = false;
@@ -492,14 +490,14 @@ public abstract class AbstractVPID2VerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateVPID2SdJwtPresentationSubmission.class);
 			}
 			case ISO_MDL -> {
-				callAndStopOnFailure(CreateMdocVpToken.class);
+				callAndStopOnFailure(CreateMdocCredential.class);
 				callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
 			}
 		}
 
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
-		callAndStopOnFailure(AddVpTokenToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
+		callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
 		callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
 
 		customizeAuthorizationEndpointResponseParams();

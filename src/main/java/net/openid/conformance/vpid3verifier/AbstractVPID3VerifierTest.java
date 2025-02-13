@@ -6,8 +6,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.AddDCQLVPTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddPeVpTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddPresentationSubmissionToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddVpTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
@@ -18,9 +19,9 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValu
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
-import net.openid.conformance.condition.as.CreateMdocVpToken;
+import net.openid.conformance.condition.as.CreateMdocCredential;
+import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
-import net.openid.conformance.condition.as.CreateSdJwtVpToken;
 import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -79,7 +80,6 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
-import net.openid.conformance.variant.OIDCCClientAuthType;
 import net.openid.conformance.variant.VPID3VerifierClientIdScheme;
 import net.openid.conformance.variant.VPID3VerifierCredentialFormat;
 import net.openid.conformance.variant.VPID3VerifierRequestMethod;
@@ -94,13 +94,14 @@ import org.springframework.web.servlet.view.RedirectView;
 	VPID3VerifierCredentialFormat.class,
 	VPID3VerifierClientIdScheme.class,
 	VPID3VerifierResponseMode.class,
-	VPID3VerifierRequestMethod.class
+	VPID3VerifierRequestMethod.class,
+	VPID3VerifierQueryLanguage.class
 })
 public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 	protected VPID3VerifierClientIdScheme clientIdScheme;
 	protected VPID3VerifierResponseMode responseMode;
 	protected VPID3VerifierRequestMethod clientRequestType;
-	protected OIDCCClientAuthType clientAuthType;
+	protected VPID3VerifierQueryLanguage queryLanguage;
 
 	protected boolean receivedAuthorizationRequest;
 	protected boolean testFinished = false;
@@ -137,6 +138,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 		env.putString("client_id_scheme", clientIdScheme.toString());
 
 		clientRequestType = getVariant(VPID3VerifierRequestMethod.class);
+		queryLanguage = getVariant(VPID3VerifierQueryLanguage.class);
 
 		configureServerConfiguration();
 
@@ -488,21 +490,31 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 		skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
 			CheckRequestObjectClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
 
-		switch (getVariant(VPID3VerifierCredentialFormat.class)) {
-			case SD_JWT_VC -> {
-				callAndStopOnFailure(CreateSdJwtVpToken.class);
-				callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
-			}
-			case ISO_MDL -> {
-				callAndStopOnFailure(CreateMdocVpToken.class);
-				callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
-			}
-		}
-
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
-		callAndStopOnFailure(AddVpTokenToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
-		callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OIDVP-FIXME");
+		switch (getVariant(VPID3VerifierCredentialFormat.class)) {
+			case SD_JWT_VC -> {
+				callAndStopOnFailure(CreateSdJwtCredential.class);
+
+				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
+					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+				} else {
+					callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
+					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+				}
+			}
+			case ISO_MDL -> {
+				callAndStopOnFailure(CreateMdocCredential.class);
+				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
+					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+				} else {
+					callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
+					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+				}
+			}
+		}
 
 		customizeAuthorizationEndpointResponseParams();
 
