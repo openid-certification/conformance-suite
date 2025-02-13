@@ -574,6 +574,18 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 		}
 	}
 
+	protected boolean isBrowserApi() {
+		switch (responseMode) {
+			case DIRECT_POST:
+			case DIRECT_POST_JWT:
+				return false;
+			case W3C_DC_API:
+			case W3C_DC_API_JWT:
+				break;
+		}
+		return true;
+	}
+
 	protected void createAuthorizationRedirect() {
 		ConditionSequence seq = null;
 		switch (requestMethod) {
@@ -581,6 +593,11 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 //				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class); // FIXME: doesn't work, Caught exception from test framework: [openid4vp://] is not a valid HTTP URL
 //				break;
 			case REQUEST_URI_UNSIGNED:
+				if (isBrowserApi()) {
+					// an alg none request object is only required for actual JAR (request_uri), for Browser API for
+					// an unsigned request you just pass JSON
+					return;
+				}
 				seq = new CreateAuthorizationRedirectStepsUnsignedRequestUri();
 				break;
 			case REQUEST_URI_SIGNED:
@@ -601,14 +618,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				}
 				break;
 		}
-		switch (responseMode) {
-			case DIRECT_POST:
-			case DIRECT_POST_JWT:
-				break;
-			case W3C_DC_API:
-			case W3C_DC_API_JWT:
-				seq = seq.skip(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "No redirected required for Browser API");
-				break;
+		if (isBrowserApi()) {
+			seq = seq.skip(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "No redirected required for Browser API");
 		}
 
 		call(seq);
