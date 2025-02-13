@@ -12,7 +12,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
-public class ParseVpTokenAsMdoc extends AbstractCondition {
+public class ParseCredentialAsMdoc extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = { "credential", "session_transcript" })
 //	@PostEnvironment(required = "mdoc")
