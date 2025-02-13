@@ -45,10 +45,7 @@ public class ParseVpTokenAsMdoc_UnitTest {
 
 		env.putString("credential", mdocStr);
 
-		env.putString("config", "client.client_id", "localhost.emobix.co.uk");
-		env.putString("response_uri", "https://localhost.emobix.co.uk:8443/test/a/oidf-vp-test-verifier/responseuri");
-		env.putString("nonce", "8sigA7tG9GnYfWeRfrAG5PMpHOif-._~");
-		env.putString("mdoc_generated_nonce", "Vin3Z2f2d9oAAaq_bOMnYQ");
+		env.putString("session_transcript", "g/b2g1ggOEbrv0Z/TUtIFyLM5TDoNisYjlGK+Qx5dhFacE7xFz9YIPu4g9QyWrWNEI1T15XOjGVh9PezAUTVhIBTtU/aY4q0eCA4c2lnQTd0RzlHbllmV2VSZnJBRzVQTXBIT2lmLS5ffg==");
 
 		cond.execute(env);
 
