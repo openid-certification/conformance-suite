@@ -56,8 +56,8 @@ import net.openid.conformance.condition.client.ExtractVpTokenDCQL;
 import net.openid.conformance.condition.client.ExtractVpTokenPE;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
+import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
-import net.openid.conformance.condition.client.ParseVpTokenAsMdoc;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
@@ -503,7 +503,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				// mdoc
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
 				callAndStopOnFailure(CreateVerifierIsoMdlAnnexBSessionTranscript.class);
-				callAndStopOnFailure(ParseVpTokenAsMdoc.class);
+				callAndStopOnFailure(ParseCredentialAsMdoc.class);
 				break;
 
 			case SD_JWT_VC:
