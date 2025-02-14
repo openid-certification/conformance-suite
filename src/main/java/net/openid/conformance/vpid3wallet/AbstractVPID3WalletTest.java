@@ -44,6 +44,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateVerifierIsoMdlAnnexBSessionTranscript;
+import net.openid.conformance.condition.client.CreateVerifierIsoMdocDCAPISessionTranscript;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
@@ -63,6 +64,8 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
+import net.openid.conformance.condition.client.SetClientIdToWebOrigin;
+import net.openid.conformance.condition.client.SetWebOrigin;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
@@ -173,6 +176,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				break;
 			case DC_API_JWT:
 			case DC_API:
+				callAndStopOnFailure(SetWebOrigin.class, "OID4VP-ID3-2");
 				break;
 		}
 
@@ -181,6 +185,9 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 			case PRE_REGISTERED:
 				// client id has been set already in config
 				break;
+			case WEB_ORIGIN:
+				callAndStopOnFailure(SetClientIdToWebOrigin.class);
+				break;
 			case REDIRECT_URI:
 				callAndStopOnFailure(SetClientIdToResponseUri.class);
 				break;
@@ -188,7 +195,6 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				callAndStopOnFailure(SetClientIdToResponseUriHostnameIfUnset.class);
 				break;
 		}
-
 		// this is inserted by the create call above, expose it to the test environment for publication
 		exposeEnvString("response_uri");
 
@@ -221,7 +227,9 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 
 	protected void configureClient() {
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
+
 		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class);
+
 		configureStaticClient();
 
 		exposeEnvString("client_id");
@@ -502,7 +510,11 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 			case ISO_MDL:
 				// mdoc
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
-				callAndStopOnFailure(CreateVerifierIsoMdlAnnexBSessionTranscript.class);
+				if (isBrowserApi()) {
+					callAndStopOnFailure(CreateVerifierIsoMdocDCAPISessionTranscript.class);
+				} else {
+					callAndStopOnFailure(CreateVerifierIsoMdlAnnexBSessionTranscript.class);
+				}
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
 				break;
 
@@ -617,6 +629,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 					case PRE_REGISTERED:
 						// otherwise follow the default (use x5c header if it's available) although signed request objects + redirect_uri client_id_scheme isn't allowed in the spec
 						break;
+					case WEB_ORIGIN:
+						throw new RuntimeException("web-origin client id scheme not valid for signed requests");
 				}
 				break;
 		}
