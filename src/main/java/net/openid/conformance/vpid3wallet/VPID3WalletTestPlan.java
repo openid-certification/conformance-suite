@@ -47,6 +47,22 @@ public class VPID3WalletTestPlan implements TestPlan {
 
 		String certProfile = "OID4VPID3";
 
+		if (responseMode.equals(VPID3WalletResponseMode.DC_API.toString()) ||
+			responseMode.equals(VPID3WalletResponseMode.DC_API_JWT.toString())) {
+			if (requestMethod.equals(VPID3WalletRequestMethod.REQUEST_URI_UNSIGNED.toString())) {
+				if (!clientIDScheme.equals(VPID3WalletClientIdScheme.WEB_ORIGIN.toString())) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: When using unsigned DC API requests the Client ID Scheme must be 'web_origin'.",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+			} else if (requestMethod.equals(VPID3WalletRequestMethod.REQUEST_URI_SIGNED.toString())) {
+				if (clientIDScheme.equals(VPID3WalletClientIdScheme.WEB_ORIGIN.toString())) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: When using signed DC API requests the Client ID Scheme must not be 'web_origin'.",
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+			}
+
+		}
+
 		if (credentialFormat.equals(VPID3WalletCredentialFormat.ISO_MDL.toString()) &&
 			responseMode.equals(VPID3WalletResponseMode.DIRECT_POST.toString())) {
 			throw new RuntimeException(String.format("Invalid configuration for %s: Direct POST (without JWT) cannot be used for ISO mDL as the JWE header apu is needed to validate the mdoc device binding.",
