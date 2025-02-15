@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
  */
 @PublishTestModule(
 	testName = "oid4vp-id3-verifier-happy-flow",
-	displayName = "OID4VPID3 Verifier: Happy flow test ",
+	displayName = "OID4VPID3+draft24 Verifier: Happy flow test",
 	summary = "Expects the verifier to make a valid OID4VP request that matches the configuration, creates and returns an SD-JWT VC credential using the https://example.bmi.bund.de/credential/pid/1.0 VCT.\n\nThe presentation_definition must contain only one input_descriptor.",
 	profile = "OID4VP-ID3",
 	configurationFields = {

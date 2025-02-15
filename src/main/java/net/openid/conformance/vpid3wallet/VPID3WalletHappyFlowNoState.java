@@ -8,7 +8,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "oid4vp-id3-wallet-happy-flow-no-state",
-	displayName = "OID4VPID3: Happy flow test with no 'state' parameter",
+	displayName = "OID4VPID3+draft24: Happy flow test with no 'state' parameter",
 	summary = "Expects the wallet to correctly process a request without a state parameter, which is an optional parameter in the OID4VP specification.",
 	profile = "OID4VP-ID3",
 	configurationFields = {
