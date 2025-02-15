@@ -10,7 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "oid4vp-id3-wallet-negative-test-response-uri-not-client-id",
-	displayName = "OID4VPID3: response_uri not valid",
+	displayName = "OID4VPID3+draft24: response_uri not valid",
 	summary = "Makes a request where the response_uri is not the client_id. The wallet must display an error, a screenshot of which must be uploaded.",
 	profile = "OID4VP-ID3",
 	configurationFields = {

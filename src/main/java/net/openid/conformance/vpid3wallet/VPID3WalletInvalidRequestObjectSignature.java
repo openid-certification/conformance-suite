@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 @PublishTestModule(
 	testName = "oid4vp-id3-wallet-negative-test-invalid-request-object-signature",
-	displayName = "OID4VPID3: Request object signature not valid",
+	displayName = "OID4VPID3+draft24: Request object signature not valid",
 	summary = "Makes a request where the signature on the request object JWS is invalid. The wallet should display an error, a screenshot of which must be uploaded.",
 	profile = "OID4VP-ID3",
 	configurationFields = {
