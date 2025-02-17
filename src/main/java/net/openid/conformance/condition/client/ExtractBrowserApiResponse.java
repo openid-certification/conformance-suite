@@ -53,7 +53,7 @@ public class ExtractBrowserApiResponse extends AbstractCondition {
 
 		JsonElement dataEl = result.get("data");
 		if (!dataEl.isJsonObject()) {
-			throw error("'data' member returned by browser API is not a JSON object", args("data", dataEl));
+			throw error("'data' member returned by browser API is not a JSON object", args("response", result));
 		}
 
 		JsonObject data = dataEl.getAsJsonObject();
