@@ -50,6 +50,7 @@ import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeI
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
+import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEHeaderApu;
@@ -469,8 +470,10 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 	private void processReceivedResponse() {
 		switch (responseMode) {
 			case DIRECT_POST:
-			case DC_API:
 				callAndStopOnFailure(ExtractAuthorizationEndpointResponse.class, ConditionResult.FAILURE);
+				break;
+			case DC_API:
+				callAndStopOnFailure(ExtractBrowserApiAuthorizationEndpointResponse.class, ConditionResult.FAILURE);
 				break;
 			case DIRECT_POST_JWT:
 			case DC_API_JWT:
