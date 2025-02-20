@@ -66,7 +66,7 @@ public class ExtractBrowserApiResponse extends AbstractCondition {
 		JsonObject data = dataEl.getAsJsonObject();
 		env.putObject("original_authorization_endpoint_response", data);
 
-		logSuccess("Browser API result captured and successfully parsed", args("api_result", result));
+		logSuccess("Browser API result captured and successfully parsed", args("api_result", result, "parsed_data", data));
 
 		return env;
 	}
