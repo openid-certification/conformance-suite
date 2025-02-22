@@ -1,10 +1,12 @@
 package net.openid.conformance.openid.ssf;
 
+import net.openid.conformance.openid.ssf.conditions.OIDSSFPushPendingSecurityEvents;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFGenerateCaepEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFUseValidSubject;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForSetAcknowledgment;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForStreamReadiness;
 import net.openid.conformance.openid.ssf.mock.OIDSSFGenerateServerJWKs;
+import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -39,11 +41,32 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 
 		eventLog.runBlock("Emit CAEP event: Session Revoked", () -> {
 			callAndStopOnFailure(new OIDSSFGenerateCaepEvent(OIDSSFGenerateCaepEvent.CAEP_SESSION_REVOKED));
+
+			SsfDeliveryMode variant = getVariant(SsfDeliveryMode.class);
+			switch(variant) {
+				case PUSH -> {
+					callAndStopOnFailure(OIDSSFPushPendingSecurityEvents.class);
+				}
+				case POLL -> {
+
+				}
+			}
 			callAndStopOnFailure(OIDSSFWaitForSetAcknowledgment.class);
 		});
 
 		eventLog.runBlock("Emit CAEP event: Credentials Changed", () -> {
 			callAndStopOnFailure(new OIDSSFGenerateCaepEvent(OIDSSFGenerateCaepEvent.CAEP_CREDENTIALS_CHANGED));
+
+			SsfDeliveryMode variant = getVariant(SsfDeliveryMode.class);
+			switch(variant) {
+				case PUSH -> {
+					callAndStopOnFailure(OIDSSFPushPendingSecurityEvents.class);
+				}
+				case POLL -> {
+
+				}
+			}
+
 			callAndStopOnFailure(OIDSSFWaitForSetAcknowledgment.class);
 		});
 

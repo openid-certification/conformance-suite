@@ -6,6 +6,7 @@ import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -159,6 +160,10 @@ public final class OIDFJSON {
 			list.add(converter.apply(item));
 		}
 		return list;
+	}
+
+	public static JsonArray convertSetToJsonArray(Set<String> set) {
+		return convertListToJsonArray(set.stream().toList(), JsonPrimitive::new);
 	}
 
 	public static JsonArray convertListToJsonArray(List<String> list) {

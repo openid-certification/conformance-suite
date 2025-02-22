@@ -187,7 +187,7 @@ Authorization: Bearer {{transmitterToken}}
 Content-Type: application/json
 Accept: application/json
 
-{"returnImmediately":true,"maxEvents":0, "ack":  ["f6bf022a-afb3-4ca0-9292-83cc083b3be6"]}
+{"returnImmediately":true,"maxEvents":0, "ack":  ["26ce1647-f07e-4a4c-9962-730fc145facf"]}
 
 
 ### Report errors

@@ -9,6 +9,7 @@ import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.util.BaseUrlUtil;
 import net.openid.conformance.variant.VariantParameters;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
@@ -48,7 +49,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		exposeEnvString("ssf_spec_version", "ssf", "spec_version");
 
 		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.POLL) {
-			String pollUrl = effectiveBaseUrl + "/ssf/poll";
+			String pollUrl = effectiveBaseUrl + "/ssf/streams/poll";
 			env.putString("ssf", "poll_endpoint_url", pollUrl);
 			exposeEnvString("poll_endpoint_url", "ssf", "poll_endpoint_url");
 		}
@@ -78,10 +79,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		if ("ssf/ssf-configuration".equals(path)) {
 			Object transmitterMetadata = transmitterMock.createTransmitterMetadata();
-			return ResponseEntity.ok().body(transmitterMetadata);
+			return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(transmitterMetadata);
 		} else if ("ssf/jwks".equals(path)) {
 			Object jwks = transmitterMock.loadJwks();
-			return ResponseEntity.ok().body(jwks);
+			return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(jwks);
 		} else if ("ssf/streams/poll".equals(path)) {
 			return transmitterMock.handlePollingRequest(req, session, requestParts);
 		} else if ("ssf/streams".equals(path)) {
@@ -98,4 +99,5 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		return super.handleHttp(path, req, res, session, requestParts);
 	}
+
 }

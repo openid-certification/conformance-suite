@@ -16,25 +16,37 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import net.openid.conformance.openid.ssf.model.OIDSSFTransmitterMetadata;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.BaseUrlUtil;
 import net.openid.conformance.util.JWKUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class OIDSSFTransmitterMock {
+
+	private static final Logger log = LoggerFactory.getLogger(OIDSSFTransmitterMock.class);
 
 	protected final Environment env;
 
@@ -65,27 +77,29 @@ public class OIDSSFTransmitterMock {
 		return AuthState.AUTH_OK;
 	}
 
-	public Object createTransmitterMetadata() {
+	public Map<String, Object> createTransmitterMetadata() {
 
 		String effectiveBaseUrl = BaseUrlUtil.resolveEffectiveBaseUrl(env);
 
-		OIDSSFTransmitterMetadata metadata = new OIDSSFTransmitterMetadata();
-		metadata.setSpecVersion(env.getString("ssf", "spec_version"));
-		metadata.setIssuer(env.getString("ssf", "issuer"));
-		metadata.setJwksUri(effectiveBaseUrl + "/ssf/jwks");
-		metadata.setStatusEndpoint(effectiveBaseUrl + "/ssf/status");
-		metadata.setConfigurationEndpoint(effectiveBaseUrl + "/ssf/streams");
-		metadata.setAddSubjectEndpoint(effectiveBaseUrl + "/ssf/add_subjects");
-		metadata.setRemoveSubjectEndpoint(effectiveBaseUrl + "/ssf/remove_subjects");
-		metadata.setVerificationEndpoint(effectiveBaseUrl + "/ssf/verify");
-		metadata.setAuthorizationSchemes(getAuthorizationSchemes());
-		metadata.setDeliveryMethodSupported(getDeliveryMethodsSupported());
+		Map<String, Object> metadata = new LinkedHashMap<>();
+		metadata.put("spec_version", env.getString("ssf", "spec_version"));
+		metadata.put("issuer", env.getString("ssf", "issuer"));
+		metadata.put("jwks_uri", effectiveBaseUrl + "/ssf/jwks");
+		metadata.put("status_endpoint", effectiveBaseUrl + "/ssf/status");
+		metadata.put("configuration_endpoint", effectiveBaseUrl + "/ssf/streams");
+		metadata.put("add_subject_endpoint", effectiveBaseUrl + "/ssf/add_subjects");
+		metadata.put("remove_subject_endpoint", effectiveBaseUrl + "/ssf/remove_subjects");
+		metadata.put("verification_endpoint", effectiveBaseUrl + "/ssf/verify");
+		metadata.put("authorization_schemes", getAuthorizationSchemes());
+		metadata.put("delivery_methods_supported", getDeliveryMethodsSupported());
 
 		return metadata;
 	}
 
-	public List<Object> getAuthorizationSchemes() {
-		return List.of(Map.of("spec_urn", "urn:ietf:rfc:6749"));
+	public List<Map<String, Object>> getAuthorizationSchemes() {
+		Map<String, Object> rfc6749 = new LinkedHashMap<>();
+		rfc6749.put("spec_urn", "urn:ietf:rfc:6749");
+		return List.of(rfc6749);
 	}
 
 	public Set<String> getDeliveryMethodsSupported() {
@@ -116,14 +130,9 @@ public class OIDSSFTransmitterMock {
 					for (var ack : acks) {
 						String ackJti = OIDFJSON.getString(ack);
 						if (ackJti.equals(verificationJti)) {
-							writeCurrentVerification(null);
+							verificationObject = null;
 
-							// TODO emit stream updated event, see: https://openid.net/specs/openid-sharedsignals-framework-1_0-ID3.html#section-7.1.5
-
-							// mark stream enabled
-							updateStreamStatus(getStreamIdFromEnv(), "enabled", null);
-
-							env.putString("ssf", "stream.ready", "true");
+							onStreamVerificationSuccess();
 						}
 					}
 				}
@@ -195,20 +204,7 @@ public class OIDSSFTransmitterMock {
 			String streamId = OIDFJSON.getString(verificationObject.get("stream_id"));
 			String state = OIDFJSON.getString(verificationObject.get("state"));
 
-			var events = Map.of("https://schemas.openid.net/secevent/ssf/event-type/verification", Map.<String, Object>of("state", state));
-
-			// create subject for stream
-			var subject = new JsonObject();
-			subject.addProperty("format", "opaque");
-			subject.addProperty("id", streamId);
-
-			Map<String, Object> eventSets = generateSets(subject, events);
-
-			String verificationEventJti = eventSets.keySet().stream().findFirst().orElse(null);
-			verificationObject = readCurrentVerification();
-			// store generated jti for ack/err handling
-			verificationObject.addProperty("jti", verificationEventJti);
-			writeCurrentVerification(verificationObject);
+			Map<String, Object> eventSets = generateVerificationEventSet(state, streamId);
 
 			pollingData.put("sets", eventSets);
 		} else {
@@ -226,6 +222,39 @@ public class OIDSSFTransmitterMock {
 		}
 
 		return ResponseEntity.ok().body(pollingData);
+	}
+
+	protected Map<String, Object> generateVerificationEventSet(String state, String streamId) {
+		JsonObject verificationObject = readCurrentVerification();
+		if (verificationObject == null) {
+			return Collections.emptyMap();
+		}
+
+		var events = Map.of("https://schemas.openid.net/secevent/ssf/event-type/verification", Map.<String, Object>of("state", state));
+
+		// create subject for stream
+		var subject = new JsonObject();
+		subject.addProperty("format", "opaque");
+		subject.addProperty("id", streamId);
+
+		Map<String, Object> eventSets = generateSets(subject, events);
+
+		String verificationEventJti = eventSets.keySet().stream().findFirst().orElse(null);
+
+		// store generated jti for ack/err handling
+		verificationObject.addProperty("jti", verificationEventJti);
+		writeCurrentVerification(verificationObject);
+		return eventSets;
+	}
+
+	protected void onStreamVerificationSuccess() {
+		writeCurrentVerification(null);
+		// TODO emit stream updated event, see: https://openid.net/specs/openid-sharedsignals-framework-1_0-ID3.html#section-7.1.5
+
+		// mark stream enabled
+		updateStreamStatus(getStreamIdFromEnv(), "enabled", null);
+
+		env.putString("ssf", "stream.ready", "true");
 	}
 
 	protected Map<String, Object> generateSets(JsonObject subject, Map<String, Map<String, Object>> events) {
@@ -279,12 +308,15 @@ public class OIDSSFTransmitterMock {
 		String audience = OIDFJSON.getString(env.getElementFromObject("config", "ssf.stream.audience"));
 
 		String jti = UUID.randomUUID().toString();
+
+		Map<String, Object> subjectIdMap = subjectIdObjectToMap(subjectId);
+
 		JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
 			.jwtID(jti)
 			.issuer(issuer)
 			.audience(audience)
 			.issueTime(Date.from(Instant.now())) // Epoch time in milliseconds
-			.claim("sub_id", subjectId.asMap())
+			.claim("sub_id", subjectIdMap)
 			.claim("events", events)
 			.build();
 
@@ -294,6 +326,14 @@ public class OIDSSFTransmitterMock {
 			.build();
 
 		return new SignedJWT(header, claimsSet);
+	}
+
+	public Map<String, Object> subjectIdObjectToMap(JsonObject subjectId) {
+		Map<String, Object> subjectIdMap = new LinkedHashMap<>();
+		for (String key : subjectId.keySet()) {
+			subjectIdMap.put(key, OIDFJSON.getString(subjectId.get(key)));
+		}
+		return subjectIdMap;
 	}
 
 	public Object handleStreamConfigurationEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
@@ -336,6 +376,7 @@ public class OIDSSFTransmitterMock {
 			}
 
 			env.removeElement("ssf", "stream.config");
+			env.removeElement("ssf", "stream.feedback");
 
 			return ResponseEntity.noContent().build();
 		} else if (HttpMethod.PATCH.name().equals(req.getMethod())) {
@@ -433,6 +474,21 @@ public class OIDSSFTransmitterMock {
 		streamConfig.add("events_delivered", OIDFJSON.convertListToJsonArray(getEventsDelivered(streamConfigInput)));
 
 		env.putObject("ssf", "stream.config", streamConfig);
+
+		JsonObject delivery = streamConfig.getAsJsonObject("delivery");
+		String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
+		switch (deliveryMethod) {
+			case "urn:ietf:rfc:8936":
+				String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
+				delivery.addProperty("endpoint_url", pollEndpointUrl);
+				break;
+			case "urn:ietf:rfc:8935":
+				JsonElement endpointUrl = delivery.get("endpoint_url");
+				if (endpointUrl == null) {
+					throw new IllegalArgumentException("endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery");
+				}
+				break;
+		}
 
 		updateStreamStatus(streamId, "enabled", "");
 
@@ -545,6 +601,27 @@ public class OIDSSFTransmitterMock {
 		verificationObject.addProperty("stream_id", currentStreamId);
 
 		writeCurrentVerification(verificationObject);
+
+		// TODO add support for push delivery
+		boolean pushDelivery = "urn:ietf:rfc:8935".equals(env.getString("ssf","stream.config.delivery.method"));
+		if (pushDelivery) {
+
+			String pushToken = env.getString("ssf","stream.config.delivery.authorization_header");
+			String pushUrl = env.getString("ssf", "stream.config.delivery.endpoint_url");
+			Map<String, Object> verificationEventSet = generateVerificationEventSet(state, currentStreamId);
+
+			ScheduledFuture<?> unused = Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+				String verificationSet = (String) verificationEventSet.entrySet().iterator().next().getValue();
+				RestTemplate restTemplate = new RestTemplate();
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.parseMediaType("application/secevent+jwt"));
+				headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+				headers.setBearerAuth(pushToken);
+				ResponseEntity<?> responseEntity = restTemplate.exchange(pushUrl, HttpMethod.POST, new HttpEntity<>(verificationSet, headers), Map.class);
+
+				log.debug("Delivered verification event to push endpoint. statusCode={}", responseEntity.getStatusCode());
+			}, 2, TimeUnit.SECONDS);
+		}
 
 		return ResponseEntity.noContent().build();
 	}

@@ -31,10 +31,15 @@ public class OIDSSFGenerateCaepEvent extends AbstractCondition {
 		OIDSSFTransmitterMock mock = new OIDSSFTransmitterMock(env);
 
 		JsonObject subjectIdObject = env.getElementFromObject("ssf", "stream.subject").getAsJsonObject();
+		if (subjectIdObject == null) {
+			throw error("Missing valid SubjectId");
+		}
+
 		Map<String, Object> reasonAdmin = new HashMap<>();
 		Map<String, Object> reasonUser = new HashMap<>();
 
-		Map<String, Object> caepEvent = extracted(subjectIdObject, reasonAdmin, reasonUser);
+		Map<String, Object> subjectIdMap = mock.subjectIdObjectToMap(subjectIdObject);
+		Map<String, Object> caepEvent = createCaepEvent(subjectIdMap, reasonAdmin, reasonUser);
 
 		switch (eventType) {
 			case CAEP_SESSION_REVOKED:
@@ -94,9 +99,10 @@ public class OIDSSFGenerateCaepEvent extends AbstractCondition {
 		return env;
 	}
 
-	protected Map<String, Object> extracted(JsonObject subjectIdObject, Map<String, Object> reasonAdmin, Map<String, Object> reasonUser) {
+	protected Map<String, Object> createCaepEvent(Map<String, Object> subjectIdObject, Map<String, Object> reasonAdmin, Map<String, Object> reasonUser) {
 		Map<String, Object> caepEvent = new HashMap<>();
-		caepEvent.put("subject", subjectIdObject.asMap());
+
+		caepEvent.put("subject", subjectIdObject);
 		caepEvent.put("event_timestamp", Instant.now().toEpochMilli());
 		caepEvent.put("initiating_entity", "system"); //system, policy, user, admin
 
