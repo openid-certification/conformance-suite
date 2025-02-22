@@ -1132,7 +1132,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     console.log('Error from XMLHttpRequest');
                                 };
                                 try {
-                                    const credentialResponse = await navigator.identity.get({
+                                    const credentialResponse = await navigator.credentials.get({
                                         digital: {
                                             providers: [{
                                                 protocol: "openid4vp",
