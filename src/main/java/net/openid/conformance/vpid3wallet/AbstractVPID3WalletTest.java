@@ -483,7 +483,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				// FIXME: need to validate jwe header
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-ID3-7.3");
-				if (credentialFormat == VPID3WalletCredentialFormat.ISO_MDL) {
+				if (credentialFormat == VPID3WalletCredentialFormat.ISO_MDL && !isBrowserApi()) {
+					// there are ISO part 7 requirements, HAIP/OID4VP over DC API doesn't currently set any requirements for apu/apv
 					callAndContinueOnFailure(ExtractMDocGeneratedNonceFromJWEHeaderApu.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
 					callAndContinueOnFailure(ValidateJWEHeaderApvIsAuthRequestNonce.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
 				}
