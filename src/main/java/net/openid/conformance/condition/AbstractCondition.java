@@ -620,6 +620,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	/*
 	 * Create an HTTP Client for use in calling outbound to other services
 	 */
+	@SuppressWarnings("deprecation")
 	protected HttpClient createHttpClient(Environment env, boolean restrictAllowedTLSVersions)
 		throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException,
 				KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {
