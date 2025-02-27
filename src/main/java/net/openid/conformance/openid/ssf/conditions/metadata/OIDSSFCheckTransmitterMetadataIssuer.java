@@ -1,13 +1,12 @@
 package net.openid.conformance.openid.ssf.conditions.metadata;
 
 import com.google.gson.JsonElement;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.testmodule.Environment;
-import org.jetbrains.annotations.NotNull;
 
 public class OIDSSFCheckTransmitterMetadataIssuer extends CheckDiscEndpointIssuer {
 
-	@NotNull
 	@Override
 	protected String getConfigurationEndpoint() {
 		return OIDSSFGetDynamicTransmitterConfiguration.WELL_KNOWN_SSF_CONFIGURATION_PATH;
@@ -33,6 +32,23 @@ public class OIDSSFCheckTransmitterMetadataIssuer extends CheckDiscEndpointIssue
 		} finally {
 			env.removeObject("transmitter_metadata");
 		}
+	}
+
+	@Override
+	protected String getExpectedIssuerUrl(Environment env) {
+		String expectedIssuerUrl = super.getExpectedIssuerUrl(env);
+
+		String metadataSuffix = env.getString("config", "ssf.transmitter.metadata_suffix");
+		if (metadataSuffix != null) {
+			expectedIssuerUrl = removeSlashEndpointURL(expectedIssuerUrl) + removeSlashEndpointURL(metadataSuffix);
+		}
+		return expectedIssuerUrl;
+	}
+
+	@Override
+	protected ConditionError createIssuerMismatchError(Environment env, String issuerUrl, String expectedIssuerUrl) {
+		return error("issuer listed in the SSF Configuration document is not consistent with the location the discovery document was retrieved from and the provided metadata suffix. These must match to prevent impersonation attacks.",
+			args("expectedIssuer", expectedIssuerUrl, "issuer", issuerUrl));
 	}
 
 	@Override

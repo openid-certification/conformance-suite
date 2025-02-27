@@ -71,7 +71,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTestModule {
 
 	private void validateTransmitterMetadata() {
 
-		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.WARNING, "OIDSSF-6.2");
+		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.2");
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-6.1", "CAEPIOP-2.3.7");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
 		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1");
