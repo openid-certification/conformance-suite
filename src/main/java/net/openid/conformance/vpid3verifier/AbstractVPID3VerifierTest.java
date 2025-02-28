@@ -49,6 +49,7 @@ import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
+import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
@@ -428,6 +429,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObject() {
+		callAndContinueOnFailure(ValidateRequestObjectTypIsOAuthQauthReqJwt.class, ConditionResult.FAILURE, "OID4VP-ID3-5");
 		skipIfElementMissing("authorization_request_object", "claims.exp", ConditionResult.INFO,
 			OIDCCValidateRequestObjectExp.class, ConditionResult.FAILURE, "RFC7519-4.1.4");
 		callAndContinueOnFailure(ValidateRequestObjectIat.class, ConditionResult.WARNING, "OIDCC-6.1");
