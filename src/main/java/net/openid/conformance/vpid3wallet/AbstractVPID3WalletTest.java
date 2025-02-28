@@ -69,7 +69,7 @@ import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
 import net.openid.conformance.condition.client.SetClientIdToWebOrigin;
 import net.openid.conformance.condition.client.SetWebOrigin;
-import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.SignRequestObjectIncludeTypHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
@@ -626,7 +626,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				switch (clientIdScheme) {
 					case DID:
 						//Remove x5c header, only the kid header is mandatory for DIDs, which is set in the jwks parameter
-						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObject.class));
+						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeTypHeader.class));
 						break;
 					case X509_SAN_DNS:
 						// x5c header is mandatory for x509 san dns (and/or mdl profile)
