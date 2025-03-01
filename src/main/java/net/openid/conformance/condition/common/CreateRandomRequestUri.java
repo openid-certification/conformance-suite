@@ -6,29 +6,24 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Creates a URL to retrieve a request object from based on the base_url environment value
  */
 public class CreateRandomRequestUri extends AbstractCondition {
 
-	private String base64UrlEncodedSha256(String text) {
-		MessageDigest md = null;
-		try {
-			md = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("MessageDigest.getInstance(\"SHA-256\") threw NoSuchAlgorithmException", e);
-		}
-		byte[] digest = md.digest(text.getBytes(StandardCharsets.US_ASCII));
-
-		return Base64.encodeBase64URLSafeString(digest);
-	}
+//	private String base64UrlEncodedSha256(String text) {
+//		MessageDigest md = null;
+//		try {
+//			md = MessageDigest.getInstance("SHA-256");
+//		} catch (NoSuchAlgorithmException e) {
+//			throw new RuntimeException("MessageDigest.getInstance(\"SHA-256\") threw NoSuchAlgorithmException", e);
+//		}
+//		byte[] digest = md.digest(text.getBytes(StandardCharsets.US_ASCII));
+//
+//		return Base64.encodeBase64URLSafeString(digest);
+//	}
 
 	@Override
 	@PreEnvironment(strings = "base_url")
@@ -63,14 +58,14 @@ public class CreateRandomRequestUri extends AbstractCondition {
 		// (64 is a relatively arbitrary choice that lies between ~21 characters having a reasonable amount of entropy
 		// and the 512 byte upper limit, and appears to match what python does. The spec says clients mustn't use more
 		// than 512, but doesn't say servers have to support 512.)
-		String path = "requesturi/" + RandomStringUtils.randomAlphanumeric(64);
+		String path = "requesturi/" + RandomStringUtils.randomAlphanumeric(96); // FIXME hack if I have it shorter than this then the QR code generation fails on demo - see if there's a later version of qrcode library maybe?
 
 		// actual content of request object not used as it's not available prior to client registration
-		String fragment = base64UrlEncodedSha256(RandomStringUtils.randomAlphanumeric(64));
+//		String fragment = base64UrlEncodedSha256(RandomStringUtils.randomAlphanumeric(64));
 // FIXME remove fragment at least for VCI; it's only in OIDC, not in JAR
 		JsonObject o = new JsonObject();
 		o.addProperty("path", path);
-		String fullUrl = baseUrl + "/" + path + "#" + fragment;
+		String fullUrl = baseUrl + "/" + path;
 		o.addProperty("fullUrl", fullUrl);
 
 		env.putObject("request_uri", o);
