@@ -3,6 +3,9 @@ package net.openid.conformance.testmodule;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.client.ExtractImplicitHashToCallbackResponse;
 import net.openid.conformance.condition.common.CreateRandomImplicitSubmitUrl;
 import org.slf4j.Logger;
@@ -10,10 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 /** The module is a general purpose module for collecting the result from the authorization endpoint
  *
@@ -44,7 +43,8 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 	}
 
 	protected void performRedirect(String method) {
-		String redirectTo = env.getString("redirect_to_authorization_endpoint");
+		String redirectTo;// = env.getString("redirect_to_authorization_endpoint");
+		redirectTo = "mdoc-openid4vp://?request_uri=https://demo.certification.openid.net/test/a/joseph-iso-interop/requesturi/OeQwrJK7AIo7hmEcewmCGTh7TOWtzb6qnNhoafvCjV4jG6I5elqU5fD8ba686InO&client_id=demo.certification.openid.net";
 
 		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
 			"redirect_to", redirectTo,
