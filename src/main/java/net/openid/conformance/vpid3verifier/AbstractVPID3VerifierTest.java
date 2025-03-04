@@ -364,6 +364,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
 		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-ID2-5.2");
+		// FIXME entropy / size check on nonce? valid characters?
 	}
 
 	protected void validateAuthorizationEndpointRequestParameters() {
