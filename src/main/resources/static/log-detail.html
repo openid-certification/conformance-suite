@@ -1106,7 +1106,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                        if (data.browser.show_qr_code) {
                             document.querySelectorAll('#runningTestBrowser .qr').forEach(qr => {
-                                new QRCode(qr, qr.dataset.url);
+                                new QRCode(qr, {
+                                    text: qr.dataset.url,
+                                    correctLevel: QRCode.CorrectLevel.L,
+                                    version: 20
+                                });
                             });
                        }
 
