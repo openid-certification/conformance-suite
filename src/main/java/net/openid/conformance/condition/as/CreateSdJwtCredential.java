@@ -12,6 +12,7 @@ public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
 		Object publicJWK = env.getElementFromObject("proof_jwt", "claims.jwt");
 
 		String sdJwt = createSdJwt(env, publicJWK, null);
+//FIXME check we're making sure that dc+sd-jwt is used in DCQL & returned credential
 
 		env.putString("credential", sdJwt);
 
