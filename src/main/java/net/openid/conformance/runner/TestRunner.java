@@ -647,7 +647,7 @@ public class TestRunner implements DataUtils {
 	}
 
 	protected BrowserControl createBrowserControl(String id, JsonObject config, TestInstanceEventLog wrappedEventLog, TestExecutionManager executionManager) {
-		String browserOrchestration = "htmlunit"; // TODO make me configurable
+		String browserOrchestration = "playwright"; // TODO make me configurable
 		switch (browserOrchestration) {
 			case "playwright":
 				return new PlaywrightBrowserControl(config, id, wrappedEventLog, executionManager, imageService);
