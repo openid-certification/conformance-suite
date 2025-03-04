@@ -117,7 +117,7 @@ public class CreateSdJwtCredential extends AbstractCondition {
 
 		Map<String, Object> claims = builder.build();
 		JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
-			.type(new JOSEObjectType("dc+sd-jwt"));
+			.type(new JOSEObjectType("dc+sd-jwt")); // FIXME: check we're making sure that dc+sd-jwt is used in DCQL & returned credential
 		if (credentialSigningJwk.getX509CertChain() != null) {
 			headerBuilder.x509CertChain(credentialSigningJwk.getX509CertChain());
 		}
