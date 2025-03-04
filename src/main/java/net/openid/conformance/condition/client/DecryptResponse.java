@@ -54,6 +54,8 @@ public class DecryptResponse extends AbstractCondition {
 			if (decryptionKey == null) {
 				throw new ParseException("No suitable key for decrypting this JWT was provided in the test configuration.", 0);
 			}
+			// FIXME try client_metadata without alg / key use / ...?
+			// FIXME negative test for session transcript
 			JWEDecrypter decrypter = JWEUtil.createDecrypter(alg, decryptionKey);
 			encryptedJWT.decrypt(decrypter);
 			String decryptedPayload = encryptedJWT.getPayload().toString();

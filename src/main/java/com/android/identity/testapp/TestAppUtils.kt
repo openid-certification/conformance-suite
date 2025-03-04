@@ -48,8 +48,6 @@ import org.multipaz.storage.base.BaseStorageTable
 import org.multipaz.storage.ephemeral.EphemeralStorage
 import org.multipaz.util.Constants
 import org.multipaz.util.Logger
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
@@ -227,6 +225,11 @@ object TestAppUtils {
 			documentTableSpec = testDocumentTableSpec
 		)
 
+		// FIXME need to have better keys here - animo verifier fails, Timo said:
+		// "Mdoc at index 0 is not valid. Country name (C) must be present in the issuer certificate's subject distinguished name"
+		// DavidZ has a tool to generate them in identity-credential library
+		// mattr have tool to validate:
+		// https://tools.mattrlabs.com/pem?cert=MIIBITCBx6ADAgECAgEBMAoGCCqGSM49BAMCMBoxGDAWBgNVBAMMD1N0YXRlIE9mIFV0b3BpYTAeFw0yNDExMDcyMTUzMDdaFw0zNDExMDUyMTUzMDdaMBoxGDAWBgNVBAMMD1N0YXRlIE9mIFV0b3BpYTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJ5olgDBiHqNhN7rFkSy%252FxD34dQcOSR4KvEWMyb62jI%252BUGUofeAi%252F55RIt74pBsQz9%252BB48WXI8xhIphoNN7AejYwCgYIKoZIzj0EAwIDSQAwRgIhALkqUIVeaSW0xhLuMdwHyjiwTV8USD4zq68369ZW6jBvAiEAj2smZAXJB04x%252Fs3exzjnI5BQprUOSfYEuku1Jv7gA%252BA%253D&mode=IACA
 		val documentSignerKeyPub = EcPublicKey.fromPem(
 			"""-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnmiWAMGIeo2E3usWRLL/EPfh1Bw5
