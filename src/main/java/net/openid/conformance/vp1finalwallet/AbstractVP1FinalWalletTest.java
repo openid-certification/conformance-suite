@@ -114,7 +114,11 @@ import org.springframework.http.ResponseEntity;
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
 })
+@VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post", configurationFields = {
+	"server.authorization_endpoint"
+})
 @VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post.jwt", configurationFields = {
+	"server.authorization_endpoint",
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
@@ -122,7 +126,6 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
-// FIXME remove authz endpoint field for w3c dc api
 public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerTestModule {
 	protected enum TestState {
 		INITIAL,
