@@ -172,6 +172,13 @@
 			<artifactId>commons-compress</artifactId>
 		</dependency>
 
+		<!-- Stuff for playwright Browser Control -->
+		<dependency>
+			<groupId>com.microsoft.playwright</groupId>
+			<artifactId>playwright</artifactId>
+			<version>1.50.0</version>
+		</dependency>
+
 		<!-- Stuff for Selenium Browser Control -->
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>

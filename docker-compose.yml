@@ -16,6 +16,8 @@ services:
     volumes:
      - ./target/:/server/
     command: >
+      sh -c "
+      mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps chromium" &&
       java
       -jar /server/fapi-test-suite.jar
       -Djdk.tls.maxHandshakeMessageSize=65536

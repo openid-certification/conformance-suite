@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.frontchannel.BrowserControl;
+import net.openid.conformance.frontchannel.HtmlUnitBrowserControl;
+import net.openid.conformance.frontchannel.PlaywrightBrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.Plan;
 import net.openid.conformance.info.SavedConfigurationService;
@@ -627,7 +629,7 @@ public class TestRunner implements DataUtils {
 		TestInstanceEventLog wrappedEventLog = new TestInstanceEventLog(id, owner, eventLog);
 
 		TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade, support);
-		BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
+		BrowserControl browser = createBrowserControl(id, config, wrappedEventLog, executionManager);
 
 		TestModule module;
 
@@ -642,6 +644,16 @@ public class TestRunner implements DataUtils {
 
 		return module;
 
+	}
+
+	protected BrowserControl createBrowserControl(String id, JsonObject config, TestInstanceEventLog wrappedEventLog, TestExecutionManager executionManager) {
+		String browserOrchestration = "htmlunit"; // TODO make me configurable
+		switch (browserOrchestration) {
+			case "playwright":
+				return new PlaywrightBrowserControl(config, id, wrappedEventLog, executionManager, imageService);
+			default:
+				return new HtmlUnitBrowserControl(config, id, wrappedEventLog, executionManager, imageService);
+		}
 	}
 
 	private Map<String, Object> createTestStatusMap(TestModule test) {
