@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 )
 @VariantNotApplicable(parameter = VPID3WalletRequestMethod.class, values={"request_uri_unsigned"})
 public class VPID3WalletInvalidRequestObjectSignature extends AbstractVPID3WalletTest {
+	// FIXME this probably doesn't work correctly for browser api, e.g. this failure:
+	//  https://demo.certification.openid.net/log-detail.html?log=GHTdSaAuyKMC0cY&continue
+	// but need clarifications in spec, see https://github.com/openid/OpenID4VP/issues/204
 	@NotNull
 	@Override
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
