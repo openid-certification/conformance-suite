@@ -87,8 +87,14 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		SDObjectBuilder builder = new SDObjectBuilder();
 		ArrayList<Disclosure> disclosures = new ArrayList<>();
 
-		// contents as per https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#52-encoding-of-pid-attributes
-		// There are more claims, possibly we should include more of them
+		/*
+		 * contents as per https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#52-encoding-of-pid-attributes
+		 * mandatory elements defined here, and probably we should make sure to include the mandatory elements:
+		 *
+		 * https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#32-[…]977
+		 * https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#34-[…]977
+		 *
+		 */
 		builder.putClaim("vct", "urn:eudi:pid:1");
 
 		disclosures.add(builder.putSDClaim("given_name", "Jean"));
