@@ -227,6 +227,8 @@ object TestAppUtils {
 			documentTableSpec = testDocumentTableSpec
 		)
 
+		// FIXME need to have better keys here - animo verifier fails, Timo said:
+		// "Mdoc at index 0 is not valid. Country name (C) must be present in the issuer certificate's subject distinguished name"
 		val documentSignerKeyPub = EcPublicKey.fromPem(
 			"""-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnmiWAMGIeo2E3usWRLL/EPfh1Bw5
