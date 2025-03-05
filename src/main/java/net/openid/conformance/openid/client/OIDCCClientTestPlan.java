@@ -7,7 +7,7 @@ import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryWebfi
 import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryWebfingerURL;
 import net.openid.conformance.openid.client.config.OIDCCClientTestDynamicRegistration;
 import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotation;
-import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationNative;
+import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationJustBeforeSigning;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
@@ -47,7 +47,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestDiscoveryOpenIDConfiguration.class,
 		OIDCCClientTestDiscoveryJwksUriKeys.class,
 		OIDCCClientTestDiscoveryIssuerMismatch.class,
-		OIDCCClientTestSigningKeyRotationNative.class,
+		OIDCCClientTestSigningKeyRotationJustBeforeSigning.class,
 		OIDCCClientTestSigningKeyRotation.class,
 		OIDCCClientTestDiscoveryWebfingerAcct.class,
 		OIDCCClientTestDiscoveryWebfingerURL.class,

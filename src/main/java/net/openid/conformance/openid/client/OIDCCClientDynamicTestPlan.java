@@ -7,7 +7,7 @@ import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryWebfi
 import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryWebfingerURL;
 import net.openid.conformance.openid.client.config.OIDCCClientTestDynamicRegistration;
 import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotation;
-import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationNative;
+import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationJustBeforeSigning;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ClientRegistration;
@@ -52,7 +52,7 @@ public class OIDCCClientDynamicTestPlan implements TestPlan {
 					OIDCCClientTestIdTokenSigAlgNone.class,	//rp-id_token-sig-none
 
 					//rp-key-rotation-op-sign-key-native does not exist in the profile document
-					OIDCCClientTestSigningKeyRotationNative.class,	//rp-key-rotation-op-sign-key-native
+					OIDCCClientTestSigningKeyRotationJustBeforeSigning.class,	//rp-key-rotation-op-sign-key-native
 					OIDCCClientTestSigningKeyRotation.class,	//rp-key-rotation-op-sign-key
 
 					OIDCCClientTestSignedUserinfo.class	//rp-userinfo-sig
