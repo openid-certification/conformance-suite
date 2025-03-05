@@ -17,7 +17,6 @@ import java.util.Date;
 
 public abstract class AbstractValidateDpopProof extends AbstractCondition {
 
-	// TODO: make this configurable
 	public static final int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	// Common method to validate DPoP Proofs

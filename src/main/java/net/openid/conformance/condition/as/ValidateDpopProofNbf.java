@@ -9,7 +9,6 @@ import java.util.Date;
 
 public class ValidateDpopProofNbf extends AbstractCondition {
 
-	// TODO: make this configurable
 	private int timeSkewMillis = AbstractValidateDpopProof.timeSkewMillis; // 5 minute allowable skew for testing
 
 	@Override

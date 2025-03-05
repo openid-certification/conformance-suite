@@ -53,7 +53,7 @@ public class JWKUtil {
 		JWK bestMatch = null;
 		JWK secondBestMatch = null;
 		JWK thirdMatch = null;
-		//TODO consider using nimbusds JWKMatcher?
+		// an alternative to this code would be using nimbusds JWKMatcher
 		for(JWK key : keys) {
 			if(JWSAlgorithm.Family.EC.contains(jwsAlgorithm) && KeyType.EC.equals(key.getKeyType())) {
 				ECKey ecKey = (ECKey)key;

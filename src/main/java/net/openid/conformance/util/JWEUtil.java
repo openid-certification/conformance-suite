@@ -112,7 +112,6 @@ public class JWEUtil {
 				targetLength = 32;
 				break;
 			default:
-				//TODO handle this better?
 				throw new RuntimeException("Unexpected algorithm:" + algorithm);
 		}
 
