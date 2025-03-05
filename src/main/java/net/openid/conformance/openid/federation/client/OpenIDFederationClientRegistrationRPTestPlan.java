@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.federation.client;
 
-import net.openid.conformance.openid.federation.OpenIDFederationEntityConfigurationTest;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
