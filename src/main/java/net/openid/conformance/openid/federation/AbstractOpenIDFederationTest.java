@@ -6,9 +6,9 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureNotFoundError;
+import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -159,7 +159,11 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 	protected void validateOpenIdProviderMetadata() {
 		if (env.containsObject("openid_provider_metadata")) {
 			env.mapKey("server", "openid_provider_metadata");
-			call(new ValidateDiscoveryMetadataSequence(getVariant(ClientRegistration.class)));
+			String registrationEndpoint = env.getString("openid_provider_metadata", "registration_endpoint");
+			net.openid.conformance.variant.ClientRegistration clientRegistration = registrationEndpoint != null
+				? net.openid.conformance.variant.ClientRegistration.DYNAMIC_CLIENT
+				: net.openid.conformance.variant.ClientRegistration.STATIC_CLIENT;
+			call(new ValidateDiscoveryMetadataSequence(clientRegistration));
 			callAndContinueOnFailure(ValidateClientRegistrationTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,
 				ValidateClientRegistrationTypesSupportedValues.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
