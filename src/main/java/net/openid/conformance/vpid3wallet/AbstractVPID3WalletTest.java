@@ -16,6 +16,7 @@ import net.openid.conformance.condition.client.AddEncryptionParametersToClientMe
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddRedirectUriToDirectPostResponse;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
@@ -39,6 +40,7 @@ import net.openid.conformance.condition.client.ConvertAuthorizationEndpointReque
 import net.openid.conformance.condition.client.CreateClientEncryptionKeyIfMissing;
 import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CreateEmptyDirectPostResponse;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
@@ -158,6 +160,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 			fireTestFinished();
 			return;
 		}
+		abortIfRedirectFragmentNotReceived = true;
 
 		responseMode = getVariant(VPID3WalletResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
@@ -447,21 +450,21 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 		processReceivedResponse();
 
 		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
-		JsonObject response = new JsonObject();
+		callAndStopOnFailure(CreateEmptyDirectPostResponse.class, ConditionResult.FAILURE);
 		switch (credentialFormat) {
 			case ISO_MDL:
 				// iso mdl spec requires that redirect uri is always returned, so we return it in all test modules
 				// for other credential formats some test modules return a valid response without redirect uri
-				populateDirectPostResponseWithRedirectUri(response);
+				populateDirectPostResponseWithRedirectUri();
 				break;
 			default:
-				populateDirectPostResponse(response);
+				populateDirectPostResponse();
 				break;
 		}
 
 		return ResponseEntity.ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(response.toString());
+			.body(env.getObject("direct_post_response").toString());
 	}
 
 	// This is called for both the browser API response and the regular direct post response
@@ -559,14 +562,14 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 		}
 	}
 
-	protected void populateDirectPostResponse(JsonObject response) {
+	protected void populateDirectPostResponse() {
 		// no redirect_uri in response, so the test ends after this response is received by wallet
 		fireTestFinished();
 	}
 
-	protected void populateDirectPostResponseWithRedirectUri(JsonObject response) {
+	protected void populateDirectPostResponseWithRedirectUri() {
 		callAndStopOnFailure(CreateRandomCodeVerifier.class);
-		response.addProperty("redirect_uri", env.getString("redirect_uri") + "#" + env.getString("code_verifier"));
+		callAndStopOnFailure(AddRedirectUriToDirectPostResponse.class);
 
 		eventLog.log(getName(), "The response_uri is returning 'redirect_uri', so the wallet should send the user to that redirect_uri next");
 		setStatus(Status.WAITING);

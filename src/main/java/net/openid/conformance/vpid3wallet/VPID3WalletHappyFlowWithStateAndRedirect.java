@@ -42,7 +42,7 @@ public class VPID3WalletHappyFlowWithStateAndRedirect extends AbstractVPID3Walle
 	}
 
 	@Override
-	protected void populateDirectPostResponse(JsonObject response) {
-		super.populateDirectPostResponseWithRedirectUri(response);
+	protected void populateDirectPostResponse() {
+		super.populateDirectPostResponseWithRedirectUri();
 	}
 }
