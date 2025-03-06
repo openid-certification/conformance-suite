@@ -644,7 +644,7 @@ var FAPI_UI = {
 			"CID-SP-" : "https://cdn.connectid.com.au/specifications/digitalid-fapi-profile-01.html#section",
 			"CID-IDA-" : "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html#section",
 			"CID-PURPOSE-": "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section",
-			"OIDFED-": "https://openid.net/specs/openid-federation-1_0-41.html#section-",
+			"OIDFED-": "https://openid.net/specs/openid-federation-1_0-42.html#section-",
 			"CBUAE": "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI"
 		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
 

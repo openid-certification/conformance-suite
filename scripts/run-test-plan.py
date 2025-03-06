@@ -1214,7 +1214,7 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'federation':
-            if not federation_test:
+            if not federation_test or re.match(r'openid-federation-client', m):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'all-except-logout':
