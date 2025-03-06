@@ -12,6 +12,9 @@ public abstract class AbstractValidateClientRegistrationValues extends AbstractC
 	public static final Set<String> VALID_CLIENT_REGISTRATION_VALUES = Set.of("automatic", "explicit");
 
 	protected void validateClientRegistrationValues(JsonElement clientRegistrationValuesElement, String propertyName) {
+		if (clientRegistrationValuesElement == null || !clientRegistrationValuesElement.isJsonArray()) {
+			throw error("client_registration_types must be an array", args("client_registration_types", clientRegistrationValuesElement));
+		}
 		JsonArray clientRegistrationValues = clientRegistrationValuesElement.getAsJsonArray();
 		for (JsonElement clientRegistrationValueElement : clientRegistrationValues) {
 			String clientRegistrationValue = OIDFJSON.getString(clientRegistrationValueElement);
