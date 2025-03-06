@@ -3,6 +3,9 @@ package net.openid.conformance.testmodule;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.client.ExtractImplicitHashToCallbackResponse;
 import net.openid.conformance.condition.common.CreateRandomImplicitSubmitUrl;
 import org.slf4j.Logger;
@@ -11,16 +14,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-
 /** The module is a general purpose module for collecting the result from the authorization endpoint
  *
  * TestModules using this class will receive the full result of the redirect in processCallback().
  */
 public abstract class AbstractRedirectServerTestModule extends AbstractTestModule {
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRedirectServerTestModule.class);
+	// This isn't enabled by default as it would tie up a lot of threads in the CI
+	protected boolean abortIfRedirectFragmentNotReceived = false;
+
+	// Incremented each time we successfully receive the full result for a redirect
+	private int currentRedirect = 0;
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -117,6 +121,22 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 		String submissionUrl = env.getString("implicit_submit", "fullUrl");
 		logger.info(getId() + ": Sending JS to user's browser to submit URL fragment (hash) to " + submissionUrl);
 
+		if (abortIfRedirectFragmentNotReceived) {
+			final long waitTimeoutSeconds = 5;
+			final long thisRedirect = currentRedirect;
+			getTestExecutionManager().runInBackground(() -> {
+				Thread.sleep(waitTimeoutSeconds * 1000L);
+				if (getStatus().equals(Status.WAITING)) {
+					setStatus(Status.RUNNING);
+					if (currentRedirect == thisRedirect) {
+						// we're still waiting for the result for this redirect - something has probably gone wrong,
+						throw new TestFailureException(getId(), "The fragment has not been submitted by the user's browser. The URL may not have been opened in a web browser, or the JavaScript has not run for some other reason.");
+					}
+				}
+				return "done";
+			});
+		}
+
 		return new ModelAndView("implicitCallback",
 			ImmutableMap.of(
 				"implicitSubmitUrl", env.getString("implicit_submit", "fullUrl"),
@@ -142,6 +162,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 			// process the callback
 			setStatus(Status.RUNNING);
+			currentRedirect++;
 
 			JsonElement body = requestParts.get("body");
 
