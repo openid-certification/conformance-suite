@@ -154,20 +154,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
                     <div>
                         <div class="mb-3 row">
-                                <fieldset>
-                                    <strong>1.</strong> A filled out and signed <strong>certification of conformance</strong> document.
-                                    <label class="text-info">
-                                        (<a class="darkblue" href="https://openid.net/wordpress-content/uploads/2021/07/OpenID-Certification-of-Conformance.pdf" target="coc">Download the template here.</a>)
-                                    </label>
-                                    <input class="top10" type="file" id="certificationOfConformancePdfBtn" name="certificationOfConformancePdf" accept="application/pdf">
-                                    <p class="form-text">Upload the signed certification of conformance document
-                                        (as per the instructions, completed and signed by an authorized person).
-                                    </p>
-                                </fieldset>
-                        </div>
-                        <div class="mb-3 row">
                             <fieldset>
-                                <strong>2.</strong> <strong>Client data</strong> (For RP Tests Only)
+                                <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
                                 <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
                                 <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
                             </fieldset>
@@ -178,14 +166,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     <div id="certificationPackageDownloaded" class="modal-body" hidden>
                         <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
                             is complete then you will find the zip file in your browser download directory.</p>
-                        <p>Please rename the zip file according to <a class="darkblue" href="https://openid.net/certification/op_submission/" target="instructions">the instructions</a>
-                            and then proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
-                            to submit.</p>
+                        <p>Please proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
+                            to submit it.</p>
+                        <p><b>Warning: don't change the zip file, as it will not be accepted during certification publishing process.</b></p>
                     </div>
 
                     <div class="modal-footer">
                         <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary" disabled>Create Certification Package</button>
+                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary">Create Certification Package</button>
                         <button id="closeCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" hidden>Close</button>
                     </div>
                 </form>
@@ -193,107 +181,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         </div>
     </div>
 
-    <!-- Prepare certification of conformance pdf modal -->
-    <div class="modal" id="certificationOfConformanceTemplateModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Prepare Certification of Conformance PDF</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-
-                </div>
-                <form class="form-small" name="certificationOfConformanceForm" id="certificationOfConformanceForm" action="" method="post">
-                    <div class="modal-body">
-                        <div id="certificationOfConformanceFormErrors"></div>
-                        <div class="text-info">
-                            This page will help you prepare the PDF you will upload after pressing the 'Certification Package' button.
-                            Once you have generated the PDF you will need to sign it (electronic signatures are preferred).
-                            See <a href="https://openid.net/certification/instructions/" target="_blank">the submission instructions</a> for more information.
-                            <br>
-                            You will be able to edit the document after downloading, you don't need to fill all fields now.
-                            This form is provided for your convenience only, and its use is optional.
-                        </div>
-                        <div>
-                            <div>
-                                <h3 style="border-bottom:1px solid #eee;">
-                                    Required Information
-                                </h3>
-                                <div style="padding-left:1em;">
-
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            Name of Entity (“Implementer”) Making this Certification
-                                        </label>
-                                        <input class="form-control" type="text" id="certificationOfConformance_nameOfImplementer" name="nameOfImplementer">
-                                    </div>
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            Software or Service (&quot;Deployment&quot;) Name &amp; Version #
-                                        </label>
-                                        <input class="form-control" type="text" id="certificationOfConformance_deploymentVersion" name="deploymentVersion">
-                                    </div>
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            OpenID Conformance Profile
-                                        </label>
-                                        <input class="form-control" type="text" id="certificationOfConformance_conformanceProfile" name="conformanceProfile" readonly>
-                                    </div>
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            Conformance Test Suite Software
-                                        </label>
-                                        <input class="form-control" type="text" id="certificationOfConformance_suiteSoftware" name="suiteSoftware" readonly>
-                                    </div>
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            Test Date
-                                        </label>
-                                        <input class="form-control" type="text" id="certificationOfConformance_testDate" name="testDate" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 style="border-bottom:1px solid #eee;">
-                                    Optional Extra Information
-                                </h3>
-                                <div style="padding-left:1em;">
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            URL at which people interested in using your implementation can learn about it and/or obtain it:
-                                        </label>
-                                        <input class="form-control" type="text" id="certificationOfConformance_moreInfoUrl" name="moreInfoUrl">
-                                    </div>
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            1-2 sentence description of the implementation
-                                        </label>
-                                        <textarea class="form-control" type="text" id="certificationOfConformance_implementationDescription" name="implementationDescription"></textarea>
-                                    </div>
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            The programming language of the software and deployment environment for it, if applicable (e.g., “JavaScript for Node.js”, “Binaries for iOS”, or “Service”)
-                                        </label>
-                                        <input class="form-control" type="text" id="certificationOfConformance_programmingLanguage" name="programmingLanguage">
-                                    </div>
-                                    <div class="mb-3 row">
-                                        <label class="form-label">
-                                            Licensing terms of the software, if applicable (e.g., “Apache 2.0” or “Proprietary”)
-                                        </label>
-                                        <input class="form-control" type="text" id="certificationOfConformance_license" name="license">
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button id="certificationOfConformanceFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary">Download as PDF</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <!-- Rerun test confirmation modal -->
     <div class="modal" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
@@ -413,20 +300,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         modal.show();
                     };
                 }
-
-                if (document.getElementById('certificationOfConformanceTemplateBtn') != null) {
-                    document.getElementById('certificationOfConformanceTemplateBtn').onclick = function(evt) {
-                        evt.preventDefault();
-
-                        var myModalEl = document.getElementById('certificationOfConformanceTemplateModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
-                    };
-                }
-                document.getElementById('certificationOfConformanceForm').setAttribute('action','/api/plan/'+planId+'/certificationofconformance');
-                document.getElementById('certificationOfConformance_conformanceProfile').value = data.certificationProfileName;
-                document.getElementById('certificationOfConformance_suiteSoftware').value = 'www.certification.openid.net version ' + data.version;
-                document.getElementById('certificationOfConformance_testDate').value = data.started?data.started.substring(0,10):'';
 
                 if(document.querySelector('#deleteMutablePlanBtn')) {
                     document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
@@ -852,7 +725,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
         document.getElementById('certificationPackageForm').addEventListener("submit", function(evt){
 
-            const filesToCheck = [ "certificationOfConformancePdfBtn", "clientSideDataBtn" ];
+            const filesToCheck = [ "clientSideDataBtn" ];
             const maxFileSize = 1024000;
             const fileNum = validateFileSizes(filesToCheck, maxFileSize);
             if (fileNum >= 0) {
@@ -908,11 +781,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 console.log(e);
             });
 
-            document.querySelector('#certificationOfConformancePdfBtn').addEventListener('change', evt => {
-                if (evt.target.files && evt.target.files.length > 0) {
-                    document.querySelector('#certificationPackageFormSubmitBtn').disabled = false;
-                }
-            });
 
             document.querySelector('#confirmDeletePlanBtn').addEventListener('click', evt => {
                 fetch('/api/plan/' + encodeURIComponent(planId), {

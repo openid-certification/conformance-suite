@@ -421,8 +421,6 @@ public class LogApi {
 	public ResponseEntity<StreamingResponseBody> prepareCertificationPackageForTestPlan(
 		@Parameter(description = "Id of test plan")
 			@PathVariable String id,
-		@Parameter(description = "Signed certification of conformance pdf")
-			@RequestParam MultipartFile certificationOfConformancePdf,
 		@Parameter(description = "Client data in zip format. Only required for RP tests")
 			@RequestParam Optional<MultipartFile> clientSideData
 	) {
@@ -435,7 +433,7 @@ public class LogApi {
 			if (!planService.changeTestPlanImmutableStatus(id, Boolean.TRUE)) {
 				return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 			}
-			return exportPlanAsZip(id, true, false, true, certificationOfConformancePdf, clientSideData.orElse(null));
+			return exportPlanAsZip(id, true, false, true, clientSideData.orElse(null));
 		} else {
 			return createJsonErrorResponseEntity(failedTests);
 		}
@@ -539,13 +537,12 @@ public class LogApi {
 		HttpServletRequest httpRequest,
 		@Parameter(description = "Id of plan") @PathVariable String id,
 		@Parameter(description = "Published data only") @RequestParam(name = "public", defaultValue = "false") boolean publicOnly) {
-		return exportPlanAsZip(id, false, publicOnly, false, null, null);
+		return exportPlanAsZip(id, false, publicOnly, false,  null);
 	}
 
 
 	@SuppressWarnings("JavaTimeDefaultTimeZone")
 	protected ResponseEntity<StreamingResponseBody> exportPlanAsZip(String planId, boolean forCertification, boolean publicOnly, boolean addFolderForHtmlFiles,
-																	MultipartFile certificationOfConformancePdf,
 																	MultipartFile clientSideData) {
 
 		Object testPlan = publicOnly ? planService.getPublicPlan(planId) : planService.getTestPlan(planId);
@@ -632,13 +629,6 @@ public class LogApi {
 
 					}
 
-					if(certificationOfConformancePdf!=null && certificationOfConformancePdf.getSize()>0) {
-						ZipArchiveEntry zipEntry = new ZipArchiveEntry("OpenID-Certification-of-Conformance.pdf");
-						zipEntry.setSize(certificationOfConformancePdf.getSize());
-						archiveOutputStream.putArchiveEntry(zipEntry);
-						archiveOutputStream.write(certificationOfConformancePdf.getBytes());
-						archiveOutputStream.closeArchiveEntry();
-					}
 					if(clientSideData!=null && clientSideData.getSize()>0) {
 						ZipArchiveEntry zipEntry = new ZipArchiveEntry("client-data/" + clientSideData.getOriginalFilename());
 						zipEntry.setSize(clientSideData.getSize());
