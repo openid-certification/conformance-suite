@@ -85,7 +85,7 @@ import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
-import net.openid.conformance.condition.common.CreateRandomRequestUri;
+import net.openid.conformance.condition.common.CreateRandomRequestUriWithoutFragment;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -225,7 +225,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
+		callAndStopOnFailure(CreateRandomRequestUriWithoutFragment.class, "JAR-5.2");
 		browser.setShowQrCodes(true);
 	}
 

@@ -33,6 +33,7 @@ import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNo
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
+import net.openid.conformance.condition.as.EnsureRequestUriHasNoFragment;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
@@ -329,8 +330,9 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 	}
 
 	protected void fetchAndProcessRequestUri() {
-		callAndStopOnFailure(FetchRequestUriAndExtractRequestObject.class, "OIDCC-6.2");
-		callAndStopOnFailure(EnsureRequestUriIsHttps.class, "OIDCC-6.2");
+		callAndStopOnFailure(FetchRequestUriAndExtractRequestObject.class, "JAR-5.2.3");
+		callAndContinueOnFailure(EnsureRequestUriIsHttps.class, ConditionResult.FAILURE, "JAR-5.2");
+		callAndContinueOnFailure(EnsureRequestUriHasNoFragment.class, ConditionResult.FAILURE);
 	}
 
 	protected void extractAuthorizationEndpointRequestParameters() {
