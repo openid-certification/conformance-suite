@@ -29,6 +29,10 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpenIDFederationTest {
 
 	@Override
+	public void additionalConfiguration() {
+	}
+
+	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
 

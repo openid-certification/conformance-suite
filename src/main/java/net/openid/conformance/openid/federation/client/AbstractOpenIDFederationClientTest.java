@@ -10,7 +10,7 @@ import net.openid.conformance.variant.VariantParameters;
 	ClientRegistration.class
 })
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
-	"federation.entity_configuration"
+	"federation.entity_configuration",
 })
 public abstract class AbstractOpenIDFederationClientTest extends AbstractTestModule {
 }
