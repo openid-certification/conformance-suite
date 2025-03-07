@@ -28,6 +28,8 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 })
 public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 
+	public abstract void additionalConfiguration();
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
@@ -59,6 +61,8 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 			validateEntityStatement();
 		}
 		callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
+
+		additionalConfiguration();
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
