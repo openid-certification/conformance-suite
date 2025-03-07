@@ -19,6 +19,10 @@ import java.util.UUID;
 public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends AbstractOpenIDFederationTest {
 
 	@Override
+	public void additionalConfiguration() {
+	}
+
+	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
 

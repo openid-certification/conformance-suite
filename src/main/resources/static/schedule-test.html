@@ -1277,6 +1277,20 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 <h3 class="config-form-container-header">Federation</h3>
 
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">authority_hints</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The federation entity's
+                                                authority_hints. Each row in the text area corresponds to an element in the authority_hints array.
+                                                Each row needs to contain a valid entity identifier."></span>
+                                            </div>
+                                            <textarea rows="3" class="form-control config-form-element config-form-element-array" data-json-target="federation.authority_hints" data-json-type="jsonarray"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">entity_identifier</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -1994,7 +2008,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         /**
          *
          */
-        function updateFormElementsFromJSON() {
+         function updateFormElementsFromJSON() {
             try {
                 FAPI_UI.testJSON = JSON.parse(document.getElementById('config').value);
             } catch (e) {
@@ -2036,7 +2050,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 var el = document.querySelector(".config-form-element[data-json-target='" + path + "']");
 
                 if (el != null) {
-                    if (_.isArray(value) || _.isObject(value)) {
+                    if (_.isArray(value)) {
+                        if (el.dataset.jsonType === "jsonarray") {
+                            // For jsonarray type, display each array element on a separate line
+                            el.value = value.join('\n');
+                        } else {
+                            // For other types, use standard JSON formatting
+                            el.value = JSON.stringify(value, null, 4);
+                        }
+                    } else if (_.isObject(value)) {
                         el.value = JSON.stringify(value, null, 4);
                     } else {
                         validateJSONFromFormElement(el, value, el.dataset.jsonType);
@@ -2111,12 +2133,23 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
          *
          * @param element
          */
-        function tryPopulateJSONFromElement(element) {
+         function tryPopulateJSONFromElement(element) {
             let value = element.value;
             let type = element.dataset.jsonType;
             validateJSONFromFormElement(element, value, type)
             let key = element.dataset.jsonTarget;
-            populateJSON(key, value, type);
+
+            // Special handling for arrays where each line is an element
+            if (type === "jsonarray" && value.trim() !== "") {
+                // Split by newlines and filter out empty lines
+                let arrayValues = value.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line !== "");
+
+                populateJSON(key, JSON.stringify(arrayValues), type);
+            } else {
+                populateJSON(key, value, type);
+            }
         }
 
         /**
