@@ -24,6 +24,10 @@ import static net.openid.conformance.openid.federation.EntityUtils.appendWellKno
 public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTest {
 
 	@Override
+	public void additionalConfiguration() {
+	}
+
+	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
 

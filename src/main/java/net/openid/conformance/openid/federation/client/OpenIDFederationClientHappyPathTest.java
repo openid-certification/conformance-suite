@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
+		"federation.authority_hints",
 		"server.jwks",
 	}
 )
