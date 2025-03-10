@@ -41,6 +41,7 @@ import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
+import net.openid.conformance.condition.client.CreateVerifierIsoMdlAnnexBSessionTranscript;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
@@ -52,8 +53,8 @@ import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEH
 import net.openid.conformance.condition.client.ExtractVpTokenPE;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
+import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
-import net.openid.conformance.condition.client.ParseVpTokenAsMdoc;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToDID;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
@@ -492,7 +493,8 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 			case ISO_MDL:
 				// mdoc
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
-				callAndStopOnFailure(ParseVpTokenAsMdoc.class);
+				callAndStopOnFailure(CreateVerifierIsoMdlAnnexBSessionTranscript.class);
+				callAndStopOnFailure(ParseCredentialAsMdoc.class);
 				break;
 
 			case SD_JWT_VC:

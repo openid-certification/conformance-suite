@@ -19,9 +19,11 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValu
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
+import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
+import net.openid.conformance.condition.as.CreateWalletIsoMdlAnnexBSessionTranscript;
 import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
@@ -505,6 +507,8 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 				}
 			}
 			case ISO_MDL -> {
+				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
+				callAndStopOnFailure(CreateWalletIsoMdlAnnexBSessionTranscript.class);
 				callAndStopOnFailure(CreateMdocCredential.class);
 				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
 					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
