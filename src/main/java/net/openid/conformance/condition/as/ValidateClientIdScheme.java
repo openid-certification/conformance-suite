@@ -8,18 +8,18 @@ public class ValidateClientIdScheme extends AbstractEnsureResponseType {
 	@Override
 	@PreEnvironment(required = CreateEffectiveAuthorizationRequestParameters.ENV_KEY)
 	public Environment evaluate(Environment env) {
-		String expectedMode = env.getString("client_id_scheme");
-		String responseModeString = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_id_scheme");
+		String expectedScheme = env.getString("client_id_scheme");
+		String clientIdScheme = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_id_scheme");
 
-		if (responseModeString == null) {
-			throw error("client_id_scheme is missed from request");
+		if (clientIdScheme == null) {
+			throw error("client_id_scheme is missing from request");
 		}
 
-		if (!responseModeString.equals(expectedMode)) {
-			throw error("client_id_scheme must be '" + expectedMode + "'", args("actual", responseModeString));
+		if (!clientIdScheme.equals(expectedScheme)) {
+			throw error("client_id_scheme must be '" + expectedScheme + "'", args("actual", clientIdScheme));
 		}
 
-		logSuccess("client_id_scheme is " + expectedMode);
+		logSuccess("client_id_scheme is " + expectedScheme);
 		return env;
 	}
 
