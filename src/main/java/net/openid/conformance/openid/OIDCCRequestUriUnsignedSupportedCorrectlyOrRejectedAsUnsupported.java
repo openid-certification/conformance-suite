@@ -41,6 +41,12 @@ public class OIDCCRequestUriUnsignedSupportedCorrectlyOrRejectedAsUnsupported ex
 	}
 
 	@Override
+	protected void checkDiscEndpointRequestUriParameterSupported() {
+		// We deliberately skip the hard check for the request_uri_parameter_supported here, as we check for a request_uri_not_supported error later.
+		// super.checkDiscEndpointRequestUriParameterSupported();
+	}
+
+	@Override
 	protected void createAuthorizationRedirect() {
 		call(new CreateAuthorizationRedirectSteps());
 	}
