@@ -15,7 +15,7 @@ public class ExtractFederationListEndpoint extends AbstractCondition {
 		JsonElement listEndpointElement = env.getElementFromObject("federation_response_jwt", "claims.metadata.federation_entity.federation_list_endpoint");
 		if (listEndpointElement == null) {
 			throw error("Federation entity metadata does not contain a federation_list_endpoint",
-                    args("federation_list_endpoint", listEndpointElement));
+				args("federation_list_endpoint", listEndpointElement));
 		}
 
 		String listEndpoint = OIDFJSON.getString(listEndpointElement);
