@@ -18,7 +18,7 @@ public class AddVerifiedClaimsFromUserinfoNotFoundInOPMetadataToAuthorizationEnd
 	@PreEnvironment(required = {"server", "config", "authorization_endpoint_request"})
 	@PostEnvironment(required = "authorization_endpoint_request", strings = "userinfo_contains_data_notfoundin_opmetadata")
 	public Environment evaluate(Environment env) {
-		JsonElement userinfo = env.getElementFromObject("config", "ekyc_userinfo");
+		JsonElement userinfo = env.getElementFromObject("config", "ekyc.userinfo");
 		if(userinfo==null){
 			throw error("User provided userinfo data is not set in configuration");
 		}
