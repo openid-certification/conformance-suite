@@ -25,7 +25,9 @@ public class OIDSSFCheckSupportedEventsForStream extends AbstractCondition {
 		"https://schemas.openid.net/secevent/caep/event-type/assurance-level-change", //
 		"https://schemas.openid.net/secevent/caep/event-type/device-compliance-change", //
 		"https://schemas.openid.net/secevent/caep/event-type/session-established", //
-		"https://schemas.openid.net/secevent/caep/event-type/session-presented" //
+		"https://schemas.openid.net/secevent/caep/event-type/session-presented", //
+ 		// See: https://openid.github.io/sharedsignals/openid-caep-1_0.html#name-risk-level-change
+		"https://schemas.openid.net/secevent/caep/event-type/risk-level-change"
 	);
 
 
