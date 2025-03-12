@@ -14,8 +14,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 		"trust_framework",
 		"verified_claim_names",
-		"ekyc_unverified_claims_names",
-		"ekyc_verified_claims_names"
+		"ekyc.unverified_claims_names",
+		"ekyc.verified_claims_names"
 	}
 )
 public class EKYCHappyPathTestEmptyObjects extends AbstractEKYCTestWithOIDCCore {

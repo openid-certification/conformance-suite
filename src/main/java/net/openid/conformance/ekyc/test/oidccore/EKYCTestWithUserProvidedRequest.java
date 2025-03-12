@@ -8,13 +8,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "ekyc-server-testuserprovidedrequest",
 	displayName = "eKYC Server Test - Using verified_claims request provided in test configuration",
-	summary = "This test uses the verified_claims request provided in verified_claims_request field " +
+	summary = "This test uses the verified_claims request provided in ekyc.verified_claims_request field " +
 		"and expects a happy path flow, i.e the request must succeed.",
 	profile = "OIDCC",
 	configurationFields = {
-		"ekyc_verified_claims_request",
-		"ekyc_unverified_claims_names",
-		"ekyc_verified_claims_names"
+		"ekyc.verified_claims_request",
+		"ekyc.unverified_claims_names",
+		"ekyc.verified_claims_names"
 	}
 )
 public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCore {
@@ -26,7 +26,7 @@ public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCor
 
 	@Override
 	protected void processVerifiedClaimsInIdToken() {
-		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc_verified_claims_request.id_token.verified_claims");
+		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc.verified_claims_request.id_token.verified_claims");
 		if (userProvidedClaimsRequest!=null) {
 			//otherwise there won't be anything to process and will throw an error
 			super.processVerifiedClaimsInIdToken();
@@ -35,7 +35,7 @@ public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCor
 
 	@Override
 	protected void processVerifiedClaimsInUserinfo() {
-		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc_verified_claims_request.userinfo.verified_claims");
+		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc.verified_claims_request.userinfo.verified_claims");
 		if (userProvidedClaimsRequest!=null) {
 			//otherwise there won't be anything to process and will throw an error
 			super.processVerifiedClaimsInUserinfo();

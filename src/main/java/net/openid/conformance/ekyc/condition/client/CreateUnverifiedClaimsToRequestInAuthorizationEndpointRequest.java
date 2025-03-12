@@ -73,7 +73,7 @@ public class CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest exten
 			throw error("claims_in_verified_claims_supported element in server configuration is required for this test");
 		}
 
-		JsonElement unverifiedClaimsElement = env.getElementFromObject("config", "ekyc_unverified_claims_names");
+		JsonElement unverifiedClaimsElement = env.getElementFromObject("config", "ekyc.unverified_claims_names");
 		JsonArray requestedUnverifiedClaimsList;
 		int maxRequestedClaims = 1;
 		if(null != unverifiedClaimsElement) {
@@ -84,7 +84,7 @@ public class CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest exten
 				requestedUnverifiedClaimsList = new JsonArray();
 				requestedUnverifiedClaimsList.add(unverifiedClaimsElement);
 			} else {
-				throw error("ekyc_unverified_claims_names is not JSON array or primitive", args("ekyc_unverified_claims_names", unverifiedClaimsElement));
+				throw error("ekyc.unverified_claims_names is not JSON array or primitive", args("ekyc.unverified_claims_names", unverifiedClaimsElement));
 			}
 		} else {
 			requestedUnverifiedClaimsList = claimsSupportedArray;  // use claims from claims_supported

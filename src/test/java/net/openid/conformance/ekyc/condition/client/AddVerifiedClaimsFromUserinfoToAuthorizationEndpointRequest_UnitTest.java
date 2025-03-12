@@ -42,7 +42,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 
 	protected void runTest(String userInfoFilename, String expectedRequestFilename) throws IOException {
 		String testUserInfoJson = IOUtils.resourceToString(userInfoFilename, StandardCharsets.UTF_8, getClass().getClassLoader());
-		env.putObjectFromJsonString("config", "ekyc_userinfo", testUserInfoJson);
+		env.putObjectFromJsonString("config", "ekyc.userinfo", testUserInfoJson);
 		env.putObject("authorization_endpoint_request", new JsonObject());
 		cond.execute(env);
 		JsonObject result = env.getObject("authorization_endpoint_request");
