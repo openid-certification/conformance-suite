@@ -13,8 +13,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"verified_claims must not be included in userinfo responses.",
 	profile = "OIDCC",
 	configurationFields = {
-		"ekyc_unverified_claims_names",
-		"ekyc_verified_claims_names"
+		"ekyc.unverified_claims_names",
+		"ekyc.verified_claims_names"
 	}
 )
 public class EKYCRequestVerifiedClaimsOnlyInIdToken extends AbstractEKYCTestWithOIDCCore {
