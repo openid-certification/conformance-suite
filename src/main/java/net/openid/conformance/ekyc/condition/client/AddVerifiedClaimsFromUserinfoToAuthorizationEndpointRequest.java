@@ -20,7 +20,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends
 	@PreEnvironment(required = {"config", "authorization_endpoint_request"})
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		JsonElement userinfo = env.getElementFromObject("config", "ekyc_userinfo");
+		JsonElement userinfo = env.getElementFromObject("config", "ekyc.userinfo");
 		if(userinfo==null){
 			throw error("User provided userinfo data is not set in configuration");
 		}

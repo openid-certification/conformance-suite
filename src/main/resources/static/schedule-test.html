@@ -1355,47 +1355,47 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             <div class="config-form-container">
                                 <h3 class="config-form-container-header">eKYC</h3>
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Request unverified claims</div>
+                                    <div class="col-md-2 key">eKYC Request Unverified Claims</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="List of unverified claims to request in each test"></span>
                                             </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="ekyc_unverified_claims_names"></input>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ekyc.unverified_claims_names"></input>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Request verified claims</div>
+                                    <div class="col-md-2 key">eKYC Request Verified Claims</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="List of verified claims to request in each test"></span>
                                             </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="ekyc_verified_claims_names"></input>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ekyc.verified_claims_names"></input>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">ekyc_verified_claims_request</div>
+                                    <div class="col-md-2 key">eKYC Verified Claims Request</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Custom claims request. Must be a valid json object that can be added directly to the request as the top level 'claims' element."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc_verified_claims_request" data-json-type="jsonobject"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc.verified_claims_request" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">ekyc_userinfo</div>
+                                    <div class="col-md-2 key">eKYC UserInfo</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="A complete set of end-user data as held by the OpenID Provider in the form it would be returned via the userinfo endpoint. Enter the entire userinfo json."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc_userinfo" data-json-type="jsonobject"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc.userinfo" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>

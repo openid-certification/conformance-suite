@@ -14,7 +14,7 @@ public class AddUserProvidedClaimsRequestToAuthorizationEndpointRequest extends 
 	@PreEnvironment(required = {"server", "config", "authorization_endpoint_request"})
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc_verified_claims_request");
+		JsonElement userProvidedClaimsRequest = env.getElementFromObject("config", "ekyc.verified_claims_request");
 		if(userProvidedClaimsRequest==null){
 			throw error("User provided verified claims request is not set in configuration");
 		}

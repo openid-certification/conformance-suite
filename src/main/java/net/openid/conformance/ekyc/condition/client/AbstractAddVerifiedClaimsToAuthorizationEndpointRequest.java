@@ -25,7 +25,7 @@ public abstract class AbstractAddVerifiedClaimsToAuthorizationEndpointRequest ex
 		verifiedClaims.add("verification", verification);
 		JsonObject claims = new JsonObject();
 
-		JsonElement verifiedClaimsNamesElement = env.getElementFromObject("config","ekyc_verified_claims_names");
+		JsonElement verifiedClaimsNamesElement = env.getElementFromObject("config","ekyc.verified_claims_names");
 		JsonArray requestedVerifiedClaimsList;
 		if(null != verifiedClaimsNamesElement) {
 			if(verifiedClaimsNamesElement.isJsonArray()) {
@@ -34,7 +34,7 @@ public abstract class AbstractAddVerifiedClaimsToAuthorizationEndpointRequest ex
 				requestedVerifiedClaimsList = new JsonArray();
 				requestedVerifiedClaimsList.add(verifiedClaimsNamesElement);
 			} else {
-				throw error("ekyc_verified_claims_names is not JSON array or primitive", args("ekyc_verified_claims_names", verifiedClaimsNamesElement));
+				throw error("ekyc.verified_claims_names is not JSON array or primitive", args("ekyc.verified_claims_names", verifiedClaimsNamesElement));
 			}
 			for(JsonElement claimName : requestedVerifiedClaimsList) {
 				if(!verifiedClaimsSupportedList.contains(claimName)) {
