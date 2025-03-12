@@ -8,6 +8,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForStreamRe
 import net.openid.conformance.openid.ssf.mock.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantConfigurationFields;
 
 @PublishTestModule(
 	testName = "openid-ssf-receiver-happypath",
@@ -21,11 +22,18 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ssf.subjects.invalid"
 	}
 )
+@VariantConfigurationFields(
+	parameter = SsfDeliveryMode.class,
+	value="push",
+	configurationFields = {"ssf.transmitter.push_endpoint_authorization_header"}
+)
 public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModule {
 
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
+
+		SsfDeliveryMode ssfDeliveryMode = getVariant(SsfDeliveryMode.class);
 
 		eventLog.runBlock("Generate Transmitter Metadata", () -> {
 			callAndStopOnFailure(OIDSSFGenerateServerJWKs.class);
@@ -42,14 +50,8 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 		eventLog.runBlock("Emit CAEP event: Session Revoked", () -> {
 			callAndStopOnFailure(new OIDSSFGenerateCaepEvent(OIDSSFGenerateCaepEvent.CAEP_SESSION_REVOKED));
 
-			SsfDeliveryMode variant = getVariant(SsfDeliveryMode.class);
-			switch(variant) {
-				case PUSH -> {
-					callAndStopOnFailure(OIDSSFPushPendingSecurityEvents.class);
-				}
-				case POLL -> {
-
-				}
+			if (ssfDeliveryMode == SsfDeliveryMode.PUSH) {
+				callAndStopOnFailure(OIDSSFPushPendingSecurityEvents.class);
 			}
 			callAndStopOnFailure(OIDSSFWaitForSetAcknowledgment.class);
 		});
@@ -57,14 +59,8 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 		eventLog.runBlock("Emit CAEP event: Credentials Changed", () -> {
 			callAndStopOnFailure(new OIDSSFGenerateCaepEvent(OIDSSFGenerateCaepEvent.CAEP_CREDENTIALS_CHANGED));
 
-			SsfDeliveryMode variant = getVariant(SsfDeliveryMode.class);
-			switch(variant) {
-				case PUSH -> {
-					callAndStopOnFailure(OIDSSFPushPendingSecurityEvents.class);
-				}
-				case POLL -> {
-
-				}
+			if (ssfDeliveryMode == SsfDeliveryMode.PUSH) {
+				callAndStopOnFailure(OIDSSFPushPendingSecurityEvents.class);
 			}
 
 			callAndStopOnFailure(OIDSSFWaitForSetAcknowledgment.class);
