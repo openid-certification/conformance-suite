@@ -16,6 +16,7 @@ import net.openid.conformance.condition.client.AddEncryptionParametersToClientMe
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddRedirectUriToDirectPostResponse;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
@@ -39,6 +40,7 @@ import net.openid.conformance.condition.client.ConvertAuthorizationEndpointReque
 import net.openid.conformance.condition.client.CreateClientEncryptionKeyIfMissing;
 import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.CreateEmptyDirectPostResponse;
 import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
@@ -50,6 +52,7 @@ import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeI
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
+import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEHeaderApu;
@@ -66,7 +69,7 @@ import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
 import net.openid.conformance.condition.client.SetClientIdToWebOrigin;
 import net.openid.conformance.condition.client.SetWebOrigin;
-import net.openid.conformance.condition.client.SignRequestObject;
+import net.openid.conformance.condition.client.SignRequestObjectIncludeTypHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
@@ -82,7 +85,7 @@ import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
-import net.openid.conformance.condition.common.CreateRandomRequestUri;
+import net.openid.conformance.condition.common.CreateRandomRequestUriWithoutFragment;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -157,6 +160,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 			fireTestFinished();
 			return;
 		}
+		abortIfRedirectFragmentNotReceived = true;
 
 		responseMode = getVariant(VPID3WalletResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
@@ -221,7 +225,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
+		callAndStopOnFailure(CreateRandomRequestUriWithoutFragment.class, "JAR-5.2");
 		browser.setShowQrCodes(true);
 	}
 
@@ -446,21 +450,21 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 		processReceivedResponse();
 
 		// as per https://openid.bitbucket.io/connect/openid-4-verifiable-presentations-1_0.html#section-6.2
-		JsonObject response = new JsonObject();
+		callAndStopOnFailure(CreateEmptyDirectPostResponse.class, ConditionResult.FAILURE);
 		switch (credentialFormat) {
 			case ISO_MDL:
 				// iso mdl spec requires that redirect uri is always returned, so we return it in all test modules
 				// for other credential formats some test modules return a valid response without redirect uri
-				populateDirectPostResponseWithRedirectUri(response);
+				populateDirectPostResponseWithRedirectUri();
 				break;
 			default:
-				populateDirectPostResponse(response);
+				populateDirectPostResponse();
 				break;
 		}
 
 		return ResponseEntity.ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(response.toString());
+			.body(env.getObject("direct_post_response").toString());
 	}
 
 	// This is called for both the browser API response and the regular direct post response
@@ -469,8 +473,10 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 	private void processReceivedResponse() {
 		switch (responseMode) {
 			case DIRECT_POST:
-			case DC_API:
 				callAndStopOnFailure(ExtractAuthorizationEndpointResponse.class, ConditionResult.FAILURE);
+				break;
+			case DC_API:
+				callAndStopOnFailure(ExtractBrowserApiAuthorizationEndpointResponse.class, ConditionResult.FAILURE);
 				break;
 			case DIRECT_POST_JWT:
 			case DC_API_JWT:
@@ -480,7 +486,8 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				// FIXME: need to validate jwe header
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-ID3-7.3");
-				if (credentialFormat == VPID3WalletCredentialFormat.ISO_MDL) {
+				if (credentialFormat == VPID3WalletCredentialFormat.ISO_MDL && !isBrowserApi()) {
+					// there are ISO part 7 requirements, HAIP/OID4VP over DC API doesn't currently set any requirements for apu/apv
 					callAndContinueOnFailure(ExtractMDocGeneratedNonceFromJWEHeaderApu.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
 					callAndContinueOnFailure(ValidateJWEHeaderApvIsAuthRequestNonce.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
 				}
@@ -555,14 +562,14 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 		}
 	}
 
-	protected void populateDirectPostResponse(JsonObject response) {
+	protected void populateDirectPostResponse() {
 		// no redirect_uri in response, so the test ends after this response is received by wallet
 		fireTestFinished();
 	}
 
-	protected void populateDirectPostResponseWithRedirectUri(JsonObject response) {
+	protected void populateDirectPostResponseWithRedirectUri() {
 		callAndStopOnFailure(CreateRandomCodeVerifier.class);
-		response.addProperty("redirect_uri", env.getString("redirect_uri") + "#" + env.getString("code_verifier"));
+		callAndStopOnFailure(AddRedirectUriToDirectPostResponse.class);
 
 		eventLog.log(getName(), "The response_uri is returning 'redirect_uri', so the wallet should send the user to that redirect_uri next");
 		setStatus(Status.WAITING);
@@ -619,7 +626,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				switch (clientIdScheme) {
 					case DID:
 						//Remove x5c header, only the kid header is mandatory for DIDs, which is set in the jwks parameter
-						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObject.class));
+						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeTypHeader.class));
 						break;
 					case X509_SAN_DNS:
 						// x5c header is mandatory for x509 san dns (and/or mdl profile)

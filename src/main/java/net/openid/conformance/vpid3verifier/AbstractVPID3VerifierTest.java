@@ -33,6 +33,7 @@ import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNo
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
+import net.openid.conformance.condition.as.EnsureRequestUriHasNoFragment;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
@@ -49,6 +50,7 @@ import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
+import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
 import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
 import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
@@ -328,8 +330,9 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 	}
 
 	protected void fetchAndProcessRequestUri() {
-		callAndStopOnFailure(FetchRequestUriAndExtractRequestObject.class, "OIDCC-6.2");
-		callAndStopOnFailure(EnsureRequestUriIsHttps.class, "OIDCC-6.2");
+		callAndStopOnFailure(FetchRequestUriAndExtractRequestObject.class, "JAR-5.2.3");
+		callAndContinueOnFailure(EnsureRequestUriIsHttps.class, ConditionResult.FAILURE, "JAR-5.2");
+		callAndContinueOnFailure(EnsureRequestUriHasNoFragment.class, ConditionResult.FAILURE);
 	}
 
 	protected void extractAuthorizationEndpointRequestParameters() {
@@ -428,6 +431,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObject() {
+		callAndContinueOnFailure(ValidateRequestObjectTypIsOAuthQauthReqJwt.class, ConditionResult.FAILURE, "OID4VP-ID3-5");
 		skipIfElementMissing("authorization_request_object", "claims.exp", ConditionResult.INFO,
 			OIDCCValidateRequestObjectExp.class, ConditionResult.FAILURE, "RFC7519-4.1.4");
 		callAndContinueOnFailure(ValidateRequestObjectIat.class, ConditionResult.WARNING, "OIDCC-6.1");

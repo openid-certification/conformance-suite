@@ -12,7 +12,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-id3-verifier-test-plan",
-	displayName = "OpenID for Verifiable Presentations ID3: Test a verifier - alpha tests (not currently part of certification program)",
+	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a verifier - alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.verifierTest
 )
 public class VPID3VerifierTestPlan implements TestPlan {
@@ -37,7 +37,7 @@ public class VPID3VerifierTestPlan implements TestPlan {
 		String clientIDScheme = v.get("client_id_scheme");
 		String queryLanguage = v.get("query_language");
 
-		String certProfile = "OID4VPID3 Verifier";
+		String certProfile = "OID4VPID3+draft24 Verifier";
 
 		if (credentialFormat.equals(VPID3VerifierCredentialFormat.ISO_MDL.toString()) &&
 			!responseMode.equals(VPID3VerifierResponseMode.DIRECT_POST_JWT.toString())) {

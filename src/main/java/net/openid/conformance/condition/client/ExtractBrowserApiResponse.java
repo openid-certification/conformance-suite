@@ -53,13 +53,20 @@ public class ExtractBrowserApiResponse extends AbstractCondition {
 
 		JsonElement dataEl = result.get("data");
 		if (!dataEl.isJsonObject()) {
-			throw error("'data' member returned by browser API is not a JSON object", args("data", dataEl));
+			// Chrome currently implements the legacy DC spec (today the response is an object, but a while ago it was a json string; the spec updated but Chrome is still working on implementing this update).
+			// https://issuetracker.google.com/issues/397968354?pli=1
+			// hence allow a string response
+			dataEl = JsonParser.parseString(OIDFJSON.getString(dataEl));
+			if (!dataEl.isJsonObject()) {
+				throw error("'data' member returned by browser API is not a JSON object", args("response", result));
+			}
+			log("Applying workaround for legacy DC API - converting string in response into a JSON object");
 		}
 
 		JsonObject data = dataEl.getAsJsonObject();
 		env.putObject("original_authorization_endpoint_response", data);
 
-		logSuccess("Browser API result captured and successfully parsed", args("api_result", result));
+		logSuccess("Browser API result captured and successfully parsed", args("api_result", result, "parsed_data", data));
 
 		return env;
 	}

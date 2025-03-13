@@ -10,7 +10,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-id3-wallet-test-plan",
-	displayName = "OpenID for Verifiable Presentations ID3: Test a wallet - alpha tests (not currently part of certification program)",
+	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a wallet - alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.wallettest
 )
 public class VPID3WalletTestPlan implements TestPlan {
@@ -45,7 +45,7 @@ public class VPID3WalletTestPlan implements TestPlan {
 		String clientIDScheme = v.get("client_id_scheme");
 		String queryLanguage = v.get("query_language");
 
-		String certProfile = "OID4VPID3";
+		String certProfile = "OID4VPID3+draft24 Wallet";
 
 		if (responseMode.equals(VPID3WalletResponseMode.DC_API.toString()) ||
 			responseMode.equals(VPID3WalletResponseMode.DC_API_JWT.toString())) {

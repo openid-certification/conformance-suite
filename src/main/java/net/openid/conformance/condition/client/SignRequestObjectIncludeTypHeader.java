@@ -9,7 +9,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class SignRequestObjectIncludeX5cHeader extends AbstractSignJWT {
+public class SignRequestObjectIncludeTypHeader extends AbstractSignJWT {
 
 	@Override
 	protected JOSEObjectType getMediaType() {
@@ -22,9 +22,7 @@ public class SignRequestObjectIncludeX5cHeader extends AbstractSignJWT {
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.getObject("request_object_claims");
 		JsonObject jwks = env.getObject("client_jwks");
-		boolean includeX5c = true;
-		boolean errorIfX5cMissing = true;
-		return signJWT(env, claims, jwks, true, false, includeX5c, errorIfX5cMissing);
+		return signJWT(env, claims, jwks, true);
 	}
 
 	@Override

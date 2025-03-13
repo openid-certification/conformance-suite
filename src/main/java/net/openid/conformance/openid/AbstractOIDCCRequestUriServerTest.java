@@ -1,15 +1,14 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddRequestUriToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import net.openid.conformance.condition.common.CreateRandomRequestUri;
-import org.springframework.http.ResponseEntity;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddRequestUriToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
+import net.openid.conformance.condition.common.CreateRandomRequestUriWithFragment;
+import org.springframework.http.ResponseEntity;
 
 /**
  * Generic behaviour required when testing request_uri behaviours
@@ -19,7 +18,7 @@ public abstract class AbstractOIDCCRequestUriServerTest extends AbstractOIDCCSer
 	protected void createDynamicClientRegistrationRequest() {
 		super.createDynamicClientRegistrationRequest();
 
-		callAndStopOnFailure(CreateRandomRequestUri.class, "OIDCC-6.2");
+		callAndStopOnFailure(CreateRandomRequestUriWithFragment.class, "OIDCC-6.2");
 		callAndStopOnFailure(AddRequestUriToDynamicRegistrationRequest.class);
 	}
 

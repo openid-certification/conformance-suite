@@ -9,15 +9,21 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum VPID3WalletClientIdScheme {
 
-	DID,
-	PRE_REGISTERED,
-	REDIRECT_URI,
-	WEB_ORIGIN,
-	X509_SAN_DNS;
+	DID("did"),
+	PRE_REGISTERED("pre_registered"),
+	REDIRECT_URI("redirect_uri"),
+	WEB_ORIGIN("web-origin"),
+	X509_SAN_DNS("x509_san_dns");
+
+	private final String value;
+
+	private VPID3WalletClientIdScheme(String value) {
+		this.value = value;
+	}
 
 	@Override
 	public String toString() {
-		return name().toLowerCase();
+		return value;
 	}
 
 }
