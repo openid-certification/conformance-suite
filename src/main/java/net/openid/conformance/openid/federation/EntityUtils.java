@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.springframework.http.MediaType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class EntityUtils {
+
+	public static MediaType ENTITY_STATEMENT_JWT = new MediaType("application", "entity-statement+jwt");
 
 	public static List<String> STANDARD_ENTITY_STATEMENT_CLAIMS = ImmutableList.of(
 		"iss",
