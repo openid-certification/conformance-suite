@@ -17,7 +17,6 @@ import net.openid.conformance.openid.federation.ValidateFederationUrl;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -140,6 +139,8 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(errorObject);
 		} else {
+
+			env.putObject("original_server_jwks", env.getObject("server_jwks")); // Save the jkws, as we'll have to restore it later
 			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(env.getString("fetch_endpoint_parameter_sub")));
 			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
@@ -147,6 +148,8 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class, "OIDFED-9");
 			validateEntityStatement();
 			env.removeNativeValue("federation_endpoint_url");
+			env.putObject("server_jwks", env.getObject("original_server_jwks")); // Restore
+			env.removeObject("original_server_jwks");
 
 			JsonObject claims = env.getElementFromObject("federation_response_jwt", "claims").getAsJsonObject();
 			claims.addProperty("iss", env.getString("base_url"));
