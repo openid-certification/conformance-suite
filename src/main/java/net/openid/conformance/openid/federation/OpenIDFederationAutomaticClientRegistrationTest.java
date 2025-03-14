@@ -28,9 +28,12 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 	@Override
 	public void additionalConfiguration() {
 		eventLog.startBlock("Additional configuration");
+		env.getElementFromObject("config", "client").getAsJsonObject().addProperty("client_id", env.getString("base_url"));
+		/*
 		JsonObject client = new JsonObject();
 		client.addProperty("client_id", env.getString("base_url"));
 		env.putObject("client", client);
+		*/
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
