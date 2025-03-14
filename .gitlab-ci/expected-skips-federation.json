@@ -19,11 +19,13 @@
         "variant": "*",
         "configuration-filename": "*authlete-federation-fapidev-as.json"
     },
+
     {
         "test-name": "openid-federation-compare-trust-chain-to-resolve",
         "variant": "*",
         "configuration-filename": "*authlete-federation-trust-anchor.json"
     },
+
     {
         "test-name": "openid-federation-list-and-fetch",
         "variant": "*",
