@@ -14,7 +14,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 		"ekyc.verified_claims_request",
 		"ekyc.unverified_claims_names",
-		"ekyc.verified_claims_names"
+		"ekyc.verified_claims_names",
+		"ekyc.request_schemas",
+		"ekyc.response_schemas"
 	}
 )
 public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCore {
