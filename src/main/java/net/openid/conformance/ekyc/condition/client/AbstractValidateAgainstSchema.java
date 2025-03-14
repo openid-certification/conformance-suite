@@ -18,15 +18,15 @@ public abstract class AbstractValidateAgainstSchema extends AbstractCondition {
 
 	protected static Set<ValidationMessage> checkRequestSchema(String jsonToValidate) throws IOException {
 		String schemaFile = "json-schemas/ekyc-ida/12/verified_claims_request.json";
-		return checkSchema(jsonToValidate, schemaFile);
+		return checkFileSchema(jsonToValidate, schemaFile);
 	}
 
 	protected static Set<ValidationMessage> checkResponseSchema(String jsonToValidate) throws IOException {
 		String schemaFile = "json-schemas/ekyc-ida/12/verified_claims.json";
-		return checkSchema(jsonToValidate, schemaFile);
+		return checkFileSchema(jsonToValidate, schemaFile);
 	}
 
-	protected static Set<ValidationMessage> checkSchema(String jsonToValidate, String schemaFile) throws IOException {
+	protected static Set<ValidationMessage> checkFileSchema(String jsonToValidate, String schemaFile) throws IOException {
 		InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(schemaFile);
 
 		JsonNode schemaNode = mapper.readTree(inputStream);
