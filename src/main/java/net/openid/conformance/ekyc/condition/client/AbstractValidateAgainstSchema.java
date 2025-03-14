@@ -26,22 +26,27 @@ public abstract class AbstractValidateAgainstSchema extends AbstractCondition {
 		return checkFileSchema(jsonToValidate, schemaFile);
 	}
 
+	protected static Set<ValidationMessage> checkJsonNodeSchema(String jsonToValidate, JsonNode schemaJsonNode) throws IOException {
+		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(schemaJsonNode), builder ->
+			// This creates a mapping from $id which starts with https://bitbucket.org/openid/ekyc-ida/raw/master/schema/ to the retrieval URI resources:json-schemas/ekyc-ida/12/
+			builder.schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://bitbucket.org/openid/ekyc-ida/raw/master/schema/", "resource:json-schemas/ekyc-ida/12/"))
+		);
+		JsonSchema schema = factory.getSchema(schemaJsonNode);
+		JsonNode node = mapper.readTree(jsonToValidate);
+		Set<ValidationMessage> errors = schema.validate(node);
+		return errors;
+	}
+
+	protected static Set<ValidationMessage> checkStringSchema(String jsonToValidate, String schemaString) throws IOException {
+		JsonNode schemaNode = mapper.readTree(schemaString);
+		return checkJsonNodeSchema(jsonToValidate, schemaNode);
+	}
+
 	protected static Set<ValidationMessage> checkFileSchema(String jsonToValidate, String schemaFile) throws IOException {
 		InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(schemaFile);
 
 		JsonNode schemaNode = mapper.readTree(inputStream);
-
-		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(schemaNode), builder ->
-			// This creates a mapping from $id which starts with https://bitbucket.org/openid/ekyc-ida/raw/master/schema/ to the retrieval URI resources:json-schemas/ekyc-ida/12/
-			builder.schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://bitbucket.org/openid/ekyc-ida/raw/master/schema/", "resource:json-schemas/ekyc-ida/12/"))
-		);
-		JsonSchema schema = factory.getSchema(schemaNode);
-
-		JsonNode node = mapper.readTree(jsonToValidate);
-
-		Set<ValidationMessage> errors = schema.validate(node);
-
-		return errors;
+		return checkJsonNodeSchema(jsonToValidate, schemaNode);
 	}
 
 }
