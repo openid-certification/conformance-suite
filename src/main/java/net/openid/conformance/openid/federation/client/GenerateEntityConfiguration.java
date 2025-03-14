@@ -43,6 +43,8 @@ public class GenerateEntityConfiguration extends AbstractCondition {
 			server.add("authority_hints", authorityHints);
 		}
 
+		server.addProperty("request_uri_parameter_supported", false);
+
 		env.putObject("server", server);
 
 		logSuccess("Created entity configuration", args("server", server, "entity_identifier", baseUrl));
