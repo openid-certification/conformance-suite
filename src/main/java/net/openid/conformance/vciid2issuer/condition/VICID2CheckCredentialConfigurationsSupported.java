@@ -56,12 +56,20 @@ public class VICID2CheckCredentialConfigurationsSupported extends AbstractCondit
 						invalidEntries.computeIfAbsent(credentialKey, k -> new LinkedHashSet<>()).add("Missing name claim in display object entry " + i + " found in proof_types_supported object");
 					}
 
-					JsonObject logoObj = displayObject.getAsJsonObject("logo");
-					if (logoObj != null) {
-						if (logoObj.get("uri") == null) {
-							invalidEntries.computeIfAbsent(credentialKey, k -> new LinkedHashSet<>()).add("Missing logo/uri claim in display object entry " + i + " found in proof_types_supported object");
+					JsonElement logo = displayObject.get("logo");
+					if (logo != null) {
+						if (!logo.isJsonObject()) {
+							invalidEntries.computeIfAbsent(credentialKey, k -> new LinkedHashSet<>()).add("Logo claim in display object entry " + i + " must be an object");
+						} else {
+							JsonObject logoObj = displayObject.getAsJsonObject("logo");
+							if (logoObj != null) {
+								if (logoObj.get("uri") == null) {
+									invalidEntries.computeIfAbsent(credentialKey, k -> new LinkedHashSet<>()).add("Missing logo/uri claim in display object entry " + i + " found in proof_types_supported object");
+								}
+							}
 						}
 					}
+
 
 					JsonObject backgroundImageObj = displayObject.getAsJsonObject("background_image");
 					if (backgroundImageObj != null) {

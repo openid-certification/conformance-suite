@@ -2,6 +2,7 @@ package net.openid.conformance.vciid2issuer;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vciid2issuer.condition.VCIID2EnsureHttpsUrlsMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIID2CheckRequiredMetadataFields;
@@ -18,6 +19,7 @@ import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
 	}
 )
 @VariantParameters({OID4VCIServerMetadata.class,})
+@VariantConfigurationFields(parameter = OID4VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 public class VCIID2IssuerMetadataTest extends AbstractVciId2TestModule {
 
 	@Override
