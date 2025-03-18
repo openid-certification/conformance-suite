@@ -1,0 +1,69 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$comment": "https://datatracker.ietf.org/doc/html/rfc8414",
+    "type": "object",
+    "properties": {
+        "issuer": { "type": "string", "format": "uri" },
+        "authorization_endpoint": { "type": "string", "format": "uri" },
+        "token_endpoint": { "type": "string", "format": "uri" },
+        "jwks_uri": { "type": "string", "format": "uri" },
+        "registration_endpoint": { "type": "string", "format": "uri" },
+        "scopes_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "response_types_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "response_modes_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "grant_types_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "token_endpoint_auth_methods_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "token_endpoint_auth_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "service_documentation": { "type": "string", "format": "uri" },
+        "ui_locales_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "op_policy_uri": { "type": "string", "format": "uri" },
+        "op_tos_uri": { "type": "string", "format": "uri" },
+        "revocation_endpoint": { "type": "string", "format": "uri" },
+        "revocation_endpoint_auth_methods_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "revocation_endpoint_auth_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "introspection_endpoint": { "type": "string", "format": "uri" },
+        "introspection_endpoint_auth_methods_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "introspection_endpoint_auth_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "code_challenge_methods_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        }
+    },
+    "required": [
+        "issuer",
+        "response_types_supported"
+    ]
+}

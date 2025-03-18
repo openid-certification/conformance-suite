@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.MalformedURLException;
 
-public class VCIID2GetStaticCredentialIssuerMetadata extends VCIID2GetDynamicCredentialIssuerMetadata {
+public class VCIGetStaticCredentialIssuerMetadata extends VCIGetDynamicCredentialIssuerMetadata {
 
 	@NotNull
 	@Override

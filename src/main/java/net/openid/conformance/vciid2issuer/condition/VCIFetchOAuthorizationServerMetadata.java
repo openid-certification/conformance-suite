@@ -21,7 +21,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public class VCIID2FetchOAuthorizationServerMetadata extends AbstractCondition {
+public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 
 	@PreEnvironment(required = {"vci"})
 	@Override

@@ -10,15 +10,15 @@ import java.util.List;
 	displayName = "OpenID for Verifiable Credential Issuance ID2: Test an issuer - alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.vciissuer
 )
-public class VCIID2IssuerTestPlan implements TestPlan {
+public class VCIIssuerTestPlan implements TestPlan {
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
 					// positive tests
-					VCIID2IssuerMetadataTest.class,
-					VCIID2IssuerTestHappyPath.class
+					VCIIssuerMetadataTest.class,
+					VCIIssuerHappyPathTest.class
 
 					// negative tests
 
