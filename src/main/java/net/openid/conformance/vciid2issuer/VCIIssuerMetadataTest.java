@@ -4,9 +4,10 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
-import net.openid.conformance.vciid2issuer.condition.VCIID2EnsureHttpsUrlsMetadata;
-import net.openid.conformance.vciid2issuer.condition.VCIID2CheckRequiredMetadataFields;
-import net.openid.conformance.vciid2issuer.condition.VICID2CheckCredentialConfigurationsSupported;
+import net.openid.conformance.vciid2issuer.condition.VCIAuthorizationServerMetadataValidation;
+import net.openid.conformance.vciid2issuer.condition.VCICheckRequiredMetadataFields;
+import net.openid.conformance.vciid2issuer.condition.VCICredentialIssuerMetadataValidation;
+import net.openid.conformance.vciid2issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
 
 @PublishTestModule(
@@ -20,17 +21,20 @@ import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
 )
 @VariantParameters({OID4VCIServerMetadata.class,})
 @VariantConfigurationFields(parameter = OID4VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
-public class VCIID2IssuerMetadataTest extends AbstractVciId2TestModule {
+public class VCIIssuerMetadataTest extends AbstractVciTestModule {
 
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
+		eventLog.runBlock("Verify OAuth Authorization Server Metadata", () -> {
+			callAndContinueOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3", "OID4VCI-11.3");
+		});
 		eventLog.runBlock("Verify Credential Issuer Metadata", () -> {
-			callAndContinueOnFailure(VCIID2CheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
-			callAndContinueOnFailure(VCIID2EnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
-			callAndContinueOnFailure(VICID2CheckCredentialConfigurationsSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
+			callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3");
+			callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3");
+			callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3");
 		});
 
 		fireTestFinished();

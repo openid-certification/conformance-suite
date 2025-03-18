@@ -24,7 +24,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 
-public class VCIID2GetDynamicCredentialIssuerMetadata extends AbstractCondition {
+public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 
 	public static final String WELL_KNOWN_CREDENTIAL_ISSUER_METADATA_PATH = ".well-known/openid-credential-issuer";
 

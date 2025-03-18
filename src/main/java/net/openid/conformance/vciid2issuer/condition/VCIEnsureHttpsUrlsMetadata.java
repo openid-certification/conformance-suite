@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class VCIID2EnsureHttpsUrlsMetadata extends AbstractCondition {
+public class VCIEnsureHttpsUrlsMetadata extends AbstractCondition {
 
 	private static final Set<String> ENDPOINT_FIELDS = Set.of(
 		"credential_issuer",

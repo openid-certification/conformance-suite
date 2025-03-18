@@ -3,12 +3,12 @@ package net.openid.conformance.vciid2issuer;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.AbstractTestModule;
-import net.openid.conformance.vciid2issuer.condition.VCIID2FetchOAuthorizationServerMetadata;
-import net.openid.conformance.vciid2issuer.condition.VCIID2GetDynamicCredentialIssuerMetadata;
-import net.openid.conformance.vciid2issuer.condition.VCIID2GetStaticCredentialIssuerMetadata;
+import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
+import net.openid.conformance.vciid2issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
+import net.openid.conformance.vciid2issuer.condition.VCIGetStaticCredentialIssuerMetadata;
 import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
 
-public abstract class AbstractVciId2TestModule extends AbstractTestModule {
+public abstract class AbstractVciTestModule extends AbstractTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -33,14 +33,14 @@ public abstract class AbstractVciId2TestModule extends AbstractTestModule {
 
 		switch (getVariant(OID4VCIServerMetadata.class)) {
 			case DISCOVERY:
-				callAndStopOnFailure(VCIID2GetDynamicCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
+				callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
 				break;
 			case STATIC:
-				callAndStopOnFailure(VCIID2GetStaticCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
+				callAndStopOnFailure(VCIGetStaticCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
 				break;
 		}
 
-		callAndContinueOnFailure(VCIID2FetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
+		callAndContinueOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
 
 		exposeEnvString("vci_metadata_url", "vci","credential_issuer_metadata_url");
 	}

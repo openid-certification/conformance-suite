@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class VCIID2CheckRequiredMetadataFields extends AbstractCondition {
+public class VCICheckRequiredMetadataFields extends AbstractCondition {
 
 	protected Set<String> getRequiredFieldNames() {
 		return Set.of("credential_issuer", "credential_endpoint", "credential_configurations_supported");
