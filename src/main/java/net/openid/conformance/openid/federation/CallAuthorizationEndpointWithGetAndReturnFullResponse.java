@@ -13,7 +13,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
-public class CallAuthorizationEndpointAndReturnFullResponse extends AbstractCallEndpointWithGet {
+public class CallAuthorizationEndpointWithGetAndReturnFullResponse extends AbstractCallEndpointWithGet {
 
 	protected List<MediaType> getAcceptHeader() {
 		return Collections.emptyList();
@@ -21,7 +21,7 @@ public class CallAuthorizationEndpointAndReturnFullResponse extends AbstractCall
 
 	@Override
 	@PreEnvironment(required = { "primary_entity_statement_jwt", "request_object_claims" }, strings = "request_object")
-    @PostEnvironment(required = "authorization_endpoint_response")
+	@PostEnvironment(required = "authorization_endpoint_response")
 	public Environment evaluate(Environment env) {
 		final String endpointUri = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.authorization_endpoint");
 		final JsonObject requestObjectClaims = env.getObject("request_object_claims");

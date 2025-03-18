@@ -6,7 +6,6 @@ import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfig
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
-import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -41,8 +40,8 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 
 		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(CallAuthorizationEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
-		Environment _env = env;
+		callAndContinueOnFailure(CallAuthorizationEndpointWithGetAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
+		//callAndContinueOnFailure(CallAuthorizationEndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
 
 		setStatus(Status.WAITING);
 		//fireTestFinished();

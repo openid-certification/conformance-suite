@@ -17,8 +17,9 @@ public class UrlDecodeClientIdQueryParameter extends AbstractCondition {
 
 		JsonElement clientIdElement = env.getElementFromObject("authorization_endpoint_http_request_params", "client_id");
 		if (clientIdElement == null) {
-            throw error("No client_id provided in the request object.", args("claims", clientIdElement));
-        }
+			throw error("No client_id provided in the request object.",
+				args("authorization_endpoint_http_request_params", env.getObject("authorization_endpoint_http_request_params")));
+		}
 
 		String clientId = OIDFJSON.getString(clientIdElement);
 		try {
