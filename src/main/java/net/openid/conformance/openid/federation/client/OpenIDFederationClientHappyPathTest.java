@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CreateAuthorizationCode;
+import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
@@ -19,7 +22,9 @@ import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.LoadServerJWKs;
+import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
+import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectAud;
@@ -27,6 +32,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectIss;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.openid.federation.CallEntityStatementEndpointAndReturnFullResponse;
 import net.openid.conformance.openid.federation.EntityUtils;
@@ -50,6 +56,8 @@ import org.springframework.web.servlet.view.RedirectView;
 		"federation.entity_identifier",
 		"federation.authority_hints",
 		"federation.immediate_subordinates",
+		"client.client_id",
+		"client.jwks",
 		"server.jwks",
 	}
 )
@@ -66,6 +74,9 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(GenerateEntityConfiguration.class);
 		callAndStopOnFailure(AddMetadataToEntityConfiguration.class);
+
+		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
 		env.putString("entity_identifier", baseUrl);
 		exposeEnvString("entity_identifier");
@@ -215,17 +226,40 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	protected Object authorizeResponse(String requestId) {
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("Authorization endpoint").mapKey("incoming_request", requestId));
-		env.mapKey("authorization_endpoint_http_request_params", requestId);
+		env.mapKey("authorization_endpoint_http_request", requestId);
+		env.putString("server", "issuer", env.getString("entity_identifier"));
 
+		setAuthorizationEndpointRequestParamsForHttpMethod();
+		callAndContinueOnFailure(UrlDecodeClientIdQueryParameter.class, Condition.ConditionResult.FAILURE);
 		extractAuthorizationEndpointRequestParameters();
+
+		//createAuthorizationCode();
+		callAndStopOnFailure(CreateAuthorizationCode.class);
+		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
+		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
+		//redirectFromAuthorizationEndpoint();
+		callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.3.2.5");
+		exposeEnvString("authorization_endpoint_response_redirect");
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 		Object viewToReturn = new RedirectView(redirectTo, false, false, false);
 
-		env.unmapKey("authorization_endpoint_http_request_params");
+		env.unmapKey("authorization_endpoint_http_request");
 		call(exec().unmapKey("incoming_request").endBlock());
 		setStatus(Status.WAITING);
 
 		return viewToReturn;
+	}
+
+	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
+		String httpMethod = env.getString("authorization_endpoint_http_request", "method");
+		JsonObject httpRequestObj = env.getObject("authorization_endpoint_http_request");
+		if("POST".equals(httpMethod)) {
+			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
+		} else if("GET".equals(httpMethod)) {
+			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("query_string_params"));
+		} else {
+			throw new TestFailureException(getId(), "Got unexpected HTTP method to authorization endpoint");
+		}
 	}
 
 	protected void extractAuthorizationEndpointRequestParameters() {

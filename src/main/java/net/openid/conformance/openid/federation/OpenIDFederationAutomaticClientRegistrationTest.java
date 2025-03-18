@@ -6,10 +6,8 @@ import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfig
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.PublishTestModule;
-
-import java.time.Instant;
-import java.util.UUID;
 
 @PublishTestModule(
 		testName = "openid-federation-automatic-client-registration",
@@ -28,12 +26,8 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 	@Override
 	public void additionalConfiguration() {
 		eventLog.startBlock("Additional configuration");
-		env.getElementFromObject("config", "client").getAsJsonObject().addProperty("client_id", env.getString("base_url"));
-		/*
-		JsonObject client = new JsonObject();
-		client.addProperty("client_id", env.getString("base_url"));
-		env.putObject("client", client);
-		*/
+		JsonObject clientConfig = env.getElementFromObject("config", "client").getAsJsonObject();
+		clientConfig.addProperty("client_id", env.getString("base_url"));
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
@@ -45,16 +39,13 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		JsonObject requestObjectClaims = new JsonObject();
-		String clientId = env.getString("base_url");
-		String iss = clientId;
-		String aud = env.getString("config", "federation.entity_identifier");
-		String jti = UUID.randomUUID().toString();
-		long exp = Instant.now().plusSeconds(5 * 60).getEpochSecond();
-
+		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CallAuthorizationEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
+		Environment _env = env;
 
-		fireTestFinished();
+		setStatus(Status.WAITING);
+		//fireTestFinished();
 	}
 
 }
