@@ -253,7 +253,8 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		env.unmapKey("authorization_endpoint_http_request");
 		call(exec().unmapKey("incoming_request").endBlock());
-		setStatus(Status.WAITING);
+		//setStatus(Status.WAITING);
+		fireTestFinished();
 
 		return viewToReturn;
 	}

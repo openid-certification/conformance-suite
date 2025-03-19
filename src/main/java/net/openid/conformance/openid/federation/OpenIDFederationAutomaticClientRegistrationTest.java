@@ -11,12 +11,16 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
+import java.net.URISyntaxException;
 
 @PublishTestModule(
 		testName = "openid-federation-automatic-client-registration",
@@ -66,10 +70,27 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(CallAuthorizationEndpointWithGetAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
+		final String endpointUri = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.authorization_endpoint");
+		final JsonObject requestObjectClaims = env.getObject("request_object_claims");
+		final String requestObject = env.getString("request_object");
+		final String authorizationEndpointUrl;
+		try {
+			URIBuilder uriBuilder = new URIBuilder(endpointUri);
+			uriBuilder.addParameter("client_id", OIDFJSON.getString(requestObjectClaims.get("client_id")));
+			uriBuilder.addParameter("scope", OIDFJSON.getString(requestObjectClaims.get("scope")));
+			uriBuilder.addParameter("response_type", OIDFJSON.getString(requestObjectClaims.get("response_type")));
+			uriBuilder.addParameter("request", requestObject);
+			authorizationEndpointUrl = uriBuilder.build().toString();
+		} catch (URISyntaxException e) {
+			throw new TestFailureException(getId(), "Invalid authorization endpoint URI", e);
+		}
+		env.putString("redirect_to_authorization_endpoint", authorizationEndpointUrl);
+		performRedirect();
+
+		//callAndContinueOnFailure(CallAuthorizationEndpointWithGetAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
 		//callAndContinueOnFailure(CallAuthorizationEndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
 
-		setStatus(Status.WAITING);
+		//setStatus(Status.WAITING);
 		//fireTestFinished();
 	}
 
@@ -80,8 +101,7 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		return switch (path) {
 			case ".well-known/openid-federation" -> entityConfigurationResponse();
 			case "jwks" -> clientJwksResponse();
-			default ->
-				throw new TestFailureException(getId(), "Got an HTTP request to '" + path + "' that wasn't expected");
+			default -> super.handleHttp(path, req, res, session, requestParts);
 		};
 	}
 
