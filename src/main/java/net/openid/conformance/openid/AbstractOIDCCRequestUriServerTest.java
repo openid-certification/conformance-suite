@@ -26,8 +26,14 @@ public abstract class AbstractOIDCCRequestUriServerTest extends AbstractOIDCCSer
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
 		super.onConfigure(config, baseUrl);
-		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		checkDiscEndpointRequestUriParameterSupported();
+	}
 
+	/**
+	 * Allow derived tests to decide how to check for request_uri parameter support.
+	 */
+	protected void checkDiscEndpointRequestUriParameterSupported() {
+		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 	}
 
 	@Override
