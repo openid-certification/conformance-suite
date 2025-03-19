@@ -37,7 +37,8 @@ public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
 		env.putObject("config", config);
 
 		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-		callAndStopOnFailure(ValidateTrustAnchor.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		skipIfElementMissing("config", "federation.trust_anchor", Condition.ConditionResult.INFO,
+			ValidateTrustAnchor.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 
 		String entityIdentifier = env.getString("config", "federation.entity_identifier");
 		eventLog.startBlock("Retrieve Entity Configuration for %s".formatted(entityIdentifier));
