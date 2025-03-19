@@ -7,6 +7,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
+import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.ServerMetadata;
@@ -26,9 +27,15 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 @VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
 	"federation.entity_configuration"
 })
-public abstract class AbstractOpenIDFederationTest extends AbstractTestModule {
+public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServerTestModule {
 
 	public abstract void additionalConfiguration();
+
+	@Override
+	protected void processCallback() {
+		eventLog.log("AbstractOpenIDFederationTest", "Callback received");
+		fireTestFinished();
+	}
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
