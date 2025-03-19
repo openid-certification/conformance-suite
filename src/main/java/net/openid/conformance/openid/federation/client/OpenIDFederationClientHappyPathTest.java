@@ -34,10 +34,13 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.openid.federation.AddFederationEntityMetadataToEntityConfiguration;
+import net.openid.conformance.openid.federation.AddOpenIDProviderMetadataToEntityConfiguration;
 import net.openid.conformance.openid.federation.CallEntityStatementEndpointAndReturnFullResponse;
 import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpointResponse;
 import net.openid.conformance.openid.federation.ValidateFederationUrl;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
@@ -53,7 +56,6 @@ import org.springframework.web.servlet.view.RedirectView;
 	summary = "openid-federation-client-happy-path",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.entity_identifier",
 		"federation.authority_hints",
 		"federation.immediate_subordinates",
 		"client.client_id",
@@ -73,7 +75,8 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(GenerateEntityConfiguration.class);
-		callAndStopOnFailure(AddMetadataToEntityConfiguration.class);
+		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
+		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
 
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
@@ -233,11 +236,16 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndContinueOnFailure(UrlDecodeClientIdQueryParameter.class, Condition.ConditionResult.FAILURE);
 		extractAuthorizationEndpointRequestParameters();
 
-		//createAuthorizationCode();
+		Environment _env = env;
+		String clientId = env.getString("authorization_request_object", "claims.client_id");
+		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(clientId));
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		validateEntityStatementResponse();
+
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
-		//redirectFromAuthorizationEndpoint();
 		callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.3.2.5");
 		exposeEnvString("authorization_endpoint_response_redirect");
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
@@ -303,6 +311,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	/*
+	// From AbstractOIDCCClientTest
 	@UserFacing
 	protected Object handleAuthorizationEndpointRequest(String requestId) {
 
