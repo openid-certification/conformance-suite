@@ -16,6 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.utils.URIBuilder;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -85,7 +86,7 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 			throw new TestFailureException(getId(), "Invalid authorization endpoint URI", e);
 		}
 		env.putString("redirect_to_authorization_endpoint", authorizationEndpointUrl);
-		performRedirect();
+		performRedirect(HttpMethod.POST.name()); // Does not work, it's still GET?
 
 		//callAndContinueOnFailure(CallAuthorizationEndpointWithGetAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
 		//callAndContinueOnFailure(CallAuthorizationEndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
