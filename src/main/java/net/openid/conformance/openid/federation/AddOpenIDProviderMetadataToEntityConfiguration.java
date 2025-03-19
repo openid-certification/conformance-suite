@@ -1,35 +1,21 @@
-package net.openid.conformance.openid.federation.client;
+package net.openid.conformance.openid.federation;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class AddMetadataToEntityConfiguration extends AbstractCondition {
+public class AddOpenIDProviderMetadataToEntityConfiguration extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "server", strings = {"base_url"})
+	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		String baseUrl = env.getString("base_url");
 		JsonObject server = env.getObject("server");
 
-		JsonObject metadata = new JsonObject();
-
-		JsonObject federationEntity = new JsonObject();
-		metadata.add("federation_entity", federationEntity);
-
-		JsonElement immediateSubordinatesElement = env.getElementFromObject("config", "federation.immediate_subordinates");
-		if (immediateSubordinatesElement != null) {
-			if (!immediateSubordinatesElement.isJsonArray()) {
-				throw error("immediate_subordinates must be an array of strings");
-			}
-			federationEntity.addProperty("federation_fetch_endpoint", baseUrl + "/fetch");
-			federationEntity.addProperty("federation_list_endpoint", baseUrl + "/list");
-		}
+		JsonObject metadata = server.getAsJsonObject("metadata");
 
 		JsonObject openIdProvider = new JsonObject();
 		metadata.add("openid_provider", openIdProvider);
@@ -45,6 +31,20 @@ public class AddMetadataToEntityConfiguration extends AbstractCondition {
 		JsonArray idTokenSigningAlgsSupported = new JsonArray();
 		idTokenSigningAlgsSupported.add("RS256");
 		openIdProvider.add("id_token_signing_alg_values_supported", idTokenSigningAlgsSupported);
+
+		JsonArray requestObjectSigningAlgValuesSupported = new JsonArray();
+		requestObjectSigningAlgValuesSupported.add("RS256");
+		requestObjectSigningAlgValuesSupported.add("PS256");
+		requestObjectSigningAlgValuesSupported.add("ES256");
+		openIdProvider.add("request_object_signing_alg_values_supported", requestObjectSigningAlgValuesSupported);
+
+		JsonArray requestObjectEncryptionAlgValuesSupported = new JsonArray();
+		requestObjectEncryptionAlgValuesSupported.add("RSA-OAEP");
+		openIdProvider.add("request_object_encryption_alg_values_supported", requestObjectEncryptionAlgValuesSupported);
+
+		JsonArray requestObjectEncryptionEncValuesSupported = new JsonArray();
+		requestObjectEncryptionEncValuesSupported.add("A256GCM");
+		openIdProvider.add("request_object_encryption_enc_values_supported", requestObjectEncryptionEncValuesSupported);
 
 		String entityIdentifier = OIDFJSON.getString(server.get("iss"));
 		openIdProvider.addProperty("authorization_endpoint", entityIdentifier + "/authorize");
