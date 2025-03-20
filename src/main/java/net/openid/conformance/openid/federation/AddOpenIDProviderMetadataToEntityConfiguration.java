@@ -30,6 +30,8 @@ public class AddOpenIDProviderMetadataToEntityConfiguration extends AbstractCond
 
 		JsonArray idTokenSigningAlgsSupported = new JsonArray();
 		idTokenSigningAlgsSupported.add("RS256");
+		idTokenSigningAlgsSupported.add("PS256");
+		idTokenSigningAlgsSupported.add("ES256");
 		openIdProvider.add("id_token_signing_alg_values_supported", idTokenSigningAlgsSupported);
 
 		JsonArray requestObjectSigningAlgValuesSupported = new JsonArray();
