@@ -4,8 +4,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
+import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureNotFoundError;
+import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -32,7 +40,50 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 	@Override
 	protected void processCallback() {
-		eventLog.log("AbstractOpenIDFederationTest", "Callback received");
+		eventLog.startBlock("Verify authorization endpoint response");
+		env.mapKey("authorization_endpoint_response", "callback_query_params");
+
+		onAuthorizationCallbackResponse();
+
+		eventLog.endBlock();
+		fireTestFinished();
+	}
+
+	protected void onAuthorizationCallbackResponse() {
+		//callAndContinueOnFailure(CheckMatchingCallbackParameters.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		handleSuccessfulAuthorizationEndpointResponse();
+	}
+
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
+		performPostAuthorizationFlow();
+	}
+
+	protected void performPostAuthorizationFlow() {
+		// call the token endpoint and complete the flow
+		createAuthorizationCodeRequest();
+		redeemAuthorizationCode();
+		onPostAuthorizationFlowComplete();
+	}
+
+	protected void createAuthorizationCodeRequest() {
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+	}
+
+	//Originally called requestAuthorizationCode()
+	protected void redeemAuthorizationCode() {
+		String tokenEndpoint = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.token_endpoint");
+		env.putString("token_endpoint", tokenEndpoint);
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
+		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
+	}
+
+	protected void onPostAuthorizationFlowComplete() {
 		fireTestFinished();
 	}
 

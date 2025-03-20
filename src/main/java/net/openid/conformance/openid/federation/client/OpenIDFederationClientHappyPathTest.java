@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
@@ -29,6 +30,7 @@ import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponse
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
+import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRequest;
 import net.openid.conformance.condition.as.ValidateRequestObjectAud;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectIss;
@@ -241,6 +243,10 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		String clientId = env.getString("authorization_request_object", "claims.client_id");
 		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(clientId));
+
+		String redirectUri = env.getString("authorization_request_object", "claims.redirect_uri");
+		env.putString("authorization_endpoint_request_redirect_uri", redirectUri);
+
 		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
 		validateEntityStatementResponse();
@@ -255,8 +261,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		env.unmapKey("authorization_endpoint_http_request");
 		call(exec().unmapKey("incoming_request").endBlock());
-		//setStatus(Status.WAITING);
-		fireTestFinished();
+		setStatus(Status.WAITING);
 
 		return viewToReturn;
 	}
@@ -264,10 +269,14 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	protected Object tokenResponse(String requestId) {
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("Token endpoint").mapKey("incoming_request", requestId));
-		env.mapKey("token_endpoint_http_request", requestId);
+		env.mapKey("token_endpoint_request", requestId);
 		env.putString("issuer", env.getString("entity_identifier"));
 
-		callAndContinueOnFailure(ValidateAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(VerifyGrantTypeIsPresent.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, Condition.ConditionResult.FAILURE, "RFC6749-3.2.1");
+		callAndStopOnFailure(ValidateAuthorizationCode.class, "OIDCC-3.1.3.2");
+		callAndContinueOnFailure(ValidateRedirectUriForTokenEndpointRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.2");
+
 		callAndContinueOnFailure(OIDCCLoadUserInfo.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(GenerateIdTokenClaims.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(SignIdToken.class, Condition.ConditionResult.FAILURE);
