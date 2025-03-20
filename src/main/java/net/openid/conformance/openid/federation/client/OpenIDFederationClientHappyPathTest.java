@@ -21,11 +21,13 @@ import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestPar
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
+import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectAud;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -34,13 +36,13 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.openid.federation.AddFederationEntityMetadataToEntityConfiguration;
 import net.openid.conformance.openid.federation.AddOpenIDProviderMetadataToEntityConfiguration;
 import net.openid.conformance.openid.federation.CallEntityStatementEndpointAndReturnFullResponse;
 import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpointResponse;
 import net.openid.conformance.openid.federation.ValidateFederationUrl;
-import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
@@ -117,6 +119,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			case "fetch" -> fetchResponse(requestId);
 			case "list" -> listResponse(requestId);
 			case "authorize" -> authorizeResponse(requestId);
+			case "token" -> tokenResponse(requestId);
 			default ->
 				throw new TestFailureException(getId(), "Got an HTTP request to '" + path + "' that wasn't expected");
 		};
@@ -236,7 +239,6 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndContinueOnFailure(UrlDecodeClientIdQueryParameter.class, Condition.ConditionResult.FAILURE);
 		extractAuthorizationEndpointRequestParameters();
 
-		Environment _env = env;
 		String clientId = env.getString("authorization_request_object", "claims.client_id");
 		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(clientId));
 		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
@@ -257,6 +259,27 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		fireTestFinished();
 
 		return viewToReturn;
+	}
+
+	protected Object tokenResponse(String requestId) {
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("Token endpoint").mapKey("incoming_request", requestId));
+		env.mapKey("token_endpoint_http_request", requestId);
+		env.putString("issuer", env.getString("entity_identifier"));
+
+		callAndContinueOnFailure(ValidateAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(OIDCCLoadUserInfo.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(GenerateIdTokenClaims.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(SignIdToken.class, Condition.ConditionResult.FAILURE);
+		JsonObject response = new JsonObject();
+		response.addProperty("id_token", env.getString("id_token"));
+
+		env.removeNativeValue("issuer");
+		env.unmapKey("authorization_endpoint_http_request");
+		call(exec().unmapKey("incoming_request").endBlock());
+		fireTestFinished();
+
+		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {

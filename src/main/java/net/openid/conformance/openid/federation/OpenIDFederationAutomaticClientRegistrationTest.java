@@ -86,13 +86,7 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 			throw new TestFailureException(getId(), "Invalid authorization endpoint URI", e);
 		}
 		env.putString("redirect_to_authorization_endpoint", authorizationEndpointUrl);
-		performRedirect(HttpMethod.POST.name()); // Does not work, it's still GET?
-
-		//callAndContinueOnFailure(CallAuthorizationEndpointWithGetAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
-		//callAndContinueOnFailure(CallAuthorizationEndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
-
-		//setStatus(Status.WAITING);
-		//fireTestFinished();
+		performRedirect(HttpMethod.POST.name());
 	}
 
 	@Override
