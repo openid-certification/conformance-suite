@@ -20,6 +20,14 @@ public class AddOpenIDProviderMetadataToEntityConfiguration extends AbstractCond
 		JsonObject openIdProvider = new JsonObject();
 		metadata.add("openid_provider", openIdProvider);
 
+		JsonArray scopesSupported = new JsonArray();
+		scopesSupported.add("openid");
+		openIdProvider.add("scopes_supported", scopesSupported);
+
+		JsonArray claimsSupported = new JsonArray();
+		claimsSupported.add("sub");
+		openIdProvider.add("claims_supported", claimsSupported);
+
 		JsonArray responseTypesSupported = new JsonArray();
 		responseTypesSupported.add("code");
 		openIdProvider.add("response_types_supported", responseTypesSupported);

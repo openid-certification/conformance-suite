@@ -33,6 +33,7 @@ public class CreateRequestObjectClaims extends AbstractCondition {
 		requestObjectClaims.addProperty("aud", aud);
 		requestObjectClaims.addProperty("jti", jti);
 		requestObjectClaims.addProperty("exp", exp);
+
 		env.putObject("request_object_claims", requestObjectClaims);
 
 		logSuccess("Created request object claims", args("request_object_claims", requestObjectClaims));
