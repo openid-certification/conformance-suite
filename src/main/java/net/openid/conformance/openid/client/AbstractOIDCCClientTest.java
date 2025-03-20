@@ -737,7 +737,6 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 		}
 
 		validateTokenEndpointRequest();
-
 		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, Condition.ConditionResult.FAILURE, "RFC6749-3.2.1");
 
 		if(validateClientAuthenticationSteps!=null) {
