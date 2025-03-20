@@ -43,6 +43,10 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 		browser.goToUrl(redirectTo);
 	}
 
+	protected void redirect(String redirectTo, String method) {
+		browser.goToUrl(redirectTo, null, method);
+	}
+
 	protected void performRedirect() {
 		performRedirect("GET");
 	}
@@ -57,7 +61,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 		setStatus(Status.WAITING);
 
-		redirect(redirectTo);
+		redirect(redirectTo, method);
 	}
 
 	protected final void performRedirectAndWaitForPlaceholdersOrCallback() {
