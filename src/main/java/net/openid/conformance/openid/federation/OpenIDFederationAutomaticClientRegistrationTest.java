@@ -85,6 +85,7 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		} catch (URISyntaxException e) {
 			throw new TestFailureException(getId(), "Invalid authorization endpoint URI", e);
 		}
+		env.putString("redirect_uri", OIDFJSON.getString(requestObjectClaims.get("redirect_uri")));
 		env.putString("redirect_to_authorization_endpoint", authorizationEndpointUrl);
 		performRedirect(HttpMethod.POST.name());
 	}
