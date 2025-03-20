@@ -8,7 +8,6 @@ import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
-import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
