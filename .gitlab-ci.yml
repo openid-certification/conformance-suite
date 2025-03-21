@@ -469,7 +469,7 @@ local_test:
     if [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
       # we expect much bigger databases on staging as it persists; use more RAM and disk for mongo
       mongo_settings="--set mongodb.resources.limits.memory=4Gi \
-        --set mongodb.persistence.size=250Gi"
+        --set mongodb.persistence.size=300Gi"
     fi
     if [[ "$CI_COMMIT_BRANCH" == "production" ]]; then
       # we expect much bigger databases on production and we have a dedicated node; use much more RAM and disk for mongo
