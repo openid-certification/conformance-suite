@@ -56,8 +56,13 @@ public class AddOpenIDProviderMetadataToEntityConfiguration extends AbstractCond
 		requestObjectEncryptionEncValuesSupported.add("A256GCM");
 		openIdProvider.add("request_object_encryption_enc_values_supported", requestObjectEncryptionEncValuesSupported);
 
+		openIdProvider.addProperty("request_parameter_supported", true);
+		openIdProvider.addProperty("request_uri_parameter_supported", true);
+		openIdProvider.addProperty("require_signed_request_object", true);
+
 		String entityIdentifier = OIDFJSON.getString(server.get("iss"));
 		openIdProvider.addProperty("authorization_endpoint", entityIdentifier + "/authorize");
+		openIdProvider.addProperty("pushed_authorization_request_endpoint", entityIdentifier + "/par");
 		openIdProvider.addProperty("token_endpoint", entityIdentifier + "/token");
 		openIdProvider.addProperty("jwks_uri", entityIdentifier + "/jwks");
 

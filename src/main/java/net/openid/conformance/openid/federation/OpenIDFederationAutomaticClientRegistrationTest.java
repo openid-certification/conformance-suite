@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
@@ -14,6 +15,8 @@ import net.openid.conformance.openid.federation.client.GenerateEntityConfigurati
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.http.HttpMethod;
@@ -34,6 +37,9 @@ import java.net.URISyntaxException;
 			"federation.trust_anchor_jwks"
 		}
 )
+@VariantParameters({
+	FAPIAuthRequestMethod.class
+})
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpenIDFederationTest {
 
@@ -71,23 +77,51 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
 
-		final String endpointUri = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.authorization_endpoint");
-		final JsonObject requestObjectClaims = env.getObject("request_object_claims");
-		final String requestObject = env.getString("request_object");
-		final String authorizationEndpointUrl;
+		JsonObject requestObjectClaims = env.getObject("request_object_claims");
+		String requestObject = env.getString("request_object");
+
+		String endpointUri = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.authorization_endpoint");
+		URIBuilder uriBuilder = null;
 		try {
-			URIBuilder uriBuilder = new URIBuilder(endpointUri);
+			uriBuilder = new URIBuilder(endpointUri);
+		} catch (URISyntaxException e) {
+			throw new TestFailureException(getId(), "Invalid authorization endpoint URI", e);
+		}
+
+		String authorizationEndpointUrl;
+		HttpMethod method;
+
+		if (FAPIAuthRequestMethod.PUSHED.equals(getVariant(FAPIAuthRequestMethod.class))) {
+
+			callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
+			//EnsureHttpStatusCodeIs200 etc
+
+			env.mapKey("pushed_authorization_endpoint_response", "authorization_endpoint_response");
+			callAndContinueOnFailure(ExtractRequestUriFromPARResponse.class, Condition.ConditionResult.FAILURE);
+			env.unmapKey("pushed_authorization_endpoint_response");
+
+			uriBuilder.addParameter("request_uri", env.getString("request_uri"));
+			method = HttpMethod.GET;
+
+		} else {
+
 			uriBuilder.addParameter("client_id", OIDFJSON.getString(requestObjectClaims.get("client_id")));
 			uriBuilder.addParameter("scope", OIDFJSON.getString(requestObjectClaims.get("scope")));
 			uriBuilder.addParameter("response_type", OIDFJSON.getString(requestObjectClaims.get("response_type")));
 			uriBuilder.addParameter("request", requestObject);
+			method = HttpMethod.POST;
+
+		}
+
+		try {
 			authorizationEndpointUrl = uriBuilder.build().toString();
 		} catch (URISyntaxException e) {
 			throw new TestFailureException(getId(), "Invalid authorization endpoint URI", e);
 		}
+
 		env.putString("redirect_uri", OIDFJSON.getString(requestObjectClaims.get("redirect_uri")));
 		env.putString("redirect_to_authorization_endpoint", authorizationEndpointUrl);
-		performRedirect(HttpMethod.POST.name());
+		performRedirect(method.name());
 	}
 
 	@Override
