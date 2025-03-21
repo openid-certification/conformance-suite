@@ -16,6 +16,7 @@ import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContain
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
+import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureRequiredAuthorizationRequestParametersMatchRequestObject;
@@ -36,6 +37,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectIss;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
@@ -48,6 +50,7 @@ import net.openid.conformance.openid.federation.ValidateFederationUrl;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -108,7 +111,6 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	@Override
 	public void start() {
 		setStatus(Status.WAITING);
-		//fireTestFinished();
 	}
 
 	@Override
@@ -121,6 +123,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			case "fetch" -> fetchResponse(requestId);
 			case "list" -> listResponse(requestId);
 			case "authorize" -> authorizeResponse(requestId);
+			case "par" -> parResponse(requestId);
 			case "token" -> tokenResponse(requestId);
 			default ->
 				throw new TestFailureException(getId(), "Got an HTTP request to '" + path + "' that wasn't expected");
@@ -237,19 +240,14 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		env.mapKey("authorization_endpoint_http_request", requestId);
 		env.putString("server", "issuer", env.getString("entity_identifier"));
 
-		setAuthorizationEndpointRequestParamsForHttpMethod();
-		callAndContinueOnFailure(UrlDecodeClientIdQueryParameter.class, Condition.ConditionResult.FAILURE);
-		extractAuthorizationEndpointRequestParameters();
+		// If the request_uri parameter is present and correct, skip validation and go directly to the entity statement verification
+		// Handle errors nicely, somehow
 
-		String clientId = env.getString("authorization_request_object", "claims.client_id");
-		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(clientId));
+		extractAndVerifyRequestObject(FAPIAuthRequestMethod.BY_VALUE);
+		extractClientIdFromRequestObject();
+		extractRedirectUriFromRequestObject();
 
-		String redirectUri = env.getString("authorization_request_object", "claims.redirect_uri");
-		env.putString("authorization_endpoint_request_redirect_uri", redirectUri);
-
-		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
-		validateEntityStatementResponse();
+		fetchAndVerifyEntityStatement();
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
@@ -264,6 +262,30 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		setStatus(Status.WAITING);
 
 		return viewToReturn;
+	}
+
+	protected Object parResponse(String requestId) {
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("PAR endpoint").mapKey("incoming_request", requestId));
+		env.mapKey("par_endpoint_http_request", requestId);
+		env.mapKey("authorization_endpoint_http_request", requestId);
+		env.putString("server", "issuer", env.getString("entity_identifier"));
+
+		callAndContinueOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, Condition.ConditionResult.FAILURE, "PAR-2.1");
+
+		extractAndVerifyRequestObject(FAPIAuthRequestMethod.PUSHED);
+		extractClientIdFromRequestObject();
+		extractRedirectUriFromRequestObject();
+
+		callAndContinueOnFailure(CreatePAREndpointResponse.class, Condition.ConditionResult.FAILURE, "PAR-2.1");
+
+		env.mapKey("par_endpoint_http_request", requestId);
+		env.unmapKey("authorization_endpoint_http_request");
+		call(exec().unmapKey("incoming_request").endBlock());
+		setStatus(Status.WAITING);
+
+		JsonObject response = env.getObject("par_endpoint_response");
+		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 
 	protected Object tokenResponse(String requestId) {
@@ -291,6 +313,30 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 
+	protected void extractAndVerifyRequestObject(FAPIAuthRequestMethod requestMethod) {
+		setAuthorizationEndpointRequestParamsForHttpMethod();
+		if (FAPIAuthRequestMethod.BY_VALUE.equals(requestMethod)) {
+			callAndContinueOnFailure(UrlDecodeClientIdQueryParameter.class, Condition.ConditionResult.FAILURE);
+		}
+		extractAuthorizationEndpointRequestParameters(requestMethod);
+	}
+
+	protected void extractClientIdFromRequestObject() {
+		String clientId = env.getString("authorization_request_object", "claims.client_id");
+		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(clientId));
+	}
+
+	protected void extractRedirectUriFromRequestObject() {
+		String redirectUri = env.getString("authorization_request_object", "claims.redirect_uri");
+		env.putString("authorization_endpoint_request_redirect_uri", redirectUri);
+	}
+
+	protected void fetchAndVerifyEntityStatement() {
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		validateEntityStatementResponse();
+	}
+
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
 		String httpMethod = env.getString("authorization_endpoint_http_request", "method");
 		JsonObject httpRequestObj = env.getObject("authorization_endpoint_http_request");
@@ -303,13 +349,17 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		}
 	}
 
-	protected void extractAuthorizationEndpointRequestParameters() {
+	protected void extractAuthorizationEndpointRequestParameters(FAPIAuthRequestMethod requestMethod) {
 		callAndStopOnFailure(ExtractRequestObject.class, "OIDCC-6.1");
-		callAndStopOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, "OIDCC-6.1", "OIDCC-6.2");
 		validateRequestObject();
-		callAndStopOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
 		skipIfElementMissing("authorization_request_object", "jwe_header", Condition.ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
-		callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, Condition.ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
+
+		if (FAPIAuthRequestMethod.BY_VALUE.equals(requestMethod)) {
+			callAndStopOnFailure(EnsureAuthorizationHttpRequestContainsOpenIDScope.class, "OIDCC-6.1", "OIDCC-6.2");
+			callAndStopOnFailure(EnsureRequiredAuthorizationRequestParametersMatchRequestObject.class, "OIDCC-6.1", "OIDCC-6.2");
+			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class, Condition.ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
+		}
+
 		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class, "OIDCC-6.1", "OIDCC-6.2");
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 		extractNonceFromAuthorizationEndpointRequestParameters();
