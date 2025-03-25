@@ -21,6 +21,7 @@ import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -316,13 +317,18 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		}
 	}
 
-	protected List<String> findPath(String fromEntity, String toTrustAnchor) throws CyclicPathException {
-		List<String> path = findPath(fromEntity, toTrustAnchor, new ArrayList<>());
-		eventLog.log(getName(), "Path to trust anchor: %s".formatted(String.join(" → ", path)));
-		return path;
-	}
+	 protected List<String> findPath(String fromEntity, String toTrustAnchor) throws CyclicPathException {
+		 List<String> path = findPath(fromEntity, toTrustAnchor, new ArrayList<>());
+		 if (path != null) {
+			 eventLog.log(getName(), "Path to trust anchor: %s".formatted(String.join(" → ", path)));
+			 return path;
+		 } else {
+			 eventLog.log(getName(), "Unable to find path from %s to trust anchor %s".formatted(fromEntity, toTrustAnchor));
+			 return List.of();
+		 }
+	 }
 
-	protected List<String> findPath(String fromEntity, String toTrustAnchor, List<String> path) throws CyclicPathException {
+	private List<String> findPath(String fromEntity, String toTrustAnchor, List<String> path) throws CyclicPathException {
 
 		if (path.isEmpty()) {
 			env.mapKey("federation_response_jwt", "primary_entity_statement_jwt");
@@ -370,6 +376,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 	public static class CyclicPathException extends Exception {
 
+		@Serial
 		private static final long serialVersionUID = 1L;
 
 		public CyclicPathException(String message) {
