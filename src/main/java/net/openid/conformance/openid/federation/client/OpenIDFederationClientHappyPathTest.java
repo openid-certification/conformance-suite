@@ -240,19 +240,21 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		env.mapKey("authorization_endpoint_http_request", requestId);
 		env.putString("server", "issuer", env.getString("entity_identifier"));
 
-		// If the request_uri parameter is present and correct, skip validation and go directly to the entity statement verification
-		// Handle errors nicely, somehow
-
-		extractAndVerifyRequestObject(FAPIAuthRequestMethod.BY_VALUE);
-		extractClientIdFromRequestObject();
-		extractRedirectUriFromRequestObject();
+		String requestUri = env.getString("authorization_endpoint_http_request", "query_string_params.request_uri");
+		if (requestUri == null) {
+			extractAndVerifyRequestObject(FAPIAuthRequestMethod.BY_VALUE);
+			extractClientIdFromRequestObject();
+			extractRedirectUriFromRequestObject();
+		} else {
+			callAndContinueOnFailure(VerifyRequestUri.class, Condition.ConditionResult.FAILURE);
+		}
 
 		fetchAndVerifyEntityStatement();
 
-		callAndStopOnFailure(CreateAuthorizationCode.class);
-		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
-		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
-		callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.3.2.5");
+		callAndContinueOnFailure(CreateAuthorizationCode.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CreateAuthorizationEndpointResponseParams.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, Condition.ConditionResult.FAILURE,  "OIDCC-3.3.2.5");
+		callAndContinueOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 		exposeEnvString("authorization_endpoint_response_redirect");
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 		Object viewToReturn = new RedirectView(redirectTo, false, false, false);
