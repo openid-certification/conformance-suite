@@ -16,13 +16,13 @@ public class VerifyRequestUri extends AbstractCondition {
 		String parResponseRequestUri = env.getString("par_endpoint_response", "request_uri");
 
 		if (authorizeRequestRequestUri == null || parResponseRequestUri == null) {
-		    throw error("Missing request_uri in authorization_endpoint_http_request or par_endpoint_response",
+			throw error("Missing request_uri in authorization_endpoint_http_request or par_endpoint_response",
 				args("authorize_request_uri", authorizeRequestRequestUri, "par_response_request_uri", parResponseRequestUri));
 		}
 
 		if (!Objects.equals(authorizeRequestRequestUri, parResponseRequestUri)) {
 			throw error("Request_uri in authorization_endpoint_http_request does not match request_uri in par_endpoint_response",
-                args("authorize_request_uri", authorizeRequestRequestUri, "par_response_request_uri", parResponseRequestUri));
+				args("authorize_request_uri", authorizeRequestRequestUri, "par_response_request_uri", parResponseRequestUri));
 		}
 
 		logSuccess("Request_uri in authorization_endpoint_http_request matches request_uri in par_endpoint_response");
