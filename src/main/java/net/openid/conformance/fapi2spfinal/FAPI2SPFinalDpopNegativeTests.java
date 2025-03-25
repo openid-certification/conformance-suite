@@ -188,19 +188,19 @@ public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTes
 			eventLog.startBlock("Try DPoP proof signed using RS256");
 			callResourceEndpointSteps(() -> makeUpdateResourceRequestSteps()
 				.insertBefore(SignDpopProof.class,
-					condition(Fapi2DPoPNegativeConditions.ChangeSignAlgorithm.class)), false, true, "FAPI2-SP-ID2-5.4");
+					condition(Fapi2DPoPNegativeConditions.ChangeSignAlgorithm.class)), false, true, "FAPI2-SP-FINAL-5.4");
 		}
 
 		eventLog.startBlock("Try DPoP proof with none alg");
 		callResourceEndpointSteps(() -> makeUpdateResourceRequestSteps()
 			.replace(SignDpopProof.class,
-				condition(Fapi2DPoPNegativeConditions.SignDpopProofWithNone.class)), false, true, "FAPI2-SP-ID2-5.4");
+				condition(Fapi2DPoPNegativeConditions.SignDpopProofWithNone.class)), false, true, "FAPI2-SP-FINAL-5.4");
 
 		// 6. the JWT signature verifies with the public key contained in the jwk header of the JWT,
 		eventLog.startBlock("Try DPoP proof with invalid signature");
 		callResourceEndpointSteps(() -> makeUpdateResourceRequestSteps()
 			.insertAfter(SignDpopProof.class,
-				condition(Fapi2DPoPNegativeConditions.InvalidateDpopProofSignature.class)), false, true, "FAPI2-SP-ID2-5.4");
+				condition(Fapi2DPoPNegativeConditions.InvalidateDpopProofSignature.class)), false, true, "FAPI2-SP-FINAL-5.4");
 
 		// 7. the jwk header of the JWT does not contain a private key,
 		eventLog.startBlock("Try DPoP proof with jwk header incorrectly containing private key");

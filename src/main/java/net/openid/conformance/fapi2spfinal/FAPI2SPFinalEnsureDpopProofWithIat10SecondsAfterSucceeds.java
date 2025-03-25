@@ -42,11 +42,11 @@ public class FAPI2SPFinalEnsureDpopProofWithIat10SecondsAfterSucceeds extends Ab
 	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
 	public void setupCreateDpopForEndpointSteps() {
 		createDpopForParEndpointSteps = () -> CreateDpopProofSteps.createParEndpointDpopSteps()
-			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
+			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-FINAL-5.3.2.1-14"));
 		createDpopForTokenEndpointSteps = () -> CreateDpopProofSteps.createTokenEndpointDpopSteps()
-			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
+			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-FINAL-5.3.2.1-14"));
 		createDpopForResourceEndpointSteps = () -> CreateDpopProofSteps.createResourceEndpointDpopSteps()
-			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));
+			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo8SecondsInFuture.class).requirement("FAPI2-SP-FINAL-5.3.2.1-14"));
 	}
 
 
