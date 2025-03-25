@@ -54,7 +54,7 @@ public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends Abs
 	protected void verifyError() {
 		Integer httpStatus = env.getInteger("token_endpoint_response_http_status");
 		if (httpStatus == HttpStatus.SC_OK) {
-			callAndContinueOnFailure(ServerAllowedReusingAuthorizationCode.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.1.2-9");
+			callAndContinueOnFailure(ServerAllowedReusingAuthorizationCode.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-9");
 		} else {
 			callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 			callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
@@ -79,7 +79,7 @@ public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends Abs
 			call(sequence(generateNewClientAssertionSteps));
 		}
 
-		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI2-SP-FINAL-5.3.1.2-9");
+		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI2-SP-FINAL-5.3.2.2-9");
 
 		verifyError();
 

@@ -35,7 +35,7 @@ public class FAPI2SPFinalPAREnsurePlainPKCERejected extends AbstractFAPI2SPFinal
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectPlainPkceErrorPage.class, "FAPI2-SP-FINAL-5.3.1.2-5");
+		callAndStopOnFailure(ExpectPlainPkceErrorPage.class, "FAPI2-SP-FINAL-5.3.2.2-5");
 
 		env.putString("error_callback_placeholder", env.getString("plain_pkce_error"));
 	}

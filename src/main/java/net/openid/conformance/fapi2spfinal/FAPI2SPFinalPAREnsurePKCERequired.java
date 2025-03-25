@@ -33,7 +33,7 @@ public class FAPI2SPFinalPAREnsurePKCERequired extends AbstractFAPI2SPFinalPAREx
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectPkceMissingErrorPage.class, "FAPI2-SP-FINAL-5.3.1.2-5");
+		callAndStopOnFailure(ExpectPkceMissingErrorPage.class, "FAPI2-SP-FINAL-5.3.2.2-5");
 
 		env.putString("error_callback_placeholder", env.getString("pkce_missing_error"));
 	}
