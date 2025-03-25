@@ -57,6 +57,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.List;
+
 @PublishTestModule(
 	testName = "openid-federation-client-happy-path",
 	displayName = "openid-federation-client-happy-path",
@@ -66,6 +68,7 @@ import org.springframework.web.servlet.view.RedirectView;
 		"federation.authority_hints",
 		"federation.immediate_subordinates",
 		"client.entity_identifier",
+		"client.trust_anchor",
 		"client.jwks",
 		"server.jwks",
 	}
@@ -80,16 +83,6 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		callAndStopOnFailure(LoadServerJWKs.class);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		callAndStopOnFailure(GenerateEntityConfiguration.class);
-		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
-		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
-
-		env.putString("config", "client.client_id", env.getString("config", "client.entity_identifier"));
-		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
-		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-
 		env.putString("entity_identifier", baseUrl);
 		exposeEnvString("entity_identifier");
 
@@ -101,6 +94,17 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		env.putString("federation_list_endpoint", baseUrl + "/list");
 		exposeEnvString("federation_list_endpoint");
+
+		callAndStopOnFailure(LoadServerJWKs.class);
+		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(GenerateEntityConfiguration.class);
+		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
+		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
+
+		env.putString("config", "client.client_id", env.getString("config", "client.entity_identifier"));
+		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
+		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+		callAndStopOnFailure(ValidateClientTrustAnchor.class);
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -253,6 +257,25 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		fetchAndVerifyEntityStatement();
 
+		try {
+			String rpEntity = env.getString("config", "client.entity_identifier");
+			String opEntity = env.getString("entity_identifier");
+			String rpTrustAnchor = env.getString("config", "client.trust_anchor");
+
+			List<String> rpTrustChain = findPath(rpEntity, rpTrustAnchor);
+			if (rpTrustChain.isEmpty()) {
+				throw new TestFailureException(getId(), "Could not build a trust chain from the RP %s to trust anchor %s".formatted(rpEntity, rpTrustAnchor));
+			}
+			List<String> opTrustChain = findPath(opEntity, rpTrustAnchor);
+			if (opTrustChain.isEmpty()) {
+				throw new TestFailureException(getId(), "Could not build a trust chain from the OP %s to trust anchor %s".formatted(opEntity, rpTrustAnchor));
+			}
+			eventLog.log(getId(),"*** BOTH TRUST CHAINS BUILT ***");
+
+		} catch (CyclicPathException e) {
+			throw new TestFailureException(getId(), e.getMessage(), e);
+		}
+
 		callAndContinueOnFailure(CreateAuthorizationCode.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CreateAuthorizationEndpointResponseParams.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, Condition.ConditionResult.FAILURE,  "OIDCC-3.3.2.5");
@@ -279,6 +302,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		extractAndVerifyRequestObject(FAPIAuthRequestMethod.PUSHED);
 		extractClientIdFromRequestObject();
+		callAndContinueOnFailure(ValidateClientIdMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
 		extractRedirectUriFromRequestObject();
 
 		callAndContinueOnFailure(CreatePAREndpointResponse.class, Condition.ConditionResult.FAILURE, "PAR-2.1");
@@ -327,6 +351,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 	protected void extractClientIdFromRequestObject() {
 		String clientId = env.getString("authorization_request_object", "claims.client_id");
+		env.putString("request_object_client_id", clientId);
 		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(clientId));
 	}
 
