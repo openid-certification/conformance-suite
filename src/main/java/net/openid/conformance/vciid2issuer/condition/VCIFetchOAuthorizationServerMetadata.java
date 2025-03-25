@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -58,7 +59,12 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 		int i = 0;
 		for (var element : authorizationServerArray) {
 			String authorizationServerIssuer = OIDFJSON.getString(element);
-			JsonObject authorizationServerMetadataResponse = fetchAuthorizationServerMetadataFromUrl(env, authorizationServerIssuer);
+			JsonObject authorizationServerMetadataResponse;
+//			try {
+				authorizationServerMetadataResponse = fetchAuthorizationServerMetadataFromUrl(env, authorizationServerIssuer);
+//			} catch (Exception e) {
+//				continue;
+//			}
 			JsonObject authorizationServerMetadata = JsonParser.parseString(OIDFJSON.getString(authorizationServerMetadataResponse.get("body"))).getAsJsonObject();
 			authorizationServerMetadataDataList.add(authorizationServerMetadata);
 			env.putObject("vci", "authorization_servers.server" + i + ".authorization_server_metadata", authorizationServerMetadata);
@@ -80,8 +86,21 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 		return authorizationServerMetadataResponse;
 	}
 
-	protected String getAuthorizationServerMetadataEndpointUrl(String credentialIssuer) {
-		return credentialIssuer + "/.well-known/oauth-authorization-server";
+	protected String getAuthorizationServerMetadataEndpointUrl(String authServerIssuer) {
+
+		URI authServerIssuerUri = URI.create(authServerIssuer);
+		String authority = authServerIssuerUri.getScheme() + "://" + authServerIssuerUri.getHost();
+		String path = authServerIssuerUri.getPath();
+
+		if (path == null || path.isEmpty() || "/".equals(path)) {
+			// see: https://datatracker.ietf.org/doc/html/rfc8414#section-3.1
+			//  GET /.well-known/oauth-authorization-server HTTP/1.1
+			return authServerIssuer + "/.well-known/oauth-authorization-server";
+		}
+
+		// see: https://datatracker.ietf.org/doc/html/rfc8414#section-3.1
+		// GET /.well-known/oauth-authorization-server/issuer1 HTTP/1.1
+		return authority + "/.well-known/oauth-authorization-server" + path;
 	}
 
 	protected JsonObject fetchAuthorizationServerMetadata(Environment env, String metadataEndpointUrl) {

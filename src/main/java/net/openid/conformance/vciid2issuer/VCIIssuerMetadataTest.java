@@ -29,7 +29,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTestModule {
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 		eventLog.runBlock("Verify OAuth Authorization Server Metadata", () -> {
-			callAndContinueOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3", "OID4VCI-11.3");
+			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3", "OID4VCI-11.3");
 		});
 		eventLog.runBlock("Verify Credential Issuer Metadata", () -> {
 			callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3");

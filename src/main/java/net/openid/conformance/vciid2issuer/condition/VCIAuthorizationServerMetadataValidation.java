@@ -10,7 +10,8 @@ public class VCIAuthorizationServerMetadataValidation extends AbstractSchemaBase
 	protected MetadataValidationInput createMetadataValidationInput(Environment env) {
 		// TODO add support for validating multiple authorization servers
 		JsonObject metadata = env.getElementFromObject("vci", "authorization_servers.server0.authorization_server_metadata").getAsJsonObject();
-		String schemaResource = "json-schemas/rfc8414/oauth_authorization_server_metadata.json";
+		// we use the oid4vci specific variant of the rfc8414 metadata
+		String schemaResource = "json-schemas/oid4vci/rfc8414-oauth_authorization_server_metadata.json";
 		String metadataName = "OAuth Authorization Server";
 		return new MetadataValidationInput(metadataName, schemaResource, metadata);
 	}

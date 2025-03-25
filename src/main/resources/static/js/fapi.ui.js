@@ -611,6 +611,7 @@ var FAPI_UI = {
 			"RFC7592-" : "https://tools.ietf.org/html/rfc7592#section-",
 			"RFC7592A-" : "https://tools.ietf.org/html/rfc7592#appendix-",
 			"RFC7636-" : "https://tools.ietf.org/html/rfc7636#section-",
+			"RFC8414-" : "https://tools.ietf.org/html/rfc8414#section-",
 			"RFC8705-" : "https://tools.ietf.org/html/rfc8705#section-",
 			"RFC8707-" :  "https://tools.ietf.org/html/rfc8707#section-",
 			"RFC8485-" :  "https://tools.ietf.org/html/rfc8485#section-",

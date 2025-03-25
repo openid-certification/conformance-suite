@@ -1,10 +1,6 @@
 package net.openid.conformance.vciid2issuer;
 
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.VariantConfigurationFields;
-import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
 	testName = "oid4vci-id2-issuer-happy-flow",
@@ -16,19 +12,19 @@ import net.openid.conformance.variant.VariantParameters;
 
 	}
 )
-@VariantParameters({//
-	ClientAuthType.class, //
-	ClientRegistration.class,
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = { //
-	"client.client_secret"
-})
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = { //
-	"client.client_secret"
-})
-@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = { //
-	"client.client_id"
-})
+//@VariantParameters({//
+//	ClientAuthType.class, //
+//	ClientRegistration.class,
+//})
+//@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_basic", configurationFields = { //
+//	"client.client_secret"
+//})
+//@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_secret_post", configurationFields = { //
+//	"client.client_secret"
+//})
+//@VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = { //
+//	"client.client_id"
+//})
 public class VCIIssuerHappyPathTest extends AbstractVciTestModule {
 
 	@Override
@@ -45,15 +41,6 @@ public class VCIIssuerHappyPathTest extends AbstractVciTestModule {
 		// obtain PRE_AUTHORIZED_CODE
 
 		// obtain credential access token with PRE_AUTHORIZED_CODE
-		/*
-		CREDENTIAL_BEARER_TOKEN=$(curl -k -s $KEYCLOAK_EXTERNAL_ADDR/realms/$KEYCLOAK_REALM/protocol/openid-connect/token \
-    -H 'Accept: application/json' \
-    -H 'Content-Type: application/x-www-form-urlencoded' \
-    -d 'grant_type=urn:ietf:params:oauth:grant-type:pre-authorized_code' \
-    -d "pre-authorized_code=$PRE_AUTHORIZED_CODE" \
-    -d "client_id=openid4vc-rest-api" \
-    -d "client_secret=$CLIENT_SECRET")
-		 */
 
 		// validate access token response with credential access token
 

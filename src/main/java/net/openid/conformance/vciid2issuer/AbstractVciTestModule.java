@@ -27,6 +27,7 @@ public abstract class AbstractVciTestModule extends AbstractTestModule {
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
+		// No custom configuration
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
@@ -40,7 +41,7 @@ public abstract class AbstractVciTestModule extends AbstractTestModule {
 				break;
 		}
 
-		callAndContinueOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
+		callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "RFC8414-3.1");
 
 		exposeEnvString("vci_metadata_url", "vci","credential_issuer_metadata_url");
 	}
