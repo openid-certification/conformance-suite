@@ -10,7 +10,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedClaimsInIdToken
 import net.openid.conformance.condition.client.EnsureIdTokenContainsRequestedClaims;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -35,7 +35,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "cbuae" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "cbuae" })
 public class FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

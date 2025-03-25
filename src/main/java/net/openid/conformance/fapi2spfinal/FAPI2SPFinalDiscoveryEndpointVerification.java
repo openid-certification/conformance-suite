@@ -38,7 +38,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -55,7 +55,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
-	FAPI2ID2OPProfile.class,
+	FAPI2FinalOPProfile.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
 	FAPIResponseMode.class,
@@ -72,28 +72,28 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 
 	protected boolean brazil = false;
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
 		profileSpecificChecks = AuCdrDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		profileSpecificChecks = OpenBankingBrazilDiscoveryEndpointChecks.class;
 		brazil = true;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "connectid_au")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "connectid_au")
 	public void setupConnectId() {
 		profileSpecificChecks = ConnectIdAuDiscoveryEndpointChecks.class;
 	}
@@ -103,7 +103,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		oidcChecks = OidcDiscoveryEndpointChecks.class;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "cbuae")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "cbuae")
 	public void setupCBUAE() {
 		profileSpecificChecks = OpenBankingUAEDiscoveryEndpointChecks.class;
 	}

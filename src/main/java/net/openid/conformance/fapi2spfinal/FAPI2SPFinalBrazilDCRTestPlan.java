@@ -2,7 +2,7 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class FAPI2SPFinalBrazilDCRTestPlan implements TestPlan {
 					FAPI2SPFinalBrazilDCRInvalidJwksUri.class,
 					FAPI2SPFinalBrazilDCRInvalidJwksByValue.class
 				),
-				List.of(new Variant(FAPI2ID2OPProfile.class, "openbanking_brazil"))
+				List.of(new Variant(FAPI2FinalOPProfile.class, "openbanking_brazil"))
 			)
 		);
 

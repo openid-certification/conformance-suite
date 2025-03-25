@@ -14,7 +14,7 @@ import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAsser
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -44,7 +44,7 @@ public class FAPI2SPFinalEnsureClientAssertionWithIssAudSucceeds extends Abstrac
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
-		if(getVariant(FAPI2ID2OPProfile.class) != FAPI2ID2OPProfile.CBUAE) {
+		if(getVariant(FAPI2FinalOPProfile.class) != FAPI2FinalOPProfile.CBUAE) {
 			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest());
 		} else {
 			call(new CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest());

@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.LogAccessTokenAlwaysRejectedToForceARefreshGrant;
 import net.openid.conformance.condition.as.RemoveIssuedAccessTokenFromEnvironment;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +33,7 @@ import org.springframework.http.ResponseEntity;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "connectid_au"})
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "connectid_au"})
 public class FAPI2SPFinalClientRefreshTokenTest extends AbstractFAPI2SPFinalClientTest {
 	private int numberOfTimesRefreshTokenUsed = 0;
 

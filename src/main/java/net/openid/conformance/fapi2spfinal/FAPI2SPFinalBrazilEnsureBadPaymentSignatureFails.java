@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.InvalidateConsentEndpointRequestS
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = {
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
 	"plain_fapi",
 	"openbanking_uk",
 	"consumerdataright_au",

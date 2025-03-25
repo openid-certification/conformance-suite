@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.AddMultipleAudToRequestObject;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -31,7 +31,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(
-		parameter = FAPI2ID2OPProfile.class,
+		parameter = FAPI2FinalOPProfile.class,
 		values = "cbuae"
 )
 public class FAPI2SPFinalEnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPI2SPFinalServerTestModule {

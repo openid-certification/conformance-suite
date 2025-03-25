@@ -203,7 +203,7 @@ import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -220,7 +220,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPI2ID2OPProfile.class,
+	FAPI2FinalOPProfile.class,
 	FAPIResponseMode.class,
 	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
@@ -230,7 +230,7 @@ import org.springframework.web.servlet.view.RedirectView;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
@@ -242,11 +242,11 @@ import org.springframework.web.servlet.view.RedirectView;
 	"client2.id_token_encrypted_response_alg",
 	"client2.id_token_encrypted_response_enc",
 })
-@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.scope",
 	"client2.scope"
 })
-@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "connectid_au", configurationFields = {
 	"client.scope", // scope is always openid
 	"client2.scope"
 })
@@ -269,7 +269,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
 
 	// Controls which endpoints we should expose to the client
-	protected FAPI2ID2OPProfile profile;
+	protected FAPI2FinalOPProfile profile;
 
 	protected FAPIResponseMode responseMode;
 
@@ -332,7 +332,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			waitTimeoutSeconds = OIDFJSON.getLong(config.get("waitTimeoutSeconds"));
 		}
 
-		profile = getVariant(FAPI2ID2OPProfile.class);
+		profile = getVariant(FAPI2FinalOPProfile.class);
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		fapiClientType = getVariant(FAPIClientType.class);
@@ -341,11 +341,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
 
 		profileRequiresMtlsEverywhere =
-			profile == FAPI2ID2OPProfile.OPENBANKING_UK ||
-			profile == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
-			profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-			profile == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
-			profile == FAPI2ID2OPProfile.CBUAE;
+			profile == FAPI2FinalOPProfile.OPENBANKING_UK ||
+			profile == FAPI2FinalOPProfile.CONSUMERDATARIGHT_AU ||
+			profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL ||
+			profile == FAPI2FinalOPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
+			profile == FAPI2FinalOPProfile.CBUAE;
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
@@ -360,19 +360,19 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if (fapiClientType == FAPIClientType.OIDC) {
 			call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
 
-			if (profile != FAPI2ID2OPProfile.CONNECTID_AU) {
+			if (profile != FAPI2FinalOPProfile.CONNECTID_AU) {
 				call(condition(AddSubjectTypesSupportedToServerConfiguration.class).requirement("OIDCD-3"));
 			}
 		}
 
 
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1");
 			// FIXME - BrazilOB-5.2.3-5 seems incorrect, but no obvious replacement.
 			callAndStopOnFailure(FAPIBrazilSetGrantTypesSupportedInServerConfiguration.class);
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-4");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
-		} else if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+		} else if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CID-SP-5.2.2-8");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CID-SP-5");
 			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CID-SP-5");
@@ -399,7 +399,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
 		}
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 		} else {
 			callAndStopOnFailure(FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
@@ -408,14 +408,14 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
 			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
-		} else if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+		} else if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			// nothing to expose; the endpoints all come from discovery (the userinfo endpoint is used as the resource endpoint)
-		} else if (profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
+		} else if (profile == FAPI2FinalOPProfile.OPENBANKING_UK) {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
 		} else {
@@ -499,7 +499,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	}
 
 	protected void validateClientConfiguration() {
-		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "CID-SP-5");
 		}
 	}
@@ -604,7 +604,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection when using MTLS client authentication.");
 			}
 			return parEndpoint(requestId);
-		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
+		} else if (path.equals(ACCOUNT_REQUESTS_PATH) && profile == FAPI2FinalOPProfile.OPENBANKING_UK) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
@@ -656,7 +656,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		} else if (path.equals("par")) {
 			return parEndpoint(requestId);
 		}
-		if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if (profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			if(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
 				return brazilHandleNewConsentRequest(requestId, false);
 			} else if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
@@ -1021,7 +1021,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10");
 		}
 
@@ -1040,7 +1040,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			if(requireResourceServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 			}
-			if (profile == FAPI2ID2OPProfile.CONNECTID_AU || profile == FAPI2ID2OPProfile.CBUAE ) {
+			if (profile == FAPI2FinalOPProfile.CONNECTID_AU || profile == FAPI2FinalOPProfile.CBUAE ) {
 				// for ConnectID we use the userinfo endpoint as the resource endpoint, so this is the end of the test
 				resourceEndpointCallComplete();
 			} else {
@@ -1111,10 +1111,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 				// we're doing the authorization code grant for user access
 				return authorizationCodeGrantType(requestId);
 			case "client_credentials":
-				if (profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
+				if (profile == FAPI2FinalOPProfile.OPENBANKING_UK) {
 					// we're doing the client credentials grant for initial token access
 					return clientCredentialsGrantType(requestId);
-				} else if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+				} else if (profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
 					return clientCredentialsGrantType(requestId);
 				}
@@ -1283,7 +1283,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
 			CheckForUnexpectedClaimsInRequestObject.class, ConditionResult.WARNING, "RFC6749-4.1.1", "OIDCC-3.1.2.1", "RFC7636-4.3", "OAuth2-RT-2.1", "RFC7519-4.1", "DPOP-10", "RFC8485-4.1", "RFC8707-2.1", "RFC9396-2");
 
-		if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
 				AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class, ConditionResult.FAILURE, "CID-IDA-5.2-2.7");
 		}
@@ -1321,7 +1321,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			- O `STATUS` será alterado para `AUTHORISED` somente após autenticação e confirmação por parte do
 				usuário na instituição transmissora dos dados.
 		 */
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
 
@@ -1347,7 +1347,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		callAndStopOnFailure(FAPI2ValidateRequestObjectSigningAlg.class, "FAPI2-SP-ID2-5.4");
 		callAndContinueOnFailure(FAPIValidateRequestObjectMediaType.class, Condition.ConditionResult.WARNING, "JAR-4");
 		if(fapiClientType== FAPIClientType.OIDC) {
-			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+			if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
 					"OIDCC-5.5.1.1", "BrazilOB-5.2.2-5", "BrazilOB-5.2.2-6");
 			} else {
@@ -1379,7 +1379,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
 			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
 			if(wasInitialConsentRequestToPaymentsEndpoint) {
@@ -1388,7 +1388,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 				callAndStopOnFailure(EnsureScopeContainsAccounts.class);
 			}
 		} else {
-			if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+			if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "CID-SP-5");
 				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CID-SP-5");
 				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-5", "CID-IDA-5.2-10");
@@ -1438,7 +1438,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 
 		callAndStopOnFailure(GenerateIdTokenClaims.class);
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10");
 		}
 
@@ -1459,13 +1459,13 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
-		if(profile == FAPI2ID2OPProfile.CONNECTID_AU) {
+		if(profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			callAndContinueOnFailure(LoadRequestedIdTokenClaims.class, ConditionResult.INFO);
 		}
 
 		addCustomValuesToIdToken();
 
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
 				FAPIBrazilOBAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
 		} else {
@@ -1594,7 +1594,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		checkResourceEndpointRequest(false);
 
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
 			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
 			if(wasInitialConsentRequestToPaymentsEndpoint) {
@@ -1645,28 +1645,28 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		authorizationCodeGrantTypeProfileSteps = null;
 		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = null;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
 		authorizationEndpointProfileSteps = AddOpenBankingUkClaimsToAuthorizationEndpointResponse.class;
 		accountsEndpointProfileSteps = GenerateOpenBankingUkAccountsEndpointResponse.class;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		authorizationCodeGrantTypeProfileSteps = null;
 		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
-	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "connectid_au")
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "connectid_au")
 	public void setupConnectIdAu() {
 		authorizationCodeGrantTypeProfileSteps = null;
 		authorizationEndpointProfileSteps = null;
