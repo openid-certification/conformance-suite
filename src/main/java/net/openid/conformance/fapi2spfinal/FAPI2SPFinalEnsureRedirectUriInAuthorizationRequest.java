@@ -31,7 +31,7 @@ public class FAPI2SPFinalEnsureRedirectUriInAuthorizationRequest extends Abstrac
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI2-SP-ID2-5.3.1.2-6");
+		callAndStopOnFailure(ExpectRedirectUriMissingErrorPage.class, "FAPI2-SP-FINAL-5.3.1.2-6");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_missing_error"));
 	}

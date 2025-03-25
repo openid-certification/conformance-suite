@@ -45,7 +45,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.1-5");
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.1.1-5");
 
 		}
 	}
@@ -54,7 +54,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	{
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.1-6");
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.1.1-6");
 
 		}
 	}
@@ -85,21 +85,21 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 
 		if (isDpop) {
-			callAndContinueOnFailure(FAPI2CheckDpopSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-1");
+			callAndContinueOnFailure(FAPI2CheckDpopSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 		} else {
-			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.1-5", "RFC8705-3.3");
+			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.1.1-5", "RFC8705-3.3");
 		}
 
-		callAndContinueOnFailure(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-1");
+		callAndContinueOnFailure(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.1-6");
-		callAndContinueOnFailure(FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-1");
+		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.1.1-6");
+		callAndContinueOnFailure(FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 
 		call(condition(FAPI2CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
 			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.onSkip(Condition.ConditionResult.INFO)
-			.requirement("FAPI2-SP-ID2-5.4")
+			.requirement("FAPI2-SP-FINAL-5.4")
 			.dontStopOnFailure()
 		);
 
@@ -115,7 +115,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 
 		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
-		callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.2-5");
+		callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.1.2-5");
 
 		call(sequence(variantAuthChecks));
 	}

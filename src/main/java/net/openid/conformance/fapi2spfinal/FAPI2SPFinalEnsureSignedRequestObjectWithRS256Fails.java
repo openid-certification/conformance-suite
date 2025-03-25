@@ -56,7 +56,7 @@ public class FAPI2SPFinalEnsureSignedRequestObjectWithRS256Fails extends Abstrac
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectSignedRS256RequestObjectErrorPage.class, "FAPI2-SP-ID2-5.4");
+		callAndStopOnFailure(ExpectSignedRS256RequestObjectErrorPage.class, "FAPI2-SP-FINAL-5.4");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
@@ -66,7 +66,7 @@ public class FAPI2SPFinalEnsureSignedRequestObjectWithRS256Fails extends Abstrac
 		// create a copy of the jwks so we can restore the original one when creating any client assertion
 		env.putObject("client_jwks_rs256", env.getObject("client_jwks").deepCopy());
 		env.mapKey("client_jwks", "client_jwks_rs256");
-		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI2-SP-ID2-5.4");
+		callAndStopOnFailure(ChangeClientJwksAlgToRS256.class, "FAPI2-SP-FINAL-5.4");
 
 		super.createAuthorizationRequestObject();
 
