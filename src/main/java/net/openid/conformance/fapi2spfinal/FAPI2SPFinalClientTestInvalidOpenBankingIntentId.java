@@ -2,7 +2,7 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.as.AddInvalidOpenBankingIntentIdToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae" })
 public class FAPI2SPFinalClientTestInvalidOpenBankingIntentId extends AbstractFAPI2SPFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override

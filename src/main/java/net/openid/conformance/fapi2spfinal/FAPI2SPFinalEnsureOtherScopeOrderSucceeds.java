@@ -4,7 +4,7 @@ import net.openid.conformance.condition.client.ReverseScopeOrderInAuthorizationE
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -30,7 +30,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 // ConnectID only requires the openid scope to be supported, but this test requires at least two scopes
-@VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "connectid_au" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })
 // Plain oauth may not have the mulptiple scopes required for this test.
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = "plain_oauth")
 public class FAPI2SPFinalEnsureOtherScopeOrderSucceeds extends AbstractFAPI2SPFinalServerTestModule {
