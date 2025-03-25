@@ -65,11 +65,12 @@ import org.springframework.web.servlet.view.RedirectView;
 	configurationFields = {
 		"federation.authority_hints",
 		"federation.immediate_subordinates",
-		"client.client_id",
+		"client.entity_identifier",
 		"client.jwks",
 		"server.jwks",
 	}
 )
+
 @SuppressWarnings("unused")
 public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederationClientTest {
 
@@ -85,6 +86,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
 		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
 
+		env.putString("config", "client.client_id", env.getString("config", "client.entity_identifier"));
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
