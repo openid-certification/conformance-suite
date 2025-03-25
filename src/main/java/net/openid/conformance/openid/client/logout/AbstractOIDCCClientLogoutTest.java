@@ -2,6 +2,7 @@ package net.openid.conformance.openid.client.logout;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfigurationWithSessionManagement;
 import net.openid.conformance.condition.as.logout.AddSessionStateToAuthorizationEndpointResponseParams;
@@ -33,8 +34,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
 	"client.post_logout_redirect_uri"

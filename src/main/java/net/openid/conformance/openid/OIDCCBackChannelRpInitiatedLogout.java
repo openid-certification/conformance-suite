@@ -2,6 +2,9 @@ package net.openid.conformance.openid;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBackchannelLogoutSessionRequiredTrueToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddBackchannelLogoutUriToDynamicRegistrationRequest;
@@ -23,10 +26,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.ModelAndView;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 // Corresponds to https://www.heenan.me.uk/~joseph/2020-06-05-test_desc_op.html#OP_BackChannel_RpInitLogout
 // https://github.com/rohe/oidctest/blob/master/test_tool/cp/test_op/flows/OP-BackChannel-RpInitLogout.json
