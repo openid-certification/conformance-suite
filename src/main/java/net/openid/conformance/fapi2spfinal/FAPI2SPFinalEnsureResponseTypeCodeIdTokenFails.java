@@ -45,7 +45,7 @@ public class FAPI2SPFinalEnsureResponseTypeCodeIdTokenFails extends AbstractFAPI
 	@Override
 	protected void createPlaceholder() {
 		// see https://bitbucket.org/openid/fapi/issues/476/is-response_type-code-id_token-permitted
-		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI2-SP-FINAL-5.3.1.2-1");
+		callAndStopOnFailure(ExpectResponseTypeErrorPage.class, "FAPI2-SP-FINAL-5.3.2.2-1");
 
 		env.putString("error_callback_placeholder", env.getString("response_type_error"));
 	}
@@ -54,7 +54,7 @@ public class FAPI2SPFinalEnsureResponseTypeCodeIdTokenFails extends AbstractFAPI
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		return super.makeCreateAuthorizationRequestSteps()
 			.replace(SetAuthorizationEndpointRequestResponseTypeToCode.class,
-				condition(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class).requirements("FAPI2-SP-FINAL-5.3.1.2-1"));
+				condition(SetAuthorizationEndpointRequestResponseTypeToCodeIdtoken.class).requirements("FAPI2-SP-FINAL-5.3.2.2-1"));
 	}
 
 	@Override
@@ -71,8 +71,8 @@ public class FAPI2SPFinalEnsureResponseTypeCodeIdTokenFails extends AbstractFAPI
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint error response");
 
-		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.1.2-1");
-		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.1.2-1");
+		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-1");
+		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-1");
 
 		// It doesn't really matter if the error in the fragment or the query, the specs aren't entirely clear on the matter
 		callAndStopOnFailure(DetectWhetherErrorResponseIsInQueryOrFragment.class);

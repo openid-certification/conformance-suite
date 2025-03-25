@@ -30,7 +30,7 @@ public class FAPI2SPFinalClientTestHappyPath extends AbstractFAPI2SPFinalClientT
 	@Override
 	protected void onConfigurationCompleted() {
 		super.onConfigurationCompleted();
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-FINAL-5.6.3-3");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-FINAL-5.4.2-3");
 	}
 
 	@Override

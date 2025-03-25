@@ -64,7 +64,7 @@ public class FAPI2SPFinalEnsureAuthorizationCodeIsBoundToClient extends Abstract
 
 		createAuthorizationCodeRequest();
 
-		callSenderConstrainedTokenEndpointAndStopOnFailure("FAPI2-SP-FINAL-5.3.1.1-6");
+		callSenderConstrainedTokenEndpointAndStopOnFailure("FAPI2-SP-FINAL-5.3.2.1-6");
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus400.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 		callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidGrant.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");

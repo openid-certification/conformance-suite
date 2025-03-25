@@ -330,7 +330,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
-		callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-2", "FAPI2-SP-FINAL-5.4-3");
+		callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-2", "FAPI2-SP-FINAL-5.4.1-1.3");
 		if (isRarRequest) {
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
@@ -423,7 +423,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		} else {
 			callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4");
 		}
-		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-2", "FAPI2-SP-FINAL-5.4-3");
+		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-2", "FAPI2-SP-FINAL-5.4.1-1.3");
 
 		boolean mtlsRequired =
 			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
@@ -581,7 +581,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndStopOnFailure(AddNbfToRequestObject.class, "FAPI2-MS-ID1-5.3.1-3"); // mandatory in FAPI2-Message-Signing-Final
 			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI2-MS-ID1-5.3.1-4");
 
-			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI2-SP-FINAL-5.3.1.1-6");
+			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI2-SP-FINAL-5.3.2.1-6");
 
 			// iss is a 'should' in OIDC & jwsreq,
 			callAndStopOnFailure(AddIssToRequestObject.class, "OIDCC-6.1");
@@ -628,7 +628,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
 
-		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-FINAL-5.3.1.2-7");
+		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-FINAL-5.3.2.2-7");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
@@ -666,7 +666,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected void addPkceCodeVerifier() {
-		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2-SP-FINAL-5.3.2.2-3");
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2-SP-FINAL-5.3.3.2-3");
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
@@ -749,14 +749,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
 			EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-4");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-4");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-4");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-4");
 
 		if (isOpenId) {
 			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
 				ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
-			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI2-SP-FINAL-5.3.1.3", "OIDCC-3.3.2.5");
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI2-SP-FINAL-5.3.2.3", "OIDCC-3.3.2.5");
 
 			call(new PerformStandardIdTokenChecks());
 
@@ -1025,7 +1025,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (isDpop() ) {
 			requestProtectedResourceUsingDpop();
 		} else  {
-			callAndStopOnFailure(CallProtectedResource.class, "FAPI2-SP-FINAL-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "FAPI2-SP-FINAL-5.3.4-2");
 		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
