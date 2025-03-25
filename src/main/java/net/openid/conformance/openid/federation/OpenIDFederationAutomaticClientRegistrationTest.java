@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -94,7 +96,10 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		if (FAPIAuthRequestMethod.PUSHED.equals(getVariant(FAPIAuthRequestMethod.class))) {
 
 			callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
-			//EnsureHttpStatusCodeIs200 etc
+			env.mapKey("endpoint_response", "authorization_endpoint_response");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+			env.unmapKey("endpoint_response");
 
 			env.mapKey("pushed_authorization_endpoint_response", "authorization_endpoint_response");
 			callAndContinueOnFailure(ExtractRequestUriFromPARResponse.class, Condition.ConditionResult.FAILURE);

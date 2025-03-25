@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.client;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.OIDCCSignClaimsEndpointResponse;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfoWithDistributedClaims;
@@ -9,8 +10,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.ResponseEntity;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * rp-claims-distributed in the old python test suite

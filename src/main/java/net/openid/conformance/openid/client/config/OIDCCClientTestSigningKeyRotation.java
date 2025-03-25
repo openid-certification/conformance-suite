@@ -1,11 +1,10 @@
 package net.openid.conformance.openid.client.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import net.openid.conformance.openid.client.AbstractOIDCCClientTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientRegistration;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 
 @PublishTestModule(
