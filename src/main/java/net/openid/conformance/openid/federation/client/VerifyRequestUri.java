@@ -1,13 +1,9 @@
 package net.openid.conformance.openid.federation.client;
 
-import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class VerifyRequestUri extends AbstractCondition {

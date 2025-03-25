@@ -1,6 +1,9 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
@@ -25,10 +28,6 @@ import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @PublishTestModule(
 	testName = "oidcc-refresh-token-rp-key-rotation",
