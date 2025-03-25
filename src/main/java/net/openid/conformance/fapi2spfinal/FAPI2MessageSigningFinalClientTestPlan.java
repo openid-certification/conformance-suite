@@ -11,7 +11,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-message-signing-final-client-test-plan",
-	displayName = "FAPI2-Message-Signing-Final: Relying Party (client) test",
+	displayName = "FAPI2-Message-Signing-Final: Relying Party (client) test - INCORRECT/INCOMPLETE, DO NOT USE",
 	profile = TestPlan.ProfileNames.rptest
 )
 public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
