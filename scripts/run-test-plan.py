@@ -1157,7 +1157,7 @@ async def main():
             continue
 
         #we don't have automated tests for OID4VCI tests
-        if re.match(r'(openid-vci-.*)',m):
+        if re.match(r'(oid4vci-.*)',m):
             untested_test_modules.remove(m)
             continue
 
