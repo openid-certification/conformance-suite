@@ -37,7 +37,8 @@ import java.net.URISyntaxException;
 			"client.jwks",
 			"federation.entity_identifier",
 			"federation.trust_anchor",
-			"federation.trust_anchor_jwks"
+			"federation.trust_anchor_jwks",
+			"federation.authority_hints",
 		}
 )
 @VariantParameters({
