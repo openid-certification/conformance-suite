@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.net.URI;
 
@@ -14,7 +15,7 @@ public class VCIValidateCredentialIssuerUri extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonObject metadata = env.getElementFromObject("vci", "credential_issuer_metadata").getAsJsonObject();
-		String iss = metadata.get("credential_issuer").getAsString();
+		String iss = OIDFJSON.getString(metadata.get("credential_issuer"));
 
 		URI issUri = URI.create(iss);
 
