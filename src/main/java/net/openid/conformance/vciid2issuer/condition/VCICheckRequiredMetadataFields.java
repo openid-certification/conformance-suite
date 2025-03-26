@@ -33,10 +33,10 @@ public class VCICheckRequiredMetadataFields extends AbstractCondition {
 		}
 
 		if (!missingRequiredFields.isEmpty()) {
-			throw error("Missing required fields ", args("required_fields_missing", missingRequiredFields));
+			throw error("Missing required root level fields ", args("required_fields_missing", missingRequiredFields));
 		}
 
-		logSuccess("Found required fields ", args("required_fields", requiredFieldNames));
+		logSuccess("Found all root level required fields ", args("required_fields", requiredFieldNames));
 
 		return env;
 	}

@@ -61,6 +61,10 @@
         "code_challenge_methods_supported": {
             "type": "array",
             "items": { "type": "string" }
+        },
+        "authorized_grant_anonymous_access_supported": {
+            "$comment": "New metadata field, https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-11.3",
+            "type": "boolean"
         }
     },
     "required": [

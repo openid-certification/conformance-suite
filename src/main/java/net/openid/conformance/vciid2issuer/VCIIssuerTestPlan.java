@@ -17,12 +17,9 @@ public class VCIIssuerTestPlan implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					// positive tests
-					VCIIssuerMetadataTest.class,
-					VCIIssuerHappyPathTest.class
+					VCIIssuerMetadataTest.class
 
 					// negative tests
-
-					// negative tests:
 				),
 				List.of(
 				)

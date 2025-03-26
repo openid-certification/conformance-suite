@@ -6,10 +6,24 @@ import net.openid.conformance.testmodule.Environment;
 
 public class VCIAuthorizationServerMetadataValidation extends AbstractSchemaBasedMetadataValidation {
 
+	protected int index;
+
+	public VCIAuthorizationServerMetadataValidation(int index) {
+		this.index = index;
+	}
+
+	public VCIAuthorizationServerMetadataValidation() {
+		this(0);
+	}
+
+	public static String getAuthServerMetadataPath(int index) {
+		return String.format("authorization_servers.server%d.authorization_server_metadata",index);
+	}
+
 	@Override
 	protected MetadataValidationInput createMetadataValidationInput(Environment env) {
-		// TODO add support for validating multiple authorization servers
-		JsonObject metadata = env.getElementFromObject("vci", "authorization_servers.server0.authorization_server_metadata").getAsJsonObject();
+		String authServerMetadataPath = getAuthServerMetadataPath(0);
+		JsonObject metadata = env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject();
 		// we use the oid4vci specific variant of the rfc8414 metadata
 		String schemaResource = "json-schemas/oid4vci/rfc8414-oauth_authorization_server_metadata.json";
 		String metadataName = "OAuth Authorization Server";

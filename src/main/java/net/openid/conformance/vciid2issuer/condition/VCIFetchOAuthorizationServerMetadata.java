@@ -10,7 +10,6 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -34,9 +33,10 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 		JsonElement authorizationServersEL = credentialIssuerMetadata.get("authorization_servers");
 		if (authorizationServersEL == null) {
 			// derive oauth server metadata from issuer
-
 			String credentialIssuer = OIDFJSON.getString(credentialIssuerMetadata.get("credential_issuer"));
-			JsonObject authorizationServerMetadataResponse = fetchAuthorizationServerMetadataFromUrl(env, credentialIssuer);
+			String authorizationServerMetadataUrl = createAuthorizationServerMetadataUrl(credentialIssuer);
+			log("Derived authorization server metadata endpoint URL from credential issuer.", args("credential_issuer", credentialIssuer, "authorization_server_metadata_url", authorizationServerMetadataUrl));
+			JsonObject authorizationServerMetadataResponse = tryFetchAuthorizationServerMetadataFromUrl(env, credentialIssuer, authorizationServerMetadataUrl);
 
 			env.putString("vci", "authorization_servers.count", "1");
 			JsonObject authorizationServerMetadata = JsonParser.parseString(OIDFJSON.getString(authorizationServerMetadataResponse.get("body"))).getAsJsonObject();
@@ -54,43 +54,42 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 		JsonArray authorizationServerMetadataDataList = new JsonArray();
 		JsonArray authorizationServerArray = authorizationServersEL.getAsJsonArray();
 
-		log("Found multiple authorization_servers", args("authorization_servers", authorizationServerArray));
+		log(String.format("Found explicit authorization_servers list with %d entries.", authorizationServerArray.size()), args("authorization_servers", authorizationServerArray));
 
 		int i = 0;
 		for (var element : authorizationServerArray) {
 			String authorizationServerIssuer = OIDFJSON.getString(element);
-			JsonObject authorizationServerMetadataResponse;
-//			try {
-				authorizationServerMetadataResponse = fetchAuthorizationServerMetadataFromUrl(env, authorizationServerIssuer);
-//			} catch (Exception e) {
-//				continue;
-//			}
+			String authorizationServerMetadataUrl = createAuthorizationServerMetadataUrl(authorizationServerIssuer);
+			log(String.format("Derived authorization server %d metadata endpoint URL from OAuth authorization server issuer.", i), args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataUrl));
+			JsonObject authorizationServerMetadataResponse = tryFetchAuthorizationServerMetadataFromUrl(env, authorizationServerIssuer, authorizationServerMetadataUrl);
 			JsonObject authorizationServerMetadata = JsonParser.parseString(OIDFJSON.getString(authorizationServerMetadataResponse.get("body"))).getAsJsonObject();
 			authorizationServerMetadataDataList.add(authorizationServerMetadata);
 			env.putObject("vci", "authorization_servers.server" + i + ".authorization_server_metadata", authorizationServerMetadata);
-
 			i++;
 		}
-		env.putString("vci", "authorization_servers.count", i + "");
 
 		logSuccess("Fetched authorization server metadata from multiple servers", args("authorization_servers", authorizationServerArray, "authorization_server_metadata_list", authorizationServerMetadataDataList));
 
 		return env;
 	}
 
-	private JsonObject fetchAuthorizationServerMetadataFromUrl(Environment env, String authorizationServerIssuer) {
-		String authorizationServerMetadataEndpointUrl = getAuthorizationServerMetadataEndpointUrl(authorizationServerIssuer);
-		JsonObject authorizationServerMetadataResponse = fetchAuthorizationServerMetadata(env, authorizationServerMetadataEndpointUrl);
+	protected JsonObject tryFetchAuthorizationServerMetadataFromUrl(Environment env, String authorizationServerIssuer, String authorizationServerMetadataEndpointUrl) {
 
-		log("Fetched authorization server metadata from issuer", args("authorization_server", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
+		log("Fetching metadata from authorization server", args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
+		JsonObject authorizationServerMetadataResponse = fetchAuthorizationServerMetadata(env, authorizationServerMetadataEndpointUrl);
+		log("Fetched metadata from authorization server", args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
 		return authorizationServerMetadataResponse;
 	}
 
-	protected String getAuthorizationServerMetadataEndpointUrl(String authServerIssuer) {
+	protected String createAuthorizationServerMetadataUrl(String authServerIssuer) {
 
 		URI authServerIssuerUri = URI.create(authServerIssuer);
 		String authority = authServerIssuerUri.getScheme() + "://" + authServerIssuerUri.getHost();
 		String path = authServerIssuerUri.getPath();
+		int port = authServerIssuerUri.getPort();
+		if (port != -1) {
+			authority += ":" + port;
+		}
 
 		if (path == null || path.isEmpty() || "/".equals(path)) {
 			// see: https://datatracker.ietf.org/doc/html/rfc8414#section-3.1
@@ -98,6 +97,7 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 			return authServerIssuer + "/.well-known/oauth-authorization-server";
 		}
 
+		// with path components after the issuer hostname, we need to apply a different rule
 		// see: https://datatracker.ietf.org/doc/html/rfc8414#section-3.1
 		// GET /.well-known/oauth-authorization-server/issuer1 HTTP/1.1
 		return authority + "/.well-known/oauth-authorization-server" + path;
@@ -112,7 +112,7 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException |
 				 NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			throw error("Error creating HTTP client", e);
-		} catch (RestClientException e) {
+		} catch (Exception e) {
 			String msg = "Unable to fetch authorization server metadata from " + metadataEndpointUrl;
 			if (e.getCause() != null) {
 				msg += " - " + e.getCause().getMessage();
