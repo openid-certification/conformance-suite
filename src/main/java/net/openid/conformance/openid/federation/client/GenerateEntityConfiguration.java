@@ -2,35 +2,52 @@ package net.openid.conformance.openid.federation.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.time.Instant;
 
 public class GenerateEntityConfiguration extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = "trust_anchor_entity_identifier")
+	@PreEnvironment(strings = "base_url")
+	@PostEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 
-		JsonArray authorityHints;
+		String baseUrl = env.getString("base_url");
+
+		if (baseUrl.isEmpty()) {
+			throw error("Base URL is empty");
+		}
+
+		JsonObject server = new JsonObject();
+		server.addProperty("iss", baseUrl);
+		server.addProperty("sub", baseUrl);
+
+		Instant iat = Instant.now();
+		Instant exp = iat.plusSeconds(5 * 60);
+		server.addProperty("iat", iat.getEpochSecond());
+		server.addProperty("exp", exp.getEpochSecond());
+
+		server.add("jwks", env.getObject("server_public_jwks"));
+
 		JsonElement authorityHintsElement = env.getElementFromObject("config", "federation.authority_hints");
 		if (authorityHintsElement != null) {
 			if (!authorityHintsElement.isJsonArray()) {
 				throw error("authority_hints must be an array of strings");
 			}
-			authorityHints = authorityHintsElement.getAsJsonArray();
-		} else {
-			authorityHints = new JsonArray();
-			env.putArray("config", "federation.authority_hints", authorityHints);
+			JsonArray authorityHints = authorityHintsElement.getAsJsonArray();
+			server.add("authority_hints", authorityHints);
 		}
 
-		String trustAnchorEntityIdentifier = env.getString("trust_anchor_entity_identifier");
-		if (!OIDFJSON.convertJsonArrayToList(authorityHints).contains(trustAnchorEntityIdentifier)) {
-			authorityHints.add(trustAnchorEntityIdentifier);
-		}
+		server.addProperty("request_uri_parameter_supported", false);
 
-		logSuccess("Added self-hosted trust anchor to authority_hints", args("authority_hints", authorityHints));
+		env.putObject("server", server);
+
+		logSuccess("Created entity configuration", args("server", server, "entity_identifier", baseUrl));
 
 		return env;
 	}
