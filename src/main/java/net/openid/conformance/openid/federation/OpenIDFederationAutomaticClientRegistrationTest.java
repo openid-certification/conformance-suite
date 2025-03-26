@@ -36,6 +36,7 @@ import java.net.URISyntaxException;
 		configurationFields = {
 			"client.jwks",
 			"federation.entity_identifier",
+			"federation.trust_anchor",
 			"federation.trust_anchor_jwks"
 		}
 )
