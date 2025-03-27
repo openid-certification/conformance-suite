@@ -46,6 +46,7 @@ import net.openid.conformance.openid.federation.AddOpenIDProviderMetadataToEntit
 import net.openid.conformance.openid.federation.CallEntityStatementEndpointAndReturnFullResponse;
 import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpointResponse;
+import net.openid.conformance.openid.federation.SetPrimaryEntityStatement;
 import net.openid.conformance.openid.federation.ValidateFederationUrl;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -121,6 +122,9 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndStopOnFailure(ValidateClientTrustAnchor.class);
+
+		// prefetch trust chain
+
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -276,6 +280,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		} else {
 			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(env.getString("fetch_endpoint_parameter_sub")));
 
+			// TODO this also won't work I presume
 			setStatus(Status.WAITING);
 			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
@@ -354,18 +359,15 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			callAndContinueOnFailure(VerifyRequestUri.class, Condition.ConditionResult.FAILURE);
 		}
 
+		String rpEntity = env.getString("config", "client.entity_identifier");
+		String opEntity = env.getString("entity_identifier");
+		String rpTrustAnchor = env.getString("config", "client.trust_anchor");
+
+		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(rpEntity));
 		fetchAndVerifyEntityStatement();
+		callAndContinueOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 
 		try {
-			String rpEntity = env.getString("config", "client.entity_identifier");
-			String opEntity = env.getString("entity_identifier");
-			String rpTrustAnchor = env.getString("config", "client.trust_anchor");
-
-			// primary_entity_statement_jwt isn't set here, so it never finds a path.
-			// I will need to first fetch the entity configuration from the RP. Or rather,
-			// it is fetched above in fetchAndVerifyEntityStatement() but the jwt isn't extracted,
-			// or something
-
 			List<String> rpTrustChain = findPath(rpEntity, rpTrustAnchor);
 			if (rpTrustChain.isEmpty()) {
 				throw new TestFailureException(getId(), "Could not build a trust chain from the RP %s to trust anchor %s".formatted(rpEntity, rpTrustAnchor));
@@ -480,6 +482,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	protected void fetchAndVerifyEntityStatement() {
 		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		callAndContinueOnFailure(ExtractJWTFromFederationEndpointResponse.class, Condition.ConditionResult.FAILURE);
 		validateEntityStatementResponse();
 	}
 
