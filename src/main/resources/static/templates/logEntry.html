@@ -14,7 +14,7 @@
 
                     </div>
 
-                    <div class="col-md-1 labelCollection">
+                    <div class="col-md-2 labelCollection">
                       <% if (item.result) { %>
                       <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
                       <% } %>
@@ -36,7 +36,7 @@
                         <% } %>
                     </div>
 
-                    <div class="col-md-9">
+                    <div class="col-md-8">
                         <% if (item.src) { %>
                             <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
                         <% } %>
@@ -58,7 +58,7 @@
 
                     </div>
 
-                    <div class="col-md-1">
+                    <div class="col-md-2">
                         <% if (item.requirements) { %>
                             <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
                         <% } else { %>
@@ -66,7 +66,7 @@
                         <% } %>
                     </div>
 
-                    <div class="col-md-10">
+                    <div class="col-md-9">
                         <% if (item.msg) { %>
                             <div class="row">
                                 <div class="col-md-12">
