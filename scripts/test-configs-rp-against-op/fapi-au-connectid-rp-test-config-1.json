@@ -1,6 +1,6 @@
 {
     "alias": "oidf-fapi-rp-test",
-    "description": "FAPI RP test config for running against OP tests (ConnectID)",
+    "description": "FAPI RP test config for running against OP tests (ConnectID) 1",
     "server": {
         "jwks": {
             "keys": [
