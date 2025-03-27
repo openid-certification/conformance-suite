@@ -462,6 +462,48 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		return null;
 	}
 
+	protected JsonArray buildTrustChain(List<String> path) {
+		eventLog.startBlock("Building trust chain from %s to %s".formatted(path.get(0), path.get(path.size() - 1)));
+		JsonArray trustChain = new JsonArray();
+		trustChain.add(env.getString("primary_entity_statement_jwt", "value"));
+
+		if (path.size() == 1) {
+			return trustChain;
+		}
+
+		for (int i = 1; i < path.size(); i++) {
+			String entityIdentifier = path.get(i);
+			env.putString("federation_endpoint_url", appendWellKnown(entityIdentifier));
+			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+			validateEntityStatementResponse();
+			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+			callAndContinueOnFailure(ExtractFederationEntityMetadataUrls.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+
+			String fetchEndpoint = env.getString("federation_fetch_endpoint");
+			env.putString("federation_endpoint_url", fetchEndpoint);
+			String sub = path.get(i - 1);
+			env.putString("expected_sub", sub);
+			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+			callAndContinueOnFailure(AppendSubToFederationEndpointUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
+			callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
+			validateFetchResponse();
+			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.1.2");
+			trustChain.add(OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value")));
+		}
+
+		String trustAnchorEntityIdentifier = path.get(path.size() - 1);
+		env.putString("federation_endpoint_url", appendWellKnown(trustAnchorEntityIdentifier));
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		validateEntityStatementResponse();
+		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+		trustChain.add(OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value")));
+		eventLog.endBlock();
+
+		return trustChain;
+	}
+
 	public static class CyclicPathException extends Exception {
 
 		@Serial
