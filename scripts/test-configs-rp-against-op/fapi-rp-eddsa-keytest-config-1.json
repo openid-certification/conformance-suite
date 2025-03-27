@@ -1,6 +1,6 @@
 {
     "alias": "oidf-fapi-rp-test",
-    "description": "FAPI RP test config for running against OP tests (EDDSA Signature)",
+    "description": "FAPI RP test config for running against OP tests (EDDSA Signature) 1",
     "server": {
         "jwks": {
             "keys": [
