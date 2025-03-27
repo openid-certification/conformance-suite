@@ -35,10 +35,10 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
 		eventLog.runBlock("Verify Credential Issuer Metadata", () -> {
-			callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3");
-			callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3");
-			callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.1");
-			callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3");
+			callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
+			callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
+			callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.1");
+			callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
 		});
 
 		eventLog.runBlock("Fetch OAuth Authorization Server Metadata", () -> {
@@ -50,11 +50,11 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 			JsonObject credentialIssuerMetadata = env.getElementFromObject("vci", "credential_issuer_metadata").getAsJsonObject();
 			JsonElement authorizationServersEL = credentialIssuerMetadata.get("authorization_servers");
 			if (authorizationServersEL == null) {
-				callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3", "OID4VCI-11.3");
+				callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "OID4VCI-ID2-11.3");
 			} else {
 				JsonArray authServers = authorizationServersEL.getAsJsonArray();
 				for (int i = 0; i < authServers.size(); i++) {
-					callAndStopOnFailure(new VCIAuthorizationServerMetadataValidation(i), Condition.ConditionResult.FAILURE, "OID4VCI-11.2.3", "OID4VCI-11.3");
+					callAndStopOnFailure(new VCIAuthorizationServerMetadataValidation(i), Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "OID4VCI-ID2-11.3");
 				}
 			}
 		});

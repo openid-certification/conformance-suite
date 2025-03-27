@@ -623,7 +623,7 @@ var FAPI_UI = {
 			"HAIP-" : "https://github.com/vcstuff/oid4vc-haip-sd-jwt-vc/blob/main/draft-oid4vc-haip-sd-jwt-vc.md#",
 			"OID4VP-ID2-" : "https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section.",
 			"OID4VP-ID3-" : "https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section.",
-			"OID4VCI-": "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-",
+			"OID4VCI-ID2-": "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-",
 			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.",
 			"OIDCBCL-" : "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.",
 			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.",
