@@ -3,7 +3,6 @@ package net.openid.conformance.openid.federation.client;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.nimbusds.jwt.JWT;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -47,22 +46,19 @@ import net.openid.conformance.openid.federation.AddOpenIDProviderMetadataToEntit
 import net.openid.conformance.openid.federation.CallEntityStatementEndpointAndReturnFullResponse;
 import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpointResponse;
+import net.openid.conformance.openid.federation.NonBlocking;
 import net.openid.conformance.openid.federation.SetPrimaryEntityStatement;
 import net.openid.conformance.openid.federation.ValidateFederationUrl;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
-import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.view.RedirectView;
 
-import java.text.ParseException;
 import java.util.List;
 
 @PublishTestModule(
@@ -79,7 +75,7 @@ import java.util.List;
 		"client.trust_anchor",
 		"client.jwks",
 		"server.jwks",
-		"internal.skip_logging_for_trivial_endpoints"
+		"internal.op_to_rp_mode"
 	}
 )
 
@@ -174,30 +170,21 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	protected Object entityConfigurationResponse() {
-		if (skipLoggingForTrivialEndpoints()) {
-			return unloggedEntityConfigurationResponse();
+		if (opToRpMode()) {
+			env.mapKey("entity_configuration_claims", "server");
+			env.mapKey("entity_configuration_claims_jwks", "server_jwks");
+			return NonBlocking.entityConfigurationResponse(env, getId());
 		}
 		return super.entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);
 	}
 
 	protected Object trustAnchorEntityConfigurationResponse() {
-		if (skipLoggingForTrivialEndpoints()) {
-			return unloggedTrustAnchorEntityConfigurationResponse();
+		if (opToRpMode()) {
+			env.mapKey("entity_configuration_claims", "trust_anchor");
+			env.mapKey("entity_configuration_claims_jwks", "trust_anchor_jwks");
+			return NonBlocking.entityConfigurationResponse(env, getId());
 		}
 		return super.entityConfigurationResponse("trust_anchor", SignEntityStatementWithTrustAnchorKeys.class);
-	}
-
-	@Override
-	protected Object unloggedEntityConfigurationResponse() {
-		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "server_jwks");
-		return super.unloggedEntityConfigurationResponse();
-	}
-
-	protected Object unloggedTrustAnchorEntityConfigurationResponse() {
-		env.mapKey("entity_configuration_claims", "trust_anchor");
-		env.mapKey("entity_configuration_claims_jwks", "trust_anchor_jwks");
-		return super.unloggedEntityConfigurationResponse();
 	}
 
 	protected Object jwksResponse() {
@@ -272,8 +259,8 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	protected Object trustAnchorFetchResponse(String requestId) {
-		if (skipLoggingForTrivialEndpoints()) {
-			return unloggedTrustAnchorFetchResponse(requestId);
+		if (opToRpMode()) {
+			return NonBlocking.trustAnchorFetchResponse(env, getId(), requestId);
 		}
 
 		setStatus(Status.RUNNING);
@@ -322,44 +309,6 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		return response;
 	}
 
-	protected Object unloggedTrustAnchorFetchResponse(String requestId) {
-		env.mapKey("incoming_request", requestId);
-
-		String sub;
-		if (env.getString("incoming_request", "method").equalsIgnoreCase("POST")) {
-			sub = env.getString("incoming_request", "body_form_params.sub");
-		} else {
-			sub = env.getString("incoming_request", "query_string_params.sub");
-		}
-
-		String federationEndpointUrl = EntityUtils.appendWellKnown(sub);
-
-		String result = new RestTemplate().getForObject(federationEndpointUrl, String.class);
-		JsonObject claims;
-		try {
-			claims = JWTUtil.jwtStringToJsonObjectForEnvironment(result).getAsJsonObject("claims");
-		} catch (ParseException e) {
-			throw new TestFailureException(getId(), e.getMessage(), e);
-		}
-
-		claims.remove("authority_hints");
-		claims.remove("trust_mark_issuers");
-		claims.remove("trust_mark_owners");
-		claims.addProperty("iss", env.getString("trust_anchor"));
-		claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
-
-		JsonObject jwks = env.getObject("trust_anchor_jwks");
-		String federationFetchResponse = signClaims(claims, jwks);
-
-		ResponseEntity<Object> response = ResponseEntity
-			.status(200)
-			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
-			.body(federationFetchResponse);
-
-		env.unmapKey("incoming_request");
-
-		return response;
-	}
 
 	protected Object trustAnchorListResponse(String requestId) {
 		setStatus(Status.RUNNING);
