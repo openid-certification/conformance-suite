@@ -68,31 +68,20 @@ public class JsonSchemaValidation {
 		return new JsonSchemaValidationResult(errors);
 	}
 
-	@SuppressWarnings("PMD.ForLoopVariableCount")
+	/**
+	 * Returns the json path to the actual problem instance
+	 * @param path
+	 * @param property
+	 * @return
+	 */
 	public String toInstancePropertyPath(JsonNodePath path, String property) {
-		var sb = new StringBuilder();
-		for (int i = 0, cnt = path.getNameCount(); i < cnt; i++) {
-			Object element = path.getElement(i);
-			boolean isArrayIndex = element instanceof Integer;
-			if (isArrayIndex) {
-				if ('/' == sb.charAt(sb.length() - 1)) {
-					sb.deleteCharAt(sb.length() - 1);
-				}
-				sb.append("[");
-			}
-			sb.append(path.getName(i));
-			if (isArrayIndex) {
-				sb.append("]");
-			}
-			if (cnt - 1 != i) {
-				sb.append("/");
-			}
-		}
+
+		String propertyPath = path.toString();
 		if (property != null) {
-			sb.append("/");
-			sb.append(property);
+			propertyPath += "." + property;
 		}
-		return sb.toString();
+
+		return propertyPath;
 	}
 
 	public class JsonSchemaValidationResult {

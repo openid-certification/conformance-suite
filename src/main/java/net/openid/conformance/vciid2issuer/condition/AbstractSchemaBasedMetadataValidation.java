@@ -5,6 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vciid2issuer.util.JsonSchemaValidation;
 import net.openid.conformance.vciid2issuer.util.JsonSchemaValidation.JsonSchemaValidationResult;
+import net.openid.conformance.vciid2issuer.util.MetadataValidationInput;
 
 import java.io.IOException;
 
@@ -48,42 +49,4 @@ public abstract class AbstractSchemaBasedMetadataValidation extends AbstractCond
 		return new JsonSchemaValidation(input.getSchemaResource());
 	}
 
-	public static class MetadataValidationInput {
-
-		private String metadataName;
-
-		private String schemaResource;
-
-		private JsonObject metadata;
-
-		public MetadataValidationInput(String metadataName, String schemaResource, JsonObject metadata) {
-			this.metadataName = metadataName;
-			this.schemaResource = schemaResource;
-			this.metadata = metadata;
-		}
-
-		public String getMetadataName() {
-			return metadataName;
-		}
-
-		public void setMetadataName(String metadataName) {
-			this.metadataName = metadataName;
-		}
-
-		public String getSchemaResource() {
-			return schemaResource;
-		}
-
-		public void setSchemaResource(String schemaResource) {
-			this.schemaResource = schemaResource;
-		}
-
-		public JsonObject getMetadata() {
-			return metadata;
-		}
-
-		public void setMetadata(JsonObject metadata) {
-			this.metadata = metadata;
-		}
-	}
 }
