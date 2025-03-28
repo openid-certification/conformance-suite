@@ -12,10 +12,10 @@ import net.openid.conformance.testmodule.Environment;
 public class SignEntityStatementWithTrustAnchorKeys extends AbstractSignJWT {
 
 	@Override
-	@PreEnvironment(required = { "entity_statement_claims", "trust_anchor_jwks" })
+	@PreEnvironment(required = { "entity_configuration_claims", "trust_anchor_jwks" })
 	@PostEnvironment(strings = "signed_entity_statement")
 	public Environment evaluate(Environment env) {
-		JsonObject claims = env.getObject("entity_statement_claims");
+		JsonObject claims = env.getObject("entity_configuration_claims");
 		JsonObject jwks = env.getObject("trust_anchor_jwks");
 		return signJWT(env, claims, jwks);
 	}

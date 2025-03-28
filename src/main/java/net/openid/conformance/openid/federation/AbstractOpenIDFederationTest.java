@@ -3,6 +3,15 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.produce.JWSSignerFactory;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
@@ -14,14 +23,20 @@ import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
+import net.openid.conformance.extensions.MultiJWSSignerFactory;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.io.Serial;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +53,10 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServerTestModule {
 
 	public abstract void additionalConfiguration();
+
+	protected boolean skipLoggingForTrivialEndpoints() {
+		return "true".equals(env.getString("config", "internal.skip_logging_for_trivial_endpoints"));
+	}
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -76,6 +95,34 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+	}
+
+	protected Object entityConfigurationResponse(String mapKey, Class<? extends Condition> signCondition) {
+		setStatus(Status.RUNNING);
+
+		env.mapKey("entity_configuration_claims", mapKey);
+		callAndStopOnFailure(signCondition);
+		env.unmapKey("entity_configuration_claims");
+		String entityConfiguration = env.getString("signed_entity_statement");
+
+		env.removeNativeValue("signed_entity_statement");
+		setStatus(Status.WAITING);
+
+		return ResponseEntity
+			.status(HttpStatus.OK)
+			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
+			.body(entityConfiguration);
+	}
+
+	// Return the entity configuration without trying to grab the lock
+	protected Object unloggedEntityConfigurationResponse() {
+		JsonObject entityConfigurationClaims = env.getObject("entity_configuration_claims");
+		JsonObject jwks = env.getObject("entity_configuration_claims_jwks");
+		String entityConfiguration = signClaims(entityConfigurationClaims, jwks);
+		return ResponseEntity
+			.status(HttpStatus.OK)
+			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
+			.body(entityConfiguration);
 	}
 
 	@Override
@@ -317,7 +364,48 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		}
 	}
 
-	 protected List<String> findPath(String fromEntity, String toTrustAnchor) throws CyclicPathException {
+	protected String signClaims(JsonObject claims, JsonObject jwks) {
+
+		if (claims == null) {
+			throw new TestFailureException(getId(), "Couldn't find claims");
+		}
+
+		if (jwks == null) {
+			throw new TestFailureException(getId(), "Couldn't find jwks");
+		}
+
+		try {
+			JWK signingJwk = JWKUtil.getSigningKey(jwks);
+			Algorithm algorithm = signingJwk.getAlgorithm();
+			if (algorithm == null) {
+				throw new TestFailureException(getId(), "No 'alg' field specified in key; please add 'alg' field in the configuration");
+			}
+			JWSAlgorithm alg = JWSAlgorithm.parse(algorithm.getName());
+
+			JWSSignerFactory jwsSignerFactory = MultiJWSSignerFactory.getInstance();
+			JWSSigner signer = jwsSignerFactory.createJWSSigner(signingJwk, alg);
+
+			JWSHeader.Builder builder = new JWSHeader.Builder(alg);
+			builder.keyID(signingJwk.getKeyID());
+			JWSHeader header = builder.build();
+
+			return performSigning(header, claims, signer);
+		} catch (ParseException | IllegalArgumentException | JOSEException e) {
+			throw new TestFailureException(getId(), "Error while signing claims: %s".formatted(e.getMessage()), e);
+		}
+	}
+
+	protected String performSigning(JWSHeader header, JsonObject claims, JWSSigner signer) throws JOSEException, ParseException {
+		JWTClaimsSet claimSet = JWTClaimsSet.parse(claims.toString());
+
+		SignedJWT signJWT = new SignedJWT(header, claimSet);
+
+		signJWT.sign(signer);
+
+		return signJWT.serialize();
+	}
+
+	protected List<String> findPath(String fromEntity, String toTrustAnchor) throws CyclicPathException {
 		 List<String> path = findPath(fromEntity, toTrustAnchor, new ArrayList<>());
 		 if (path != null) {
 			 eventLog.log(getName(), "Path to trust anchor: %s".formatted(String.join(" → ", path)));
