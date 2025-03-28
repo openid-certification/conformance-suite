@@ -39,7 +39,7 @@ import java.net.URISyntaxException;
 			"federation.trust_anchor",
 			"federation.trust_anchor_jwks",
 			"federation.authority_hints",
-			"internal.skip_logging_for_trivial_endpoints"
+			"internal.op_to_rp_mode"
 		}
 )
 @VariantParameters({
@@ -144,8 +144,10 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 	}
 
 	protected Object entityConfigurationResponse() {
-		if (skipLoggingForTrivialEndpoints()) {
-			return unloggedEntityConfigurationResponse();
+		if (opToRpMode()) {
+			env.mapKey("entity_configuration_claims", "server");
+			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
+			return NonBlocking.entityConfigurationResponse(env, getId());
 		}
 
 		setStatus(Status.RUNNING);
@@ -161,13 +163,6 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 			.status(HttpStatus.OK)
 			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
 			.body(entityConfiguration);
-	}
-
-	@Override
-	protected Object unloggedEntityConfigurationResponse() {
-		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "client_jwks");
-		return super.unloggedEntityConfigurationResponse();
 	}
 
 	protected Object clientJwksResponse() {
