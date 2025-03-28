@@ -13,6 +13,7 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.openqa.selenium.InvalidArgumentException;
 
 import java.text.ParseException;
 import java.util.List;
@@ -135,5 +136,29 @@ public class JWKUtil {
 		} else {
 			return thirdMatch;
 		}
+	}
+
+	public static JWK getSigningKey(JsonObject jwks) throws ParseException {
+		int count = 0;
+		JWK signingJwk = null;
+
+		JWKSet jwkSet = JWKSet.parse(jwks.toString());
+		for (JWK jwk : jwkSet.getKeys()) {
+			var use = jwk.getKeyUse();
+			if (use != null && !use.equals(KeyUse.SIGNATURE)) {
+				continue;
+			}
+			count++;
+			signingJwk = jwk;
+		}
+
+		if (count == 0) {
+			throw new InvalidArgumentException("Did not find a key with 'use': 'sig' or no 'use' claim, no key available to sign jwt");
+		}
+		if (count > 1) {
+			throw new InvalidArgumentException("Expected only one signing JWK in the set. Please ensure the signing key is the only one in the jwks, or that other keys have a 'use' other than 'sig'.");
+		}
+
+		return signingJwk;
 	}
 }
