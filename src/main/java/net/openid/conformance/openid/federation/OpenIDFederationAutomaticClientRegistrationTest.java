@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -14,6 +13,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
+import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 			"federation.trust_anchor",
 			"federation.trust_anchor_jwks",
 			"federation.authority_hints",
+			"internal.skip_logging_for_trivial_endpoints"
 		}
 )
 @VariantParameters({
@@ -143,14 +144,16 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 	}
 
 	protected Object entityConfigurationResponse() {
+		if (skipLoggingForTrivialEndpoints()) {
+			return unloggedEntityConfigurationResponse();
+		}
+
 		setStatus(Status.RUNNING);
 
-		env.mapKey("id_token_claims", "server");
-		env.mapKey("server_jwks", "client_jwks");
-		callAndStopOnFailure(SignIdToken.class);
-		env.unmapKey("server_jwks");
-		env.unmapKey("id_token_claims");
-		String entityConfiguration = env.getString("id_token");
+		env.mapKey("entity_configuration_claims", "server");
+		callAndStopOnFailure(SignEntityStatementWithClientKeys.class);
+		env.unmapKey("entity_configuration_claims");
+		String entityConfiguration = env.getString("signed_entity_statement");
 
 		setStatus(Status.WAITING);
 
@@ -158,6 +161,13 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 			.status(HttpStatus.OK)
 			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
 			.body(entityConfiguration);
+	}
+
+	@Override
+	protected Object unloggedEntityConfigurationResponse() {
+		env.mapKey("entity_configuration_claims", "server");
+		env.mapKey("entity_configuration_claims_jwks", "client_jwks");
+		return super.unloggedEntityConfigurationResponse();
 	}
 
 	protected Object clientJwksResponse() {
