@@ -65,6 +65,7 @@ public class LogEntryHelper {
 		specLinks.put("RFC7592-", "https://tools.ietf.org/html/rfc7592#section-");
 		specLinks.put("RFC7592A-", "https://tools.ietf.org/html/rfc7592#appendix-");
 		specLinks.put("RFC7636-", "https://tools.ietf.org/html/rfc7636#section-");
+		specLinks.put("RFC8414-", "https://tools.ietf.org/html/rfc8414#section-");
 		specLinks.put("RFC8705-", "https://tools.ietf.org/html/rfc8705#section-");
 		specLinks.put("RFC8707-", "https://tools.ietf.org/html/rfc8707#section-");
 		specLinks.put("RFC8485-", "https://tools.ietf.org/html/rfc8485#section-");
@@ -75,6 +76,7 @@ public class LogEntryHelper {
 		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");
 		specLinks.put("OID4VP-ID2-", "https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section.");
 		specLinks.put("OID4VP-ID3-", "https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section.");
+		specLinks.put("OID4VCI-ID2-", "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-");
 		specLinks.put("HAIP-", "https://github.com/vcstuff/oid4vc-haip-sd-jwt-vc/blob/main/draft-oid4vc-haip-sd-jwt-vc.md#");
 		specLinks.put("OIDCD-", "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.");
 		specLinks.put("OIDCBCL-", "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.");

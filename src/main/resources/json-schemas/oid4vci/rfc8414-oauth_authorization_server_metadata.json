@@ -1,0 +1,73 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$comment": "Derived version of https://datatracker.ietf.org/doc/html/rfc8414 with adjustments from https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html",
+    "type": "object",
+    "properties": {
+        "issuer": { "type": "string", "format": "uri" },
+        "authorization_endpoint": { "type": "string", "format": "uri" },
+        "token_endpoint": { "type": "string", "format": "uri" },
+        "jwks_uri": { "type": "string", "format": "uri" },
+        "registration_endpoint": { "type": "string", "format": "uri" },
+        "scopes_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "response_types_supported": {
+            "$comment": "This is mandatory in RFC8414, but optional for oid4vci due to https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-11.2.3-3",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "response_modes_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "grant_types_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "token_endpoint_auth_methods_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "token_endpoint_auth_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "service_documentation": { "type": "string", "format": "uri" },
+        "ui_locales_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "op_policy_uri": { "type": "string", "format": "uri" },
+        "op_tos_uri": { "type": "string", "format": "uri" },
+        "revocation_endpoint": { "type": "string", "format": "uri" },
+        "revocation_endpoint_auth_methods_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "revocation_endpoint_auth_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "introspection_endpoint": { "type": "string", "format": "uri" },
+        "introspection_endpoint_auth_methods_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "introspection_endpoint_auth_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "code_challenge_methods_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "authorized_grant_anonymous_access_supported": {
+            "$comment": "New metadata field, https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-11.3",
+            "type": "boolean"
+        }
+    },
+    "required": [
+        "issuer"
+    ]
+}
