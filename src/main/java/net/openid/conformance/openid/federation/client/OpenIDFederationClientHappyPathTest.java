@@ -74,6 +74,7 @@ import java.util.List;
 		"client.trust_anchor",
 		"client.jwks",
 		"server.jwks",
+		"internal.skip_logging_for_trivial_endpoints"
 	}
 )
 
@@ -123,8 +124,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndStopOnFailure(ValidateClientTrustAnchor.class);
 
-		// prefetch trust chain
-
+		additionalConfiguration();
 
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
@@ -169,28 +169,30 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	protected Object entityConfigurationResponse() {
-		return entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);
+		if (skipLoggingForTrivialEndpoints()) {
+			return unloggedEntityConfigurationResponse();
+		}
+		return super.entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);
 	}
 
 	protected Object trustAnchorEntityConfigurationResponse() {
-		return entityConfigurationResponse("trust_anchor", SignEntityStatementWithTrustAnchorKeys.class);
+		if (skipLoggingForTrivialEndpoints()) {
+			return unloggedTrustAnchorEntityConfigurationResponse();
+		}
+		return super.entityConfigurationResponse("trust_anchor", SignEntityStatementWithTrustAnchorKeys.class);
 	}
 
-	protected Object entityConfigurationResponse(String mapKey, Class<? extends Condition> signCondition) {
-	 	setStatus(Status.RUNNING);
+	@Override
+	protected Object unloggedEntityConfigurationResponse() {
+		env.mapKey("entity_configuration_claims", "server");
+		env.mapKey("entity_configuration_claims_jwks", "server_jwks");
+		return super.unloggedEntityConfigurationResponse();
+	}
 
-		env.mapKey("entity_statement_claims", mapKey);
-		callAndStopOnFailure(signCondition);
-		env.unmapKey("entity_statement_claims");
-		String entityConfiguration = env.getString("signed_entity_statement");
-
-		env.removeNativeValue("signed_entity_statement");
-		setStatus(Status.WAITING);
-
-		return ResponseEntity
-			.status(HttpStatus.OK)
-			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
-			.body(entityConfiguration);
+	protected Object unloggedTrustAnchorEntityConfigurationResponse() {
+		env.mapKey("entity_configuration_claims", "trust_anchor");
+		env.mapKey("entity_configuration_claims_jwks", "trust_anchor_jwks");
+		return super.unloggedEntityConfigurationResponse();
 	}
 
 	protected Object jwksResponse() {
