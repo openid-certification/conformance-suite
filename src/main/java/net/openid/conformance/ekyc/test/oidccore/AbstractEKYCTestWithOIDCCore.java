@@ -12,6 +12,7 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTo
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTokenAgainstRequest;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoAgainstOPMetadata;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoResponseAgainstRequest;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsRequestAgainstSchema;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
 import net.openid.conformance.openid.AbstractOIDCCServerTest;
 
@@ -24,6 +25,7 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerTe
 		// authorization_endpoint_request
 		addUnverifiedClaimsToAuthorizationRequest();
 		addVerifiedClaimsToAuthorizationRequest();
+		validateVerifiedClaimsRequestSchema();
 	}
 
 	protected void addUnverifiedClaimsToAuthorizationRequest() {
@@ -33,6 +35,10 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerTe
 
 	protected void addVerifiedClaimsToAuthorizationRequest() {
 		callAndContinueOnFailure(AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull.class, Condition.ConditionResult.WARNING, "IA-6");
+	}
+
+	protected void validateVerifiedClaimsRequestSchema() {
+		callAndContinueOnFailure(ValidateVerifiedClaimsRequestAgainstSchema.class, Condition.ConditionResult.FAILURE, "IA-5.1");
 	}
 
 	@Override
