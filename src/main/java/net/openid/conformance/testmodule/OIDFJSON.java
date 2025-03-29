@@ -164,4 +164,17 @@ public final class OIDFJSON {
 	public static List<String> convertJsonArrayToList(JsonArray jsonArray) {
 		return convertJsonArrayToList(jsonArray, OIDFJSON::getString);
 	}
+
+	public static JsonArray packJsonElementIntoJsonArray(JsonElement jsonElement) {
+		JsonArray jsonArray = null;
+		if(null != jsonElement) {
+			if(jsonElement.isJsonArray()) {
+				jsonArray = jsonElement.getAsJsonArray();
+			} else {
+				jsonArray = new JsonArray(1);
+				jsonArray.add(jsonElement);
+			}
+		}
+		return jsonArray;
+	}
 }
