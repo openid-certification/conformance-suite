@@ -1,15 +1,10 @@
 package net.openid.conformance.ekyc.condition.client;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.networknt.schema.ValidationMessage;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-
-import java.io.IOException;
-import java.util.Set;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class ValidateVerifiedClaimsResponseAgainstSchema extends AbstractValidateAgainstSchema {
 
@@ -32,22 +27,18 @@ public class ValidateVerifiedClaimsResponseAgainstSchema extends AbstractValidat
 			throw error("Could not find verified_claims");
 		}
 		//we add the outer {"verified_claims":...} here
-		String claimsJson = "{\"verified_claims\":" + claimsElement.toString() + "}";
-		try {
-			Set<ValidationMessage> errors = checkResponseSchema(claimsJson);
-			if (!errors.isEmpty()) {
-				JsonArray jsonErrors = new JsonArray();
-				for (ValidationMessage error: errors) {
-					jsonErrors.add(error.toString());
-				}
-				throw error("Failed to validate verified_claims against schema",
-					args("verified_claims", JsonParser.parseString(claimsJson),
-						"errors", jsonErrors));
-			}
-		} catch (IOException e) {
-			throw error("Failed to parse JSON", e);
-		}
+		JsonObject claimsObject = new JsonObject();
+		claimsObject.add("verified_claims", claimsElement);
 
+		// Verify against eKYC schema resource file verified_claims.json
+		JsonElement eKYCVerifiedClaimsSchema = getJsonElementFromResourceFile(ekycVerifiedClaimsResourceFile);
+		peformSchemaValidation("verified_claims response", claimsObject, "eKYC verified_claims", eKYCVerifiedClaimsSchema);
+
+		// Verify user configured response schemas
+		JsonElement responseSchemas = env.getElementFromObject("config", "ekyc.response_schemas");
+		for(JsonElement responseSchemaElement : OIDFJSON.packJsonElementIntoJsonArray(responseSchemas)) {
+			peformSchemaValidation("verified_claims response", claimsObject, "ekyc user response_schemas", responseSchemaElement);
+		}
 		logSuccess("Verified claims are valid", args("location", location, "verified_claims", claimsElement));
 		return env;
 	}
