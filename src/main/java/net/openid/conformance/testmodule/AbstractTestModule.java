@@ -5,6 +5,9 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
@@ -20,10 +23,9 @@ import net.openid.conformance.sequence.SkippedCondition;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.Arrays;
@@ -1042,6 +1044,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	@Override
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		throw new TestFailureException(getId(), "Got an HTTP request to '"+path+"' that wasn't expected");
+	}
+
+	@Override
+	public Object handleOAuthMetadata(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		// for backwards compatibility with how the tests worked before this handler was introduced, the default behaviour is a 404 error
+		// (as at least one existing client, the one we use in the client_test oidcc tests, queries the oauth location first)
+		return new ResponseEntity<>(Map.of("error", "this test doesn't support the path '"+path+"'"), HttpStatus.NOT_FOUND);
 	}
 
 	@Override
