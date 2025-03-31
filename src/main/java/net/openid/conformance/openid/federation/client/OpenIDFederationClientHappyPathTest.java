@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation.client;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -49,6 +50,7 @@ import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpoint
 import net.openid.conformance.openid.federation.NonBlocking;
 import net.openid.conformance.openid.federation.SetPrimaryEntityStatement;
 import net.openid.conformance.openid.federation.ValidateFederationUrl;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
@@ -59,7 +61,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @PublishTestModule(
 	testName = "openid-federation-client-happy-path",
@@ -152,8 +156,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 				case "trust-anchor/fetch" -> trustAnchorFetchResponse(requestId);
 				case "trust-anchor/list" -> trustAnchorListResponse(requestId);
 				case "trust-anchor/resolve" -> trustAnchorResolveResponse(requestId);
-				default ->
-					throw new TestFailureException(getId(), "Got an HTTP request to '" + path + "' that wasn't expected");
+				default -> new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			};
 		}
 
@@ -165,8 +168,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			case "authorize" -> authorizeResponse(requestId);
 			case "par" -> parResponse(requestId);
 			case "token" -> tokenResponse(requestId);
-			default ->
-				throw new TestFailureException(getId(), "Got an HTTP request to '" + path + "' that wasn't expected");
+			default -> new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		};
 	}
 
@@ -350,10 +352,26 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		callAndContinueOnFailure(ExtractParametersForTrustAnchorResolveEndpoint.class, Condition.ConditionResult.FAILURE);
 
+		// Validate the sub parameter
 		String sub = env.getString("resolve_endpoint_parameters", "sub");
+		JsonArray immediateSubordinates = env.getElementFromObject("config", "federation_trust_anchor.immediate_subordinates").getAsJsonArray();
+		List<String> immediateSubordinatesList = OIDFJSON.convertJsonArrayToList(immediateSubordinates);
+		if (!immediateSubordinatesList.contains(sub)) {
+			// return well-formed error
+			throw new TestFailureException(getId(), "Sub not found in immediate subordinates: %s".formatted(sub));
+		}
+
 		String trustAnchor = env.getString("resolve_endpoint_parameters", "trust_anchor");
-		// Todo validate both of those
+		if (trustAnchor == null || !trustAnchor.equals(env.getString("trust_anchor"))) {
+			// return well-formed error
+			throw new TestFailureException(getId(), "Trust anchor mismatch: %s (expected: %s)".formatted(trustAnchor, env.getString("trust_anchor")));
+		}
+
+		// Keep only the metadata that matches the entity type parameter(s)
 		JsonArray entityTypes = env.getElementFromObject("resolve_endpoint_parameters", "entity_types").getAsJsonArray();
+		List<String> entityTypesList = OIDFJSON.convertJsonArrayToList(entityTypes);
+		JsonObject metadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata").getAsJsonObject();
+		JsonObject filteredMetadata = filterMetadataForEntityTypes(metadata, entityTypesList);
 
 		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(sub));
 		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
@@ -373,8 +391,8 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		}
 
 		JsonObject resolveResponse = EntityUtils.createBasicClaimsObject(trustAnchor, sub);
-		JsonObject metadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata").getAsJsonObject();
-		resolveResponse.add("metadata", metadata);
+
+		resolveResponse.add("metadata", filteredMetadata);
 		resolveResponse.add("trust_chain", trustChain);
 		env.putObject("federation_resolve_response", resolveResponse);
 
@@ -592,6 +610,26 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		skipIfMissing(new String[]{"client_public_jwks"}, null, Condition.ConditionResult.FAILURE,
 			ValidateRequestObjectSignature.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1");
+	}
+
+	protected static JsonObject filterMetadataForEntityTypes(JsonObject metadata, List<String> entityTypesList) {
+		Set<String> validEntityTypes = ImmutableSet.of(
+			"federation_entity",
+			"openid_relying_party",
+			"openid_provider",
+			"oauth_authorization_server",
+			"oauth_client",
+			"oauth_resource"
+		);
+		Set<String> entityTypesToRemove = new HashSet<>();
+		for(String entityType : metadata.keySet()) {
+			if (validEntityTypes.contains(entityType) && !entityTypesList.contains(entityType)) {
+				entityTypesToRemove.add(entityType);
+			}
+		}
+		JsonObject filteredMetadata = metadata.deepCopy();
+		entityTypesToRemove.forEach(filteredMetadata::remove);
+		return filteredMetadata;
 	}
 
 	/*
