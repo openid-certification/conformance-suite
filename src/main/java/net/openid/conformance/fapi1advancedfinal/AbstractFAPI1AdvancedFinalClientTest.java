@@ -438,6 +438,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		validateClientJwks(false);
 		validateClientConfiguration();
 
+		eventLog.endBlock();
+
 		if (isBrazil()) {
 			// we always use the second client in Brazil, as that's the one that has configuration
 			// for id_token encryption which is mandatory in the Brazil v2 security profile

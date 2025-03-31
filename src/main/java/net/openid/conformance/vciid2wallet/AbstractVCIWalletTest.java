@@ -479,6 +479,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		validateClientJwks(false);
 		validateClientConfiguration();
 
+		eventLog.endBlock();
 	}
 
 	// This is currently unused as FAPI2 doesn't have the encrypted id token tests that
