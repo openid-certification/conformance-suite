@@ -1,15 +1,15 @@
 package net.openid.conformance.testmodule;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.runner.TestExecutionManager;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.time.Instant;
 import java.util.Map;
 
@@ -136,6 +136,11 @@ public interface TestModule {
 	 * @return
 	 */
 	Object handleHttpMtls(String path,
+		HttpServletRequest req, HttpServletResponse res,
+		HttpSession session,
+		JsonObject requestParts);
+
+	Object handleOAuthMetadata(String path,
 		HttpServletRequest req, HttpServletResponse res,
 		HttpSession session,
 		JsonObject requestParts);
