@@ -27,6 +27,7 @@ public class AddFederationEntityMetadataToTrustAnchorEntityConfiguration extends
 			}
 			federationEntity.addProperty("federation_fetch_endpoint", trustAnchorEntityIdentifier + "/fetch");
 			federationEntity.addProperty("federation_list_endpoint", trustAnchorEntityIdentifier + "/list");
+			federationEntity.addProperty("federation_resolve_endpoint", trustAnchorEntityIdentifier + "/resolve");
 		}
 
 		trustAnchor.add("metadata", metadata);

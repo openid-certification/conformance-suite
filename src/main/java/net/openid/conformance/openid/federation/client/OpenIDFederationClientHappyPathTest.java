@@ -151,6 +151,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 				case "trust-anchor/jwks" -> trustAnchorJwksResponse();
 				case "trust-anchor/fetch" -> trustAnchorFetchResponse(requestId);
 				case "trust-anchor/list" -> trustAnchorListResponse(requestId);
+				case "trust-anchor/resolve" -> trustAnchorResolveResponse(requestId);
 				default ->
 					throw new TestFailureException(getId(), "Got an HTTP request to '" + path + "' that wasn't expected");
 			};
@@ -242,9 +243,9 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			claims.addProperty("iss", env.getString("base_url"));
 			claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
 			env.putObject("federation_fetch_response", claims);
-			env.mapKey("entity_statement_claims", "federation_fetch_response");
+			env.mapKey("entity_configuration_claims", "federation_fetch_response");
 			callAndStopOnFailure(SignEntityStatementWithServerKeys.class);
-			env.unmapKey("entity_statement_claims");
+			env.unmapKey("entity_configuration_claims");
 			String federationFetchResponse = env.getString("signed_entity_statement");
 			response = ResponseEntity
 				.status(200)
@@ -293,9 +294,9 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
 			env.putObject("federation_fetch_response", claims);
 
-			env.mapKey("entity_statement_claims", "federation_fetch_response");
+			env.mapKey("entity_configuration_claims", "federation_fetch_response");
 			callAndStopOnFailure(SignEntityStatementWithTrustAnchorKeys.class);
-			env.unmapKey("entity_statement_claims");
+			env.unmapKey("entity_configuration_claims");
 			String federationFetchResponse = env.getString("signed_entity_statement");
 			response = ResponseEntity
 				.status(200)
@@ -308,7 +309,6 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		return response;
 	}
-
 
 	protected Object trustAnchorListResponse(String requestId) {
 		setStatus(Status.RUNNING);
@@ -336,6 +336,61 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		setStatus(Status.WAITING);
 
 		return new ResponseEntity<Object>(immediateSubordinates, HttpStatus.OK);
+	}
+
+	protected Object trustAnchorResolveResponse(String requestId) {
+		/*
+		if (opToRpMode()) {
+			return NonBlocking.trustAnchorResolveResponse(env, getId(), requestId);
+		}
+		*/
+
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("Trust anchor resolve endpoint").mapKey("incoming_request", requestId));
+
+		callAndContinueOnFailure(ExtractParametersForTrustAnchorResolveEndpoint.class, Condition.ConditionResult.FAILURE);
+
+		String sub = env.getString("resolve_endpoint_parameters", "sub");
+		String trustAnchor = env.getString("resolve_endpoint_parameters", "trust_anchor");
+		// Todo validate both of those
+		JsonArray entityTypes = env.getElementFromObject("resolve_endpoint_parameters", "entity_types").getAsJsonArray();
+
+		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(sub));
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		fetchAndVerifyEntityStatement();
+		callAndContinueOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
+
+		JsonArray trustChain;
+		try {
+			List<String> trustChainList = findPath(sub, trustAnchor);
+			if (trustChainList.isEmpty()) {
+				throw new TestFailureException(getId(), "Could not build a trust chain from the RP %s to trust anchor %s".formatted(sub, trustAnchor));
+			}
+			trustChain = buildTrustChain(trustChainList);
+
+		} catch (CyclicPathException e) {
+			throw new TestFailureException(getId(), e.getMessage(), e);
+		}
+
+		JsonObject resolveResponse = EntityUtils.createBasicClaimsObject(trustAnchor, sub);
+		JsonObject metadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata").getAsJsonObject();
+		resolveResponse.add("metadata", metadata);
+		resolveResponse.add("trust_chain", trustChain);
+		env.putObject("federation_resolve_response", resolveResponse);
+
+		env.mapKey("entity_configuration_claims", "federation_resolve_response");
+		callAndStopOnFailure(SignEntityStatementWithTrustAnchorKeys.class);
+		env.unmapKey("entity_configuration_claims");
+		String federationResolveResponse = env.getString("signed_entity_statement");
+		ResponseEntity<Object> response = ResponseEntity
+			.status(200)
+			.contentType(EntityUtils.RESOLVE_RESPONSE_JWT)
+			.body(federationResolveResponse);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+		setStatus(Status.WAITING);
+
+		return response;
 	}
 
 	@UserFacing
