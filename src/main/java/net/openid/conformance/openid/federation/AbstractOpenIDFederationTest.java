@@ -439,6 +439,10 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		return trustChain;
 	}
 
+	protected void verifyTrustChain(JsonArray trustChain) {
+		// How to verify a trust chain?
+	}
+
 	public static class CyclicPathException extends Exception {
 
 		@Serial

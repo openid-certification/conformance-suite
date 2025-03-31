@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.errorprone.annotations.DoNotCall;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
@@ -21,6 +22,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 
+// Contains utility methods that don't use conditions and stuff
+// that require that the test module lock is obtained
 public class NonBlocking {
 
 	public static Object entityConfigurationResponse(Environment env, String testId) {
@@ -70,6 +73,11 @@ public class NonBlocking {
 		env.unmapKey("incoming_request");
 
 		return response;
+	}
+
+	@DoNotCall
+	public static Object trustAnchorResolveResponse(Environment env, String testId, String requestId) {
+		throw new TestFailureException(testId, "Not implemented");
 	}
 
 	protected static String signClaims(String testId, JsonObject claims, JsonObject jwks) {
