@@ -12,11 +12,6 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForPayments;
-import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
 import net.openid.conformance.condition.common.CheckForBCP195InsecureFAPICiphers;
@@ -56,14 +51,6 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		if (isBrazil) {
-			if (brazilPayments) {
-				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
-				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForPayments.class, Condition.ConditionResult.FAILURE);
-			} else {
-				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments.class, Condition.ConditionResult.FAILURE);
-			}
-		}
 	}
 
 	@Override
@@ -129,13 +116,9 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
 			// CDR requires this header when the x-fapi-customer-ip-address header is present
 			callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
 		}
-		// try different, valid accept headers to verify server accepts them
-		if (brazilPayments) {
-			callAndStopOnFailure(SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest.class);
-			callAndStopOnFailure(SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest.class);
-		} else {
-			callAndStopOnFailure(SetUtf8JsonAcceptHeadersForResourceEndpointRequest.class);
-		}
+
+		callAndStopOnFailure(SetUtf8JsonAcceptHeadersForResourceEndpointRequest.class);
+
 
 		if (isDpop() ) {
 			requestProtectedResourceUsingDpop();
@@ -146,9 +129,6 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		if (brazilPayments) {
-			validateBrazilPaymentInitiationSignedResponse();
-		}
 
 		updateResourceRequest();
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
@@ -160,9 +140,6 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		if (brazilPayments) {
-			validateBrazilPaymentInitiationSignedResponse();
-		}
 
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}
