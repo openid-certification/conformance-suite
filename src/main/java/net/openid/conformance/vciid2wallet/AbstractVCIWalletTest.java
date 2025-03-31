@@ -99,6 +99,7 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
+import net.openid.conformance.condition.as.GenerateCredentialIssuerMetadata;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
@@ -408,6 +409,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
+		callAndStopOnFailure(GenerateCredentialIssuerMetadata.class);
+		exposeEnvString("credential_issuer_metadata_url");
+
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
@@ -593,6 +597,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			return discoveryEndpoint();
+		} else if (path.equals(".well-known/openid-credential-issuer")) {
+			return credentialIssuerEndpoint();
 		} else if (path.equals("par")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -883,6 +889,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
+	}
+
+	protected Object credentialIssuerEndpoint() {
+		setStatus(Status.RUNNING);
+		JsonObject credentialIssuerMetadata = env.getObject("credential_issuer_metadata");
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<Object>(credentialIssuerMetadata, HttpStatus.OK);
 	}
 
 	protected void checkMtlsCertificate() {

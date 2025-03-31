@@ -2,7 +2,8 @@
     "alias": "oidf-fapi-op-test",
     "description": "VCI Issuer test config for running against wallet tests (dpop)",
     "server": {
-        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
+        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration",
+        "discoveryIssuer": "{BASEURL}test/a/oidf-fapi-rp-test"
     },
     "client": {
         "client_id": "52480754053",
