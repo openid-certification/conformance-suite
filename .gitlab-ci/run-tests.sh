@@ -471,15 +471,6 @@ makePanvaTests() {
     #TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=ping][client_auth_type=private_key_jwt][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
     TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=poll][client_auth_type=private_key_jwt][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
 
-    TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi-rw-id2-test-plan.json"
-    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi-rw-id2-test-plan.json"
-    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi-rw-id2-test-plan.json"
-    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=mtls][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi-rw-id2-test-plan.json"
-    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi-rw-id2-test-plan-privatejwt.json"
-    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi-rw-id2-test-plan-privatejwt.json"
-    #TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi-rw-id2-test-plan-privatejwt.json"
-    TESTS="${TESTS} fapi-rw-id2-test-plan[client_auth_type=private_key_jwt][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi-rw-id2-test-plan-privatejwt.json"
-
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi1-advanced-final-test-plan.json"
     #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi1-advanced-final-test-plan.json"
     #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=pushed][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi1-advanced-final-test-plan.json"
