@@ -35,6 +35,7 @@ import java.net.URISyntaxException;
 		profile = "OIDFED",
 		configurationFields = {
 			"client.jwks",
+			"client.trust_chain",
 			"federation.entity_identifier",
 			"federation.trust_anchor",
 			"federation.trust_anchor_jwks",
@@ -79,6 +80,7 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		setStatus(Status.RUNNING);
 
 		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
 
