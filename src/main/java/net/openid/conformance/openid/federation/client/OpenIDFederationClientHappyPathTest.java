@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.federation.client;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -341,80 +340,67 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	protected Object trustAnchorResolveResponse(String requestId) {
-		/*
-		if (opToRpMode()) {
-			return NonBlocking.trustAnchorResolveResponse(env, getId(), requestId);
-		}
-		*/
 
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("Trust anchor resolve endpoint").mapKey("incoming_request", requestId));
 
 		callAndContinueOnFailure(ExtractParametersForTrustAnchorResolveEndpoint.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateSubParameterForTrustAnchorResolveEndpoint.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateTrustAnchorParameterForResolveEndpoint.class, Condition.ConditionResult.FAILURE);
 
-		// Validate the sub parameter
-		String sub = env.getString("resolve_endpoint_parameters", "sub");
-		JsonArray immediateSubordinates = env.getElementFromObject("config", "federation_trust_anchor.immediate_subordinates").getAsJsonArray();
-		List<String> immediateSubordinatesList = OIDFJSON.convertJsonArrayToList(immediateSubordinates);
-		if (!immediateSubordinatesList.contains(sub)) {
-			return errorResponse(
-				"invalid_subject",
-				"Parameter sub %s not found in the test configuration (Federation trust anchor -> immediate_subordinates)".formatted(sub),
-				HttpStatus.NOT_FOUND.value()
-			);
-		}
+		String error = env.getString("federation_resolve_endpoint_error");
+		String errorDescription = env.getString("federation_resolve_endpoint_error_description");
+		Integer statusCode = env.getInteger("federation_resolve_endpoint_status_code");
 
-		String trustAnchor = env.getString("resolve_endpoint_parameters", "trust_anchor");
-		if (trustAnchor == null || !trustAnchor.equals(env.getString("trust_anchor"))) {
-			return errorResponse(
-				"invalid_trust_anchor",
-				"Only trust_anchor %s is supported".formatted(trustAnchor),
-				HttpStatus.NOT_FOUND.value()
-			);
-		}
+		ResponseEntity<Object> response = null;
+		if (error != null) {
+			return errorResponse(error, errorDescription, statusCode);
+		} else {
+			String sub = env.getString("resolve_endpoint_parameter_sub");
+			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(sub));
+			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+			fetchAndVerifyEntityStatement();
+			callAndContinueOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 
-		// Keep only the metadata that matches the entity type parameter(s)
-		JsonArray entityTypes = env.getElementFromObject("resolve_endpoint_parameters", "entity_types").getAsJsonArray();
-		List<String> entityTypesList = OIDFJSON.convertJsonArrayToList(entityTypes);
-		JsonObject metadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata").getAsJsonObject();
-		JsonObject filteredMetadata = filterMetadataForEntityTypes(metadata, entityTypesList);
+			String trustAnchor = env.getString("resolve_endpoint_parameter_trust_anchor");
+			JsonArray trustChain;
+			try {
+				List<String> trustChainList = findPath(sub, trustAnchor);
+				if (trustChainList.isEmpty()) {
+					throw new TestFailureException(getId(), "Could not build a trust chain from the RP %s to trust anchor %s".formatted(sub, trustAnchor));
+				}
+				trustChain = buildTrustChain(trustChainList);
 
-		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(sub));
-		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-		fetchAndVerifyEntityStatement();
-		callAndContinueOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
-
-		JsonArray trustChain;
-		try {
-			List<String> trustChainList = findPath(sub, trustAnchor);
-			if (trustChainList.isEmpty()) {
-				throw new TestFailureException(getId(), "Could not build a trust chain from the RP %s to trust anchor %s".formatted(sub, trustAnchor));
+			} catch (CyclicPathException e) {
+				throw new TestFailureException(getId(), e.getMessage(), e);
 			}
-			trustChain = buildTrustChain(trustChainList);
 
-		} catch (CyclicPathException e) {
-			throw new TestFailureException(getId(), e.getMessage(), e);
+			JsonObject resolveResponse = EntityUtils.createBasicClaimsObject(trustAnchor, sub);
+
+			// Keep only the metadata that matches the entity type parameter(s)
+			JsonArray entityTypes = env.getElementFromObject("resolve_endpoint_parameters", "entity_types").getAsJsonArray();
+			JsonObject metadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata").getAsJsonObject();
+			List<String> entityTypesList = OIDFJSON.convertJsonArrayToList(entityTypes);
+			JsonObject filteredMetadata = filterMetadataForEntityTypes(metadata, entityTypesList);
+
+			resolveResponse.add("metadata", filteredMetadata);
+			resolveResponse.add("trust_chain", trustChain);
+			env.putObject("federation_resolve_response", resolveResponse);
+
+			env.mapKey("entity_configuration_claims", "federation_resolve_response");
+			callAndStopOnFailure(SignEntityStatementWithTrustAnchorKeys.class);
+			env.unmapKey("entity_configuration_claims");
+			String federationResolveResponse = env.getString("signed_entity_statement");
+			response = ResponseEntity
+				.status(200)
+				.contentType(EntityUtils.RESOLVE_RESPONSE_JWT)
+				.body(federationResolveResponse);
+
+			call(exec().unmapKey("incoming_request").endBlock());
+			setStatus(Status.WAITING);
+
+			return response;
 		}
-
-		JsonObject resolveResponse = EntityUtils.createBasicClaimsObject(trustAnchor, sub);
-
-		resolveResponse.add("metadata", filteredMetadata);
-		resolveResponse.add("trust_chain", trustChain);
-		env.putObject("federation_resolve_response", resolveResponse);
-
-		env.mapKey("entity_configuration_claims", "federation_resolve_response");
-		callAndStopOnFailure(SignEntityStatementWithTrustAnchorKeys.class);
-		env.unmapKey("entity_configuration_claims");
-		String federationResolveResponse = env.getString("signed_entity_statement");
-		ResponseEntity<Object> response = ResponseEntity
-			.status(200)
-			.contentType(EntityUtils.RESOLVE_RESPONSE_JWT)
-			.body(federationResolveResponse);
-
-		call(exec().unmapKey("incoming_request").endBlock());
-		setStatus(Status.WAITING);
-
-		return response;
 	}
 
 	@UserFacing
@@ -619,17 +605,9 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	protected static JsonObject filterMetadataForEntityTypes(JsonObject metadata, List<String> entityTypesList) {
-		Set<String> validEntityTypes = ImmutableSet.of(
-			"federation_entity",
-			"openid_relying_party",
-			"openid_provider",
-			"oauth_authorization_server",
-			"oauth_client",
-			"oauth_resource"
-		);
 		Set<String> entityTypesToRemove = new HashSet<>();
 		for(String entityType : metadata.keySet()) {
-			if (validEntityTypes.contains(entityType) && !entityTypesList.contains(entityType)) {
+			if (EntityUtils.STANDARD_ENTITY_TYPES.contains(entityType) &&  !entityTypesList.isEmpty() && !entityTypesList.contains(entityType)) {
 				entityTypesToRemove.add(entityType);
 			}
 		}

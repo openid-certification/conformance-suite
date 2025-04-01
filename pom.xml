@@ -310,6 +310,7 @@
 						<arg>-Xlint:unchecked</arg>
 						<arg>-Xlint:deprecation</arg>
 						<arg>-Werror</arg>
+						<arg>-parameters</arg>
 						<!-- As per https://errorprone.info/docs/installation -->
 						<arg>-XDcompilePolicy=simple</arg>
 						<arg>-Xplugin:ErrorProne -XepExcludedPaths:.*/src/test/.* -Xep:JavaUtilDate:OFF  -Xep:OperatorPrecedence:OFF -Xep:InconsistentCapitalization:OFF -Xep:DefaultCharset:OFF -Xep:DoubleBraceInitialization:OFF -Xep:EmptyBlockTag:OFF -Xep:EmptyCatch:OFF -Xep:JavaInstantGetSecondsGetNano:OFF -Xep:EnumOrdinal:OFF -Xep:GetClassOnEnum:OFF -Xep:StringSplitter:OFF -Xep:MissingSummary:OFF -Xep:StringCaseLocaleUsage:OFF</arg>
