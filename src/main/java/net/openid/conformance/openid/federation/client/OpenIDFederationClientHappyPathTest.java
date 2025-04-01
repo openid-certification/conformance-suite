@@ -357,14 +357,20 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		JsonArray immediateSubordinates = env.getElementFromObject("config", "federation_trust_anchor.immediate_subordinates").getAsJsonArray();
 		List<String> immediateSubordinatesList = OIDFJSON.convertJsonArrayToList(immediateSubordinates);
 		if (!immediateSubordinatesList.contains(sub)) {
-			// return well-formed error
-			throw new TestFailureException(getId(), "Sub not found in immediate subordinates: %s".formatted(sub));
+			return errorResponse(
+				"invalid_subject",
+				"Parameter sub %s not found in the test configuration (Federation trust anchor -> immediate_subordinates)".formatted(sub),
+				HttpStatus.NOT_FOUND.value()
+			);
 		}
 
 		String trustAnchor = env.getString("resolve_endpoint_parameters", "trust_anchor");
 		if (trustAnchor == null || !trustAnchor.equals(env.getString("trust_anchor"))) {
-			// return well-formed error
-			throw new TestFailureException(getId(), "Trust anchor mismatch: %s (expected: %s)".formatted(trustAnchor, env.getString("trust_anchor")));
+			return errorResponse(
+				"invalid_trust_anchor",
+				"Only trust_anchor %s is supported".formatted(trustAnchor),
+				HttpStatus.NOT_FOUND.value()
+			);
 		}
 
 		// Keep only the metadata that matches the entity type parameter(s)
