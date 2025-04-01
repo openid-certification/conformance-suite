@@ -17,7 +17,7 @@ public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerT
 	@Override
 	protected void configureClient() {
 		super.configureClient();
-		configureSecondClient();
+		// configureSecondClient(); // skip using second client for now
 	}
 
 	@Override
