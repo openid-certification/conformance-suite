@@ -975,6 +975,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			env.removeObject("mutual_tls_authentication");
 		}
 
+		// use HTTP POST to call credentials endpoint
+		env.putString("resource", "resourceMethod", "POST");
+		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+		env.putString("resource_request_entity", """
+			{
+			  "credential_configuration_id": "%s"
+			}
+			""".formatted("eu.europa.ec.eudi.tax_sd_jwt_vc")); //TODO which credential configuration id to use here?
+
 		if (isDpop() ) {
 			requestProtectedResourceUsingDpop();
 		} else  {
