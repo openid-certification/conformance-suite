@@ -25,14 +25,7 @@ public class ValidateEntityStatementMetadataPolicy extends AbstractCondition {
 
 		JsonObject metadataPolicy = metadataPolicyClaim.getAsJsonObject();
 
-		Set<String> validEntityTypes = ImmutableSet.of(
-			"federation_entity",
-			"openid_relying_party",
-			"openid_provider",
-			"oauth_authorization_server",
-			"oauth_client",
-			"oauth_resource"
-		);
+		Set<String> validEntityTypes = EntityUtils.STANDARD_ENTITY_TYPES;
 
 		Set<String> entityTypes = metadataPolicy.keySet();
 		Set<String> difference = new HashSet<>(entityTypes);

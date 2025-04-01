@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
@@ -24,15 +23,7 @@ public class ValidateFederationEntityMetadata extends AbstractValidateMetadata {
 
 		JsonObject metadata = metadataElement.getAsJsonObject();
 
-		Set<String> federationEntityUrlKeys = ImmutableSet.of(
-			"federation_fetch_endpoint",
-			"federation_list_endpoint",
-			"federation_resolve_endpoint",
-			"federation_trust_mark_status_endpoint",
-			"federation_trust_mark_list_endpoint",
-			"federation_trust_mark_endpoint",
-			"federation_historical_keys_endpoint"
-		);
+		Set<String> federationEntityUrlKeys = EntityUtils.STANDARD_FEDERATION_ENTITY_URL_KEYS;
 		for (String key : federationEntityUrlKeys) {
 			boolean isOptional = true;
 			if(!validateUrl(metadata, key, isOptional)) {

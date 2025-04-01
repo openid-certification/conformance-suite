@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.federation;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -24,14 +23,7 @@ public class ValidateEntityStatementMetadata extends AbstractCondition {
 
 		JsonObject metadata = metadataClaim.getAsJsonObject();
 
-		Set<String> validEntityTypes = ImmutableSet.of(
-			"federation_entity",
-			"openid_relying_party",
-			"openid_provider",
-			"oauth_authorization_server",
-			"oauth_client",
-			"oauth_resource"
-		);
+		Set<String> validEntityTypes = EntityUtils.STANDARD_ENTITY_TYPES;
 
 		Set<String> keys = metadata.keySet();
 		Set<String> difference = new HashSet<>(keys);

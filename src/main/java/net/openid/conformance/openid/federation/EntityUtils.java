@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.federation;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class EntityUtils {
 
@@ -34,6 +36,25 @@ public class EntityUtils {
 		"trust_mark_issuers",
 		"trust_mark_owners",
 		"source_endpoint"
+	);
+
+	public static Set<String> STANDARD_ENTITY_TYPES = ImmutableSet.of(
+		"federation_entity",
+		"openid_relying_party",
+		"openid_provider",
+		"oauth_authorization_server",
+		"oauth_client",
+		"oauth_resource"
+	);
+
+	public static Set<String> STANDARD_FEDERATION_ENTITY_URL_KEYS = ImmutableSet.of(
+		"federation_fetch_endpoint",
+		"federation_list_endpoint",
+		"federation_resolve_endpoint",
+		"federation_trust_mark_status_endpoint",
+		"federation_trust_mark_list_endpoint",
+		"federation_trust_mark_endpoint",
+		"federation_historical_keys_endpoint"
 	);
 
 	public static String appendWellKnown(String entityIdentifier) {
