@@ -426,7 +426,7 @@ makeCIBATest() {
 }
 
 makeEkycTests() {
-    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=private_key_jwt][server_metadata=discovery][response_type=code][client_registration=dynamic_client][response_mode=default] authlete-ekyc-privatekey.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=private_key_jwt][server_metadata=discovery][response_type=code][client_registration=dynamic_client][response_mode=default][security_profile=openid_connect][auth_request_method=http_query][auth_request_non_repudiation_method=unsigned][sender_constrain=none] authlete-ekyc-privatekey.json"
 }
 
 makeFederationTests() {
