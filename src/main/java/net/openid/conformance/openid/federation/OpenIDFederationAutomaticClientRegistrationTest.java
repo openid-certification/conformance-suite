@@ -12,7 +12,6 @@ import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
-import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -59,13 +58,15 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		JsonObject clientConfig = env.getElementFromObject("config", "client").getAsJsonObject();
 		clientConfig.addProperty("client_id", baseUrl);
 
-		callAndStopOnFailure(GenerateEntityConfiguration.class);
-		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
-		callAndStopOnFailure(AddOpenIDRelyingPartyMetadataToEntityConfiguration.class);
-
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+
+		env.mapKey("server_public_jwks", "client_public_jwks");
+		callAndStopOnFailure(GenerateEntityConfiguration.class);
+		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
+		callAndStopOnFailure(AddOpenIDRelyingPartyMetadataToEntityConfiguration.class);
+		env.unmapKey("client_public_jwks");
 
 		env.putString("entity_identifier", baseUrl);
 		exposeEnvString("entity_identifier");
