@@ -213,6 +213,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
+import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -647,7 +649,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	@SuppressWarnings("unused")
 	protected Object credentialEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
-		JsonObject credentialData = new JsonObject();
 
 		call(exec().startBlock("Credential endpoint"));
 
@@ -661,25 +662,39 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		call(exec().mapKey("incoming_request", requestId));
 
+		checkResourceEndpointRequest(false);
+
+		callAndStopOnFailure(VCIValidateCredentialRequest.class, "OID4VCI-ID2-8.2");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+
+		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class);
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		JsonObject credentialData = new JsonObject();
 		JsonObject headers = env.getElementFromObject(requestId, "headers").getAsJsonObject();
 		JsonObject credentialRequestBodyJson = env.getElementFromObject(requestId, "body_json").getAsJsonObject();
 
-
-		// # // TODO generate credential data
-		// parse credential request https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
-		// credential_identifier: REQUIRED
-		// credential_configuration_id: REQUIRED
-		// proof: OPTIONAL. proof parameter MUST NOT be present if proofs parameter is used. he proof object MUST contain the following: proof_type: REQUIRED. String
-		// proofs: OPTIONAL. The proofs parameter MUST NOT be present if proof parameter is used.  proofs object contains exactly one parameter named as the proof type in Section 8.2.1, the value set for this parameter is an array containing parameters as defined by the corresponding proof type.
-		// credential_response_encryption: OPTIONAL with the following fields if present:
-		// jwk: REQUIRED. Object containing a single public key as a JWK used for encrypting the Credential Response.
-		// alg: REQUIRED. JWE [RFC7516] alg algorithm [RFC7518] for encrypting Credential Responses.
-		// enc: REQUIRED. JWE [RFC7516] enc algorithm [RFC7518] for encrypting Credential Responses.
-
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		setStatus(Status.WAITING);
-		return new ResponseEntity<Object>(credentialData, HttpStatus.OK);
+		ResponseEntity<Object> responseEntity;
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			setStatus(Status.WAITING);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
+			JsonObject headerJson = env.getObject("credential_endpoint_response_headers");
+
+			if (requireResourceServerEndpointDpopNonce()) {
+				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+			}
+			// at this point we can assume the test is fully done
+			resourceEndpointCallComplete();
+			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), HttpStatus.ACCEPTED);
+		}
+		return responseEntity;
 	}
 
 	@Override
