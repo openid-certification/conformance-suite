@@ -276,7 +276,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		ResponseEntity<Object> response = null;
 		if (error != null) {
-			return errorResponse(error, errorDescription, statusCode);
+			response = errorResponse(error, errorDescription, statusCode);
 		} else {
 			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(env.getString("fetch_endpoint_parameter_sub")));
 
@@ -354,7 +354,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		ResponseEntity<Object> response = null;
 		if (error != null) {
-			return errorResponse(error, errorDescription, statusCode);
+			response = errorResponse(error, errorDescription, statusCode);
 		} else {
 			String sub = env.getString("resolve_endpoint_parameter_sub");
 			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(sub));
@@ -395,12 +395,11 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 				.status(200)
 				.contentType(EntityUtils.RESOLVE_RESPONSE_JWT)
 				.body(federationResolveResponse);
-
-			call(exec().unmapKey("incoming_request").endBlock());
-			setStatus(Status.WAITING);
-
-			return response;
 		}
+		call(exec().unmapKey("incoming_request").endBlock());
+		setStatus(Status.WAITING);
+
+		return response;
 	}
 
 	@UserFacing
@@ -509,7 +508,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
 	}
 
-	protected ResponseEntity<JsonObject> errorResponse(String error, String errorDescription, Integer statusCode) {
+	protected ResponseEntity<Object> errorResponse(String error, String errorDescription, Integer statusCode) {
 		JsonObject errorObject = new JsonObject();
 		errorObject.addProperty("error", error);
 		errorObject.addProperty("error_description", errorDescription);

@@ -26,7 +26,7 @@ public class ValidateSubParameterForTrustAnchorFetchEndpoint extends AbstractCon
 
 		if (sub == null || sub.isEmpty()) {
 			env.putString("federation_fetch_endpoint_error", "invalid_request");
-			env.putString("federation_fetch_endpoint_error_description", "Missing required sub parameter in request");
+			env.putString("federation_fetch_endpoint_error_description", "Missing required parameter sub in request");
 			env.putInteger("federation_fetch_endpoint_status_code", 400);
 			throw error("Missing required sub parameter in request");
 		}

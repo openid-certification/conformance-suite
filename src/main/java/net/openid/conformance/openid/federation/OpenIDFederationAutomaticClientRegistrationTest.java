@@ -12,6 +12,7 @@ import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
+import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -80,7 +81,8 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		setStatus(Status.RUNNING);
 
 		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
+		skipIfElementMissing("config", "client.trust_chain", Condition.ConditionResult.INFO,
+			AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
 
