@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.SetDpopIatTo10SecondsInPast;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -31,7 +31,7 @@ import net.openid.conformance.variant.VariantSetup;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = { "mtls" })
+@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = { "mtls" })
 public class FAPI2SPID2EnsureDpopProofWithIat10SecondsBeforeSucceeds extends AbstractFAPI2SPID2ServerTestModule {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -39,7 +39,7 @@ public class FAPI2SPID2EnsureDpopProofWithIat10SecondsBeforeSucceeds extends Abs
 	}
 
 	@Override
-	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
+	@VariantSetup(parameter = AccessTokenSenderConstrainMethod.class, value = "dpop")
 	public void setupCreateDpopForEndpointSteps() {
 		createDpopForParEndpointSteps = () -> CreateDpopProofSteps.createParEndpointDpopSteps()
 			.insertBefore(SignDpopProof.class, condition(SetDpopIatTo10SecondsInPast.class).requirement("FAPI2-SP-ID2-5.3.2.1-14"));

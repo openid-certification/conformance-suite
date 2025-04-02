@@ -24,7 +24,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -35,7 +35,7 @@ import net.openid.conformance.variant.VariantSetup;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = {
+@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = {
 	"none"
 })
 public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends AbstractTestModule {
@@ -144,7 +144,7 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 	public void setupPrivateKeyJwt() {
 		variantAuthChecks = PrivateKeyJWTChecks.class;
 
-		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
+		if (getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
 	}

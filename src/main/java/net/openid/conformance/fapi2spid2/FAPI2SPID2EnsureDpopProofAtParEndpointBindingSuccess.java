@@ -2,7 +2,7 @@ package net.openid.conformance.fapi2spid2;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -27,7 +27,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = { "mtls" })
+@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = { "mtls" })
 public class FAPI2SPID2EnsureDpopProofAtParEndpointBindingSuccess extends AbstractFAPI2SPID2ServerTestModule {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

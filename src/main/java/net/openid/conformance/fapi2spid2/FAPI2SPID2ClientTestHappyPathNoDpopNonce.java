@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = {
+@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = {
 	"mtls"
 })
 public class FAPI2SPID2ClientTestHappyPathNoDpopNonce extends FAPI2SPID2ClientTestHappyPath {
