@@ -1174,6 +1174,7 @@ async def main():
         client_test = re.match(r'fapi-rw-id2-client-.*', m) or \
                       re.match(r'fapi1-advanced-final-client-.*', m) or \
                       re.match(r'fapi2-security-profile-id2-client-.*', m) or \
+                      re.match(r'fapi2-security-profile-final-client-.*', m) or \
                       re.match(r'oidcc-client-.*', m)
         ciba_op_test = re.match(r'fapi-ciba-id1.*', m)
         rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
@@ -1182,7 +1183,7 @@ async def main():
         fapi1r = all_test_modules[m]['profile'] in ['FAPI-R']
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
         oidcc = all_test_modules[m]['profile'] in ['OIDCC']
-        fapi2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']
+        fapi2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']or all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-Final']
         oid4vp = all_test_modules[m]['profile'] in ['OID4VP-ID2', 'OID4VP-ID3']
         brazildcr = re.match(r'.*brazil.*dcr.*', m)
         obuk = re.match(r'.*ensure-server-handles-non-matching-intent-id.*', m) or \

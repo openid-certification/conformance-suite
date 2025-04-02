@@ -1,6 +1,6 @@
 {
     "alias": "oidf-fapi-op-test",
-    "description": "FAPI OP test config for running against RP tests",
+    "description": "FAPI OP test config for running against RP tests (DPOP ES256)",
     "server": {
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
     },
