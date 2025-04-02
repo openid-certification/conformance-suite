@@ -184,6 +184,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+
 @VariantParameters({
 	ClientAuthType.class,
 	FAPI2AuthRequestMethod.class,
@@ -218,6 +219,9 @@ import java.util.function.Supplier;
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = {
+	"none"
 })
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {
 	"resource.resourceUrl", // the userinfo endpoint is always used
