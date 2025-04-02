@@ -938,7 +938,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void requestProtectedResource() {
 
 		// verify the access token against a protected resource
-		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
+		eventLog.startBlock(currentClientString() + "Credential endpoint tests");
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
@@ -978,11 +978,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// use HTTP POST to call credentials endpoint
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		// TODO generate a proper credential request
+		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
+		String credentialId = "credential_id";
+		String credentialConfigId  = "credential_config_id";
 		env.putString("resource_request_entity", """
 			{
-			  "credential_configuration_id": "%s"
+				"credential_identifier": "%s",
+				"credential_configuration_id": "%s"
 			}
-			""".formatted("eu.europa.ec.eudi.tax_sd_jwt_vc")); //TODO which credential configuration id to use here?
+			""".formatted(credentialId, credentialConfigId));
 
 		if (isDpop() ) {
 			requestProtectedResourceUsingDpop();

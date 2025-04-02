@@ -258,6 +258,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
+
+	public static final String CREDENTIAL_PATH = "credential";
+
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
@@ -630,8 +633,53 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return accountsEndpoint(requestId);
+		} else if (path.equals(CREDENTIAL_PATH)) {
+
+			if (isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The credentials endpoint must be called over an mTLS secured connection.");
+			}
+
+			return credentialEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+	}
+
+	@SuppressWarnings("unused")
+	protected Object credentialEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+		JsonObject credentialData = new JsonObject();
+
+		call(exec().startBlock("Credential endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+
+		JsonObject headers = env.getElementFromObject(requestId, "headers").getAsJsonObject();
+		JsonObject credentialRequestBodyJson = env.getElementFromObject(requestId, "body_json").getAsJsonObject();
+
+
+		// # // TODO generate credential data
+		// parse credential request https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
+		// credential_identifier: REQUIRED
+		// credential_configuration_id: REQUIRED
+		// proof: OPTIONAL. proof parameter MUST NOT be present if proofs parameter is used. he proof object MUST contain the following: proof_type: REQUIRED. String
+		// proofs: OPTIONAL. The proofs parameter MUST NOT be present if proof parameter is used.  proofs object contains exactly one parameter named as the proof type in Section 8.2.1, the value set for this parameter is an array containing parameters as defined by the corresponding proof type.
+		// credential_response_encryption: OPTIONAL with the following fields if present:
+		// jwk: REQUIRED. Object containing a single public key as a JWK used for encrypting the Credential Response.
+		// alg: REQUIRED. JWE [RFC7516] alg algorithm [RFC7518] for encrypting Credential Responses.
+		// enc: REQUIRED. JWE [RFC7516] enc algorithm [RFC7518] for encrypting Credential Responses.
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<Object>(credentialData, HttpStatus.OK);
 	}
 
 	@Override
@@ -659,7 +707,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return accountsEndpoint(requestId);
-		} else if (path.equals("userinfo")) {
+		} else if (path.equals(CREDENTIAL_PATH)) {
+			if (!isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The credential endpoint must not be called over an mTLS secured connection.");
+			}
+
+			return credentialEndpoint(requestId);
+		}
+		else if (path.equals("userinfo")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
