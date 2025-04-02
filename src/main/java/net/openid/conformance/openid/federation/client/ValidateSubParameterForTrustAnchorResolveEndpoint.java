@@ -20,7 +20,7 @@ public class ValidateSubParameterForTrustAnchorResolveEndpoint extends AbstractC
 
 		if (sub == null || sub.isEmpty()) {
 			env.putString("federation_resolve_endpoint_error", "invalid_request");
-			env.putString("federation_resolve_endpoint_error_description", "Missing required sub parameter in request");
+			env.putString("federation_resolve_endpoint_error_description", "Missing required parameter sub in request");
 			env.putInteger("federation_resolve_endpoint_status_code", 400);
 			throw error("Missing required sub parameter in request");
 		}
