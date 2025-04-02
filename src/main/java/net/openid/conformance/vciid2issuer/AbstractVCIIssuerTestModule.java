@@ -31,7 +31,6 @@ import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoi
 import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
-import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
@@ -59,7 +58,7 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
+import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
@@ -170,6 +169,9 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vciid2issuer.condition.VCICallCredentialResourceAllowingDpopNonceError;
+import net.openid.conformance.vciid2issuer.condition.VCICallCredentialResourceEndpoint;
+import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialResponse;
 
 import java.util.Arrays;
 import java.util.List;
@@ -925,7 +927,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			int i = 0;
 			while(i < MAX_RETRY) {
 				call(sequence(createDpopForResourceEndpointSteps));
-				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+				callAndStopOnFailure(VCICallCredentialResourceAllowingDpopNonceError.class, "OID4VCI-ID2-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 					break; // no nonce error so
 				}
@@ -981,26 +983,32 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// TODO generate a proper credential request
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
-		String credentialId = "credential_id";
-		String credentialConfigId  = "credential_config_id";
+		// using example from spec for now
+		String credentialConfigId  = "org.iso.18013.5.1.mDL";
+		String credentialProofJwt = "eyJraWQiOiJkaWQ6ZXhhbXBsZTplYmZlYjFmNzEyZWJjNmYxYzI3NmUxMmVjMjEva2V5cy8xIiwiYWxnIjoiRVMyNTYiLCJ0eXAiOiJKV1QifQ";
 		env.putString("resource_request_entity", """
 			{
-				"credential_identifier": "%s",
-				"credential_configuration_id": "%s"
+				"credential_configuration_id": "%s",
+				"proof": {
+					"proof_type": "jwt",
+					"jwt": "%s"
+			   }
 			}
-			""".formatted(credentialId, credentialConfigId));
+			""".formatted(credentialConfigId, credentialProofJwt));
 
 		if (isDpop() ) {
 			requestProtectedResourceUsingDpop();
 		} else  {
-			callAndStopOnFailure(CallProtectedResource.class, "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(VCICallCredentialResourceEndpoint.class, "OID4VCI-ID2-8", "FAPI2-SP-ID2-5.3.3-2");
 		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(new EnsureHttpStatusCode(202), ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
+		callAndContinueOnFailure(VCIValidateCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
+
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "RFC7231-7.1.1.2");
 
