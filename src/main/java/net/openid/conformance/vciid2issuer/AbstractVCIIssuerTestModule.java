@@ -6,7 +6,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
-import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
@@ -148,7 +147,6 @@ import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.OpenBankingUkAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
@@ -1122,7 +1120,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
-		preAuthorizationSteps = this::createOBBPreauthSteps;
+		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = null;
 		profileIdTokenValidationSteps = null;
 	}
@@ -1157,23 +1155,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		List<String> scopes = Arrays.asList(scope.split(" "));
 		return scopes.contains(requiredScope);
-	}
-
-	protected void updatePaymentConsent() {
-		callAndStopOnFailure(FAPIBrazilSetPaymentDateToToday.class);
-	}
-
-	protected ConditionSequence createOBBPreauthSteps() {
-
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(
-			isSecondClient(),
-			isDpop(),
-			addTokenEndpointClientAuthentication,
-			false,
-			false, // open insurance not yet supported in fapi2
-			false,
-			false);
-		return steps;
 	}
 
 	protected void performPARRedirectWithRequestUri() {
