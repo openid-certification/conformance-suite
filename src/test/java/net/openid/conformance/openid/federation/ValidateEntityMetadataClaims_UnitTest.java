@@ -6,7 +6,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.JWTUtil;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
