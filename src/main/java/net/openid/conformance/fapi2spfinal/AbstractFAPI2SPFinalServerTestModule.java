@@ -7,8 +7,8 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
-import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
-import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
+import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumClientKeyLength;
+import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudAsPaymentInitiationUriToRequestObject;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
@@ -330,7 +330,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
-		callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-2", "FAPI2-SP-FINAL-5.4.1-1.3");
+		callAndContinueOnFailure(FAPI2FinalEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 		if (isRarRequest) {
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
@@ -423,7 +423,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		} else {
 			callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4");
 		}
-		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-2", "FAPI2-SP-FINAL-5.4.1-1.3");
+		callAndContinueOnFailure(FAPI2FinalEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 
 		boolean mtlsRequired =
 			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
