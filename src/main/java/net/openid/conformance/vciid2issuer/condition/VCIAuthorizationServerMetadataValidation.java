@@ -3,9 +3,9 @@ package net.openid.conformance.vciid2issuer.condition;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.vciid2issuer.util.MetadataValidationInput;
+import net.openid.conformance.vciid2issuer.util.JsonSchemaValidationInput;
 
-public class VCIAuthorizationServerMetadataValidation extends AbstractSchemaBasedMetadataValidation {
+public class VCIAuthorizationServerMetadataValidation extends AbstractJsonSchemaBasedValidation {
 
 	protected int index;
 
@@ -22,13 +22,13 @@ public class VCIAuthorizationServerMetadataValidation extends AbstractSchemaBase
 	}
 
 	@Override
-	protected MetadataValidationInput createMetadataValidationInput(Environment env) {
+	protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
 		String authServerMetadataPath = getAuthServerMetadataPath(0);
-		JsonObject metadata = env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject();
+		JsonObject jsonObject = env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject();
 		// we use the oid4vci specific variant of the rfc8414 metadata
 		String schemaResource = "json-schemas/oid4vci/rfc8414-oauth_authorization_server_metadata.json";
-		String metadataName = "OAuth Authorization Server";
-		return new MetadataValidationInput(metadataName, schemaResource, metadata);
+		String inputName = "OAuth Authorization Server metadata";
+		return new JsonSchemaValidationInput(inputName, schemaResource, jsonObject);
 	}
 
 	@Override
