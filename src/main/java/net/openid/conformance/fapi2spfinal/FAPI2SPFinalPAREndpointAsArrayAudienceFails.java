@@ -9,7 +9,6 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -37,13 +36,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
 })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
-		"plain_fapi",
-		"openbanking_uk",
-		"consumerdataright_au",
-		"openbanking_brazil",
-		"connectid_au"
-})
 public class FAPI2SPFinalPAREndpointAsArrayAudienceFails extends AbstractFAPI2SPFinalServerTestModule {
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
@@ -55,8 +47,8 @@ public class FAPI2SPFinalPAREndpointAsArrayAudienceFails extends AbstractFAPI2SP
 	@Override
 	protected void processParResponse() {
 		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "CBUAE");
-		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "CBUAE");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-8");
+		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-8");
 		env.unmapKey("endpoint_response");
 
 		fireTestFinished();
