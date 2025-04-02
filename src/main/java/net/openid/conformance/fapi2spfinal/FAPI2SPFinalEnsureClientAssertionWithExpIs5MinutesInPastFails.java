@@ -7,7 +7,6 @@ import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEnd
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
-import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaimsWithIssAudience;
 import net.openid.conformance.condition.client.SignClientAuthenticationAssertion;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromTokenEndpointResponseError;
@@ -15,7 +14,6 @@ import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointRes
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -45,11 +43,8 @@ public class FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails exten
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
-		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CBUAE){
-			callAndStopOnFailure(CreateClientAuthenticationAssertionClaimsWithIssAudience.class);
-		} else {
-			callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
-		}
+		callAndStopOnFailure(CreateClientAuthenticationAssertionClaimsWithIssAudience.class);
+
 		callAndStopOnFailure(AddExpIs5MinutesInPastToClientAssertionClaims.class);
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);

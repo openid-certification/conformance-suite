@@ -11,7 +11,6 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromToken
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
@@ -40,15 +39,18 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
-public class FAPI2SPFinalEnsureClientAssertionWithIssAudSucceeds extends AbstractFAPI2SPFinalPerformTokenEndpoint {
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
+		"plain_fapi",
+		"openbanking_uk",
+		"consumerdataright_au",
+		"openbanking_brazil",
+		"connectid_au"
+})
+public class FAPI2SPFinalEnsureClientAssertionWithTokenEndpointAudSucceeds extends AbstractFAPI2SPFinalPerformTokenEndpoint {
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
-		if(getVariant(FAPI2FinalOPProfile.class) != FAPI2FinalOPProfile.CBUAE) {
-			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest());
-		} else {
-			call(new CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest());
-		}
+		call(new CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest());
 	}
 
 	@Override
