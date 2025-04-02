@@ -22,7 +22,7 @@
         }
     },
     "resource": {
-        "resourceUrl": "{BASEURL}test/a/oidf-fapi-rp-test/open-banking/v1.1/accounts",
+        "resourceUrl": "{BASEURL}test/a/oidf-fapi-rp-test/credential",
         "institution_id": "xxx"
     },
     "client2": {
