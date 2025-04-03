@@ -17,7 +17,7 @@ import org.springframework.http.HttpStatus;
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
 	displayName = "FAPI2-Security-Profile-Final: ensure jwt client assertions with nbf 8 seconds in the future is accepted at the par endpoint",
-	summary = "This test makes a PAR request with a client assertion 'nbf' of 8 seconds in the future. This must be accepted by the authentication server as per 'https://bitbucket.org/openid/fapi/pull-requests/497/diff'",
+	summary = "This test makes a PAR request with a client assertion 'nbf' of 8 seconds in the future. This must be accepted by the authentication server.'",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -45,11 +45,11 @@ public class FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutur
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CBUAE){
 			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest().insertAfter(
 					CreateClientAuthenticationAssertionClaimsWithIssAudience.class,
-					condition(AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6")));
+					condition(AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6", "FAPI2-SP-FINAL-5.3.2.1")));
 		} else {
 			call(new CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest().insertAfter(
 					UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
-					condition(AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6")));
+					condition(AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6", "FAPI2-SP-FINAL-5.3.2.1")));
 		}
 	}
 

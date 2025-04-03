@@ -41,7 +41,7 @@ public class FAPI2SPFinalEnsureRequestObjectWithNbf8SecondsInTheFutureIsAccepted
 		return super.makeCreateAuthorizationRequestObjectSteps()
 			.replace(AddNbfToRequestObject.class,
 				condition(AddNbfValueIs8SecondsInFutureToRequestObject.class)
-					.requirement("FAPI2-5.3.2.1"));
+					.requirement("FAPI2-SP-FINAL-5.3.2.1"));
 	}
 
 	@Override
