@@ -39,4 +39,9 @@ public class VerifyEntityStatmentSignature extends AbstractVerifyJwsSignature {
 		return env;
 	}
 
+	@Override
+	public boolean verifySignature(SignedJWT jwt, JWKSet jwkSet) throws JOSEException {
+		return super.verifySignature(jwt, jwkSet);
+	}
+
 }
