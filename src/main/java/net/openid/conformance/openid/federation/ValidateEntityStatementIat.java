@@ -9,7 +9,7 @@ import java.util.Date;
 
 public class ValidateEntityStatementIat extends AbstractCondition {
 
-	private final int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
+	public static final int TIME_SKEW_MILLIS = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -19,7 +19,7 @@ public class ValidateEntityStatementIat extends AbstractCondition {
 		if (iat == null) {
 			throw error("Entity statement does not contain an 'iat' claim");
 		} else {
-			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
+			if (now.plusMillis(TIME_SKEW_MILLIS).isBefore(Instant.ofEpochSecond(iat))) {
 				throw error("Entity statement issued in the future, 'iat' claim value is in the future",
 					args("issued-at", new Date(iat * 1000L), "now", now));
 			}
