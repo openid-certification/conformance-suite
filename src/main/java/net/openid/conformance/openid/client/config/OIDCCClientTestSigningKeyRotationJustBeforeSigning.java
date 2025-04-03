@@ -15,8 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-//TODO needs a better class and test name. why the Python test was called "-native" is unclear
-public class OIDCCClientTestSigningKeyRotationNative extends AbstractOIDCCClientTest {
+public class OIDCCClientTestSigningKeyRotationJustBeforeSigning extends AbstractOIDCCClientTest {
 
 
 	@Override

@@ -4,7 +4,7 @@ import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryIssue
 import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryJwksUriKeys;
 import net.openid.conformance.openid.client.config.OIDCCClientTestDiscoveryOpenIDConfiguration;
 import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotation;
-import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationNative;
+import net.openid.conformance.openid.client.config.OIDCCClientTestSigningKeyRotationJustBeforeSigning;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.ResponseType;
@@ -35,7 +35,7 @@ public class OIDCCClientConfigTestPlan implements TestPlan {
 					OIDCCClientTestDiscoveryIssuerMismatch.class,	//rp-discovery-issuer-not-matching-config
 					OIDCCClientTestIdTokenSigAlgNone.class,	//rp-id_token-sig-none
 					//rp-key-rotation-op-sign-key-native does not exist in the profile document
-					OIDCCClientTestSigningKeyRotationNative.class,	//rp-key-rotation-op-sign-key-native
+					OIDCCClientTestSigningKeyRotationJustBeforeSigning.class,	//rp-key-rotation-op-sign-key-native
 					OIDCCClientTestSigningKeyRotation.class	//rp-key-rotation-op-sign-key
 					//TODO Decide what to do: rp-userinfo-sig is marked as optional in profile document
 					// but not listed at https://rp.certification.openid.net:8080/list?profile=CNF

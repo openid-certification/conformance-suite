@@ -98,7 +98,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"result", ConditionResult.FAILURE,
 							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
 							"requirements", this.getRequirements()
-							// TODO: log the environment here?
 						));
 						throw alreadyLoggedPrePostError("[pre] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find object in environment: " + req);
 					}
@@ -111,7 +110,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"expected", s,
 							"result", ConditionResult.FAILURE,
 							"requirements", this.getRequirements()
-							// TODO: log the environment here?
 						));
 						throw alreadyLoggedPrePostError("[pre] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find string in environment: " + s);
 					}
@@ -142,7 +140,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"result", ConditionResult.FAILURE,
 							"mapped", env.isKeyShadowed(req) ? env.getEffectiveKey(req) : null,
 							"requirements", this.getRequirements()
-							// TODO: log the environment here?
 						));
 						throw alreadyLoggedPrePostError("[post] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find object in environment: " + req);
 					}
@@ -155,7 +152,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"expected", s,
 							"result", ConditionResult.FAILURE,
 							"requirements", this.getRequirements()
-							// TODO: log the environment here?
 						));
 						throw alreadyLoggedPrePostError("[post] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find string in environment: " + s);
 					}

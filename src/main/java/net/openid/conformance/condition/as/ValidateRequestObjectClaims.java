@@ -13,7 +13,6 @@ import java.util.Date;
 
 public class ValidateRequestObjectClaims extends AbstractCondition {
 
-	// TODO: make this configurable
 	protected int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
