@@ -97,6 +97,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims.class,
 
 		//PAR tests
+		FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticationCompletion.class,
 		FAPI2SPFinalPARAttemptReuseRequestUri.class,
 		FAPI2SPFinalPARAttemptToUseExpiredRequestUri.class,
 		FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted.class,
