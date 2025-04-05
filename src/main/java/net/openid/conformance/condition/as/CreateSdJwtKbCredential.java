@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CreateSdJwtCredential extends AbstractCondition {
+public class CreateSdJwtKbCredential extends AbstractCondition {
 
 	public String keyBindingJwt(ECKey privateKey, String aud, String nonce, String sdHash) {
 		// as per https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-4.3
