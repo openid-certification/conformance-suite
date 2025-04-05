@@ -9,7 +9,7 @@ import net.openid.conformance.vciid2issuer.util.JsonSchemaValidationInput;
 /**
  * See: 8.2. Credential Request https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
  */
-public class VCIValidateCredentialRequest extends AbstractJsonSchemaBasedValidation {
+public class VCIValidateCredentialRequestStructure extends AbstractJsonSchemaBasedValidation {
 
 	@Override
 	public Environment evaluate(Environment env) {
