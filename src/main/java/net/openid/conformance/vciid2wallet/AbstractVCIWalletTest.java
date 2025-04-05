@@ -214,7 +214,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
-import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequest;
+import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
+import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -664,7 +665,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(false);
 
-		callAndStopOnFailure(VCIValidateCredentialRequest.class, "OID4VCI-ID2-8.2");
+		callAndStopOnFailure(VCIValidateCredentialRequestStructure.class, "OID4VCI-ID2-8.2");
+		callAndStopOnFailure(VCIValidateCredentialRequestProof.class, "OID4VCI-ID2-8.2.2");
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
 
