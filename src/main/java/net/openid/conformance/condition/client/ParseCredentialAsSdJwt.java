@@ -1,9 +1,9 @@
 package net.openid.conformance.condition.client;
 
-public class ParseCredentialAsSdJwtKb extends AbstractParseCredentialAsSdJwt {
+public class ParseCredentialAsSdJwt extends AbstractParseCredentialAsSdJwt {
 
 	@Override
 	protected boolean expectKbJwt() {
-		return true;
+		return false;
 	}
 }
