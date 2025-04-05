@@ -169,6 +169,7 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.condition.VCICallCredentialResourceAllowingDpopNonceError;
 import net.openid.conformance.vciid2issuer.condition.VCICallCredentialResourceEndpoint;
+import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialResponse;
 
 import java.util.Arrays;
@@ -979,11 +980,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
+		callAndStopOnFailure(VCIGenerateProofJwt.class,"OID4VCI-ID2-8.2.1.1");
+
 		// TODO generate a proper credential request
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
-		// using example from spec for now
-		String credentialConfigId  = "org.iso.18013.5.1.mDL";
-		String credentialProofJwt = "eyJraWQiOiJkaWQ6ZXhhbXBsZTplYmZlYjFmNzEyZWJjNmYxYzI3NmUxMmVjMjEva2V5cy8xIiwiYWxnIjoiRVMyNTYiLCJ0eXAiOiJKV1QifQ";
+		String credentialConfigId  = "eu.europa.ec.eudi.pid.1";
+		String credentialProofJwt = env.getString("vci","proof.jwt");
 		env.putString("resource_request_entity", """
 			{
 				"credential_configuration_id": "%s",
