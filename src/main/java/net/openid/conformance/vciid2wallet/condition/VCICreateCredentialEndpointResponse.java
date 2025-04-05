@@ -28,7 +28,6 @@ public class VCICreateCredentialEndpointResponse extends AbstractCondition {
 		headers.addProperty("content-type", "application/json; charset=UTF-8");
 
 		JsonObject response = new JsonObject();
-		response.add("conformance-test-finished", new JsonPrimitive("true"));
 
 		JsonObject requestBodyJson = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
 		String credentialConfigId = requestBodyJson.get("credential_configuration_id") != null ? OIDFJSON.getString(requestBodyJson.get("credential_configuration_id")) : null;
