@@ -92,17 +92,20 @@ public class CreateSdJwtKbCredential extends AbstractCondition {
 		SDObjectBuilder builder = new SDObjectBuilder();
 		ArrayList<Disclosure> disclosures = new ArrayList<>();
 
-		builder.putClaim("vct", "https://example.bmi.bund.de/credential/pid/1.0");
-		// fixme: vct#integrity ? but not sure what value to put
+		// contents as per https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#52-encoding-of-pid-attributes
+		// There are more claims, possibly we should include more of them
+		builder.putClaim("vct", "urn:eudi:pid:1");
 
-		disclosures.add(builder.putSDClaim("given_name", "Erika"));
-		disclosures.add(builder.putSDClaim("family_name", "Mustermann"));
-		disclosures.add(builder.putSDClaim("birthdate", "1963-08-12"));
+		disclosures.add(builder.putSDClaim("given_name", "Jean"));
+		disclosures.add(builder.putSDClaim("family_name", "Dupont"));
+		disclosures.add(builder.putSDClaim("birthdate", "1980-05-23"));
+		disclosures.add(builder.putSDClaim("age_in_years", "44"));
 
 		SDObjectBuilder ageBuilder = new SDObjectBuilder();
 		disclosures.add(ageBuilder.putSDClaim("21", true));
+		disclosures.add(ageBuilder.putSDClaim("65", false));
 		ageBuilder.putDecoyDigests(3);
-		Map<String, Object> age = ageBuilder.build();
+		Map<String, Object> ageEqualOrOver = ageBuilder.build();
 
 		Map<String, Object> cnf = new HashMap<>();
 		cnf.put("jwk", privateKey.toPublicJWK().toJSONObject());
@@ -110,8 +113,9 @@ public class CreateSdJwtKbCredential extends AbstractCondition {
 		builder.putClaim("cnf", cnf);
 		builder.putClaim("iat", Instant.now().getEpochSecond());
 		builder.putClaim("exp", Instant.now().plus(14, ChronoUnit.DAYS).getEpochSecond());
-		builder.putClaim("age_equal_or_over", age);
-		builder.putClaim("iss", "https://demo.pid-issuer.bundesdruckerei.de/c");
+		builder.putClaim("age_equal_or_over", ageEqualOrOver);
+		String baseUrl = env.getString("base_url");
+		builder.putClaim("iss", baseUrl);
 
 		builder.putDecoyDigests(3);
 
