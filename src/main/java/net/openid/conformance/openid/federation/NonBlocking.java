@@ -58,7 +58,7 @@ public class NonBlocking {
 		claims.remove("authority_hints");
 		claims.remove("trust_mark_issuers");
 		claims.remove("trust_mark_owners");
-		claims.addProperty("iss", env.getString("trust_anchor"));
+		claims.addProperty("iss", env.getString("trust_anchor_entity_identifier"));
 		claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
 
 		JsonObject jwks = env.getObject("trust_anchor_jwks");
