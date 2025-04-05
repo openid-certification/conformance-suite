@@ -13,6 +13,7 @@ import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdSch
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddDcqlToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddEncryptionParametersToClientMetadata;
+import net.openid.conformance.condition.client.AddExpectedOriginsToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
@@ -376,6 +377,9 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
 
 				callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
+			}
+			if (browserApi && !browserUnsigned) {
+				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-ID3-A.2");
 			}
 
 			switch (queryLanguage) {
