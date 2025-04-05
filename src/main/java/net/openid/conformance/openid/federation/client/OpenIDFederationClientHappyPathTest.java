@@ -48,6 +48,7 @@ import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpointResponse;
 import net.openid.conformance.openid.federation.NonBlocking;
 import net.openid.conformance.openid.federation.SetPrimaryEntityStatement;
+import net.openid.conformance.openid.federation.TrustChainVerifier;
 import net.openid.conformance.openid.federation.ValidateFederationUrl;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -367,10 +368,16 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			try {
 				List<String> trustChainList = findPath(sub, trustAnchor);
 				if (trustChainList.isEmpty()) {
-					throw new TestFailureException(getId(), "Could not build a trust chain from the RP %s to trust anchor %s".formatted(sub, trustAnchor));
+					throw new TestFailureException(getId(), "Could not build a trust chain from the sub %s to trust anchor %s".formatted(sub, trustAnchor));
 				}
 				trustChain = buildTrustChain(trustChainList);
-
+				TrustChainVerifier.VerificationResult result = TrustChainVerifier.verifyTrustChain(sub, trustAnchor, OIDFJSON.convertJsonArrayToList(trustChain));
+				if(!result.isVerified()) {
+					throw new TestFailureException(getId(), "Could not verify the trust chain from the sub %s to trust anchor %s. Error: %s"
+						.formatted(sub, trustAnchor, result.getError()));
+				} else {
+					eventLog.log(getId(),"**** TRUST CHAIN VERIFIED ****");
+				}
 			} catch (CyclicPathException e) {
 				throw new TestFailureException(getId(), e.getMessage(), e);
 			}
