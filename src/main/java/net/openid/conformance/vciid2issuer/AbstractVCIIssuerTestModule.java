@@ -169,8 +169,9 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.condition.VCICallCredentialResourceAllowingDpopNonceError;
 import net.openid.conformance.vciid2issuer.condition.VCICallCredentialResourceEndpoint;
+import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
-import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialResponse;
+import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 
 import java.util.Arrays;
 import java.util.List;
@@ -1007,7 +1008,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(new EnsureHttpStatusCode(202), ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
-		callAndContinueOnFailure(VCIValidateCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
+		callAndContinueOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-ID2-8.3");
 
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "RFC7231-7.1.1.2");
