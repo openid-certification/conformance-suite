@@ -54,7 +54,7 @@ import net.openid.conformance.condition.client.ExtractVpTokenPE;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
-import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
+import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToDID;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestClientIdSchemeToRedirectUri;
@@ -498,7 +498,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 				break;
 
 			case SD_JWT_VC:
-				callAndStopOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE);
+				callAndStopOnFailure(ParseCredentialAsSdJwtKb.class, ConditionResult.FAILURE);
 
 				eventLog.startBlock(currentClientString() + "Verify credential JWT");
 				// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed

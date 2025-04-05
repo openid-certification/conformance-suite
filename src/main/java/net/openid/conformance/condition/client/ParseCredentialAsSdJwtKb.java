@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ParseCredentialAsSdJwt extends AbstractCondition {
+public class ParseCredentialAsSdJwtKb extends AbstractCondition {
 
 	private static final Gson gson = new Gson();
 
