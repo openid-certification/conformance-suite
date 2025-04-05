@@ -21,7 +21,7 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
-import net.openid.conformance.condition.as.CreateSdJwtCredential;
+import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
 import net.openid.conformance.condition.as.CreateWalletIsoMdlAnnexBSessionTranscript;
 import net.openid.conformance.condition.as.EncryptVPResponse;
@@ -500,7 +500,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 		switch (getVariant(VPID3VerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
-				callAndStopOnFailure(CreateSdJwtCredential.class);
+				callAndStopOnFailure(CreateSdJwtKbCredential.class);
 
 				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
 					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");

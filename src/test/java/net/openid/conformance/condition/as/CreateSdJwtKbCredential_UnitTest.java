@@ -13,18 +13,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class CreateSdJwtCredential_UnitTest {
+public class CreateSdJwtKbCredential_UnitTest {
 
 	private Environment env = new Environment();
 
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CreateSdJwtCredential cond;
+	private CreateSdJwtKbCredential cond;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new CreateSdJwtCredential();
+		cond = new CreateSdJwtKbCredential();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
