@@ -3,7 +3,6 @@ package net.openid.conformance.vciid2wallet.condition;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -42,7 +41,7 @@ public class VCICreateCredentialEndpointResponse extends AbstractCondition {
 		JsonArray credentials = new JsonArray();
 		JsonObject credential = new JsonObject();
 		// using mock from the spec here for now
-		credential.add("credential", new JsonPrimitive("LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L"));
+		credential.addProperty("credential", env.getString("credential"));
 		credentials.add(credential);
 		response.add("credentials", credentials);
 

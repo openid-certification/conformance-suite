@@ -50,6 +50,7 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateRefreshToken;
+import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
@@ -214,6 +215,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
+import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -666,9 +668,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(VCIValidateCredentialRequestStructure.class, "OID4VCI-ID2-8.2");
-		callAndStopOnFailure(VCIValidateCredentialRequestProof.class, "OID4VCI-ID2-8.2.2");
+		callAndStopOnFailure(VCIExtractCredentialRequestProof.class, "OID4VCI-ID2-8.2.2");
+		callAndContinueOnFailure(VCIValidateCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.2.2");
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+		callAndStopOnFailure(CreateSdJwtCredential.class);
 
 		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class);
 

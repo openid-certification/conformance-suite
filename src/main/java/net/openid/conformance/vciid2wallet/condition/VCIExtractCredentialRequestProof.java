@@ -1,5 +1,6 @@
 package net.openid.conformance.vciid2wallet.condition;
 
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -12,33 +13,37 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWTUtil;
 
 import java.io.Serial;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-public class VCIValidateCredentialRequestProof extends AbstractCondition {
+public class VCIExtractCredentialRequestProof extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-		String jwt = env.getString("proof_jwt", "value");
-		String audience = env.getString("server","issuer");
 
-		JWTClaimsSet jwtClaimsSet;
-		try {
-			JWKSet publicKeysJwks = JWKUtil.parseJWKSet(env.getObject("client_jwks").toString());
-			jwtClaimsSet = validateJwtProof(jwt, audience, null, publicKeysJwks);
-			logSuccess("Successfully validated proof jwt", args("jwt", jwt, "claims", jwtClaimsSet));
-		}catch (Exception e) {
-			String message = e.getMessage();
-			if (e.getCause() != null) {
-				message += " Cause: " + e.getCause().getMessage();
+		JsonObject credentialRequestBodyJson = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
+		JsonObject proofObject = credentialRequestBodyJson.get("proof").getAsJsonObject();
+		String proofType = OIDFJSON.getString(proofObject.get("proof_type"));
+		log("Detected proof type", args("proof_type", proofType));
+		if ("jwt".equals(proofType)) {
+			String jwtString = OIDFJSON.getString(proofObject.get("jwt"));
+			JsonObject proofJwt = null;
+			try {
+				proofJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtString);
+			} catch (ParseException e) {
+				throw error("Parsing SD-JWT credential jwt failed", e, args("proof_jwt", proofJwt));
 			}
-			throw error("JWT proof validation failed", args("jwt", jwt, "error", message));
+			env.putObject("proof_jwt", proofJwt);
+		} else {
+			throw new UnsupportedOperationException("Unsupported proof type " + proofType);
 		}
 
 		return env;
