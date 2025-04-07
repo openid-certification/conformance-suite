@@ -433,22 +433,35 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		fetchAndVerifyEntityStatement();
 		callAndContinueOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
 
-		try {
-			List<String> rpTrustChain = findPath(rpEntity, rpTrustAnchor);
-			if (rpTrustChain.isEmpty()) {
-				throw new TestFailureException(getId(), "Could not build a trust chain from the RP %s to trust anchor %s".formatted(rpEntity, rpTrustAnchor));
-			}
-			List<String> opTrustChain = findPath(opEntity, rpTrustAnchor);
-			if (opTrustChain.isEmpty()) {
-				throw new TestFailureException(getId(), "Could not build a trust chain from the OP %s to trust anchor %s".formatted(opEntity, rpTrustAnchor));
-			}
+		JsonObject trustChainInfo = new JsonObject();
+		trustChainInfo.addProperty("subject", rpEntity);
+		trustChainInfo.addProperty("trust_anchor", rpTrustAnchor);
+		env.putObject("trust_chain", trustChainInfo);
 
-			JsonArray trustChain = buildTrustChain(rpTrustChain);
+		// Get the trust chain from the request object if it exists, otherwise build it.
+		callAndContinueOnFailure(ExtractTrustChainFromRequestObject.class, Condition.ConditionResult.FAILURE);
+		JsonElement trustChainElement = env.getElementFromObject("trust_chain", "trust_chain");
+		if (trustChainElement == null) {
+			List<String> rpTrustChain;
+			try {
+				// There must be a trust chain from the RP to the trust anchor
+				rpTrustChain = findPath(rpEntity, rpTrustAnchor);
+				if (rpTrustChain.isEmpty()) {
+					throw new TestFailureException(getId(), "Could not build a trust chain from the RP %s to trust anchor %s".formatted(rpEntity, rpTrustAnchor));
+				}
+				env.putArray("trust_chain", "trust_chain", buildTrustChain(rpTrustChain));
 
-			eventLog.log(getId(),"*** BOTH TRUST CHAINS BUILT ***");
-		} catch (CyclicPathException e) {
-			throw new TestFailureException(getId(), e.getMessage(), e);
+				// And there must also be a trust chain from the OP (i.e. this test) to that  trust anchor
+				List<String> opTrustChain = findPath(opEntity, rpTrustAnchor);
+				if (opTrustChain.isEmpty()) {
+					throw new TestFailureException(getId(), "Could not build a trust chain from the OP %s to trust anchor %s".formatted(opEntity, rpTrustAnchor));
+				}
+			} catch (CyclicPathException e) {
+				throw new TestFailureException(getId(), e.getMessage(), e);
+			}
 		}
+
+		callAndContinueOnFailure(VerifyTrustChain.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CreateAuthorizationCode.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CreateAuthorizationEndpointResponseParams.class, Condition.ConditionResult.FAILURE);
