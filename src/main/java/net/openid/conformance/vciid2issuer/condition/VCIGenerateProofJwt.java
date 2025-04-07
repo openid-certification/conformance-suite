@@ -35,11 +35,7 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 	@PostEnvironment(required = "vci")
 	public Environment evaluate(Environment env) {
 
-		String serverIssuer = env.getString("config", "server.discoveryIssuer");
-		if (serverIssuer != null && !serverIssuer.endsWith("/")) {
-			// FIXME: add trailing slash to issuer, as testsuite requires it
-			serverIssuer += "/";
-		}
+		String serverIssuer = getIssuer(env);
 
 		try {
 			JWKSet jwkSet = JWKUtil.parseJWKSet(env.getObject("client_jwks").toString());
@@ -51,9 +47,40 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			String cNonce = getCNonce();
 			int proofLifetimeSeconds = getProofLifetimeSeconds(); //
-			String jwtProof = createJwtProof(ecKey, jwk.getKeyID(), walletIssuerId, serverIssuer, cNonce, proofLifetimeSeconds);
+			String walletKeyId = jwk.getKeyID();
 
-			env.putString("vci","proof.jwt", jwtProof);
+			// Ensure the key uses the correct curve
+			if (!Curve.P_256.equals(ecKey.getCurve())) {
+				throw error("Private key does not use the required P-256 curve for ES256");
+			}
+
+			JWSSigner signer = new ECDSASigner(ecKey);
+
+			JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
+				.type(new JOSEObjectType("openid4vci-proof+jwt"))
+				.keyID(walletKeyId)
+				.build();
+
+			Instant now = Instant.now();
+			Date issueTime = Date.from(now);
+			Date expirationTime = Date.from(now.plus(proofLifetimeSeconds, ChronoUnit.SECONDS));
+			String jwtId = UUID.randomUUID().toString();  // Optional: Add a unique ID
+
+			JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+				.issuer(walletIssuerId)
+				.audience(serverIssuer)
+				.issueTime(issueTime)
+				.expirationTime(expirationTime)
+				.claim("nonce", cNonce)
+				.jwtID(jwtId)
+				.build();
+
+			SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+			signedJWT.sign(signer);
+
+			String jwtProof = signedJWT.serialize();
+
+			env.putString("vci", "proof.jwt", jwtProof);
 
 			JsonObject jwtProofObject = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtProof);
 			logSuccess("Create Proof JWT", args("jwt", jwtProof, "decoded_jwt_json", jwtProofObject.toString()));
@@ -65,6 +92,15 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 		return env;
 	}
 
+	protected String getIssuer(Environment env) {
+		String serverIssuer = env.getString("config", "server.discoveryIssuer");
+		if (serverIssuer != null && !serverIssuer.endsWith("/")) {
+			// FIXME: add trailing slash to issuer, as testsuite requires it
+			serverIssuer += "/";
+		}
+		return serverIssuer;
+	}
+
 	protected String getCNonce() {
 		return null;  //TODO use nonce if provided
 	}
@@ -73,55 +109,4 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 		return DEFAULT_PROOF_LIFETIME_SECONDS;
 	}
 
-	/**
-	 * Creates a signed JWT proof according to OID4VCI requirements.
-	 *
-	 * @param walletPrivateKey The Wallet's private key for signing.
-	 * @param walletKeyId      The Key ID ('kid') corresponding to the Wallet's key.
-	 * @param walletIssuerId   The identifier for the Wallet ('iss' claim).
-	 * @param issuerAudience   The identifier for the target Issuer ('aud' claim).
-	 * @param nonce           The nonce received from the Issuer's token endpoint ('nonce' claim).
-	 * @param proofLifetimeSeconds Validity duration of the proof in seconds (e.g., 60).
-	 * @return The compact serialized JWT proof string.
-	 * @throws JOSEException If signing fails.
-	 */
-	public static String createJwtProof(
-		ECKey walletPrivateKey,
-		String walletKeyId,
-		String walletIssuerId,
-		String issuerAudience,
-		String nonce,
-		long proofLifetimeSeconds) throws JOSEException {
-
-		// Ensure the key uses the correct curve
-		if (!Curve.P_256.equals(walletPrivateKey.getCurve())) {
-			throw new JOSEException("Private key does not use the required P-256 curve for ES256");
-		}
-
-		JWSSigner signer = new ECDSASigner(walletPrivateKey);
-
-		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
-			.type(new JOSEObjectType("openid4vci-proof+jwt"))
-			.keyID(walletKeyId)
-			.build();
-
-		Instant now = Instant.now();
-		Date issueTime = Date.from(now);
-		Date expirationTime = Date.from(now.plus(proofLifetimeSeconds, ChronoUnit.SECONDS));
-		String jwtId = UUID.randomUUID().toString();  // Optional: Add a unique ID
-
-		JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-			.issuer(walletIssuerId)
-			.audience(issuerAudience)
-			.issueTime(issueTime)
-			.expirationTime(expirationTime)
-			.claim("nonce", nonce)
-			.jwtID(jwtId)
-			.build();
-
-		SignedJWT signedJWT = new SignedJWT(header, claimsSet);
-		signedJWT.sign(signer);
-
-		return signedJWT.serialize();
-	}
 }
