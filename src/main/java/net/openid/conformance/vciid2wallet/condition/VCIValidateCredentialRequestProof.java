@@ -15,7 +15,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
 
-import java.io.Serial;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -29,107 +28,45 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 		String jwt = env.getString("proof_jwt", "value");
 		String audience = env.getString("server", "issuer");
 
-		JWTClaimsSet jwtClaimsSet;
 		try {
 			JWKSet publicKeysJwks = JWKUtil.parseJWKSet(env.getObject("client_jwks").toString());
-			jwtClaimsSet = validateJwtProof(jwt, audience, null, publicKeysJwks);
-			logSuccess("Successfully validated proof jwt", args("jwt", jwt, "claims", jwtClaimsSet));
-		} catch (Exception e) {
-			String message = e.getMessage();
-			if (e.getCause() != null) {
-				message += " Cause: " + e.getCause().getMessage();
-			}
-			throw error("JWT proof validation failed", args("jwt", jwt, "error", message));
-		}
-
-		return env;
-	}
-
-	public static class JwtProofValidationException extends RuntimeException {
-
-		@Serial
-		private static final long serialVersionUID = 1L;
-
-		public JwtProofValidationException(String message) {
-			super(message);
-		}
-
-		public JwtProofValidationException(String message, JOSEException e) {
-			super(message, e);
-		}
-
-		public JwtProofValidationException(String message, Exception e) {
-			super(message, e);
-		}
-	}
-
-	public static class InvalidPublicKeyException extends JwtProofValidationException {
-		@Serial
-		private static final long serialVersionUID = 1L;
-
-		public InvalidPublicKeyException(String message) {
-			super(message);
-		}
-	}
-
-	public static class InvalidClaimException extends JwtProofValidationException {
-		@Serial
-		private static final long serialVersionUID = 1L;
-
-		public InvalidClaimException(String message) {
-			super(message);
-		}
-	}
-
-	/**
-	 * Validates a received OID4VCI JWT proof signed with PS256.
-	 *
-	 * @param proofJwt         The compact JWT proof string received from the Wallet.
-	 * @param expectedAudience The Issuer's own identifier (must match 'aud' claim).
-	 * @param expectedNonce    The 'c_nonce' the Issuer provided to the Wallet (must match 'nonce' claim).
-	 * @param walletPublicKeys A JWKSet containing trusted public keys of Wallets (used to find RSA key via 'kid').
-	 * @return The validated JWTClaimsSet if successful.
-	 * @throws JwtProofValidationException If validation fails for any reason (signature, claims, etc.).
-	 */
-	public JWTClaimsSet validateJwtProof(
-		String proofJwt,
-		String expectedAudience,
-		String expectedNonce,
-		JWKSet walletPublicKeys) throws JwtProofValidationException {
-
-		try {
 			// 1. Parse the JWT string
-			SignedJWT signedJWT = SignedJWT.parse(proofJwt);
+			SignedJWT signedJWT = SignedJWT.parse(jwt);
 			JWSHeader header = signedJWT.getHeader();
+
+			// TODO determine expected nonce
+			String expectedNonce = null;
 
 			// Basic header checks
 			if (!"openid4vci-proof+jwt".equals(header.getType().getType())) {
-				throw new JwtProofValidationException("Invalid JWT type (typ)");
+				throw error("JWT proof validation failed: Invalid JWT type (typ)", args("jwt", jwt,
+					"expected", "openid4vci-proof+jwt",
+					"actual", header.getType().getType()));
 			}
 
 			if (!JWSAlgorithm.ES256.equals(header.getAlgorithm())) {
-				throw new JwtProofValidationException("Unsupported or invalid JWT algorithm (alg). Expected ES256.");
+				throw error("JWT proof validation failed: Unsupported or invalid JWT algorithm (alg). Expected ES256.", args("jwt", jwt, "alg", header.getAlgorithm()));
 			}
 
 			// TODO add support to check jwk, see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2.1.1
 			if (header.getKeyID() == null || header.getKeyID().isEmpty()) {
-				throw new JwtProofValidationException("Missing Key ID (kid) in header");
+				throw error("JWT proof validation failed: Missing Key ID (kid) in header", args("jwt", jwt));
 			}
 
 			// TODO add support to detect key via jwk header
 			// 2. Find the Wallet's Public Key using 'kid'
-			JWK walletPublicKey = walletPublicKeys.getKeyByKeyId(header.getKeyID());
+			JWK walletPublicKey = publicKeysJwks.getKeyByKeyId(header.getKeyID());
 			if (walletPublicKey == null) {
-				throw new InvalidPublicKeyException("Public key not found for kid: " + header.getKeyID());
+				throw error("JWT proof validation failed: Public key not found for kid: " + header.getKeyID(), args("jwt", jwt, "publicKeysJwks", publicKeysJwks));
 			}
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
-				throw new InvalidPublicKeyException("Key found but is not an ECKey for kid: " + header.getKeyID());
+				throw error("JWT proof validation failed: Key found but is not an ECKey for kid: " + header.getKeyID());
 			}
 
 			// ensure P_256 curve is used
 			if (!Curve.P_256.equals(ecPublicKey.getCurve())) {
-				throw new InvalidPublicKeyException("Public key for kid " + header.getKeyID() + " does not use the required P-256 curve.");
+				throw error("JWT proof validation failed: Public key for kid " + header.getKeyID() + " does not use the required P-256 curve.", args("curve", ecPublicKey.getCurve().getName()));
 			}
 
 			// 3. Create Verifier with the public EC key
@@ -137,7 +74,7 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 
 			// 4. Verify the Signature
 			if (!signedJWT.verify(verifier)) {
-				throw new JwtProofValidationException("JWT signature validation failed");
+				throw error("JWT proof validation failed: JWT signature validation failed");
 			}
 
 			// 5. Validate Claims (No changes needed in claim checking logic itself)
@@ -145,35 +82,37 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 
 			// Check Audience
 			List<String> audiences = claimsSet.getAudience();
-			if (audiences == null || !audiences.contains(expectedAudience)) {
-				throw new InvalidClaimException("Invalid or missing audience (aud) claim. Expected: " + expectedAudience);
+			if (audiences == null || !audiences.contains(audience)) {
+				throw error("JWT proof validation failed: Invalid or missing audience (aud) claim. Expected audience to contain: " + audience, args("aud", audiences));
 			}
 
 			// Check Nonce
 			String nonce = claimsSet.getStringClaim("nonce");
 			if (!Objects.equals(expectedNonce, nonce)) {
-				throw new InvalidClaimException("Nonce (nonce) claim mismatch or missing.");
+				throw error("JWT proof validation failed: Nonce (nonce) claim mismatch or missing.", args("actual_nonce", nonce, "expected_nonce", expectedNonce));
 			}
 
 			// Check Expiration
 			Date expirationTime = claimsSet.getExpirationTime();
 			if (expirationTime == null || Instant.now().isAfter(expirationTime.toInstant())) {
-				throw new InvalidClaimException("JWT has expired or expiration time (exp) is missing.");
+				throw error("JWT proof validation failed: JWT has expired or expiration time (exp) is missing.");
 			}
 
 			// Check Issued At
 			Date issueTime = claimsSet.getIssueTime();
 			if (issueTime == null || Instant.now().plus(5, ChronoUnit.MINUTES).isBefore(issueTime.toInstant())) {
-				throw new InvalidClaimException("Invalid or missing issued at time (iat) claim.");
+				throw error("JWT proof validation failed: Invalid or missing issued at time (iat) claim.");
 			}
 
 			// 6. Validation successful :)
-			return claimsSet;
+			logSuccess("Successfully validated proof jwt", args("jwt", jwt, "claims", claimsSet));
 
 		} catch (JOSEException e) {
-			throw new JwtProofValidationException("JOSE error during validation", e);
+			throw error("JWT proof validation failed: JOSE error during validation", e);
 		} catch (Exception e) {
-			throw new JwtProofValidationException("Unexpected error during validation", e);
+			throw error("JWT proof validation failed: Unexpected error during validation", e);
 		}
+
+		return env;
 	}
 }
