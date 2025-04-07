@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractParseCredentialAsSdJwt extends AbstractCondition {
 
-	abstract protected boolean expectKbJwt();
+	protected abstract boolean expectKbJwt();
 
 	private static final Gson gson = new Gson();
 
