@@ -4,10 +4,11 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
@@ -26,14 +27,14 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		String jwt = env.getString("proof_jwt", "value");
-		String audience = env.getString("server","issuer");
+		String audience = env.getString("server", "issuer");
 
 		JWTClaimsSet jwtClaimsSet;
 		try {
 			JWKSet publicKeysJwks = JWKUtil.parseJWKSet(env.getObject("client_jwks").toString());
 			jwtClaimsSet = validateJwtProof(jwt, audience, null, publicKeysJwks);
 			logSuccess("Successfully validated proof jwt", args("jwt", jwt, "claims", jwtClaimsSet));
-		}catch (Exception e) {
+		} catch (Exception e) {
 			String message = e.getMessage();
 			if (e.getCause() != null) {
 				message += " Cause: " + e.getCause().getMessage();
@@ -65,13 +66,16 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 	public static class InvalidPublicKeyException extends JwtProofValidationException {
 		@Serial
 		private static final long serialVersionUID = 1L;
+
 		public InvalidPublicKeyException(String message) {
 			super(message);
 		}
 	}
+
 	public static class InvalidClaimException extends JwtProofValidationException {
 		@Serial
 		private static final long serialVersionUID = 1L;
+
 		public InvalidClaimException(String message) {
 			super(message);
 		}
@@ -80,10 +84,10 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 	/**
 	 * Validates a received OID4VCI JWT proof signed with PS256.
 	 *
-	 * @param proofJwt           The compact JWT proof string received from the Wallet.
-	 * @param expectedAudience   The Issuer's own identifier (must match 'aud' claim).
-	 * @param expectedNonce      The 'c_nonce' the Issuer provided to the Wallet (must match 'nonce' claim).
-	 * @param walletPublicKeys   A JWKSet containing trusted public keys of Wallets (used to find RSA key via 'kid').
+	 * @param proofJwt         The compact JWT proof string received from the Wallet.
+	 * @param expectedAudience The Issuer's own identifier (must match 'aud' claim).
+	 * @param expectedNonce    The 'c_nonce' the Issuer provided to the Wallet (must match 'nonce' claim).
+	 * @param walletPublicKeys A JWKSet containing trusted public keys of Wallets (used to find RSA key via 'kid').
 	 * @return The validated JWTClaimsSet if successful.
 	 * @throws JwtProofValidationException If validation fails for any reason (signature, claims, etc.).
 	 */
@@ -103,10 +107,8 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 				throw new JwtProofValidationException("Invalid JWT type (typ)");
 			}
 
-			// TODO add support for other algorithms
-			// *** Algorithm Check Changed ***
-			if (!JWSAlgorithm.PS256.equals(header.getAlgorithm())) {
-				throw new JwtProofValidationException("Unsupported or invalid JWT algorithm (alg). Expected PS256.");
+			if (!JWSAlgorithm.ES256.equals(header.getAlgorithm())) {
+				throw new JwtProofValidationException("Unsupported or invalid JWT algorithm (alg). Expected ES256.");
 			}
 
 			// TODO add support to check jwk, see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2.1.1
@@ -121,13 +123,17 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 				throw new InvalidPublicKeyException("Public key not found for kid: " + header.getKeyID());
 			}
 
-			// *** Key Type Check Changed ***
-			if (!(walletPublicKey instanceof RSAKey)) {
-				throw new InvalidPublicKeyException("Key found but is not an RSAKey for kid: " + header.getKeyID());
+			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
+				throw new InvalidPublicKeyException("Key found but is not an ECKey for kid: " + header.getKeyID());
 			}
 
-			// 3. Create Verifier with the public RSA key
-			JWSVerifier verifier = new RSASSAVerifier((RSAKey) walletPublicKey); // Changed to RSASSAVerifier
+			// ensure P_256 curve is used
+			if (!Curve.P_256.equals(ecPublicKey.getCurve())) {
+				throw new InvalidPublicKeyException("Public key for kid " + header.getKeyID() + " does not use the required P-256 curve.");
+			}
+
+			// 3. Create Verifier with the public EC key
+			JWSVerifier verifier = new ECDSAVerifier(ecPublicKey);
 
 			// 4. Verify the Signature
 			if (!signedJWT.verify(verifier)) {
