@@ -3,6 +3,7 @@ package net.openid.conformance.vciid2issuer.condition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -16,7 +17,8 @@ public class VCIExtractCredentialResponse extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject credentialResponseBodyJson = env.getElementFromObject("endpoint_response", "body_json").getAsJsonObject();
+		JsonObject endpointResponse = env.getObject("endpoint_response").getAsJsonObject();
+		JsonObject credentialResponseBodyJson = JsonParser.parseString(OIDFJSON.getString(endpointResponse.get("body"))).getAsJsonObject();
 
 		JsonElement credentialsEl = credentialResponseBodyJson.get("credentials");
 		if (credentialsEl == null) {
