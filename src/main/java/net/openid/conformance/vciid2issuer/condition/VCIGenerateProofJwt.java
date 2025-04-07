@@ -6,10 +6,11 @@ import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
@@ -43,14 +44,14 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 		try {
 			JWKSet jwkSet = JWKUtil.parseJWKSet(env.getObject("client_jwks").toString());
 			JWK jwk = jwkSet.getKeys().get(0);
-			RSAKey rsaKey = RSAKey.parse(jwk.toJSONString());
+			ECKey ecKey = ECKey.parse(jwk.toJSONString());
 
 			// TODO find a better way to generate the walletIssuerId
-			String walletIssuerId = "did:key:" + rsaKey.getKeyID();
+			String walletIssuerId = "did:key:" + ecKey.getKeyID();
 
 			String cNonce = getCNonce();
 			int proofLifetimeSeconds = getProofLifetimeSeconds(); //
-			String jwtProof = createJwtProof(rsaKey, jwk.getKeyID(), walletIssuerId, serverIssuer, cNonce, proofLifetimeSeconds);
+			String jwtProof = createJwtProof(ecKey, jwk.getKeyID(), walletIssuerId, serverIssuer, cNonce, proofLifetimeSeconds);
 
 			env.putString("vci","proof.jwt", jwtProof);
 
@@ -85,16 +86,21 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 	 * @throws JOSEException If signing fails.
 	 */
 	public static String createJwtProof(
-		RSAKey walletPrivateKey,
+		ECKey walletPrivateKey,
 		String walletKeyId,
 		String walletIssuerId,
 		String issuerAudience,
 		String nonce,
 		long proofLifetimeSeconds) throws JOSEException {
 
-		JWSSigner signer = new RSASSASigner(walletPrivateKey); // Assumes ECKey
+		// Ensure the key uses the correct curve
+		if (!Curve.P_256.equals(walletPrivateKey.getCurve())) {
+			throw new JOSEException("Private key does not use the required P-256 curve for ES256");
+		}
 
-		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.PS256)
+		JWSSigner signer = new ECDSASigner(walletPrivateKey);
+
+		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
 			.type(new JOSEObjectType("openid4vci-proof+jwt"))
 			.keyID(walletKeyId)
 			.build();
