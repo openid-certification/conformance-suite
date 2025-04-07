@@ -30,6 +30,7 @@ import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoi
 import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
+import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
@@ -168,8 +169,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vciid2issuer.condition.VCICallCredentialResourceAllowingDpopNonceError;
-import net.openid.conformance.vciid2issuer.condition.VCICallCredentialResourceEndpoint;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
@@ -928,7 +927,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			int i = 0;
 			while(i < MAX_RETRY) {
 				call(sequence(createDpopForResourceEndpointSteps));
-				callAndStopOnFailure(VCICallCredentialResourceAllowingDpopNonceError.class, "OID4VCI-ID2-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "OID4VCI-ID2-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 					break; // no nonce error so
 				}
@@ -1001,7 +1000,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop() ) {
 			requestProtectedResourceUsingDpop();
 		} else  {
-			callAndStopOnFailure(VCICallCredentialResourceEndpoint.class, "OID4VCI-ID2-8", "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-ID2-8", "FAPI2-SP-ID2-5.3.3-2");
 		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
