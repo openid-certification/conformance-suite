@@ -18,6 +18,10 @@ import java.util.List;
 public class TrustChainVerifier {
 
 	public static VerificationResult verifyTrustChain(String subjectEntity, String trustAnchor, List<String> trustChain) {
+		return verifyTrustChain(subjectEntity, trustAnchor, trustChain, false);
+	}
+
+		public static VerificationResult verifyTrustChain(String subjectEntity, String trustAnchor, List<String> trustChain, boolean ignoreExpAndIat) {
 
 		if (trustChain == null || trustChain.isEmpty()) {
 			return new VerificationResult(false,"Trust chain is null or empty");
@@ -58,7 +62,7 @@ public class TrustChainVerifier {
 				return new VerificationResult(false, e.getMessage());
 			}
 
-			if (!verifyClaims(payload)) {
+			if (!ignoreExpAndIat && !verifyClaims(payload)) {
 				return new VerificationResult(false,"Claim (iat/exp) validation failed for token at index " + i);
 			}
 
