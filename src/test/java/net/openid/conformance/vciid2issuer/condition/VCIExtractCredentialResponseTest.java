@@ -39,7 +39,7 @@ class VCIExtractCredentialResponseTest extends AbstractVciUnitTest {
 			  ]
 			}
 			""";
-		env.putObjectFromJsonString("endpoint_response", "body_json", metadataString);
+		env.putString("endpoint_response", "body", metadataString);
 		cond.evaluate(env);
 		assertThat(env.getString("credential")).isEqualTo("LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L");
 	}
