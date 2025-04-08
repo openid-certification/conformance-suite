@@ -16,6 +16,9 @@ public class CreateSdJwtPresentationSubmission extends AbstractCondition {
 
 		// This is a very basic implementation that just assumes the first input descriptor is one that matches the
 		// sd_jwt credential the suite returns
+		if (env.getElementFromObject("authorization_request_object", "claims.presentation_definition") == null) {
+			throw error("presentation_definition is not in presentation request");
+		}
 		String id = env.getString("authorization_request_object", "claims.presentation_definition.id");
 		JsonElement descArray = env.getElementFromObject("authorization_request_object", "claims.presentation_definition.input_descriptors");
 		JsonObject foo = descArray.getAsJsonArray().get(0).getAsJsonObject();
