@@ -24,9 +24,11 @@ public class VCIExtractCredentialResponse extends AbstractCondition {
 		if (credentialsEl == null) {
 			throw error("'credentials' missing from credential endpoint response", args("credential_response", credentialResponseBodyJson));
 		}
+
 		if (!credentialsEl.isJsonArray()) {
 			throw error("'credentials' must be an array", args("credential_response", credentialResponseBodyJson));
 		}
+
 		JsonArray credentials = credentialsEl.getAsJsonArray();
 		if (credentials.isEmpty()) {
 			throw error("'credentials' array must contain at least one credential", args("credential_response", credentialResponseBodyJson));
