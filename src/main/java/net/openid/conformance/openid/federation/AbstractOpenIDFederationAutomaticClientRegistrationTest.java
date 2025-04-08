@@ -18,7 +18,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.http.HttpMethod;
@@ -43,11 +42,17 @@ import java.net.URISyntaxException;
 			"internal.op_to_rp_mode"
 		}
 )
+/*
 @VariantParameters({
 	FAPIAuthRequestMethod.class
 })
+*/
 @SuppressWarnings("unused")
-public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpenIDFederationTest {
+public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest extends AbstractOpenIDFederationTest {
+
+	protected abstract FAPIAuthRequestMethod getRequestMethod();
+
+	protected abstract HttpMethod getHttpMethodForAuthorizeRequest();
 
 	@Override
 	public void additionalConfiguration() {
@@ -99,9 +104,8 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 		}
 
 		String authorizationEndpointUrl;
-		HttpMethod method;
 
-		if (FAPIAuthRequestMethod.PUSHED.equals(getVariant(FAPIAuthRequestMethod.class))) {
+		if (FAPIAuthRequestMethod.PUSHED.equals(getRequestMethod())) {
 
 			callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
 			env.mapKey("endpoint_response", "authorization_endpoint_response");
@@ -114,7 +118,6 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 			env.unmapKey("pushed_authorization_endpoint_response");
 
 			uriBuilder.addParameter("request_uri", env.getString("request_uri"));
-			method = HttpMethod.GET;
 
 		} else {
 
@@ -122,7 +125,6 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 			uriBuilder.addParameter("scope", OIDFJSON.getString(requestObjectClaims.get("scope")));
 			uriBuilder.addParameter("response_type", OIDFJSON.getString(requestObjectClaims.get("response_type")));
 			uriBuilder.addParameter("request", requestObject);
-			method = HttpMethod.POST;
 
 		}
 
@@ -134,7 +136,9 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 
 		env.putString("redirect_uri", OIDFJSON.getString(requestObjectClaims.get("redirect_uri")));
 		env.putString("redirect_to_authorization_endpoint", authorizationEndpointUrl);
-		performRedirect(method.name());
+
+		HttpMethod httpMethod = getHttpMethodForAuthorizeRequest();
+		performRedirect(httpMethod.name());
 	}
 
 	@Override

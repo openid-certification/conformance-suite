@@ -10,7 +10,9 @@ import net.openid.conformance.variant.VariantSelection;
 	profile = TestPlan.ProfileNames.federationTest,
 	testModules = {
 		OpenIDFederationEntityConfigurationTest.class,
-		OpenIDFederationAutomaticClientRegistrationTest.class,
+		OpenIDFederationAutomaticClientRegistrationWithJarAndGetTest.class,
+		OpenIDFederationAutomaticClientRegistrationWithJarAndPostTest.class,
+		OpenIDFederationAutomaticClientRegistrationWithParTest.class,
 	}
 )
 public class OpenIDFederationClientRegistrationOPTestPlan implements TestPlan {
