@@ -79,7 +79,8 @@ import java.util.Set;
 		"client.trust_anchor",
 		"client.jwks",
 		"server.jwks",
-		"internal.op_to_rp_mode"
+		"internal.op_to_rp_mode",
+		"internal.ignore_exp_iat"
 	}
 )
 

@@ -16,8 +16,10 @@ public class VerifyTrustChain extends AbstractCondition {
 		String trustChainTrustAnchor = env.getString("trust_chain", "trust_anchor");
 		JsonArray trustChain = env.getElementFromObject("trust_chain", "trust_chain").getAsJsonArray();
 
+		boolean ignoreExpAndIatValidation = "true".equals(env.getString("config", "internal.op_to_rp_mode"));
+
 		TrustChainVerifier.VerificationResult result =
-			TrustChainVerifier.verifyTrustChain(trustChainSubject, trustChainTrustAnchor, OIDFJSON.convertJsonArrayToList(trustChain));
+			TrustChainVerifier.verifyTrustChain(trustChainSubject, trustChainTrustAnchor, OIDFJSON.convertJsonArrayToList(trustChain), ignoreExpAndIatValidation);
 
 		if (!result.isVerified()) {
 			throw error("Could not verify the trust chain from the sub %s to trust anchor %s".formatted(trustChainSubject, trustChainTrustAnchor),
