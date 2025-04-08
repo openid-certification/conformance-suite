@@ -131,7 +131,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 				// Restore the previous refresh token.
 				env.putString("refresh_token", env.getString("refresh_token_prev"));
 
-				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.1.1-9").butFirst(condition(WaitFor30Seconds.class));
+				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.2.1-9").butFirst(condition(WaitFor30Seconds.class));
 				call(sequence1);
 			}
 		}

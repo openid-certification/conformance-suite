@@ -378,5 +378,101 @@
         "condition": "CheckForUnexpectedParametersInVpClientMetadata",
         "expected-result": "warning",
         "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "openid": "openid_connect",
+            "fapi_request_method": "unsigned",
+            "fapi_profile": "openbanking_brazil",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
+        "expected-result": "failure",
+        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "openid": "openid_connect",
+            "fapi_request_method": "unsigned",
+            "fapi_profile": "openbanking_brazil",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureHttpStatusCodeIs400or401",
+        "expected-result": "failure",
+        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "openid": "openid_connect",
+            "fapi_request_method": "unsigned",
+            "fapi_profile": "openbanking_brazil",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
+        "expected-result": "failure",
+        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "openid": "openid_connect",
+            "fapi_request_method": "unsigned",
+            "fapi_profile": "openbanking_brazil",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureHttpStatusCodeIs400or401",
+        "expected-result": "failure",
+        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "openid": "openid_connect",
+            "fapi_request_method": "unsigned",
+            "fapi_profile": "openbanking_brazil",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
+        "expected-result": "failure",
+        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "openid": "openid_connect",
+            "fapi_request_method": "unsigned",
+            "fapi_profile": "openbanking_brazil",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureHttpStatusCodeIs400or401",
+        "expected-result": "failure",
+        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
     }
 ]

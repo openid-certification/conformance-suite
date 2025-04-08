@@ -79,7 +79,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails.class,
 		FAPI2SPFinalEnsureClientAssertionWithWrongAudFails.class,
 		FAPI2SPFinalEnsureClientAssertionWithNoSubFails.class,
-		FAPI2SPFinalEnsureClientAssertionWithIssAudSucceeds.class,
+		FAPI2SPFinalEnsureClientAssertionWithTokenEndpointAudSucceeds.class,
 
 		FAPI2SPFinalDpopNegativeTests.class,
 
@@ -97,13 +97,11 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims.class,
 
 		//PAR tests
+		FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticationCompletion.class,
 		FAPI2SPFinalPARAttemptReuseRequestUri.class,
 		FAPI2SPFinalPARAttemptToUseExpiredRequestUri.class,
-		FAPI2SPFinalPAREndpointAsAudienceForJWTClientAssertion.class,
 		FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted.class,
 		FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails.class,
-		FAPI2SPFinalPARTokenEndpointAsAudienceForJWTClientAssertion.class,
-		FAPI2SPFinalPARArrayAsAudienceForJWTClientAssertion.class,
 		FAPI2SPFinalPAREnsureRequestUriIsBoundToClient.class,
 		FAPI2SPFinalPARRejectRequestUriInParAuthorizationFormParams.class,
 		FAPI2SPFinalPARRejectInvalidHttpVerb.class,
