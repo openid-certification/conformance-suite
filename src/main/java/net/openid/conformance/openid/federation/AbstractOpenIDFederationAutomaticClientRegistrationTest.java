@@ -31,16 +31,7 @@ import java.net.URISyntaxException;
 		testName = "openid-federation-automatic-client-registration",
 		displayName = "openid-federation-automatic-client-registration",
 		summary = "The test acts as an RP wanting to perform automatic client registration with an OP",
-		profile = "OIDFED",
-		configurationFields = {
-			"client.jwks",
-			"client.trust_chain",
-			"federation.entity_identifier",
-			"federation.trust_anchor",
-			"federation.trust_anchor_jwks",
-			"federation.authority_hints",
-			"internal.op_to_rp_mode"
-		}
+		profile = "OIDFED"
 )
 /*
 @VariantParameters({
@@ -50,9 +41,13 @@ import java.net.URISyntaxException;
 @SuppressWarnings("unused")
 public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest extends AbstractOpenIDFederationTest {
 
+	protected boolean includeTrustChainInAuthorizationRequest = false;
+
 	protected abstract FAPIAuthRequestMethod getRequestMethod();
 
 	protected abstract HttpMethod getHttpMethodForAuthorizeRequest();
+
+	protected abstract void verifyTestConditions();
 
 	@Override
 	public void additionalConfiguration() {
@@ -79,6 +74,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
 		exposeEnvString("entity_configuration_url");
 
+		verifyTestConditions();
+
 		eventLog.endBlock();
 	}
 
@@ -87,8 +84,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		setStatus(Status.RUNNING);
 
 		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
-		skipIfElementMissing("config", "client.trust_chain", Condition.ConditionResult.INFO,
-			AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
+		if (includeTrustChainInAuthorizationRequest) {
+			callAndContinueOnFailure(AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
+		}
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
 
