@@ -16,6 +16,8 @@ import net.openid.conformance.variant.VariantSelection;
 		OpenIDFederationAutomaticClientRegistrationWithJarAndGetAndTrustChainTest.class,
 		OpenIDFederationAutomaticClientRegistrationWithJarAndPostAndTrustChainTest.class,
 		OpenIDFederationAutomaticClientRegistrationWithParAndTrustChainTest.class,
+		OpenIDFederationAutomaticClientRegistrationInvalidClientIdInRequestObjectTest.class,
+		OpenIDFederationAutomaticClientRegistrationInvalidClientIdInQueryParametersTest.class,
 	}
 )
 public class OpenIDFederationClientRegistrationOPTestPlan implements TestPlan {
