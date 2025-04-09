@@ -21,7 +21,7 @@ import org.springframework.http.HttpMethod;
 		}
 )
 @SuppressWarnings("unused")
-public class OpenIDFederationAutomaticClientRegistrationWithJarAndPostTest extends AbstractOpenIDFederationAutomaticClientRegistrationTest {
+public class OpenIDFederationAutomaticClientRegistrationWithJarAndPostTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	protected FAPIAuthRequestMethod getRequestMethod() {
@@ -33,7 +33,4 @@ public class OpenIDFederationAutomaticClientRegistrationWithJarAndPostTest exten
 		return HttpMethod.POST;
 	}
 
-	@Override
-	protected void verifyTestConditions() {
-	}
 }
