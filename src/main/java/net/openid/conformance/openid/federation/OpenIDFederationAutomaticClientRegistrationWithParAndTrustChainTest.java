@@ -22,7 +22,7 @@ import org.springframework.http.HttpMethod;
 	}
 )
 @SuppressWarnings("unused")
-public class OpenIDFederationAutomaticClientRegistrationWithParAndTrustChainTest extends AbstractOpenIDFederationAutomaticClientRegistrationTest {
+public class OpenIDFederationAutomaticClientRegistrationWithParAndTrustChainTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	protected FAPIAuthRequestMethod getRequestMethod() {
