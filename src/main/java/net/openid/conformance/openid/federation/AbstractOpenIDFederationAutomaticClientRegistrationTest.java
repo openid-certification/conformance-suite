@@ -14,7 +14,6 @@ import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -48,6 +47,11 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected abstract HttpMethod getHttpMethodForAuthorizeRequest();
 
 	protected abstract void verifyTestConditions();
+
+	protected abstract void postProcessRequestObject();
+
+	protected abstract void postProcessQueryParameters();
+
 
 	@Override
 	public void additionalConfiguration() {
@@ -87,11 +91,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		if (includeTrustChainInAuthorizationRequest) {
 			callAndContinueOnFailure(AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
 		}
+		postProcessRequestObject();
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
-
-		JsonObject requestObjectClaims = env.getObject("request_object_claims");
-		String requestObject = env.getString("request_object");
 
 		String endpointUri = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.authorization_endpoint");
 		URIBuilder uriBuilder = null;
@@ -119,11 +121,13 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		} else {
 
-			uriBuilder.addParameter("client_id", OIDFJSON.getString(requestObjectClaims.get("client_id")));
-			uriBuilder.addParameter("scope", OIDFJSON.getString(requestObjectClaims.get("scope")));
-			uriBuilder.addParameter("response_type", OIDFJSON.getString(requestObjectClaims.get("response_type")));
-			uriBuilder.addParameter("request", requestObject);
+			callAndStopOnFailure(CreateQueryParametersForAuthorizationRequest.class, Condition.ConditionResult.FAILURE);
+			postProcessQueryParameters();
 
+			uriBuilder.addParameter("client_id", env.getString("query_parameters", "client_id"));
+			uriBuilder.addParameter("scope", env.getString("query_parameters", "scope"));
+			uriBuilder.addParameter("response_type", env.getString("query_parameters", "response_type"));
+			uriBuilder.addParameter("request", env.getString("query_parameters", "request"));
 		}
 
 		try {
@@ -132,7 +136,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 			throw new TestFailureException(getId(), "Invalid authorization endpoint URI", e);
 		}
 
-		env.putString("redirect_uri", OIDFJSON.getString(requestObjectClaims.get("redirect_uri")));
+		env.putString("redirect_uri", env.getString("request_object_claims", "redirect_uri"));
 		env.putString("redirect_to_authorization_endpoint", authorizationEndpointUrl);
 
 		HttpMethod httpMethod = getHttpMethodForAuthorizeRequest();
