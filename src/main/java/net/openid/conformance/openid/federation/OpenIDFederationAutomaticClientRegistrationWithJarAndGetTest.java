@@ -9,7 +9,16 @@ import org.springframework.http.HttpMethod;
 		displayName = "openid-federation-automatic-client-registration-with-jar-and-get",
 		summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
 			"with JAR and HTTP GET to the authorization endpoint",
-		profile = "OIDFED"
+		profile = "OIDFED",
+		configurationFields = {
+			"client.jwks",
+			"client.trust_chain",
+			"federation.entity_identifier",
+			"federation.trust_anchor",
+			"federation.trust_anchor_jwks",
+			"federation.authority_hints",
+			"internal.op_to_rp_mode"
+		}
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationWithJarAndGetTest extends AbstractOpenIDFederationAutomaticClientRegistrationTest {
@@ -22,6 +31,10 @@ public class OpenIDFederationAutomaticClientRegistrationWithJarAndGetTest extend
 	@Override
 	protected HttpMethod getHttpMethodForAuthorizeRequest() {
 		return HttpMethod.GET;
+	}
+
+	@Override
+	protected void verifyTestConditions() {
 	}
 
 }
