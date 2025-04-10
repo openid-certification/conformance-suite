@@ -3,7 +3,7 @@ package net.openid.conformance.openid.federation.client;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateClientIdMatchesEntityIdentifier extends AbstractCondition {
+public class ValidateClientIdInRequestObjectMatchesEntityIdentifier extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {

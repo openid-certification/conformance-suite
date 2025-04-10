@@ -65,10 +65,14 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 	}
 
 	protected final void performRedirectAndWaitForPlaceholdersOrCallback() {
-		performRedirectAndWaitForPlaceholdersOrCallback("error_callback_placeholder");
+		performRedirectAndWaitForPlaceholdersOrCallback("error_callback_placeholder", "GET");
 	}
 
-	protected final void performRedirectAndWaitForPlaceholdersOrCallback(String placeholderKey) {
+	protected final void performRedirectAndWaitForPlaceholdersOrCallback(String method) {
+		performRedirectAndWaitForPlaceholdersOrCallback("error_callback_placeholder", method);
+	}
+
+	protected final void performRedirectAndWaitForPlaceholdersOrCallback(String placeholderKey, String method) {
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
@@ -81,12 +85,16 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 		waitForPlaceholders();
 
-		browser.goToUrl(redirectTo, env.getString(placeholderKey));
+		browser.goToUrl(redirectTo, env.getString(placeholderKey), method);
+	}
+
+	protected final void performRedirectWithPlaceholder() {
+		performRedirectWithPlaceholder("GET");
 	}
 
 	// performs the redirect with a placeholder to fill in, but does NOT start 'waitForPlaceholders()' so
 	// this is used when the test will continue running after the redirect
-	protected final void performRedirectWithPlaceholder() {
+	protected final void performRedirectWithPlaceholder(String method) {
 		String redirectTo = env.getString("redirect_to_authorization_endpoint");
 
 		eventLog.log(getName(), args("msg", "Redirecting to authorization endpoint",
@@ -97,7 +105,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 
 		setStatus(Status.WAITING);
 
-		browser.goToUrl(redirectTo, env.getString("error_callback_placeholder"));
+		browser.goToUrl(redirectTo, env.getString("error_callback_placeholder"), method);
 	}
 
 	protected void createPlaceholder() {
