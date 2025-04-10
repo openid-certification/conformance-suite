@@ -32,7 +32,8 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInRequest
 	}
 
 	@Override
-	protected void postProcessRequestObject() {
+	protected void buildRequestObject() {
+		super.buildRequestObject();
 		callAndContinueOnFailure(AddInvalidClientIdToRequestObject.class, Condition.ConditionResult.FAILURE);
 	}
 

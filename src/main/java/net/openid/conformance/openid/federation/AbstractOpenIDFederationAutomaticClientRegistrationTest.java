@@ -56,10 +56,6 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	protected abstract void verifyTestConditions();
 
-	protected abstract void postProcessRequestObject();
-
-	protected abstract void postProcessQueryParameters();
-
 	protected abstract void redirect(HttpMethod method);
 
 	@Override
@@ -95,14 +91,13 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
+		makeAuthorizationRequest();
+	}
 
-		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
-		if (includeTrustChainInAuthorizationRequest) {
-			callAndContinueOnFailure(AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
-		}
-		postProcessRequestObject();
-		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
+	protected void makeAuthorizationRequest() {
+		buildRequestObject();
+		signRequestObject();
+		encryptRequestObject();
 
 		String endpointUri = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.authorization_endpoint");
 		URIBuilder uriBuilder = null;
@@ -115,24 +110,12 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		String authorizationEndpointUrl;
 
 		if (FAPIAuthRequestMethod.PUSHED.equals(getRequestMethod())) {
-
-			callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
-			env.mapKey("endpoint_response", "authorization_endpoint_response");
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
-			env.unmapKey("endpoint_response");
-
-			env.mapKey("pushed_authorization_endpoint_response", "authorization_endpoint_response");
-			callAndContinueOnFailure(ExtractRequestUriFromPARResponse.class, Condition.ConditionResult.FAILURE);
-			env.unmapKey("pushed_authorization_endpoint_response");
-
+			callParEndpoint();
+			extractRequestUri();
 			uriBuilder.addParameter("request_uri", env.getString("request_uri"));
 
 		} else {
-
-			callAndStopOnFailure(CreateQueryParametersForAuthorizationRequest.class, Condition.ConditionResult.FAILURE);
-			postProcessQueryParameters();
-
+			createQueryParameters();
 			uriBuilder.addParameter("client_id", env.getString("query_parameters", "client_id"));
 			uriBuilder.addParameter("scope", env.getString("query_parameters", "scope"));
 			uriBuilder.addParameter("response_type", env.getString("query_parameters", "response_type"));
@@ -150,6 +133,38 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		HttpMethod httpMethod = getHttpMethodForAuthorizeRequest();
 		redirect(httpMethod);
+	}
+
+	protected void buildRequestObject() {
+		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
+		if (includeTrustChainInAuthorizationRequest) {
+			callAndContinueOnFailure(AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
+		}
+	}
+
+	protected void signRequestObject() {
+		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
+	}
+	protected void encryptRequestObject() {
+		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
+	}
+
+	protected void callParEndpoint() {
+		callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
+		env.mapKey("endpoint_response", "authorization_endpoint_response");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+		env.unmapKey("endpoint_response");
+	}
+
+	protected void extractRequestUri() {
+		env.mapKey("pushed_authorization_endpoint_response", "authorization_endpoint_response");
+		callAndContinueOnFailure(ExtractRequestUriFromPARResponse.class, Condition.ConditionResult.FAILURE);
+		env.unmapKey("pushed_authorization_endpoint_response");
+	}
+
+	protected void createQueryParameters() {
+		callAndStopOnFailure(CreateQueryParametersForAuthorizationRequest.class, Condition.ConditionResult.FAILURE);
 	}
 
 	@Override

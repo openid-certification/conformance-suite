@@ -435,7 +435,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		if (requestUri == null) {
 			extractAndVerifyRequestObject(FAPIAuthRequestMethod.BY_VALUE);
 			extractClientIdFromRequestObject();
-			callAndStopOnFailure(ValidateClientIdInQueryStringMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(ValidateClientIdInParametersMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
 			callAndStopOnFailure(ValidateClientIdInRequestObjectMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
 			extractRedirectUriFromRequestObject();
 		} else {

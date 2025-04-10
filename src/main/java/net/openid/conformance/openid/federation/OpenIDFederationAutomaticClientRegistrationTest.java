@@ -33,16 +33,7 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 	}
 
 	@Override
-	protected void verifyTestConditions() {
-	}
-
-	@Override
-	protected void postProcessRequestObject() {
-	}
-
-	@Override
-	protected void postProcessQueryParameters() {
-	}
+	protected void verifyTestConditions() { }
 
 	@Override
 	protected void redirect(HttpMethod method) {

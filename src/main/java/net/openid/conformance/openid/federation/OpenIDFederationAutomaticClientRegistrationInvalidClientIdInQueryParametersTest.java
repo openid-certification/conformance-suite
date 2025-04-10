@@ -32,7 +32,8 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInQueryPa
 	}
 
 	@Override
-	protected void postProcessQueryParameters() {
+	protected void createQueryParameters() {
+		super.createQueryParameters();
 		callAndContinueOnFailure(AddInvalidClientIdToQueryParameters.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(AddInvalidClientIdToRequestObject.class, Condition.ConditionResult.FAILURE);
 	}
