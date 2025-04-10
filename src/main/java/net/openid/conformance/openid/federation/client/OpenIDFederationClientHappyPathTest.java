@@ -166,7 +166,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			case "jwks" -> jwksResponse();
 			case "fetch" -> fetchResponse(requestId);
 			case "list" -> listResponse(requestId);
-			case "authorize" -> authorizeResponse(requestId);
+			case "authorize" -> authorizeResponse(requestId); // authorizeErrorResponse(requestId);
 			case "par" -> parResponse(requestId);
 			case "token" -> tokenResponse(requestId);
 			default -> new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -411,6 +411,20 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	@UserFacing
+	protected Object authorizeErrorResponse(String requestId) {
+		setStatus(Status.RUNNING);
+
+		String redirectTo = "https://localhost:8443/test/a/fed-rp/callback?error=invalid_client&error_description=invalid_client";
+		Object viewToReturn = new RedirectView(redirectTo, false, false, false);
+
+		env.unmapKey("authorization_endpoint_http_request");
+		call(exec().unmapKey("incoming_request").endBlock());
+		setStatus(Status.WAITING);
+
+		return viewToReturn;
+	}
+
+	@UserFacing
 	protected Object authorizeResponse(String requestId) {
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("Authorization endpoint").mapKey("incoming_request", requestId));
@@ -421,7 +435,8 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		if (requestUri == null) {
 			extractAndVerifyRequestObject(FAPIAuthRequestMethod.BY_VALUE);
 			extractClientIdFromRequestObject();
-			callAndContinueOnFailure(ValidateClientIdMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(ValidateClientIdInQueryStringMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
+			callAndStopOnFailure(ValidateClientIdInRequestObjectMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
 			extractRedirectUriFromRequestObject();
 		} else {
 			callAndContinueOnFailure(VerifyRequestUri.class, Condition.ConditionResult.FAILURE);
@@ -491,7 +506,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		extractAndVerifyRequestObject(FAPIAuthRequestMethod.PUSHED);
 		extractClientIdFromRequestObject();
-		callAndContinueOnFailure(ValidateClientIdMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ValidateClientIdInRequestObjectMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
 		extractRedirectUriFromRequestObject();
 
 		callAndContinueOnFailure(CreatePAREndpointResponse.class, Condition.ConditionResult.FAILURE, "PAR-2.1");

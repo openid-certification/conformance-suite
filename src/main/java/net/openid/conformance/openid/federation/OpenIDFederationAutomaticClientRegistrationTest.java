@@ -43,4 +43,9 @@ public class OpenIDFederationAutomaticClientRegistrationTest extends AbstractOpe
 	@Override
 	protected void postProcessQueryParameters() {
 	}
+
+	@Override
+	protected void redirect(HttpMethod method) {
+		performRedirect(method.name());
+	}
 }

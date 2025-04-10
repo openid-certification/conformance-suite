@@ -1,6 +1,8 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient;
+import net.openid.conformance.condition.common.ExpectInvalidRequestOrInvalidClientErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.springframework.http.HttpMethod;
@@ -9,8 +11,12 @@ import org.springframework.http.HttpMethod;
 		testName = "openid-federation-automatic-client-registration-invalid-client-id-in-query-parameters",
 		displayName = "openid-federation-automatic-client-registration-invalid-client-id-in-query-parameters",
 		summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-			"deliberately not using its entity identifier as the client id in the query parameters",
-		profile = "OIDFED"
+			"deliberately not using its entity identifier as the client id in the query parameters and request object." +
+			"<br/><br/>" +
+			"If the server does not return an invalid_request, invalid_request_object, invalid_client or a similar well-defined " +
+			"and appropriate error back to the client, it must show an error page saying the request is invalid due to " +
+			"an invalid client_id — upload a screenshot of the error page.",
+profile = "OIDFED"
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInQueryParametersTest extends OpenIDFederationAutomaticClientRegistrationTest {
@@ -28,5 +34,25 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInQueryPa
 	@Override
 	protected void postProcessQueryParameters() {
 		callAndContinueOnFailure(AddInvalidClientIdToQueryParameters.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddInvalidClientIdToRequestObject.class, Condition.ConditionResult.FAILURE);
+	}
+
+	@Override
+	protected void createPlaceholder() {
+		callAndContinueOnFailure(ExpectInvalidRequestOrInvalidClientErrorPage.class, Condition.ConditionResult.FAILURE);
+		env.putString("error_callback_placeholder", env.getString("invalid_request_missing_error"));
+	}
+
+	@Override
+	protected void redirect(HttpMethod method) {
+		performRedirectAndWaitForPlaceholdersOrCallback("error_callback_placeholder", method.name());
+	}
+
+	@Override
+	protected void processCallback() {
+		env.mapKey("authorization_endpoint_response", "callback_query_params");
+		performGenericAuthorizationEndpointErrorResponseValidation();
+		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient.class, Condition.ConditionResult.WARNING);
+		fireTestFinished();
 	}
 }
