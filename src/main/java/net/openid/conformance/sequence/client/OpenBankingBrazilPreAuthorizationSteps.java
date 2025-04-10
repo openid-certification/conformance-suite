@@ -203,6 +203,9 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			call(exec().unmapKey("endpoint_response_jwt"));
 		} else {
 			if (openInsurance) {
+				callAndStopOnFailure(CreateIdempotencyKey.class);
+				callAndStopOnFailure(AddIdempotencyKeyHeader.class);
+
 				callAndStopOnFailure(FAPIBrazilOpenInsuranceCreateConsentRequest.class);
 
 				// check the certificate being used for testing
