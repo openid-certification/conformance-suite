@@ -1,5 +1,6 @@
 package org.multipaz.testapp
 
+import com.nimbusds.jose.jwk.JWK
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -265,6 +266,17 @@ uku1Jv7gA+A=
 		)
 	}
 
+	@JvmStatic
+	fun convertToEcPrivateKey(jwk: JWK): EcPrivateKey {
+
+		val key = jwk.toECKey().toECPrivateKey()
+		val d = key.s.toByteArray()
+		val pubKey = jwk.toECKey().toECPublicKey()
+		val x = pubKey.w.affineX.toByteArray()
+		val y = pubKey.w.affineY.toByteArray()
+
+		return EcPrivateKeyDoubleCoordinate(EcCurve.P256, d, x, y)
+	}
 	fun createKeySettings(
 		challenge: ByteString,
 		algorithm: Algorithm,

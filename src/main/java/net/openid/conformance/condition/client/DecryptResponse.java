@@ -67,6 +67,8 @@ public class DecryptResponse extends AbstractCondition {
 
 			env.putObject("authorization_endpoint_response", claims);
 
+			env.putObject("decryption_jwk", JsonParser.parseString(decryptionKey.toJSONString()).getAsJsonObject());
+
 			logSuccess("Found and decrypted the authorization response", jsonObject);
 
 			return env;
