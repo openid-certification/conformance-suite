@@ -50,7 +50,16 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 			JsonObject credentialIssuerMetadata = JsonParser.parseString(credentialIssuerMetadataJson).getAsJsonObject();
 			logSuccess("Successfully parsed credential issuer metadata", credentialIssuerMetadata);
 			env.putObject("vci","credential_issuer_metadata", credentialIssuerMetadata);
-			env.putObject("server", credentialIssuerMetadata);
+
+			JsonObject serverObject = env.getObject("server");
+			if (serverObject == null) {
+				env.putObject("server", credentialIssuerMetadata);
+			} else {
+				for (var entry : credentialIssuerMetadata.entrySet()) {
+					serverObject.add(entry.getKey(), entry.getValue());
+				}
+			}
+
 			String issuerUrl = OIDFJSON.getString(credentialIssuerMetadata.get("credential_issuer"));
 			env.putString("vci", "credential_issuer", issuerUrl);
 			try {

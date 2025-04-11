@@ -24,17 +24,20 @@ public class GenerateCredentialIssuerMetadata extends AbstractCondition {
 
 		String credentialEndpointUrl = baseUrl + "credential";
 
+		String nonceEndpointUrl = baseUrl + "nonce";
+
 		String metadata = """
-			{
-				"credential_issuer": "%s",
-				"credential_endpoint": "%s",
-				"credential_configurations_supported": {
-					"ExampleCredential": {
-						"format": "jwt_vc"
-					}
+		{
+			"credential_issuer": "%s",
+			"credential_endpoint": "%s",
+			"nonce_endpoint": "%s",
+			"credential_configurations_supported": {
+				"ExampleCredential": {
+					"format": "jwt_vc"
 				}
 			}
-			""".formatted(baseUrl, credentialEndpointUrl);
+		}
+		""".formatted(baseUrl, credentialEndpointUrl, nonceEndpointUrl);
 
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
 		env.putObject("credential_issuer_metadata", metadataJson);

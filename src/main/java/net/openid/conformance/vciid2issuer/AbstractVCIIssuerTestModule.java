@@ -1,6 +1,7 @@
 package net.openid.conformance.vciid2issuer;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -156,6 +157,7 @@ import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequ
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
@@ -170,56 +172,27 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
+import net.openid.conformance.vciid2issuer.condition.VCIExtractNonceFromNonceResponse;
+import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
+import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-@VariantParameters({
-	ClientAuthType.class,
-	FAPI2AuthRequestMethod.class,
-	FAPIOpenIDConnect.class,
-	FAPI2SenderConstrainMethod.class,
-	FAPI2ID2OPProfile.class,
-	FAPIOpenIDConnect.class,
-	FAPIResponseMode.class,
-	AuthorizationRequestType.class,
-})
-@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {
-	"resource.resourceUrlAccountRequests",
-	"resource.resourceUrlAccountsResource"
-})
-@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au", configurationFields = {
-	"resource.cdrVersion"
-})
-@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.org_jwks",
-	"consent.productType",
-	"resource.consentUrl",
-	"resource.brazilCpf",
-	"resource.brazilCnpj",
-	"resource.brazilOrganizationId",
-	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment",
-	"directory.keystore"
-})
-@VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {
-	"client.dpop_signing_alg",
-	"client2.dpop_signing_alg",
-})
-@VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
-})
-@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {
-	"resource.resourceUrl", // the userinfo endpoint is always used
+@VariantParameters({ClientAuthType.class, FAPI2AuthRequestMethod.class, FAPIOpenIDConnect.class, FAPI2SenderConstrainMethod.class, FAPI2ID2OPProfile.class, FAPIOpenIDConnect.class, FAPIResponseMode.class, AuthorizationRequestType.class, OID4VCIServerMetadata.class})
+@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {"resource.resourceUrlAccountRequests", "resource.resourceUrlAccountsResource"})
+@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au", configurationFields = {"resource.cdrVersion"})
+@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {"client.org_jwks", "consent.productType", "resource.consentUrl", "resource.brazilCpf", "resource.brazilCnpj", "resource.brazilOrganizationId", "resource.brazilPaymentConsent", "resource.brazilPixPayment", "directory.keystore"})
+@VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg",})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"})
+@VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
-	"client2.scope"
-})
-@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
-	"resource.richAuthorizationRequest",
-})
+	"client2.scope"})
+@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {"resource.richAuthorizationRequest",})
+@VariantConfigurationFields(parameter = OID4VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -233,16 +206,18 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Boolean isRarRequest;
 
 	// for variants to fill in by calling the setup... family of methods
-	private Class <? extends ConditionSequence> resourceConfiguration;
-	protected Class <? extends ConditionSequence> addTokenEndpointClientAuthentication;
-	private Supplier <? extends ConditionSequence> preAuthorizationSteps;
-	protected Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
-	private Class <? extends ConditionSequence> profileIdTokenValidationSteps;
-	private Class <? extends ConditionSequence> supportMTLSEndpointAliases;
-	protected Class <? extends ConditionSequence> addParEndpointClientAuthentication;
-	protected Supplier <? extends ConditionSequence> createDpopForParEndpointSteps;
-	protected Supplier <? extends ConditionSequence> createDpopForTokenEndpointSteps;
-	protected Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps;
+	private Class<? extends ConditionSequence> resourceConfiguration;
+	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
+	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
+	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
+	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+	protected Class<? extends ConditionSequence> addParEndpointClientAuthentication;
+	protected Supplier<? extends ConditionSequence> createDpopForParEndpointSteps;
+	protected Supplier<? extends ConditionSequence> createDpopForTokenEndpointSteps;
+	protected Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps;
+
+	protected Supplier<? extends ConditionSequence> fetchCredentialIssuerMetadataSteps;
 
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
@@ -294,11 +269,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		useDpopAuthCodeBinding = false;
 
 		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
-		profileRequiresMtlsEverywhere =
-			variant == FAPI2ID2OPProfile.OPENBANKING_UK ||
-			variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU ||
-			variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL ||
-			variant == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
+		profileRequiresMtlsEverywhere = variant == FAPI2ID2OPProfile.OPENBANKING_UK || variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU || variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL || variant == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
 			variant == FAPI2ID2OPProfile.CBUAE;
 		callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -330,6 +301,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		configureClient();
 		setupResourceEndpoint();
 
+		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(getVariant(OID4VCIServerMetadata.class));
+
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
 
@@ -340,7 +313,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void setupResourceEndpoint() {
 		// Set up the resource endpoint configuration
-		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU ) {
+		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
 			// always use the MTLS version if available, as ConnectID always uses mtls sender constraining
 			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-5");
 		} else {
@@ -359,10 +332,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		exposeEnvString("client_id");
 
-		boolean mtlsRequired =
-			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
-			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
-			profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
@@ -378,10 +348,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
-		boolean mtlsRequired =
-			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
-			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
-			profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
@@ -413,10 +380,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 
-		boolean mtlsRequired =
-			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
-			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
-			profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
@@ -428,7 +392,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		setStatus(Status.RUNNING);
 
+		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
+
 		performAuthorizationFlow();
+	}
+
+	protected void fetchCredentialIssuerMetadata() {
+		call(sequence(fetchCredentialIssuerMetadataSteps));
 	}
 
 	protected void performPreAuthorizationSteps() {
@@ -480,13 +450,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		private boolean isOpenId;
 		private boolean isJarm;
 		private boolean usePkce;
-		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
+		private Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
-		public CreateAuthorizationRequestSteps(boolean isSecondClient,
-											boolean isOpenId,
-											boolean isJarm,
-											boolean usePkce,
-											Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
+		public CreateAuthorizationRequestSteps(boolean isSecondClient, boolean isOpenId, boolean isJarm, boolean usePkce, Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
 			this.isOpenId = isOpenId;
 			this.isJarm = isJarm;
@@ -539,7 +505,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
 			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-5", "CID-IDA-5.2-10"));
 		}
-		if (isRarRequest){
+		if (isRarRequest) {
 			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
 		}
 		return seq;
@@ -579,8 +545,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			if (isSecondClient) {
 				callAndStopOnFailure(SignRequestObjectIncludeMediaType.class, "JAR-4");
-			}
-			else {
+			} else {
 				callAndStopOnFailure(SignRequestObject.class);
 			}
 
@@ -668,6 +633,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	/**
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
+	 *
 	 * @param fullResponse whether the full response should be returned
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
@@ -676,10 +642,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		if (isDpop()) {
 			int i = 0;
-			while(i < MAX_RETRY){
+			while (i < MAX_RETRY) {
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
-				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+				if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 					break;
 				}
 				++i;
@@ -691,6 +657,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	/**
 	 * Call sender constrained token endpoint returning full response
+	 *
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
 	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
@@ -720,30 +687,25 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, ConditionResult.WARNING, "RFC6749-5.1");
-		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
-			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+		skipIfMissing(new String[]{"expires_in"}, null, Condition.ConditionResult.INFO, ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
-				FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-12");
+			skipIfMissing(new String[]{"expires_in"}, null, Condition.ConditionResult.INFO, FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-12");
 		}
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
 
-		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
-			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
-		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
-			EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-4");
 
 		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-4");
 
 		if (isOpenId) {
-			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
-				ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
+			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO, ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
 			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI2-SP-ID2-5.3.1.3", "OIDCC-3.3.2.5");
 
 			call(new PerformStandardIdTokenChecks());
@@ -769,24 +731,20 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			/* these all use 'INFO' if the field isn't present - whether the hash is a may/should/shall is
 			 * determined by the Extract*Hash condition
 			 */
-			skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO,
-				ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-			skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO,
-				ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
-			skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO,
-				ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-		}
-		else {
+			skipIfMissing(new String[]{"c_hash"}, null, Condition.ConditionResult.INFO, ValidateCHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+			skipIfMissing(new String[]{"s_hash"}, null, Condition.ConditionResult.INFO, ValidateSHash.class, Condition.ConditionResult.FAILURE, "FAPI1-ADV-5.2.2.1-5");
+			skipIfMissing(new String[]{"at_hash"}, null, Condition.ConditionResult.INFO, ValidateAtHash.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.11");
+		} else {
 			callAndStopOnFailure(ExpectNoIdTokenInTokenResponse.class);
 		}
 
-		if (isRarRequest){
+		if (isRarRequest) {
 			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RAR-7");
 		}
 	}
 
 	protected void createDpopForTokenEndpoint() {
-		if(null == env.getElementFromObject("client", "dpop_private_jwk")) {
+		if (null == env.getElementFromObject("client", "dpop_private_jwk")) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
 		if (null != createDpopForTokenEndpointSteps) {
@@ -796,7 +754,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void createDpopForParEndpoint() {
 
-		if(null == env.getElementFromObject("client", "dpop_private_jwk")) {
+		if (null == env.getElementFromObject("client", "dpop_private_jwk")) {
 			callAndStopOnFailure(GenerateDpopKey.class);
 		}
 		if (null != createDpopForParEndpointSteps) {
@@ -831,12 +789,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void processCallbackForJARM() {
 		String errorParameter = env.getString("callback_query_params", "error");
 		String responseParameter = env.getString("callback_query_params", "response");
-		if(allowPlainErrorResponseForJarm && responseParameter==null && errorParameter!=null) {
+		if (allowPlainErrorResponseForJarm && responseParameter == null && errorParameter != null) {
 			//plain error response, no jarm
 			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
 		} else {
-			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO,
-				ValidateJARMFromURLQueryEncryption.class, Condition.ConditionResult.WARNING, "JARM-2.2");
+			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO, ValidateJARMFromURLQueryEncryption.class, Condition.ConditionResult.WARNING, "JARM-2.2");
 			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI2-MS-ID1-5.4.2-2", "JARM-2.3.4", "JARM-2.3.1");
 
 			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-2.1");
@@ -847,14 +804,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			callAndContinueOnFailure(FAPI2ValidateJarmSigningAlg.class, ConditionResult.FAILURE);
 
-			skipIfElementMissing("jarm_response", "jws_header", ConditionResult.INFO,
-				ValidateJARMSigningAlg.class, ConditionResult.FAILURE);
+			skipIfElementMissing("jarm_response", "jws_header", ConditionResult.INFO, ValidateJARMSigningAlg.class, ConditionResult.FAILURE);
 
-			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO,
-				ValidateJARMEncryptionAlg.class, ConditionResult.FAILURE);
+			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO, ValidateJARMEncryptionAlg.class, ConditionResult.FAILURE);
 
-			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO,
-				ValidateJARMEncryptionEnc.class, ConditionResult.FAILURE);
+			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO, ValidateJARMEncryptionEnc.class, ConditionResult.FAILURE);
 
 			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-2.1");
 
@@ -871,10 +825,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	public static class UpdateResourceRequestSteps extends AbstractConditionSequence {
 
-		protected Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps;
+		protected Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps;
 		protected boolean brazilPayments;
 
-		public UpdateResourceRequestSteps(Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps, boolean brazilPayments) {
+		public UpdateResourceRequestSteps(Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps, boolean brazilPayments) {
 			this.createDpopForResourceEndpointSteps = createDpopForResourceEndpointSteps;
 			this.brazilPayments = brazilPayments;
 		}
@@ -905,14 +859,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		call(makeUpdateResourceRequestSteps());
 	}
 
-	protected void updateResourceRequestAndCallProtectedResourceUsingDpop(String ... requirements) {
+	protected void updateResourceRequestAndCallProtectedResourceUsingDpop(String... requirements) {
 		if (isDpop()) {
 			final int MAX_RETRY = 2;
 			int i = 0;
-			while(i < MAX_RETRY) {
+			while (i < MAX_RETRY) {
 				updateResourceRequest();
 				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, requirements);
-				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+				if (Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 					break; // no nonce error so
 				}
 				// continue call with nonce
@@ -922,13 +876,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void requestProtectedResourceUsingDpop() {
-		if (isDpop() && (createDpopForResourceEndpointSteps != null) ) {
+		if (isDpop() && (createDpopForResourceEndpointSteps != null)) {
 			final int MAX_RETRY = 2;
 			int i = 0;
-			while(i < MAX_RETRY) {
+			while (i < MAX_RETRY) {
 				call(sequence(createDpopForResourceEndpointSteps));
 				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "OID4VCI-ID2-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
-				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+				if (Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 					break; // no nonce error so
 				}
 				// continue call with nonce
@@ -968,8 +922,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 
-		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
-			profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere;
 
 		JsonObject mtls = null;
 		if (!mtlsRequired) {
@@ -977,16 +930,42 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			env.removeObject("mutual_tls_authentication");
 		}
 
+		// check for nonce endpoint
+		JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
+		if (nonceEndpointEl != null) {
+
+			String nonceEndpoint = OIDFJSON.getString(nonceEndpointEl);
+			// call nonceEndpoint
+			// store nonce in env
+			// use nonce in VCIGenerateProofJwt
+			String originalResourceUrl = env.getString("protected_resource_url");
+			env.putString("protected_resource_url", nonceEndpoint);
+
+			env.putString("resource", "resourceMethod", "GET");
+			if (isDpop()) {
+				requestProtectedResourceUsingDpop();
+			} else {
+				callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-ID2-7", "FAPI2-SP-ID2-5.3.3-2");
+			}
+
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
+
+			callAndContinueOnFailure(VCIExtractNonceFromNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
+
+			env.putString("protected_resource_url", originalResourceUrl);
+		}
+
 		// use HTTP POST to call credentials endpoint
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
-		callAndStopOnFailure(VCIGenerateProofJwt.class,"OID4VCI-ID2-8.2.1.1");
+		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-ID2-8.2.1.1");
 
 		// TODO generate a proper credential request
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
-		String credentialConfigId  = "eu.europa.ec.eudi.pid.1";
-		String credentialProofJwt = env.getString("vci","proof.jwt");
+		String credentialConfigId = "eu.europa.ec.eudi.pid.1";
+		String credentialProofJwt = env.getString("vci", "proof.jwt");
 		env.putString("resource_request_entity", """
 			{
 				"credential_configuration_id": "%s",
@@ -997,9 +976,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			}
 			""".formatted(credentialConfigId, credentialProofJwt));
 
-		if (isDpop() ) {
+		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
-		} else  {
+		} else {
 			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-ID2-8", "FAPI2-SP-ID2-5.3.3-2");
 		}
 		if (!mtlsRequired && mtls != null) {
@@ -1016,12 +995,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "RFC7231-7.1.1.2");
 
-		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO,
-			CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 		if (!isSecondClient()) {
-			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO,
-				EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 		}
 
 		eventLog.endBlock();
@@ -1172,16 +1149,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	/**
 	 * Call Par endpoint with retry for DPoP nonce error
+	 *
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallParEndpoint)
 	 */
 	protected void callParEndpointAndStopOnFailure(String... requirements) {
 		if (isDpop() && useDpopAuthCodeBinding) {
 			final int MAX_RETRY = 2;
 			int i = 0;
-			while(i < MAX_RETRY){
+			while (i < MAX_RETRY) {
 				createDpopForParEndpoint();
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
-				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
+				if (Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 					break;
 				}
 				++i;
@@ -1196,8 +1174,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
 		// there's no need to pass mtls auth when using private_key_jwt
-		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
-			profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		JsonObject mtls = null;
 		if (!mtlsRequired) {
