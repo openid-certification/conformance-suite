@@ -40,7 +40,7 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInRequest
 	@Override
 	protected void createPlaceholder() {
 		callAndContinueOnFailure(ExpectInvalidRequestOrInvalidClientErrorPage.class, Condition.ConditionResult.FAILURE);
-		env.putString("error_callback_placeholder", env.getString("invalid_request_missing_error"));
+		env.putString("error_callback_placeholder", env.getString("invalid_request_error"));
 	}
 
 	@Override

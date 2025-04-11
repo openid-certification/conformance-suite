@@ -145,8 +145,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected void signRequestObject() {
 		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
 	}
+
 	protected void encryptRequestObject() {
-		callAndContinueOnFailure(EncryptRequestObject.class, Condition.ConditionResult.FAILURE);
 	}
 
 	protected void callParEndpoint() {

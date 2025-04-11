@@ -163,6 +163,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		return switch (path) {
 			case ".well-known/openid-federation" -> entityConfigurationResponse();
+			case ".well-known/openid-configuration" -> openIdConfigurationResponse();
 			case "jwks" -> jwksResponse();
 			case "fetch" -> fetchResponse(requestId);
 			case "list" -> listResponse(requestId);
@@ -180,6 +181,11 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			return NonBlocking.entityConfigurationResponse(env, getId());
 		}
 		return super.entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);
+	}
+
+	protected Object openIdConfigurationResponse() {
+		JsonElement openIdProviderConfiguration = env.getElementFromObject("server", "metadata.openid_provider");
+		return new ResponseEntity<Object>(openIdProviderConfiguration, HttpStatus.OK);
 	}
 
 	protected Object trustAnchorEntityConfigurationResponse() {
@@ -411,20 +417,6 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	@UserFacing
-	protected Object authorizeErrorResponse(String requestId) {
-		setStatus(Status.RUNNING);
-
-		String redirectTo = "https://localhost:8443/test/a/fed-rp/callback?error=invalid_client&error_description=invalid_client";
-		Object viewToReturn = new RedirectView(redirectTo, false, false, false);
-
-		env.unmapKey("authorization_endpoint_http_request");
-		call(exec().unmapKey("incoming_request").endBlock());
-		setStatus(Status.WAITING);
-
-		return viewToReturn;
-	}
-
-	@UserFacing
 	protected Object authorizeResponse(String requestId) {
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("Authorization endpoint").mapKey("incoming_request", requestId));
@@ -636,8 +628,16 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndContinueOnFailure(ValidateRequestObjectIss.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
 		callAndContinueOnFailure(ValidateRequestObjectAud.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
 
+		// It needs to stop on failure and skipIfMissing doesn't do that
+		/*
 		skipIfMissing(new String[]{"client_public_jwks"}, null, Condition.ConditionResult.FAILURE,
 			ValidateRequestObjectSignature.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1");
+		*/
+		call(condition(ValidateRequestObjectSignature.class)
+			.skipIfObjectsMissing("client_public_jwks")
+			.onSkip(Condition.ConditionResult.FAILURE)
+			.requirements("OIDCC-6.1")
+			.onFail(Condition.ConditionResult.FAILURE));
 	}
 
 	protected static JsonObject filterMetadataForEntityTypes(JsonObject metadata, List<String> entityTypesList) {
