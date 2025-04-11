@@ -1142,7 +1142,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void performPARRedirectWithRequestUri() {
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
-		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class, "PAR-4");
+		callAndStopOnFailure(new BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint(false), "PAR-4");
 		performRedirect();
 	}
 

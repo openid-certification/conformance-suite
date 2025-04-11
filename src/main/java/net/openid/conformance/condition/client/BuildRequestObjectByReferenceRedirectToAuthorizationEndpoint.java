@@ -6,13 +6,23 @@ import net.openid.conformance.testmodule.Environment;
 
 public class BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint extends AbstractBuildRequestObjectRedirectToAuthorizationEndpoint {
 
+	private final boolean includeDuplicates;
+
+	public BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint(){
+		this(true);
+	}
+
+	public BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint(boolean includeDuplicates) {
+		this.includeDuplicates = includeDuplicates;
+	}
+
 	@Override
 	@PreEnvironment(required = { "authorization_endpoint_request", "request_object_claims", "server" }, strings = "request_uri")
 	@PostEnvironment(strings = "redirect_to_authorization_endpoint")
 	public Environment evaluate(Environment env) {
 		String requestUri = env.getString("request_uri");
 
-		return buildRedirect(env, "request_uri", requestUri, true);
+		return buildRedirect(env, "request_uri", requestUri, includeDuplicates);
 	}
 
 }
