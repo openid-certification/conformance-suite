@@ -101,6 +101,8 @@ import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateCredentialIssuerMetadata;
+import net.openid.conformance.condition.as.GenerateCredentialNonce;
+import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
@@ -266,6 +268,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String CREDENTIAL_PATH = "credential";
 
+	public static final String NONCE_PATH = "nonce";
+
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
@@ -420,7 +424,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(GenerateCredentialIssuerMetadata.class);
 		exposeEnvString("credential_issuer_metadata_url");
 
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
@@ -638,6 +642,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return accountsEndpoint(requestId);
+		} else if (path.equals(NONCE_PATH)) {
+			if (isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The nonce endpoint must be called over an mTLS secured connection.");
+			}
+
+			return nonceEndpoint(requestId);
 		} else if (path.equals(CREDENTIAL_PATH)) {
 
 			if (isMTLSConstrain()) {
@@ -647,6 +657,44 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return credentialEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+	}
+
+	protected Object nonceEndpoint(String requestId) {
+		// credential_issuer_nonce
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Nonce endpoint"));
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+
+		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-ID-7");
+		callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-ID2-7.2");
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		ResponseEntity<Object> responseEntity;
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			JsonObject nonceEndpointResponse = env.getObject("credential_nonce_response");
+			JsonObject headerJson = env.getObject("credential_nonce_response_headers");
+
+			if (requireResourceServerEndpointDpopNonce()) {
+				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+			}
+			responseEntity = new ResponseEntity<>(nonceEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+		}
+
+		setStatus(Status.WAITING);
+		return responseEntity;
 	}
 
 	@SuppressWarnings("unused")

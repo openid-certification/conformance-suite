@@ -45,7 +45,7 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 			// TODO find a better way to generate the walletIssuerId
 			String walletIssuerId = "did:key:" + ecKey.getKeyID();
 
-			String cNonce = getCNonce();
+			String cNonce = getCNonce(env);
 			int proofLifetimeSeconds = getProofLifetimeSeconds(); //
 			String walletKeyId = jwk.getKeyID();
 
@@ -101,8 +101,9 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 		return serverIssuer;
 	}
 
-	protected String getCNonce() {
-		return null;  //TODO use nonce if provided
+	protected String getCNonce(Environment env) {
+		String cnonce = env.getString("vci", "c_nonce");
+		return cnonce;
 	}
 
 	protected int getProofLifetimeSeconds() {

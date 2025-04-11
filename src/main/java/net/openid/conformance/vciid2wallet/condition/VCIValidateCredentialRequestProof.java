@@ -34,19 +34,22 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 			SignedJWT signedJWT = SignedJWT.parse(jwt);
 			JWSHeader header = signedJWT.getHeader();
 
-			// TODO determine expected nonce
-			String expectedNonce = null;
+			String expectedNonce = env.getString("credential_issuer_nonce");
 
 			// Basic header checks
-			if (!"openid4vci-proof+jwt".equals(header.getType().getType())) {
+			String headerType = header.getType().getType();
+			if (!"openid4vci-proof+jwt".equals(headerType)) {
 				throw error("JWT proof validation failed: Invalid JWT type (typ)", args("jwt", jwt,
 					"expected", "openid4vci-proof+jwt",
-					"actual", header.getType().getType()));
+					"actual", headerType));
 			}
+			log("Found expected proof jwt type", args("header", headerType));
+
 
 			if (!JWSAlgorithm.ES256.equals(header.getAlgorithm())) {
 				throw error("JWT proof validation failed: Unsupported or invalid JWT algorithm (alg). Expected ES256.", args("jwt", jwt, "alg", header.getAlgorithm()));
 			}
+			log("Found expected proof jwt algorithm", args("algorithm", header.getAlgorithm()));
 
 			// TODO add support to check jwk, see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2.1.1
 			if (header.getKeyID() == null || header.getKeyID().isEmpty()) {
@@ -59,15 +62,18 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 			if (walletPublicKey == null) {
 				throw error("JWT proof validation failed: Public key not found for kid: " + header.getKeyID(), args("jwt", jwt, "publicKeysJwks", publicKeysJwks));
 			}
+			log("Found public key", args("kid", header.getKeyID()));
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
 				throw error("JWT proof validation failed: Key found but is not an ECKey for kid: " + header.getKeyID());
 			}
+			log("Detected EC public key", args("kid", header.getKeyID()));
 
 			// ensure P_256 curve is used
 			if (!Curve.P_256.equals(ecPublicKey.getCurve())) {
 				throw error("JWT proof validation failed: Public key for kid " + header.getKeyID() + " does not use the required P-256 curve.", args("curve", ecPublicKey.getCurve().getName()));
 			}
+			log("Detected EC public key with curve P-256", args("kid", header.getKeyID()));
 
 			// 3. Create Verifier with the public EC key
 			JWSVerifier verifier = new ECDSAVerifier(ecPublicKey);
@@ -76,6 +82,7 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 			if (!signedJWT.verify(verifier)) {
 				throw error("JWT proof validation failed: JWT signature validation failed");
 			}
+			log("Detected valid proof JWT");
 
 			// 5. Validate Claims (No changes needed in claim checking logic itself)
 			JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
@@ -85,11 +92,15 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 			if (audiences == null || !audiences.contains(audience)) {
 				throw error("JWT proof validation failed: Invalid or missing audience (aud) claim. Expected audience to contain: " + audience, args("aud", audiences));
 			}
+			log("Detected expected issuer in audience", args("aud", audiences, "expected_audience", audience));
 
 			// Check Nonce
 			String nonce = claimsSet.getStringClaim("nonce");
 			if (!Objects.equals(expectedNonce, nonce)) {
 				throw error("JWT proof validation failed: Nonce (nonce) claim mismatch or missing.", args("actual_nonce", nonce, "expected_nonce", expectedNonce));
+			} else {
+				log("Detected and invalidated expected nonce", args("nonce", nonce));
+				env.removeObject("credential_issuer_nonce");
 			}
 
 			// Check Expiration
@@ -97,12 +108,14 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 			if (expirationTime == null || Instant.now().isAfter(expirationTime.toInstant())) {
 				throw error("JWT proof validation failed: JWT has expired or expiration time (exp) is missing.");
 			}
+			log("Detected JWT proof has not expired yet", args("exp", expirationTime.toInstant()));
 
 			// Check Issued At
 			Date issueTime = claimsSet.getIssueTime();
 			if (issueTime == null || Instant.now().plus(5, ChronoUnit.MINUTES).isBefore(issueTime.toInstant())) {
 				throw error("JWT proof validation failed: Invalid or missing issued at time (iat) claim.");
 			}
+			log("Detected JWT proof has issued within the last 5 minutes", args("iat", issueTime.toInstant()));
 
 			// 6. Validation successful :)
 			logSuccess("Successfully validated proof jwt", args("jwt", jwt, "claims", claimsSet));
