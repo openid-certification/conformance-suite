@@ -12,7 +12,17 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "oid4vp-id3-verifier-happy-flow",
 	displayName = "OID4VPID3+draft24 Verifier: Happy flow test",
-	summary = "Expects the verifier to make a valid OID4VP request that matches the configuration, creates and returns an SD-JWT VC credential with a vct of urn:eudi:pid:1 as defined in ARF 1.8 ( https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#5-sd-jwt-vc-based-encoding-of-pid ).\n\nThe presentation_definition or DCQL must contain only one input_descriptor.\n\nThe conformance suite acts as a mock web wallet. You must configure your verifier to use the authorization endpoint url below instead of 'openid4vp://' and then start the flow in your verifier as normal.",
+	summary = """
+		Expects the verifier to make a valid OID4VP request that matches the configuration. The test creates and returns a valid credential that the verifier should accept.
+
+		Depending on the test configuration the credential may be:
+			* SD-JWT VC credential with a vct of urn:eudi:pid:1 as defined in ARF 1.8 ( https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#5-sd-jwt-vc-based-encoding-of-pid ).
+			* An mdl as per ISO 18013-5
+
+		The presentation_definition must contain only one input_descriptor, or the DCQL must request only a single credential.
+
+		The conformance suite acts as a mock web wallet. You must configure your verifier to use the authorization endpoint url below instead of 'openid4vp://' and then start the flow in your verifier as normal.
+		""",
 	profile = "OID4VP-ID3",
 	configurationFields = {
 		"client.client_id",
