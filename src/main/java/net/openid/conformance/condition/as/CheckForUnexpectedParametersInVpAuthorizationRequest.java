@@ -44,9 +44,9 @@ public class CheckForUnexpectedParametersInVpAuthorizationRequest extends Abstra
 		}
 
 		if (unknownParameters.isEmpty()) {
-			logSuccess("All authorization parameters are expected",args("claims", authParameters.keySet()));
+			logSuccess("All authorization parameters are expected",args("parameters", authParameters.keySet(), "known_params", expectedAuthRequestParams));
 		} else {
-			throw error("Unknown parameters were found in the authorization request. This may indicate the verifier has misunderstood the spec, or it may be using extensions the test suite is unaware of.", args("parameters", authParameters.keySet(), "unknown_params", unknownParameters));
+			throw error("Unknown parameters were found in the authorization request. This may indicate the verifier has misunderstood the spec, or it may be using extensions the test suite is unaware of.", args("parameters", authParameters.keySet(), "unknown_params", unknownParameters, "known_params", expectedAuthRequestParams));
 		}
 
 		return env;
