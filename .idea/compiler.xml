@@ -102,7 +102,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="conformance-suite" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation -Werror -XDcompilePolicy=simple &quot;-Xplugin:ErrorProne -XepExcludedPaths:.*/src/test/.* -Xep:JavaUtilDate:OFF  -Xep:OperatorPrecedence:OFF -Xep:InconsistentCapitalization:OFF -Xep:DefaultCharset:OFF -Xep:DoubleBraceInitialization:OFF -Xep:EmptyBlockTag:OFF -Xep:EmptyCatch:OFF -Xep:JavaInstantGetSecondsGetNano:OFF -Xep:EnumOrdinal:OFF -Xep:GetClassOnEnum:OFF -Xep:StringSplitter:OFF -Xep:MissingSummary:OFF -Xep:StringCaseLocaleUsage:OFF&quot;" />
+      <module name="conformance-suite" options="-parameters -Xlint -Xlint:-processing -Xlint:unchecked -Xlint:deprecation -XDcompilePolicy=simple &quot;-Xplugin:ErrorProne -XepExcludedPaths:.*/src/test/.* -Xep:JavaUtilDate:OFF  -Xep:OperatorPrecedence:OFF -Xep:InconsistentCapitalization:OFF -Xep:DefaultCharset:OFF -Xep:DoubleBraceInitialization:OFF -Xep:EmptyBlockTag:OFF -Xep:EmptyCatch:OFF -Xep:JavaInstantGetSecondsGetNano:OFF -Xep:EnumOrdinal:OFF -Xep:GetClassOnEnum:OFF -Xep:StringSplitter:OFF -Xep:MissingSummary:OFF -Xep:StringCaseLocaleUsage:OFF&quot;" />
     </option>
   </component>
 </project>

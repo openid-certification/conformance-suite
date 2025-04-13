@@ -1,8 +1,8 @@
 package net.openid.conformance.condition.client;
 
-import com.android.identity.cbor.Cbor;
-import com.android.identity.cbor.DiagnosticOption;
-import com.android.identity.mdoc.response.DeviceResponseParser;
+import org.multipaz.cbor.Cbor;
+import org.multipaz.cbor.DiagnosticOption;
+import org.multipaz.mdoc.response.DeviceResponseParser;
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;

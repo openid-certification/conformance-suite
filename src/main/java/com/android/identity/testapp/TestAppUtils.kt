@@ -1,25 +1,22 @@
 package org.multipaz.testapp
 
-import org.multipaz.cbor.Bstr
-import org.multipaz.cbor.Cbor
-import org.multipaz.cbor.CborArray
-import org.multipaz.cbor.CborMap
-import org.multipaz.cbor.DataItem
-import org.multipaz.cbor.RawCbor
-import org.multipaz.cbor.Tagged
-import org.multipaz.cbor.Tstr
-import org.multipaz.cbor.toDataItem
+import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.encodeToByteString
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import org.multipaz.cbor.*
 import org.multipaz.cose.Cose
 import org.multipaz.cose.CoseLabel
 import org.multipaz.cose.CoseNumberLabel
+import org.multipaz.credential.CredentialLoader
 import org.multipaz.credential.SecureAreaBoundCredential
-import org.multipaz.crypto.Algorithm
-import org.multipaz.crypto.EcPrivateKey
-import org.multipaz.crypto.EcPublicKey
-import org.multipaz.crypto.X509Cert
-import org.multipaz.crypto.X509CertChain
+import org.multipaz.crypto.*
 import org.multipaz.document.Document
 import org.multipaz.document.DocumentStore
+import org.multipaz.document.NameSpacedData
 import org.multipaz.documenttype.DocumentCannedRequest
 import org.multipaz.documenttype.DocumentType
 import org.multipaz.documenttype.knowntypes.DrivingLicense
@@ -27,37 +24,31 @@ import org.multipaz.documenttype.knowntypes.EUPersonalID
 import org.multipaz.documenttype.knowntypes.PhotoID
 import org.multipaz.documenttype.knowntypes.UtopiaMovieTicket
 import org.multipaz.mdoc.credential.MdocCredential
+import org.multipaz.mdoc.issuersigned.IssuerNamespaces
 import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
 import org.multipaz.mdoc.mso.MobileSecurityObjectGenerator
+import org.multipaz.mdoc.mso.MobileSecurityObjectParser
 import org.multipaz.mdoc.request.DeviceRequestGenerator
+import org.multipaz.mdoc.response.DeviceResponseGenerator
+import org.multipaz.mdoc.response.DocumentGenerator
 import org.multipaz.sdjwt.Issuer
 import org.multipaz.sdjwt.SdJwtVcGenerator
 import org.multipaz.sdjwt.credential.KeyBoundSdJwtVcCredential
 import org.multipaz.sdjwt.credential.KeylessSdJwtVcCredential
 import org.multipaz.sdjwt.util.JsonWebKey
 import org.multipaz.securearea.CreateKeySettings
+import org.multipaz.securearea.PassphraseConstraints
 import org.multipaz.securearea.SecureArea
+import org.multipaz.securearea.SecureAreaRepository
+import org.multipaz.securearea.software.SoftwareCreateKeySettings
+import org.multipaz.securearea.software.SoftwareSecureArea
+import org.multipaz.storage.StorageTableSpec
+import org.multipaz.storage.base.BaseStorageTable
+import org.multipaz.storage.ephemeral.EphemeralStorage
+import org.multipaz.util.Constants
 import org.multipaz.util.Logger
-import multipazproject.samples.testapp.generated.resources.Res
-import multipazproject.samples.testapp.generated.resources.driving_license_card_art
-import multipazproject.samples.testapp.generated.resources.movie_ticket_cart_art
-import multipazproject.samples.testapp.generated.resources.photo_id_card_art
-import multipazproject.samples.testapp.generated.resources.pid_card_art
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.io.bytestring.ByteString
-import kotlinx.io.bytestring.encodeToByteString
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.getDrawableResourceBytes
-import org.jetbrains.compose.resources.getSystemResourceEnvironment
-import org.multipaz.cbor.buildCborArray
-import org.multipaz.cbor.buildCborMap
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.iterator
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
@@ -85,6 +76,63 @@ object TestAppUtils {
     // This domain is for KeylessSdJwtVcCredential
     const val CREDENTIAL_DOMAIN_SDJWT_KEYLESS = "sdjwt_keyless"
 
+	fun generateDeviceResponse(sessionTranscript: ByteArray): ByteArray {
+		return runBlocking {
+			generateEncodedDeviceResponse(sessionTranscript)
+		}
+	}
+
+	suspend fun generateEncodedDeviceResponse(
+		sessionTranscript: ByteArray
+	):ByteArray {
+		val deviceResponseGenerator = DeviceResponseGenerator(Constants.DEVICE_RESPONSE_STATUS_OK)
+		val document = documentStore!!.lookupDocument(mdlDocumentId!!)
+		val credential = document!!.findCredential(CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now())
+		deviceResponseGenerator.addDocument(calcDocument(
+			credential = credential as MdocCredential,
+			encodedSessionTranscript = sessionTranscript
+		))
+		return deviceResponseGenerator.generate()
+	}
+
+	private suspend fun calcDocument(
+		credential: MdocCredential,
+		encodedSessionTranscript: ByteArray
+	): ByteArray {
+		// TODO: support MAC keys from v1.1 request and use setDeviceNamespacesMac() when possible
+		//   depending on the value of PresentmentSource.preferSignatureToKeyAgreement(). See also
+		//   calcDocument in mdocPresentment.kt.
+		//
+		val issuerSigned = Cbor.decode(credential.issuerProvidedData)
+		val issuerNamespaces = IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"])
+		val issuerAuthCoseSign1 = issuerSigned["issuerAuth"].asCoseSign1
+		val encodedMsoBytes = Cbor.decode(issuerAuthCoseSign1.payload!!)
+		val encodedMso = Cbor.encode(encodedMsoBytes.asTaggedEncodedCbor)
+		val mso = MobileSecurityObjectParser(encodedMso).parse()
+
+		val documentGenerator = DocumentGenerator(
+			mso.docType,
+			Cbor.encode(issuerSigned["issuerAuth"]),
+			encodedSessionTranscript,
+		)
+
+		documentGenerator.setIssuerNamespaces(issuerNamespaces)
+		val keyInfo = credential.secureArea.getKeyInfo(credential.alias)
+		if (!keyInfo.algorithm.isSigning) {
+			throw IllegalStateException(
+				"Signing is required for W3C DC API but its algorithm ${keyInfo.algorithm.name} is not for signing"
+			)
+		} else {
+			documentGenerator.setDeviceNamespacesSignature(
+				dataElements = NameSpacedData.Builder().build(),
+				secureArea = credential.secureArea,
+				keyAlias = credential.alias,
+				keyUnlockData = null,
+			)
+		}
+
+		return documentGenerator.generate()
+	}
     fun generateEncodedDeviceRequest(
         request: DocumentCannedRequest,
         encodedSessionTranscript: ByteArray,
@@ -136,7 +184,102 @@ object TestAppUtils {
         UtopiaMovieTicket.getDocumentType()
     )
 
-    suspend fun provisionTestDocuments(
+	fun initialise() {
+		runBlocking {
+			documentStoreInit();
+		}
+	}
+
+	var documentStore: DocumentStore? = null
+
+	private val testDocumentTableSpec = object: StorageTableSpec(
+		name = "TestAppDocuments",
+		supportExpiration = false,
+		supportPartitions = false,
+		schemaVersion = 1L,           // Bump every time incompatible changes are made
+	) {
+		override suspend fun schemaUpgrade(oldTable: BaseStorageTable) {
+			oldTable.deleteAll()
+		}
+	}
+	private suspend fun documentStoreInit() {
+		val storage = EphemeralStorage()
+		val softwareSecureArea = SoftwareSecureArea.create(storage)
+		val secureAreaRepository: SecureAreaRepository = SecureAreaRepository.build {
+			add(softwareSecureArea)
+		}
+		val credentialLoader: CredentialLoader = CredentialLoader()
+		credentialLoader.addCredentialImplementation(MdocCredential::class) {
+				document -> MdocCredential(document)
+		}
+		credentialLoader.addCredentialImplementation(KeyBoundSdJwtVcCredential::class) {
+				document -> KeyBoundSdJwtVcCredential(document)
+		}
+		credentialLoader.addCredentialImplementation(KeylessSdJwtVcCredential::class) {
+				document -> KeylessSdJwtVcCredential(document)
+		}
+		documentStore = DocumentStore(
+			storage = storage,
+			secureAreaRepository = secureAreaRepository,
+			credentialLoader = credentialLoader,
+			documentMetadataFactory = TestAppDocumentMetadata::create,
+			documentTableSpec = testDocumentTableSpec
+		)
+
+		val documentSignerKeyPub = EcPublicKey.fromPem(
+			"""-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnmiWAMGIeo2E3usWRLL/EPfh1Bw5
+JHgq8RYzJvraMj5QZSh94CL/nlEi3vikGxDP34HjxZcjzGEimGg03sB6Ng==
+-----END PUBLIC KEY-----""",
+			EcCurve.P256
+		)
+		val documentSignerKey = EcPrivateKey.fromPem(
+			"""-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg/ANvinTxJAdR8nQ0
+NoUdBMcRJz+xLsb0kmhyMk+lkkGhRANCAASeaJYAwYh6jYTe6xZEsv8Q9+HUHDkk
+eCrxFjMm+toyPlBlKH3gIv+eUSLe+KQbEM/fgePFlyPMYSKYaDTewHo2
+-----END PRIVATE KEY-----""",
+			documentSignerKeyPub
+		)
+
+		val documentSignerCert = X509Cert.fromPem(
+			"""-----BEGIN CERTIFICATE-----
+MIIBITCBx6ADAgECAgEBMAoGCCqGSM49BAMCMBoxGDAWBgNVBAMMD1N0YXRlIE9mIFV0b3BpYTAe
+Fw0yNDExMDcyMTUzMDdaFw0zNDExMDUyMTUzMDdaMBoxGDAWBgNVBAMMD1N0YXRlIE9mIFV0b3Bp
+YTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJ5olgDBiHqNhN7rFkSy/xD34dQcOSR4KvEWMyb6
+2jI+UGUofeAi/55RIt74pBsQz9+B48WXI8xhIphoNN7AejYwCgYIKoZIzj0EAwIDSQAwRgIhALkq
+UIVeaSW0xhLuMdwHyjiwTV8USD4zq68369ZW6jBvAiEAj2smZAXJB04x/s3exzjnI5BQprUOSfYE
+uku1Jv7gA+A=
+-----END CERTIFICATE-----""""
+		)
+
+		provisionTestDocuments(
+			documentStore = documentStore!!,
+			secureArea = softwareSecureArea,
+			secureAreaCreateKeySettingsFunc = ::createKeySettings,
+			dsKey = documentSignerKey,
+			dsCert = documentSignerCert,
+			deviceKeyAlgorithm = Algorithm.ESP256,
+			deviceKeyMacAlgorithm = Algorithm.ECDH_P256,
+			numCredentialsPerDomain = 1
+		)
+	}
+
+	fun createKeySettings(
+		challenge: ByteString,
+		algorithm: Algorithm,
+		userAuthenticationRequired: Boolean,
+		validFrom: Instant,
+		validUntil: Instant
+	): CreateKeySettings {
+			return SoftwareCreateKeySettings.Builder()
+				.setAlgorithm(algorithm)
+				.setPassphraseRequired(userAuthenticationRequired, "1111", PassphraseConstraints.PIN_FOUR_DIGITS)
+				.build()
+	}
+	var mdlDocumentId: String? = null
+
+	suspend fun provisionTestDocuments(
         documentStore: DocumentStore,
         secureArea: SecureArea,
         secureAreaCreateKeySettingsFunc: (
@@ -154,7 +297,7 @@ object TestAppUtils {
     ) {
         require(deviceKeyAlgorithm.isSigning)
         require(deviceKeyMacAlgorithm == Algorithm.UNSET || deviceKeyMacAlgorithm.isKeyAgreement)
-        provisionDocument(
+        mdlDocumentId = provisionDocument(
             documentStore,
             secureArea,
             secureAreaCreateKeySettingsFunc,
@@ -165,8 +308,7 @@ object TestAppUtils {
             numCredentialsPerDomain,
             DrivingLicense.getDocumentType(),
             "Erika",
-            "Erika's Driving License",
-            Res.drawable.driving_license_card_art
+            "Erika's Driving License"
         )
         provisionDocument(
             documentStore,
@@ -179,8 +321,7 @@ object TestAppUtils {
             numCredentialsPerDomain,
             PhotoID.getDocumentType(),
             "Erika",
-            "Erika's Photo ID",
-            Res.drawable.photo_id_card_art
+            "Erika's Photo ID"
         )
         provisionDocument(
             documentStore,
@@ -194,7 +335,6 @@ object TestAppUtils {
             PhotoID.getDocumentType(),
             "Erika #2",
             "Erika's Photo ID #2",
-            Res.drawable.photo_id_card_art
         )
         provisionDocument(
             documentStore,
@@ -207,8 +347,7 @@ object TestAppUtils {
             numCredentialsPerDomain,
             EUPersonalID.getDocumentType(),
             "Erika",
-            "Erika's EU PID",
-            Res.drawable.pid_card_art
+            "Erika's EU PID"
         )
         provisionDocument(
             documentStore,
@@ -221,13 +360,11 @@ object TestAppUtils {
             numCredentialsPerDomain,
             UtopiaMovieTicket.getDocumentType(),
             "Erika",
-            "Erika's Movie Ticket",
-            Res.drawable.movie_ticket_cart_art
+            "Erika's Movie Ticket"
         )
     }
 
     // TODO: also provision SD-JWT credentials, if applicable
-    @OptIn(ExperimentalResourceApi::class)
     private suspend fun provisionDocument(
         documentStore: DocumentStore,
         secureArea: SecureArea,
@@ -245,20 +382,14 @@ object TestAppUtils {
         numCredentialsPerDomain: Int,
         documentType: DocumentType,
         givenNameOverride: String,
-        displayName: String,
-        cardArtResource: DrawableResource,
-    ) {
-        val cardArt = getDrawableResourceBytes(
-            getSystemResourceEnvironment(),
-            cardArtResource,
-        )
-
+        displayName: String
+    ): String {
         val document = documentStore.createDocument {
             val metadata = it as TestAppDocumentMetadata
             metadata.initialize(
                 displayName = displayName,
                 typeDisplayName = documentType.displayName,
-                cardArt = ByteString(cardArt),
+                cardArt = ByteString(),
             )
         }
 
@@ -301,6 +432,7 @@ object TestAppUtils {
                 givenNameOverride = givenNameOverride
             )
         }
+		return document.identifier
     }
 
     private suspend fun addMdocCredentials(
@@ -521,8 +653,7 @@ object TestAppUtils {
                     issuer = Issuer(
                         "https://example-issuer.com",
                         dsKey.publicKey.curve.defaultSigningAlgorithmFullySpecified,
-                        null,
-                        X509CertChain(listOf(dsCert))
+                        null
                     ),
                 )
                 sdJwtVcGenerator.publicKey =
