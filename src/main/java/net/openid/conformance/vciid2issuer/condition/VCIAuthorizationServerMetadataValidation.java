@@ -23,7 +23,7 @@ public class VCIAuthorizationServerMetadataValidation extends AbstractJsonSchema
 
 	@Override
 	protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
-		String authServerMetadataPath = getAuthServerMetadataPath(0);
+		String authServerMetadataPath = getAuthServerMetadataPath(index);
 		JsonObject jsonObject = env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject();
 		// we use the oid4vci specific variant of the rfc8414 metadata
 		String schemaResource = "json-schemas/oid4vci/rfc8414-oauth_authorization_server_metadata.json";
