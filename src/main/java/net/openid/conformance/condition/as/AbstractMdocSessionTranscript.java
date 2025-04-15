@@ -1,15 +1,15 @@
 package net.openid.conformance.condition.as;
 
-import com.android.identity.cbor.Cbor;
-import com.android.identity.cbor.CborArray;
-import com.android.identity.cbor.DataItem;
-import com.android.identity.cbor.DiagnosticOption;
-import com.android.identity.cbor.Simple;
-import com.android.identity.crypto.Algorithm;
-import com.android.identity.crypto.Crypto;
+import org.multipaz.cbor.CborArray;
+import org.multipaz.cbor.DataItem;
+import org.multipaz.cbor.DiagnosticOption;
+import org.multipaz.cbor.Simple;
+import org.multipaz.crypto.Algorithm;
+import org.multipaz.crypto.Crypto;
 import com.nimbusds.jose.util.Base64;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import org.multipaz.cbor.Cbor;
 
 import java.util.Map;
 import java.util.Set;

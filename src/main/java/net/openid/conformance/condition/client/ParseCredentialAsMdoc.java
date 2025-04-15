@@ -1,20 +1,24 @@
 package net.openid.conformance.condition.client;
 
-import com.android.identity.cbor.Cbor;
-import com.android.identity.cbor.DiagnosticOption;
-import com.android.identity.mdoc.response.DeviceResponseParser;
+import com.google.gson.JsonObject;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import org.multipaz.cbor.Cbor;
+import org.multipaz.cbor.DiagnosticOption;
+import org.multipaz.mdoc.response.DeviceResponseParser;
+import org.multipaz.testapp.TestAppUtils;
 
+import java.text.ParseException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
 public class ParseCredentialAsMdoc extends AbstractCondition {
 	@Override
-	@PreEnvironment(strings = { "credential", "session_transcript" })
+	@PreEnvironment(strings = { "credential", "session_transcript" }, required = "decryption_jwk")
 //	@PostEnvironment(required = "mdoc")
 	public Environment evaluate(Environment env) {
 		// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure as defined in ISO/IEC 18013-5.
@@ -27,7 +31,22 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 
 		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 
+		// this is only required for MACed mdocs
+		JsonObject jwkJson = env.getObject("decryption_jwk");
+		JWK jwk = null;
+		try {
+			jwk = JWK.parse(jwkJson.toString());
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		}
+
 		DeviceResponseParser parser = new DeviceResponseParser(bytes, sessionTranscript);
+		//EcPrivateKeyDoubleCoordinate();
+
+		var key = TestAppUtils.convertToEcPrivateKey(jwk);
+		parser.setEphemeralReaderKey(key); // pass encryption key
+
+
 		DeviceResponseParser.DeviceResponse response = parser.parse();
 		List<DeviceResponseParser.Document> docs = response.getDocuments();
 		if (docs.size() != 1) {
