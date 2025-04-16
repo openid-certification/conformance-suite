@@ -5,8 +5,8 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
 
 @PublishTestPlan(
-	testPlanName = "openid-federation-test-plan",
-	displayName = "OpenID Federation: Federation entity test (alpha - INCOMPLETE/INCORRECT, please email certification team if interested)",
+	testPlanName = "openid-federation-deployed-entity-test-plan",
+	displayName = "OpenID Federation: Deployed federation entity test plan (alpha - INCOMPLETE/INCORRECT, please email certification team if interested)",
 	profile = TestPlan.ProfileNames.federationTest,
 	testModules = {
 		OpenIDFederationEntityConfigurationTest.class,
@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantSelection;
 public class OpenIDFederationTestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
-		return "OpenID Federation entity";
+		return "OpenID Federation: Deployed federation entity";
 	}
 
 }
