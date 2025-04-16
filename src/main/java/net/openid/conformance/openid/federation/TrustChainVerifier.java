@@ -122,7 +122,7 @@ public class TrustChainVerifier {
 	}
 
 	private static boolean verifySignature(JsonElement jwks, String jwt) throws ParseException, JOSEException {
-		VerifyEntityStatmentSignature signatureVerifier = new VerifyEntityStatmentSignature();
+		VerifyEntityStatementSignature signatureVerifier = new VerifyEntityStatementSignature();
 		JWKSet jwkSet = JWKSet.parse(jwks.toString());
 		SignedJWT signedJWT = SignedJWT.parse(jwt);
 		return signatureVerifier.verifySignature(signedJWT, jwkSet);
