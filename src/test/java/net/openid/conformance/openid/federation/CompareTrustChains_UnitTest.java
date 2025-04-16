@@ -40,7 +40,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 
 @ExtendWith(MockitoExtension.class)
-class CompareTrustChains_UnitTest {
+public class CompareTrustChains_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
