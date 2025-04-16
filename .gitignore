@@ -16,6 +16,7 @@ data
 .factorypath
 *.zip
 mongo
+.DS_Store
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
 # Copied from https://github.com/github/gitignore/blob/master/Global/JetBrains.gitignore
