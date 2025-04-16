@@ -166,6 +166,10 @@ public class Environment {
 		putElement(key, path, new JsonPrimitive(value));
 	}
 
+	public void putLong(String key, String path, long value) {
+		putElement(key, path, new JsonPrimitive(value));
+	}
+
 	public void removeElement(String key, String path) {
 
 		JsonObject o = getObject(key);
