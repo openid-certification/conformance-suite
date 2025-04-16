@@ -1570,6 +1570,21 @@ echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.ca}\n
 
             return curlCommand;
         }
+
+        // Ctrl+Shift+X / Cmd+Shift+X to repeat test
+        document.addEventListener('keydown', function(event) {
+          const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+          const isCtrlOrCmd = isMac ? event.metaKey : event.ctrlKey;
+
+          if (isCtrlOrCmd && event.shiftKey && event.key.toLowerCase() === 'x') {
+            event.preventDefault(); // prevent other default actions
+            const button = document.getElementById('reloadBtn');
+            if (button) {
+              button.click();
+            }
+          }
+        });
+
     </script>
 
 
