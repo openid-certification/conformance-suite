@@ -10,7 +10,7 @@ import java.util.Date;
 public class ValidateEntityStatementExp extends AbstractCondition {
 
 	// 5 minute allowable skew for testing. The number 5 is arbitrary and not mentioned in the specification.
-	private final int timeSkewMillis = 5 * 60 * 1000;
+	public static final int TIME_SKEW_MILLIS = 5 * 60 * 1000;
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -18,7 +18,7 @@ public class ValidateEntityStatementExp extends AbstractCondition {
 
 		Long exp = env.getLong("federation_response_exp");
 
-		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
+		if (now.minusMillis(TIME_SKEW_MILLIS).isAfter(Instant.ofEpochSecond(exp))) {
 			throw error("Entity statement expired", args("exp", new Date(exp * 1000L), "now", now));
 		}
 		if (now.plus(5 * 365, ChronoUnit.DAYS).isBefore(Instant.ofEpochSecond(exp))) {
