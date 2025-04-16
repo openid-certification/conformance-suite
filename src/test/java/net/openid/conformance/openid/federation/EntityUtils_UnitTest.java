@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-class EntityUtils_UnitTest {
+public class EntityUtils_UnitTest {
 
 	@Test
 	public void property_order_does_not_matter_when_comparing_json_objects() {
