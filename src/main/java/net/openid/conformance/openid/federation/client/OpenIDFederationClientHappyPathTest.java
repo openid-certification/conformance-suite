@@ -35,6 +35,7 @@ import net.openid.conformance.condition.as.ValidateRedirectUriForTokenEndpointRe
 import net.openid.conformance.condition.as.ValidateRequestObjectAud;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
 import net.openid.conformance.condition.as.ValidateRequestObjectIss;
+import net.openid.conformance.condition.as.ValidateRequestObjectJti;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
@@ -615,18 +616,21 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	protected void validateRequestObject() {
-		skipIfElementMissing("authorization_request_object", "claims.exp", Condition.ConditionResult.INFO,
-			OIDCCValidateRequestObjectExp.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.4");
 		callAndContinueOnFailure(ValidateRequestObjectIat.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
-		callAndContinueOnFailure(ValidateRequestObjectMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, Condition.ConditionResult.WARNING, "JAR-10.8");
 
-		String alg = env.getString("authorization_request_object", "header.alg");
-
-		callAndContinueOnFailure(ValidateRequestObjectIss.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
-		callAndContinueOnFailure(ValidateRequestObjectAud.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
+		ConditionCaller caller = this::callAndContinueOnFailure;
+		if (opToRpMode()) {
+			// We want to stop on failure to produce an error
+			caller = this::callAndStopOnFailure;
+		}
+		caller.call(OIDCCValidateRequestObjectExp.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1", "OIDFED-12.1.1.1");
+		caller.call(ValidateRequestObjectMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCC-13.3");
+		caller.call(ValidateRequestObjectJti.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
+		caller.call(ValidateRequestObjectIss.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1");
+		caller.call(ValidateRequestObjectAud.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1");
 
 		// It needs to stop on failure and skipIfMissing doesn't do that
 		/*
