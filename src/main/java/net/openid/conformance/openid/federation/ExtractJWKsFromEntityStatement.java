@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -13,7 +14,13 @@ public class ExtractJWKsFromEntityStatement extends AbstractCondition {
 	@PostEnvironment(required = { "server_jwks" })
 	public Environment evaluate(Environment env) {
 
-		JsonObject jwks = env.getElementFromObject("federation_response_jwt", "claims.jwks").getAsJsonObject();
+		JsonElement jwksElement = env.getElementFromObject("federation_response_jwt", "claims.jwks");
+		if (jwksElement == null) {
+			throw error("Entity statement does not contain a jwks claim",
+				args("claims", env.getElementFromObject("federation_response_jwt", "claims")));
+		}
+
+		JsonObject jwks = jwksElement.getAsJsonObject();
 		env.putObject("server_jwks", jwks);
 
 		logSuccess("Extracted JWKs from entity statement", args("server_jwks", jwks));
