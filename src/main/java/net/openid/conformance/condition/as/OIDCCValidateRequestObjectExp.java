@@ -22,6 +22,10 @@ public class OIDCCValidateRequestObjectExp extends AbstractCondition {
 
 		Long exp = env.getLong("authorization_request_object", "claims.exp");
 
+		if (exp == null) {
+			throw error ("Missing exp, request object does not contain an 'exp' claim");
+		}
+
 		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 			throw error("Request object expired", args("exp", new Date(exp * 1000L), "now", now));
 		}
