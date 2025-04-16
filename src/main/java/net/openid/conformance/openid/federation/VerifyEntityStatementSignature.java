@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
 
-public class VerifyEntityStatmentSignature extends AbstractVerifyJwsSignature {
+public class VerifyEntityStatementSignature extends AbstractVerifyJwsSignature {
 
 	@Override
 	@PreEnvironment(required = { "server_jwks", "federation_response_jwt"} )
@@ -37,6 +37,11 @@ public class VerifyEntityStatmentSignature extends AbstractVerifyJwsSignature {
 			args("jwks", entityStatementJwks, "header", entityStatementHeader));
 
 		return env;
+	}
+
+	@Override
+	public boolean verifySignature(SignedJWT jwt, JWKSet jwkSet) throws JOSEException {
+		return super.verifySignature(jwt, jwkSet);
 	}
 
 }
