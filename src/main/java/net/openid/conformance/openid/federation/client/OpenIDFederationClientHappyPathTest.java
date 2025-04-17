@@ -38,6 +38,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectIss;
 import net.openid.conformance.condition.as.ValidateRequestObjectJti;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
+import net.openid.conformance.condition.as.ValidateRequestObjectSubNotPresent;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
@@ -631,6 +632,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		caller.call(ValidateRequestObjectJti.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
 		caller.call(ValidateRequestObjectIss.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1");
 		caller.call(ValidateRequestObjectAud.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1");
+		caller.call(ValidateRequestObjectSubNotPresent.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
 
 		// It needs to stop on failure and skipIfMissing doesn't do that
 		/*
