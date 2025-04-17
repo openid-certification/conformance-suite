@@ -421,8 +421,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		callAndStopOnFailure(GenerateCredentialIssuerMetadata.class);
+		callAndStopOnFailure(new GenerateCredentialIssuerMetadata(isMTLSConstrain()));
 		exposeEnvString("credential_issuer_metadata_url");
+		exposeEnvString("credential_issuer_nonce_endpoint_url");
+		exposeEnvString("credential_issuer_credential_endpoint_url");
 
 		if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
@@ -782,8 +784,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return credentialEndpoint(requestId);
-		}
-		else if (path.equals("userinfo")) {
+		} else if (path.equals(NONCE_PATH)) {
+			if (!isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The nonce endpoint must be called over an mTLS secured connection.");
+			}
+
+			return nonceEndpoint(requestId);
+		} else if (path.equals("userinfo")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
