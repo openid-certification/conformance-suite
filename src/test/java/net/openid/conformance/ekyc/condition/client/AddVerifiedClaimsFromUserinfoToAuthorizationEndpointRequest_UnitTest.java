@@ -40,9 +40,8 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
-	protected void runTest(String userInfoFilename, String expectedRequestFilename) throws IOException {
-		String testUserInfoJson = IOUtils.resourceToString(userInfoFilename, StandardCharsets.UTF_8, getClass().getClassLoader());
-		env.putObjectFromJsonString("config", "ekyc.userinfo", testUserInfoJson);
+	protected void runTestWithStringData(String jsonRequestData, String jsonResponseData) throws IOException {
+		env.putObjectFromJsonString("config", "ekyc.userinfo", jsonRequestData);
 		env.putObject("authorization_endpoint_request", new JsonObject());
 		cond.execute(env);
 		JsonObject result = env.getObject("authorization_endpoint_request");
@@ -55,14 +54,20 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 		}
 		assertThat(errors.size()).isEqualTo(0);
 
-		String expectedJson = IOUtils.resourceToString(expectedRequestFilename, StandardCharsets.UTF_8, getClass().getClassLoader());
-		JsonObject expected = (JsonObject) JsonParser.parseString(expectedJson);
+		JsonObject expected = (JsonObject) JsonParser.parseString(jsonResponseData);
 
 		JsonPatchFactory jpf = new JsonPatchFactory();
 		JsonPatch patch = jpf.create(expected, result);
 
 		System.out.println("patch: " + patch.toString());
 		assertThat(patch.size()).isEqualTo(0);
+	}
+
+	protected void runTest(String userInfoFilename, String expectedRequestFilename) throws IOException {
+		String testUserInfoJson = IOUtils.resourceToString(userInfoFilename, StandardCharsets.UTF_8, getClass().getClassLoader());
+		String expectedJson = IOUtils.resourceToString(expectedRequestFilename, StandardCharsets.UTF_8, getClass().getClassLoader());
+
+		runTestWithStringData(testUserInfoJson, expectedJson);
 	}
 
 	@Test
@@ -79,6 +84,169 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 		String expectedRequestFilename = "verified-claims-request-based-on-userinfo-yes-test001.json";
 
 		runTest(userInfoFilename, expectedRequestFilename);
+	}
+
+	@Test
+	public void testAssuranceProcess() throws Exception {
+		String userInfoData = "{\n" +
+			"    \"sub\": \"f647f683-e46d-43bd-bc76-526d93429b86\",\n" +
+			"    \"verified_claims\": {\n" +
+			"        \"claims\": {\n" +
+			"            \"birthdate\": \"1950-01-01\"\n" +
+			"        },\n" +
+			"        \"verification\": {\n" +
+			"            \"trust_framework\": \"de_aml\",\n" +
+			"            \"verification_process\": \"vp1\",\n" +
+			"            \"assurance_process\": {\n" +
+			"                \"policy\": \"policy1\",\n" +
+			"                \"procedure\": \"procedure1\"\n" +
+			"            }\n" +
+			"        }\n" +
+			"    }\n" +
+			"}";
+
+		String expecteData = "{\n" +
+			"    \"claims\": {\n" +
+			"        \"userinfo\": {\n" +
+			"            \"verified_claims\": {\n" +
+			"                \"claims\": {\n" +
+			"                    \"birthdate\": null\n" +
+			"                },\n" +
+			"                \"verification\": {\n" +
+			"                    \"trust_framework\": {\n" +
+			"                        \"value\": \"de_aml\"\n" +
+			"                    },\n" +
+			"                    \"verification_process\": {\n" +
+			"                        \"value\": \"vp1\"\n" +
+			"                    },\n" +
+			"                    \"assurance_process\": {\n" +
+			"                        \"policy\": {\n" +
+			"                            \"value\": \"policy1\"\n" +
+			"                        },\n" +
+			"                        \"procedure\": {\n" +
+			"                            \"value\": \"procedure1\"\n" +
+			"                        }\n" +
+			"                    }\n" +
+			"                }\n" +
+			"            }\n" +
+			"        }\n" +
+			"    }\n" +
+			"}";
+
+		runTestWithStringData(userInfoData, expecteData);
+	}
+
+
+	@Test
+	public void testAssuranceProcessAssuranceDetails() throws Exception {
+		String userInfoData = "{\n" +
+			"    \"sub\": \"f647f683-e46d-43bd-bc76-526d93429b86\",\n" +
+			"    \"verified_claims\": {\n" +
+			"        \"claims\": {\n" +
+			"            \"birthdate\": \"1950-01-01\",\n" +
+			"            \"given_name\": \"Given001\",\n" +
+			"            \"family_name\": \"Family001\"\n" +
+			"        },\n" +
+			"        \"verification\": {\n" +
+			"            \"evidence\": [\n" +
+			"                {\n" +
+			"                    \"method\": \"pipp\",\n" +
+			"                    \"type\": \"document\"\n" +
+			"                },\n" +
+			"                {\n" +
+			"                    \"method\": \"pipp\",\n" +
+			"                    \"type\": \"electronic_record\"\n" +
+			"                }\n" +
+			"            ],\n" +
+			"            \"trust_framework\": \"de_aml\",\n" +
+			"            \"verification_process\": \"vp1\",\n" +
+			"            \"assurance_process\": {\n" +
+			"                \"policy\": \"policy1\",\n" +
+			"                \"procedure\": \"procedure1\",\n" +
+			"                \"assurance_details\": [\n" +
+			"                    {\n" +
+			"                        \"assurance_type\": \"assurance_type1\",\n" +
+			"                        \"assurance_classification\": \"assurance_classification1\",\n" +
+			"                        \"evidence_ref\": [\n" +
+			"                            {\n" +
+			"                                \"check_id\": \"id1234\",\n" +
+			"                                \"evidence_metadata\": {\n" +
+			"                                    \"evidence_classification\": \"evc1\"\n" +
+			"                                }\n" +
+			"                            }\n" +
+			"                        ]\n" +
+			"                    }\n" +
+			"                ]\n" +
+			"            }\n" +
+			"        }\n" +
+			"    }\n" +
+			"}";
+
+		String expecteData = "{\n" +
+			"    \"claims\": {\n" +
+			"      \"userinfo\": {\n" +
+			"        \"verified_claims\": {\n" +
+			"          \"claims\": {\n" +
+			"            \"birthdate\": null,\n" +
+			"            \"given_name\": null,\n" +
+			"            \"family_name\": null\n" +
+			"          },\n" +
+			"          \"verification\": {\n" +
+			"            \"trust_framework\": {\n" +
+			"              \"value\": \"de_aml\"\n" +
+			"            },\n" +
+			"            \"verification_process\": {\n" +
+			"              \"value\": \"vp1\"\n" +
+			"            },\n" +
+			"            \"assurance_process\": {\n" +
+			"              \"policy\": {\n" +
+			"                \"value\": \"policy1\"\n" +
+			"              },\n" +
+			"              \"procedure\": {\n" +
+			"                \"value\": \"procedure1\"\n" +
+			"              },\n" +
+			"              \"assurance_details\": [\n" +
+			"                {\n" +
+			"                  \"assurance_type\": {\n" +
+			"                    \"value\": \"assurance_type1\"\n" +
+			"                  },\n" +
+			"                  \"assurance_classification\": {\n" +
+			"                    \"value\": \"assurance_classification1\"\n" +
+			"                  },\n" +
+			"                  \"evidence_ref\": [\n" +
+			"                    {\n" +
+			"                      \"check_id\": {\n" +
+			"                        \"value\": \"id1234\"\n" +
+			"                      },\n" +
+			"                      \"evidence_metadata\": {\n" +
+			"                        \"evidence_classification\": {\n" +
+			"                          \"value\": \"evc1\"\n" +
+			"                        }\n" +
+			"                      }\n" +
+			"                    }\n" +
+			"                  ]\n" +
+			"                }\n" +
+			"              ]\n" +
+			"            },\n" +
+			"            \"evidence\": [\n" +
+			"              {\n" +
+			"                \"type\": {\n" +
+			"                  \"value\": \"document\"\n" +
+			"                }\n" +
+			"              },\n" +
+			"              {\n" +
+			"                \"type\": {\n" +
+			"                  \"value\": \"electronic_record\"\n" +
+			"                }\n" +
+			"              }\n" +
+			"            ]\n" +
+			"          }\n" +
+			"        }\n" +
+			"      }\n" +
+			"    }\n" +
+			"  }";
+
+		runTestWithStringData(userInfoData, expecteData);
 	}
 
 }
