@@ -80,16 +80,64 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends
 			verification.add("assurance_level", getConstrainableElementWithValue(verificationInUserinfo.get("assurance_level")));
 		}
 		if(verificationInUserinfo.has("assurance_process")) {
-			JsonObject assuranceProcess = new JsonObject();
 			JsonObject assuranceProcessInUserinfo = verificationInUserinfo.get("assurance_process").getAsJsonObject();
-			if(assuranceProcessInUserinfo.has("policy")) {
-				assuranceProcess.add("policy", getConstrainableElementWithValue(assuranceProcessInUserinfo.get("policy")));
-			}
-			if(assuranceProcessInUserinfo.has("procedure")) {
-				assuranceProcess.add("procedure", getConstrainableElementWithValue(assuranceProcessInUserinfo.get("procedure")));
-			}
-			if(assuranceProcessInUserinfo.has("status")) {
-				assuranceProcess.add("status", getConstrainableElementWithValue(assuranceProcessInUserinfo.get("status")));
+			JsonObject assuranceProcess = getJsonObjectSubElementsWithConstrainableElementValue(assuranceProcessInUserinfo, "policy", "procedure");
+
+			// assurance_details is an array
+			if(assuranceProcessInUserinfo.has("assurance_details")) {
+				JsonElement assuranceDetailsInAssuranceProcess = assuranceProcessInUserinfo.get("assurance_details");
+				if(assuranceDetailsInAssuranceProcess.isJsonArray()) {
+					JsonArray assuranceDetailsArrayInAssuranceProcess = assuranceDetailsInAssuranceProcess.getAsJsonArray();
+					JsonArray assuranceDetailsArray = new JsonArray();
+					for(JsonElement assuranceDetailsElementInAssuranceProcess : assuranceDetailsArrayInAssuranceProcess) {
+						if(assuranceDetailsElementInAssuranceProcess.isJsonObject()) {
+							JsonObject assuranceDetailsElementInAssuranceProcessAsJsonObject = assuranceDetailsElementInAssuranceProcess.getAsJsonObject();
+							JsonObject assuranceDetailsObject = getJsonObjectSubElementsWithConstrainableElementValue(assuranceDetailsElementInAssuranceProcessAsJsonObject, "assurance_type", "assurance_classification");
+
+							// evidence_ref is an array
+							if(assuranceDetailsElementInAssuranceProcessAsJsonObject.has("evidence_ref")) {
+								JsonElement evidenceRefInAssuranceDetailsElement = assuranceDetailsElementInAssuranceProcessAsJsonObject.get("evidence_ref");
+								if(evidenceRefInAssuranceDetailsElement.isJsonArray()) {
+									JsonArray evidenceRefInAssuranceDetailsArray = evidenceRefInAssuranceDetailsElement.getAsJsonArray();
+									JsonArray evidenceRefArray = new JsonArray();
+									for(JsonElement evidenceRefInAssuranceDetailsArrayItem : evidenceRefInAssuranceDetailsArray) {
+										if(evidenceRefInAssuranceDetailsArrayItem.isJsonObject()) {
+											JsonObject evidenceRefInAssuranceDetailsArrayItemAsObject = evidenceRefInAssuranceDetailsArrayItem.getAsJsonObject();
+											JsonObject evidenceRefItemObject = getJsonObjectSubElementsWithConstrainableElementValue(evidenceRefInAssuranceDetailsArrayItemAsObject, "check_id");
+											if(!evidenceRefItemObject.has("check_id")) {
+												throw error("evidence_ref items require check_id", args("evidence_ref", evidenceRefInAssuranceDetailsArrayItemAsObject));
+											}
+											// evidence_metadata
+											if(evidenceRefInAssuranceDetailsArrayItemAsObject.has("evidence_metadata")) {
+												JsonElement evidenceMetadataInEvidenceRefInAssuranceDetailsArrayItem = evidenceRefInAssuranceDetailsArrayItemAsObject.get("evidence_metadata");
+												if(!evidenceMetadataInEvidenceRefInAssuranceDetailsArrayItem.isJsonObject()) {
+													throw error("evidence_metadat must be a JSON object", args("evidence_metadata", evidenceMetadataInEvidenceRefInAssuranceDetailsArrayItem));
+												} else {
+													JsonObject evidenceMetadata = getJsonObjectSubElementsWithConstrainableElementValue(evidenceMetadataInEvidenceRefInAssuranceDetailsArrayItem.getAsJsonObject(), "evidence_classification");
+													evidenceRefItemObject.add("evidence_metadata", evidenceMetadata);
+												}
+											}
+											evidenceRefArray.add(evidenceRefItemObject);
+										} else {
+											throw error("evidence_ref items must be objects", args("evidence_ref", evidenceRefInAssuranceDetailsArrayItem));
+										}
+									}
+									assuranceDetailsObject.add("evidence_ref", evidenceRefArray);
+
+								} else {
+									throw error("evidence_ref must be an array", args("evidence_ref", evidenceRefInAssuranceDetailsElement));
+								}
+							}
+							assuranceDetailsArray.add(assuranceDetailsObject);
+						} else {
+							throw error("Items in assurance_details must be objects", args("assurance_details", assuranceDetailsInAssuranceProcess));
+						}
+
+					}
+					assuranceProcess.add("assurance_details", assuranceDetailsArray);
+				} else {
+					throw error("assurance_details must be an array of objects", args("assurance_details", assuranceDetailsInAssuranceProcess));
+				}
 			}
 			verification.add("assurance_process", assuranceProcess);
 		}
@@ -111,7 +159,7 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends
 				JsonObject evidenceType = new JsonObject();
 				evidenceType.addProperty("value", OIDFJSON.getString(evidenceInUserinfo.get("type")));
 				evidence.add("type", evidenceType);
-				//TODO add evidence type specific items (doucument, electornic_record, vouch, electronic_signature)
+				//TODO eKYC add evidence type specific items (document, electronic_record, vouch, electronic_signature)
 				if(OIDFJSON.getString(evidenceInUserinfo.get("type")).equals("document")) {
 					if(evidenceInUserinfo.has("document_details")) {
 						JsonObject documentDetailsInEvidence = evidenceInUserinfo.getAsJsonObject("document_details");
@@ -154,6 +202,18 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest extends
 		}
 		rv.add("verification", verification);
 		return rv;
+	}
+
+
+
+	private JsonObject getJsonObjectSubElementsWithConstrainableElementValue(JsonObject refJsonObject, String ... elementsList) {
+		JsonObject retJsonObject = new JsonObject();
+		for(String element : elementsList) {
+			if(refJsonObject.has(element)) {
+				retJsonObject.add(element, getConstrainableElementWithValue(refJsonObject.get(element)));
+			}
+		}
+		return retJsonObject;
 	}
 
 	protected JsonObject getConstrainableElementWithValue(JsonElement valueInUserinfo) {
