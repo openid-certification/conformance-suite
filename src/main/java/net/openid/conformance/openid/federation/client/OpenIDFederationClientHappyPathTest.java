@@ -89,6 +89,8 @@ import java.util.Set;
 @SuppressWarnings("unused")
 public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederationClientTest {
 
+	protected ConditionCaller caller = this::callAndContinueOnFailure;
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
@@ -140,6 +142,10 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 	@Override
 	public void additionalConfiguration() {
+		if (opToRpMode()) {
+			// We want to stop on failure to produce an error
+			caller = this::callAndStopOnFailure;
+		}
 	}
 
 	@Override
@@ -472,7 +478,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			}
 		}
 
-		callAndContinueOnFailure(VerifyTrustChain.class, Condition.ConditionResult.FAILURE);
+		caller.call(VerifyTrustChain.class, Condition.ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CreateAuthorizationCode.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CreateAuthorizationEndpointResponseParams.class, Condition.ConditionResult.FAILURE);
@@ -622,11 +628,6 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, Condition.ConditionResult.WARNING, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, Condition.ConditionResult.WARNING, "JAR-10.8");
 
-		ConditionCaller caller = this::callAndContinueOnFailure;
-		if (opToRpMode()) {
-			// We want to stop on failure to produce an error
-			caller = this::callAndStopOnFailure;
-		}
 		caller.call(OIDCCValidateRequestObjectExp.class, Condition.ConditionResult.FAILURE, "OIDCC-6.1", "OIDFED-12.1.1.1");
 		caller.call(ValidateRequestObjectMaxAge.class, Condition.ConditionResult.FAILURE, "OIDCC-13.3");
 		caller.call(ValidateRequestObjectJti.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
