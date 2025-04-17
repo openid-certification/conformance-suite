@@ -1,11 +1,14 @@
 package net.openid.conformance;
 
 import net.openid.conformance.plan.PublishTestPlan;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
+import java.security.Security;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +18,15 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CorrectnessTests {
+
+	static {
+		Security.addProvider(new BouncyCastleJsseProvider());
+	}
+
+	@Test
+	public void ensureBCJSSEInitialized() {
+		assertTrue(Arrays.stream(Security.getProviders()).anyMatch(p -> p.getName().equals("BCJSSE")), "BCJSSE Security provider should be present");
+	}
 
 	@Test
 	public void ensureTestPlanNamesAreUnique() {
