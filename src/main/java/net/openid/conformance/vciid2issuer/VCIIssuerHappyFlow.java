@@ -14,11 +14,6 @@ import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourc
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
-import net.openid.conformance.condition.common.CheckForBCP195InsecureFAPICiphers;
-import net.openid.conformance.condition.common.DisallowInsecureCipher;
-import net.openid.conformance.condition.common.DisallowTLS10;
-import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -74,36 +69,9 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
 		return super.makeCreateAuthorizationRequestSteps();
 	}
 
-	protected void checkResourceEndpointTLS() {
-		eventLog.startBlock("Resource endpoint TLS test");
-		env.mapKey("tls", "resource_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkAccountRequestEndpointTLS() {
-		eventLog.startBlock("Accounts request endpoint TLS test");
-		env.mapKey("tls", "accounts_request_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkAccountResourceEndpointTLS() {
-		eventLog.startBlock("Accounts resource endpoint TLS test");
-		env.mapKey("tls", "accounts_resource_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkEndpointTLS() {
-		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.2.3-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.2.1-1");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.2.1-1");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.2.2.1");
-		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5", "RFC9325A-A", "RFC9325-4.2");
+	@Override
+	protected void performAuthorizationFlowWithSecondClient() {
+		// NOOP
 	}
 
 	protected void performAdditionalResourceEndpointTests() {
@@ -151,19 +119,14 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
 			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_UK ||
 				getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
-				checkAccountRequestEndpointTLS();
-				checkAccountResourceEndpointTLS();
 			} else {
 				callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-				checkResourceEndpointTLS();
 			}
 		}
 
 		super.requestProtectedResource();
 
-		if (!isSecondClient()) {
-			performAdditionalResourceEndpointTests();
-		}
+		fireTestFinished();
 	}
 
 	@Override
