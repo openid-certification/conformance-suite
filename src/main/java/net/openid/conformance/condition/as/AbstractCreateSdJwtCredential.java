@@ -144,7 +144,6 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		}
 		SDJWT sdJwt = new SDJWT(jwt.serialize(), disclosures, bindingJwt);
 
-		String vpToken = sdJwt.toString();
-		return vpToken;
+		return sdJwt.toString();
 	}
 }
