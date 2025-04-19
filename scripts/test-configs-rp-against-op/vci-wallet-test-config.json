@@ -1,0 +1,74 @@
+{
+    "alias": "oidf-fapi-rp-test",
+    "description": "VCI Wallet test config for running against issuer tests",
+    "server": {
+        "jwks": {
+            "keys": [
+                {
+                    "p": "7Oc2Fp62nJngn-4LeptdKfH8JuuOWR_mvr2nNAMvm1-KOOWvJeHdKlKS8HThWEBamVZ-wHLbJF1LMikku3Zht7a8_If3T4JLoRl-iBIEOOtsxXx6H7XLXDMEyqSrpZGhR0KchdkH_imW8NpnY9Ic-W5lFJUqPQmWdC__IBJ5c-0",
+                    "kty": "RSA",
+                    "q": "tjY9uzvuSnkx9NzsL37Xlp5SGBgb8ocu2XzFdEc2NI756cvY3ryh9ArPiEBsW_xYSyWgYEzhS931upz3F2W5Gk2tw_PBRC6cI-4uhXuZNlWEMFiP6F88yoEeKimDeU_oraXmJvll3iZxQrHYE4bWDkPnwAKRSPjZs_5esHrmeQE",
+                    "d": "gx6by4bdepWhxpDX2eNiEJPNvx5yuKjOJi7jD8r8qMKS1zzd8igtpMbpHsyzpXBGaGfIe_y3MxL7Ae4XZ7xd69T33S0S4Z-H3vFSg_hdhVR3V3riFSX4L6StDS9RauZBGrno9eemm-DlPATtOtG0JAAh0RwbqOeQb19i3W3sDWHmz8eGZiE3tVuaP-U2SIMiWZ3g1CWEB-1cErp1qygfLA_MFipwj8_ud2oevh--PYlblN5Exv4dCkivlbXYzPqSNa8rzoNXMywKx5WzC0-fC_cwQNYBdu9kATAjvX3CS2fHCfrYw9kojGRg-0ngLewYAY6Iak00er31gwEWO6DYAQ",
+                    "e": "AQAB",
+                    "use": "sig",
+                    "kid": "sig-2021-09-25T08:32:40Z",
+                    "qi": "GkvaKRWKHtgMKEL1FB3bLDGZEirbBuNeiYsO2KYs5c6GAnrQg99SfTb2EqdXtVeVdl55RBB7BlquNCxv_oKMFu1ZlquHp3WdXiKEJlXIGjWflEVgBSKL3PSY9v4WLmsaDJZZ7A16aLQ0KmhA3UWy6y86A0q2PmbvE6MdDEnScJQ",
+                    "dp": "XEzhOALyZyVU7TrT4hsyOyt68LcKKRNS1bISuSMco06gDfb_PKU5hEnT0jfXrIi2Q9P9YoHde9eVep-pHhjLjcZ273USGDpNuSCzudQ7LOoc4PzUoBI2f1-pWEK8Va_dxGPhlAyxHoeZtZGCgtPUUiJ-43wSjuFzayVgI2DPTSk",
+                    "alg": "PS256",
+                    "dq": "i31striDjNnJB7ZUzWtiKbkcCbvzMTCSCgc9te2KLqRB59yZMrLfnM7l313KVoURJr4wT2irlQPfyTO-6VeDZAKRgxBJJSQ1fkAptyBOw0ymPMifqnm2NSSxbf-H2cf1zXHShoWomW9-h1tUmmY_2n3bnZ-Zj26KYwPZg2siowE",
+                    "n": "qJ6SWdnZAYhdnbx_kQ97UrQrS745M5E9OsSzWNpwCh-LbVtcUHHO2zjIj5OWmctlCwhAuD4QfuF1XC8bC3tzv8F85ry81M0e92A5fmRVdzvzuQBHc8na4CBLKJ7kQInSF2yIbuss_y8IwVl-A7ZAgiV2lmOBoz61TCSfFWS0nbq1W7apTcmXpe6Kru83UUJR0Ah0NjOszS2qolw5FO2YVYzJVoLG_nHtvtnET5VHUTO8rlL_TL76-niaYgKzDlrvMbRU1M-VGaNuhqidjsDr3F_8y2-TOUEmnbuuS7miKDUvUYxS23XzPzqDGJCADpMxuFdE0Yyjsn-rm1sokzJ47Q"
+                }
+            ]
+        }
+    },
+    "client": {
+        "client_id": "52480754053",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "EC",
+                    "use": "sig",
+                    "crv": "P-256",
+                    "kid": "vci-example-key-1",
+                    "x": "yHNp8QgNiVSxSxIH_n_nH23dpUDlNhbgvLKSrjK1hDs",
+                    "y": "3_rlpW_FXqghp8dKPpkjfvbfACQQFLFZwJXxOr319Ac",
+                    "alg": "ES256"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIDlTCCAn2gAwIBAgIJAKRJoaX7BlZbMA0GCSqGSIb3DQEBCwUAMGAxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBU\nZXN0IENsaWVudDEdMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwIBcNMTgw\nNTI1MjA1NzU0WhgPMjEwNjAxMDQyMDU3NTRaMGAxCzAJBgNVBAYTAlVTMRMwEQYD\nVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBUZXN0IENsaWVudDEd\nMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwggEiMA0GCSqGSIb3DQEBAQUA\nA4IBDwAwggEKAoIBAQDEWwl/Q+nuL8KXbObpVzww1VkHwLF4W9QxrPI1V0Uh6V9r\nxUjrfSbtWNEQVDwQmoW8M1XjnRnGvdNRd0m6gNEQLKsqRN2xIvPdR0IO+2b+y7WJ\n9XlwdqHAFSWQJtoHzBAmkRirRMJrQSW5sB/NIBmyVqUdTV/FghNjc+IiPF4X1kxw\nwOzm7y2zlHZUpiPQknwPbWNeyunj/XQRrqWPg+RXzAKIjbVprxGaT8CexKu6oEae\nd8BCTO0rJIOkmjXZMl+SDhXQn9GHKFh60UlJddxVngxhX63MAQ1GsO8HsjrLgO3q\n4LmTDVHkprLy/wgBRDfo0IHb3gWhbOuRGMLLMKKvAgMBAAGjUDBOMB0GA1UdDgQW\nBBRuwpA4lqWaOkwmPcTQR8CH0Iv3vjAfBgNVHSMEGDAWgBRuwpA4lqWaOkwmPcTQ\nR8CH0Iv3vjAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBiCmvQmmKq\nI/8sB312HTEFlvtpbYp429eNCGXWloOOqVQkJaBnvy9YUS/wCgusyKeMBgbgpV0s\n8bp/gEW2/MnlWW9+fbFuhzRRwvuV/7je1Avv9Y06RH8GKJYwk2j6qcO7Mn9kVhln\nlKxGdFxm/i0OBuZnUe/KDxKPjVEdUJbxAFfxdq4cUjfewMuoxsYruIDnLXjTBcj2\nPbJ6vcPzq/6TYwxRmnrXIAO6Nxe8ZNXn2x2+njwrUKW4WPQ7u3dyHlD+M3iTpm3T\nwSgg0FSYiBcXhWJLQCJVEb0kbKJ/PDmcvomusQWTL/0epS62azWG8PUUs4v9Xeae\nmAbHqPGh+5Bo\n-----END CERTIFICATE-----\n",
+        "redirect_uri": "{BASEURL}test/a/oidf-fapi-op-test/callback"
+    },
+    "client2": {
+        "client_id": "61732691006",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "kid": "fapi-jwt-assertion-20180817-2",
+                    "alg": "PS256",
+                    "n": "kne7a8IYQR6jweqpHAplq-XRGOuiVyF5Siy6_647OhOC8ppRIMV2O_wP6qK1AKCFb78Bb8qbRI3Mz-Tr9hCWm1BZQkD-HGbNowjVsOj7oB2nbNbGfqciTyT3kTG1f5PmeX2N4-f9zZM-J4Jmi9PdMjn2fkNl9oMCW9XaLHHzCU6f-vYftxdCnVQD7ZKr40HjoAeXjwdGhgzvuWSZHkhEqx_QMh8JskqP46PjsMykFWiryju9balCdS5yASf-Fno8pXMFEV1wgipy-FPlhB5FZtLwVvH9F2jAxRaWkRQzhM5hWugIUi8YobjoIwhrmJ04JTK-DGOlThJsNvS4QANDZw"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIDhTCCAm2gAwIBAgIJAKAe4HusBvwoMA0GCSqGSIb3DQEBCwUAMFgxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX\naWRnaXRzIFB0eSBMdGQxETAPBgNVBAMMCGNsaWVudF8yMCAXDTE4MDcwMjE2MzUy\nOFoYDzIxMDYwMjExMTYzNTI4WjBYMQswCQYDVQQGEwJVUzETMBEGA1UECAwKU29t\nZS1TdGF0ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMREwDwYD\nVQQDDAhjbGllbnRfMjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANMy\n1QohUbUoyte8cYCCO1+vJ/GImvVkrb79HUTSzL3G46lDC0JYZGMpMvX9NncadCYL\nQV8fmofOouNs4AWJgf0skH5sAJcZMgj3GVqqLsx2iDye3cgqsCCzTf5gzhOVtpXg\nNoBMFckVGxI+dG9h06n71mH9dtGoD/BoWOB4FLae0Ec4olot5eROeJ3Z0J15aXPW\noQrn3J5Eoz0/c7D7+byb+XGjF/r+uJVrKqOLtnO69Ro99fowwVtVQAPHmxLQ9VvF\niLONwbOfELtBvX4MlxHDOuynDsDw/mHxkzMSxPXAd9QfIU05ySZ9eVR3UfNUeCk8\na63NSO8MZdfHFnUsEO8CAwEAAaNQME4wHQYDVR0OBBYEFFEdch1XYRpO5JXxPkBx\ndAoAt6IiMB8GA1UdIwQYMBaAFFEdch1XYRpO5JXxPkBxdAoAt6IiMAwGA1UdEwQF\nMAMBAf8wDQYJKoZIhvcNAQELBQADggEBABTTN0up/ndWCNamqrV8ik1XwUqPCAO7\nTYKmZrRilo3STxyp2aUiFf1uPSkU6WU4Eu0JoDKU46axIFzZO3Ckoq17JMde2OzE\nSlAF+hQyvg/3l+6mbBK/OuzOiC+yfU9roD6vmjsBlH0My1+CnqkZLr6YQSaCHffl\nb6zqA7+aLUEWjyVneD6jQ6CCFwCs6eDorY1eKFM7lCQ5OdJFBc2LOOXuSGRXLZDK\nF3X2SfKCld0VWIOknJk8drfrCc1ylWa7wIuXU/kTyX8Z68a8w1/6ZkGxN9tsHWVt\nSe6ggOD1AFI5OQ3c8lCUzgGeFl69hz2UduHOyWs1KXUhgSy7fViAP90=\n-----END CERTIFICATE-----\n"
+    },
+    "credential": {
+        "signing_jwk": {
+            "kty": "EC",
+            "d": "y2NSNIvlRAEBMFk2bjQcSKbjS1y_NBJQ6jRzIfuIxS0",
+            "use": "sig",
+            "x5c": [
+                "MIIIVTCCB/ugAwIBAgIUGflIlFytY5rT5iB6DdH2oYI/9/swCgYIKoZIzj0EAwIwITELMAkGA1UEBhMCR0IxEjAQBgNVBAMMCU9JREYgVGVzdDAeFw0yNDExMjcyMDQwNDhaFw0zNDExMjUyMDQwNDhaMCExCzAJBgNVBAYTAkdCMRIwEAYDVQQDDAlPSURGIFRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATT/dLsd51LLBrGV6R23o6vymRxHXeFBoI8yq31y5kFV2VV0gi9x5ZzEFiq8DMiAHucLACFndxLtZorCha9zznQo4IHDzCCBwswHQYDVR0OBBYEFLlxt2AB4wGLnDGlunAhIaFKEBYRMB8GA1UdIwQYMBaAFLlxt2AB4wGLnDGlunAhIaFKEBYRMA8GA1UdEwEB/wQFMAMBAf8wgga2BgNVHREEggatMIIGqYIQd3d3LmhlZW5hbi5tZS51a4IJbG9jYWxob3N0ghZsb2NhbGhvc3QuZW1vYml4LmNvLnVrgh1kZW1vLmNlcnRpZmljYXRpb24ub3BlbmlkLm5ldIIcd3d3LmNlcnRpZmljYXRpb24ub3BlbmlkLm5ldIIgc3RhZ2luZy5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCImRlbW8ucGlkLWlzc3Vlci5idW5kZXNkcnVja2VyZWkuZGWCMHJldmlldy1hcHAtZGV2LWJyYW5jaC0xLmNlcnRpZmljYXRpb24ub3BlbmlkLm5ldIIwcmV2aWV3LWFwcC1kZXYtYnJhbmNoLTIuY2VydGlmaWNhdGlvbi5vcGVuaWQubmV0gjByZXZpZXctYXBwLWRldi1icmFuY2gtMy5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMHJldmlldy1hcHAtZGV2LWJyYW5jaC00LmNlcnRpZmljYXRpb24ub3BlbmlkLm5ldIIwcmV2aWV3LWFwcC1kZXYtYnJhbmNoLTUuY2VydGlmaWNhdGlvbi5vcGVuaWQubmV0gjByZXZpZXctYXBwLWRldi1icmFuY2gtNi5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMHJldmlldy1hcHAtZGV2LWJyYW5jaC03LmNlcnRpZmljYXRpb24ub3BlbmlkLm5ldIIwcmV2aWV3LWFwcC1kZXYtYnJhbmNoLTguY2VydGlmaWNhdGlvbi5vcGVuaWQubmV0gjByZXZpZXctYXBwLWRldi1icmFuY2gtOS5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xMC5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xMS5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xMi5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xMy5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xNC5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xNS5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xNi5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xNy5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xOC5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0xOS5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yMC5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yMS5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yMi5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yMy5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yNC5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yNS5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yNi5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yNy5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yOC5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0yOS5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXSCMXJldmlldy1hcHAtZGV2LWJyYW5jaC0zMC5jZXJ0aWZpY2F0aW9uLm9wZW5pZC5uZXQwCgYIKoZIzj0EAwIDSAAwRQIgDhkzF+KXVuao5Z9lU2qMScmkgrPQ5MBtUPVdqtTtZpwCIQDMUl5ofjp1/4mNXz+gpSz5oqmhW9hS4IhRhAs/AlR40w=="
+            ],
+            "crv": "P-256",
+            "kid": "5H1WLeSx55tMW6JNlvqMfg3O_E0eQPqB8jDSoUn6oiI",
+            "x": "0_3S7HedSywaxlekdt6Or8pkcR13hQaCPMqt9cuZBVc",
+            "y": "ZVXSCL3HlnMQWKrwMyIAe5wsAIWd3Eu1misKFr3POdA",
+            "alg": "ES256"
+        }
+    }
+}

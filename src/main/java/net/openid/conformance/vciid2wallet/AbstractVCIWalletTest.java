@@ -1,4 +1,4 @@
-package net.openid.conformance.fapi2spid2;
+package net.openid.conformance.vciid2wallet;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
@@ -50,6 +50,7 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateRefreshToken;
+import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
@@ -99,6 +100,9 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
+import net.openid.conformance.condition.as.GenerateCredentialIssuerMetadata;
+import net.openid.conformance.condition.as.GenerateCredentialNonce;
+import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
@@ -212,6 +216,10 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
+import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
+import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
+import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -225,7 +233,7 @@ import org.springframework.web.servlet.view.RedirectView;
 	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
-		AuthorizationRequestType.class,
+	AuthorizationRequestType.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -253,10 +261,15 @@ import org.springframework.web.servlet.view.RedirectView;
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
 		"resource.authorization_details_types_supported"
 })
-public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
+public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
+
+	public static final String CREDENTIAL_PATH = "credential";
+
+	public static final String NONCE_PATH = "nonce";
+
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
@@ -408,7 +421,12 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
+		callAndStopOnFailure(new GenerateCredentialIssuerMetadata(isMTLSConstrain()));
+		exposeEnvString("credential_issuer_metadata_url");
+		exposeEnvString("credential_issuer_nonce_endpoint_url");
+		exposeEnvString("credential_issuer_credential_endpoint_url");
+
+		if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
@@ -523,8 +541,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
+		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, ConditionResult.FAILURE);
 
 		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 	}
@@ -592,7 +610,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
+			// FIXME we should probably throw, but currently the issuer test is still fetching this
+			//throw new TestFailureException(getId(), "The wallet has fetched .well-known/openid-configuration instead of .well-known/oauth-authorization-server as per RFC8414.");
 			return discoveryEndpoint();
+		} else if (path.equals(".well-known/oauth-authorization-server")) {
+			throw new TestFailureException(getId(), "The wallet has formed the path to .well-known/oauth-authorization-server using the OpenID Connect rules, but the .well-known rules from RFC8414 must be used.");
+		} else if (path.equals(".well-known/openid-credential-issuer")) {
+			return credentialIssuerEndpoint();
 		} else if (path.equals("par")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -620,8 +644,113 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 
 			return accountsEndpoint(requestId);
+		} else if (path.equals(NONCE_PATH)) {
+			if (isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The nonce endpoint must be called over an mTLS secured connection.");
+			}
+
+			return nonceEndpoint(requestId);
+		} else if (path.equals(CREDENTIAL_PATH)) {
+
+			if (isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The credentials endpoint must be called over an mTLS secured connection.");
+			}
+
+			return credentialEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+	}
+
+	protected Object nonceEndpoint(String requestId) {
+		// credential_issuer_nonce
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Nonce endpoint"));
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+
+		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-ID-7");
+		callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-ID2-7.2");
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		ResponseEntity<Object> responseEntity;
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			JsonObject nonceEndpointResponse = env.getObject("credential_nonce_response");
+			JsonObject headerJson = env.getObject("credential_nonce_response_headers");
+
+			if (requireResourceServerEndpointDpopNonce()) {
+				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+			}
+			responseEntity = new ResponseEntity<>(nonceEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+		}
+
+		setStatus(Status.WAITING);
+		return responseEntity;
+	}
+
+	@SuppressWarnings("unused")
+	protected Object credentialEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Credential endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+
+		checkResourceEndpointRequest(false);
+
+		callAndStopOnFailure(VCIValidateCredentialRequestStructure.class, "OID4VCI-ID2-8.2");
+		callAndStopOnFailure(VCIExtractCredentialRequestProof.class, "OID4VCI-ID2-8.2.2");
+		callAndContinueOnFailure(VCIValidateCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.2.2");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+		callAndStopOnFailure(CreateSdJwtCredential.class);
+
+		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class);
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		JsonObject credentialData = new JsonObject();
+		JsonObject headers = env.getElementFromObject(requestId, "headers").getAsJsonObject();
+		JsonObject credentialRequestBodyJson = env.getElementFromObject(requestId, "body_json").getAsJsonObject();
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		ResponseEntity<Object> responseEntity;
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			setStatus(Status.WAITING);
+			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		} else {
+			JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
+			JsonObject headerJson = env.getObject("credential_endpoint_response_headers");
+
+			if (requireResourceServerEndpointDpopNonce()) {
+				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+			}
+			// at this point we can assume the test is fully done
+			resourceEndpointCallComplete();
+			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), HttpStatus.ACCEPTED);
+		}
+		return responseEntity;
 	}
 
 	@Override
@@ -649,6 +778,18 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 
 			return accountsEndpoint(requestId);
+		} else if (path.equals(CREDENTIAL_PATH)) {
+			if (!isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The credential endpoint must not be called over an mTLS secured connection.");
+			}
+
+			return credentialEndpoint(requestId);
+		} else if (path.equals(NONCE_PATH)) {
+			if (!isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The nonce endpoint must be called over an mTLS secured connection.");
+			}
+
+			return nonceEndpoint(requestId);
 		} else if (path.equals("userinfo")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -673,6 +814,12 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			}
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
+	}
+
+	@Override
+	public Object handleOAuthMetadata(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		// FIXME: validate that request is GET, path is empty, query empty, headers sensible?
+		return discoveryEndpoint();
 	}
 
 	protected void validateResourceEndpointHeaders() {
@@ -714,30 +861,30 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		if(isPayments) {
 			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
-			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-			callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, ConditionResult.FAILURE);
 			//ensure aud equals endpoint url	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, Condition.ConditionResult.FAILURE, "RFC7519-4.1.3", "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, ConditionResult.FAILURE, "RFC7519-4.1.3", "BrazilOB-6.1");
 			//ensure ISS equals TLS certificate organizational unit
-			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1");
-			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, ConditionResult.FAILURE,"BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 			//ensure jti is uuid	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1");
-			callAndContinueOnFailure(FAPIBrazilValidateConsentRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestJtiIsUUIDv4.class, ConditionResult.FAILURE,"BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilValidateConsentRequestIat.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 
-			callAndContinueOnFailure(FAPIBrazilFetchClientOrganizationJwksFromDirectory.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilFetchClientOrganizationJwksFromDirectory.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 			env.mapKey("parsed_client_request_jwt", "new_consent_request");
-			callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 			env.unmapKey("parsed_client_request_jwt");
 
 		} else {
-			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedConsents.class, Condition.ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
+			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedConsents.class, ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
 		}
 
-		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE,"FAPI2-IMP-2.1.1");
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE,"FAPI2-IMP-2.1.1");
 
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
@@ -745,8 +892,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
 			if(isPayments) {
-				callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
-				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-6.1-2");
+				callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
+				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, ConditionResult.FAILURE,"BrazilOB-6.1-2");
 				String signedConsentResponse = env.getString("signed_consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
 
@@ -754,12 +901,12 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 				responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 			} else {
-				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, Condition.ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
+				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
 				JsonObject response = env.getObject("consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
 				responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.CREATED);
 			}
-			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
 		}
 
 		call(exec().unmapKey("incoming_request").endBlock());
@@ -779,7 +926,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 
 		checkResourceEndpointRequest(true);
-		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 		String requestedConsentId = path.substring(path.lastIndexOf('/')+1);
 		env.putString("requested_consent_id", requestedConsentId);
@@ -790,8 +937,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
 			if(isPayments) {
-				callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+				callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 				String signedConsentResponse = env.getString("signed_consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
 
@@ -800,13 +947,13 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
 
 		} else {
-			callAndContinueOnFailure(FAPIBrazilGenerateGetConsentResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+			callAndContinueOnFailure(FAPIBrazilGenerateGetConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
 			JsonObject response = env.getObject("consent_response");
 			JsonObject headerJson = env.getObject("consent_response_headers");
 			responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.OK);
 		}
 
-			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
 		}
 
 		call(exec().unmapKey("incoming_request").endBlock());
@@ -825,28 +972,28 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		call(exec().startBlock("Payment initiation endpoint").mapKey("incoming_request", requestId));
 		//Requires method=POST. defined in API docs
-		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE);
 
 		checkResourceEndpointRequest(false);
 
-		callAndContinueOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainPayments.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainPayments.class, ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(FAPIBrazilExtractPaymentInitiationRequest.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+		callAndContinueOnFailure(FAPIBrazilExtractPaymentInitiationRequest.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
 		env.mapKey("parsed_client_request_jwt", "payment_initiation_request");
-		callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 		env.unmapKey("parsed_client_request_jwt");
 
-		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 
-		callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, ConditionResult.FAILURE);
 
 		//ensure aud equals endpoint url	"BrazilOB-6.1"
-		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 		//ensure ISS equals TLS certificate organizational unit
-		callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4.class, ConditionResult.FAILURE, "BrazilOB-6.1");
+		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 
 
 		ResponseEntity<Object> responseEntity = null;
@@ -855,8 +1002,8 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
-			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-			callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+			callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 			String signedConsentResponse = env.getString("signed_payment_initiation_response");
 			JsonObject headerJson = env.getObject("payment_initiation_response_headers");
 
@@ -864,7 +1011,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 		responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 
-			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
 			resourceEndpointCallComplete();
 		}
 
@@ -883,6 +1030,14 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
+	}
+
+	protected Object credentialIssuerEndpoint() {
+		setStatus(Status.RUNNING);
+		JsonObject credentialIssuerMetadata = env.getObject("credential_issuer_metadata");
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<Object>(credentialIssuerMetadata, HttpStatus.OK);
 	}
 
 	protected void checkMtlsCertificate() {
@@ -1346,7 +1501,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 	 */
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPI2ValidateRequestObjectSigningAlg.class, "FAPI2-SP-ID2-5.4");
-		callAndContinueOnFailure(FAPIValidateRequestObjectMediaType.class, Condition.ConditionResult.WARNING, "JAR-4");
+		callAndContinueOnFailure(FAPIValidateRequestObjectMediaType.class, ConditionResult.WARNING, "JAR-4");
 		if(fapiClientType== FAPIClientType.OIDC) {
 			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
@@ -1359,7 +1514,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI2-MS-ID1-5.3.1-4");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI2-MS-ID1-5.3.1-3");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
-		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
+		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");

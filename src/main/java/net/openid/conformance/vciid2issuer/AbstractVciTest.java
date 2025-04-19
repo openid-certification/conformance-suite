@@ -2,8 +2,7 @@ package net.openid.conformance.vciid2issuer;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
-import net.openid.conformance.vciid2issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
-import net.openid.conformance.vciid2issuer.condition.VCIGetStaticCredentialIssuerMetadata;
+import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
 
 public abstract class AbstractVciTest extends AbstractTestModule {
@@ -26,20 +25,17 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 		fireSetupDone();
 	}
 
+	protected VCIFetchCredentialIssuerMetadataSequence createFetchCredentialIssuerMetadataSequence() {
+		return new VCIFetchCredentialIssuerMetadataSequence(getVariant(OID4VCIServerMetadata.class));
+	}
+
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		// No custom configuration
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
 
-		switch (getVariant(OID4VCIServerMetadata.class)) {
-			case DISCOVERY:
-				callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
-				break;
-			case STATIC:
-				callAndStopOnFailure(VCIGetStaticCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
-				break;
-		}
+		call(sequence(this::createFetchCredentialIssuerMetadataSequence));
 
 		exposeEnvString("vci_issuer_url", "vci", "credential_issuer");
 		exposeEnvString("vci_metadata_url", "vci","credential_issuer_metadata_url");

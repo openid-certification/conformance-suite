@@ -14,7 +14,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class ParseCredentialAsSdJwt_UnitTest {
+public class ParseCredentialAsSdJwt_Kb_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -22,7 +22,7 @@ public class ParseCredentialAsSdJwt_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private ParseCredentialAsSdJwt cond;
+	private ParseCredentialAsSdJwtKb cond;
 
 	/*
 	 * @throws java.lang.Exception
@@ -30,7 +30,7 @@ public class ParseCredentialAsSdJwt_UnitTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 
-		cond = new ParseCredentialAsSdJwt();
+		cond = new ParseCredentialAsSdJwtKb();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
