@@ -15,7 +15,7 @@ public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
 
 		env.putString("credential", sdJwt);
 
-		log("Created an SD-JWT", args("sdjwt", sdJwt));
+		log("Created an EU ARF 1.8 PID in SD-JWT VC format", args("sdjwt", sdJwt));
 
 		return env;
 
