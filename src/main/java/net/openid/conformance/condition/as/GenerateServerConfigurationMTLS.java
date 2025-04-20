@@ -44,8 +44,6 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 		server.addProperty("token_endpoint", baseUrl + "token");
 		mtlsAliases.addProperty("token_endpoint", baseMtlsUrl + "token");
 
-		server.addProperty("jwks_uri", baseUrl + "jwks");
-
 		server.addProperty("registration_endpoint", baseUrl + "register"); // TODO: should this be pulled into an optional mix-in?
 		mtlsAliases.addProperty("registration_endpoint", baseMtlsUrl + "register");
 

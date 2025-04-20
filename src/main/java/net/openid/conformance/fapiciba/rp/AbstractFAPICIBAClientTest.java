@@ -10,6 +10,7 @@ import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
+import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
@@ -262,6 +263,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		env.putString("ciba_mode", cibaMode.name());
 
 		callAndStopOnFailure(GenerateServerConfiguration.class);
+		call(condition(AddJwksUriToServerConfiguration.class));
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
 
 		callAndStopOnFailure(LoadServerJWKs.class);

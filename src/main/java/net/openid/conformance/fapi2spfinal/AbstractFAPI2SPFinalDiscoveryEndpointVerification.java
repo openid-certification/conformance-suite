@@ -25,6 +25,8 @@ import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -36,6 +38,8 @@ import net.openid.conformance.variant.VariantSetup;
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends AbstractTestModule {
+	protected Boolean jarm;
+	protected Boolean isOpenId;
 	private Class<? extends ConditionSequence> variantAuthChecks;
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
@@ -65,6 +69,9 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
+
+		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
@@ -113,7 +120,9 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			.dontStopOnFailure()
 		);
 
-		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		if (jarm || isOpenId) {
+			callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+		}
 
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-5");
 

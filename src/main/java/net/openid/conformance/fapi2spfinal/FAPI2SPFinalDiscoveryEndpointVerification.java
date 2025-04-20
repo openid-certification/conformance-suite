@@ -8,13 +8,13 @@ import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptAlgVa
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptEncValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthSignAlgValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationRequestTypesSupportedContainsTestType;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256;
 import net.openid.conformance.condition.client.CheckDiscEndpointPARSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256;
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseModesSupportedContainsJwt;
-import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationRequestTypesSupportedContainsTestType;
 import net.openid.conformance.condition.client.CheckDiscEndpointResponseTypeCodeSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
 import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
@@ -66,9 +66,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	private Class<? extends ConditionSequence> profileSpecificChecks;
 	private Class<? extends ConditionSequence> oidcChecks;
 
-	protected Boolean jarm;
 	protected Boolean signedRequest;
-	protected Boolean isOpenId;
 
 	protected boolean brazil = false;
 
@@ -110,10 +108,8 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
-		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
-		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}
 

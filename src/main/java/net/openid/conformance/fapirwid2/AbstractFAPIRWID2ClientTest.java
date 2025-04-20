@@ -1,6 +1,9 @@
 package net.openid.conformance.fapirwid2;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
@@ -8,6 +11,7 @@ import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddResponseTypeCodeIdTokenToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
@@ -98,10 +102,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-
 @VariantParameters({
 	ClientAuthType.class,
 	FAPIProfile.class
@@ -165,6 +165,7 @@ public abstract class AbstractFAPIRWID2ClientTest extends AbstractTestModule {
 		profile = getVariant(FAPIProfile.class);
 
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		call(condition(AddJwksUriToServerConfiguration.class));
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 

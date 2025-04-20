@@ -29,7 +29,6 @@ public class GenerateServerConfiguration extends AbstractCondition {
 
 		server.addProperty("issuer", baseUrl);
 		server.addProperty("token_endpoint", baseUrl + "token");
-		server.addProperty("jwks_uri", baseUrl + "jwks");
 		server.addProperty("userinfo_endpoint", baseUrl + "userinfo");
 		server.addProperty("backchannel_authentication_endpoint", baseUrl + "backchannel");
 
