@@ -11,19 +11,19 @@ import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.testmodule.Environment;
 
-public class SignEntityStatementWithServerKeys extends AbstractSignJWT {
+public class SignResolveResponseWithTrustAnchorKeys extends AbstractSignJWT {
 
 	@Override
 	protected JOSEObjectType getMediaType() {
-		return EntityUtils.ENTITY_STATEMENT_TYPE;
+		return EntityUtils.RESOLVE_RESPONSE_TYPE;
 	}
 
 	@Override
-	@PreEnvironment(required = { "entity_configuration_claims", "server_jwks" })
+	@PreEnvironment(required = { "entity_configuration_claims", "trust_anchor_jwks" })
 	@PostEnvironment(strings = "signed_entity_statement")
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.getObject("entity_configuration_claims");
-		JsonObject jwks = env.getObject("server_jwks");
+		JsonObject jwks = env.getObject("trust_anchor_jwks");
 		return signJWT(env, claims, jwks, true);
 	}
 

@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JOSEObjectType;
 import org.springframework.http.MediaType;
 
 import java.time.Instant;
@@ -17,7 +18,10 @@ import java.util.Set;
 public class EntityUtils {
 
 	public static MediaType ENTITY_STATEMENT_JWT = new MediaType("application", "entity-statement+jwt");
+	public static JOSEObjectType ENTITY_STATEMENT_TYPE = new JOSEObjectType("entity-statement+jwt");
+
 	public static MediaType RESOLVE_RESPONSE_JWT = new MediaType("application", "resolve-response+jwt");
+	public static JOSEObjectType RESOLVE_RESPONSE_TYPE = new JOSEObjectType("resolve-response+jwt");
 
 	public static List<String> STANDARD_ENTITY_STATEMENT_CLAIMS = ImmutableList.of(
 		"iss",
