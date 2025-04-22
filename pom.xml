@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.8</version>
+		<version>3.3.10</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -203,7 +203,7 @@
 			<artifactId>multipaz-jvm</artifactId>
 			<version>0.90</version>
 		</dependency>
-<dependency>
+		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-doctypes-jvm</artifactId>
 			<version>0.90</version>
