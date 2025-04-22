@@ -236,7 +236,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		ResponseEntity<Object> response = null;
 		if (error != null) {
-			return errorResponse(error, errorDescription, statusCode);
+			response = errorResponse(error, errorDescription, statusCode);
 		} else {
 			env.putObject("original_server_jwks", env.getObject("server_jwks")); // Save the jwks, as we'll have to restore it later
 			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(env.getString("fetch_endpoint_parameter_sub")));
