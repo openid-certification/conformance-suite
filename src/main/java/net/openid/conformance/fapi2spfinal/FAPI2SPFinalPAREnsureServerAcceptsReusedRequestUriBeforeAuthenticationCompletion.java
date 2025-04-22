@@ -1,6 +1,14 @@
 package net.openid.conformance.fapi2spfinal;
 
+import com.google.gson.JsonObject;
+
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
 import net.openid.conformance.condition.client.ExpectLoginPage;
+import net.openid.conformance.condition.client.WarningAboutRequestUriError;
 
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -9,7 +17,7 @@ import java.util.List;
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-par-ensure-reused-request-uri-prior-to-auth-completion-succeeds",
 	displayName = "FAPI2-Security-Profile-Final: PAR - ensure reused request uri prior to auth completion succeeds",
-	summary = "This test checks that authorization servers that enforce one-time use of `request_uri` values do so at the point of authorization, not at the point of visiting the authorization endpoint. This is achieved by visiting the authorization endpoint twice with the same 'request_uri' value. On the first visit no login should be attempted. On the second visit the login is attempted and is expected to succeed. On error a screenshot showing the resulting error needs to be uploaded  This test is as per FAPI 2.0 Security Profile 5.3.2.2 Note 3. This is a recommendation and as such any failure of this test will result in a warning.",
+	summary = "This test checks that authorization servers that enforce one-time use of `request_uri` values do so at the point of authorization, not at the point of visiting the authorization endpoint. This is achieved by visiting the authorization endpoint twice with the same 'request_uri' value. On the first visit no login should be attempted. On the second visit the login must be attempted and is expected to succeed. On error a screenshot showing the resulting error should be uploaded  This test is as per FAPI 2.0 Security Profile 5.3.2.2 Note 3. This is a recommendation and as such any failure of this test will result in a warning.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -39,13 +47,13 @@ public class FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticat
 		// Initial visit to the authorization endpoint. The user should take no action.
 		redirect(env.getString("redirect_to_authorization_endpoint"));
 
-		// Wait for the login screen to be loaded.
-		boolean loginScreenVisited = false;
+		// Wait for the login page to be visited.
+		boolean loginPageVisited = false;
 
-		for (int attempts = 0; attempts < 10; attempts++) {
+		for (int attempts = 0; attempts < 30; attempts++) {
 			setStatus(Status.WAITING);
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 			}
 			setStatus(Status.RUNNING);
@@ -53,13 +61,13 @@ public class FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticat
 			List<String> visitedUrls = getBrowser().getVisited();
 
 			if (visitedUrls.contains(env.getString("redirect_to_authorization_endpoint"))) {
-				loginScreenVisited = true;
+				loginPageVisited = true;
 				break;
 			}
 		}
 
-		if (! loginScreenVisited) {
-			throw new RuntimeException("Could not perform initial redirect to authorization server");
+		if (! loginPageVisited) {
+			throw new RuntimeException("The login page was not visited within the 1 minute timeout period.");
 		}
 		eventLog.endBlock();
 
@@ -67,5 +75,25 @@ public class FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticat
 
 		// Proceed with the regular authorization flow, revisiting the authorization endpoint and logging in.
 		performRedirectAndWaitForPlaceholdersOrCallback("login_page_placeholder");
+	}
+
+	@Override
+	protected void onAuthorizationCallbackResponse() {
+		// We now have callback_query_params and callback_params (containing the hash) available, as well as authorization_endpoint_response (which test conditions should use if they're looking for the response)
+		JsonObject callbackParams = env.getObject("authorization_endpoint_response");
+
+		if (!callbackParams.has("error")) {
+			super.onAuthorizationCallbackResponse();
+		} else {
+			// If we get an error back from the authorization server:
+			// - It must be a 'invalid_request_uri' error
+			// - It must have the correct state we supplied
+			callAndContinueOnFailure(WarningAboutRequestUriError.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.3.2.2");
+			callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
+			callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
+			callAndContinueOnFailure(EnsureInvalidRequestUriError.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.6");
+			fireTestFinished();
+		}
 	}
 }
