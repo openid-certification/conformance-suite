@@ -113,7 +113,6 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	protected void onAuthorizationCallbackResponse() {
-		//callAndContinueOnFailure(CheckMatchingCallbackParameters.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
