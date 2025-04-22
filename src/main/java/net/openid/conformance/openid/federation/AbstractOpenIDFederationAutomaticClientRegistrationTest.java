@@ -22,7 +22,6 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorization
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
-import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -34,17 +33,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.net.URISyntaxException;
 
-@PublishTestModule(
-		testName = "openid-federation-automatic-client-registration",
-		displayName = "openid-federation-automatic-client-registration",
-		summary = "The test acts as an RP wanting to perform automatic client registration with an OP",
-		profile = "OIDFED"
-)
-/*
-@VariantParameters({
-	FAPIAuthRequestMethod.class
-})
-*/
 @SuppressWarnings("unused")
 public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest extends AbstractOpenIDFederationTest {
 
