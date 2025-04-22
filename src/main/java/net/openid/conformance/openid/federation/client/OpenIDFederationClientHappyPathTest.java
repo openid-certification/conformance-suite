@@ -410,7 +410,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			env.putObject("federation_resolve_response", resolveResponse);
 
 			env.mapKey("entity_configuration_claims", "federation_resolve_response");
-			callAndStopOnFailure(SignEntityStatementWithTrustAnchorKeys.class);
+			callAndStopOnFailure(SignResolveResponseWithTrustAnchorKeys.class);
 			env.unmapKey("entity_configuration_claims");
 			String federationResolveResponse = env.getString("signed_entity_statement");
 			response = ResponseEntity
