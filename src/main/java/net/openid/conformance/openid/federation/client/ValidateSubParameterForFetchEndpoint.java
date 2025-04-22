@@ -32,16 +32,18 @@ public class ValidateSubParameterForFetchEndpoint extends AbstractCondition {
 		String entityIdentifier = env.getString("entity_identifier");
 		if (sub.equalsIgnoreCase(entityIdentifier)) {
 			env.putString("federation_fetch_endpoint_error", "invalid_request");
-			env.putString("federation_fetch_endpoint_error_description", "The sub parameter references the Entity Identifier of the Issuing Entity");
+			env.putString("federation_fetch_endpoint_error_description",
+				"The sub parameter references the Entity Identifier of the Issuing Entity");
 			env.putInteger("federation_fetch_endpoint_status_code", 400);
-			throw error("The sub parameter references the Entity Identifier of the Issuing Entity", args("sub", sub, "entity_identifier", entityIdentifier));
+			throw error("The sub parameter references the Entity Identifier of the Issuing Entity",
+				args("sub", sub, "entity_identifier", entityIdentifier));
 		}
 
 		JsonArray immediateSubordinates;
 		JsonElement immediateSubordinatesElement = env.getElementFromObject("config", "federation.immediate_subordinates");
 		if (immediateSubordinatesElement != null) {
 			immediateSubordinates = immediateSubordinatesElement.getAsJsonArray();
-			if(!OIDFJSON.convertJsonArrayToList(immediateSubordinates).contains(sub)) {
+			if (!OIDFJSON.convertJsonArrayToList(immediateSubordinates).contains(sub)) {
 				env.putString("federation_fetch_endpoint_error", "not_found");
 				env.putString("federation_fetch_endpoint_error_description", "%s is not configured as an immediate subordinate".formatted(sub));
 				env.putInteger("federation_fetch_endpoint_status_code", 404);

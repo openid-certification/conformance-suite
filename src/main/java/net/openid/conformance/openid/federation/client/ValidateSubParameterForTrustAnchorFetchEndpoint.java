@@ -36,7 +36,8 @@ public class ValidateSubParameterForTrustAnchorFetchEndpoint extends AbstractCon
 			env.putString("federation_fetch_endpoint_error", "invalid_request");
 			env.putString("federation_fetch_endpoint_error_description", "The sub parameter references the Entity Identifier of the Issuing Entity");
 			env.putInteger("federation_fetch_endpoint_status_code", 400);
-			throw error("The sub parameter references the Entity Identifier of the Issuing Entity", args("sub", sub, "entity_identifier", trustAnchorEntityIdentifier));
+			throw error("The sub parameter references the Entity Identifier of the Issuing Entity",
+					args("sub", sub, "entity_identifier", trustAnchorEntityIdentifier));
 		}
 
 		JsonArray immediateSubordinates;
@@ -44,12 +45,12 @@ public class ValidateSubParameterForTrustAnchorFetchEndpoint extends AbstractCon
 		if (immediateSubordinatesElement != null) {
 			immediateSubordinates = immediateSubordinatesElement.getAsJsonArray();
 			List<String> immediateSubordinatesList = OIDFJSON.convertJsonArrayToList(immediateSubordinates);
-			if(!immediateSubordinatesList.contains(sub)) {
+			if (!immediateSubordinatesList.contains(sub)) {
 				env.putString("federation_fetch_endpoint_error", "not_found");
 				env.putString("federation_fetch_endpoint_error_description", "%s is not configured as an immediate subordinate".formatted(sub));
 				env.putInteger("federation_fetch_endpoint_status_code", 404);
 				throw error("%s is not configured as an immediate subordinate".formatted(sub),
-					args("sub", sub, "immediate_subordinates", immediateSubordinates));
+						args("sub", sub, "immediate_subordinates", immediateSubordinates));
 			}
 		}
 
