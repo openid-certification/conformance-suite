@@ -164,7 +164,6 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
-import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -182,7 +181,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-@VariantParameters({ClientAuthType.class, FAPI2AuthRequestMethod.class, FAPIOpenIDConnect.class, FAPI2SenderConstrainMethod.class, FAPI2ID2OPProfile.class, FAPIOpenIDConnect.class, FAPIResponseMode.class, AuthorizationRequestType.class, OID4VCIServerMetadata.class})
+@VariantParameters({
+	ClientAuthType.class,
+	FAPI2AuthRequestMethod.class,
+	FAPI2SenderConstrainMethod.class,
+	FAPI2ID2OPProfile.class,
+	FAPIResponseMode.class,
+	AuthorizationRequestType.class,
+	OID4VCIServerMetadata.class})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {"resource.resourceUrlAccountRequests", "resource.resourceUrlAccountsResource"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au", configurationFields = {"resource.cdrVersion"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {"client.org_jwks", "consent.productType", "resource.consentUrl", "resource.brazilCpf", "resource.brazilCnpj", "resource.brazilOrganizationId", "resource.brazilPaymentConsent", "resource.brazilPixPayment", "directory.keystore"})
@@ -257,13 +263,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			return;
 		}
 
-		if (getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && scopeContains("openid")) {
+		if (scopeContains("openid")) {
 			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 		}
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
-		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
+		isOpenId = false;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
 		useDpopAuthCodeBinding = false;
@@ -286,12 +292,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
-		callAndStopOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
-		callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
+		if (isOpenId || jarm) {
+			callAndStopOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
+			callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+			callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
+			callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
+			callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
+		}
+
 		if (isRarRequest) {
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}

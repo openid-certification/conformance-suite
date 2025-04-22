@@ -17,12 +17,9 @@ import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToSer
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
 import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddScopesSupportedOpenIdToServerConfiguration;
 import net.openid.conformance.condition.as.AddSubjectTypesSupportedPairwiseToServerConfiguration;
-import net.openid.conformance.condition.as.AddSubjectTypesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddSupportedAuthorizationTypesToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
@@ -35,12 +32,8 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
-import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
-import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
-import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
-import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
@@ -63,7 +56,6 @@ import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
-import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
@@ -72,7 +64,6 @@ import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
-import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractParAuthorizationCodeDpopBindingKey;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
@@ -135,8 +126,6 @@ import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpoi
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectIdTokenACRClaims;
-import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
@@ -210,7 +199,6 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
-import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -231,7 +219,6 @@ import org.springframework.web.servlet.view.RedirectView;
 	ClientAuthType.class,
 	FAPI2ID2OPProfile.class,
 	FAPIResponseMode.class,
-	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
@@ -288,8 +275,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected FAPIResponseMode responseMode;
 
 	protected ClientAuthType clientAuthType;
-
-	protected FAPIClientType fapiClientType;
 
 	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
 
@@ -349,7 +334,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		profile = getVariant(FAPI2ID2OPProfile.class);
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(ClientAuthType.class);
-		fapiClientType = getVariant(FAPIClientType.class);
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
@@ -364,7 +348,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
-		call(condition(AddJwksUriToServerConfiguration.class));
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		configureServerJWKS();
@@ -372,14 +355,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-SP-ID2-5.3.1.2-1"));
 		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-SP-ID2-5.3.1.2-7"));
 		call(condition(AddCodeChallengeMethodToServerConfiguration.class).requirement("FAPI2-SP-ID2-5.3.1.2"));
-		if (fapiClientType == FAPIClientType.OIDC) {
-			call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
-
-			if (profile != FAPI2ID2OPProfile.CONNECTID_AU) {
-				call(condition(AddSubjectTypesSupportedToServerConfiguration.class).requirement("OIDCD-3"));
-			}
-		}
-
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1");
@@ -1446,33 +1421,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class, ConditionResult.FAILURE, "CID-IDA-5.2-2.7");
 		}
 
-		if (fapiClientType == FAPIClientType.OIDC) {
-			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
-				CheckForUnexpectedClaimsInClaimsParameter.class, ConditionResult.WARNING, "OIDCC-5.5");
-			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
-				CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1", "OIDCC-5.5.1.1", "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10", "OBSP-3.4");
-			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
-				CheckRequestObjectClaimsParameterValues.class, ConditionResult.FAILURE, "OIDCC-5.5");
-			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
-				CheckRequestObjectClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
-		}
-
 		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-SP-ID2-5.3.2.2-3");
 		validateRequestObjectForAuthorizationEndpointRequest();
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
 		if("yes".equals(isOpenIdScopeRequested)) {
-			if(fapiClientType== FAPIClientType.PLAIN_OAUTH) {
-				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
-			}
-			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.NONCE, ConditionResult.INFO, ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OIDCC-3.2.2.1");
-		} else {
-			if(fapiClientType== FAPIClientType.OIDC) {
-				throw new TestFailureException(getId(), "openid scope must be used with OIDC");
-			}
-			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO, EnsureAuthorizationRequestContainsStateParameter.class, ConditionResult.FAILURE, "RFC6749-4.1.1" );
+			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 		}
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO, EnsureAuthorizationRequestContainsStateParameter.class, ConditionResult.FAILURE, "RFC6749-4.1.1" );
 
 		/*
 			- Após o `POST` de criação do consentimento, o `STATUS` devolvido na resposta deverá ser `AWAITING_AUTHORISATION`.
@@ -1504,15 +1461,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void validateRequestObjectCommonChecks() {
 		callAndStopOnFailure(FAPI2ValidateRequestObjectSigningAlg.class, "FAPI2-SP-ID2-5.4");
 		callAndContinueOnFailure(FAPIValidateRequestObjectMediaType.class, ConditionResult.WARNING, "JAR-4");
-		if(fapiClientType== FAPIClientType.OIDC) {
-			if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-				callAndContinueOnFailure(FAPIBrazilValidateRequestObjectIdTokenACRClaims.class, ConditionResult.FAILURE,
-					"OIDCC-5.5.1.1", "BrazilOB-5.2.2-5", "BrazilOB-5.2.2-6");
-			} else {
-				callAndContinueOnFailure(FAPIValidateRequestObjectIdTokenACRClaims.class, ConditionResult.INFO,
-					"OIDCC-5.5.1.1");
-			}
-		}
 		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI2-MS-ID1-5.3.1-4");
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI2-MS-ID1-5.3.1-3");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
@@ -1552,10 +1500,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-5", "CID-IDA-5.2-10");
 			}
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
-		}
-
-		if(fapiClientType == FAPIClientType.OIDC) {
-			callAndStopOnFailure(EnsureOpenIDInScopeRequest.class);
 		}
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
