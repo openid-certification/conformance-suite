@@ -38,6 +38,11 @@ public class CheckStateInAuthorizationResponse extends AbstractCondition {
 				logSuccess("State is missing from response; this is permitted when the returned error is 'invalid_request_object' and the state was contained in the request object");
 
 				return env;
+			} else if (Strings.isNullOrEmpty(actual) && !Strings.isNullOrEmpty(error) && error.equals("invalid_request_uri")) {
+
+				logSuccess("State is missing from response; this is permitted when the returned error is 'invalid_request_uri' and the state was contained in the par request");
+
+				return env;
 			} else if (Strings.isNullOrEmpty(actual)) {
 					throw error("State was passed in request, but is missing from response (or returned in the wrong place)",  args("expected", Strings.nullToEmpty(expected), "actual", Strings.nullToEmpty(actual)));
 			} else {
