@@ -27,7 +27,7 @@ public class ExtractJWTFromFederationEndpointResponse extends AbstractCondition 
 
 		String jwt = OIDFJSON.getString(federationEndpointResponseBody);
 		try {
-			JsonObject jwtAsJsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(jwt);
+			JsonObject jwtAsJsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(jwt.trim());
 			env.putObject("federation_response_jwt", jwtAsJsonObject);
 			logSuccess("Extracted JWT from federation endpoint response", args("federation_response_jwt", jwtAsJsonObject));
 			return env;

@@ -24,6 +24,10 @@ import static net.openid.conformance.openid.federation.EntityUtils.appendWellKno
 public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTest {
 
 	@Override
+	public void additionalConfiguration() {
+	}
+
+	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
 
@@ -51,6 +55,11 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 			eventLog.endBlock();
 
 			listEndpointResponse = JsonParser.parseString(env.getString("endpoint_response_body")).getAsJsonArray();
+
+			if (listEndpointResponse.size() > 10) {
+				fireTestSkipped("The test suite is currently only able to deal with small federations.");
+			}
+
 			for (JsonElement listElement : listEndpointResponse) {
 				String entityIdentifier = OIDFJSON.getString(listElement);
 				eventLog.startBlock(String.format("Validating entity statement for %s", entityIdentifier));

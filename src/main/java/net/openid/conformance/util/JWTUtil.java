@@ -39,7 +39,7 @@ public class JWTUtil {
 		for (int i = 0; i < jwt.length(); i++) {
 			char character = jwt.charAt(i);
 			if (!Pattern.matches(regex, String.valueOf(character))) {
-				throw new ParseException("The jwt is invalid because it contains the character %s that is neither a '.' nor one permitted in unpadded base64url".formatted(character), 0);
+				throw new ParseException("The jwt is invalid because at index %s it contains the character %s that is neither a '.' nor one permitted in unpadded base64url".formatted(i, character), 0);
 			}
 		}
 

@@ -416,6 +416,28 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     </div>
                                 </div>
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">entity_identifier</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the RP that will be interacting with the test suite."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.entity_identifier"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">trust_anchor</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the RP's trust anchor."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.trust_anchor"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">client_secret</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -664,6 +686,18 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <option value="ES256">ES256</option>
                                                 <option value="EdDSA">EdDSA</option>
                                             </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">trust_chain</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The trust_chain to send in the authorization request"></span>
+                                            </div>
+                                            <textarea placeholder='{ "trust_chain": "eyJraWQiOiI0b0...", "eyJraWQiOiI0b0", ... ]' class="form-control config-form-element" data-json-target="client.trust_chain" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1274,14 +1308,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                             <div class="config-form-container">
-                                <h3 class="config-form-container-header">Federation</h3>
+                                <h3 class="config-form-container-header">Federation entity</h3>
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">entity_identifier</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The globally unique URL bound to the entity.
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the federation entity
+                                                that the test will interface with (i.e. NOT the entity identifier of the test itself, but of the remote federation entity).
                                                 This URL MUST use the https scheme, have a host component, and MAY contain port and path components.
                                                 It MUST NOT contain query parameter or fragment components."></span>
                                             </div>
@@ -1298,6 +1333,35 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Static entity configuration"></span>
                                             </div>
                                             <textarea class="form-control config-form-element" data-json-target="federation.entity_configuration"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">authority_hints</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The federation entity's
+                                                authority_hints. Each row in the text area corresponds to an element in the authority_hints array.
+                                                Each row needs to contain a valid entity identifier."></span>
+                                            </div>
+                                            <textarea rows="3" class="form-control config-form-element config-form-element-array" data-json-target="federation.authority_hints" data-json-type="jsonarray"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">immediate_subordinates</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The federation entity's
+                                                immediate subordinates, i.e. the federation entities that will appear in the list response.
+                                                Each row in the text area corresponds to an element in the list response array.
+                                                Each row needs to contain a valid entity identifier."></span>
+                                            </div>
+                                            <textarea rows="3" class="form-control config-form-element config-form-element-array" data-json-target="federation.immediate_subordinates" data-json-type="jsonarray"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1325,6 +1389,77 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                         </div>
                                     </div>
                                 </div>
+
+                            </div>
+
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Federation trust anchor</h3>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">immediate_subordinates</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The trust anchor's
+                                                immediate subordinates, i.e. the federation entities that will appear in the list response.
+                                                Each row in the text area corresponds to an element in the list response array.
+                                                Each row needs to contain a valid entity identifier."></span>
+                                            </div>
+                                            <textarea rows="3" class="form-control config-form-element config-form-element-array" data-json-target="federation_trust_anchor.immediate_subordinates" data-json-type="jsonarray"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">trust_anchor_jwks</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys for the entity's trust anchor"></span>
+                                            </div>
+                                            <textarea placeholder="REQUIRED" class="form-control config-form-element" data-json-target="federation_trust_anchor.trust_anchor_jwks"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Internal</h3>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">op_to_rp_mode</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="When true, does not log the steps
+                                                involved in returning the (1) entity configuration and (2) jwks, in order to avoid grabbing the test lock in OP-to-RP integration tests."></span>
+                                            </div>
+                                            <select class="form-control config-form-element" data-json-target="internal.op_to_rp_mode">
+                                                <option value="" selected></option>
+                                                <option value="true">true</option>
+                                                <option value="false">false</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">ignore_exp_iat</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="When true, does not validate the exp and iat claims
+                                                in the trust chains to allow expired, pre-configured jwts to be used"></span>
+                                            </div>
+                                            <select class="form-control config-form-element" data-json-target="internal.ignore_exp_iat">
+                                                <option value="" selected></option>
+                                                <option value="true">true</option>
+                                                <option value="false">false</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
                             <div class="config-form-container">
@@ -2009,7 +2144,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         /**
          *
          */
-        function updateFormElementsFromJSON() {
+         function updateFormElementsFromJSON() {
             try {
                 FAPI_UI.testJSON = JSON.parse(document.getElementById('config').value);
             } catch (e) {
@@ -2051,7 +2186,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 var el = document.querySelector(".config-form-element[data-json-target='" + path + "']");
 
                 if (el != null) {
-                    if (_.isArray(value) || _.isObject(value)) {
+                    if (_.isArray(value)) {
+                        if (el.dataset.jsonType === "jsonarray") {
+                            // For jsonarray type, display each array element on a separate line
+                            el.value = value.join('\n');
+                        } else {
+                            // For other types, use standard JSON formatting
+                            el.value = JSON.stringify(value, null, 4);
+                        }
+                    } else if (_.isObject(value)) {
                         el.value = JSON.stringify(value, null, 4);
                     } else {
                         validateJSONFromFormElement(el, value, el.dataset.jsonType);
@@ -2126,12 +2269,23 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
          *
          * @param element
          */
-        function tryPopulateJSONFromElement(element) {
+         function tryPopulateJSONFromElement(element) {
             let value = element.value;
             let type = element.dataset.jsonType;
             validateJSONFromFormElement(element, value, type)
             let key = element.dataset.jsonTarget;
-            populateJSON(key, value, type);
+
+            // Special handling for arrays where each line is an element
+            if (type === "jsonarray" && value.trim() !== "") {
+                // Split by newlines and filter out empty lines
+                let arrayValues = value.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line !== "");
+
+                populateJSON(key, JSON.stringify(arrayValues), type);
+            } else {
+                populateJSON(key, value, type);
+            }
         }
 
         /**

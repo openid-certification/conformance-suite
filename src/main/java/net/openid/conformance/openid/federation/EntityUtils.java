@@ -1,16 +1,23 @@
 package net.openid.conformance.openid.federation;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.springframework.http.MediaType;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class EntityUtils {
+
+	public static MediaType ENTITY_STATEMENT_JWT = new MediaType("application", "entity-statement+jwt");
+	public static MediaType RESOLVE_RESPONSE_JWT = new MediaType("application", "resolve-response+jwt");
 
 	public static List<String> STANDARD_ENTITY_STATEMENT_CLAIMS = ImmutableList.of(
 		"iss",
@@ -29,6 +36,25 @@ public class EntityUtils {
 		"trust_mark_issuers",
 		"trust_mark_owners",
 		"source_endpoint"
+	);
+
+	public static Set<String> STANDARD_ENTITY_TYPES = ImmutableSet.of(
+		"federation_entity",
+		"openid_relying_party",
+		"openid_provider",
+		"oauth_authorization_server",
+		"oauth_client",
+		"oauth_resource"
+	);
+
+	public static Set<String> STANDARD_FEDERATION_ENTITY_URL_KEYS = ImmutableSet.of(
+		"federation_fetch_endpoint",
+		"federation_list_endpoint",
+		"federation_resolve_endpoint",
+		"federation_trust_mark_status_endpoint",
+		"federation_trust_mark_list_endpoint",
+		"federation_trust_mark_endpoint",
+		"federation_historical_keys_endpoint"
 	);
 
 	public static String appendWellKnown(String entityIdentifier) {
@@ -137,5 +163,17 @@ public class EntityUtils {
 		return true;
 	}
 
+	public static JsonObject createBasicClaimsObject(String iss, String sub) {
+		JsonObject claims = new JsonObject();
+		claims.addProperty("iss", iss);
+		claims.addProperty("sub", sub);
+
+		Instant iat = Instant.now();
+		Instant exp = iat.plusSeconds(5 * 60);
+		claims.addProperty("iat", iat.getEpochSecond());
+		claims.addProperty("exp", exp.getEpochSecond());
+
+		return claims;
+	}
 
 }

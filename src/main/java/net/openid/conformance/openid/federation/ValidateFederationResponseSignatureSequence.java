@@ -9,6 +9,6 @@ public class ValidateFederationResponseSignatureSequence extends AbstractConditi
 	@Override
 	public void evaluate() {
 		callAndContinueOnFailure(ValidateServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
-		callAndContinueOnFailure(VerifyEntityStatmentSignature.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+		callAndContinueOnFailure(VerifyEntityStatementSignature.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 	}
 }

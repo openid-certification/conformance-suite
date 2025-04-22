@@ -18,6 +18,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class OpenIDFederationEntityConfigurationTest extends AbstractOpenIDFederationTest {
 
 	@Override
+	public void additionalConfiguration() {
+	}
+
+	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
 
