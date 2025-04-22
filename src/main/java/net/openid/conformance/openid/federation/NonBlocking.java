@@ -3,6 +3,7 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -28,7 +29,7 @@ public class NonBlocking {
 	public static Object entityConfigurationResponse(Environment env, String testId) {
 		JsonObject entityConfigurationClaims = env.getObject("entity_configuration_claims");
 		JsonObject jwks = env.getObject("entity_configuration_claims_jwks");
-		String entityConfiguration = signClaims(testId, entityConfigurationClaims, jwks);
+		String entityConfiguration = signClaims(testId, entityConfigurationClaims, jwks, EntityUtils.ENTITY_STATEMENT_TYPE);
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
@@ -62,7 +63,7 @@ public class NonBlocking {
 		claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
 
 		JsonObject jwks = env.getObject("trust_anchor_jwks");
-		String federationFetchResponse = signClaims(testId, claims, jwks);
+		String federationFetchResponse = signClaims(testId, claims, jwks, EntityUtils.ENTITY_STATEMENT_TYPE);
 
 		ResponseEntity<Object> response = ResponseEntity
 			.status(200)
@@ -74,7 +75,7 @@ public class NonBlocking {
 		return response;
 	}
 
-	protected static String signClaims(String testId, JsonObject claims, JsonObject jwks) {
+	protected static String signClaims(String testId, JsonObject claims, JsonObject jwks, JOSEObjectType typ) {
 
 		if (claims == null) {
 			throw new TestFailureException(testId, "Couldn't find claims");
@@ -97,6 +98,7 @@ public class NonBlocking {
 
 			JWSHeader.Builder builder = new JWSHeader.Builder(alg);
 			builder.keyID(signingJwk.getKeyID());
+			builder.type(typ);
 			JWSHeader header = builder.build();
 
 			return performSigning(header, claims, signer);
