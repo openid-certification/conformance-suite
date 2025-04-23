@@ -573,86 +573,14 @@ var FAPI_UI = {
 			}
 		},
 
-	    // Hash to map requirement strings onto url
-	    // Each url must have the fragment necessary to form a link to a particular section of document
-		// When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
-		specLinks : {
-			"BrazilOB-" : "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/245760001/EN+Open+Finance+Brasil+Financial-grade+API+Security+Profile+1.0+Implementers+Draft+3#section-",
-			"BrazilOBDCR-" : "https://openfinancebrasil.atlassian.net/wiki/spaces/OF/pages/246120449/EN+Open+Finance+Brasil+Financial-grade+API+Dynamic+Client+Registration+2.0+RC1+Implementers+Draft+3#section-",
-			"BrazilOPIN-" : "https://br-openinsurance.github.io/areadesenvolvedor/files/Controles_técnicos_de_Segurança_da_Informação_3.0.pdf#",
-			"BrazilCIBA-" : "https://openfinancebrasil.atlassian.net/wiki/spaces/DraftOF/pages/138674330/EN+Open+Banking+Brasil+Financial-grade+CIBA+API+Security+Profile+1.0+Implementers+Draft+3",
-			"FAPI-R-" : "https://openid.net/specs/openid-financial-api-part-1-ID2.html#rfc.section.",
-			"FAPI-RW-" : "https://openid.net/specs/openid-financial-api-part-2-ID2.html#rfc.section.",
-			"FAPI1-BASE-" : "https://openid.net/specs/openid-financial-api-part-1-1_0-final.html#rfc.section.",
-			"FAPI1-ADV-" : "https://openid.net/specs/openid-financial-api-part-2-1_0-final.html#rfc.section.",
-			"FAPI2-SP-ID2-" : "https://openid.net/specs/fapi-2_0-security-profile-ID2.html#section-",
-			"FAPI2-SP-FINAL-" : "https://openid.net/specs/fapi-security-profile-2_0-final.html#section-",
-			"FAPI2-MS-ID1-" : "https://openid.net/specs/fapi-2_0-message-signing-ID1.html#section.", // note that MS ID1 builds upon SP ID2
-			"FAPI2-IMP-" : "https://openid.bitbucket.io/fapi/fapi-2_0-implementation_advice.html#section-",
-			"CIBA-" : "https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.",
-			"FAPI-CIBA-" : "https://openid.net/specs/openid-financial-api-ciba.html#rfc.section.",
-			"JARM-" : "https://openid.net/specs/oauth-v2-jarm.html#section-",
-			"OB-" : "https://bitbucket.org/openid/obuk/src/b36035c22e96ce160524066c7fde9a45cbaeb949/uk-openbanking-security-profile.md?at=master&fileviewer=file-view-default#",
-			"OBRW-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/1077805207/Read+Write+Data+API+Specification+-+v3.1.2#",
-			"OIDCC-" : "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.",
-			"OIDCR-" : "https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.",
-			"OAuth2-FP" : "https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html#rfc.section.",
-			"OAuth2-iss" : "https://tools.ietf.org/html/rfc9207#section-",
-			"RFC3986-" :"https://tools.ietf.org/html/rfc3986#section-",
-			"RFC6749-" : "https://tools.ietf.org/html/rfc6749#section-",
-			"RFC6749A-" : "https://tools.ietf.org/html/rfc6749#appendix-",
-			"RFC6750-" : "https://tools.ietf.org/html/rfc6750#section-",
-			"RFC6819-" : "https://tools.ietf.org/html/rfc6819#section-",
-			"RFC7231-" : "https://tools.ietf.org/html/rfc7231#section-",
-			"RFC7517-" : "https://tools.ietf.org/html/rfc7517#section-",
-			"RFC7518-" : "https://tools.ietf.org/html/rfc7518#section-",
-			"RFC7519-" : "https://tools.ietf.org/html/rfc7519#section-",
-			"RFC7523-" : "https://tools.ietf.org/html/rfc7523#section-",
-			"RFC7591-" : "https://tools.ietf.org/html/rfc7591#section-",
-			"RFC7592-" : "https://tools.ietf.org/html/rfc7592#section-",
-			"RFC7592A-" : "https://tools.ietf.org/html/rfc7592#appendix-",
-			"RFC7636-" : "https://tools.ietf.org/html/rfc7636#section-",
-			"RFC8414-" : "https://tools.ietf.org/html/rfc8414#section-",
-			"RFC8705-" : "https://tools.ietf.org/html/rfc8705#section-",
-			"RFC8707-" :  "https://tools.ietf.org/html/rfc8707#section-",
-			"RFC8485-" :  "https://tools.ietf.org/html/rfc8485#section-",
-			"RFC9396-" :  "https://tools.ietf.org/html/rfc9396#section-",
-			"RFC9325-": "https://tools.ietf.org/html/rfc9325.html#section-",
-			"RFC9325A-": "https://tools.ietf.org/html/rfc9325.html#appendix-",
-			"OBSP-" : "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#",
-			"OAuth2-RT-" : "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.",
-			"HAIP-" : "https://github.com/vcstuff/oid4vc-haip-sd-jwt-vc/blob/main/draft-oid4vc-haip-sd-jwt-vc.md#",
-			"OID4VP-ID2-" : "https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section.",
-			"OID4VP-ID3-" : "https://openid.net/specs/openid-4-verifiable-presentations-1_0-24.html#section.",
-			"OID4VCI-ID2-": "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-",
-			"OIDCD-" : "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.",
-			"OIDCBCL-" : "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.",
-			"OIDCFCL-" : "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.",
-			"OIDCSM-" : "https://openid.net/specs/openid-connect-session-1_0.html#rfc.section.",
-			"OIDCRIL-" : "https://openid.net/specs/openid-connect-rpinitiated-1_0.html#rfc.section.",
-			"BCP195-" : "https://tools.ietf.org/html/bcp195#section-",
-			"ISO18013-7-" : "https://www.iso.org/standard/82772.html#",
-			"CDR-" : "https://consumerdatastandardsaustralia.github.io/standards/#",
-			"PAR-" : "https://www.rfc-editor.org/rfc/rfc9126.html#section-",
-			"JAR-" : "https://www.rfc-editor.org/rfc/rfc9101.html#section-",
-			"SDJWT-" : "https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-",
-			"SDJWTVC-" : "https://datatracker.ietf.org/doc/draft-ietf-oauth-sd-jwt-vc/#section-",
-			"IA-" : "https://openid.net/specs/openid-connect-4-identity-assurance-1_0.htm#section-",
-			"IAVC-" : "https://openid.net/specs/openid-ida-verified-claims-1_0.htm#section-",
-			"DPOP-" : "https://www.rfc-editor.org/rfc/rfc9449#section-",
-			"KSA" : "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security",
-			"OIDSSF-": "https://openid.net/specs/openid-sharedsignals-framework-1_0-ID3.html#section-",
-			"OIDCAEP-": "https://openid.net/specs/openid-caep-1_0-ID2.html#section-",
-			"CAEPIOP-": "https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html#section-",
-			"CID-SP-" : "https://cdn.connectid.com.au/specifications/digitalid-fapi-profile-01.html#section",
-			"CID-IDA-" : "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html#section",
-			"CID-PURPOSE-": "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section",
-			"OIDFED-": "https://openid.net/specs/openid-federation-1_0-42.html#section-",
-			"CBUAE": "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI"
-		}, // When you add a new value to this list, also update net.openid.conformance.export.LogEntryHelper
-
 		testJSON : {},
 
 		selectedVariant: undefined
 
 };
+
+(async function loadSpecLinksMapping() {
+	let response = await fetch('api/ui/spec_links?public=true');
+	let specLinks = await response.json();
+	FAPI_UI.specLinks = specLinks;
+})();

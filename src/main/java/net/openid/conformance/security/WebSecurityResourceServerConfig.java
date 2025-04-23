@@ -113,7 +113,7 @@ public class WebSecurityResourceServerConfig {
 
 	private RequestMatcher getPublicMatcher() {
 		// Matches following paths IIF the ?public query parameter is present
-		return new AndRequestMatcher(new OrRequestMatcher(new AntPathRequestMatcher("/api/info/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/log", HttpMethod.GET), new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/plan", HttpMethod.GET), new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET)), new PublicRequestMatcher());
+		return new AndRequestMatcher(new OrRequestMatcher(new AntPathRequestMatcher("/api/ui/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/info/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/log", HttpMethod.GET), new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/plan", HttpMethod.GET), new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET)), new PublicRequestMatcher());
 	}
 
 	@Bean
