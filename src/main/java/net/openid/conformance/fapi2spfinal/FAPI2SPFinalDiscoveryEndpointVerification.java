@@ -39,7 +39,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
@@ -56,7 +56,7 @@ import net.openid.conformance.variant.VariantSetup;
 )
 @VariantParameters({
 	FAPI2FinalOPProfile.class,
-	FAPI2SenderConstrainMethod.class,
+	AccessTokenSenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
 	FAPIResponseMode.class,
 	FAPIOpenIDConnect.class
@@ -109,7 +109,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
-		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
+		isDpop = getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.DPOP;
 		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}
 
