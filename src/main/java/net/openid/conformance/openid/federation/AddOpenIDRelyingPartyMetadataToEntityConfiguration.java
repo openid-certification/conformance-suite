@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 public class AddOpenIDRelyingPartyMetadataToEntityConfiguration extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "server")
+	@PreEnvironment(required = "server", strings = "client_registration_type")
 	public Environment evaluate(Environment env) {
 
 		JsonObject server = env.getObject("server");
@@ -18,6 +18,10 @@ public class AddOpenIDRelyingPartyMetadataToEntityConfiguration extends Abstract
 
 		JsonObject openIdRelyingParty = new JsonObject();
 		metadata.add("openid_relying_party", openIdRelyingParty);
+
+		JsonArray clientRegistrationTypes = new JsonArray();
+		clientRegistrationTypes.add(env.getString("client_registration_type"));
+		openIdRelyingParty.add("client_registration_types", clientRegistrationTypes);
 
 		JsonArray responseTypes = new JsonArray();
 		responseTypes.add("code");
