@@ -4,9 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.ekyc.condition.client.EnsureVerifiedClaimsSupportedParameterIsTrue;
-import net.openid.conformance.ekyc.condition.client.ValidateAttachmentsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration;
-import net.openid.conformance.ekyc.condition.client.ValidateDigestAlgorithmsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsCheckMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsValidationMethodsSupportedInServerConfiguration;
@@ -68,10 +66,6 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 
 		//claims_in_verified_claims_supported: JSON array containing all claims supported within verified_claims.
 		validateClaimsInVerifiedClaimsSupported();
-
-		validateAttachmentsSupportedInServerConfiguration();
-
-		validateDigestAlgorithmsSupportedInServerConfiguration();
 	}
 
 	protected void validateTrustFrameworksSupportedInServerConfiguration() {
@@ -104,14 +98,6 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 
 	protected void validateClaimsInVerifiedClaimsSupported() {
 		callAndContinueOnFailure(ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
-	}
-
-	protected void validateAttachmentsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateAttachmentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
-	}
-
-	protected void validateDigestAlgorithmsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDigestAlgorithmsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
 }
