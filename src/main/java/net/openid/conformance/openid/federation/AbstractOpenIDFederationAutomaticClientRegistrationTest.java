@@ -20,6 +20,7 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
+import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -54,6 +55,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		JsonObject clientConfig = env.getElementFromObject("config", "client").getAsJsonObject();
 		clientConfig.addProperty("client_id", baseUrl);
+
+		String clientRegistrationType = getVariant(ClientRegistration.class).toString();
+		env.putString("client_registration_type", clientRegistrationType);
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
