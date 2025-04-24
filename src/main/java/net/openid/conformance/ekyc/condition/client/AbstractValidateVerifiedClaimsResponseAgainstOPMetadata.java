@@ -280,27 +280,6 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 					}
 				}
 			}
-			//documents_validation_methods_supported: OPTIONAL. JSON array containing the document
-			// validation methods the OP supports (see @!predefined_values).
-			if (opMetadata.has("documents_validation_methods_supported")) {
-				JsonArray validationMethodsSupported = opMetadata.get("documents_validation_methods_supported").getAsJsonArray();
-				for (JsonElement evidenceElement : evidences) {
-					JsonObject evidence = evidenceElement.getAsJsonObject();
-					if (evidence.has("validation_method")) {
-						JsonObject validationMethod = evidence.get("validation_method").getAsJsonObject();
-						JsonElement validationType = validationMethod.get("type");
-						if (validationMethodsSupported.contains(validationType)) {
-							logSuccess("validation_method type is one of the supported values advertised in OP metadata",
-								args("validation_method_type", validationType,
-									"documents_validation_methods_supported", validationMethodsSupported));
-						} else {
-							throw error("validation_method type is not one of the supported values advertised in OP metadata",
-								args("validation_method_type", validationType,
-									"documents_validation_methods_supported", validationMethodsSupported));
-						}
-					}
-				}
-			}
 
 			//documents_verification_methods_supported: OPTIONAL. JSON array containing the verification
 			// methods the OP supports (see @!predefined_values).
