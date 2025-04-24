@@ -7,7 +7,6 @@ import net.openid.conformance.ekyc.condition.client.EnsureVerifiedClaimsSupporte
 import net.openid.conformance.ekyc.condition.client.ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsCheckMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsSupportedInServerConfiguration;
-import net.openid.conformance.ekyc.condition.client.ValidateDocumentsVerificationMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateElectronicRecordsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateEvidenceSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateTrustFrameworksSupportedInServerConfiguration;
@@ -57,8 +56,6 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 		// OP supports (see @!predefined_values).
 		validateDocumentsCheckMethodsSupportedInServerConfiguration();
 
-		validateDocumentsVerificationMethodsSupportedInServerConfiguration();
-
 		validateElectronicRecordsSupportedInServerConfiguration();
 
 		//claims_in_verified_claims_supported: JSON array containing all claims supported within verified_claims.
@@ -79,10 +76,6 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 
 	protected void validateDocumentsCheckMethodsSupportedInServerConfiguration() {
 		callAndContinueOnFailure(ValidateDocumentsCheckMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
-	}
-
-	protected void validateDocumentsVerificationMethodsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDocumentsVerificationMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
 	protected void validateElectronicRecordsSupportedInServerConfiguration() {

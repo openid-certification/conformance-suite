@@ -281,34 +281,6 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 				}
 			}
 
-			//documents_verification_methods_supported: OPTIONAL. JSON array containing the verification
-			// methods the OP supports (see @!predefined_values).
-			if (opMetadata.has("documents_verification_methods_supported"))
-			{
-				JsonArray verificationMethodsSupported = opMetadata.get("documents_verification_methods_supported").getAsJsonArray();
-				for (JsonElement evidenceElement : evidences)
-				{
-					JsonObject evidence = evidenceElement.getAsJsonObject();
-					if (evidence.has("verification_method"))
-					{
-						JsonObject verificationMethod = evidence.get("verification_method").getAsJsonObject();
-						JsonElement verificationType = verificationMethod.get("type");
-						if (verificationMethodsSupported.contains(verificationType))
-						{
-							logSuccess("verification_method type is one of the supported values advertised in OP metadata",
-								args("verification_method_type", verificationType,
-									"documents_verification_methods_supported", verificationMethodsSupported));
-						}
-						else
-						{
-							throw error("verification_method type is not one of the supported values advertised in OP metadata",
-								args("verification_method_type", verificationType,
-									"documents_verification_methods_supported", verificationMethodsSupported));
-						}
-					}
-				}
-			}
-
 			//TODO note it is "electronicrecord" below but I assumed it is "electronic_record" based on the rest of the document
 			//electronic_records_supported: REQUIRED when evidence_supported contains "electronicrecord".
 			// JSON array containing all electronic record types the OP supports (see @!predefinedvalues).
