@@ -141,29 +141,39 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 			if (evidenceType.equals(new JsonPrimitive("document")) ||
 				evidenceType.equals(new JsonPrimitive("electronic_record")) ||
 				evidenceType.equals(new JsonPrimitive("vouch"))) {
-				JsonObject checkDetails = evidence.getAsJsonObject("check_details");
-				if(checkDetails == null) {
+				if(!evidence.has("check_details")) {
 					log("evidence does not contain check_details", args("evidence", evidence));
 					continue;
 				}
-				JsonElement checkMethod = checkDetails.get("check_method");
-				if (checkMethod == null) {
-					log("evidence does not contain check_details.check_method", args("evidence", evidence));
-					continue;
-				}
 
-				if(docCheckMethodsSupportedElement==null) {
-					throw error("Evidence document check method is " + checkMethod + " but documents_check_methods_supported could not be found in OP metadata");
+				JsonElement checkDetailsElement = evidence.get("check_details");
+				if(!checkDetailsElement.isJsonArray()) {
+					throw error("check_details must be an array", args("check_details", checkDetailsElement));
 				}
+				for(JsonElement checkDetailsArrayElement : checkDetailsElement.getAsJsonArray()) {
+					if(!checkDetailsArrayElement.isJsonObject()) {
+						throw error("check_details element must be JSON object", args("check_details", checkDetailsArrayElement));
+					}
+					JsonObject checkDetails = checkDetailsArrayElement.getAsJsonObject();
+					JsonElement checkMethod = checkDetails.get("check_method");
+					if (checkMethod == null) {
+						throw error("evidence check_details missing required check_method", args("check_details", checkDetails));
+					}
 
-				JsonArray docCheckMethodsSupported = docCheckMethodsSupportedElement.getAsJsonArray();
-				if (docCheckMethodsSupported.contains(checkMethod)) {
-					logSuccess("check method is one of the supported values advertised in OP metadata",
-						args("check method", checkMethod, "documents_check_methods_supported", docCheckMethodsSupported));
-				} else {
-					throw error("check method is not one of the supported values advertised in OP metadata",
-						args("check method", checkMethod, "documents_check_methods_supported", docCheckMethodsSupported));
+					if(docCheckMethodsSupportedElement==null) {
+						throw error("Evidence document check method is " + checkMethod + " but documents_check_methods_supported could not be found in OP metadata");
+					}
+
+					JsonArray docCheckMethodsSupported = docCheckMethodsSupportedElement.getAsJsonArray();
+					if (docCheckMethodsSupported.contains(checkMethod)) {
+						log("check method is one of the supported values advertised in OP metadata",
+							args("check method", checkMethod, "documents_check_methods_supported", docCheckMethodsSupported));
+					} else {
+						throw error("check method is not one of the supported values advertised in OP metadata",
+							args("check method", checkMethod, "documents_check_methods_supported", docCheckMethodsSupported));
+					}
 				}
+				logSuccess("check_method(s) in check_details are in supported values advertised in OP metadata");
 			}
 		}
 	}
