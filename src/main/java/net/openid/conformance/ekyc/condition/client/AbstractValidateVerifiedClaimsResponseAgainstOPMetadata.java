@@ -77,8 +77,6 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 			validateDocumentsSupported (opMetadata, evidences);
 			validateEvidenceCheckDetailsCheckMethodsSupported(opMetadata, evidences);
 			validateElectronicRecordsSupported (opMetadata, evidences);
-			validateAttachmentsSupported (opMetadata, evidences);
-			validateDigestAlgorithmsSupported (opMetadata, evidences);
 		}
 
 		//claims_in_verified_claims_supported: REQUIRED. JSON array containing all Claims supported within verified_claims.
@@ -196,84 +194,6 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 					throw error("electronic_record type is not one of the supported values advertised in OP metadata",
 						args("electronic_record_type", electronicRecordType,
 							"electronic_records_supported", electronicRecordsSupported));
-				}
-			}
-		}
-	}
-
-	protected void validateAttachmentsSupported (JsonObject opMetadata, JsonArray evidences) {
-		//attachments_supported: REQUIRED when OP supports external attachments. JSON array containing all
-		// attachment types supported by the OP. Possible values are external and embedded.
-		// If the list is empty, the OP does not support attachments.
-
-		JsonElement attachmentsSupportedElement = opMetadata.get("attachments_supported");
-		for (JsonElement evidenceElement : evidences) {
-			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if(evidence.has("attachments")) {
-				for(JsonElement attachmentElement : evidence.get("attachments").getAsJsonArray()){
-					JsonObject attachmentObject = attachmentElement.getAsJsonObject();
-					JsonArray attachmentsSupported = attachmentsSupportedElement.getAsJsonArray();
-
-					if(attachmentsSupported==null) {
-						throw error("Evidence contains an attachment but attachments_supported could not be found in OP metadata");
-					}
-
-					if(attachmentObject.has("digest")){
-						//this is an external_attachment
-						if(attachmentsSupported.contains(new JsonPrimitive("external"))){
-							logSuccess("Server supports external attachments");
-						} else {
-							throw error("Evidence contains an external attachment but server does not advertise support for " +
-									"external attachments",
-								args("evidence", evidence, "attachments_supported", attachmentsSupported));
-						}
-					} else if(attachmentObject.has("content")) {
-						//embedded_attachment
-						if(attachmentsSupported.contains(new JsonPrimitive("embedded"))){
-							logSuccess("Server supports embedded attachments");
-						} else {
-							throw error("Evidence contains an embedded attachment but server does not advertise support for " +
-									"embedded attachments",
-								args("evidence", evidence, "attachments_supported", attachmentsSupported));
-						}
-					}
-				}
-			}
-		}
-	}
-
-	protected void validateDigestAlgorithmsSupported(JsonObject opMetadata, JsonArray evidences) {
-		//digest_algorithms_supported: REQUIRED when OP supports external attachments. JSON array containing all
-		// supported digest algorithms which can be used as alg property within the digest object of
-		// external attachments. If the OP supports external attachments, at least the algorithm sha-256
-		// MUST be supported by the OP as well. The list of possible digest/hash algorithm names is maintained
-		// by IANA in [hash_name_registry] (established by [RFC6920]).
-		JsonElement digestAlgorithmsSupportedElement = opMetadata.get("digest_algorithms_supported");
-
-		for (JsonElement evidenceElement : evidences) {
-			JsonObject evidence = evidenceElement.getAsJsonObject();
-			if(evidence.has("attachments")) {
-				for(JsonElement attachmentElement : evidence.get("attachments").getAsJsonArray()){
-					JsonObject attachmentObject = attachmentElement.getAsJsonObject();
-					if(attachmentObject.has("digest")){
-						//this is an external_attachment
-						JsonObject digest = attachmentObject.get("digest").getAsJsonObject();
-						JsonElement alg = digest.get("alg");
-
-						if(digestAlgorithmsSupportedElement == null) {
-							throw error("Evidence contains an attachment with a digest element but digest_algorithms_supported could not be found in OP metadata");
-						}
-
-						JsonArray digestAlgorithmsSupported = digestAlgorithmsSupportedElement.getAsJsonArray();
-
-						if(digestAlgorithmsSupported.contains(alg)) {
-							logSuccess("Evidence digest algorithm is one of the supported values advertised in OP metadata",
-								args("alg", alg, "digest_algorithms_supported", digestAlgorithmsSupported));
-						} else {
-							throw error("Evidence digest algorithm is not one of the supported values advertised in OP metadata",
-								args("alg", alg, "digest_algorithms_supported", digestAlgorithmsSupported));
-						}
-					}
 				}
 			}
 		}
@@ -436,75 +356,6 @@ public abstract class AbstractValidateVerifiedClaimsResponseAgainstOPMetadata ex
 									"electronic_records_supported", electronicRecordsSupported));
 						}
 					}
-				}
-			}
-
-			//attachments_supported: REQUIRED when OP supports external attachments. JSON array containing all
-			// attachment types supported by the OP. Possible values are external and embedded.
-			// If the list is empty, the OP does not support attachments.
-			if(opMetadata.has("attachments_supported")) {
-				JsonArray attachmentsSupported = opMetadata.get("attachments_supported").getAsJsonArray();
-				for (JsonElement evidenceElement : evidences) {
-					JsonObject evidence = evidenceElement.getAsJsonObject();
-					if(evidence.has("attachments")) {
-						for(JsonElement attachmentElement : evidence.get("attachments").getAsJsonArray()){
-							JsonObject attachmentObject = attachmentElement.getAsJsonObject();
-							if(attachmentObject.has("digest")){
-								//this is an external_attachment
-								if(attachmentsSupported.contains(new JsonPrimitive("external"))){
-									logSuccess("Server supports external attachments");
-								} else {
-									throw error("Evidence contains an external attachment but server does not advertise support for " +
-											"external attachments",
-										args("evidence", evidence, "attachments_supported", attachmentsSupported));
-								}
-							} else if(attachmentObject.has("content")) {
-								//embedded_attachment
-								if(attachmentsSupported.contains(new JsonPrimitive("embedded"))){
-									logSuccess("Server supports embedded attachments");
-								} else {
-									throw error("Evidence contains an embedded attachment but server does not advertise support for " +
-											"embedded attachments",
-										args("evidence", evidence, "attachments_supported", attachmentsSupported));
-								}
-							}
-						}
-					}
-				}
-
-			}
-
-			//digest_algorithms_supported: REQUIRED when OP supports external attachments. JSON array containing all
-			// supported digest algorithms which can be used as alg property within the digest object of
-			// external attachments. If the OP supports external attachments, at least the algorithm sha-256
-			// MUST be supported by the OP as well. The list of possible digest/hash algorithm names is maintained
-			// by IANA in [hash_name_registry] (established by [RFC6920]).
-			if(opMetadata.has("digest_algorithms_supported")) {
-				JsonArray digestAlgorithmsSupported = opMetadata.get("digest_algorithms_supported").getAsJsonArray();
-				for (JsonElement evidenceElement : evidences) {
-					JsonObject evidence = evidenceElement.getAsJsonObject();
-					if(evidence.has("attachments")) {
-						for(JsonElement attachmentElement : evidence.get("attachments").getAsJsonArray()){
-							JsonObject attachmentObject = attachmentElement.getAsJsonObject();
-							if(attachmentObject.has("digest")){
-								//this is an external_attachment
-								JsonObject digest = attachmentObject.get("digest").getAsJsonObject();
-								JsonElement alg = digest.get("alg");
-								if(digestAlgorithmsSupported.contains(alg)) {
-									logSuccess("Evidence digest algorithm is one of the supported values advertised in OP metadata",
-										args("alg", alg, "digest_algorithms_supported", digestAlgorithmsSupported));
-								} else {
-									throw error("Evidence digest algorithm is not one of the supported values advertised in OP metadata",
-										args("alg", alg, "digest_algorithms_supported", digestAlgorithmsSupported));
-								}
-							}
-						}
-					}
-				}
-			} else {
-				JsonArray attachmentsSupported = opMetadata.get("attachments_supported").getAsJsonArray();
-				if(attachmentsSupported.contains(new JsonPrimitive("external"))) {
-					throw error("External attachments are supported but OP metadata does not contain digest_algorithms_supported");
 				}
 			}
 		}

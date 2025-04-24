@@ -173,20 +173,6 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		for(JsonElement returnEvidenceElement : returnedEvidence) {
 			JsonObject returnedObject = returnEvidenceElement.getAsJsonObject();
 			if(requestedEvidence.get("type").getAsJsonObject().get("value").equals(returnedObject.get("type"))){
-				//attachments
-				if(requestedEvidence.has("attachments")) {
-					if(requestedEvidence.get("attachments").isJsonObject()) {
-						JsonObject requestedAttachments = requestedEvidence.get("attachments").getAsJsonObject();
-						if(requestedAttachments.has("essential") && OIDFJSON.getBoolean(requestedAttachments.get("essential"))) {
-							if(!returnedObject.has("attachments")){
-								throw error("attachments was requested as essential but the returned evidence does not have attachments",
-										args("requested", requestedEvidence, "returned", returnedObject));
-							}
-						}
-					} else if(requestedEvidence.get("attachments").isJsonNull()) {
-						//TODO when attachments is json null, must the response contain attachments or is it optional? Likewise for "essential" case above
-					}
-				}
 				//"type" specific checks
 				String evidenceType = OIDFJSON.getString(requestedEvidence.get("type").getAsJsonObject().get("value"));
 				switch (evidenceType) {
