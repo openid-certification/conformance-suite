@@ -19,7 +19,7 @@ import net.openid.conformance.condition.client.SetDpopIatToOneHourInPast;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 import java.util.function.Supplier;
@@ -46,7 +46,7 @@ import java.util.function.Supplier;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values={"mtls"})
+@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values={"mtls"})
 public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTestModule {
 
 	void callResourceEndpointSteps(Supplier <? extends ConditionSequence> seq, boolean expectSuccess, boolean shouldFail, boolean forceBearer, String... requirements) {

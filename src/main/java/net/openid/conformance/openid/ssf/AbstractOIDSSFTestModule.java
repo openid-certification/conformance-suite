@@ -208,7 +208,7 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 					callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 					call(sequence(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class));
 
-					// TODO how to determine if dpop should be used? Reuse FAPI2SenderConstrainMethod? This was an option for OKTA.
+					// TODO how to determine if dpop should be used? Reuse AccessTokenSenderConstrainMethod? This was an option for OKTA.
 					boolean dpop = false;
 					if (dpop) {
 						callAndStopOnFailure(GenerateDpopKey.class);
