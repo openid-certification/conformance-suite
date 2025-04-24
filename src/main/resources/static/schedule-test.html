@@ -1308,9 +1308,27 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                             <div class="config-form-container">
-                                <h3 class="config-form-container-header">Federation entity</h3>
+                                <h3 class="config-form-container-header">Remote federation entity</h3>
 
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">remote_entity_identifier</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the
+                                                remote federation entity that the test will interface with. This URL MUST use the https scheme, have a host component,
+                                                and MAY contain port and path components. It MUST NOT contain query parameter or fragment components."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="federation.entity_identifier" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Federation entity</h3>
+
+                                <!--div class="row config-form-element-container">
                                     <div class="col-md-2 key">entity_identifier</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -1323,7 +1341,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <input type="text" class="form-control config-form-element" data-json-target="federation.entity_identifier" />
                                         </div>
                                     </div>
-                                </div>
+                                </div-->
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">entity_configuration</div>
