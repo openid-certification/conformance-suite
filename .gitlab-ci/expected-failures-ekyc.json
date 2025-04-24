@@ -1,2 +1,11 @@
 [
+    {
+        "test-name": "ekyc-server-testbasedonuserinfo-defaults",
+        "variant": "*",
+        "configuration-filename": "*authlete-ekyc-privatekey.json",
+        "current-block": "*",
+        "condition": "ValidateVerifiedClaimsInUserinfoAgainstOPMetadata",
+        "expected-result": "failure",
+        "comment": "documents_check_methods_supported is not available in OP metadata"
+    }
 ]
