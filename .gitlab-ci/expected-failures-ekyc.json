@@ -2,7 +2,7 @@
     {
         "test-name": "ekyc-server-testbasedonuserinfo-defaults",
         "variant": "*",
-        "configuration-filename": "*authlete-ekyc-privatekey.json",
+        "configuration-filename": "*authlete-ekyc-privatekey-final.json",
         "current-block": "*",
         "condition": "ValidateVerifiedClaimsInUserinfoAgainstOPMetadata",
         "expected-result": "failure",
