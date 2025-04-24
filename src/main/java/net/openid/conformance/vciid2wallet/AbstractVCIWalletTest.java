@@ -229,6 +229,9 @@ import org.springframework.web.servlet.view.RedirectView;
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"
 })
+@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = {
+	"none"
+})
 @VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
 	"client2.client_id",
 	"client2.scope",
