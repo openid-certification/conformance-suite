@@ -124,11 +124,7 @@ public abstract class AbstractCreateVerifiedClaimsRequestFromResponseObject exte
 				throw error("invalid evidence type", args("evidence", refEvidenceObject));
 		}
 
-		//attachments
-		if(refEvidenceObject.has("attachments")) {
-			// handle attachments
-			// evidenceObject.add("attachments", JsonNull.INSTANCE);
-		}
+		//TODO handle attachments
 
 		return evidenceObject;
 	}
