@@ -326,13 +326,14 @@
 						<arg>-Xlint:deprecation</arg>
 						<!-- As per https://errorprone.info/docs/installation -->
 						<arg>-XDcompilePolicy=simple</arg>
-						<arg>-Xplugin:ErrorProne -XepExcludedPaths:.*/src/test/.* -Xep:JavaUtilDate:OFF  -Xep:OperatorPrecedence:OFF -Xep:InconsistentCapitalization:OFF -Xep:DefaultCharset:OFF -Xep:DoubleBraceInitialization:OFF -Xep:EmptyBlockTag:OFF -Xep:EmptyCatch:OFF -Xep:JavaInstantGetSecondsGetNano:OFF -Xep:EnumOrdinal:OFF -Xep:GetClassOnEnum:OFF -Xep:StringSplitter:OFF -Xep:MissingSummary:OFF -Xep:StringCaseLocaleUsage:OFF</arg>
+						<arg>--should-stop=ifError=FLOW</arg>
+						<arg>-Xplugin:ErrorProne -XepExcludedPaths:.*/src/test/.* -Xep:JavaUtilDate:OFF -Xep:OperatorPrecedence:OFF -Xep:InconsistentCapitalization:OFF -Xep:DefaultCharset:OFF -Xep:DoubleBraceInitialization:OFF -Xep:EmptyBlockTag:OFF -Xep:EmptyCatch:OFF -Xep:JavaInstantGetSecondsGetNano:OFF -Xep:EnumOrdinal:OFF -Xep:GetClassOnEnum:OFF -Xep:StringSplitter:OFF -Xep:MissingSummary:OFF -Xep:StringCaseLocaleUsage:OFF</arg>
 					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>com.google.errorprone</groupId>
 							<artifactId>error_prone_core</artifactId>
-							<version>2.31.0</version>
+							<version>2.38.0</version>
 						</path>
 						<!-- Other annotation processors go here.
 
@@ -435,30 +436,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.openrewrite.maven</groupId>
-				<artifactId>rewrite-maven-plugin</artifactId>
-				<version>5.40.2</version>
-				<configuration>
-					<exportDatatables>true</exportDatatables>
-					<activeRecipes>
-						<recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3</recipe>
-					</activeRecipes>
-					<!-- org.openrewrite.java.migrate.UpgradeToJava17-->
-					<exclusions>
-						<exclusion>**/mongo/**</exclusion> <!-- Exclude the 'mongo' directory to avoid parse errors -->
-						<exclusion>**/chart/**</exclusion> <!-- Exclude the 'chart' directory to avoid parse errors -->
-					</exclusions>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.openrewrite.recipe</groupId>
-						<artifactId>rewrite-spring</artifactId>
-						<version>5.19.0</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
