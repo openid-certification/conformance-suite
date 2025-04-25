@@ -37,6 +37,9 @@ import net.openid.conformance.variant.VariantSetup;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
+@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = {
+	"none"
+})
 public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends AbstractTestModule {
 	protected Boolean jarm;
 	protected Boolean isOpenId;
