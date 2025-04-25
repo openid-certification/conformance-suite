@@ -157,7 +157,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
 		return switch (path) {
 			case ".well-known/openid-federation" -> entityConfigurationResponse();
