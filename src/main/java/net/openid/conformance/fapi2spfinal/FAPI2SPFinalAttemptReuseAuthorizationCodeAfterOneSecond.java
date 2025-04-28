@@ -13,11 +13,9 @@ import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointRes
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.hc.core5.http.HttpStatus;
 
@@ -112,10 +110,6 @@ public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends Abs
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		if(getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CBUAE){
-			generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
-		} else {
-			generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
-		}
+		generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
 	}
 }
