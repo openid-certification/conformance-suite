@@ -5,11 +5,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIncorrectNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestDifferentNonceInsideAndOutsideErrorPage;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -47,14 +45,14 @@ public class FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject exten
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		// Note: BuildRequestObjectByValueRedirectToAuthorizationEndpoint includes
-		// as URL parameters values in "authorization_endpoint_request"
-		// which differ or are missing from the request object.
-		// Here, an incorrect nonce is added as a parameter.
-		return super.makeCreateAuthorizationRequestObjectSteps()
-				.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
-						condition(AddIncorrectNonceToAuthorizationEndpointRequest.class));
+	protected void performPARRedirectWithRequestUri() {
+		// Note: BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint and
+		// BuildRequestObjectByValueRedirectToAuthorizationEndpoint include as URL
+		// parameters values in "authorization_endpoint_request" which differ or are
+		// missing from the request object. Here, an incorrect nonce is added as a parameter.
+		callAndStopOnFailure(AddIncorrectNonceToAuthorizationEndpointRequest.class);
+
+		super.performPARRedirectWithRequestUri();
 	}
 
 	@Override

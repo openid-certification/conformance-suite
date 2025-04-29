@@ -1,8 +1,6 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.SignRequestObject;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -30,10 +28,14 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPI2SPID2StateOnlyOutsideRequestObjectNotUsed extends AbstractFAPI2SPID2EnsureRequestObjectWithoutState {
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		return super.makeCreateAuthorizationRequestObjectSteps()
-			.insertAfter(SignRequestObject.class,
-				condition(AddStateToAuthorizationEndpointRequest.class));
+	protected void performPARRedirectWithRequestUri() {
+		// Note: BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint and
+		// BuildRequestObjectByValueRedirectToAuthorizationEndpoint include as URL
+		// parameters values in "authorization_endpoint_request" which differ or are
+		// missing from the request object. Here, a state is added as a parameter.
+		callAndStopOnFailure(AddStateToAuthorizationEndpointRequest.class);
+
+		super.performPARRedirectWithRequestUri();
 	}
 
 }
