@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.10</version>
+		<version>3.4.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -30,7 +30,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>17</java.version>
-		<pmdVersion>7.10.0</pmdVersion>
+		<pmdVersion>7.12.0</pmdVersion>
 		<jackson.version>2.15.1</jackson.version>
 		<kotlin.version>2.1.10</kotlin.version>
 	</properties>
@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>com.tngtech.archunit</groupId>
 			<artifactId>archunit</artifactId>
-			<version>1.3.0</version>
+			<version>1.4.0</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -126,6 +126,11 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>
@@ -326,13 +331,14 @@
 						<arg>-Xlint:deprecation</arg>
 						<!-- As per https://errorprone.info/docs/installation -->
 						<arg>-XDcompilePolicy=simple</arg>
-						<arg>-Xplugin:ErrorProne -XepExcludedPaths:.*/src/test/.* -Xep:JavaUtilDate:OFF  -Xep:OperatorPrecedence:OFF -Xep:InconsistentCapitalization:OFF -Xep:DefaultCharset:OFF -Xep:DoubleBraceInitialization:OFF -Xep:EmptyBlockTag:OFF -Xep:EmptyCatch:OFF -Xep:JavaInstantGetSecondsGetNano:OFF -Xep:EnumOrdinal:OFF -Xep:GetClassOnEnum:OFF -Xep:StringSplitter:OFF -Xep:MissingSummary:OFF -Xep:StringCaseLocaleUsage:OFF</arg>
+						<arg>--should-stop=ifError=FLOW</arg>
+						<arg>-Xplugin:ErrorProne -XepExcludedPaths:.*/src/test/.* -Xep:JavaUtilDate:OFF -Xep:OperatorPrecedence:OFF -Xep:InconsistentCapitalization:OFF -Xep:DefaultCharset:OFF -Xep:DoubleBraceInitialization:OFF -Xep:EmptyBlockTag:OFF -Xep:EmptyCatch:OFF -Xep:JavaInstantGetSecondsGetNano:OFF -Xep:EnumOrdinal:OFF -Xep:GetClassOnEnum:OFF -Xep:StringSplitter:OFF -Xep:MissingSummary:OFF -Xep:StringCaseLocaleUsage:OFF -Xep:StatementSwitchToExpressionSwitch:OFF -Xep:PatternMatchingInstanceof:OFF</arg>
 					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>com.google.errorprone</groupId>
 							<artifactId>error_prone_core</artifactId>
-							<version>2.31.0</version>
+							<version>2.38.0</version>
 						</path>
 						<!-- Other annotation processors go here.
 
@@ -369,6 +375,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+						-Xshare:off
+					</argLine>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -421,7 +433,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.5.0</version>
+				<version>3.6.0</version>
 				<configuration>
 					<configLocation>.checkstyle.xml</configLocation>
 					<violationSeverity>warning</violationSeverity>
@@ -435,30 +447,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.openrewrite.maven</groupId>
-				<artifactId>rewrite-maven-plugin</artifactId>
-				<version>5.40.2</version>
-				<configuration>
-					<exportDatatables>true</exportDatatables>
-					<activeRecipes>
-						<recipe>org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3</recipe>
-					</activeRecipes>
-					<!-- org.openrewrite.java.migrate.UpgradeToJava17-->
-					<exclusions>
-						<exclusion>**/mongo/**</exclusion> <!-- Exclude the 'mongo' directory to avoid parse errors -->
-						<exclusion>**/chart/**</exclusion> <!-- Exclude the 'chart' directory to avoid parse errors -->
-					</exclusions>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.openrewrite.recipe</groupId>
-						<artifactId>rewrite-spring</artifactId>
-						<version>5.19.0</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
@@ -503,7 +491,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.12</version>
+					<version>0.8.13</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -514,12 +502,12 @@
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>33.4.0-jre</version>
+				<version>33.4.8-jre</version>
 			</dependency>
 			<dependency>
 				<groupId>com.nimbusds</groupId>
 				<artifactId>nimbus-jose-jwt</artifactId>
-				<version>10.0.1</version>
+				<version>10.2</version>
 			</dependency>
 			<dependency>
 				<!-- should match version in https://bitbucket.org/connect2id/nimbus-jose-jwt/src/master/pom.xml -->
@@ -550,17 +538,17 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-compress</artifactId>
-				<version>1.26.1</version>
+				<version>1.27.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.htmlunit</groupId>
 				<artifactId>htmlunit</artifactId>
-				<version>4.7.0</version>
+				<version>4.11.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.seleniumhq.selenium</groupId>
 				<artifactId>htmlunit3-driver</artifactId>
-				<version>4.28.0</version>
+				<version>4.30.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

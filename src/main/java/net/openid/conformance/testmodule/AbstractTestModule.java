@@ -21,12 +21,14 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.SkippedCondition;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.Security;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +40,18 @@ import java.util.function.Supplier;
 public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
+
+	static {
+		ensureBCSecurityProviderIsPresent();
+	}
+
+	private static void ensureBCSecurityProviderIsPresent() {
+
+		boolean bcProviderPresent = Arrays.stream(Security.getProviders()).anyMatch(sp -> "BC".equals(sp.getName()));
+		if (!bcProviderPresent) {
+			Security.addProvider(new BouncyCastleProvider());
+		}
+	}
 
 	private String id = null; // unique identifier for the test, set from the outside
 	private volatile Status status = Status.NOT_YET_CREATED; // current status of the test

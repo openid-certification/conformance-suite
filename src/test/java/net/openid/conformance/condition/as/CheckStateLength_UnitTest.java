@@ -43,7 +43,7 @@ public class CheckStateLength_UnitTest {
 	@Test
 	public void testEvaluate_noErrors() {
 		env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
-			CreateEffectiveAuthorizationRequestParameters.STATE, RandomStringUtils.randomAlphabetic(128));
+			CreateEffectiveAuthorizationRequestParameters.STATE, RandomStringUtils.secure().nextAlphabetic(128));
 
 		cond.execute(env);
 	}
@@ -56,7 +56,7 @@ public class CheckStateLength_UnitTest {
 		assertThrows(ConditionError.class, () -> {
 			// The state shout not exceed 128 characters in length.
 			env.putString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
-				CreateEffectiveAuthorizationRequestParameters.STATE, RandomStringUtils.randomAlphabetic(129));
+				CreateEffectiveAuthorizationRequestParameters.STATE, RandomStringUtils.secure().nextAlphabetic(129));
 			cond.execute(env);
 		});
 	}

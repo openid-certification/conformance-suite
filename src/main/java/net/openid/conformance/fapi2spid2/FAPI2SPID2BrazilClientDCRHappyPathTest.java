@@ -104,7 +104,7 @@ public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2Cl
 		if(path.equals("register")) {
 			setStatus(Status.RUNNING);
 
-			String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+			String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 
 			env.putObject(requestId, requestParts);
 
@@ -126,7 +126,7 @@ public class FAPI2SPID2BrazilClientDCRHappyPathTest extends AbstractFAPI2SPID2Cl
 
 			setStatus(Status.RUNNING);
 
-			String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+			String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 
 			env.putObject(requestId, requestParts);
 

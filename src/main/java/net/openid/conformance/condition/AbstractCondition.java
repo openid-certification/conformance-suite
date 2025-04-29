@@ -594,7 +594,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected String createBrowserInteractionPlaceholder(String msg) {
-		String placeholder = RandomStringUtils.randomAlphanumeric(10);
+		String placeholder = RandomStringUtils.secure().nextAlphanumeric(10);
 		if (getRequirements().isEmpty()) {
 			log(msg, args("upload", placeholder, "result", ConditionResult.REVIEW));
 		} else {
@@ -604,7 +604,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	}
 
 	protected String createBrowserInteractionPlaceholder() {
-		String placeholder = RandomStringUtils.randomAlphanumeric(10);
+		String placeholder = RandomStringUtils.secure().nextAlphanumeric(10);
 		if (getRequirements().isEmpty()) {
 			log(args("upload", placeholder, "result", ConditionResult.REVIEW));
 		} else {
@@ -616,6 +616,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	/*
 	 * Create an HTTP Client for use in calling outbound to other services
 	 */
+	@SuppressWarnings("deprecation")
 	protected HttpClient createHttpClient(Environment env, boolean restrictAllowedTLSVersions)
 		throws CertificateException, InvalidKeySpecException, NoSuchAlgorithmException,
 				KeyStoreException, IOException, UnrecoverableKeyException, KeyManagementException {

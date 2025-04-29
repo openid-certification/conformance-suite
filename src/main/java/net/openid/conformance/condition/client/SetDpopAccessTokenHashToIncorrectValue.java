@@ -17,7 +17,7 @@ public class SetDpopAccessTokenHashToIncorrectValue extends AbstractCondition {
 	@PreEnvironment(required = {"dpop_proof_claims"})
 	public Environment evaluate(Environment env) {
 
-		String accessToken = RandomStringUtils.randomAlphanumeric(10);
+		String accessToken = RandomStringUtils.secure().nextAlphanumeric(10);
 
 		JsonObject claims = env.getObject("dpop_proof_claims");
 

@@ -46,7 +46,7 @@ public abstract class AbstractAddClaimToAuthorizationEndpointRequest extends Abs
 						break;
 					case Random:
 						// "Other members MAY be defined to provide additional information about the requested Claims. Any members used that are not understood MUST be ignored."
-						claimBody.addProperty(RandomStringUtils.randomAlphanumeric(10), RandomStringUtils.randomAlphanumeric(10));
+						claimBody.addProperty(RandomStringUtils.secure().nextAlphanumeric(10), RandomStringUtils.secure().nextAlphanumeric(10));
 						break;
 					case EssentialFalse:
 						claimBody.addProperty("essential", false);

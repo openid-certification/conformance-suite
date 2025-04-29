@@ -41,7 +41,7 @@ public class CreateRandomRequestUriWithoutFragment extends AbstractCondition {
 		// (64 is a relatively arbitrary choice that lies between ~21 characters having a reasonable amount of entropy
 		// and the 512 byte upper limit, and appears to match what python does. The spec says clients mustn't use more
 		// than 512, but doesn't say servers have to support 512.)
-		String path = "requesturi/" + RandomStringUtils.randomAlphanumeric(64);
+		String path = "requesturi/" + RandomStringUtils.secure().nextAlphanumeric(64);
 
 		JsonObject o = new JsonObject();
 		o.addProperty("path", path);

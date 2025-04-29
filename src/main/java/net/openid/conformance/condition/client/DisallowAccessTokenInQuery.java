@@ -31,7 +31,7 @@ public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 	@Override
 	protected String getUri(Environment env) {
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(super.getUri(env));
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(super.getUri(env));
 		String accessToken = env.getString("access_token", "value");
 		if (Strings.isNullOrEmpty(accessToken)) {
 			throw error("Access token not found");

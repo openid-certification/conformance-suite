@@ -26,7 +26,7 @@ public class GenerateDpopAccessToken extends AbstractCondition {
 			JWK jwk = JWK.parse(jsonJwk.toString());
 			String computedJkt = jwk.computeThumbprint().toString();
 
-			String dpopAccessToken = RandomStringUtils.randomAlphanumeric(50);
+			String dpopAccessToken = RandomStringUtils.secure().nextAlphanumeric(50);
 			env.putString("dpop_access_token", "value", dpopAccessToken);
 			env.putString("dpop_access_token", "jkt", computedJkt);
 

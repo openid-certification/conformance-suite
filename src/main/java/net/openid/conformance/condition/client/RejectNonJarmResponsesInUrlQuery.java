@@ -19,7 +19,7 @@ public class RejectNonJarmResponsesInUrlQuery extends AbstractCondition {
 		params.remove("response");
 
 		// ignore items we require to be in the registered redirect url query for the second client
-		UriComponents redirectUri = UriComponentsBuilder.fromHttpUrl(env.getString("redirect_uri")).build();
+		UriComponents redirectUri = UriComponentsBuilder.fromUriString(env.getString("redirect_uri")).build();
 
 		Map<String, String> expectedParams = redirectUri.getQueryParams().toSingleValueMap();
 

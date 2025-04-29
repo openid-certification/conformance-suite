@@ -37,7 +37,7 @@ public class AddWrongAudToClientAssertionClaims_UnitTest {
 
 		JsonObject clientAssertClaims = new JsonObject();
 
-		clientAssertClaims.addProperty("jti", RandomStringUtils.randomAlphanumeric(20));
+		clientAssertClaims.addProperty("jti", RandomStringUtils.secure().nextAlphanumeric(20));
 
 		env.putObject("client_assertion_claims", clientAssertClaims);
 

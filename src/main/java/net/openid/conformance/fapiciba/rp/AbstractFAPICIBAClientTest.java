@@ -329,7 +329,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
 		call(exec().mapKey("client_request", requestId));
 
@@ -376,7 +376,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	public Object handleHttpMtls(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 		setStatus(Status.RUNNING);
 
-		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
 		call(exec().mapKey("client_request", requestId));
 

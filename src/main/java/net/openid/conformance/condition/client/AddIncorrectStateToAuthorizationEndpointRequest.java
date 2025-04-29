@@ -13,7 +13,7 @@ public class AddIncorrectStateToAuthorizationEndpointRequest extends AbstractCon
 	@PreEnvironment(required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		String state = RandomStringUtils.randomAlphanumeric(10);
+		String state = RandomStringUtils.secure().nextAlphanumeric(10);
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 

@@ -19,7 +19,7 @@ public class SendJARMResponseWitResponseModeQuery extends AbstractCondition {
 		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 		String redirectUri = OIDFJSON.getString(params.remove("redirect_uri"));
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(redirectUri);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUri);
 		String jarmResponse = env.getString("jarm_response");
 		builder.queryParam("response", jarmResponse);
 

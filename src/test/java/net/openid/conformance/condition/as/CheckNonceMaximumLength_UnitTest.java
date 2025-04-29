@@ -42,7 +42,7 @@ public class CheckNonceMaximumLength_UnitTest {
 	 */
 	@Test
 	public void testEvaluate_noErrors() {
-		env.putString("nonce", RandomStringUtils.randomAlphabetic(43));
+		env.putString("nonce", RandomStringUtils.secure().nextAlphabetic(43));
 
 		cond.execute(env);
 	}
@@ -54,7 +54,7 @@ public class CheckNonceMaximumLength_UnitTest {
 	public void testEvaluate_invalidLength() {
 		assertThrows(ConditionError.class, () -> {
 			// The state shout not exceed 43 characters in length.
-			env.putString("nonce", RandomStringUtils.randomAlphabetic(44));
+			env.putString("nonce", RandomStringUtils.secure().nextAlphabetic(44));
 
 			cond.execute(env);
 		});

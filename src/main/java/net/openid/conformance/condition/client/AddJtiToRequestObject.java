@@ -17,7 +17,7 @@ public class AddJtiToRequestObject extends AbstractCondition {
 
 		// RFC 7519 doesn't contain any restrictions on jti other than it "is a case-sensitive string",
 		// so this is a very conservative choice of value
-		final String jti = RandomStringUtils.randomAlphanumeric(20);
+		final String jti = RandomStringUtils.secure().nextAlphanumeric(20);
 		requestObjectClaims.addProperty("jti", jti);
 
 		env.putObject("request_object_claims", requestObjectClaims);

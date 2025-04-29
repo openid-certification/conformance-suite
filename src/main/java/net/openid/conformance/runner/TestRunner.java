@@ -221,7 +221,7 @@ public class TestRunner implements DataUtils {
 		final VariantSelection testVariant;
 		Map<String, String> variantFromPlanDefinition = null;
 
-		String id = RandomStringUtils.randomAlphanumeric(15);
+		String id = RandomStringUtils.secure().nextAlphanumeric(15);
 
 		if (!Strings.isNullOrEmpty(planId)) {
 			if (testConfig != null) {

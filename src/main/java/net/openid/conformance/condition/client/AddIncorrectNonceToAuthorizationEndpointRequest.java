@@ -13,7 +13,7 @@ public class AddIncorrectNonceToAuthorizationEndpointRequest extends AbstractCon
 	@PreEnvironment(required = "authorization_endpoint_request")
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
-		String nonce = RandomStringUtils.randomAlphanumeric(10);
+		String nonce = RandomStringUtils.secure().nextAlphanumeric(10);
 
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 
