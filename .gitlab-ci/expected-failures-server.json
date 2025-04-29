@@ -60,15 +60,6 @@
         "comment": "CI can't trigger key rotation"
     },
     {
-        "test-name": "oidcc-userinfo-post-body",
-        "variant": "*",
-        "configuration-filename": "authlete-*.json",
-        "current-block": "",
-        "condition": "UserInfoEndpointWithAccessTokenInBodyNotSupported",
-        "expected-result": "warning",
-        "comment": "Authlete doesn't support POST with access token in body, which is not required"
-    },
-    {
         "test-name": "fapi2-security-profile-id2-dpop-negative-tests",
         "variant": {
             "openid": "openid_connect",
