@@ -344,6 +344,19 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				} else {
 					throw error("Returned value is not one of the requested values", args("requested", requested, "returned", returned));
 				}
+			} else if(requestedObject.has("essential") && OIDFJSON.getBoolean(requestedObject.get("essential"))) {
+				if(returned == null || returned.isJsonNull()) {
+					throw error("claim was requested as essential but it is not included in the response", args("requested", requested, "returned", returned));
+				} else {
+					String returnedValue = OIDFJSON.getString(returned);
+					if(Strings.isNullOrEmpty(returnedValue)) {
+						//TODO does this require a failure?
+						throw error("claim was requested as essential but it is empty in the response", args("requested", requested, "returned", returned));
+					} else {
+						logSuccess("claim was requested as essential, is included in the response", args("requested",
+							requested, "returned", returned));
+					}
+				}
 			}
 		}
 		return true;
