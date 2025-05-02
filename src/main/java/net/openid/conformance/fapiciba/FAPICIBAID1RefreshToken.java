@@ -17,7 +17,7 @@ import net.openid.conformance.variant.VariantSetup;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-refresh-token",
 	displayName = "FAPI-CIBA-ID1: test refresh token behaviours",
-	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
+	summary = "This test obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
 	profile = "FAPI-CIBA-ID1",
 	configurationFields = {
 		"server.discoveryUrl",
