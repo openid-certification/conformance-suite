@@ -19,6 +19,7 @@ import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndp
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddVPID2SdJwtClientMetadataToAuthorizationRequest;
+import net.openid.conformance.condition.client.BuildBrowserDCAPIRequestUnsigned;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CheckAudInBindingJwt;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
@@ -288,8 +289,9 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 				callAndStopOnFailure(CreateRandomBrowserApiSubmitUrl.class);
 				String submitUrl = env.getString("browser_api_submit", "fullUrl");
 
-				JsonObject request;
-				request = env.getObject("authorization_endpoint_request");
+				callAndStopOnFailure(BuildBrowserDCAPIRequestUnsigned.class);
+
+				JsonObject request = env.getObject("browser_api_request");
 
 				eventLog.log(getName(), args("msg", "Calling browser API",
 					"request", request,
@@ -600,7 +602,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 				break;
 			case W3C_DC_API:
 			case W3C_DC_API_JWT:
-				seq = seq.skip(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "No redirected required for Browser API");
+				seq = seq.skip(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "No redirect required for Browser API");
 				break;
 		}
 

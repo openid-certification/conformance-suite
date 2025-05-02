@@ -22,6 +22,8 @@ import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndp
 import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.BuildBrowserDCAPIRequestSigned;
+import net.openid.conformance.condition.client.BuildBrowserDCAPIRequestUnsigned;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CheckAudInBindingJwt;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
@@ -301,16 +303,17 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 				callAndStopOnFailure(CreateRandomBrowserApiSubmitUrl.class);
 				String submitUrl = env.getString("browser_api_submit", "fullUrl");
 
-				JsonObject request = null;
+
+
 				switch (requestMethod) {
 					case REQUEST_URI_UNSIGNED -> {
-						request = env.getObject("authorization_endpoint_request");
+						callAndStopOnFailure(BuildBrowserDCAPIRequestUnsigned.class);
 					}
 					case REQUEST_URI_SIGNED -> {
-						request = new JsonObject();
-						request.addProperty("request", env.getString("request_object"));
+						callAndStopOnFailure(BuildBrowserDCAPIRequestSigned.class);
 					}
 				}
+				JsonObject request = env.getObject("browser_api_request");
 
 				eventLog.log(getName(), args("msg", "Calling browser API",
 					"request", request,
