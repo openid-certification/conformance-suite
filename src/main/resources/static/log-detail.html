@@ -1134,9 +1134,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 try {
                                     const credentialResponse = await navigator.credentials.get({
                                         digital: {
-                                            providers: [{
+                                            requests: [{
                                                 protocol: "openid4vp",
-                                                request: browserApiRequest
+                                                data: browserApiRequest
                                             }]
                                         },
                                     })
