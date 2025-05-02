@@ -210,16 +210,16 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				JsonObject requestedValidationMethod = requestedEvidence.get("validation_method").getAsJsonObject();
 				JsonObject returnedValidationMethod = returnedEvidenceObject.get("validation_method").getAsJsonObject();
 				if(requestedValidationMethod.has("type")) {
-					compareConstrainableElement(requestedValidationMethod.get("type"), returnedValidationMethod.get("type"));
+					compareConstrainableElement("type", requestedValidationMethod.get("type"), returnedValidationMethod.get("type"));
 				}
 				if(requestedValidationMethod.has("policy")) {
-					compareConstrainableElement(requestedValidationMethod.get("policy"), returnedValidationMethod.get("policy"));
+					compareConstrainableElement("policy", requestedValidationMethod.get("policy"), returnedValidationMethod.get("policy"));
 				}
 				if(requestedValidationMethod.has("procedure")) {
-					compareConstrainableElement(requestedValidationMethod.get("procedure"), returnedValidationMethod.get("procedure"));
+					compareConstrainableElement("procedure", requestedValidationMethod.get("procedure"), returnedValidationMethod.get("procedure"));
 				}
 				if(requestedValidationMethod.has("status")) {
-					compareConstrainableElement(requestedValidationMethod.get("status"), returnedValidationMethod.get("status"));
+					compareConstrainableElement("status", requestedValidationMethod.get("status"), returnedValidationMethod.get("status"));
 				}
 
 			}
@@ -235,16 +235,16 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				JsonObject requestedVerificationMethod = requestedEvidence.get("verification_method").getAsJsonObject();
 				JsonObject returnedVerificationMethod = returnedEvidenceObject.get("verification_method").getAsJsonObject();
 				if(requestedVerificationMethod.has("type")) {
-					compareConstrainableElement(requestedVerificationMethod.get("type"), returnedVerificationMethod.get("type"));
+					compareConstrainableElement("type", requestedVerificationMethod.get("type"), returnedVerificationMethod.get("type"));
 				}
 				if(requestedVerificationMethod.has("policy")) {
-					compareConstrainableElement(requestedVerificationMethod.get("policy"), returnedVerificationMethod.get("policy"));
+					compareConstrainableElement("policy", requestedVerificationMethod.get("policy"), returnedVerificationMethod.get("policy"));
 				}
 				if(requestedVerificationMethod.has("procedure")) {
-					compareConstrainableElement(requestedVerificationMethod.get("procedure"), returnedVerificationMethod.get("procedure"));
+					compareConstrainableElement("procedure", requestedVerificationMethod.get("procedure"), returnedVerificationMethod.get("procedure"));
 				}
 				if(requestedVerificationMethod.has("status")) {
-					compareConstrainableElement(requestedVerificationMethod.get("status"), returnedVerificationMethod.get("status"));
+					compareConstrainableElement("status", requestedVerificationMethod.get("status"), returnedVerificationMethod.get("status"));
 				}
 
 			}
@@ -259,7 +259,7 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 			} else if (requestedEvidence.get("method").isJsonObject()) {
 				JsonObject requestedMethod = requestedEvidence.get("method").getAsJsonObject();
 				JsonElement returnedMethod = returnedEvidenceObject.get("method");
-				compareConstrainableElement(requestedMethod, returnedMethod);
+				compareConstrainableElement("method", requestedMethod, returnedMethod);
 			}
 		}
 		//verifier
@@ -327,33 +327,33 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 
 
 
-	//TODO how does "essential" affect this behavior? e.g if a "value" was provided but not "essential" can the OP ignore the "value"?
-	protected boolean compareConstrainableElement(JsonElement requested, JsonElement returned) {
+		//TODO how does "essential" affect this behavior? e.g if a "value" was provided but not "essential" can the OP ignore the "value"?
+	protected boolean compareConstrainableElement(String claimName, JsonElement requested, JsonElement returned) {
 		if(requested.isJsonObject()) {
 			JsonObject requestedObject = requested.getAsJsonObject();
 			if(requestedObject.has("value")) {
 				if(requestedObject.get("value").equals(returned)) {
 					return true;
 				} else {
-					throw error("Returned value does not match requested value", args("requested", requested, "returned", returned));
+					throw error("Returned value for " + claimName + " does not match requested value", args("requested", requested, "returned", returned));
 				}
 			} else if(requestedObject.has("values")) {
 				JsonArray values = requestedObject.get("values").getAsJsonArray();
 				if(values.contains(returned)) {
 					return true;
 				} else {
-					throw error("Returned value is not one of the requested values", args("requested", requested, "returned", returned));
+					throw error("Returned value " + claimName + "is not one of the requested values", args("requested", requested, "returned", returned));
 				}
 			} else if(requestedObject.has("essential") && OIDFJSON.getBoolean(requestedObject.get("essential"))) {
 				if(returned == null || returned.isJsonNull()) {
-					throw error("claim was requested as essential but it is not included in the response", args("requested", requested, "returned", returned));
+					throw error(claimName + " was requested as essential but it is not included in the response", args("requested", requested, "returned", returned));
 				} else {
 					String returnedValue = OIDFJSON.getString(returned);
 					if(Strings.isNullOrEmpty(returnedValue)) {
 						//TODO does this require a failure?
-						throw error("claim was requested as essential but it is empty in the response", args("requested", requested, "returned", returned));
+						throw error(claimName + " was requested as essential but it is empty in the response", args("requested", requested, "returned", returned));
 					} else {
-						logSuccess("claim was requested as essential, is included in the response", args("requested",
+						logSuccess(claimName + " was requested as essential, is included in the response", args("requested",
 							requested, "returned", returned));
 					}
 				}
