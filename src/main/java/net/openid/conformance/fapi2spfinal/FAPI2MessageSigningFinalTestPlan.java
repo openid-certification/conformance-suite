@@ -72,6 +72,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalEnsureHolderOfKeyRequired.class,
 		FAPI2SPFinalEnsureAuthorizationCodeIsBoundToClient.class,
 		FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
+		FAPI2SPFinalAttemptToUseExpiredAuthCode.class,
 
 		// Private key specific tests
 		FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails.class,
