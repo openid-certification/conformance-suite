@@ -1142,7 +1142,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     })
                                     console.log("credential response");
                                     console.log(credentialResponse);
-                                    if (credentialResponse.constructor.name == 'DigitalCredential') {
+                                    if (credentialResponse.constructor.name === 'DigitalCredential') {
                                         const data = credentialResponse.data
                                         const protocol = credentialResponse.protocol
                                         console.log("Response Data: " + data + " Protocol: " + protocol)
