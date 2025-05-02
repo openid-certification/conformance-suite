@@ -1,6 +1,9 @@
 package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
@@ -26,14 +29,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-
 @PublishTestModule(
 	testName = "oidcc-refresh-token-rp-key-rotation",
 	displayName = "OIDCC: Use a refresh token with private_key_jwt client authentication to ensure the server can handle RP key rotation",
-	summary = "This tests obtains a refresh token (by registering the client for the refresh_token grant and including scope=offline_access in the authorization endpoint request). Once it has obtained the refresh token it rotates the keys (by placing a new RP key with a new kid into the RP's jwks_uri), waits 60 seconds then tries to use the refresh token with a client assertion containing the new kid. Support for private_key_jwt client authentication, scope=offline_access and refresh tokens are not a requirement of the specification but are required to certify for the 'dynamic' profile.",
+	summary = "This test obtains a refresh token (by registering the client for the refresh_token grant and including scope=offline_access in the authorization endpoint request). Once it has obtained the refresh token it rotates the keys (by placing a new RP key with a new kid into the RP's jwks_uri), waits 60 seconds then tries to use the refresh token with a client assertion containing the new kid. Support for private_key_jwt client authentication, scope=offline_access and refresh tokens are not a requirement of the specification but are required to certify for the 'dynamic' profile.",
 	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ResponseType.class, values={"id_token", "id_token token"})
