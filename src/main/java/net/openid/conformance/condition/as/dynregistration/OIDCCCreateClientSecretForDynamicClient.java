@@ -17,6 +17,7 @@ public class OIDCCCreateClientSecretForDynamicClient extends AbstractCondition
 		String randomStr = RFC6749AppendixASyntaxUtils.generateVSChar(50, 10, 5);
 		String secret = "secret_" + randomStr;
 		client.addProperty("client_secret", secret);
+		client.addProperty("client_secret_expires_at", 0);
 		env.putObject("client", client);
 		log("Set the secret for registered client", args("client_secret", secret));
 		return env;
