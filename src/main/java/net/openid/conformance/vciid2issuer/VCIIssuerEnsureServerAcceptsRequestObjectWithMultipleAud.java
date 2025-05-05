@@ -14,7 +14,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test pass aud value as an array containing good and bad values then server must accept it.",
 	profile = "OID4VCI-ID2",
 	configurationFields = {
-		"server.discoveryUrl",
+		"server.discoveryIssuer",
 		"client.client_id",
 		"client.scope",
 		"client.jwks",
