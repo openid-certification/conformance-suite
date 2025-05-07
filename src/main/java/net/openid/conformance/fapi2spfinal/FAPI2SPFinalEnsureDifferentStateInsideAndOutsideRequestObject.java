@@ -8,8 +8,6 @@ import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestDifferentStateInsideAndOutsideErrorPage;
-import net.openid.conformance.condition.client.SignRequestObject;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -45,14 +43,14 @@ public class FAPI2SPFinalEnsureDifferentStateInsideAndOutsideRequestObject exten
 	}
 
 	@Override
-	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
-		// Note: BuildRequestObjectByValueRedirectToAuthorizationEndpoint includes
-		// as URL parameters values in "authorization_endpoint_request"
-		// which differ or are missing from the request object.
-		// Here, an incorrect nonce is added as a parameter.
-		return super.makeCreateAuthorizationRequestObjectSteps()
-				.insertAfter(SignRequestObject.class,
-						condition(AddIncorrectStateToAuthorizationEndpointRequest.class));
+	protected void performPARRedirectWithRequestUri() {
+		// Note: BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint and
+		// BuildRequestObjectByValueRedirectToAuthorizationEndpoint include as URL
+		// parameters values in "authorization_endpoint_request" which differ or are
+		// missing from the request object. Here, an incorrect state is added as a parameter.
+		callAndStopOnFailure(AddIncorrectStateToAuthorizationEndpointRequest.class);
+
+		super.performPARRedirectWithRequestUri();
 	}
 
 	@Override
