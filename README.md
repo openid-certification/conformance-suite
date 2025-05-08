@@ -1,3 +1,5 @@
+![OIDF logo](https://gitlab.com/openid/conformance-suite/-/raw/master/src/main/resources/static/images/openid.png?ref_type=heads)
+
 This is the OpenID Foundation conformance suite, which covers OpenID Connect,
 FAPI1-Advanced, FAPI2, FAPI-CIBA and OpenID for Identity Assurance (ekyc).
 
