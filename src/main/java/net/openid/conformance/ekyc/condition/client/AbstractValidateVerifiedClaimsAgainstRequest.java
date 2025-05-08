@@ -11,6 +11,9 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends AbstractCondition {
 	/**
@@ -90,6 +93,15 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 			checkTime(requestedVerification, returnedVerification);
 		}
 
+		// assurance_process
+		if(requestedVerification.has("assurance_process")) {
+			validateAssuranceProcess(requestedVerification.get("assurance_process"), returnedVerification.get("assurance_process"));
+		}
+
+		if(requestedVerification.has("assurance_level")) {
+			compareConstrainableElement("assurance_level", requestedVerification.get("assurance_level"), returnedVerification.get("assurance_level"));
+		}
+
 		if(requestedVerification.has("verification_process")) {
 			validateVerificationProcess(requestedVerification.get("verification_process"), returnedVerification.get("verification_process"));
 		}
@@ -99,11 +111,88 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		}
 	}
 
-	/**
-	 *
-	 * @param requestedVerificationProcess null or simple element with "essential" and "purpose" only
-	 * @param returnedVerificationProcess string
-	 */
+	protected void validateAssuranceProcess(JsonElement requestedAssuranceProcess, JsonElement returnedAssuranceProcess) {
+		if(requestedAssuranceProcess.isJsonObject()) {
+			JsonObject requestedAssuranceProcessObject = requestedAssuranceProcess.getAsJsonObject();
+			JsonObject returnedAssuranceProcessObject = returnedAssuranceProcess.getAsJsonObject();
+			compareConstrainableElementList(requestedAssuranceProcessObject, returnedAssuranceProcessObject, "policy", "procedure");
+
+			if(requestedAssuranceProcessObject.has("assurance_details")) {
+				validateAssuranceProcessAssuranceDetails(requestedAssuranceProcessObject.get("assurance_details"), returnedAssuranceProcessObject.get("assurance_details"));
+			}
+
+		} else {
+			throw error("Unexpected assurance_process in request",
+				args("assurance_process", requestedAssuranceProcess));
+		}
+	}
+
+
+	// Validate the assurance_details for assurance_type and assurance_classification only
+	// evidence_ref is an array and may contain check_id which RP may not know
+	protected void validateAssuranceProcessAssuranceDetails(JsonElement requestedAssuranceDetails, JsonElement returnedAssuranceDetails) {
+		if(requestedAssuranceDetails.isJsonArray()) {
+			if(returnedAssuranceDetails == null) {
+				throw error("assurance_details was requested but none was returned", args("assurance_details", requestedAssuranceDetails));
+			}
+			JsonArray requestedAssuranceDetailsArray = requestedAssuranceDetails.getAsJsonArray();
+			JsonArray returnedAssuranceDetailsArray = returnedAssuranceDetails.getAsJsonArray();
+
+			// predicate function to look for constrainable element in the returned JsonArray that matches conditions
+			BiPredicate<JsonObject, JsonArray> detailsPredicate = (requestedDetails, returnedDetailsArray) -> {
+				List<JsonElement> matchedResultList = returnedDetailsArray.asList().stream().filter(returnedDetailsElement -> {
+					if(!returnedDetailsElement.isJsonObject()) {
+						throw error("returned assurance_details is not an object", args("returned assurance_details", returnedDetailsElement));
+					}
+					JsonObject returnedDetailsObject = returnedDetailsElement.getAsJsonObject();
+					if(requestedDetails.has("assurance_type")) {
+						if(!checkConstrainableElementPresent("assurance_type", requestedDetails.get("assurance_type"), returnedDetailsObject.get("assurance_type"))) {
+							return false;
+						}
+					}
+					if(requestedDetails.has("assurance_classification")) {
+						if(!checkConstrainableElementPresent("assurance_classification", requestedDetails.get("assurance_classification"), returnedDetailsObject.get("assurance_classification"))) {
+							return false;
+						}
+					}
+					return true;
+				}).collect(Collectors.toList());
+
+				if(matchedResultList.isEmpty()) {
+					return false;
+				}
+				return true;
+			};
+
+			// filter response that matches request using predicate function
+			List<JsonElement> matchedResponseList = requestedAssuranceDetailsArray.asList().stream().filter(details -> {
+				if(details.isJsonObject()) {
+					return detailsPredicate.test(details.getAsJsonObject(), returnedAssuranceDetailsArray);
+				} else {
+					throw error("assurance_details is not a object", args("assurance_details", details));
+				}
+			}).collect(Collectors.toList());
+
+			if(matchedResponseList.size() != requestedAssuranceDetailsArray.size()) {
+				throw error("Number of responses for assurance_details does not match requests",
+					args("expected", requestedAssuranceDetailsArray.size(), "actual", matchedResponseList.size(),
+						"request", requestedAssuranceDetailsArray, "response", returnedAssuranceDetails));
+			}
+		} else {
+			throw error("Unexpected assurance_details in request",
+				args("assurance_details", requestedAssuranceDetails));
+
+		}
+	}
+
+
+
+
+		/**
+		 *
+		 * @param requestedVerificationProcess null or simple element with "essential" and "purpose" only
+		 * @param returnedVerificationProcess string
+		 */
 	protected void validateVerificationProcess(JsonElement requestedVerificationProcess, JsonElement returnedVerificationProcess) {
 		if(requestedVerificationProcess.isJsonNull()){
 			logSuccess("verification_process was null in request, any value will be accepted",
@@ -131,6 +220,8 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				args("verification_process", requestedVerificationProcess));
 		}
 	}
+
+
 
 	/**
 	 * A single entry in the evidence array represents a filter over elements of a certain evidence type.
@@ -326,32 +417,63 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 	}
 
 
+	protected void compareConstrainableElementList(JsonObject requested, JsonObject returned, String ... elementsList) {
+		for(String element : elementsList) {
+			if(requested.has(element)) {
+				compareConstrainableElement(element, requested.get(element),  (returned != null) ? returned.get(element) : null);
+			}
+		}
+	}
 
 		//TODO how does "essential" affect this behavior? e.g if a "value" was provided but not "essential" can the OP ignore the "value"?
 	protected boolean compareConstrainableElement(String claimName, JsonElement requested, JsonElement returned) {
+		return compareConstrainableElementImpl(claimName, requested, returned, true);
+	}
+
+	protected boolean checkConstrainableElementPresent(String claimName, JsonElement requested, JsonElement returned) {
+		return compareConstrainableElementImpl(claimName, requested, returned, false);
+	}
+
+	protected boolean compareConstrainableElementImpl(String claimName, JsonElement requested, JsonElement returned, boolean throwOnFalse) {
 		if(requested.isJsonObject()) {
 			JsonObject requestedObject = requested.getAsJsonObject();
 			if(requestedObject.has("value")) {
 				if(requestedObject.get("value").equals(returned)) {
 					return true;
 				} else {
-					throw error("Returned value for " + claimName + " does not match requested value", args("requested", requested, "returned", returned));
+					if(throwOnFalse) {
+						throw error("Returned value for " + claimName + " does not match requested value", args("requested", requested, "returned", returned));
+					} else {
+						return false;
+					}
 				}
 			} else if(requestedObject.has("values")) {
 				JsonArray values = requestedObject.get("values").getAsJsonArray();
 				if(values.contains(returned)) {
 					return true;
 				} else {
-					throw error("Returned value " + claimName + "is not one of the requested values", args("requested", requested, "returned", returned));
+					if(throwOnFalse) {
+						throw error("Returned value " + claimName + "is not one of the requested values", args("requested", requested, "returned", returned));
+					} else {
+						return false;
+					}
 				}
 			} else if(requestedObject.has("essential") && OIDFJSON.getBoolean(requestedObject.get("essential"))) {
 				if(returned == null || returned.isJsonNull()) {
-					throw error(claimName + " was requested as essential but it is not included in the response", args("requested", requested, "returned", returned));
+					if(throwOnFalse) {
+						throw error(claimName + " was requested as essential but it is not included in the response", args("requested", requested, "returned", returned));
+					} else {
+						return false;
+					}
 				} else {
 					String returnedValue = OIDFJSON.getString(returned);
 					if(Strings.isNullOrEmpty(returnedValue)) {
 						//TODO does this require a failure?
-						throw error(claimName + " was requested as essential but it is empty in the response", args("requested", requested, "returned", returned));
+						if(throwOnFalse) {
+							throw error(claimName + " was requested as essential but it is empty in the response", args("requested", requested, "returned", returned));
+						} else {
+							return false;
+						}
 					} else {
 						logSuccess(claimName + " was requested as essential, is included in the response", args("requested",
 							requested, "returned", returned));
