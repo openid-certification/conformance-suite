@@ -274,6 +274,7 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 							break;
 						//TODO add methods for the following
 						case "electronic_record":
+							compareElectronicRecordType(requestedEvidence, returnedObject);
 							break;
 						case "vouch":
 							break;
@@ -352,6 +353,48 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 			"formatted", "street_address", "locality", "region", "postal_code", "country"};
 		compareConstrainableElementList(requestedIssuerObject, returnedIssuerObject, documentIssuerClaims);
 	}
+
+	protected void compareElectronicRecordType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
+
+		if(returnedEvidenceObject.has("type")) {
+			if(OIDFJSON.getString(returnedEvidenceObject.get("type")).equals("electronic_record")) {
+				compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, "type");
+				if(requestedEvidence.has("check_details")) {
+					validateEvidenceCheckDetails(requestedEvidence.get("check_details"), returnedEvidenceObject.get("check_details"));
+				}
+				if(requestedEvidence.has("record")) {
+					validateEvidenceRecord(requestedEvidence.get("record"), returnedEvidenceObject.get("record"));
+				}
+			} else {
+				throw error("Evidence type is not electronic_record", args("evidence type", OIDFJSON.getString(returnedEvidenceObject.get("type"))));
+			}
+		} else {
+			throw error("Evidence missing required type", args("evidence", returnedEvidenceObject));
+		}
+	}
+
+	protected void validateEvidenceRecord(JsonElement requestedRecord, JsonElement returnedRecord) {
+		validateElementsAreObjects("evidence record", requestedRecord, returnedRecord);
+		JsonObject requestedRecordObject = requestedRecord.getAsJsonObject();
+		JsonObject returnedRecordObject = returnedRecord.getAsJsonObject();
+		validateObjectsContainRequiredElements("evidence record", requestedRecordObject,returnedRecordObject, "type");
+		compareConstrainableElementList(requestedRecordObject, returnedRecordObject,"type", "created_at", "date_of_expiry");
+		if(requestedRecordObject.has("source")) {
+			validateEvidenceRecordSource(requestedRecordObject.get("source"), returnedRecordObject.get("source"));
+		}
+	}
+
+	protected void validateEvidenceRecordSource(JsonElement requestedSource, JsonElement returnedSource) {
+		validateElementsAreObjects("record source", requestedSource, returnedSource);
+		JsonObject requestedSourceObject = requestedSource.getAsJsonObject();
+		JsonObject returnedSourceObject = returnedSource.getAsJsonObject();
+		final String[] recordSourceClaims = {"name", "country_code", "jurisdiction",
+			// OIDC address claims
+			"formatted", "street_address", "locality", "region", "postal_code", "country"};
+		compareConstrainableElementList(requestedSourceObject, returnedSourceObject, recordSourceClaims);
+	}
+
+
 
 	protected void compareConstrainableElementList(JsonObject requested, JsonObject returned, String ... elementsList) {
 		for(String element : elementsList) {
