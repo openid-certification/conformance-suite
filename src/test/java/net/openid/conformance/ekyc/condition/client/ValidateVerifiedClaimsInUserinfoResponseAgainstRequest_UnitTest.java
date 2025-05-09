@@ -100,7 +100,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 			"evidence": [
 			  {
 				"type": {
-				  "value": "id_document"
+				  "value": "document"
 				},
 				"document": {
 				  "type": null
@@ -149,7 +149,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 				"document": {
 				  "type": "idcard"
 				},
-				"type": "id_document"
+				"type": "document"
 			  }
 			],
 			"verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"
@@ -203,7 +203,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 			"evidence": [
 			  {
 				"type": {
-				  "value": "id_document"
+				  "value": "document"
 				},
 				"document": {
 				  "type": null
@@ -252,7 +252,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 				"document": {
 				  "type": "idcard"
 				},
-				"type": "id_document"
+				"type": "document"
 			  }
 			],
 			"verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"
@@ -309,7 +309,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 			"evidence": [
 			  {
 				"type": {
-				  "value": "id_document"
+				  "value": "document"
 				},
 				"document": {
 				  "type": null
@@ -362,7 +362,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 				"document": {
 				  "type": "idcard"
 				},
-				"type": "id_document"
+				"type": "document"
 			  }
 			],
 			"verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"
@@ -424,7 +424,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 			"evidence": [
 			  {
 				"type": {
-				  "value": "id_document"
+				  "value": "document"
 				},
 				"document": {
 				  "type": null
@@ -481,7 +481,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 				"document": {
 				  "type": "idcard"
 				},
-				"type": "id_document"
+				"type": "document"
 			  }
 			],
 			"verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"
@@ -544,7 +544,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 			"evidence": [
 			  {
 				"type": {
-				  "value": "id_document"
+				  "value": "document"
 				},
 				"document": {
 				  "type": null
@@ -601,7 +601,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 				"document": {
 				  "type": "idcard"
 				},
-				"type": "id_document"
+				"type": "document"
 			  }
 			],
 			"verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"
@@ -658,7 +658,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 			"evidence": [
 			  {
 				"type": {
-				  "value": "id_document"
+				  "value": "document"
 				},
 				"document": {
 				  "type": null
@@ -711,7 +711,7 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 				"document": {
 				  "type": "idcard"
 				},
-				"type": "id_document"
+				"type": "document"
 			  }
 			],
 			"verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"
