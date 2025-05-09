@@ -164,6 +164,7 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.OID4VCIAccessTokenIssuanceMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -190,7 +191,8 @@ import java.util.function.Supplier;
 	FAPI2ID2OPProfile.class,
 	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
-	OID4VCIServerMetadata.class})
+	OID4VCIServerMetadata.class,
+	OID4VCIAccessTokenIssuanceMode.class,})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {"resource.resourceUrlAccountRequests", "resource.resourceUrlAccountsResource"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au", configurationFields = {"resource.cdrVersion"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {"client.org_jwks", "consent.productType", "resource.consentUrl", "resource.brazilCpf", "resource.brazilCnpj", "resource.brazilOrganizationId", "resource.brazilPaymentConsent", "resource.brazilPixPayment", "directory.keystore"})
@@ -212,6 +214,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Boolean profileRequiresMtlsEverywhere;
 	protected Boolean useDpopAuthCodeBinding;
 	protected Boolean isRarRequest;
+
+	protected OID4VCIAccessTokenIssuanceMode accessTokenIssuanceMode;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
@@ -275,6 +279,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
 		useDpopAuthCodeBinding = false;
+
+		accessTokenIssuanceMode = getVariant(OID4VCIAccessTokenIssuanceMode.class);
 
 		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
 		profileRequiresMtlsEverywhere = variant == FAPI2ID2OPProfile.OPENBANKING_UK || variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU || variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL || variant == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
@@ -408,7 +414,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
-		performAuthorizationFlow();
+		switch(accessTokenIssuanceMode) {
+			case AUTHORIZATION_CODE -> performAuthorizationFlow();
+			case PRE_AUTHORIZATION_CODE -> performPreAuthorizationCodeFlow();
+		}
+	}
+
+	protected void performPreAuthorizationCodeFlow() {
+		// TODO implement me
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
