@@ -1254,8 +1254,22 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				break;
 			case "refresh_token":
 				return refreshTokenGrantType(requestId);
+			case "urn:ietf:params:oauth:grant-type:pre-authorized_code":
+				return preAuthorizationCodeGrantType(requestId);
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
+	}
+
+	private Object preAuthorizationCodeGrantType(String requestId) {
+
+		// TODO verify token request
+		// TODO generate token for pre-authorization-code
+
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+
+		setStatus(Status.WAITING);
+		// TODO fixme
+		return requestId;
 	}
 
 	protected Object refreshTokenGrantType(String requestId) {
@@ -1334,18 +1348,18 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(ValidateAuthorizationCode.class);
 
-		validateRedirectUriForAuthorizationCodeGrantType();
+			validateRedirectUriForAuthorizationCodeGrantType();
 
-		call(sequence(CheckPkceCodeVerifier.class));
+			call(sequence(CheckPkceCodeVerifier.class));
 
-		issueAccessToken();
+			issueAccessToken();
 
-		issueRefreshToken();
+			issueRefreshToken();
 
-		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
-		if("yes".equals(isOpenIdScopeRequested)) {
-			issueIdToken(false);
-		}
+			String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
+			if("yes".equals(isOpenIdScopeRequested)) {
+				issueIdToken(false);
+			}
 
 			createTokenEndpointResponse();
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
