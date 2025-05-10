@@ -280,6 +280,7 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 							compareVouchType(requestedEvidence, returnedObject);
 							break;
 						case "electronic_signature":
+							compareElectronicSignatureType(requestedEvidence, returnedObject);
 							break;
 						default:
 							throw error("Invalid evidence type", args("evidence type", evidenceType));
@@ -433,6 +434,19 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 			// OIDC address claims
 			"formatted", "street_address", "locality", "region", "postal_code", "country"};
 		compareConstrainableElementList(requestedVoucherObject, returnedVoucherObject, attestationVoucherClaims);
+	}
+
+	protected void compareElectronicSignatureType(JsonObject requestedElectronicSignature, JsonObject returnedElectronicSignature) {
+
+		if(returnedElectronicSignature.has("type")) {
+			if(OIDFJSON.getString(returnedElectronicSignature.get("type")).equals("electronic_signature")) {
+				compareConstrainableElementList(requestedElectronicSignature, returnedElectronicSignature, "type", "signature_type", "issuer", "serial_number", "created_at");
+			} else {
+				throw error("Evidence type is not electronic_signature", args("evidence type", OIDFJSON.getString(returnedElectronicSignature.get("type"))));
+			}
+		} else {
+			throw error("Evidence missing required type", args("evidence", returnedElectronicSignature));
+		}
 	}
 
 	protected void compareConstrainableElementList(JsonObject requested, JsonObject returned, String ... elementsList) {
