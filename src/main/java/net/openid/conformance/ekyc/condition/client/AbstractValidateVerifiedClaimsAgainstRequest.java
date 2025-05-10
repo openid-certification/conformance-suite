@@ -277,6 +277,7 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 							compareElectronicRecordType(requestedEvidence, returnedObject);
 							break;
 						case "vouch":
+							compareVouchType(requestedEvidence, returnedObject);
 							break;
 						case "electronic_signature":
 							break;
@@ -394,7 +395,45 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		compareConstrainableElementList(requestedSourceObject, returnedSourceObject, recordSourceClaims);
 	}
 
+	protected void compareVouchType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
 
+		if(returnedEvidenceObject.has("type")) {
+			if(OIDFJSON.getString(returnedEvidenceObject.get("type")).equals("vouch")) {
+				compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, "type");
+				if(requestedEvidence.has("check_details")) {
+					validateEvidenceCheckDetails(requestedEvidence.get("check_details"), returnedEvidenceObject.get("check_details"));
+				}
+				if(requestedEvidence.has("attestation")) {
+					validateEvidenceAttestation(requestedEvidence.get("attestation"), returnedEvidenceObject.get("attestation"));
+				}
+			} else {
+				throw error("Evidence type is not vouch", args("evidence type", OIDFJSON.getString(returnedEvidenceObject.get("type"))));
+			}
+		} else {
+			throw error("Evidence missing required type", args("evidence", returnedEvidenceObject));
+		}
+	}
+
+	protected void validateEvidenceAttestation(JsonElement requestedAttestation, JsonElement returnedAttestation) {
+		validateElementsAreObjects("evidence attestation", requestedAttestation, returnedAttestation);
+		JsonObject requestedAttestationObject = requestedAttestation.getAsJsonObject();
+		JsonObject returnedAttestationObject = returnedAttestation.getAsJsonObject();
+		validateObjectsContainRequiredElements("evidence attestation", requestedAttestationObject,returnedAttestationObject, "type");
+		compareConstrainableElementList(requestedAttestationObject, returnedAttestationObject,"type", "reference_number", "date_of_issuance", "date_of_expiry");
+		if(requestedAttestationObject.has("voucher")) {
+			validateEvidenceAttestationVoucher(requestedAttestationObject.get("voucher"), returnedAttestationObject.get("voucher"));
+		}
+	}
+
+	protected void validateEvidenceAttestationVoucher(JsonElement requestedVoucher, JsonElement returnedVoucher) {
+		validateElementsAreObjects("attestation voucher", requestedVoucher, returnedVoucher);
+		JsonObject requestedVoucherObject = requestedVoucher.getAsJsonObject();
+		JsonObject returnedVoucherObject = returnedVoucher.getAsJsonObject();
+		final String[] attestationVoucherClaims = {"name", "birthdate", "country_code", "occupation", "organization",
+			// OIDC address claims
+			"formatted", "street_address", "locality", "region", "postal_code", "country"};
+		compareConstrainableElementList(requestedVoucherObject, returnedVoucherObject, attestationVoucherClaims);
+	}
 
 	protected void compareConstrainableElementList(JsonObject requested, JsonObject returned, String ... elementsList) {
 		for(String element : elementsList) {
