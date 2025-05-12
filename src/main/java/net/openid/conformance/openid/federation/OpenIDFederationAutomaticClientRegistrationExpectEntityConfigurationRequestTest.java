@@ -83,6 +83,7 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 		if (opToRpMode()) {
 			env.mapKey("entity_configuration_claims", "server");
 			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
+			startWaitingForTimeout();
 			return NonBlocking.entityConfigurationResponse(env, getId());
 		}
 
