@@ -34,7 +34,7 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 		// This probably only matters in FAPI tests, as they are the only case where we need to apply the
 		// mtls aliases when using private_key_jwt (due to the requirement for mtls sender constrained access tokens).
 		// Arguably the MTLS aliases value is still acceptable when we are sending the assertion to the MTLS aliased
-		// token endpoint, but we may want to check that the non-MATLS value is also accepted.
+		// token endpoint, but we may want to check that the non-MTLS value is also accepted.
 		String audience = env.getString("token_endpoint") != null ?
 			env.getString("token_endpoint") : env.getString("server", "token_endpoint");
 
