@@ -18,7 +18,7 @@ public class SendAuthorizationResponseWithResponseModeQuery extends AbstractCond
 		JsonObject params = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY);
 		String redirectUri = OIDFJSON.getString(params.remove("redirect_uri"));
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(redirectUri);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUri);
 		for(String paramName : params.keySet()) {
 			builder.queryParam(paramName, OIDFJSON.getString(params.get(paramName)));
 		}

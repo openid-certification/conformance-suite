@@ -550,7 +550,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 
 		env.putObject(requestId, requestParts);
 
@@ -631,7 +631,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		setStatus(Status.RUNNING);
 
-		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 
 		env.putObject(requestId, requestParts);
 

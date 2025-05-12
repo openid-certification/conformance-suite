@@ -675,7 +675,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 
 		setStatus(Status.RUNNING);
 
-		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 
 		env.putObject(requestId, requestParts);
 

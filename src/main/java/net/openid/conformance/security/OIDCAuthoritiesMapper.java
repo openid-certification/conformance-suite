@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 
 import java.util.Collection;
 
+@FunctionalInterface
 public interface OIDCAuthoritiesMapper {
 
 	/**

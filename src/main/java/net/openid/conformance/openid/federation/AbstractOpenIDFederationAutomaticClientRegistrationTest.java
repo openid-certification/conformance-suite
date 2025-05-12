@@ -75,6 +75,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
 		exposeEnvString("entity_configuration_url");
 
+		call(sequence(profileStaticClientConfiguration));
+
 		verifyTestConditions();
 
 		eventLog.endBlock();
@@ -105,7 +107,6 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 			callParEndpoint();
 			extractRequestUri();
 			uriBuilder.addParameter("request_uri", env.getString("request_uri"));
-
 		} else {
 			createQueryParameters();
 			uriBuilder.addParameter("client_id", env.getString("query_parameters", "client_id"));
@@ -161,7 +162,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		String requestId = "incoming_request_" + RandomStringUtils.randomAlphanumeric(37);
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
 		return switch (path) {
 			case ".well-known/openid-federation" -> entityConfigurationResponse();

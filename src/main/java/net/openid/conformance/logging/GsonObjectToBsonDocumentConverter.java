@@ -59,7 +59,7 @@ public class GsonObjectToBsonDocumentConverter implements Converter<JsonObject, 
 					JsonObject wrap = new JsonObject();
 					wrap.addProperty("key", key);
 					wrap.add("value", convertFieldsToStructure(source.getAsJsonObject().get(key)));
-					converted.add("__wrapped_key_element_" + RandomStringUtils.randomAlphabetic(6), wrap);
+					converted.add("__wrapped_key_element_" + RandomStringUtils.secure().nextAlphabetic(6), wrap);
 					log.info("Wrapped " + key + " as " + wrap.toString());
 				} else {
 					converted.add(key, convertFieldsToStructure(source.getAsJsonObject().get(key)));

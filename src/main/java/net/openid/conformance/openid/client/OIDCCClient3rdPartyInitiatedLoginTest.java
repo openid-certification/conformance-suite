@@ -25,7 +25,7 @@ public class OIDCCClient3rdPartyInitiatedLoginTest extends AbstractOIDCCClientTe
 			String initiateLoginUri = env.getString("client", "initiate_login_uri");
 			String issuer = env.getString("issuer");
 
-			UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(initiateLoginUri);
+			UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(initiateLoginUri);
 
 			builder.queryParam("iss", issuer);
 

@@ -25,7 +25,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 		summary = "Tests primarily 'happy' flows, TBC.",
 		profile = "OID4VCI-ID2",
 		configurationFields = {
-			"server.discoveryUrl",
+			"server.discoveryIssuer",
 			"client.client_id",
 			"client.scope",
 			"client.jwks",

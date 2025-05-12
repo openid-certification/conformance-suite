@@ -9,7 +9,7 @@ public class GenerateCredentialNonce extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String nonce = RandomStringUtils.randomAlphanumeric(32);
+		String nonce = RandomStringUtils.secure().nextAlphanumeric(32);
 
 		env.putString("credential_issuer_nonce", nonce);
 

@@ -47,7 +47,7 @@ public class GenerateCredentialIssuerMetadata extends AbstractCondition {
 				}
 			}
 		}
-		""".formatted(baseUrl, credentialEndpointUrl, nonceEndpointUrl);
+		""".formatted(env.getString("base_url"), credentialEndpointUrl, nonceEndpointUrl);
 
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
 		env.putObject("credential_issuer_metadata", metadataJson);

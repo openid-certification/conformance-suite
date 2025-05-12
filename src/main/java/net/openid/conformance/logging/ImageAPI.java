@@ -77,7 +77,7 @@ public class ImageAPI {
 				return response;
 			}
 
-			String entryId = testId + "-" + RandomStringUtils.randomAlphanumeric(32);
+			String entryId = testId + "-" + RandomStringUtils.secure().nextAlphanumeric(32);
 
 			// create a new entry in the database
 			Document document = new Document()

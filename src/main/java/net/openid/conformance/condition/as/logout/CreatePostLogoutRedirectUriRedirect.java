@@ -18,7 +18,7 @@ public class CreatePostLogoutRedirectUriRedirect extends AbstractCondition {
 		JsonObject params = env.getObject("post_logout_redirect_uri_params");
 		String redirectUri = env.getString("end_session_endpoint_http_request_params", "post_logout_redirect_uri");
 
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(redirectUri);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUri);
 
 		for(String paramName : params.keySet()) {
 			builder.queryParam(paramName, OIDFJSON.getString(params.get(paramName)));

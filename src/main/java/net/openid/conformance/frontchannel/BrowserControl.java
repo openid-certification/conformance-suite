@@ -847,15 +847,14 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void warn(String message, String sourceName, int line, String lineSource, int lineOffset) {
-					final StringBuilder msg = new StringBuilder()
-						.append("warning: message=[").append(message)
-						.append("] sourceName=[").append(sourceName)
-						.append("] line=[").append(line)
-						.append("] lineSource=[").append(lineSource)
-						.append("] lineOffset=[").append(lineOffset)
-						.append("]");
+					String msg = "warning: message=[" + message +
+						"] sourceName=[" + sourceName +
+						"] line=[" + line +
+						"] lineSource=[" + lineSource +
+						"] lineOffset=[" + lineOffset +
+						"]";
 
-					eventLog.log("BROWSER", args("msg", msg.toString()));
+					eventLog.log("BROWSER", args("msg", msg));
 				}
 			});
 
