@@ -14,12 +14,16 @@ import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
+import net.openid.conformance.openid.AbstractOIDCCServerTest;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.variant.VariantSetup;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -38,6 +42,10 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 	"federation.entity_configuration"
 })
 public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServerTestModule {
+
+	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
+	//protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
+	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 
 	public abstract void additionalConfiguration();
 
@@ -84,6 +92,13 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		fireSetupDone();
 	}
 
+	@VariantSetup(parameter = ClientRegistration.class, value = "automatic")
+	public void setupPrivateKeyJwt() {
+		profileStaticClientConfiguration = AbstractOIDCCServerTest.ConfigureStaticClientForPrivateKeyJwt.class;
+		//profileCompleteClientConfiguration = () -> new AbstractOIDCCServerTest.ConfigureClientForPrivateKeyJwt(serverSupportsDiscovery);
+		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
+	}
+
 	protected Object entityConfigurationResponse(String mapKey, Class<? extends Condition> signCondition) {
 		setStatus(Status.RUNNING);
 
@@ -125,6 +140,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	protected void performPostAuthorizationFlow() {
+		String tokenEndpoint = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.token_endpoint");
+		env.putString("token_endpoint", tokenEndpoint);
+
 		// call the token endpoint and complete the flow
 		createAuthorizationCodeRequest();
 		redeemAuthorizationCode();
@@ -133,12 +151,11 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		call(sequence(addTokenEndpointClientAuthentication));
 	}
 
 	//Originally called requestAuthorizationCode()
 	protected void redeemAuthorizationCode() {
-		String tokenEndpoint = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.token_endpoint");
-		env.putString("token_endpoint", tokenEndpoint);
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");

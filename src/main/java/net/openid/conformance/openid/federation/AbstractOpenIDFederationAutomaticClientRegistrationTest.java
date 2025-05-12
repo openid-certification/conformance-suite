@@ -75,6 +75,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
 		exposeEnvString("entity_configuration_url");
 
+		call(sequence(profileStaticClientConfiguration));
+
 		verifyTestConditions();
 
 		eventLog.endBlock();
@@ -105,7 +107,6 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 			callParEndpoint();
 			extractRequestUri();
 			uriBuilder.addParameter("request_uri", env.getString("request_uri"));
-
 		} else {
 			createQueryParameters();
 			uriBuilder.addParameter("client_id", env.getString("query_parameters", "client_id"));
