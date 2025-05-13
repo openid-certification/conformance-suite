@@ -7,14 +7,17 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.Set;
+
 public class VerifyClientTokenEndpointAuthCredentials extends AbstractCondition {
+
+	public static final Set<String> TOKEN_ENDPOINT_AUTH_METHODS_WITH_SECRET = Set.of("client_secret_basic", "client_secret_post", "client_secret_jwt");
 
 	@Override
 	public Environment evaluate(Environment env) {
 
 		String authMethod = env.getString("dynamic_registration_request", "token_endpoint_auth_method");
-		if ("client_secret_basic".equalsIgnoreCase(authMethod) || "client_secret_post".equalsIgnoreCase(authMethod)) {
-			// client secret only necessary for client_secret_basic and client_secret_post
+		if (TOKEN_ENDPOINT_AUTH_METHODS_WITH_SECRET.contains(authMethod)) {
 			JsonObject clientObject = env.getObject("client");
 			JsonElement clientSecretEl = clientObject.get("client_secret");
 			String clientSecret = clientSecretEl == null ? null : OIDFJSON.getString(clientSecretEl);
