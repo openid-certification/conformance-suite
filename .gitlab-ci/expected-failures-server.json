@@ -229,108 +229,6 @@
         "comment": "Authlete doesn't support jti uniqueness"
     },
     {
-        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "mtls",
-            "authorization_request_type": "rar",
-            "openid": "openid_connect",
-            "fapi_request_method": "signed_non_repudiation",
-            "fapi_profile": "cbuae",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "mtls",
-            "authorization_request_type": "rar",
-            "openid": "openid_connect",
-            "fapi_request_method": "signed_non_repudiation",
-            "fapi_profile": "cbuae",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "mtls",
-            "authorization_request_type": "rar",
-            "openid": "openid_connect",
-            "fapi_request_method": "signed_non_repudiation",
-            "fapi_profile": "cbuae",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "mtls",
-            "authorization_request_type": "rar",
-            "openid": "openid_connect",
-            "fapi_request_method": "signed_non_repudiation",
-            "fapi_profile": "cbuae",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "mtls",
-            "authorization_request_type": "rar",
-            "openid": "openid_connect",
-            "fapi_request_method": "signed_non_repudiation",
-            "fapi_profile": "cbuae",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "mtls",
-            "authorization_request_type": "rar",
-            "openid": "openid_connect",
-            "fapi_request_method": "signed_non_repudiation",
-            "fapi_profile": "cbuae",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
         "test-name": "oid4vp-id2-verifier-happy-flow",
         "variant": "*",
         "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect*.json",
@@ -371,99 +269,57 @@
         "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
     },
     {
-        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "dpop",
-            "openid": "openid_connect",
-            "fapi_request_method": "unsigned",
-            "fapi_profile": "openbanking_brazil",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi2securityprofile-*.json",
         "current-block": "Make request to PAR endpoint",
         "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
         "expected-result": "failure",
-        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "dpop",
-            "openid": "openid_connect",
-            "fapi_request_method": "unsigned",
-            "fapi_profile": "openbanking_brazil",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "dpop",
-            "openid": "openid_connect",
-            "fapi_request_method": "unsigned",
-            "fapi_profile": "openbanking_brazil",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "dpop",
-            "openid": "openid_connect",
-            "fapi_request_method": "unsigned",
-            "fapi_profile": "openbanking_brazil",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
+        "comment": "Private key aud validation for CBUAE is not implemented"
     },
     {
         "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "dpop",
-            "openid": "openid_connect",
-            "fapi_request_method": "unsigned",
-            "fapi_profile": "openbanking_brazil",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
-        "variant": {
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "dpop",
-            "openid": "openid_connect",
-            "fapi_request_method": "unsigned",
-            "fapi_profile": "openbanking_brazil",
-            "fapi_response_mode": "plain_response"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi2securityprofile-*.json",
         "current-block": "Make request to PAR endpoint",
         "condition": "EnsureHttpStatusCodeIs400or401",
         "expected-result": "failure",
-        "comment": "A known case where Authlete doesn't currently fully support FAPI2 SP Final"
+        "comment": "Private key aud validation for CBUAE is not implemented"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi2securityprofile-*.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
+        "expected-result": "failure",
+        "comment": "Private key aud validation for CBUAE is not implemented"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi2securityprofile-*.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureHttpStatusCodeIs400or401",
+        "expected-result": "failure",
+        "comment": "Private key aud validation for CBUAE is not implemented"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi2securityprofile-*.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
+        "expected-result": "failure",
+        "comment": "Private key aud validation for CBUAE is not implemented"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
+        "variant": "*",
+        "configuration-filename": "authlete-fapi2securityprofile-*.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureHttpStatusCodeIs400or401",
+        "expected-result": "failure",
+        "comment": "Private key aud validation for CBUAE is not implemented"
     }
 ]
