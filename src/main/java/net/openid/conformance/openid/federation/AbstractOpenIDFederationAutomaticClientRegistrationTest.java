@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -166,13 +167,15 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putObject(requestId, requestParts);
 		return switch (path) {
 			case ".well-known/openid-federation" -> entityConfigurationResponse();
+			case "list" -> listResponse();
 			case "jwks" -> clientJwksResponse();
 			default -> super.handleHttp(path, req, res, session, requestParts);
 		};
 	}
 
 	protected Object entityConfigurationResponse() {
-		if (opToRpMode()) {
+		boolean nonBlocking = true;
+		if (nonBlocking) {
 			env.mapKey("entity_configuration_claims", "server");
 			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
 			return NonBlocking.entityConfigurationResponse(env, getId());
@@ -191,6 +194,10 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 			.status(HttpStatus.OK)
 			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
 			.body(entityConfiguration);
+	}
+
+	protected Object listResponse() {
+		return new ResponseEntity<Object>(new JsonArray(), HttpStatus.OK);
 	}
 
 	protected Object clientJwksResponse() {
