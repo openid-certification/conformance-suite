@@ -175,6 +175,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	protected Object entityConfigurationResponse() {
 		boolean nonBlocking = true;
+		// TODO: Default to this
 		if (nonBlocking) {
 			env.mapKey("entity_configuration_claims", "server");
 			env.mapKey("entity_configuration_claims_jwks", "client_jwks");

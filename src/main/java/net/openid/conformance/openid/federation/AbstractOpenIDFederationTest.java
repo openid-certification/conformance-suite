@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -151,6 +152,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
 		call(sequence(addTokenEndpointClientAuthentication));
 	}
 
