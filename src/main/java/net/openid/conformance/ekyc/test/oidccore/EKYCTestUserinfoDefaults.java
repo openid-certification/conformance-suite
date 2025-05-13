@@ -19,7 +19,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ekyc.unverified_claims_names",
 		"ekyc.verified_claims_names",
 		"ekyc.request_schemas",
-		"ekyc.response_schemas"
+		"ekyc.response_schemas",
+		"ekyc.expected_verified_claims"
 	}
 )
 public class EKYCTestUserinfoDefaults extends AbstractEKYCTestWithOIDCCore {
