@@ -7,6 +7,8 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidR
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,6 +36,9 @@ import jakarta.servlet.http.HttpSession;
 		"resource.resourceUrl"
 	}
 )
+// The 'redirect_uri' is required to be pre-registered. This is not the case for 'plain_fapi'.
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi" })
+
 public class FAPI2SPFinalEnsureRegisteredRedirectUri extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

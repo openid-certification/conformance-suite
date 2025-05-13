@@ -102,7 +102,7 @@ makeServerTest() {
 
     # FAPI2 message signing - jar
     TESTS="${TESTS} fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response] authlete-fapi2securityprofile-privatekey-jar.json"
-    #TESTS="${TESTS} fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response] authlete-fapi2securityprofile-privatekey-jar.json"
+    TESTS="${TESTS} fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=plain_fapi][fapi_response_mode=plain_response] authlete-fapi2securityprofile-privatekey-jar.json"
 
     # FAPI2 message signing - jarm
     TESTS="${TESTS} fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_response_mode=jarm][fapi_profile=plain_fapi] authlete-fapi2securityprofile-privatekey-jarm.json"
