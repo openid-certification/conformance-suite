@@ -167,24 +167,23 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
-import net.openid.conformance.variant.OID4VCIAccessTokenIssuanceMode;
+import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
+import net.openid.conformance.variant.VCICodeFlowVariant;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.condition.VCIAddIssuerStateToAuthorizationRequest;
-import net.openid.conformance.vciid2issuer.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractNonceFromNonceResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vciid2issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
-import net.openid.conformance.vciid2issuer.condition.VCIParseCredentialOfferRequest;
 import net.openid.conformance.vciid2issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
-import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
+import net.openid.conformance.variant.VCIServerMetadata;
 
 import java.util.Arrays;
 import java.util.List;
@@ -197,8 +196,13 @@ import java.util.function.Supplier;
 	FAPI2ID2OPProfile.class,
 	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
-	OID4VCIServerMetadata.class,
-	OID4VCIAccessTokenIssuanceMode.class,})
+	VCIServerMetadata.class,
+	VCICodeFlowVariant.class,
+	VCIAuthorizationCodeFlowVariant.class,
+})
+@VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
+	"vci.credential_offer_endpoint"
+})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {"resource.resourceUrlAccountRequests", "resource.resourceUrlAccountsResource"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au", configurationFields = {"resource.cdrVersion"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {"client.org_jwks", "consent.productType", "resource.consentUrl", "resource.brazilCpf", "resource.brazilCnpj", "resource.brazilOrganizationId", "resource.brazilPaymentConsent", "resource.brazilPixPayment", "directory.keystore"})
@@ -208,7 +212,7 @@ import java.util.function.Supplier;
 	"client.scope", // scope is always openid
 	"client2.scope"})
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {"resource.richAuthorizationRequest",})
-@VariantConfigurationFields(parameter = OID4VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
+@VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -221,7 +225,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Boolean useDpopAuthCodeBinding;
 	protected Boolean isRarRequest;
 
-	protected OID4VCIAccessTokenIssuanceMode accessTokenIssuanceMode;
+	protected VCICodeFlowVariant vciCodeFlowVariant;
+	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
@@ -286,7 +291,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
 		useDpopAuthCodeBinding = false;
 
-		accessTokenIssuanceMode = getVariant(OID4VCIAccessTokenIssuanceMode.class);
+		vciCodeFlowVariant = getVariant(VCICodeFlowVariant.class);
+		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
 
 		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
 		profileRequiresMtlsEverywhere = variant == FAPI2ID2OPProfile.OPENBANKING_UK || variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU || variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL || variant == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
@@ -327,7 +333,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		configureClient();
 		setupResourceEndpoint();
 
-		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(getVariant(OID4VCIServerMetadata.class));
+		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(getVariant(VCIServerMetadata.class));
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -393,16 +399,37 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		if(path.equals("credential_offer")) {
-			return handleCredentialOffer(path, req, session, requestParts);
+		if (path.equals("credential_offer")) {
+			return handleCredentialOfferEndpoint(path, req, session, requestParts);
 		}
 		return super.handleHttp(path, req, res, session, requestParts);
 	}
 
-	protected Object handleCredentialOffer(String path, HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+	protected Object handleCredentialOfferEndpoint(String path, HttpServletRequest req, HttpSession session, JsonObject requestParts) {
 
-		callAndStopOnFailure(VCIParseCredentialOfferRequest.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
-		callAndStopOnFailure(VCICreateCredentialOffer.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+
+		// https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-4.1.1
+		// credential_issuer
+		// credential_configuration_ids
+		// grants
+
+		// Grant Type authorization_code:
+		if (vciCodeFlowVariant == VCICodeFlowVariant.AUTHORIZATION_CODE) {
+			// issuer_state: OPTIONAL
+			// authorization_server: OPTIONAL
+
+
+
+		} else if (vciCodeFlowVariant == VCICodeFlowVariant.PRE_AUTHORIZATION_CODE) {
+			// pre-authorized_code: REQUIRED
+			// tx_code: OPTIONAL
+			// authorization_server: OPTIONAL
+		}
+
+//		callAndStopOnFailure(new VCIParseCredentialOfferRequest(requestParts), Condition.ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+//		callAndStopOnFailure(VCICreateCredentialOffer.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+
+
 
 		throw new UnsupportedOperationException("TODO implement me");
 	}
@@ -437,9 +464,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
-		switch(accessTokenIssuanceMode) {
-			case WALLET_INITIATED -> performAuthorizationFlow();
-			case ISSUER_INITIATED -> performPreAuthorizationCodeFlow();
+		if (vciCodeFlowVariant == VCICodeFlowVariant.AUTHORIZATION_CODE) {
+			performAuthorizationFlow();
+		} else if (vciCodeFlowVariant == VCICodeFlowVariant.PRE_AUTHORIZATION_CODE) {
+			performPreAuthorizationCodeFlow();
 		}
 	}
 
@@ -501,8 +529,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		private boolean isJarm;
 		private boolean usePkce;
 		private Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
+		private final VCICodeFlowVariant vciCodeFlowVariant;
+		private final VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
 
-		public CreateAuthorizationRequestSteps(boolean isSecondClient, boolean isOpenId, boolean isJarm, boolean usePkce, Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
+		public CreateAuthorizationRequestSteps(boolean isSecondClient, boolean isOpenId, boolean isJarm, boolean usePkce, Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps, VCICodeFlowVariant vciCodeFlowVariant, VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant) {
 			this.isSecondClient = isSecondClient;
 			this.isOpenId = isOpenId;
 			this.isJarm = isJarm;
@@ -510,6 +540,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			// currently not possible to use 'skip' to skip a conditionsequence within a condition sequence
 			this.usePkce = usePkce;
 			this.profileAuthorizationEndpointSetupSteps = profileAuthorizationEndpointSetupSteps;
+			this.vciCodeFlowVariant = vciCodeFlowVariant;
+			this.vciAuthorizationCodeFlowVariant = vciAuthorizationCodeFlowVariant;
 		}
 
 		@Override
@@ -543,8 +575,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				call(new SetupPkceAndAddToAuthorizationRequest());
 			}
 
-			callAndStopOnFailure(VCIAddIssuerStateToAuthorizationRequest.class);
+			if (vciCodeFlowVariant == VCICodeFlowVariant.AUTHORIZATION_CODE) {
 
+				if (vciAuthorizationCodeFlowVariant == VCIAuthorizationCodeFlowVariant.ISSUER_INITIATED) {
+					callAndStopOnFailure(VCIAddIssuerStateToAuthorizationRequest.class);
+				}
+			}
 		}
 
 	}
@@ -554,7 +590,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
-		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, profileAuthorizationEndpointSetupSteps);
+		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, profileAuthorizationEndpointSetupSteps, vciCodeFlowVariant, vciAuthorizationCodeFlowVariant);
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
 			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-5", "CID-IDA-5.2-10"));
 		}
