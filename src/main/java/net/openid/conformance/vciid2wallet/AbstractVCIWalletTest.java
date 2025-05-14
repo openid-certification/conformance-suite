@@ -200,12 +200,15 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.OID4VCIAccessTokenIssuanceMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
+import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
+import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
@@ -222,6 +225,7 @@ import org.springframework.web.servlet.view.RedirectView;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
+	OID4VCIAccessTokenIssuanceMode.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -534,8 +538,32 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		// nothing to do here
+
+		// check variant of OID4VCIAccessTokenIssuanceMode.AUTHORIZATION_CODE / wallet initiated issuance
+		switch(getVariant(OID4VCIAccessTokenIssuanceMode.class)) {
+			case WALLET_INITIATED -> prepareCredentialOffer();
+			case ISSUER_INITIATED -> {
+			}
+		}
+
 		setStatus(Status.WAITING);
+	}
+
+	protected void prepareCredentialOffer() {
+		// TODO use correct Credential_Offer_Endpoint
+		// TODO generate credential offer (+ generate issuer_state)
+		// TODO generate credential offer URL parametization
+
+		callAndStopOnFailure(VCICreateCredentialOffer.class, "OID4VCI-ID2-4.1");
+		callAndStopOnFailure(VCICreateCredentialOfferRedirectUrl.class, "OID4VCI-ID2-4.1");
+		browser.setShowQrCodes(true);
+		/*
+		 * Create credential offer with grant type, crednetial issuer, credential_configuration ids (e.g. "eu.europa.ec.eudi.pid.1")
+		 * - generate issuer_state
+		 */
+
+		String credentialOfferRedirectUrl = env.getString("vci", "credential_offer_redirect_url");
+		browser.goToUrl(credentialOfferRedirectUrl);
 	}
 
 	@Override
@@ -1453,6 +1481,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
 		}
+
+		// TODO check for vci issuer_state
+		/*
+		if present in the env, check if issuer_state from the request matches that form the env
+		 */
 
 		createAuthorizationEndpointResponse();
 

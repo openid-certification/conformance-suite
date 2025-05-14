@@ -3,6 +3,9 @@ package net.openid.conformance.vciid2issuer;
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -170,12 +173,15 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vciid2issuer.condition.VCIAddIssuerStateToAuthorizationRequest;
+import net.openid.conformance.vciid2issuer.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractNonceFromNonceResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vciid2issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
+import net.openid.conformance.vciid2issuer.condition.VCIParseCredentialOfferRequest;
 import net.openid.conformance.vciid2issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
@@ -384,6 +390,23 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		eventLog.endBlock();
 	}
 
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		if(path.equals("credential_offer")) {
+			return handleCredentialOffer(path, req, session, requestParts);
+		}
+		return super.handleHttp(path, req, res, session, requestParts);
+	}
+
+	protected Object handleCredentialOffer(String path, HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+
+		callAndStopOnFailure(VCIParseCredentialOfferRequest.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+		callAndStopOnFailure(VCICreateCredentialOffer.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+
+		throw new UnsupportedOperationException("TODO implement me");
+	}
+
 	protected void validateClientConfiguration() {
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
 			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
@@ -415,8 +438,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
 		switch(accessTokenIssuanceMode) {
-			case AUTHORIZATION_CODE -> performAuthorizationFlow();
-			case PRE_AUTHORIZATION_CODE -> performPreAuthorizationCodeFlow();
+			case WALLET_INITIATED -> performAuthorizationFlow();
+			case ISSUER_INITIATED -> performPreAuthorizationCodeFlow();
 		}
 	}
 
@@ -519,6 +542,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			if (usePkce) {
 				call(new SetupPkceAndAddToAuthorizationRequest());
 			}
+
+			callAndStopOnFailure(VCIAddIssuerStateToAuthorizationRequest.class);
+
 		}
 
 	}
