@@ -13,7 +13,7 @@ import net.openid.conformance.vciid2issuer.condition.VCICredentialIssuerMetadata
 import net.openid.conformance.vciid2issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialIssuerUri;
-import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
+import net.openid.conformance.variant.VCIServerMetadata;
 
 @PublishTestModule(
 	testName = "oid4vci-id2-issuer-metadata-test",
@@ -24,8 +24,8 @@ import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
 		"server.discoveryIssuer"
 	}
 )
-@VariantParameters({OID4VCIServerMetadata.class,})
-@VariantConfigurationFields(parameter = OID4VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
+@VariantParameters({VCIServerMetadata.class,})
+@VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 	@Override

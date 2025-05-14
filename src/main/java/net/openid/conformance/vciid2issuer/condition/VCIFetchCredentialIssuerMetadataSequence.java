@@ -1,13 +1,13 @@
 package net.openid.conformance.vciid2issuer.condition;
 
 import net.openid.conformance.sequence.AbstractConditionSequence;
-import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
+import net.openid.conformance.variant.VCIServerMetadata;
 
 public class VCIFetchCredentialIssuerMetadataSequence extends AbstractConditionSequence {
 
-	private final OID4VCIServerMetadata metadata;
+	private final VCIServerMetadata metadata;
 
-	public VCIFetchCredentialIssuerMetadataSequence(OID4VCIServerMetadata metadata) {
+	public VCIFetchCredentialIssuerMetadataSequence(VCIServerMetadata metadata) {
 		this.metadata = metadata;
 	}
 

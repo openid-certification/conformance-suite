@@ -200,7 +200,8 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
-import net.openid.conformance.variant.OID4VCIAccessTokenIssuanceMode;
+import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
+import net.openid.conformance.variant.VCICodeFlowVariant;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -225,13 +226,14 @@ import org.springframework.web.servlet.view.RedirectView;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
-	OID4VCIAccessTokenIssuanceMode.class,
+	VCICodeFlowVariant.class,
+	VCIAuthorizationCodeFlowVariant.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"directory.keystore"
+@VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
+	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
 	"client2.client_id",
@@ -540,9 +542,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		// check variant of OID4VCIAccessTokenIssuanceMode.AUTHORIZATION_CODE / wallet initiated issuance
-		switch(getVariant(OID4VCIAccessTokenIssuanceMode.class)) {
-			case WALLET_INITIATED -> prepareCredentialOffer();
-			case ISSUER_INITIATED -> {
+		switch(getVariant(VCICodeFlowVariant.class)) {
+			case AUTHORIZATION_CODE -> {
+				switch(getVariant(VCIAuthorizationCodeFlowVariant.class)) {
+					case WALLET_INITIATED -> {}
+					case ISSUER_INITIATED -> prepareCredentialOffer();
+				}
+			}
+			case PRE_AUTHORIZATION_CODE -> {
+				// TODO PRE_AUTHORIZATION_CODE implement me
 			}
 		}
 
