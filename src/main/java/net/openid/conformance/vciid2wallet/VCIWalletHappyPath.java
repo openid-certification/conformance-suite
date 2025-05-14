@@ -22,7 +22,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"client.certificate",
 		"client.jwks",
 		"credential.signing_jwk",
-		"waitTimeoutSeconds"
+		"waitTimeoutSeconds",
+		"vci.credential_offer_endpoint"
 	}
 )
 
