@@ -467,11 +467,11 @@ public class LogApi {
 		} else if (testPlan instanceof PublicPlan) {
 			modules = ((PublicPlan) testPlan).getModules();
 			planName = ((PublicPlan) testPlan).getPlanName();
-			variant = ((PublicPlan) testPlan).getVariant().toString();
+			variant = ((PublicPlan) testPlan).getVariant() != null ? ((PublicPlan) testPlan).getVariant().toString() : variant;
 		} else if (testPlan instanceof Plan) {
 			modules = ((Plan) testPlan).getModules();
 			planName = ((Plan) testPlan).getPlanName();
-			variant = ((Plan) testPlan).getVariant().toString();
+			variant = ((Plan) testPlan).getVariant() != null ? ((Plan) testPlan).getVariant().toString() : variant;
 		}
 
 		List<String> failedTestExceptionList = Arrays.asList(certificationPackageFailedTestExceptionList);
