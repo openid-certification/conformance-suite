@@ -10,13 +10,16 @@ public class VCICreateCredentialOfferRedirectUrl extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String credentialOfferEndpointUrl = env.getString("vci", "credential_offer_endpoint");
+		String credentialOfferEndpointUrl = env.getString("config", "vci.credential_offer_endpoint");
 		JsonElement credentialOfferObject = env.getElementFromObject("vci", "credential_offer");
 
 		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(credentialOfferEndpointUrl);
 		builder.queryParam("credential_offer", credentialOfferObject);
 
-		env.putString("vci","credential_offer_redirect_url", builder.toUriString());
+		String url = builder.toUriString();
+		env.putString("vci","credential_offer_redirect_url", url);
+
+		logSuccess("Created credential offer redirect url", args("credential_offer_redirect_url", url));
 
 		return env;
 	}
