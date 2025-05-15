@@ -198,7 +198,10 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                         os.putenv(envvarname, val)
                     # Pass module variant into VARIANT in environment for distinguishing oidcc-client tests which have the same module id
                     if moduledict.get('variant') != None:
-                        variantstr = json.dumps(moduledict.get('variant'))
+                        variantstr = json.dumps({
+                            **(moduledict.get('variant') or {}),
+                            **variant
+                        })
                     else:
                         variantstr = json.dumps(variant)
                     os.putenv('VARIANT', variantstr)
