@@ -23,6 +23,12 @@ public class OIDCCEnsurePostRequestSucceeds extends AbstractOIDCCServerTest {
 	}
 
 	@Override
+	protected void redirect(String redirectTo, String method) {
+		browser.goToUrl(redirectTo, null, method);
+		startWaitingForTimeout();
+	}
+
+	@Override
 	protected void performRedirect() {
 		performRedirect("POST");
 	}
