@@ -201,7 +201,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
-import net.openid.conformance.variant.VCICodeFlowVariant;
+import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -211,6 +211,7 @@ import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpoint
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
+import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -226,7 +227,7 @@ import org.springframework.web.servlet.view.RedirectView;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
-	VCICodeFlowVariant.class,
+	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
@@ -293,6 +294,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected Boolean profileRequiresMtlsEverywhere;
 
 	protected long waitTimeoutSeconds = 5;
+
+	protected VCIGrantType vciGrantType;
 
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
@@ -381,6 +384,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		if (fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
 			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
+		}
+
+		vciGrantType = getVariant(VCIGrantType.class);
+		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
+			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-ID2-5.1.3-2.3");
 		}
 
 		if (isMTLSConstrain()) {
@@ -542,7 +550,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		setStatus(Status.RUNNING);
 
 		// check variant of OID4VCIAccessTokenIssuanceMode.AUTHORIZATION_CODE / wallet initiated issuance
-		switch(getVariant(VCICodeFlowVariant.class)) {
+		switch(getVariant(VCIGrantType.class)) {
 			case AUTHORIZATION_CODE -> {
 				switch(getVariant(VCIAuthorizationCodeFlowVariant.class)) {
 					case WALLET_INITIATED -> {}
@@ -562,7 +570,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		// TODO generate credential offer (+ generate issuer_state)
 		// TODO generate credential offer URL parametization
 
-		callAndStopOnFailure(VCICreateCredentialOffer.class, "OID4VCI-ID2-4.1");
+		callAndStopOnFailure(new VCICreateCredentialOffer(vciGrantType), "OID4VCI-ID2-4.1");
 		callAndStopOnFailure(VCICreateCredentialOfferRedirectUrl.class, "OID4VCI-ID2-4.1");
 		browser.setShowQrCodes(true);
 		/*
