@@ -1,6 +1,7 @@
 package net.openid.conformance.vciid2issuer;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -168,22 +169,28 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
+import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vciid2issuer.condition.VCIAddIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
+import net.openid.conformance.vciid2issuer.condition.VCIExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractNonceFromNonceResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vciid2issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
+import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCISelectOAuthorizationServer;
+import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.variant.VCIServerMetadata;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Arrays;
 import java.util.List;
@@ -199,6 +206,7 @@ import java.util.function.Supplier;
 	VCIServerMetadata.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
+	VCICredentialOfferParameterVariant.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
@@ -399,39 +407,49 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		if (path.equals("credential_offer")) {
-			return handleCredentialOfferEndpoint(path, req, session, requestParts);
+		if ("credential_offer".equals(path)) {
+			return handleCredentialOffer(req, res, session, requestParts);
 		}
+
 		return super.handleHttp(path, req, res, session, requestParts);
 	}
 
-	protected Object handleCredentialOfferEndpoint(String path, HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+	protected Object handleCredentialOffer(HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		setStatus(Status.RUNNING);
 
-		// https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-4.1.1
-		// credential_issuer
-		// credential_configuration_ids
-		// grants
+		switch (vciGrantType) {
+			case AUTHORIZATION_CODE -> {
 
-		// Grant Type authorization_code:
-		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			// issuer_state: OPTIONAL
-			// authorization_server: OPTIONAL
+				processCredentialOffer(requestParts);
 
+				performAuthorizationFlow();
+			}
+			case PRE_AUTHORIZATION_CODE -> {
 
+				processCredentialOffer(requestParts);
 
-		} else if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
-			// pre-authorized_code: REQUIRED
-			// tx_code: OPTIONAL
-			// authorization_server: OPTIONAL
+				performPreAuthorizationCodeFlow();
+			}
 		}
 
-//		callAndStopOnFailure(new VCIParseCredentialOfferRequest(requestParts), Condition.ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
-//		callAndStopOnFailure(VCICreateCredentialOffer.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+		return new ModelAndView("resultCaptured",
+			ImmutableMap.of(
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
+	}
 
+	protected void processCredentialOffer(JsonObject requestParts) {
+		JsonObject queryStringParams = requestParts.get("query_string_params").getAsJsonObject();
+		callAndStopOnFailure(new VCIValidateCredentialOfferRequestParams(requestParts), ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
 
+		if (queryStringParams.has("credential_offer_uri")) {
+			callAndStopOnFailure(VCIFetchCredentialOfferFromCredentialOfferUri.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1.3");
+		}
 
-		throw new UnsupportedOperationException("TODO implement me");
+		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+
+		callAndStopOnFailure(VCIExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1.1");
 	}
 
 	protected void validateClientConfiguration() {
@@ -460,19 +478,30 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	@Override
 	public void start() {
 
-		setStatus(Status.RUNNING);
+		switch (vciAuthorizationCodeFlowVariant) {
+			case WALLET_INITIATED -> {
 
-		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
+				setStatus(Status.RUNNING);
+				eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
-		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			performAuthorizationFlow();
-		} else if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
-			performPreAuthorizationCodeFlow();
+				switch (vciGrantType) {
+					case AUTHORIZATION_CODE -> performAuthorizationFlow();
+					case PRE_AUTHORIZATION_CODE -> performPreAuthorizationCodeFlow();
+				}
+			}
+			case ISSUER_INITIATED -> {
+				// TODO wait for credential offer
+				setStatus(Status.WAITING);
+			}
 		}
 	}
 
 	protected void performPreAuthorizationCodeFlow() {
-		// TODO implement me
+
+		// TODO extract pre-authorized_code from credential offer
+		// TODO prepare token request
+		// TODO create token request
+		throw new UnsupportedOperationException("TODO implement PreAuthorizationCodeFlow");
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
@@ -576,7 +605,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			}
 
 			if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-
 				if (vciAuthorizationCodeFlowVariant == VCIAuthorizationCodeFlowVariant.ISSUER_INITIATED) {
 					callAndStopOnFailure(VCIAddIssuerStateToAuthorizationRequest.class);
 				}

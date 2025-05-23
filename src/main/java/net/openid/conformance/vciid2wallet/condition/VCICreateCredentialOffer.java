@@ -41,8 +41,12 @@ public class VCICreateCredentialOffer extends AbstractCondition {
 			}
 			case PRE_AUTHORIZATION_CODE -> {
 
-				// TODO handle pre-authorized-code REQUIRED
-				// TODO handle tx_code OPTIONAL {input_mode: optional, length: optional, description: optional}
+				String preAuthCode = env.getString("vci","pre-authorized_code");
+				JsonObject txCode = env.getElementFromObject("vci", "pre-authorized_code_tx_code").getAsJsonObject();
+
+				grantObject.addProperty("pre-authorized_code", preAuthCode);
+				grantObject.add("tx_code", txCode);
+
 				// TODO handle authorization_Server Optional
 
 				grantsObject.add("urn:ietf:params:oauth:grant-type:pre-authorized_code", grantObject);
