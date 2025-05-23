@@ -450,7 +450,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
 
-		callAndStopOnFailure(VCIExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1.1");
+		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
+			callAndStopOnFailure(VCIExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1.1");
+		}
 	}
 
 	protected void validateClientConfiguration() {
