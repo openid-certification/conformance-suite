@@ -176,6 +176,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vciid2issuer.condition.VCIExtractPreAuthorizedCodeFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vciid2issuer.condition.VCIAddIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
@@ -486,7 +487,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 				switch (vciGrantType) {
 					case AUTHORIZATION_CODE -> performAuthorizationFlow();
-					case PRE_AUTHORIZATION_CODE -> performPreAuthorizationCodeFlow();
+					case PRE_AUTHORIZATION_CODE -> throw new UnsupportedOperationException("Pre-authorization code is not supported for wallet initiated flow");
 				}
 			}
 			case ISSUER_INITIATED -> {
@@ -498,7 +499,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void performPreAuthorizationCodeFlow() {
 
-		// TODO extract pre-authorized_code from credential offer
+		callAndStopOnFailure(VCIExtractPreAuthorizedCodeFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5", "OID4VCI-ID2-4.1.1");
 		// TODO prepare token request
 		// TODO create token request
 		throw new UnsupportedOperationException("TODO implement PreAuthorizationCodeFlow");
