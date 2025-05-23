@@ -218,6 +218,7 @@ import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vciid2wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
+import net.openid.conformance.vciid2wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
@@ -1372,14 +1373,39 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	private Object preAuthorizationCodeGrantType(String requestId) {
 
-		// TODO verify token request
-		// TODO generate token for pre-authorization-code
+		senderConstrainTokenRequestHelper.checkTokenRequest();
+
+		ResponseEntity<Object> responseObject = null;
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
+		} else {
+			callAndStopOnFailure(VCIValidatePreAuthorizationCode.class);
+
+			// call(sequence(CheckPkceCodeVerifier.class));
+
+			issueAccessToken();
+
+			issueRefreshToken();
+
+			String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
+			if("yes".equals(isOpenIdScopeRequested)) {
+				issueIdToken(false);
+			}
+
+			createTokenEndpointResponse();
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+
+			// Create a new DPoP nonce
+			if(requireAuthorizationServerEndpointDpopNonce()) {
+				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
+			}
+		}
 
 		call(exec().unmapKey("token_endpoint_request").endBlock());
 
 		setStatus(Status.WAITING);
-		// TODO fixme
-		return requestId;
+		return responseObject;
 	}
 
 	protected Object refreshTokenGrantType(String requestId) {
