@@ -580,9 +580,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected void prepareCredentialOffer() {
-		// TODO use correct Credential_Offer_Endpoint
-		// TODO generate credential offer (+ generate issuer_state)
-		// TODO generate credential offer URL parameterization
 
 		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
 			callAndStopOnFailure(VCIPreparePreAuthorizationCode.class, "OID4VCI-ID2-3.5", "OID4VCI-ID2-4.1");
@@ -596,10 +593,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		callAndStopOnFailure(new VCICreateCredentialOfferRedirectUrl(vciCredentialOfferParameterVariantType), "OID4VCI-ID2-4.1");
 		browser.setShowQrCodes(true);
-		/*
-		 * Create credential offer with grant type, crednetial issuer, credential_configuration ids (e.g. "eu.europa.ec.eudi.pid.1")
-		 * - generate issuer_state
-		 */
 
 		String credentialOfferRedirectUrl = env.getString("vci", "credential_offer_redirect_url");
 		browser.goToUrl(credentialOfferRedirectUrl);
@@ -1382,6 +1375,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(VCIValidatePreAuthorizationCode.class);
 
+			// FIXME is this needed for pre-authorization_code flow?
 			// call(sequence(CheckPkceCodeVerifier.class));
 
 			issueAccessToken();
