@@ -494,10 +494,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				}
 			}
 			case ISSUER_INITIATED -> {
-				// TODO wait for credential offer
-				setStatus(Status.WAITING);
+				waitForCredentialOffer();
 			}
 		}
+	}
+
+	protected void waitForCredentialOffer() {
+		setStatus(Status.WAITING);
 	}
 
 	protected void performPreAuthorizationCodeFlow() {
@@ -740,7 +743,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		addClientAuthenticationToTokenEndpointRequest();
 
-		// addPkceCodeVerifier();
+		// addPkceCodeVerifier(); // FIXME is this needed for pre-authorization_code flow?
 	}
 
 	protected void createAuthorizationCodeRequest() {
