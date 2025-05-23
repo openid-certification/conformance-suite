@@ -7,15 +7,15 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class GenerateCredentialIssuerMetadata extends AbstractCondition {
+public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 
 	private final Boolean mtlsConstrain;
 
-	public GenerateCredentialIssuerMetadata() {
+	public VCIGenerateCredentialIssuerMetadata() {
 		this(false);
 	}
 
-	public GenerateCredentialIssuerMetadata(Boolean mtlsConstrain) {
+	public VCIGenerateCredentialIssuerMetadata(Boolean mtlsConstrain) {
 		this.mtlsConstrain = mtlsConstrain;
 	}
 
