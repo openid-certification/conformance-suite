@@ -14,10 +14,10 @@ public class VCIPreparePreAuthorizationCode extends AbstractCondition {
 
 		env.putString("vci","pre-authorized_code", preAuthCode);
 
-		String code = RandomStringUtils.secure().nextNumeric(6);
+		String code = "123456"; // FIXME generate proper tx_code value
 		int length = code.length();
 		String inputMode = "numeric";
-		String description = "Input the one-time code: " + code + " testing purposes";
+		String description = "Input the one-time code: <" + code + "> for testing purposes";
 
 		JsonObject txCode = new JsonObject();
 		txCode.addProperty("length", length);
@@ -27,7 +27,7 @@ public class VCIPreparePreAuthorizationCode extends AbstractCondition {
 		env.putString("vci","pre-authorized_code_tx_code_value", code);
 		env.putObject("vci","pre-authorized_code_tx_code", txCode);
 
-		logSuccess("Prepared pre-authorized code", args("pre-authorized_code", preAuthCode, "tx_code", txCode));
+		logSuccess("Prepared pre-authorized code", args("pre-authorized_code", preAuthCode, "tx_code", txCode, "tx_code_value", code));
 
 		return env;
 	}
