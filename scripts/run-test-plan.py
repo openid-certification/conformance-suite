@@ -197,7 +197,13 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                     for envvarname, val in other_environment_vars_for_script.items():
                         os.putenv(envvarname, val)
                     # Pass module variant into VARIANT in environment for distinguishing oidcc-client tests which have the same module id
-                    variantstr = json.dumps(variant)
+                    if moduledict.get('variant') != None:
+                        variantstr = json.dumps({
+                            **(moduledict.get('variant') or {}),
+                            **variant
+                        })
+                    else:
+                        variantstr = json.dumps(variant)
                     os.putenv('VARIANT', variantstr)
                     os.putenv('MODULE_NAME', module)
                     os.putenv('NODE_TLS_REJECT_UNAUTHORIZED','0')
