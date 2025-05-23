@@ -5,7 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class VCIExtractPreAuthorizedCodeFromCredentialOffer extends AbstractCondition {
+public class VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -26,7 +26,10 @@ public class VCIExtractPreAuthorizedCodeFromCredentialOffer extends AbstractCond
 		String preAuthorizedCode  = OIDFJSON.getString(preAuthorizedCodeGrantObject.get("pre-authorized_code"));
 		env.putString("vci", "pre-authorized_code", preAuthorizedCode);
 
-		logSuccess("Found pre-authorized_code in Pre-authorized code grant", args("pre-authorized_code", preAuthorizedCode, "credential_offer", credentialOfferObject));
+		String txCodeValue = "123456"; // FIXME obtain proper tx_code value
+		env.putString("vci", "pre-authorized_code_tx_code_value", txCodeValue);
+
+		logSuccess("Found pre-authorized_code in Pre-authorized code grant", args("pre-authorized_code", preAuthorizedCode, "tx_code_value", txCodeValue, "credential_offer", credentialOfferObject));
 		return env;
 	}
 }

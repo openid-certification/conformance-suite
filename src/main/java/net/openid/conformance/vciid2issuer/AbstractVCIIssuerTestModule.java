@@ -176,7 +176,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vciid2issuer.condition.VCIExtractPreAuthorizedCodeFromCredentialOffer;
+import net.openid.conformance.vciid2issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizationCodeGrant;
+import net.openid.conformance.vciid2issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vciid2issuer.condition.VCIAddIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
@@ -501,10 +502,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void performPreAuthorizationCodeFlow() {
 
-		callAndStopOnFailure(VCIExtractPreAuthorizedCodeFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5", "OID4VCI-ID2-4.1.1");
-		// TODO prepare token request
-		// TODO create token request
-		throw new UnsupportedOperationException("TODO implement PreAuthorizationCodeFlow");
+		callAndStopOnFailure(VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5", "OID4VCI-ID2-4.1.1");
+
+		performPostAuthorizationFlow();
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
@@ -720,7 +720,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		eventLog.startBlock(currentClientString() + "Call token endpoint");
 
 		// call the token endpoint and complete the flow
-		createAuthorizationCodeRequest();
+		switch(vciGrantType) {
+			case AUTHORIZATION_CODE -> createAuthorizationCodeRequest();
+			case PRE_AUTHORIZATION_CODE -> createPreAuthorizationCodeRequest();
+		}
+
 		exchangeAuthorizationCode();
 		requestProtectedResource();
 		onPostAuthorizationFlowComplete();
@@ -728,6 +732,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void onPostAuthorizationFlowComplete() {
 		fireTestFinished();
+	}
+
+	protected void createPreAuthorizationCodeRequest() {
+
+		callAndStopOnFailure(VCICreateTokenEndpointRequestForPreAuthorizationCodeGrant.class);
+
+		addClientAuthenticationToTokenEndpointRequest();
+
+		// addPkceCodeVerifier();
 	}
 
 	protected void createAuthorizationCodeRequest() {
