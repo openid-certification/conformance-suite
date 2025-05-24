@@ -1359,16 +1359,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			case "refresh_token":
 				return refreshTokenGrantType(requestId);
 			case "urn:ietf:params:oauth:grant-type:pre-authorized_code":
-				return preAuthorizationCodeGrantType(requestId);
+				return preAuthorizationCodeGrantType();
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
 	}
 
-	private Object preAuthorizationCodeGrantType(String requestId) {
+	private Object preAuthorizationCodeGrantType() {
 
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 
-		ResponseEntity<Object> responseObject = null;
+		ResponseEntity<Object> responseObject;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
