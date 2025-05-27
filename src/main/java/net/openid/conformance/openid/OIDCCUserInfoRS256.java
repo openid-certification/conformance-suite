@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oidcc-userinfo-rs256",
 	displayName = "OIDCC: Userinfo RS256 ",
-	summary = "This tests register a client with userinfo_signed_response_alg=RS256 and validates the signed response from the userinfo endpoint",
+	summary = "This test register a client with userinfo_signed_response_alg=RS256 and validates the signed response from the userinfo endpoint",
 	profile = "OIDCC"
 )
 @VariantNotApplicable(parameter = ClientRegistration.class, values = { "static_client" })

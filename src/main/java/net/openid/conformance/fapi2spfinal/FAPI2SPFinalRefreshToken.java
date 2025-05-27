@@ -40,7 +40,7 @@ import net.openid.conformance.variant.VariantSetup;
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-refresh-token",
 	displayName = "FAPI2-Security-Profile-Final: test refresh token behaviours",
-	summary = "This tests obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
+	summary = "This test obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
 		"server.discoveryUrl",
