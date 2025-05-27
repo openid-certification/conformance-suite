@@ -1119,7 +1119,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(new EnsureHttpStatusCode(202), ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
+		callAndStopOnFailure(new EnsureHttpStatusCode(202), ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
 		callAndContinueOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
 		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-ID2-8.3");
 
