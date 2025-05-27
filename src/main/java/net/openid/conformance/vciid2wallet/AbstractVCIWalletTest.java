@@ -757,7 +757,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		call(exec().mapKey("incoming_request", requestId));
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2" );
 		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-ID-7");
 		callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-ID2-7.2");
 		call(exec().unmapKey("incoming_request").endBlock());
