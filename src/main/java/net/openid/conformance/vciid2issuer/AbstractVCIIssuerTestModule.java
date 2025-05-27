@@ -1074,7 +1074,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			String originalResourceUrl = env.getString("protected_resource_url");
 			env.putString("protected_resource_url", nonceEndpoint);
 
-			env.putString("resource", "resourceMethod", "GET");
+			env.putString("resource", "resourceMethod", "POST");
 			if (isDpop()) {
 				requestProtectedResourceUsingDpop();
 			} else {
