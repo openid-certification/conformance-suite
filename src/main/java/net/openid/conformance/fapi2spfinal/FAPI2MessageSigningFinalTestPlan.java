@@ -11,7 +11,7 @@ import java.util.Map;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-message-signing-final-test-plan",
-	displayName = "FAPI2-Message-Signing-Final: Authorization server test - INCORRECT/INCOMPLETE, DO NOT USE",
+	displayName = "FAPI2-Message-Signing-Final: Authorization server test",
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
