@@ -1,7 +1,10 @@
 package net.openid.conformance.util;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.PropertyPlaceholderHelper;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -93,16 +96,37 @@ public class TemplateProcessor {
 
 
 	/**
+	 * Replaces {@code ${token}} with the internal anchor processors, additionally {@code $(key)} can be replaced with the corresponding
+	 * value from the given variables map.
+	 *
+	 * @see #process(String)
+	 * @param content
+	 * @param variables
+	 * @return
+	 */
+	public static String process(String content, Map<String, String> variables){
+		StringBuilder sb = new StringBuilder();
+		char[] cnt = content.toCharArray();
+		internalProcess(cnt, 0, sb);
+
+		String preProcessed = sb.toString();
+
+		String result = preProcessed;
+		if (!CollectionUtils.isEmpty(variables)) {
+			result = new PropertyPlaceholderHelper("$(", ")").replacePlaceholders(preProcessed, variables::get);
+		}
+
+		return result;
+	}
+
+	/**
 	 * this helper method replaces the anchors on content to processed values
 	 *  anchors starts with "${" string and ends with "}"
 	 * @param content
 	 * @return
 	 */
 	public static String process(String content){
-		StringBuilder sb = new StringBuilder();
-		char[] cnt = content.toCharArray();
-		internalProcess(cnt, 0, sb);
-		return sb.toString();
+		return process(content, Collections.emptyMap());
 	}
 
 	private static void internalProcess(char[] cnt, int pos, StringBuilder sb){
