@@ -22,7 +22,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 @PublishTestModule(
 		testName = "oid4vci-id2-issuer-happy-flow",
 		displayName = "OID4VCIID2: Issuer happy flow",
-		summary = "Tests primarily 'happy' flows, TBC.",
+		summary = "This test case validates the standard credential issuance flow as defined in OpenID for Verifiable Credential Issuance (OpenID4VCI). It begins by retrieving metadata from both the Credential Issuer and the OAuth 2.0 Authorization Server. An authorization request is initiated using Pushed Authorization Requests (PAR), and an access token is obtained. The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce, and successfully requests a credential from the Credential Endpoint.",
 		profile = "OID4VCI-ID2",
 		configurationFields = {
 			"server.discoveryIssuer",
