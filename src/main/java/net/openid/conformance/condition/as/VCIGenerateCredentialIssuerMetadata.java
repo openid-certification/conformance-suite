@@ -32,6 +32,8 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 			baseUrl = baseUrl + "/";
 		}
 
+		String credentialConfigurationId = "eu.europa.ec.eudi.pid.1";
+
 		String credentialEndpointUrl = baseUrl + "credential";
 
 		String nonceEndpointUrl = baseUrl + "nonce";
@@ -42,12 +44,12 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 			"credential_endpoint": "%s",
 			"nonce_endpoint": "%s",
 			"credential_configurations_supported": {
-				"ExampleCredential": {
+				"%s": {
 					"format": "jwt_vc"
 				}
 			}
 		}
-		""".formatted(env.getString("base_url"), credentialEndpointUrl, nonceEndpointUrl);
+		""".formatted(env.getString("base_url"), credentialEndpointUrl, nonceEndpointUrl, credentialConfigurationId);
 
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
 		env.putObject("credential_issuer_metadata", metadataJson);
