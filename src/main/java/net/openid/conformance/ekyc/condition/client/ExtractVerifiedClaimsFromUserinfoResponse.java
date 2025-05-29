@@ -25,6 +25,9 @@ public class ExtractVerifiedClaimsFromUserinfoResponse extends AbstractCondition
 	public Environment evaluate(Environment env) {
 		String userinfoResponse = env.getString("resource_endpoint_response");
 		JsonObject parsedUserinfo = JsonParser.parseString(userinfoResponse).getAsJsonObject();
+		if(parsedUserinfo != null) {
+			env.putObject("userinfo", parsedUserinfo);
+		}
 		JsonElement verifiedClaimsElement = parsedUserinfo.get("verified_claims");
 		if(verifiedClaimsElement!=null) {
 			JsonObject envHolder = env.getObject("verified_claims_response");
