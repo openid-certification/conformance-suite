@@ -9,15 +9,16 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-registered-redirect-uri",
+	testName = "fapi1-advanced-final-plain-fapi-par-ensure-registered-redirect-uri",
 	displayName = "FAPI1-Advanced-Final: ensure registered redirect URI",
-	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
+	summary = "This test uses an unregistered redirect uri. The authorization server may allow this as per RFC 9126 Section 2.4 or may display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -36,13 +37,18 @@ import jakarta.servlet.http.HttpSession;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureRegisteredRedirectUri extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
+// Allowing the OP to accept a 'redirect_uri' that has not been previously registered is for 'plain_fapi' + PAR only.
+@VariantNotApplicable(parameter = FAPIAuthRequestMethod.class, values = { "by_value" })
+
+public class FAPI1AdvancedFinalPlainFapiParEnsureRegisteredRedirectUri extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
+
+	protected boolean parError = false;
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.PLAIN_FAPI && getVariant(FAPIAuthRequestMethod.class) == FAPIAuthRequestMethod.PUSHED) {
-			fireTestSkipped("This test is not available for the 'plain_fapi' profile when PAR is in use.");
+		if (getVariant(FAPI1FinalOPProfile.class) != FAPI1FinalOPProfile.PLAIN_FAPI) {
+			fireTestSkipped("This test is only available for the 'plain_fapi' profile.");
 		}
 
 		// create a random redirect URI
@@ -71,16 +77,17 @@ public class FAPI1AdvancedFinalEnsureRegisteredRedirectUri extends AbstractFAPI1
 
 	@Override
 	protected void processCallback() {
-		throw new TestFailureException(getId(), "The authorization server called the registered redirect uri. This should not have happened as the client provided a bad redirect_uri in the request.");
+		if (parError) {
+			throw new TestFailureException(getId(), "The authorization server called the registered redirect uri. This should not have happened as the client provided a bad redirect_uri in the request.");
+		}
+
+		super.processCallback();
 	}
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		if (path.equals(env.getString("bad_redirect_path"))) {
-			throw new TestFailureException(getId(), "The authorization server redirected the user to the requested but randomised/unregistered redirect uri. This must not happen as the provided redirect uri could not have been registered.");
-		} else {
-			return super.handleHttp(path, req, res, session, requestParts);
-		}
+		callbackEndpoint = "callback/" + env.getString("bad_redirect_path");
 
+		return super.handleHttp(path, req, res, session, requestParts);
 	}
 }

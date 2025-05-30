@@ -26,6 +26,7 @@ import java.util.Map;
 		FAPI1AdvancedFinalEnsureResponseModeQuery.class,
 		FAPI1AdvancedFinalEnsureDifferentNonceInsideAndOutsideRequestObject.class,
 		FAPI1AdvancedFinalEnsureRegisteredRedirectUri.class,
+		FAPI1AdvancedFinalPlainFapiParEnsureRegisteredRedirectUri.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithLongNonce.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithLongState.class,
 

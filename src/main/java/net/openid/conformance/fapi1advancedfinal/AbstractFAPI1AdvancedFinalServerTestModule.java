@@ -1126,7 +1126,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected void processParResponse() {
-		callAndStopOnFailure(CheckPAREndpointResponse201WithNoError.class, "PAR-2.2", "PAR-2.3");
+		callAndStopOnFailure(CheckPAREndpointResponse201WithNoError.class, "PAR-2.2", "PAR-2.3", "PAR-2.4");
 
 		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
 
