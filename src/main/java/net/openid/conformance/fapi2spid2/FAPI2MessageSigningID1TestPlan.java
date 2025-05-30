@@ -63,6 +63,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 
 		// Negative tests for authorization request
 		FAPI2SPID2EnsureRegisteredRedirectUri.class,
+		FAPI2SPID2PlainFAPIEnsureRegisteredRedirectUri.class,
 		FAPI2SPID2EnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
 		FAPI2SPID2EnsureRedirectUriInAuthorizationRequest.class,
 		FAPI2SPID2EnsureResponseTypeCodeIdTokenFails.class,

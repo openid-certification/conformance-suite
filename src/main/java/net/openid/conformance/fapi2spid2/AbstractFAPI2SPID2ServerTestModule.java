@@ -1259,7 +1259,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	protected void processParResponse() {
-		callAndStopOnFailure(CheckPAREndpointResponse201WithNoError.class, "PAR-2.2", "PAR-2.3");
+		callAndStopOnFailure(CheckPAREndpointResponse201WithNoError.class, "PAR-2.2", "PAR-2.3", "PAR-2.4");
 
 		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
 

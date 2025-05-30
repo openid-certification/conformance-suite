@@ -26,10 +26,12 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 	// Incremented each time we successfully receive the full result for a redirect
 	private int currentRedirect = 0;
 
+	protected String callbackEndpoint = "callback";
+
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		if (path.equals("callback")) {
+		if (path.equals(callbackEndpoint)) {
 			return handleCallback(requestParts);
 		} else if (path.equals(env.getString("implicit_submit", "path"))) {
 			return handleImplicitSubmission(requestParts);
