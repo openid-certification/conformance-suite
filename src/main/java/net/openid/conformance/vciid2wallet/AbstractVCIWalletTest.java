@@ -647,9 +647,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
-			// FIXME we should probably throw, but currently the issuer test is still fetching this
-			//throw new TestFailureException(getId(), "The wallet has fetched .well-known/openid-configuration instead of .well-known/oauth-authorization-server as per RFC8414.");
-			return discoveryEndpoint();
+			throw new TestFailureException(getId(), "The wallet has fetched .well-known/openid-configuration instead of .well-known/oauth-authorization-server as per RFC8414.");
 		} else if (path.equals(".well-known/oauth-authorization-server")) {
 			throw new TestFailureException(getId(), "The wallet has formed the path to .well-known/oauth-authorization-server using the OpenID Connect rules, but the .well-known rules from RFC8414 must be used.");
 		} else if (path.equals(".well-known/openid-credential-issuer")) {
