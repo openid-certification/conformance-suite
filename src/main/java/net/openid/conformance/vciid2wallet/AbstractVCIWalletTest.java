@@ -93,7 +93,6 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
-import net.openid.conformance.condition.as.VCIGenerateCredentialIssuerMetadata;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
@@ -106,6 +105,7 @@ import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.as.VCIGenerateCredentialIssuerMetadata;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerAsString;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -647,9 +647,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 			return userinfoEndpoint(requestId);
 		} else if (path.equals(".well-known/openid-configuration")) {
-			// FIXME we should probably throw, but currently the issuer test is still fetching this
-			//throw new TestFailureException(getId(), "The wallet has fetched .well-known/openid-configuration instead of .well-known/oauth-authorization-server as per RFC8414.");
-			return discoveryEndpoint();
+			throw new TestFailureException(getId(), "The wallet has fetched .well-known/openid-configuration instead of .well-known/oauth-authorization-server as per RFC8414.");
 		} else if (path.equals(".well-known/oauth-authorization-server")) {
 			throw new TestFailureException(getId(), "The wallet has formed the path to .well-known/oauth-authorization-server using the OpenID Connect rules, but the .well-known rules from RFC8414 must be used.");
 		} else if (path.equals(".well-known/openid-credential-issuer")) {
