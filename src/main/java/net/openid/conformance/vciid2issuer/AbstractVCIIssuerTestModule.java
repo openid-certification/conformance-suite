@@ -1089,6 +1089,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
 
+			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.WARNING, "OID4VCI-ID2-7.2");
 			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
 
 			env.putString("protected_resource_url", originalResourceUrl);
@@ -1097,6 +1098,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// use HTTP POST to call credentials endpoint
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		env.putString("client", "client_id", env.getString("config","client.client_id"));
 
 		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-ID2-8.2.1.1");
 
