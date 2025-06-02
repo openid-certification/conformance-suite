@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.http.HttpHeaders;
 
 public class VCIValidateCredentialNonceResponse extends AbstractCondition {
 
