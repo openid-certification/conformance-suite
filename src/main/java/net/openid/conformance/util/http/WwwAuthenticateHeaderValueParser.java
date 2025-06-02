@@ -10,11 +10,21 @@ import java.util.regex.Pattern;
 
 public class WwwAuthenticateHeaderValueParser {
 
+	/**
+	 * Extracts quoted and unquoted params from a www-authenticate header, e.g.: {@code key1="value with spaces" key2=unquoted_value}.
+	 */
 	private static final Pattern PARAM_PATTERN = Pattern.compile(
-		"([a-zA-Z][a-zA-Z0-9_-]*)\\s*=\\s*\"((?:\\\\.|[^\"\\\\])*)\"|([a-zA-Z][a-zA-Z0-9_-]*)\\s*=\\s*([^\",\\s]+)");
+		// key1="value with spaces"
+		"(?<quotedKey>[a-zA-Z][a-zA-Z0-9_-]*)\\s*=\\s*\"(?<quotedValue>(?:\\\\.|[^\"\\\\])*)\"" +
+			// key2=unquoted_value
+			"|(?<unquotedKey>[a-zA-Z][a-zA-Z0-9_-]*)\\s*=\\s*(?<unquotedValue>[^\",\\s]+)"
+	);
+
+	private static final Pattern TRAILING_TOKEN_PATTERN = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_-]*$");
 
 	/**
 	 * Returns the challenges from the WWW-Authenticate header value. The challenge type is the key, the attributes are stored as the kv-map value.
+	 *
 	 * @param headerValue
 	 * @return
 	 */
@@ -32,22 +42,20 @@ public class WwwAuthenticateHeaderValueParser {
 				Matcher m = PARAM_PATTERN.matcher(paramString);
 				int lastMatchEnd = 0;
 				while (m.find()) {
-					if (m.group(1) != null) {
-						params.put(m.group(1), unescapeQuoted(m.group(2)));
+					if (m.group("quotedKey") != null) {
+						params.put(m.group("quotedKey"), unescapeQuoted(m.group("quotedValue")));
 					} else {
-						params.put(m.group(3), m.group(4));
+						params.put(m.group("unquotedKey"), m.group("unquotedValue"));
 					}
 					lastMatchEnd = m.end();
 				}
 
-				// see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/WWW-Authenticate
-				// Check for trailing token without "=" (e.g., token68)
 				if (lastMatchEnd < paramString.length()) {
 					String trailing = paramString.substring(lastMatchEnd).trim();
 					if (trailing.startsWith(",")) {
 						trailing = trailing.substring(1).trim();
 					}
-					if (!trailing.isEmpty() && trailing.matches("^[a-zA-Z][a-zA-Z0-9_-]*$")) {
+					if (!trailing.isEmpty() && TRAILING_TOKEN_PATTERN.matcher(trailing).matches()) {
 						params.put(trailing, null);
 					}
 				}
@@ -59,8 +67,10 @@ public class WwwAuthenticateHeaderValueParser {
 		return result;
 	}
 
+
 	/**
 	 * Extracts the found challenges as a Map with the challenge type as key, and the original challenge as value.
+	 *
 	 * @param headerValue
 	 * @return
 	 */
@@ -95,11 +105,11 @@ public class WwwAuthenticateHeaderValueParser {
 			} else if (c == ',' && !inQuotes) {
 				// Look ahead for scheme start
 				int j = i + 1;
-				while (j < header.length() && Character.isWhitespace(header.charAt(j))){
+				while (j < header.length() && Character.isWhitespace(header.charAt(j))) {
 					j++;
 				}
 				int k = j;
-				while (k < header.length() && Character.isLetter(header.charAt(k))){
+				while (k < header.length() && Character.isLetter(header.charAt(k))) {
 					k++;
 				}
 				if (k < header.length() && header.charAt(k) == ' ') {
@@ -110,7 +120,7 @@ public class WwwAuthenticateHeaderValueParser {
 			}
 			current.append(c);
 		}
-		if (!current.isEmpty()){
+		if (!current.isEmpty()) {
 			result.add(current.toString());
 		}
 		return result;
