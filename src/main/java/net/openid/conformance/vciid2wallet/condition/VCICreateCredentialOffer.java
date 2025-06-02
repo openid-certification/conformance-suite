@@ -60,7 +60,7 @@ public class VCICreateCredentialOffer extends AbstractCondition {
 
 		env.putObject("vci", "credential_offer", credentialOffer);
 
-		logSuccess("Generated credential offer", args("issuer_state", issuerState, "credential_offer", credentialOffer, "grant_type", vciGrantType));
+		log("Generated credential offer", args("issuer_state", issuerState, "credential_offer", credentialOffer, "grant_type", vciGrantType));
 
 		return env;
 	}
