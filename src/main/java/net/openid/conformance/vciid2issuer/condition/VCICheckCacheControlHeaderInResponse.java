@@ -21,7 +21,7 @@ public class VCICheckCacheControlHeaderInResponse extends AbstractCondition {
 			throw error("Cache-Control header in response headers must be 'no-store'.", args("response_headers", responseHeaders));
 		}
 
-		logSuccess("Found expected cache-control header in endpoint response", args("response_headers", "cache-control", cacheControlHeader));
+		logSuccess("Found expected cache-control header in endpoint response", args("response_headers", responseHeaders, "cache-control", cacheControlHeader));
 
 		return env;
 	}
