@@ -294,6 +294,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 		}
 
+		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
+		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
+			throw new TestFailureException(getId(), "credential_configuration_id cannot be null or empty!");
+		}
+		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
+
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
 		isOpenId = false;
@@ -1097,7 +1103,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// TODO generate a proper credential request
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
-		String credentialConfigId = "eu.europa.ec.eudi.pid.1";
+		String credentialConfigId = env.getString("config", "vci.credential_configuration_id");
 		String credentialProofJwt = env.getString("vci", "proof.jwt");
 		env.putString("resource_request_entity", """
 			{

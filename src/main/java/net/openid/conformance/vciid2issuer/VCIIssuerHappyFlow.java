@@ -38,7 +38,8 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 			"mtls2.key",
 			"mtls2.cert",
 			"mtls2.ca",
-			"resource.resourceUrl"
+			"resource.resourceUrl",
+			"vci.credential_configuration_id"
 		}
 	)
 public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {

@@ -28,7 +28,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
-		"resource.resourceUrl"
+		"resource.resourceUrl",
+		"vci.credential_configuration_id"
 	}
 )
 @VariantNotApplicable(
