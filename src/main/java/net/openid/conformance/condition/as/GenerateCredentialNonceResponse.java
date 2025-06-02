@@ -20,7 +20,7 @@ public class GenerateCredentialNonceResponse extends AbstractCondition {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
-		headers.addProperty("content-type", "application/json; charset=UTF-8");
+		headers.addProperty("content-type", "application/json");
 		headers.addProperty(HttpHeaders.CACHE_CONTROL, "no-store");
 
 		String nonce = env.getString("credential_issuer_nonce");
