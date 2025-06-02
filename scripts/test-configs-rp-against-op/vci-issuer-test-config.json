@@ -5,6 +5,9 @@
         "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration",
         "discoveryIssuer": "{BASEURL}test/a/oidf-fapi-rp-test"
     },
+    "vci": {
+        "credential_configuration_id": "eu.europa.ec.eudi.pid.1"
+    },
     "client": {
         "client_id": "52480754053",
         "scope": "accounts",
