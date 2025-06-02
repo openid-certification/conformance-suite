@@ -176,7 +176,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vciid2issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizationCodeGrant;
+import net.openid.conformance.vciid2issuer.condition.VCICheckCacheControlHeaderInResponse;
+import net.openid.conformance.vciid2issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vciid2issuer.condition.VCIAddIssuerStateToAuthorizationRequest;
@@ -745,11 +746,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void createPreAuthorizationCodeRequest() {
 
-		callAndStopOnFailure(VCICreateTokenEndpointRequestForPreAuthorizationCodeGrant.class);
+		callAndStopOnFailure(VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant.class);
 
 		addClientAuthenticationToTokenEndpointRequest();
-
-		// addPkceCodeVerifier(); // FIXME is this needed for pre-authorization_code flow?
 	}
 
 	protected void createAuthorizationCodeRequest() {

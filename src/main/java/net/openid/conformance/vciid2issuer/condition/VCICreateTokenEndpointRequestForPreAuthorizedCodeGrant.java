@@ -9,20 +9,24 @@ import net.openid.conformance.testmodule.Environment;
 public class VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = { "pre_authorized_code" })
+	@PreEnvironment(required = { "vci" })
 	@PostEnvironment(required = "token_endpoint_request_form_parameters")
 	public Environment evaluate(Environment env) {
 
+		String preAuthorizedCode = env.getString("vci", "pre-authorized_code");
+		String txCodeValue = env.getString("vci", "pre-authorized_code_tx_code_value");
+
 		JsonObject o = new JsonObject();
 		o.addProperty("grant_type", "urn:ietf:params:oauth:grant-type:pre-authorized_code");
-		o.addProperty("pre-authorized_code", env.getString("pre_authorized_code"));
+		o.addProperty("pre-authorized_code", preAuthorizedCode);
+		o.addProperty("tx_code", txCodeValue);
 
 		env.putObject("token_endpoint_request_form_parameters", o);
 
 		// Remove headers as well, so that we're truly starting a 'new' request
 		env.removeObject("token_endpoint_request_headers");
 
-		logSuccess("Created token endpoint request", o);
+		logSuccess("Created token endpoint request with pre-authorized_code", o);
 
 		return env;
 	}
