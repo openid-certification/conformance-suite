@@ -17,7 +17,7 @@ public class VCIValidatePreAuthorizationCode extends AbstractCondition {
 		}
 
 		if (expected.equals(actual)) {
-			logSuccess("Found pre-authorized code", args("pre-pre-authorized_code", actual));
+			logSuccess("Found pre-authorized code", args("pre-authorized_code", actual));
 			return env;
 		} else {
 			throw error("Didn't find matching pre-authorized code", args("expected", expected, "actual", actual));
