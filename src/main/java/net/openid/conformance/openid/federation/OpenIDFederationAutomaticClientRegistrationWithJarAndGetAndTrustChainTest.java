@@ -37,23 +37,4 @@ public class OpenIDFederationAutomaticClientRegistrationWithJarAndGetAndTrustCha
 		}
 		includeTrustChainInAuthorizationRequest = true;
 	}
-
-	@Override
-	protected void createPlaceholder() {
-		callAndContinueOnFailure(ExpectInvalidRequestOrInvalidRequestObjectErrorPage.class, Condition.ConditionResult.FAILURE);
-		env.putString("error_callback_placeholder", env.getString("invalid_request_error"));
-	}
-
-	@Override
-	protected void redirect(HttpMethod method) {
-		performRedirectAndWaitForPlaceholdersOrCallback("error_callback_placeholder", method.name());
-	}
-
-	@Override
-	protected void processCallback() {
-		env.mapKey("authorization_endpoint_response", "callback_query_params");
-		performGenericAuthorizationEndpointErrorResponseValidation();
-		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient.class, Condition.ConditionResult.WARNING);
-		fireTestFinished();
-	}
 }
