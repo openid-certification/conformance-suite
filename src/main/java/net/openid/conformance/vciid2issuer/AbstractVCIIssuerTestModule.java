@@ -1099,8 +1099,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
-		env.putString("client", "client_id", env.getString("config","client.client_id"));
-
 		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-ID2-8.2.1.1");
 
 		// TODO generate a proper credential request
