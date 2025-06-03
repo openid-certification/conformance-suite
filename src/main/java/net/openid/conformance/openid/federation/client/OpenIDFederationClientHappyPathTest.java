@@ -123,6 +123,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		callAndStopOnFailure(GenerateEntityConfiguration.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
 		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
+		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
 		callAndStopOnFailure(LoadTrustAnchorJWKs.class);
 		callAndStopOnFailure(ValidateTrustAnchorJWKs.class, "RFC7517-1.1");
@@ -528,6 +529,13 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		callAndContinueOnFailure(VerifyGrantTypeIsPresent.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, Condition.ConditionResult.FAILURE, "RFC6749-3.2.1");
+
+		env.putString("server", "issuer", env.getString("client", "entity_identifier"));
+		env.putString("server", "token_endpoint", env.getString("server", "metadata.openid_provider.token_endpoint"));
+		call(sequence(validateClientAuthenticationSteps));
+		env.removeElement("server", "issuer");
+		env.removeElement("server", "token_endpoint");
+
 		callAndStopOnFailure(ValidateAuthorizationCode.class, "OIDCC-3.1.3.2");
 		callAndContinueOnFailure(ValidateRedirectUriForTokenEndpointRequest.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.2");
 

@@ -1,9 +1,6 @@
 package net.openid.conformance.openid.federation;
 
 import com.google.gson.JsonElement;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient;
-import net.openid.conformance.condition.common.ExpectInvalidRequestOrInvalidRequestObjectErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.springframework.http.HttpMethod;
