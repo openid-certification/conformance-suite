@@ -6,12 +6,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
+import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
+import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
+import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -21,11 +28,15 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
+import net.openid.conformance.openid.AbstractOIDCCServerTest;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.http.HttpMethod;
@@ -37,6 +48,10 @@ import java.net.URISyntaxException;
 
 @SuppressWarnings("unused")
 public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest extends AbstractOpenIDFederationTest {
+
+	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
+	//protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
+	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 
 	protected boolean includeTrustChainInAuthorizationRequest = false;
 
@@ -81,6 +96,13 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		verifyTestConditions();
 
 		eventLog.endBlock();
+	}
+
+	@VariantSetup(parameter = ClientRegistration.class, value = "automatic")
+	public void setupPrivateKeyJwt() {
+		profileStaticClientConfiguration = AbstractOIDCCServerTest.ConfigureStaticClientForPrivateKeyJwt.class;
+		//profileCompleteClientConfiguration = () -> new AbstractOIDCCServerTest.ConfigureClientForPrivateKeyJwt(serverSupportsDiscovery);
+		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
 	@Override
@@ -230,5 +252,57 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndContinueOnFailure(ValidateErrorDescriptionFromAuthorizationEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-4.1.2.1");
 		callAndContinueOnFailure(ValidateErrorUriFromAuthorizationEndpointResponseError.class, Condition.ConditionResult.FAILURE,"RFC6749-4.1.2.1");
 	}
+
+	@Override
+	protected void processCallback() {
+		eventLog.startBlock("Verify authorization endpoint response");
+		env.mapKey("authorization_endpoint_response", "callback_query_params");
+
+		onAuthorizationCallbackResponse();
+
+		eventLog.endBlock();
+		fireTestFinished();
+	}
+
+	protected void onAuthorizationCallbackResponse() {
+		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
+		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
+		handleSuccessfulAuthorizationEndpointResponse();
+	}
+
+	protected void handleSuccessfulAuthorizationEndpointResponse() {
+		performPostAuthorizationFlow();
+	}
+
+	protected void performPostAuthorizationFlow() {
+		String tokenEndpoint = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.token_endpoint");
+		env.putString("token_endpoint", tokenEndpoint);
+
+		// call the token endpoint and complete the flow
+		createAuthorizationCodeRequest();
+		redeemAuthorizationCode();
+		onPostAuthorizationFlowComplete();
+	}
+
+	protected void createAuthorizationCodeRequest() {
+		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		call(sequence(addTokenEndpointClientAuthentication));
+	}
+
+	//Originally called requestAuthorizationCode()
+	protected void redeemAuthorizationCode() {
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
+		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
+	}
+
+	protected void onPostAuthorizationFlowComplete() {
+		fireTestFinished();
+	}
+
 
 }
