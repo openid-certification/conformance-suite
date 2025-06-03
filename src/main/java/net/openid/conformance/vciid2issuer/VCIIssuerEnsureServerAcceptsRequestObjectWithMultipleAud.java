@@ -11,8 +11,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds",
 	displayName = "OID4VCIID2: ensure request object with multiple aud succeeds",
-	summary = "This test case validates the standard credential issuance flow as defined in OpenID for Verifiable Credential Issuance (OpenID4VCI). It begins by retrieving metadata from both the Credential Issuer and the OAuth 2.0 Authorization Server. An authorization request is initiated using Pushed Authorization Requests (PAR), and an access token is obtained. The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce, and successfully requests a credential from the Credential Endpoint." +
-		"Additionally this test passes the aud value as an array containing good and bad values and expects the server to auth server must accept it.",
+	summary = "This test case validates the standard credential issuance flow using an emulated wallet, as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) specification. It begins by retrieving metadata from both the Credential Issuer and the OAuth 2.0 Authorization Server. An authorization request is initiated using Pushed Authorization Requests (PAR), and an access token is obtained. The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce, and successfully requests a credential from the Credential Endpoint. Additionally, this test passes the aud value as an array containing both good and bad values and expects the server to auth server must accept it.",
 	profile = "OID4VCI-ID2",
 	configurationFields = {
 		"server.discoveryIssuer",

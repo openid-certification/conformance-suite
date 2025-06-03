@@ -18,7 +18,7 @@ import net.openid.conformance.variant.VCIServerMetadata;
 @PublishTestModule(
 	testName = "oid4vci-id2-issuer-metadata-test",
 	displayName = "OID4VCIID2: Issuer metadata test",
-	summary = "Expects the issuer to expose the credential issuer metadata according to OID4VCI specification.",
+	summary = "This test case validates the metadata exposed by the credential issuer, as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) specification.",
 	profile = "OID4VCI-ID2",
 	configurationFields = {
 		"server.discoveryIssuer"
