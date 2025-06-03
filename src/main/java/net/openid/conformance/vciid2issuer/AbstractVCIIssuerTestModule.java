@@ -1089,7 +1089,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
 
-			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.WARNING, "OID4VCI-ID2-7.2");
+			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
 			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
 
 			env.putString("protected_resource_url", originalResourceUrl);
