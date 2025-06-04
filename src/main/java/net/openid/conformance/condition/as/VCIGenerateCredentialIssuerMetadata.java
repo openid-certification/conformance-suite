@@ -6,16 +6,19 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.TemplateProcessor;
 
-public class GenerateCredentialIssuerMetadata extends AbstractCondition {
+import java.util.Map;
+
+public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 
 	private final Boolean mtlsConstrain;
 
-	public GenerateCredentialIssuerMetadata() {
+	public VCIGenerateCredentialIssuerMetadata() {
 		this(false);
 	}
 
-	public GenerateCredentialIssuerMetadata(Boolean mtlsConstrain) {
+	public VCIGenerateCredentialIssuerMetadata(Boolean mtlsConstrain) {
 		this.mtlsConstrain = mtlsConstrain;
 	}
 
@@ -32,22 +35,31 @@ public class GenerateCredentialIssuerMetadata extends AbstractCondition {
 			baseUrl = baseUrl + "/";
 		}
 
+		String credentialIssuer = env.getString("base_url");
 		String credentialEndpointUrl = baseUrl + "credential";
-
 		String nonceEndpointUrl = baseUrl + "nonce";
+		String credentialConfigurationId = "eu.europa.ec.eudi.pid.1";
+		String credentialFormat = "dc+sd-jwt";
 
-		String metadata = """
+		String metadata = TemplateProcessor.process("""
 		{
-			"credential_issuer": "%s",
-			"credential_endpoint": "%s",
-			"nonce_endpoint": "%s",
-			"credential_configurations_supported": {
-				"ExampleCredential": {
-					"format": "jwt_vc"
-				}
+		  "credential_issuer": "$(credentialIssuer)",
+		  "credential_endpoint": "$(credentialEndpoint)",
+		  "nonce_endpoint": "$(nonceEndpoint)",
+		  "credential_configurations_supported": {
+			"$(credentialConfigurationId)": {
+			  "format": "$(credentialFormat)",
+			  "vct": "$(credentialConfigurationId)"
 			}
+		  }
 		}
-		""".formatted(env.getString("base_url"), credentialEndpointUrl, nonceEndpointUrl);
+		""", Map.of(
+			"credentialIssuer", credentialIssuer,
+			"credentialEndpoint", credentialEndpointUrl,
+			"nonceEndpoint", nonceEndpointUrl,
+			"credentialConfigurationId", credentialConfigurationId,
+			"credentialFormat", credentialFormat
+		));
 
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
 		env.putObject("credential_issuer_metadata", metadataJson);

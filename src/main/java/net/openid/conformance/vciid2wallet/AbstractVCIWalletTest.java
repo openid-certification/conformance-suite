@@ -1,6 +1,7 @@
 package net.openid.conformance.vciid2wallet;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -92,7 +93,7 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
-import net.openid.conformance.condition.as.GenerateCredentialIssuerMetadata;
+import net.openid.conformance.condition.as.VCIGenerateCredentialIssuerMetadata;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
@@ -200,18 +201,29 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
+import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
+import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
+import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
+import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
+import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
+import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
+import net.openid.conformance.vciid2wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
+import net.openid.conformance.vciid2wallet.condition.VCIValidatePreAuthorizationCode;
+import net.openid.conformance.vciid2wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -222,12 +234,15 @@ import org.springframework.web.servlet.view.RedirectView;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
+	VCIGrantType.class,
+	VCIAuthorizationCodeFlowVariant.class,
+	VCICredentialOfferParameterVariant.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"directory.keystore"
+@VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
+	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
 	"client2.client_id",
@@ -255,6 +270,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 
 	public static final String CREDENTIAL_PATH = "credential";
+
+	public static final String CREDENTIAL_OFFER_PATH = "credential_offer";
 
 	public static final String NONCE_PATH = "nonce";
 
@@ -287,6 +304,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected Boolean profileRequiresMtlsEverywhere;
 
 	protected long waitTimeoutSeconds = 5;
+
+	protected VCIGrantType vciGrantType;
+
+	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
+
+	protected VCICredentialOfferParameterVariant vciCredentialOfferParameterVariantType;
 
 	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
@@ -377,6 +400,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
 		}
 
+		vciGrantType = getVariant(VCIGrantType.class);
+		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
+			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-ID2-5.1.3-2.3");
+		}
+
+		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
+
+		vciCredentialOfferParameterVariantType = getVariant(VCICredentialOfferParameterVariant.class);
+
 		if (isMTLSConstrain()) {
 			callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
 		} else if (isDpopConstrain()) {
@@ -398,7 +430,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		callAndStopOnFailure(new GenerateCredentialIssuerMetadata(isMTLSConstrain()));
+		callAndStopOnFailure(new VCIGenerateCredentialIssuerMetadata(isMTLSConstrain()));
 		exposeEnvString("credential_issuer_metadata_url");
 		exposeEnvString("credential_issuer_nonce_endpoint_url");
 		exposeEnvString("credential_issuer_credential_endpoint_url");
@@ -451,19 +483,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected boolean requireAuthorizationServerEndpointDpopNonce() {
-		if(isDpopConstrain()) {
-			return true;
-		} else {
-			return false;
-		}
+		return isDpopConstrain();
 	}
 
 	protected boolean requireResourceServerEndpointDpopNonce() {
-		if(isDpopConstrain()) {
-			return true;
-		} else {
-			return false;
-		}
+		return isDpopConstrain();
 	}
 
 	protected void configureClients()
@@ -534,8 +558,44 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		// nothing to do here
+
+		switch(vciGrantType) {
+			case AUTHORIZATION_CODE -> {
+				switch(getVariant(VCIAuthorizationCodeFlowVariant.class)) {
+					case WALLET_INITIATED -> {}
+					case ISSUER_INITIATED -> prepareCredentialOffer();
+				}
+			}
+			case PRE_AUTHORIZATION_CODE -> {
+				switch(getVariant(VCIAuthorizationCodeFlowVariant.class)) {
+					case WALLET_INITIATED -> {
+						throw new UnsupportedOperationException("Pre-Authorization_Code is not supported with Wallet_Initiated flow");
+					}
+					case ISSUER_INITIATED -> prepareCredentialOffer();
+				}
+			}
+		}
+
 		setStatus(Status.WAITING);
+	}
+
+	protected void prepareCredentialOffer() {
+
+		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+			callAndStopOnFailure(VCIPreparePreAuthorizationCode.class, "OID4VCI-ID2-3.5", "OID4VCI-ID2-4.1");
+		}
+
+		callAndStopOnFailure(new VCICreateCredentialOffer(vciGrantType), "OID4VCI-ID2-4.1");
+
+		if (vciCredentialOfferParameterVariantType == VCICredentialOfferParameterVariant.BY_REFERENCE) {
+			callAndStopOnFailure(VCICreateCredentialOfferUri.class, "OID4VCI-ID2-4.1.3");
+		}
+
+		callAndStopOnFailure(new VCICreateCredentialOfferRedirectUrl(vciCredentialOfferParameterVariantType), "OID4VCI-ID2-4.1");
+		browser.setShowQrCodes(true);
+
+		String credentialOfferRedirectUrl = env.getString("vci", "credential_offer_redirect_url");
+		browser.goToUrl(credentialOfferRedirectUrl);
 	}
 
 	@Override
@@ -634,8 +694,52 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return credentialEndpoint(requestId);
+		} else if (path.startsWith(CREDENTIAL_OFFER_PATH)) {
+
+			if (isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The credential_offer endpoint must be called over an mTLS secured connection.");
+			}
+
+			return credentialOfferEndpoint(requestId, path);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+	}
+
+	protected Object credentialOfferEndpoint(String requestId, String path) {
+
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Credential offer endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+
+		env.getString("incoming_request", "request_url");
+
+		ResponseEntity<Object> responseEntity;
+		String credentialOfferId = path.substring(path.lastIndexOf("/")+1);
+		String expectedCredentialOfferId = env.getString("vci","credential_offer_id");
+		if (expectedCredentialOfferId.equals(credentialOfferId)) {
+			JsonElement credentialOfferObject = env.getElementFromObject("vci", "credential_offer");
+			responseEntity = ResponseEntity.status(HttpStatus.OK)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.CACHE_CONTROL, "no-cache")
+				.body(credentialOfferObject);
+		} else {
+			responseEntity = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+		return responseEntity;
 	}
 
 	protected Object nonceEndpoint(String requestId) {
@@ -653,7 +757,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		call(exec().mapKey("incoming_request", requestId));
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2" );
 		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-ID-7");
 		callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-ID2-7.2");
 		call(exec().unmapKey("incoming_request").endBlock());
@@ -1254,8 +1358,48 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				break;
 			case "refresh_token":
 				return refreshTokenGrantType(requestId);
+			case "urn:ietf:params:oauth:grant-type:pre-authorized_code":
+				return preAuthorizationCodeGrantType();
 		}
 		throw new TestFailureException(getId(), "Got an unexpected grant type on the token endpoint: " + grantType);
+	}
+
+	private Object preAuthorizationCodeGrantType() {
+
+		senderConstrainTokenRequestHelper.checkTokenRequest();
+
+		ResponseEntity<Object> responseObject;
+		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
+		} else {
+			callAndStopOnFailure(VCIValidatePreAuthorizationCode.class);
+
+			// FIXME is this needed for pre-authorization_code flow?
+			// call(sequence(CheckPkceCodeVerifier.class));
+
+			issueAccessToken();
+
+			issueRefreshToken();
+
+			String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
+			if("yes".equals(isOpenIdScopeRequested)) {
+				issueIdToken(false);
+			}
+
+			createTokenEndpointResponse();
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+
+			// Create a new DPoP nonce
+			if(requireAuthorizationServerEndpointDpopNonce()) {
+				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
+			}
+		}
+
+		call(exec().unmapKey("token_endpoint_request").endBlock());
+
+		setStatus(Status.WAITING);
+		return responseObject;
 	}
 
 	protected Object refreshTokenGrantType(String requestId) {
@@ -1334,18 +1478,18 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(ValidateAuthorizationCode.class);
 
-		validateRedirectUriForAuthorizationCodeGrantType();
+			validateRedirectUriForAuthorizationCodeGrantType();
 
-		call(sequence(CheckPkceCodeVerifier.class));
+			call(sequence(CheckPkceCodeVerifier.class));
 
-		issueAccessToken();
+			issueAccessToken();
 
-		issueRefreshToken();
+			issueRefreshToken();
 
-		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
-		if("yes".equals(isOpenIdScopeRequested)) {
-			issueIdToken(false);
-		}
+			String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
+			if("yes".equals(isOpenIdScopeRequested)) {
+				issueIdToken(false);
+			}
 
 			createTokenEndpointResponse();
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
@@ -1404,6 +1548,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		setAuthorizationEndpointRequestParamsForHttpMethod();
 		callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
 		callAndStopOnFailure(EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR.class);
+
+		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
+			if (vciAuthorizationCodeFlowVariant == VCIAuthorizationCodeFlowVariant.ISSUER_INITIATED) {
+				callAndStopOnFailure(VCIVerifyIssuerStateInAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VCI-ID2-5.1.3");
+			}
+		}
 
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 

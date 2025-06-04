@@ -42,8 +42,7 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 			JWK jwk = jwkSet.getKeys().get(0);
 			ECKey ecKey = ECKey.parse(jwk.toJSONString());
 
-			// TODO find a better way to generate the walletIssuerId
-			String walletIssuerId = "did:key:" + ecKey.getKeyID();
+			String walletIssuerId = env.getString("client", "client_id");
 
 			String cNonce = getCNonce(env);
 			int proofLifetimeSeconds = getProofLifetimeSeconds(); //

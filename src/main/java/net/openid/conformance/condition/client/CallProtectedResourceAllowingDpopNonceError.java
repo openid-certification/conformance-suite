@@ -7,8 +7,10 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.http.WwwAuthenticateHeaderValueParser;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,8 +33,6 @@ public class CallProtectedResourceAllowingDpopNonceError extends CallProtectedRe
 		return super.evaluate(env);
 	}
 
-
-
 	@Override
 	protected Environment handleClientResponse(Environment env, JsonObject responseCode, String responseBody, JsonObject responseHeaders, JsonObject fullResponse) {
 
@@ -47,7 +47,14 @@ public class CallProtectedResourceAllowingDpopNonceError extends CallProtectedRe
 							wwwHeaderArray = responseHeaders.getAsJsonArray("www-authenticate");
 						} else {
 							wwwHeaderArray = new JsonArray();
-							wwwHeaderArray.add(responseHeaders.get("www-authenticate"));
+
+							String authenticateValue = OIDFJSON.getString(responseHeaders.get("www-authenticate"));
+							// special case, some issuers send all challenges combined into a single header value, therefore we split up the challenges in WwwAuthenticateHeaderValueParser into separate entries
+							// see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/WWW-Authenticate
+							Map<String, String> extractChallenges = WwwAuthenticateHeaderValueParser.extractChallenges(authenticateValue);
+							for (var entry: extractChallenges.entrySet()) {
+								wwwHeaderArray.add(entry.getValue());
+							}
 						}
 
 						// simple match key=\"value\", assumes only 1 challenge per header value

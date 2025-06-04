@@ -3,7 +3,7 @@ package net.openid.conformance.vciid2issuer;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
-import net.openid.conformance.vciid2issuer.variant.OID4VCIServerMetadata;
+import net.openid.conformance.variant.VCIServerMetadata;
 
 public abstract class AbstractVciTest extends AbstractTestModule {
 
@@ -26,7 +26,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 	}
 
 	protected VCIFetchCredentialIssuerMetadataSequence createFetchCredentialIssuerMetadataSequence() {
-		return new VCIFetchCredentialIssuerMetadataSequence(getVariant(OID4VCIServerMetadata.class));
+		return new VCIFetchCredentialIssuerMetadataSequence(getVariant(VCIServerMetadata.class));
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {

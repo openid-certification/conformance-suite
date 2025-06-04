@@ -6,13 +6,13 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class VCIExtractNonceFromNonceResponse extends AbstractCondition {
+public class VCIValidateCredentialNonceResponse extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String nonceResponseJson = OIDFJSON.getString(env.getElementFromObject("endpoint_response", "body"));
-		JsonObject nonceResponseObject = JsonParser.parseString(nonceResponseJson).getAsJsonObject();
+		String nonceResponseBody = OIDFJSON.getString(env.getElementFromObject("endpoint_response", "body"));
+		JsonObject nonceResponseObject = JsonParser.parseString(nonceResponseBody).getAsJsonObject();
 		if (!nonceResponseObject.has("c_nonce")) {
 			throw error("Could not find c_nonce in NonceResponse", args("nonce_response", nonceResponseObject));
 		}
@@ -21,7 +21,7 @@ public class VCIExtractNonceFromNonceResponse extends AbstractCondition {
 
 		env.putString("vci", "c_nonce", cnonce);
 
-		logSuccess("Extracted nonce from NonceResponse", args("nonce", cnonce));
+		logSuccess("Found valid NonceResponse", args("nonce", cnonce, "nonce_response", nonceResponseObject));
 		return env;
 	}
 }
