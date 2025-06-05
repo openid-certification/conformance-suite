@@ -111,6 +111,59 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		makeAuthorizationRequest();
 	}
 
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		return switch (path) {
+			case ".well-known/openid-federation" -> entityConfigurationResponse();
+			case "list" -> listResponse();
+			case "jwks" -> clientJwksResponse();
+			default -> super.handleHttp(path, req, res, session, requestParts);
+		};
+	}
+
+	protected Object entityConfigurationResponse() {
+		boolean nonBlocking = true;
+		// TODO: Default to this
+		if (nonBlocking) {
+			env.mapKey("entity_configuration_claims", "server");
+			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
+			return NonBlocking.entityConfigurationResponse(env, getId());
+		}
+
+		setStatus(Status.RUNNING);
+
+		env.mapKey("entity_configuration_claims", "server");
+		callAndStopOnFailure(SignEntityStatementWithClientKeys.class);
+		env.unmapKey("entity_configuration_claims");
+		String entityConfiguration = env.getString("signed_entity_statement");
+
+		setStatus(Status.WAITING);
+
+		return ResponseEntity
+			.status(HttpStatus.OK)
+			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
+			.body(entityConfiguration);
+	}
+
+	protected Object listResponse() {
+		return new ResponseEntity<Object>(new JsonArray(), HttpStatus.OK);
+	}
+
+	protected Object clientJwksResponse() {
+		setStatus(Status.RUNNING);
+
+		JsonObject jwks = env.getObject("client_public_jwks");
+
+		setStatus(Status.WAITING);
+
+		return ResponseEntity
+			.status(HttpStatus.OK)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(jwks);
+	}
+
 	protected void makeAuthorizationRequest() {
 		buildRequestObject();
 		signRequestObject();
@@ -183,59 +236,6 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndStopOnFailure(CreateQueryParametersForAuthorizationRequest.class, Condition.ConditionResult.FAILURE);
 	}
 
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
-		env.putObject(requestId, requestParts);
-		return switch (path) {
-			case ".well-known/openid-federation" -> entityConfigurationResponse();
-			case "list" -> listResponse();
-			case "jwks" -> clientJwksResponse();
-			default -> super.handleHttp(path, req, res, session, requestParts);
-		};
-	}
-
-	protected Object entityConfigurationResponse() {
-		boolean nonBlocking = true;
-		// TODO: Default to this
-		if (nonBlocking) {
-			env.mapKey("entity_configuration_claims", "server");
-			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
-			return NonBlocking.entityConfigurationResponse(env, getId());
-		}
-
-		setStatus(Status.RUNNING);
-
-		env.mapKey("entity_configuration_claims", "server");
-		callAndStopOnFailure(SignEntityStatementWithClientKeys.class);
-		env.unmapKey("entity_configuration_claims");
-		String entityConfiguration = env.getString("signed_entity_statement");
-
-		setStatus(Status.WAITING);
-
-		return ResponseEntity
-			.status(HttpStatus.OK)
-			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
-			.body(entityConfiguration);
-	}
-
-	protected Object listResponse() {
-		return new ResponseEntity<Object>(new JsonArray(), HttpStatus.OK);
-	}
-
-	protected Object clientJwksResponse() {
-		setStatus(Status.RUNNING);
-
-		JsonObject jwks = env.getObject("client_public_jwks");
-
-		setStatus(Status.WAITING);
-
-		return ResponseEntity
-			.status(HttpStatus.OK)
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(jwks);
-	}
-
 	/**
 	 * Do generic checks on an error response from the authorization endpoint
 	 *
@@ -303,6 +303,5 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected void onPostAuthorizationFlowComplete() {
 		fireTestFinished();
 	}
-
 
 }
