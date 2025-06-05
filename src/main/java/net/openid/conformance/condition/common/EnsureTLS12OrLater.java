@@ -72,10 +72,14 @@ public class EnsureTLS12OrLater extends AbstractCondition {
 	}
 
 	protected TlsClient createTlsClient(String tlsTestHost) {
-		return new FAPITLSClient(tlsTestHost, useOnlyFAPICiphers(), getAllowedProtocolVersions());
+		return new FAPITLSClient(tlsTestHost, useOnlyFAPICiphers(), useBCP195Ciphers(), getAllowedProtocolVersions());
 	}
 
 	protected boolean useOnlyFAPICiphers() {
+		return false;
+	}
+
+	protected boolean useBCP195Ciphers() {
 		return false;
 	}
 
