@@ -4,6 +4,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.gen.JWKGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -13,6 +15,7 @@ import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivate
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
+import net.openid.conformance.condition.client.AbstractGenerateKey;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
@@ -161,8 +164,10 @@ import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequ
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -194,6 +199,11 @@ import net.openid.conformance.vciid2issuer.condition.VCISelectOAuthorizationServ
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.variant.VCIServerMetadata;
+import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToParEndpointRequest;
+import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToTokenEndpointRequest;
+import net.openid.conformance.vciid2issuer.condition.clientattestation.CreateClientAttestationJwt;
+import net.openid.conformance.vciid2issuer.condition.clientattestation.CreateClientAttestationProofJwt;
+import net.openid.conformance.vciid2issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Arrays;
@@ -225,6 +235,7 @@ import java.util.function.Supplier;
 	"client2.scope"})
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {"resource.richAuthorizationRequest",})
 @VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attester_keys_jwks",})
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -236,6 +247,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Boolean profileRequiresMtlsEverywhere;
 	protected Boolean useDpopAuthCodeBinding;
 	protected Boolean isRarRequest;
+
+	protected ClientAuthType clientAuthType;
 
 	protected VCIGrantType vciGrantType;
 	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
@@ -309,6 +322,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
 		useDpopAuthCodeBinding = false;
 
+		clientAuthType = getVariant(ClientAuthType.class);
+
 		vciGrantType = getVariant(VCIGrantType.class);
 		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
 
@@ -351,6 +366,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		configureClient();
 		setupResourceEndpoint();
 
+		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
+			generateClientAttestationKeys();
+		}
+
 		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(getVariant(VCIServerMetadata.class));
 
 		// Perform any custom configuration
@@ -382,7 +401,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		exposeEnvString("client_id");
 
-		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
@@ -398,7 +417,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
-		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
@@ -480,7 +499,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 
-		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
@@ -553,8 +572,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				callAndStopOnFailure(BuildUnsignedPAREndpointRequest.class);
 			}
 
+			if (env.getObject("pushed_authorization_request_endpoint_request_headers") == null) {
+				env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
+			}
+			env.mapKey("request_headers", "pushed_authorization_request_endpoint_request_headers");
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
+			env.unmapKey("request_headers");
 		} else {
 			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 			buildRedirect();
@@ -756,7 +780,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
+		if (env.getObject("token_endpoint_request_headers") == null) {
+			env.putObject("token_endpoint_request_headers", new JsonObject());
+		}
+		env.mapKey("request_headers", "token_endpoint_request_headers");
 		addClientAuthenticationToTokenEndpointRequest();
+		env.unmapKey("request_headers");
 
 		addPkceCodeVerifier();
 	}
@@ -1221,6 +1250,22 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest.class;
 	}
 
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	public void setupClientAttestation() {
+		addTokenEndpointClientAuthentication = AddClientAttestationHeaderToTokenEndpointRequest.class;
+		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
+			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+		}
+		addParEndpointClientAuthentication = AddClientAttestationHeaderToParEndpointRequest.class;
+	}
+
+	protected void generateClientAttestationKeys() {
+		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
+		callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
+
+		callAndStopOnFailure(CreateClientAttestationProofJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
+	}
+
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
@@ -1319,7 +1364,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
 		// there's no need to pass mtls auth when using private_key_jwt
-		boolean mtlsRequired = getVariant(ClientAuthType.class) == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		JsonObject mtls = null;
 		if (!mtlsRequired) {

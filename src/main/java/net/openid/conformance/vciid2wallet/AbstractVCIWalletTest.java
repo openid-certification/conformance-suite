@@ -93,7 +93,6 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
-import net.openid.conformance.condition.as.VCIGenerateCredentialIssuerMetadata;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
@@ -106,6 +105,7 @@ import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.as.VCIGenerateCredentialIssuerMetadata;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerAsString;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -220,6 +220,7 @@ import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialReques
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vciid2wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
+import net.openid.conformance.vciid2wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -415,7 +416,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(AddDpopSigningAlgValuesSupportedToServerConfiguration.class, "DPOP-5.1");
 		}
 
-		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
+		if (addTokenEndpointAuthMethodSupported != null) {
+			callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
+		}
 		call(sequence(AddPARToServerConfiguration.class));
 
 		if(configureResponseModeSteps!=null) {
@@ -1896,6 +1899,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	public void setupClientAttestation() {
+		addTokenEndpointAuthMethodSupported = null;
+		validateClientAuthenticationSteps = VCIValidateClientAuthenticationWithClientAttestationJWT.class;
 	}
 
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")
