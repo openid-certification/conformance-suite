@@ -40,7 +40,7 @@ import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLogin
 import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
 import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.condition.common.CreateRandomRegistrationClientUri;
-import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.RequireBearerRegistrationAccessToken;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -110,7 +110,7 @@ public class FAPI2SPFinalBrazilClientDCRHappyPathTest extends AbstractFAPI2SPFin
 
 			call(exec().mapKey("client_request", requestId));
 
-			callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
+			callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
 
 			call(exec().unmapKey("client_request"));
 
@@ -158,7 +158,7 @@ public class FAPI2SPFinalBrazilClientDCRHappyPathTest extends AbstractFAPI2SPFin
 		call(exec().startBlock("Registration endpoint").mapKey("incoming_request", requestId));
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
 		callAndContinueOnFailure(FAPIBrazilValidateRegistrationClientUriQueryParams.class, Condition.ConditionResult.WARNING, "OIDCR-3.2", "OIDCR-4.1");
 
 

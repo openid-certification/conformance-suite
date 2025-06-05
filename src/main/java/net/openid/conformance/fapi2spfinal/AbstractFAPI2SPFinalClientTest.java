@@ -140,7 +140,7 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
-import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
+import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -558,7 +558,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
 
 		call(exec().unmapKey("client_request"));
 
@@ -639,7 +639,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		call(exec().mapKey("client_request", requestId));
 
-		callAndContinueOnFailure(EnsureIncomingTls12WithSecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(EnsureIncomingTls12WithBCP195SecureCipherOrTls13.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3", "FAPI2-SP-FINAL-5.2.1-3");
 
 		call(exec().unmapKey("client_request"));
 
