@@ -16,10 +16,10 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromToken
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.condition.common.CheckForBCP195InsecureFAPICiphers;
-import net.openid.conformance.condition.common.DisallowInsecureCipher;
-import net.openid.conformance.condition.common.DisallowTLS10;
-import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
+import net.openid.conformance.condition.common.RequireOnlyBCP195RecommendedCiphersForTLS12;
+import net.openid.conformance.condition.common.DisallowTLS10RequireBCP195Ciphers;
+import net.openid.conformance.condition.common.DisallowTLS11RequireBCP195Ciphers;
+import net.openid.conformance.condition.common.EnsureTLS12RequireBCP195Ciphers;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -76,32 +76,32 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 
 		eventLog.startBlock("Authorization endpoint TLS test");
 		env.mapKey("tls", "authorization_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
+		callAndContinueOnFailure(DisallowTLS10RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(DisallowTLS11RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 		// additional ciphers are allowed on the authorization endpoint
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2");
+		callAndContinueOnFailure(EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
+		callAndContinueOnFailure(DisallowTLS10RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(DisallowTLS11RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2");
 		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5", "RFC9325A-A", "RFC9325-4.2");
 
 		eventLog.startBlock("Userinfo Endpoint TLS test");
 		env.mapKey("tls", "userinfo_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2");
 
 		eventLog.startBlock("Registration Endpoint TLS test");
 		env.mapKey("tls", "registration_endpoint_tls");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS10RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, DisallowTLS11RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		skipIfMissing(new String[] {"tls"}, null, Condition.ConditionResult.INFO, RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2");
 
 		eventLog.endBlock();
 		env.unmapKey("tls");

@@ -44,7 +44,7 @@ public abstract class AbstractDisallowTLSVersion extends AbstractCondition {
 
 				TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream());
 
-				TlsClient client = new FAPITLSClient(tlsTestHost, false, getDisallowedProtocol());
+				TlsClient client = new FAPITLSClient(tlsTestHost, false, useBCP195Ciphers(),  getDisallowedProtocol());
 
 				protocol.connect(client);
 
@@ -90,5 +90,9 @@ public abstract class AbstractDisallowTLSVersion extends AbstractCondition {
 			}
 		}
 
+	}
+
+	protected boolean useBCP195Ciphers() {
+		return false;
 	}
 }
