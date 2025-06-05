@@ -38,9 +38,6 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	@Override
-	protected void processCallback() { }
-
-	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
@@ -78,6 +75,9 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
+
+	@Override
+	protected void processCallback() { }
 
 	protected Object entityConfigurationResponse(String mapKey, Class<? extends Condition> signCondition) {
 		setStatus(Status.RUNNING);
