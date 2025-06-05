@@ -12,7 +12,8 @@ public enum ClientAuthType {
 	CLIENT_SECRET_POST,
 	CLIENT_SECRET_JWT,
 	PRIVATE_KEY_JWT,
-	MTLS;
+	MTLS,
+	CLIENT_ATTESTATION;
 
 	@Override
 	public String toString() {
