@@ -508,6 +508,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void waitForCredentialOffer() {
+		expose("credential_offer_endpoint", env.getString("base_url") + "/credential_offer");
 		setStatus(Status.WAITING);
 	}
 
