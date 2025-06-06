@@ -101,7 +101,6 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	@VariantSetup(parameter = ClientRegistration.class, value = "automatic")
 	public void setupPrivateKeyJwt() {
 		profileStaticClientConfiguration = AbstractOIDCCServerTest.ConfigureStaticClientForPrivateKeyJwt.class;
-		//profileCompleteClientConfiguration = () -> new AbstractOIDCCServerTest.ConfigureClientForPrivateKeyJwt(serverSupportsDiscovery);
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
 	}
 
