@@ -1,10 +1,12 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.springframework.http.HttpMethod;
@@ -22,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 		"client.jwks",
 		"client.trust_chain",
 		"federation.entity_identifier",
+		"federation.entity_identifier_host_override",
 		"federation.trust_anchor",
 		"federation.trust_anchor_jwks",
 		"federation.authority_hints",
@@ -54,6 +57,12 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+
+		String hostOverride = OIDFJSON.getString(config.get("federation").getAsJsonObject().get("entity_identifier_host_override"));
+		if (!Strings.isNullOrEmpty(hostOverride)) {
+			baseUrl = EntityUtils.replaceHostnameInUrl(baseUrl, hostOverride);
+		}
+
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
