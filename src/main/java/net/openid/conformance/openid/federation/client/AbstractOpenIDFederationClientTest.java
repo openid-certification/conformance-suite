@@ -25,7 +25,6 @@ public abstract class AbstractOpenIDFederationClientTest extends AbstractOpenIDF
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
-		//clientRegistrationSteps = OIDCCRegisterClientWithPrivateKeyJwt.class;
 	}
 
 }
