@@ -1487,6 +1487,18 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Authorization Server URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full issuer URL for the OAuth2 Authorization Server. When this is not set, the testsuite will use the discoveryIssuer as authorizationServer, otherwise when this is set the testsuite will use this authorization server to obtain an access_token for the tests."></span>
+                                            </div>
+                                            <input type="url" class="form-control config-form-element" data-json-target="vci.authorization_server"></input>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="config-form-container">
