@@ -92,12 +92,7 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 	}
 
 	protected String getIssuer(Environment env) {
-		String serverIssuer = env.getString("config", "server.discoveryIssuer");
-		if (serverIssuer != null && !serverIssuer.endsWith("/")) {
-			// FIXME: add trailing slash to issuer, as testsuite requires it
-			serverIssuer += "/";
-		}
-		return serverIssuer;
+		return env.getString("config", "server.discoveryIssuer");
 	}
 
 	protected String getCNonce(Environment env) {
