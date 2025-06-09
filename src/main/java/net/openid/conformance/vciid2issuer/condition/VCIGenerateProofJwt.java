@@ -46,7 +46,6 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			String cNonce = getCNonce(env);
 			int proofLifetimeSeconds = getProofLifetimeSeconds(); //
-			String walletKeyId = jwk.getKeyID();
 
 			// Ensure the key uses the correct curve
 			if (!Curve.P_256.equals(ecKey.getCurve())) {
@@ -57,7 +56,7 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
 				.type(new JOSEObjectType("openid4vci-proof+jwt"))
-				.keyID(walletKeyId)
+				.jwk(jwk.toPublicJWK())
 				.build();
 
 			Instant now = Instant.now();
@@ -92,12 +91,7 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 	}
 
 	protected String getIssuer(Environment env) {
-		String serverIssuer = env.getString("config", "server.discoveryIssuer");
-		if (serverIssuer != null && !serverIssuer.endsWith("/")) {
-			// FIXME: add trailing slash to issuer, as testsuite requires it
-			serverIssuer += "/";
-		}
-		return serverIssuer;
+		return env.getString("vci", "credential_issuer_metadata.credential_issuer");
 	}
 
 	protected String getCNonce(Environment env) {

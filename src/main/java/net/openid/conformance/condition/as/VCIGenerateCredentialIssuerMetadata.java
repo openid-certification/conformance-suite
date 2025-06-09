@@ -64,6 +64,7 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
 		env.putObject("credential_issuer_metadata", metadataJson);
 
+		env.putString("credential_issuer", credentialIssuer);
 		env.putString("credential_issuer_metadata_url", baseUrl + ".well-known/openid-credential-issuer");
 		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
 		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
