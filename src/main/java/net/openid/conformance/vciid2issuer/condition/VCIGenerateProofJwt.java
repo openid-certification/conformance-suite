@@ -57,7 +57,8 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
 				.type(new JOSEObjectType("openid4vci-proof+jwt"))
-				.keyID(walletKeyId)
+				// .keyID(walletKeyId)
+				.jwk(jwk.toPublicJWK())
 				.build();
 
 			Instant now = Instant.now();
@@ -92,7 +93,7 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 	}
 
 	protected String getIssuer(Environment env) {
-		return env.getString("config", "server.discoveryIssuer");
+		return env.getString("vci", "credential_issuer_metadata.credential_issuer");
 	}
 
 	protected String getCNonce(Environment env) {

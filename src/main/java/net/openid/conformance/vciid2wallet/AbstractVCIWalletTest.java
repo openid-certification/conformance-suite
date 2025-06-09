@@ -431,6 +431,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		exposeEnvString("issuer");
 
 		callAndStopOnFailure(new VCIGenerateCredentialIssuerMetadata(isMTLSConstrain()));
+		exposeEnvString("credential_issuer");
 		exposeEnvString("credential_issuer_metadata_url");
 		exposeEnvString("credential_issuer_nonce_endpoint_url");
 		exposeEnvString("credential_issuer_credential_endpoint_url");
