@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -77,6 +78,7 @@ import java.util.Set;
 		"federation.immediate_subordinates",
 		"federation_trust_anchor.immediate_subordinates",
 		"federation_trust_anchor.trust_anchor_jwks",
+		"federation.entity_identifier_host_override",
 		"client.entity_identifier",
 		"client.trust_anchor",
 		"client.jwks",
@@ -93,6 +95,12 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+
+		String hostOverride = OIDFJSON.getString(config.get("federation").getAsJsonObject().get("entity_identifier_host_override"));
+		if (!Strings.isNullOrEmpty(hostOverride)) {
+			baseUrl = EntityUtils.replaceHostnameInUrl(baseUrl, hostOverride);
+		}
+
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
