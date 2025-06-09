@@ -27,6 +27,7 @@ import java.util.Map;
 		FAPI1AdvancedFinalEnsureDifferentNonceInsideAndOutsideRequestObject.class,
 		FAPI1AdvancedFinalEnsureRegisteredRedirectUri.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithLongNonce.class,
+		FAPI1AdvancedFinalEnsureRequestObjectWith64CharNonceSuccess.class,
 		FAPI1AdvancedFinalEnsureRequestObjectWithLongState.class,
 
 		// Negative tests for request objects
