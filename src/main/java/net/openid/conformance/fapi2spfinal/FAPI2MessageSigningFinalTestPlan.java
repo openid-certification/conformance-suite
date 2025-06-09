@@ -23,6 +23,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalEnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPI2SPFinalEnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPI2SPFinalEnsureAuthorizationRequestWithoutNonceSuccess.class,
+		FAPI2SPFinalEnsureRequestObjectWith64CharNonceSuccess.class,
 		FAPI2SPFinalEnsureOtherScopeOrderSucceeds.class,
 		FAPI2SPFinalTestClaimsParameterIdentityClaims.class,
 		FAPI2SPFinalAccessTokenTypeHeaderCaseSensitivity.class,

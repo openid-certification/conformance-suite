@@ -23,6 +23,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		FAPI2SPID2EnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPI2SPID2EnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPI2SPID2EnsureAuthorizationRequestWithoutNonceSuccess.class,
+		FAPI2SPID2EnsureRequestObjectWith64CharNonceSuccess.class,
 		FAPI2SPID2EnsureOtherScopeOrderSucceeds.class,
 		FAPI2SPID2TestClaimsParameterIdentityClaims.class,
 		FAPI2SPID2AccessTokenTypeHeaderCaseSensitivity.class,
