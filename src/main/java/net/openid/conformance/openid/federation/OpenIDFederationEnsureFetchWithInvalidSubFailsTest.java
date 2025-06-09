@@ -16,7 +16,7 @@ import java.util.UUID;
 				"federation.trust_anchor_jwks"
 		}
 )
-public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {

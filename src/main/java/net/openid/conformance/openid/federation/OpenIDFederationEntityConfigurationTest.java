@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"federation.entity_identifier"
 	}
 )
-public class OpenIDFederationEntityConfigurationTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationEntityConfigurationTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {
