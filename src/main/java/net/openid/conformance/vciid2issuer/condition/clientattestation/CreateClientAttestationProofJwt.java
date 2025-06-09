@@ -1,7 +1,5 @@
 package net.openid.conformance.vciid2issuer.condition.clientattestation;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;

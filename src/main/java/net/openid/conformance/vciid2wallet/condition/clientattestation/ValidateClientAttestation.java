@@ -2,15 +2,8 @@ package net.openid.conformance.vciid2wallet.condition.clientattestation;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.jwk.JWKSet;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.client.AbstractVerifyJwsSignature;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.JWKUtil;
-import net.openid.conformance.util.JWTUtil;
-
-import java.text.ParseException;
 
 public class ValidateClientAttestation extends AbstractVerifyJwsSignature {
 
