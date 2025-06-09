@@ -65,6 +65,7 @@ import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuth
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -507,6 +508,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void waitForCredentialOffer() {
+		expose("credential_offer_endpoint", env.getString("base_url") + "/credential_offer");
 		setStatus(Status.WAITING);
 	}
 
@@ -1125,7 +1127,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndStopOnFailure(new EnsureHttpStatusCode(202), ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
+
+		// TODO Use HTTP status code 200 for directly issued credentials and 202 for deferred credentials
+		// Wording in ID2 Draft 15 says always 202, but that was a mistake see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-8.3
+		// Fixed: here https://github.com/openid/OpenID4VCI/pull/490
+		callAndStopOnFailure(new EnsureHttpStatusCodeIsAnyOf(200,202), ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
 		callAndContinueOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
 		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-ID2-8.3");
 
