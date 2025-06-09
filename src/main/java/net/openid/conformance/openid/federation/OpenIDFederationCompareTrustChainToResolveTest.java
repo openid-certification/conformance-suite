@@ -25,7 +25,7 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 		"federation.trust_anchor_jwks",
 	}
 )
-public class OpenIDFederationCompareTrustChainToResolveTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationCompareTrustChainToResolveTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {
