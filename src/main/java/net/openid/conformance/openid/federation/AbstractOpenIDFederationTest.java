@@ -2,7 +2,6 @@ package net.openid.conformance.openid.federation;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureNotFoundError;
@@ -35,45 +34,6 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 	protected boolean opToRpMode() {
 		return "true".equals(env.getString("config", "internal.op_to_rp_mode"));
-	}
-
-	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
-		env.putString("base_url", baseUrl);
-		env.putString("base_mtls_url", baseMtlsUrl);
-		env.putObject("config", config);
-
-		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-		skipIfElementMissing("config", "federation.trust_anchor", Condition.ConditionResult.INFO,
-			ValidateTrustAnchor.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-
-		String entityIdentifier = env.getString("config", "federation.entity_identifier");
-		eventLog.startBlock("Retrieve Entity Configuration for %s".formatted(entityIdentifier));
-
-		callAndStopOnFailure(ExtractEntityIdentiferFromConfig.class, Condition.ConditionResult.FAILURE);
-
-		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
-			// This case is perhaps not applicable in the general case,
-			// but f ex the leaf entities in the Swedish sandbox federation
-			// do not publish their own entity configurations.
-			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
-		} else {
-			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
-			validateEntityStatementResponse();
-		}
-		eventLog.endBlock();
-
-		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
-		if (ServerMetadata.DISCOVERY.equals(getVariant(ServerMetadata.class))) {
-			validateEntityStatement();
-		}
-		callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
-
-		additionalConfiguration();
-
-		setStatus(Status.CONFIGURED);
-		fireSetupDone();
 	}
 
 	@Override

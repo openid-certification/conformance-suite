@@ -16,7 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"federation.trust_anchor_jwks"
 	}
 )
-public class OpenIDFederationEnsureFetchWithIssAsSubFailsTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationEnsureFetchWithIssAsSubFailsTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {
