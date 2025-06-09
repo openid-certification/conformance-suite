@@ -13,6 +13,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 
 import java.time.Instant;
@@ -26,7 +27,7 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 		String jwt = env.getString("proof_jwt", "value");
-		String audience = env.getString("server", "issuer");
+		String audience = OIDFJSON.getString(env.getElementFromObject("credential_issuer_metadata","credential_issuer"));
 
 		try {
 			JWKSet publicKeysJwks = JWKUtil.parseJWKSet(env.getObject("client_jwks").toString());
@@ -51,18 +52,7 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 			}
 			log("Found expected proof jwt algorithm", args("algorithm", header.getAlgorithm()));
 
-			// TODO add support to check jwk, see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2.1.1
-			if (header.getKeyID() == null || header.getKeyID().isEmpty()) {
-				throw error("JWT proof validation failed: Missing Key ID (kid) in header", args("jwt", jwt));
-			}
-
-			// TODO add support to detect key via jwk header
-			// 2. Find the Wallet's Public Key using 'kid'
-			JWK walletPublicKey = publicKeysJwks.getKeyByKeyId(header.getKeyID());
-			if (walletPublicKey == null) {
-				throw error("JWT proof validation failed: Public key not found for kid: " + header.getKeyID(), args("jwt", jwt, "publicKeysJwks", publicKeysJwks));
-			}
-			log("Found public key", args("kid", header.getKeyID()));
+			JWK walletPublicKey = extractPublicJwkFromProofJWTHeader(header, jwt, publicKeysJwks);
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
 				throw error("JWT proof validation failed: Key found but is not an ECKey for kid: " + header.getKeyID());
@@ -127,5 +117,29 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 		}
 
 		return env;
+	}
+
+	protected JWK extractPublicJwkFromProofJWTHeader(JWSHeader header, String jwt, JWKSet publicKeysJwks) {
+
+		// 1. try to detect key via jwk header
+		// see: check jwk, see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2.1.1
+		if (header.getJWK() != null) {
+			JWK jwk = header.getJWK().toPublicJWK();
+			log("Found public key in jwk header", args("jwk", jwk));
+			return jwk;
+		}
+
+		// 2. Find the Wallet's Public Key using 'kid'
+		if (header.getKeyID() == null || header.getKeyID().isEmpty()) {
+			throw error("JWT proof validation failed: Missing Key ID (kid) in header", args("jwt", jwt));
+		}
+
+		JWK walletPublicKey = publicKeysJwks.getKeyByKeyId(header.getKeyID());
+		if (walletPublicKey == null) {
+			throw error("JWT proof validation failed: Public key not found for kid: " + header.getKeyID(), args("jwt", jwt, "publicKeysJwks", publicKeysJwks));
+		}
+
+		log("Found public key by kid", args("kid", header.getKeyID()));
+		return walletPublicKey;
 	}
 }
