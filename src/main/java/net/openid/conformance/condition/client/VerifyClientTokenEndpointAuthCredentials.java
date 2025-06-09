@@ -11,22 +11,20 @@ public class VerifyClientTokenEndpointAuthCredentials extends AbstractCondition 
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String authMethod = env.getString("dynamic_registration_request", "token_endpoint_auth_method");
-
 		JsonObject clientObject = env.getObject("client");
 		JsonElement clientSecretEl = clientObject.get("client_secret");
 
 		if (clientSecretEl == null) {
-			log("Skipped check for valid credential information for token_endpoint_auth_method in client registration response", args("token_endpoint_auth_method", authMethod));
+			log("Skipped check for valid credential information for token_endpoint_auth_method in client registration response");
 		} else {
 			String clientSecret = OIDFJSON.getString(clientSecretEl);
 			JsonElement clientSecretExpiresAtEl = clientObject.get("client_secret_expires_at");
 			Long clientSecretExpiresAt = clientSecretExpiresAtEl == null ? null : OIDFJSON.getLong(clientSecretExpiresAtEl);
 			if (clientSecretExpiresAt == null) {
-				throw error("Missing client_secret_expires_at for token_endpoint_auth_method in client registration response", args("token_endpoint_auth_method", authMethod));
+				throw error("Missing client_secret_expires_at for token_endpoint_auth_method in client registration response");
 			}
 
-			logSuccess("Found required credential information for token_endpoint_auth_method in client registration response", args("token_endpoint_auth_method", authMethod,
+			logSuccess("Found required credential information for token_endpoint_auth_method in client registration response", args(
 					"client_secret", clientSecret, "client_secret_expires_at", clientSecretExpiresAt));
 		}
 
