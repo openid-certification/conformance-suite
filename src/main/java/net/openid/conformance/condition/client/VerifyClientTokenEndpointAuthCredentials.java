@@ -14,10 +14,6 @@ public class VerifyClientTokenEndpointAuthCredentials extends AbstractCondition 
 		String authMethod = env.getString("dynamic_registration_request", "token_endpoint_auth_method");
 
 		JsonObject clientObject = env.getObject("client");
-		if (clientObject == null) {
-			throw error("Missing 'client' object");
-		}
-
 		JsonElement clientSecretEl = clientObject.get("client_secret");
 
 		if (clientSecretEl == null) {
