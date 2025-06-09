@@ -383,6 +383,7 @@ makeServerTest() {
     SIMPLE="authorization_request_type=simple"
     PRIVATE_KEY="client_auth_type=private_key_jwt"
     MTLSAUTH="client_auth_type=mtls"
+    CLIATTAUTH="client_auth_type=client_attestation"
     UNSIGNED="fapi_request_method=unsigned"
     MTLSAT="sender_constrain=mtls"
     DPOP="sender_constrain=dpop"
@@ -396,6 +397,8 @@ makeServerTest() {
     TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$MTLSAT][$PLAINFAPI][$PLAINRESP]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$MTLSAT][$PLAINFAPI][$PLAINRESP][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
         # client_auth=mtls, sender_constrain=dpop
     TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-mtls-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
+        # client_auth=client_attestation, sender_constrain=dpop
+    TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
 }
 
 makeCIBATest() {

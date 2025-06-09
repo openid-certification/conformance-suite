@@ -196,7 +196,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.AuthorizationRequestType;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -206,9 +205,9 @@ import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
-import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vciid2issuer.VCIID2ClientAuthType;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
@@ -229,7 +228,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
 @VariantParameters({
-	ClientAuthType.class,
+	VCIID2ClientAuthType.class,
 	FAPI2ID2OPProfile.class,
 	FAPIResponseMode.class,
 	FAPI2AuthRequestMethod.class,
@@ -238,9 +237,6 @@ import org.springframework.web.servlet.view.RedirectView;
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
 	VCICredentialOfferParameterVariant.class,
-})
-@VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
@@ -292,7 +288,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected FAPIResponseMode responseMode;
 
-	protected ClientAuthType clientAuthType;
+	protected VCIID2ClientAuthType clientAuthType;
 
 	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
 
@@ -357,7 +353,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		profile = getVariant(FAPI2ID2OPProfile.class);
 		responseMode = getVariant(FAPIResponseMode.class);
-		clientAuthType = getVariant(ClientAuthType.class);
+		clientAuthType = getVariant(VCIID2ClientAuthType.class);
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
@@ -666,7 +662,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				throw new TestFailureException(getId(), "In this ecosystem, the PAR endpoint must be called over an mTLS " +
 					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
 			}
-			if (clientAuthType == ClientAuthType.MTLS) {
+			if (clientAuthType == VCIID2ClientAuthType.MTLS) {
 				throw new TestFailureException(getId(), "The PAR endpoint must be called over an mTLS secured connection when using MTLS client authentication.");
 			}
 			return parEndpoint(requestId);
@@ -1182,14 +1178,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		if(clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
+		if(clientAuthType == VCIID2ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
 			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
 			// required to bind the issued access token to.)
 			checkMtlsCertificate();
 		}
 
-		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+		if(clientAuthType == VCIID2ClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
 				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2")).then(condition(ValidateClientAssertionAudClaimIsIssuerAsString.class).onFail(ConditionResult.FAILURE).requirements("FAPI2-SP-ID2-5.3.2.1-5").dontStopOnFailure())
 			);
@@ -1319,11 +1315,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		if (clientAuthType == ClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
+		if (clientAuthType == VCIID2ClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
 		}
 
-		if(clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+		if(clientAuthType == VCIID2ClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
 				then(condition(ValidateClientAssertionAudClaimIsIssuerAsString.class).onFail(ConditionResult.FAILURE).requirements("FAPI2-SP-ID2-5.3.2.1-5").dontStopOnFailure())
 			);
@@ -1889,19 +1885,19 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		return responseEntity;
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
+	@VariantSetup(parameter = VCIID2ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
+	@VariantSetup(parameter = VCIID2ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	@VariantSetup(parameter = VCIID2ClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
 		addTokenEndpointAuthMethodSupported = null;
 		validateClientAuthenticationSteps = VCIValidateClientAuthenticationWithClientAttestationJWT.class;

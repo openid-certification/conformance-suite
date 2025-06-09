@@ -26,7 +26,7 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String issuer = env.getString("server","issuer");
+		String issuer = env.getString("client_attestation","issuer");
 		String clientId = env.getString("client", "client_id");
 
 		String clientAttestationKey = env.getString("vci", "client_attestation_key");
@@ -39,7 +39,6 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 		}
 
 		String keyId = env.getString("vci","client_attestation_key_id");
-
 
 		JWSHeader.Builder headerBuilder = new JWSHeader //
 			.Builder(JWSAlgorithm.ES256) //

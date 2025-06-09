@@ -43,7 +43,6 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("iss", clientId);
-		claims.put("sub", clientId);
 
 		Instant iat = Instant.now();
 		Instant exp = getExp(iat);
@@ -53,7 +52,8 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 		claims.put("exp", exp.getEpochSecond());
 		claims.put("aud", issuer);
 		claims.put("jti", UUID.randomUUID().toString());
-		claims.put("nonce", UUID.randomUUID().toString());
+		// TODO add support for nonce retrieval https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-05#section-8
+		// claims.put("nonce", nonce);
 
 		JWTClaimsSet claimsSet;
 		try {
@@ -64,7 +64,7 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 
 		SignedJWT jwt = new SignedJWT(header, claimsSet);
 
-		JWSSigner signer = null;
+		JWSSigner signer;
 		try {
 			signer = new ECDSASigner((ECKey) clientAttestationKeyJwk); // FIXME need to cope with RSA too
 			jwt.sign(signer);
