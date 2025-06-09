@@ -21,7 +21,7 @@ import static net.openid.conformance.openid.federation.EntityUtils.appendWellKno
 		"federation.trust_anchor_jwks"
 	}
 )
-public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationListAndFetchTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {

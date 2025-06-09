@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,8 +35,10 @@ import net.openid.conformance.openid.federation.client.GenerateEntityConfigurati
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -62,6 +65,51 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected abstract void verifyTestConditions();
 
 	protected abstract void redirect(HttpMethod method);
+
+	@Override
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+
+		String hostOverride = OIDFJSON.getString(config.get("federation").getAsJsonObject().get("entity_identifier_host_override"));
+		if (!Strings.isNullOrEmpty(hostOverride)) {
+			baseUrl = EntityUtils.replaceHostnameInUrl(baseUrl, hostOverride);
+		}
+
+		env.putString("base_url", baseUrl);
+		env.putString("base_mtls_url", baseMtlsUrl);
+		env.putObject("config", config);
+
+		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		skipIfElementMissing("config", "federation.trust_anchor", Condition.ConditionResult.INFO,
+			ValidateTrustAnchor.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+
+		String entityIdentifier = env.getString("config", "federation.entity_identifier");
+		eventLog.startBlock("Retrieve Entity Configuration for %s".formatted(entityIdentifier));
+
+		callAndStopOnFailure(ExtractEntityIdentiferFromConfig.class, Condition.ConditionResult.FAILURE);
+
+		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
+			// This case is perhaps not applicable in the general case,
+			// but f ex the leaf entities in the Swedish sandbox federation
+			// do not publish their own entity configurations.
+			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
+		} else {
+			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+			validateEntityStatementResponse();
+		}
+		eventLog.endBlock();
+
+		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+		if (ServerMetadata.DISCOVERY.equals(getVariant(ServerMetadata.class))) {
+			validateEntityStatement();
+		}
+		callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
+
+		additionalConfiguration();
+
+		setStatus(Status.CONFIGURED);
+		fireSetupDone();
+	}
 
 	@Override
 	public void additionalConfiguration() {
