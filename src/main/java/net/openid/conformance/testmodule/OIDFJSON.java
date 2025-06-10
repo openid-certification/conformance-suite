@@ -89,6 +89,13 @@ public final class OIDFJSON {
 		return json.getAsString();
 	}
 
+	public static String getStringOrNull(JsonElement json) {
+		if (json == null) {
+			return null;
+		}
+		return getString(json);
+	}
+
 	public static boolean getBoolean(JsonElement json) {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isBoolean()) {
 			throw new UnexpectedJsonTypeException("getBoolean called on something that is not a boolean: " + json);
