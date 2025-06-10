@@ -176,11 +176,11 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vciid2issuer.condition.VCIAddIssuerStateToAuthorizationRequest;
+import net.openid.conformance.vciid2issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vciid2issuer.condition.VCICheckCacheControlHeaderInResponse;
 import net.openid.conformance.vciid2issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
-import net.openid.conformance.vciid2issuer.condition.VCIExtractIssuerStateFromCredentialOffer;
+import net.openid.conformance.vciid2issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
@@ -477,7 +477,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCIExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1.1");
+			callAndStopOnFailure(VCITryToExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1.1");
+			// TODO add support for deriving authorization_server to use from credential offer,
+			//  see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-4.1.1-5.1.2.2
 		}
 	}
 
@@ -643,7 +645,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 				if (vciAuthorizationCodeFlowVariant == VCIAuthorizationCodeFlowVariant.ISSUER_INITIATED) {
-					callAndStopOnFailure(VCIAddIssuerStateToAuthorizationRequest.class);
+					callAndStopOnFailure(VCITryAddingIssuerStateToAuthorizationRequest.class);
 				}
 			}
 		}
