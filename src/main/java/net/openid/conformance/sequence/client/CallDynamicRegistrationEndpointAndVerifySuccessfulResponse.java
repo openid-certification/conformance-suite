@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.ExtractDynamicRegistrationResponse;
 import net.openid.conformance.condition.client.VerifyClientManagementCredentials;
+import net.openid.conformance.condition.client.VerifyDynamicRegistrationResponseClientCredentials;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 public class CallDynamicRegistrationEndpointAndVerifySuccessfulResponse extends AbstractConditionSequence {
@@ -22,6 +23,7 @@ public class CallDynamicRegistrationEndpointAndVerifySuccessfulResponse extends 
 		callAndContinueOnFailure(CheckNoErrorFromDynamicRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 		callAndStopOnFailure(ExtractDynamicRegistrationResponse.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 		callAndContinueOnFailure(VerifyClientManagementCredentials.class, Condition.ConditionResult.FAILURE, "OIDCR-3.2");
+		callAndContinueOnFailure(VerifyDynamicRegistrationResponseClientCredentials.class,  Condition.ConditionResult.FAILURE, "OIDCR-3.2");
 
 		call(exec().unmapKey("endpoint_response"));
 	}
