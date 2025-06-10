@@ -58,7 +58,7 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 
-		String hostOverride = OIDFJSON.getString(config.get("federation").getAsJsonObject().get("entity_identifier_host_override"));
+		String hostOverride = OIDFJSON.getStringOrNull(config.get("federation").getAsJsonObject().get("entity_identifier_host_override"));
 		if (!Strings.isNullOrEmpty(hostOverride)) {
 			baseUrl = EntityUtils.replaceHostnameInUrl(baseUrl, hostOverride);
 		}
