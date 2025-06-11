@@ -43,13 +43,15 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 
 		String metadata = TemplateProcessor.process("""
 		{
-		  "credential_issuer": "$(credentialIssuer)",
-		  "credential_endpoint": "$(credentialEndpoint)",
-		  "nonce_endpoint": "$(nonceEndpoint)",
-		  "credential_configurations_supported": {
-			"$(credentialConfigurationId)": {
-			  "format": "$(credentialFormat)",
-			  "vct": "$(credentialConfigurationId)"
+			"credential_issuer": "$(credentialIssuer)",
+			"credential_endpoint": "$(credentialEndpoint)",
+			"nonce_endpoint": "$(nonceEndpoint)",
+			"credential_configurations_supported": {
+				"$(credentialConfigurationId)": {
+					"format": "$(credentialFormat)",
+					"vct": "$(credentialConfigurationId)",
+					"cryptographic_binding_methods_supported": ["jwk"],
+					"credential_signing_alg_values_supported": ["ES256"]
 			}
 		  }
 		}

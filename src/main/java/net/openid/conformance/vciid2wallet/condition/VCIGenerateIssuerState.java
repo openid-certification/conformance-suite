@@ -12,7 +12,7 @@ public class VCIGenerateIssuerState extends AbstractCondition {
 		String issuerState = RandomStringUtils.secure().nextAlphabetic(42);
 		env.putString("vci", "issuer_state", issuerState);
 
-		logSuccess("Generated issuer_state", args("issuer_state", issuerState));
+		log("Generated issuer_state", args("issuer_state", issuerState));
 
 		return env;
 	}

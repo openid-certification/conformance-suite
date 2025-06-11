@@ -44,7 +44,15 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 	}
 
 	@Test
-	void shouldValidateCorrectedEudiwMetadata() throws Exception {
+	void shouldReportNoErrorsForDcSdJwtSpecExampleMetadata() throws Exception {
+		String metadataString = readFile("metadata/openid4vci-id2/valid-openid-credential-issuer-metadata-spec-DcSdJwt-claims-example.json");
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		validation.evaluate(env);
+	}
+
+	@Test
+	void shouldReportNoValidationErrorForCorrectEudiwMetadata() throws Exception {
+		// credential issuer metadata from https://issuer.eudiw.dev/.well-known/openid-credential-issuer
 		String metadataString = readFile("metadata/openid4vci-id2/valid-openid-credential-issuer-metadata-eudiw.json");
 		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
 		validation.evaluate(env);
@@ -86,4 +94,23 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 		assertContainsExpectedError(data, "$.credential_response_encryption.encryption_required", "required property 'encryption_required' not found");
 		assertContainsExpectedError(data, "$.credential_response_encryption.enc_values_supported", "required property 'enc_values_supported' not found");
 	}
+
+	@Test
+	void shouldReportValidationErrorForMissingVctPropertyForDcSdJwt() throws Exception {
+		String metadataString = readFile("metadata/openid4vci-id2/valid-openid-credential-issuer-metadata-spec-DcSdJwt-claims-missing-vct-example.json");
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+
+		Map<String, Object> data = assertValidationError(validation, env, eventLog);
+		assertContainsExpectedError(data, "$.credential_configurations_supported.SD_JWT_VC_example_in_OpenID4VCI.vct", "required property 'vct' not found");
+	}
+
+	@Test
+	void shouldReportValidationErrorForInvalidBdrExample1() throws Exception {
+		String metadataString = readFile("metadata/openid4vci-id2/invalid-openid-credential-issuer-metadata-bdr-example1.json");
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+
+		Map<String, Object> data = assertValidationError(validation, env, eventLog);
+		assertContainsExpectedError(data, "$.credential_configurations_supported.eu.europa.ec.eudi.pid.1.claims", "object found, array expected");
+	}
+
 }

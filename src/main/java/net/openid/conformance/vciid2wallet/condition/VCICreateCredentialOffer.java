@@ -35,7 +35,8 @@ public class VCICreateCredentialOffer extends AbstractCondition {
 					grantObject.addProperty("issuer_state", issuerState);
 				}
 
-				// TODO handle authorization_Server Optional
+				// TODO handle optional authorization_server hint
+				// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-4.1.1-5.1.2.2
 
 				grantsObject.add("authorization_code", grantObject);
 			}
@@ -47,7 +48,8 @@ public class VCICreateCredentialOffer extends AbstractCondition {
 				grantObject.addProperty("pre-authorized_code", preAuthCode);
 				grantObject.add("tx_code", txCode);
 
-				// TODO handle authorization_Server Optional
+				// TODO handle optional authorization_server hint
+				// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-4.1.1-5.2.2.3
 
 				grantsObject.add("urn:ietf:params:oauth:grant-type:pre-authorized_code", grantObject);
 			}
