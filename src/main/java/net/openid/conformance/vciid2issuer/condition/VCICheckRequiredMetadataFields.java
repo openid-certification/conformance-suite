@@ -27,9 +27,7 @@ public class VCICheckRequiredMetadataFields extends AbstractCondition {
 		for (String requiredField : requiredFieldNames) {
 			if (!credentialIssuerMetadata.has(requiredField)) {
 				missingRequiredFields.add(requiredField);
-				continue;
 			}
-			log("Found required field " + requiredField, args(requiredField, credentialIssuerMetadata.get(requiredField)));
 		}
 
 		if (!missingRequiredFields.isEmpty()) {
