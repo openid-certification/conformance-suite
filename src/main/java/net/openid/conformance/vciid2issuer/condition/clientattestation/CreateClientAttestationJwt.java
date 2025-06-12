@@ -30,10 +30,12 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 		String clientId = env.getString("client", "client_id");
 
 		String clientAttestationKey = env.getString("vci", "client_attestation_key");
-		JsonObject cnf;
+		JsonObject cnf = new JsonObject();
 		try {
 			JWK clientAttestationKeyJwk = JWK.parse(clientAttestationKey);
-			cnf = JsonParser.parseString(clientAttestationKeyJwk.toPublicJWK().toJSONString()).getAsJsonObject();
+			JWK clientAttestationKeyPublicJwk = clientAttestationKeyJwk.toPublicJWK();
+			JsonObject clientAttestationKeyJwkObj = JsonParser.parseString(clientAttestationKeyPublicJwk.toJSONString()).getAsJsonObject();
+			cnf.add("jwk", clientAttestationKeyJwkObj);
 		} catch (ParseException e) {
 			throw error("Client attestation key could not be parsed", e);
 		}
