@@ -6,7 +6,7 @@ import net.openid.conformance.variant.VariantSelection;
 
 @PublishTestPlan(
 	testPlanName = "openid-federation-entity-joined-to-test-federation-op-test-plan",
-	displayName = "OpenID Federation: Entity joined to test federation OP test (alpha - INCOMPLETE/INCORRECT, please email certification team if interested)",
+	displayName = "OpenID Federation: Entity joined to test federation OP test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
 	testModules = {
 		OpenIDFederationEntityConfigurationTest.class,

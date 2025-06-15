@@ -7,7 +7,7 @@ import java.util.List;
 
 @PublishTestPlan(
 	testPlanName = "oid4vci-id2-issuer-test-plan",
-	displayName = "OpenID for Verifiable Credential Issuance ID2: Test an issuer - alpha tests (not currently part of certification program)",
+	displayName = "OpenID for Verifiable Credential Issuance ID2: Test an issuer (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.vciissuer
 )
 public class VCIIssuerTestPlan implements TestPlan {

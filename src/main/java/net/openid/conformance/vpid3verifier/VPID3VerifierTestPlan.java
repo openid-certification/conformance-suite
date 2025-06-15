@@ -12,7 +12,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-id3-verifier-test-plan",
-	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a verifier - alpha tests (not currently part of certification program)",
+	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a verifier (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.verifierTest
 )
 public class VPID3VerifierTestPlan implements TestPlan {

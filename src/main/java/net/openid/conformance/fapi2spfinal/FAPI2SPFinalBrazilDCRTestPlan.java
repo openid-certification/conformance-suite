@@ -9,7 +9,7 @@ import java.util.List;
 
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-final-brazil-dcr-test-plan",
-	displayName = "FAPI2-Security-Profile-Final: Brazil Dynamic Client Registration Authorization server test - INCORRECT/INCOMPLETE, DO NOT USE",
+	displayName = "FAPI2-Security-Profile-Final: Brazil Dynamic Client Registration Authorization server test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI2SPFinalBrazilDCRTestPlan implements TestPlan {
