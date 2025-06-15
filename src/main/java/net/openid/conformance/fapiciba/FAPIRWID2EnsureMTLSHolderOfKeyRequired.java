@@ -1,4 +1,4 @@
-package net.openid.conformance.fapirwid2;
+package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailure;
