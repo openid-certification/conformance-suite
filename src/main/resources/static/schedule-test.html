@@ -1644,6 +1644,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             let searchParams = new URLSearchParams(window.location.search);
             let testPlanName = searchParams.get("test_plan");
             if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
+                const planInfo = FAPI_UI.availablePlans[testPlanName];
+                if (/alpha/i.test(planInfo.displayName)) {
+                    sessionStorage.setItem("showAlphaTests", "true");
+                }
                 let planSelect = document.getElementById("planSelect");
                 planSelect.value = testPlanName;
 
@@ -1700,6 +1704,14 @@ function registerAlphaTestToggle() {
 
             // Call once on page load using persisted value
             toggleAlphaTests();
+
+            // If a test_plan URL param was applied, re-select it now that options are rebuilt
+            const urlParams = new URLSearchParams(window.location.search);
+            const presetPlan = urlParams.get("test_plan");
+            if (presetPlan && presetPlan in FAPI_UI.availablePlans) {
+                planSelect.value = presetPlan;
+                planSelect.dispatchEvent(new Event('change'));
+            }
         }
 
         function loadAvailableTests() {
