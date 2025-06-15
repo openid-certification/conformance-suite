@@ -1,4 +1,4 @@
-package net.openid.conformance.fapirwid2;
+package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;

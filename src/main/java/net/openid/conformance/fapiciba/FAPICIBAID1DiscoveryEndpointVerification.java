@@ -7,7 +7,6 @@ import net.openid.conformance.condition.client.CheckBackchannelUserCodeParameter
 import net.openid.conformance.condition.client.CheckDiscBackchannelAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointBackchannelAuthenticationRequestSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPICIBACheckDiscEndpointGrantTypesSupported;
-import net.openid.conformance.fapirwid2.AbstractFAPIDiscoveryEndpointVerification;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
