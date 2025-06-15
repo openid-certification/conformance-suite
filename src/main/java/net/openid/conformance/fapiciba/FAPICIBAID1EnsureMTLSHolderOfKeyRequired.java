@@ -4,7 +4,10 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailure;
+import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
@@ -15,6 +18,7 @@ import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -50,14 +54,14 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 	@Override
 	public void setupMTLS() {
 		super.setupMTLS();
-		validateTokenEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateTokenEndpointResponseWithMTLS.class;
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithMTLS.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
-		validateTokenEndpointResponseSteps = FAPIRWID2EnsureMTLSHolderOfKeyRequired.ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
 	@Override
@@ -140,5 +144,22 @@ public class FAPICIBAID1EnsureMTLSHolderOfKeyRequired extends AbstractFAPICIBAID
 		// we've already done the testing; we just approved the authentication so that we don't leave an
 		// in-progress authentication lying around that would sometime later send an 'expired' ping
 		fireTestFinished();
+	}
+
+	public static class ValidateTokenEndpointResponseWithMTLS extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// if the SSL connection was not dropped, we expect a well-formed 'invalid_client' error
+			callAndContinueOnFailure(CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+			callAndContinueOnFailure(CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		}
+	}
+
+	public static class ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// if the ssl connection was not dropped, we expect one of invalid_request, invalid_grant or invalid_client
+			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2");
+		}
 	}
 }
