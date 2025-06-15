@@ -10,7 +10,7 @@ import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-id2-wallet-test-plan",
-	displayName = "OpenID for Verifiable Presentations ID2: Test a wallet - alpha tests (not currently part of certification program)",
+	displayName = "OpenID for Verifiable Presentations ID2: Test a wallet (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.wallettest
 )
 public class VPID2WalletTestPlan implements TestPlan {
