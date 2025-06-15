@@ -43,15 +43,6 @@ makeClientTest() {
     #TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=jarm][fapi_client_type=oidc] automated-ob-client-test.json"
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=jarm][fapi_client_type=plain_oauth] automated-ob-client-test-no-openid-scope.json"
 
-
-    # client FAPI-RW-ID2
-    TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_client_type=oidc] automated-ob-client-test.json"
-    TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_client_type=oidc] automated-ob-client-test.json"
-
-    # client FAPI-RW-ID2-OB
-    TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_client_type=oidc] automated-ob-client-test.json"
-    TESTS="${TESTS} fapi-rw-id2-client-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][fapi_auth_request_method=by_value][fapi_response_mode=plain_response][fapi_client_type=oidc] automated-ob-client-test.json"
-
     # client OpenID Connect Core Client Tests
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[id_token_encrypted_response_alg=A128KW][userinfo_encrypted_response_alg=A128GCMKW][request_object_encryption_alg=RSA-OAEP]}_ automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[userinfo_encrypted_response_alg=ECDH-ES][userinfo_signed_response_alg=ES256]}_ automated-oidcc-client-test.json"
