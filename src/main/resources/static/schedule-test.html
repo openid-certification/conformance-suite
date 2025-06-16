@@ -95,7 +95,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             </div>
 
             <div class="mb-3 row">
-                <label for="planSelect" class="col-md-2 col-form-label">Test Plan</label>
+                <label for="planSelect" class="col-md-2 col-form-label">Test Plan<br/>
+                    <input id="show-alpha-tests" type="checkbox" />
+                    <label class="alpha-tests">Show early version tests
+                        <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title=""
+                              data-bs-original-title="By default, alpha/early version test plans are hidden from the dropdown list. They can be displayed by checking this box."></span>
+                    </label>
+                </label>
                 <div class="col-md-10">
                     <div class="input-group">
                         <div class="input-group-text">
@@ -1627,6 +1633,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return loadServerInfo();
             }).then(function() {
                 return applyConfigPreset();
+            }).then(function() {
+                return registerAlphaTestToggle();
             }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
@@ -1636,10 +1644,72 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             let searchParams = new URLSearchParams(window.location.search);
             let testPlanName = searchParams.get("test_plan");
             if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
+                const planInfo = FAPI_UI.availablePlans[testPlanName];
+                if (/alpha/i.test(planInfo.displayName)) {
+                    sessionStorage.setItem("showAlphaTests", "true");
+                }
                 let planSelect = document.getElementById("planSelect");
                 planSelect.value = testPlanName;
 
                 // trigger change event to update variant and config field visibility
+                planSelect.dispatchEvent(new Event('change'));
+            }
+        }
+
+function registerAlphaTestToggle() {
+            const checkbox = document.getElementById("show-alpha-tests");
+            const planSelect = document.getElementById("planSelect");
+
+            // Save full copy of original select content
+            const originalOptions = Array.from(planSelect.children).map(child => child.cloneNode(true));
+
+            // Initialize checkbox state from sessionStorage
+            const storedValue = sessionStorage.getItem("showAlphaTests");
+            if (storedValue !== null) {
+                checkbox.checked = storedValue === "true";
+            }
+
+            function toggleAlphaTests() {
+                const hidden = !checkbox.checked;
+
+                // Update sessionStorage whenever toggled
+                sessionStorage.setItem("showAlphaTests", checkbox.checked);
+
+                // Clear current options
+                planSelect.innerHTML = "";
+
+                // Rebuild select
+                originalOptions.forEach(cloned => {
+                    if (cloned.tagName === "OPTGROUP") {
+                        const group = cloned.cloneNode(false);
+                        Array.from(cloned.children).forEach(option => {
+                            if (/alpha/i.test(option.text) && hidden) {
+                                return; // Skip alpha options
+                            }
+                            group.appendChild(option.cloneNode(true));
+                        });
+                        if (group.children.length > 0) {
+                            planSelect.appendChild(group);
+                        }
+                    } else if (cloned.tagName === "OPTION") {
+                        if (/alpha/i.test(cloned.text) && hidden) {
+                            return;
+                        }
+                        planSelect.appendChild(cloned.cloneNode(true));
+                    }
+                });
+            }
+
+            checkbox.addEventListener("change", toggleAlphaTests);
+
+            // Call once on page load using persisted value
+            toggleAlphaTests();
+
+            // If a test_plan URL param was applied, re-select it now that options are rebuilt
+            const urlParams = new URLSearchParams(window.location.search);
+            const presetPlan = urlParams.get("test_plan");
+            if (presetPlan && presetPlan in FAPI_UI.availablePlans) {
+                planSelect.value = presetPlan;
                 planSelect.dispatchEvent(new Event('change'));
             }
         }
@@ -1664,17 +1734,19 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     // consistent ordering for plans
                     var profiles = _.keys(groupedPlans).sort();
 
+                    const selectElm = document.getElementById('planSelect')
+
                     // render all the plans into the dropdown
                     _.each(profiles, function(profile) {
 
                         var optGroup = FAPI_UI.logTemplates.TEST_OPTGROUP({
                             label: profile
                         });
-                        document.getElementById('planSelect').insertAdjacentHTML('beforeend', optGroup);
+                        selectElm.insertAdjacentHTML('beforeend', optGroup);
 
                         // note that we're sorting the plans within each group as well
                         _.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
-                            document.getElementById('planSelect').insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.TEST_OPTION({
+                            document.querySelector(`optgroup[label="${profile}"]`).insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.TEST_OPTION({
                                 val: item.planName,
                                 display: item.displayName
                             }));
