@@ -2,8 +2,6 @@ package net.openid.conformance.vpid3verifier;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.VPID3VerifierCredentialFormat;
-import net.openid.conformance.variant.VPID3VerifierResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
