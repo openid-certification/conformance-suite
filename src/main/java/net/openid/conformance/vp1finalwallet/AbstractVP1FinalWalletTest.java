@@ -16,7 +16,6 @@ import net.openid.conformance.condition.client.AddEncryptionParametersToClientMe
 import net.openid.conformance.condition.client.AddExpectedOriginsToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddPresentationDefinitionToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddRedirectUriToDirectPostResponse;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
@@ -60,7 +59,6 @@ import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEHeaderApu;
 import net.openid.conformance.condition.client.ExtractVpTokenDCQL;
-import net.openid.conformance.condition.client.ExtractVpTokenPE;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
@@ -83,7 +81,6 @@ import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
 import net.openid.conformance.condition.client.ValidateJWEHeaderApvIsAuthRequestNonce;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
-import net.openid.conformance.condition.client.ValidatePresentationSubmission;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -107,8 +104,7 @@ import org.springframework.http.ResponseEntity;
 	VPID3WalletCredentialFormat.class,
 	VPID3WalletClientIdScheme.class,
 	VPID3WalletResponseMode.class,
-	VPID3WalletRequestMethod.class,
-	VPID3WalletQueryLanguage.class
+	VPID3WalletRequestMethod.class
 })
 @VariantConfigurationFields(parameter = VPID3WalletClientIdScheme.class, value = "did", configurationFields = {
 	"client.client_id"
@@ -127,12 +123,6 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
-@VariantConfigurationFields(parameter = VPID3WalletQueryLanguage.class, value = "dcql", configurationFields = {
-	"client.dcql"
-})
-@VariantConfigurationFields(parameter = VPID3WalletQueryLanguage.class, value = "presentation_exchange", configurationFields = {
-	"client.presentation_definition"
-})
 // FIXME remove authz endpoint field for w3c dc api
 public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerTestModule {
 	protected enum TestState {
@@ -143,7 +133,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 	protected VPID3WalletResponseMode responseMode;
 	protected VPID3WalletRequestMethod requestMethod;
-	protected VPID3WalletQueryLanguage queryLanguage;
 	protected VPID3WalletCredentialFormat credentialFormat;
 	protected VPID3WalletClientIdScheme clientIdScheme;
 	protected TestState testState = TestState.INITIAL;
@@ -170,7 +159,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		env.putString("response_mode", responseMode.toString());
 		credentialFormat = getVariant(VPID3WalletCredentialFormat.class);
 		requestMethod = getVariant(VPID3WalletRequestMethod.class);
-		queryLanguage = getVariant(VPID3WalletQueryLanguage.class);
 		clientIdScheme = getVariant(VPID3WalletClientIdScheme.class);
 		env.putString("client_id_scheme", clientIdScheme.toString());
 
@@ -341,13 +329,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		private VPID3WalletRequestMethod requestMethod;
 		private VPID3WalletResponseMode responseMode;
 		private VPID3WalletCredentialFormat credentialFormat;
-		private VPID3WalletQueryLanguage queryLanguage;
 
-		public CreateAuthorizationRequestSteps(VPID3WalletRequestMethod requestMethod, VPID3WalletResponseMode responseMode, VPID3WalletCredentialFormat credentialFormat, VPID3WalletQueryLanguage queryLanguage) {
+		public CreateAuthorizationRequestSteps(VPID3WalletRequestMethod requestMethod, VPID3WalletResponseMode responseMode, VPID3WalletCredentialFormat credentialFormat) {
 			this.requestMethod = requestMethod;
 			this.responseMode = responseMode;
 			this.credentialFormat = credentialFormat;
-			this.queryLanguage = queryLanguage;
 		}
 
 		@Override
@@ -389,14 +375,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINAL-A.2");
 			}
 
-			switch (queryLanguage) {
-				case PRESENTATION_EXCHANGE -> {
-					callAndStopOnFailure(AddPresentationDefinitionToAuthorizationEndpointRequest.class);
-				}
-				case DCQL -> {
-					callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
-				}
-			}
+			callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(CreateRandomNonceValue.class);
 			call(exec().exposeEnvironmentString("nonce"));
@@ -432,7 +411,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	protected ConditionSequence createAuthorizationRequestSequence() {
-		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(requestMethod, responseMode, credentialFormat, queryLanguage);
+		ConditionSequence createAuthorizationRequestSteps = new CreateAuthorizationRequestSteps(requestMethod, responseMode, credentialFormat);
 
 		return createAuthorizationRequestSteps;
 	}
@@ -507,19 +486,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		switch (queryLanguage) {
-			case PRESENTATION_EXCHANGE -> {
-				// vp token may be an object containing multiple tokens, https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
-				// however I think we would only get multiple tokens if they were explicitly requested, so we can safely assume only a single token here
-				callAndStopOnFailure(ExtractVpTokenPE.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
-				callAndContinueOnFailure(ValidatePresentationSubmission.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
-				// FIXME: verify presentation_submission contents?
-			}
-			case DCQL -> {
-				callAndStopOnFailure(ExtractVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
-				callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
-			}
-		}
+		callAndStopOnFailure(ExtractVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
+		callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
