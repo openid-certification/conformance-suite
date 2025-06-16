@@ -209,6 +209,8 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.VCIID2ClientAuthType;
+import net.openid.conformance.vciid2wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
+import net.openid.conformance.vciid2wallet.condition.VCIAddImplicitAuthorizationDetails;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
@@ -1217,6 +1219,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndContinueOnFailure(ExtractParAuthorizationCodeDpopBindingKey.class, ConditionResult.FAILURE, "DPOP-10");
 		}
 
+		if (authorizationRequestType != AuthorizationRequestType.RAR) {
+			callAndStopOnFailure(VCIAddImplicitAuthorizationDetails.class, ConditionResult.FAILURE);
+		}
+
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
@@ -1507,9 +1513,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected void createTokenEndpointResponse() {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
-		if (authorizationRequestType == AuthorizationRequestType.RAR) {
+
+		callAndStopOnFailure(VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse.class);
+
+//		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
-		}
+//		}
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
