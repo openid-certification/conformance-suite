@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <!-- As per https://developer.chrome.com/blog/digital-credentials-api-origin-trial#participate_in_the_origin_trial -->
-<meta http-equiv="origin-trial" content="Aq3YAXqkJk+gkUrjmQVPUjkUwO7jQvGVaNF98LXEKMwRDgbqmNP2V+Si0VawjO/HTvfynQzRi/kFy3saX6IkUwAAAACCeyJvcmlnaW4iOiJodHRwczovL2NlcnRpZmljYXRpb24ub3BlbmlkLm5ldDo0NDMiLCJmZWF0dXJlIjoiV2ViSWRlbnRpdHlEaWdpdGFsQ3JlZGVudGlhbHMiLCJleHBpcnkiOjE3NDQ3NjE1OTksImlzU3ViZG9tYWluIjp0cnVlfQ==">
+<meta http-equiv="origin-trial" content="Ak6yRqDEJnQl6dIoCp8cYItDTJOtrob5TnMXBHzy4M/18VMLkOs4YEr1TC/PtnpAs0SFzOop0TV3J/fXVfbJlAgAAACCeyJvcmlnaW4iOiJodHRwczovL2NlcnRpZmljYXRpb24ub3BlbmlkLm5ldDo0NDMiLCJmZWF0dXJlIjoiV2ViSWRlbnRpdHlEaWdpdGFsQ3JlZGVudGlhbHMiLCJleHBpcnkiOjE3NjA0MDAwMDAsImlzU3ViZG9tYWluIjp0cnVlfQ==">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1132,17 +1132,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     console.log('Error from XMLHttpRequest');
                                 };
                                 try {
-                                    const credentialResponse = await navigator.credentials.get({
-                                        digital: {
-                                            providers: [{
-                                                protocol: "openid4vp",
-                                                request: browserApiRequest
-                                            }]
-                                        },
-                                    })
+                                    const credentialResponse = await navigator.credentials.get(browserApiRequest)
+
                                     console.log("credential response");
                                     console.log(credentialResponse);
-                                    if (credentialResponse.constructor.name == 'DigitalCredential') {
+                                    if (credentialResponse.constructor.name === 'DigitalCredential') {
                                         const data = credentialResponse.data
                                         const protocol = credentialResponse.protocol
                                         console.log("Response Data: " + data + " Protocol: " + protocol)
