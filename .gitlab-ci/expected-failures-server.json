@@ -264,7 +264,7 @@
         },
         "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect*.json",
         "current-block": "Authorization endpoint",
-        "condition": "CheckForUnexpectedParametersInVpClientMetadata",
+        "condition": "VP1FinalCheckForUnexpectedParametersInVpClientMetadata",
         "expected-result": "warning",
         "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
     },
