@@ -87,15 +87,15 @@ import org.springframework.web.servlet.view.RedirectView;
 
 
 @VariantParameters({
-	VPID3VerifierCredentialFormat.class,
-	VPID3VerifierClientIdScheme.class,
-	VPID3VerifierResponseMode.class,
-	VPID3VerifierRequestMethod.class
+	VP1FinalVerifierCredentialFormat.class,
+	VP1FinalVerifierClientIdPrefix.class,
+	VP1FinalVerifierResponseMode.class,
+	VP1FinalVerifierRequestMethod.class
 })
 public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
-	protected VPID3VerifierClientIdScheme clientIdScheme;
-	protected VPID3VerifierResponseMode responseMode;
-	protected VPID3VerifierRequestMethod clientRequestType;
+	protected VP1FinalVerifierClientIdPrefix clientIdScheme;
+	protected VP1FinalVerifierResponseMode responseMode;
+	protected VP1FinalVerifierRequestMethod clientRequestType;
 
 	protected boolean receivedAuthorizationRequest;
 	protected boolean testFinished = false;
@@ -125,13 +125,13 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			waitTimeoutSeconds = OIDFJSON.getInt(config.get("waitTimeoutSeconds"));
 		}
 
-		responseMode = getVariant(VPID3VerifierResponseMode.class);
+		responseMode = getVariant(VP1FinalVerifierResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
 
-		clientIdScheme = getVariant(VPID3VerifierClientIdScheme.class);
+		clientIdScheme = getVariant(VP1FinalVerifierClientIdPrefix.class);
 		env.putString("client_id_scheme", clientIdScheme.toString());
 
-		clientRequestType = getVariant(VPID3VerifierRequestMethod.class);
+		clientRequestType = getVariant(VP1FinalVerifierRequestMethod.class);
 
 		configureServerConfiguration();
 
@@ -325,7 +325,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	}
 
 	protected void extractAuthorizationEndpointRequestParameters() {
-		if(clientRequestType == VPID3VerifierRequestMethod.REQUEST_URI_SIGNED) {
+		if(clientRequestType == VP1FinalVerifierRequestMethod.REQUEST_URI_SIGNED) {
 			fetchAndProcessRequestUri();
 //		} else if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
 //			callAndStopOnFailure(ExtractRequestObject.class, "OIDCC-6.1");
@@ -334,7 +334,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 //			callAndStopOnFailure(EnsureRequestDoesNotContainRequestObject.class, "OIDCC-6.1");
 		}
 
-		if(clientRequestType == VPID3VerifierRequestMethod.REQUEST_URI_SIGNED) {
+		if(clientRequestType == VP1FinalVerifierRequestMethod.REQUEST_URI_SIGNED) {
 			validateRequestObject();
 			callAndStopOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class);
 			skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
@@ -486,7 +486,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
-		switch (getVariant(VPID3VerifierCredentialFormat.class)) {
+		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
 				callAndStopOnFailure(CreateSdJwtKbCredential.class);
 				callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");

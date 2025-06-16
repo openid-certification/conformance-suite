@@ -37,8 +37,8 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 
 		String certProfile = "OID4VP-1.0-FINAL Verifier";
 
-		if (credentialFormat.equals(VPID3VerifierCredentialFormat.ISO_MDL.toString()) &&
-			!responseMode.equals(VPID3VerifierResponseMode.DIRECT_POST_JWT.toString())) {
+		if (credentialFormat.equals(VP1FinalVerifierCredentialFormat.ISO_MDL.toString()) &&
+			!responseMode.equals(VP1FinalVerifierResponseMode.DIRECT_POST_JWT.toString())) {
 			throw new RuntimeException(String.format("Invalid configuration for %s: Direct POST JWT must be used for ISO mDL as the JWE header apu is needed to validate the mdoc device binding.",
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}

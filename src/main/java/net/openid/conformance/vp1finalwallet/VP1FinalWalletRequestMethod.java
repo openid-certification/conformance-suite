@@ -7,7 +7,7 @@ import net.openid.conformance.variant.VariantParameter;
 	displayName = "Request Method",
 	description = "Whether the authorization request to the Wallet is send via a unsigned or signed request_uri. For the W3C DC API, this controls if the request is a JSON object or a signed JWT."
 )
-public enum VPID3WalletRequestMethod
+public enum VP1FinalWalletRequestMethod
 {
 	// URL_QUERY("url_query"),
 	REQUEST_URI_UNSIGNED("request_uri_unsigned"),
@@ -15,7 +15,7 @@ public enum VPID3WalletRequestMethod
 
 	private final String requestMethod;
 
-	private VPID3WalletRequestMethod(String requestMethodIn) {
+	private VP1FinalWalletRequestMethod(String requestMethodIn) {
 		requestMethod = requestMethodIn;
 	}
 
