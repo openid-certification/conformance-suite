@@ -35,7 +35,7 @@
                 "fapi_profile": "openbanking_uk",
                 "fapi_response_mode": "plain_response"
         },
-        "configuration-filename": "authlete-fapi-rw-id2-ob-privatekey.json",
+        "configuration-filename": "authlete-fapi1-adv-final-ob-privatekey.json",
         "current-block": "Second client: Check for refresh token",
         "condition": "FAPIEnsureServerConfigurationDoesNotSupportRefreshToken",
         "expected-result": "warning",
