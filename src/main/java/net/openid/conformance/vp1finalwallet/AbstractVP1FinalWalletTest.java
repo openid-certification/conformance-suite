@@ -59,7 +59,7 @@ import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEnd
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEHeaderApu;
 import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
-import net.openid.conformance.condition.client.ExtractVpTokenDCQL;
+import net.openid.conformance.condition.client.ExtractVP1FinalVpTokenDCQL;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
@@ -487,7 +487,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndStopOnFailure(ExtractVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
+		callAndStopOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
 		callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
