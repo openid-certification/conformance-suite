@@ -10,10 +10,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import org.jetbrains.annotations.NotNull;
 
 @PublishTestModule(
-	testName = "oid4vp-id3-wallet-negative-test-invalid-request-object-signature",
-	displayName = "OID4VPID3+draft24: Request object signature not valid",
+	testName = "oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
+	displayName = "OID4VP-1.0-FINAL: Request object signature not valid",
 	summary = "Makes a request where the signature on the request object JWS is invalid. The wallet should display an error, a screenshot of which must be uploaded.",
-	profile = "OID4VP-ID3",
+	profile = "OID4VP-1FINAL",
 	configurationFields = {
 	}
 )
