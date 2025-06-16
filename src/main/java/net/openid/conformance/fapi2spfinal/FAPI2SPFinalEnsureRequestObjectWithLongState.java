@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpo
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectRequestObjectWithLongStateErrorPage;
+import net.openid.conformance.condition.client.WarningAboutRejectingLongState;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -45,9 +46,9 @@ public class FAPI2SPFinalEnsureRequestObjectWithLongState extends AbstractFAPI2S
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		// Add long state with 384 bytes
+		// Add long state with 1000 bytes
 		Command cmd = new Command();
-		cmd.putInteger("requested_state_length", 384);
+		cmd.putInteger("requested_state_length", 1000);
 		return super.makeCreateAuthorizationRequestSteps()
 				.insertBefore(CreateRandomStateValue.class, cmd);
 	}
@@ -75,6 +76,8 @@ public class FAPI2SPFinalEnsureRequestObjectWithLongState extends AbstractFAPI2S
 			callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
 
 			callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.WARNING, "OIDCC-3.3.2.6");
+
+			callAndContinueOnFailure(WarningAboutRejectingLongState.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.3.2.2");
 
 			fireTestFinished();
 		}

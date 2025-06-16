@@ -4,20 +4,19 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.CreateRandomStateValue;
+import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
-import net.openid.conformance.condition.client.ExpectRequestObjectWithLongStateErrorPage;
-import net.openid.conformance.condition.client.WarningAboutRejectingLongState;
+import net.openid.conformance.condition.client.ExpectRequestObjectWithLongNonceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "fapi1-advanced-final-ensure-request-object-with-long-state",
-	displayName = "FAPI1-Advanced-Final: ensure request object with long state",
-	summary = "This test passes a long state in request object as per https://bitbucket.org/openid/fapi/pull-requests/483/diff. The authorization server must either return an invalid_request error back to the client, and must show an error page (saying the server rejects long state - upload a screenshot of the error page) or must successfully authenticate and return the state correctly.",
+	testName = "fapi1-advanced-final-ensure-request-object-with-64-char-nonce-success",
+	displayName = "FAPI1-Advanced-Final: ensure request object with 64 char nonce",
+	summary = "This test passes a 64 character nonce in the request object. As per https://bitbucket.org/openid/fapi/pull-requests/476/diff the authorization server must either successfully authenticate and return the nonce correctly, or if it does not support nonces that long it may return an invalid_request error back to the client or show an error page (saying the server rejects the nonce - upload a screenshot of the error page). The server MUST NOT return the nonce corrupted or truncated.",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -36,21 +35,20 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
-public class FAPI1AdvancedFinalEnsureRequestObjectWithLongState extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
+public class FAPI1AdvancedFinalEnsureRequestObjectWith64CharNonceSuccess extends AbstractFAPI1AdvancedFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
-		callAndContinueOnFailure(ExpectRequestObjectWithLongStateErrorPage.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ExpectRequestObjectWithLongNonceErrorPage.class, Condition.ConditionResult.WARNING);
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		// Add long state with 1000 bytes
 		Command cmd = new Command();
-		cmd.putInteger("requested_state_length", 1000);
+		cmd.putInteger("requested_nonce_length", 64);
 		return super.makeCreateAuthorizationRequestSteps()
-				.insertBefore(CreateRandomStateValue.class, cmd);
+				.insertBefore(CreateRandomNonceValue.class, cmd);
 	}
 
 	@Override
@@ -76,8 +74,6 @@ public class FAPI1AdvancedFinalEnsureRequestObjectWithLongState extends Abstract
 			callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
 
 			callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.WARNING, "OIDCC-3.3.2.6");
-
-			callAndContinueOnFailure(WarningAboutRejectingLongState.class, Condition.ConditionResult.WARNING);
 
 			fireTestFinished();
 		}
