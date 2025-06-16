@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.AddDCQLVPTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
@@ -489,15 +489,14 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
 				callAndStopOnFailure(CreateSdJwtKbCredential.class);
-				callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
 				callAndStopOnFailure(CreateWalletIsoMdlAnnexBSessionTranscript.class);
 				callAndStopOnFailure(CreateMdocCredential.class);
-				callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 			}
 		}
+		callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 
 		customizeAuthorizationEndpointResponseParams();
 
