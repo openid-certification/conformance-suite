@@ -10,8 +10,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
  * the default happy path test
  */
 @PublishTestModule(
-	testName = "oid4vp-id3-verifier-happy-flow",
-	displayName = "OID4VPID3+draft24 Verifier: Happy flow test",
+	testName = "oid4vp-1final-verifier-happy-flow",
+	displayName = "OID4VP-1.0-FINAL Verifier: Happy flow test",
 	summary = """
 		Expects the verifier to make a valid OID4VP request that matches the configuration. The test creates and returns a valid credential that the verifier should accept.
 
@@ -23,7 +23,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 		The conformance suite acts as a mock web wallet. You must configure your verifier to use the authorization endpoint url below instead of 'openid4vp://' and then start the flow in your verifier as normal.
 		""",
-	profile = "OID4VP-ID3",
+	profile = "OID4VP-1FINAL",
 	configurationFields = {
 		"client.client_id",
 		"credential.signing_jwk"

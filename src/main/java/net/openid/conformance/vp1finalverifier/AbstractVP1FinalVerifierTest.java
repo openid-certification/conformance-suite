@@ -208,7 +208,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	protected void configureClientConfiguration() {
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
-		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-ID3-5.10.1");
+		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.10.1");
 		processAndValidateClientJwks();
 		validateClientMetadata();
 	}
@@ -428,7 +428,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObject() {
-		callAndContinueOnFailure(ValidateRequestObjectTypIsOAuthQauthReqJwt.class, ConditionResult.FAILURE, "OID4VP-ID3-5");
+		callAndContinueOnFailure(ValidateRequestObjectTypIsOAuthQauthReqJwt.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5");
 		skipIfElementMissing("authorization_request_object", "claims.exp", ConditionResult.INFO,
 			OIDCCValidateRequestObjectExp.class, ConditionResult.FAILURE, "RFC7519-4.1.4");
 		callAndContinueOnFailure(ValidateRequestObjectIat.class, ConditionResult.WARNING, "OIDCC-6.1");
@@ -450,7 +450,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");
 
 		// FIXME probably need to somehow validate the x5c header is trusted/valid for the client
-		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-ID3-5.10.4");
+		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10.4");
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
@@ -500,11 +500,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateSdJwtKbCredential.class);
 
 				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
-					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 				} else {
 					callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
-					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
-					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
+					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 				}
 			}
 			case ISO_MDL -> {
@@ -512,11 +512,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateWalletIsoMdlAnnexBSessionTranscript.class);
 				callAndStopOnFailure(CreateMdocCredential.class);
 				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
-					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 				} else {
 					callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
-					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
-					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
+					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
+					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 				}
 			}
 		}
@@ -556,9 +556,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndStopOnFailure(CallDirectPostEndpoint.class);
 
 		call(exec().mapKey("endpoint_response", "direct_post_response"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-ID3-8.2");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VP-ID3-8.2");
-		callAndContinueOnFailure(ValidateDirectPostResponse.class, ConditionResult.WARNING, "OID4VP-ID3-8.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(ValidateDirectPostResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8.2");
 	}
 
 	/**

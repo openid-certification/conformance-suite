@@ -7,10 +7,10 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oid4vp-id3-wallet-happy-flow-with-state-and-redirect",
-	displayName = "OID4VPID3+draft24: Happy flow test with state parameter and a redirect back to the verifier",
+	testName = "oid4vp-1final-wallet-happy-flow-with-state-and-redirect",
+	displayName = "OID4VP-1.0-FINAL: Happy flow test with state parameter and a redirect back to the verifier",
 	summary = "Performs the normal flow, but with a 'state', a longer 'nonce', a random authorization endpoint parameter (which must be ignored) and the response_uri response returns a redirect_uri which the wallet must open",
-	profile = "OID4VP-ID3",
+	profile = "OID4VP-1FINAL",
 	configurationFields = {
 		"server.authorization_endpoint"
 	}
