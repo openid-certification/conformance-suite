@@ -32,8 +32,7 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 		String responseMode = v.get("response_mode");
 		String credentialFormat = v.get("credential_format");
 		String requestMethod = v.get("request_method");
-		String clientIDScheme = v.get("client_id_scheme");
-		String queryLanguage = v.get("query_language");
+		String clientIdPrefix = v.get("client_id_prefix");
 
 		String certProfile = "OID4VP-1.0-FINAL Verifier";
 
@@ -43,7 +42,7 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode + " " + queryLanguage;
+		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIdPrefix + " " + responseMode;
 
 		return certProfile;
 	}

@@ -44,21 +44,20 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		String responseMode = v.get("response_mode");
 		String credentialFormat = v.get("credential_format");
 		String requestMethod = v.get("request_method");
-		String clientIDScheme = v.get("client_id_scheme");
-		String queryLanguage = v.get("query_language");
+		String clientIDPrefix = v.get("client_id_prefix");
 
 		String certProfile = "OID4VP-1.0-FINAL Wallet";
 
 		if (responseMode.equals(VP1FinalWalletResponseMode.DC_API.toString()) ||
 			responseMode.equals(VP1FinalWalletResponseMode.DC_API_JWT.toString())) {
 			if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_UNSIGNED.toString())) {
-				if (!clientIDScheme.equals(VP1FinalWalletClientIdPrefix.WEB_ORIGIN.toString())) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: When using unsigned DC API requests the Client ID Scheme must be 'web_origin'.",
+				if (!clientIDPrefix.equals(VP1FinalWalletClientIdPrefix.WEB_ORIGIN.toString())) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: When using unsigned DC API requests the Client ID Prefix must be 'web_origin'.",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 			} else if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_SIGNED.toString())) {
-				if (clientIDScheme.equals(VP1FinalWalletClientIdPrefix.WEB_ORIGIN.toString())) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: When using signed DC API requests the Client ID Scheme must not be 'web_origin'.",
+				if (clientIDPrefix.equals(VP1FinalWalletClientIdPrefix.WEB_ORIGIN.toString())) {
+					throw new RuntimeException(String.format("Invalid configuration for %s: When using signed DC API requests the Client ID Prefix must not be 'web_origin'.",
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 			}
@@ -71,7 +70,7 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode + " " + queryLanguage;
+		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
 
 		return certProfile;
 	}
