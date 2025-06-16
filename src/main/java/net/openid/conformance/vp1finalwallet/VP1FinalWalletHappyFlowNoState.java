@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 // Because state & redirect uri aren't used in browser API this test doesn't do anything substantially different
 // to the other happy flow test. Though the names / behaviour / description etc could be improved.
-@VariantNotApplicable(parameter = VPID3WalletResponseMode.class, values={"dc_api", "dc_api.jwt"})
+@VariantNotApplicable(parameter = VP1FinalWalletResponseMode.class, values={"dc_api", "dc_api.jwt"})
 public class VP1FinalWalletHappyFlowNoState extends AbstractVP1FinalWalletTest {
 
 	@Override

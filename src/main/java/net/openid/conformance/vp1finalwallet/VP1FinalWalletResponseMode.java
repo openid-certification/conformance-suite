@@ -7,7 +7,7 @@ import net.openid.conformance.variant.VariantParameter;
 	displayName = "Response Mode",
 	description = "The response_mode that will be used. The '.jwt' options will use an encrypted response. For the W3C Browser Digital Credentials API select one of the 'dc_api' options."
 )
-public enum VPID3WalletResponseMode
+public enum VP1FinalWalletResponseMode
 {
 	DIRECT_POST("direct_post"),
 	DIRECT_POST_JWT("direct_post.jwt"),
@@ -17,7 +17,7 @@ public enum VPID3WalletResponseMode
 
 	private final String modeValue;
 
-	private VPID3WalletResponseMode(String responseMode) {
+	private VP1FinalWalletResponseMode(String responseMode) {
 		modeValue = responseMode;
 	}
 

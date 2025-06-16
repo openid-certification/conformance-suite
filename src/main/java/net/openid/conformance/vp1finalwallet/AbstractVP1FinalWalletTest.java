@@ -102,25 +102,25 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 @VariantParameters({
-	VPID3WalletCredentialFormat.class,
-	VPID3WalletClientIdScheme.class,
-	VPID3WalletResponseMode.class,
-	VPID3WalletRequestMethod.class
+	VP1FinalWalletCredentialFormat.class,
+	VP1FinalWalletClientIdPrefix.class,
+	VP1FinalWalletResponseMode.class,
+	VP1FinalWalletRequestMethod.class
 })
-@VariantConfigurationFields(parameter = VPID3WalletClientIdScheme.class, value = "did", configurationFields = {
+@VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "did", configurationFields = {
 	"client.client_id"
 })
-@VariantConfigurationFields(parameter = VPID3WalletClientIdScheme.class, value = "pre_registered", configurationFields = {
+@VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "pre_registered", configurationFields = {
 	"client.client_id"
 })
-@VariantConfigurationFields(parameter = VPID3WalletClientIdScheme.class, value = "x509_san_dns", configurationFields = {
+@VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
 })
-@VariantConfigurationFields(parameter = VPID3WalletResponseMode.class, value = "direct_post.jwt", configurationFields = {
+@VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post.jwt", configurationFields = {
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
-@VariantConfigurationFields(parameter = VPID3WalletResponseMode.class, value = "dc_api.jwt", configurationFields = {
+@VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "dc_api.jwt", configurationFields = {
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
@@ -132,10 +132,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		RESPONSE_RECEIVED,
 	}
 
-	protected VPID3WalletResponseMode responseMode;
-	protected VPID3WalletRequestMethod requestMethod;
-	protected VPID3WalletCredentialFormat credentialFormat;
-	protected VPID3WalletClientIdScheme clientIdScheme;
+	protected VP1FinalWalletResponseMode responseMode;
+	protected VP1FinalWalletRequestMethod requestMethod;
+	protected VP1FinalWalletCredentialFormat credentialFormat;
+	protected VP1FinalWalletClientIdPrefix clientIdScheme;
 	protected TestState testState = TestState.INITIAL;
 
 	@Override
@@ -156,11 +156,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		}
 		abortIfRedirectFragmentNotReceived = true;
 
-		responseMode = getVariant(VPID3WalletResponseMode.class);
+		responseMode = getVariant(VP1FinalWalletResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
-		credentialFormat = getVariant(VPID3WalletCredentialFormat.class);
-		requestMethod = getVariant(VPID3WalletRequestMethod.class);
-		clientIdScheme = getVariant(VPID3WalletClientIdScheme.class);
+		credentialFormat = getVariant(VP1FinalWalletCredentialFormat.class);
+		requestMethod = getVariant(VP1FinalWalletRequestMethod.class);
+		clientIdScheme = getVariant(VP1FinalWalletClientIdPrefix.class);
 		env.putString("client_id_scheme", clientIdScheme.toString());
 
 		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
@@ -203,7 +203,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		// Set up the client configuration
 		configureClient();
 
-		if (credentialFormat == VPID3WalletCredentialFormat.ISO_MDL) {
+		if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL) {
 			// ISO spec always creates a redirect returned from response_uri
 			callAndStopOnFailure(CreateRedirectUri.class);
 		}
@@ -272,7 +272,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	protected void completeClientConfiguration() {
-		if (clientIdScheme == VPID3WalletClientIdScheme.X509_SAN_DNS) {
+		if (clientIdScheme == VP1FinalWalletClientIdPrefix.X509_SAN_DNS) {
 			callAndContinueOnFailure(CheckIfClientIdInX509CertSanDns.class, ConditionResult.FAILURE);
 		}
 	}
@@ -327,11 +327,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	// FIXME test without use: enc in client_metadata
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
-		private VPID3WalletRequestMethod requestMethod;
-		private VPID3WalletResponseMode responseMode;
-		private VPID3WalletCredentialFormat credentialFormat;
+		private VP1FinalWalletRequestMethod requestMethod;
+		private VP1FinalWalletResponseMode responseMode;
+		private VP1FinalWalletCredentialFormat credentialFormat;
 
-		public CreateAuthorizationRequestSteps(VPID3WalletRequestMethod requestMethod, VPID3WalletResponseMode responseMode, VPID3WalletCredentialFormat credentialFormat) {
+		public CreateAuthorizationRequestSteps(VP1FinalWalletRequestMethod requestMethod, VP1FinalWalletResponseMode responseMode, VP1FinalWalletCredentialFormat credentialFormat) {
 			this.requestMethod = requestMethod;
 			this.responseMode = responseMode;
 			this.credentialFormat = credentialFormat;
@@ -477,7 +477,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				// FIXME: need to validate jwe header
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.3");
-				if (credentialFormat == VPID3WalletCredentialFormat.ISO_MDL && !isBrowserApi()) {
+				if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL && !isBrowserApi()) {
 					// there are ISO part 7 requirements, HAIP/OID4VP over DC API doesn't currently set any requirements for apu/apv
 					callAndContinueOnFailure(ExtractMDocGeneratedNonceFromJWEHeaderApu.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
 					callAndContinueOnFailure(ValidateJWEHeaderApvIsAuthRequestNonce.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
