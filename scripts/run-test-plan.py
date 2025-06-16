@@ -1190,7 +1190,7 @@ async def main():
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
         oidcc = all_test_modules[m]['profile'] in ['OIDCC']
         fapi2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']or all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-Final']
-        oid4vp = all_test_modules[m]['profile'] in ['OID4VP-ID2', 'OID4VP-ID3']
+        oid4vp = all_test_modules[m]['profile'] in ['OID4VP-ID2', 'OID4VP-ID3', 'OID4VP-1FINAL']
         brazildcr = re.match(r'.*brazil.*dcr.*', m)
         obuk = re.match(r'.*ensure-server-handles-non-matching-intent-id.*', m) or \
           re.match(r'.*test-essential-acr-sca-claim.*', m)
