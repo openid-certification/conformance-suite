@@ -7,8 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddDCQLVPTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddPeVpTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddPresentationSubmissionToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
@@ -18,11 +16,9 @@ import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemb
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
-import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
-import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
 import net.openid.conformance.condition.as.CreateWalletIsoMdlAnnexBSessionTranscript;
 import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
@@ -94,14 +90,12 @@ import org.springframework.web.servlet.view.RedirectView;
 	VPID3VerifierCredentialFormat.class,
 	VPID3VerifierClientIdScheme.class,
 	VPID3VerifierResponseMode.class,
-	VPID3VerifierRequestMethod.class,
-	VPID3VerifierQueryLanguage.class
+	VPID3VerifierRequestMethod.class
 })
 public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected VPID3VerifierClientIdScheme clientIdScheme;
 	protected VPID3VerifierResponseMode responseMode;
 	protected VPID3VerifierRequestMethod clientRequestType;
-	protected VPID3VerifierQueryLanguage queryLanguage;
 
 	protected boolean receivedAuthorizationRequest;
 	protected boolean testFinished = false;
@@ -138,7 +132,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		env.putString("client_id_scheme", clientIdScheme.toString());
 
 		clientRequestType = getVariant(VPID3VerifierRequestMethod.class);
-		queryLanguage = getVariant(VPID3VerifierQueryLanguage.class);
 
 		configureServerConfiguration();
 
@@ -498,26 +491,13 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		switch (getVariant(VPID3VerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
 				callAndStopOnFailure(CreateSdJwtKbCredential.class);
-
-				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
-					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
-				} else {
-					callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
-					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
-					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
-				}
+				callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
 				callAndStopOnFailure(CreateWalletIsoMdlAnnexBSessionTranscript.class);
 				callAndStopOnFailure(CreateMdocCredential.class);
-				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
-					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
-				} else {
-					callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
-					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
-					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
-				}
+				callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 			}
 		}
 

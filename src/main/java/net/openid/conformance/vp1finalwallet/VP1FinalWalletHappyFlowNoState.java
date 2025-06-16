@@ -12,7 +12,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "Expects the wallet to correctly process a request without a state parameter, which is an optional parameter in the OID4VP specification.",
 	profile = "OID4VP-1FINAL",
 	configurationFields = {
-		"client.jwks"
+		"client.jwks",
+		"client.dcql"
 	}
 )
 
