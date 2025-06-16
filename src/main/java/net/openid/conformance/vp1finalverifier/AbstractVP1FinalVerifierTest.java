@@ -10,7 +10,6 @@ import net.openid.conformance.condition.as.AddDCQLVPTokenToAuthorizationEndpoint
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
-import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
@@ -20,7 +19,6 @@ import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.CreateWalletIsoMdlAnnexBSessionTranscript;
-import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -41,6 +39,8 @@ import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
+import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
+import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -344,8 +344,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class, "OIDCC-6.1", "OIDCC-6.2");
 
-		// FIXME extract presentation definition
-
 		extractNonceFromAuthorizationEndpointRequestParameters();
 
 		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, ConditionResult.INFO, EnsureAuthorizationRequestContainsPkceCodeChallenge.class, ConditionResult.FAILURE, "RFC7636-4.3");
@@ -414,7 +412,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		// FIXME: validate rest of request
 		// FIXME: validate client_metadata
-		callAndContinueOnFailure(CheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING);
 
 
 		endTestIfRequiredAuthorizationRequestParametersAreMissing();
@@ -530,7 +528,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(BuildUnsignedRequestToDirectPostEndpoint.class);
 				break;
 			case DIRECT_POST_JWT:
-				callAndStopOnFailure(EncryptVPResponse.class);
+				callAndStopOnFailure(VP1FinalEncryptVPResponse.class);
 				break;
 		}
 		callAndStopOnFailure(CallDirectPostEndpoint.class);

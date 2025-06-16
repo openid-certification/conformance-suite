@@ -12,19 +12,20 @@ import net.openid.conformance.condition.as.CheckForUnexpectedParametersInBinding
 import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddDcqlToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddExpectedOriginsToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddRedirectUriToDirectPostResponse;
 import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddSelfIssuedMeV2AudToRequestObject;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.BuildBrowserDCAPIRequestSigned;
-import net.openid.conformance.condition.client.BuildBrowserDCAPIRequestUnsigned;
+import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
+import net.openid.conformance.condition.client.AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest;
+import net.openid.conformance.condition.client.AddVP1FinalSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
+import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestSigned;
+import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestUnsigned;
 import net.openid.conformance.condition.client.CheckAudInBindingJwt;
+import net.openid.conformance.condition.client.CheckAudInBindingJwtDcApi;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
@@ -47,17 +48,17 @@ import net.openid.conformance.condition.client.CreateRandomCodeVerifier;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
+import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript;
 import net.openid.conformance.condition.client.CreateVerifierIsoMdlAnnexBSessionTranscript;
-import net.openid.conformance.condition.client.CreateVerifierIsoMdocDCAPISessionTranscript;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEHeaderApu;
+import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractVpTokenDCQL;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
@@ -296,10 +297,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 				switch (requestMethod) {
 					case REQUEST_URI_UNSIGNED -> {
-						callAndStopOnFailure(BuildBrowserDCAPIRequestUnsigned.class);
+						callAndStopOnFailure(BuildVP1FinalBrowserDCAPIRequestUnsigned.class);
 					}
 					case REQUEST_URI_SIGNED -> {
-						callAndStopOnFailure(BuildBrowserDCAPIRequestSigned.class);
+						callAndStopOnFailure(BuildVP1FinalBrowserDCAPIRequestSigned.class);
 					}
 				}
 				JsonObject request = env.getObject("browser_api_request");
@@ -383,10 +384,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 			switch (credentialFormat) {
 				case ISO_MDL:
-					callAndStopOnFailure(AddIsoMdocClientMetadataToAuthorizationRequest.class);
+					callAndStopOnFailure(AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest.class);
 					break;
 				case SD_JWT_VC:
-					callAndStopOnFailure(AddSdJwtClientMetadataToAuthorizationRequest.class);
+					callAndStopOnFailure(AddVP1FinalSdJwtClientMetadataToAuthorizationRequest.class);
 					break;
 			}
 			switch (responseMode) {
@@ -395,7 +396,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					break;
 				case DIRECT_POST_JWT:
 				case DC_API_JWT:
-					callAndStopOnFailure(AddEncryptionParametersToClientMetadata.class);
+					callAndStopOnFailure(AddVP1FinalEncryptionParametersToClientMetadata.class);
 					break;
 			}
 
@@ -497,8 +498,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				// mdoc
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
 				if (isBrowserApi()) {
-					callAndStopOnFailure(CreateVerifierIsoMdocDCAPISessionTranscript.class);
+					callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript.class);
 				} else {
+					// FIXME update for final, there's now a proper session transcript
 					callAndStopOnFailure(CreateVerifierIsoMdlAnnexBSessionTranscript.class);
 				}
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
@@ -527,7 +529,15 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndContinueOnFailure(CheckForUnexpectedParametersInBindingJwtHeader.class, ConditionResult.WARNING, "SDJWT-4.3");
 
 				callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3");
-				callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+				switch (responseMode) {
+					case DIRECT_POST, DIRECT_POST_JWT -> {
+						callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+					}
+					case DC_API, DC_API_JWT -> {
+						callAndContinueOnFailure(CheckAudInBindingJwtDcApi.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+					}
+				}
+
 				callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
 				callAndContinueOnFailure(ValidateSdJwtKbSdHash.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				callAndContinueOnFailure(CheckForUnexpectedClaimsInBindingJwt.class, ConditionResult.WARNING, "SDJWT-4.3");
@@ -693,7 +703,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					break;
 			}
 
-			callAndStopOnFailure(ExtractBrowserApiResponse.class);
+			callAndStopOnFailure(ExtractVP1FinalBrowserApiResponse.class);
 
 			processReceivedResponse();
 
