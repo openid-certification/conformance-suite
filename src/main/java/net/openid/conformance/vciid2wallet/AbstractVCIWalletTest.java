@@ -211,6 +211,7 @@ import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.VCIID2ClientAuthType;
 import net.openid.conformance.vciid2wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
 import net.openid.conformance.vciid2wallet.condition.VCIAddImplicitAuthorizationDetails;
+import net.openid.conformance.vciid2wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequest;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
@@ -900,8 +901,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	@Override
 	public Object handleOAuthMetadata(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// FIXME: validate that request is GET, path is empty, query empty, headers sensible?
-		return discoveryEndpoint();
+
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		call(exec().startBlock("Get OAuth Authorization Metadata").mapKey("incoming_request", requestId));
+		Object response = discoveryEndpoint();
+		call(exec().unmapKey("incoming_request").endBlock());
+		return response;
 	}
 
 	protected void validateResourceEndpointHeaders() {
@@ -1108,6 +1114,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected Object discoveryEndpoint() {
 		setStatus(Status.RUNNING);
+
+		// FIXME: validate that request is GET, path is empty, query empty, headers sensible?
+		callAndStopOnFailure(VCICheckOAuthAuthorizationServerMetadataRequest.class, ConditionResult.FAILURE, "RFC8414-3.1");
+
 		JsonObject serverConfiguration = env.getObject("server");
 
 		setStatus(Status.WAITING);
