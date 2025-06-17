@@ -302,6 +302,8 @@ public class BrowserControl implements DataUtils {
 					"response_content", driver.getResponseContent()
 				));
 
+				// Consider this URL visited
+				urlVisited(url);
 
 				int responseCode = driver.getResponseCode();
 
@@ -397,8 +399,6 @@ public class BrowserControl implements DataUtils {
 					} // if we don't run the commands, just go straight to the next one
 				}
 				logger.debug(testId + ": Completed Browser Commands");
-				// if we've successfully completed the command set, consider this URL visited
-				urlVisited(url);
 
 				return "web runner exited";
 			} catch (Exception | Error e) {
