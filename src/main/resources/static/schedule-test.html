@@ -1640,7 +1640,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             });
         });
 
-        function applyConfigPreset() {
+function applyConfigPreset() {
             let searchParams = new URLSearchParams(window.location.search);
             let testPlanName = searchParams.get("test_plan");
             if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
@@ -1653,6 +1653,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                 // trigger change event to update variant and config field visibility
                 planSelect.dispatchEvent(new Event('change'));
+            }
+
+            let editPlanParam = searchParams.get("edit-plan");
+            if (editPlanParam && FAPI_UI.loadedPlanName) {
+                const editPlanInfo = FAPI_UI.availablePlans[FAPI_UI.loadedPlanName];
+                if (editPlanInfo && /alpha/i.test(editPlanInfo.displayName)) {
+                    sessionStorage.setItem("showAlphaTests", "true");
+                }
             }
         }
 
@@ -1711,6 +1719,22 @@ function registerAlphaTestToggle() {
             if (presetPlan && presetPlan in FAPI_UI.availablePlans) {
                 planSelect.value = presetPlan;
                 planSelect.dispatchEvent(new Event('change'));
+            }
+            // If an edit-plan URL param was applied, re-select the loaded plan now that options are rebuilt
+            const editParams = urlParams.get("edit-plan");
+            if (editParams && FAPI_UI.loadedPlanName) {
+                planSelect.value = FAPI_UI.loadedPlanName;
+                planSelect.dispatchEvent(new Event('change'));
+                // restore any previously selected variant values and config field visibility
+                if (FAPI_UI.selectedVariant) {
+                    Object.entries(FAPI_UI.selectedVariant).forEach(([key, value]) => {
+                        const el = document.querySelector(`.variant-selector[data-variant-parameter="${key}"]`);
+                        if (el) {
+                            el.value = value;
+                        }
+                    });
+                }
+                updateConfigFieldVisibility();
             }
         }
 
@@ -1787,6 +1811,7 @@ function registerAlphaTestToggle() {
             return fetch('/api/plan/' + encodeURIComponent(planId))
                 .then((response) => response.json())
                 .then((data) => {
+                    FAPI_UI.loadedPlanName = data.planName;
                     if (data.config) {
                         // we found a configuration file, load it up
                         const el = document.getElementById('config');
