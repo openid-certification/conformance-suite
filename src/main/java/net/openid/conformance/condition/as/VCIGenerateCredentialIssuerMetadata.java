@@ -27,17 +27,27 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 	@PostEnvironment(required = "credential_issuer_metadata", strings = { "credential_issuer_metadata_url" })
 	public Environment evaluate(Environment env) {
 
-		String baseUrl = getBaseUrl(env);
+		String baseUrl = env.getString("base_url");
+		String mtlsBaseUrl = env.getString("base_mtls_url");
+
 		if (baseUrl.isEmpty()) {
 			throw error("Base URL is empty");
 		}
+
+		if (mtlsBaseUrl.isEmpty()) {
+			throw error("Base MTLS URL is empty");
+		}
+
 		if (!baseUrl.endsWith("/")) {
 			baseUrl = baseUrl + "/";
 		}
+		if (!mtlsBaseUrl.endsWith("/")) {
+			mtlsBaseUrl = mtlsBaseUrl + "/";
+		}
 
 		String credentialIssuer = baseUrl;
-		String credentialEndpointUrl = baseUrl + "credential";
-		String nonceEndpointUrl = baseUrl + "nonce";
+		String credentialEndpointUrl = (mtlsConstrain ? mtlsBaseUrl: baseUrl) + "credential";
+		String nonceEndpointUrl = (mtlsConstrain ? mtlsBaseUrl: baseUrl) + "nonce";
 		String credentialConfigurationId = "eu.europa.ec.eudi.pid.1";
 		String credentialFormat = "dc+sd-jwt";
 		String vct = "urn:eudi:pid:1";
@@ -78,9 +88,4 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 		return env;
 
 	}
-
-	protected String getBaseUrl(Environment env) {
-		return mtlsConstrain ? env.getString("base_mtls_url") : env.getString("base_url");
-	}
-
 }
