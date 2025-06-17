@@ -176,18 +176,19 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vciid2issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vciid2issuer.condition.VCICheckCacheControlHeaderInResponse;
 import net.openid.conformance.vciid2issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
-import net.openid.conformance.vciid2issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vciid2issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
+import net.openid.conformance.vciid2issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vciid2issuer.condition.VCISelectOAuthorizationServer;
+import net.openid.conformance.vciid2issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
+import net.openid.conformance.vciid2issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialNonceResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOfferRequestParams;
@@ -385,6 +386,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-5");
 		} else {
 			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+			callAndStopOnFailure(VCIResolveCredentialEndpointToUse.class);
 			call(sequence(resourceConfiguration));
 		}
 	}
