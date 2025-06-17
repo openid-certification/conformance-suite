@@ -1115,7 +1115,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected Object discoveryEndpoint() {
 		setStatus(Status.RUNNING);
 
-		// FIXME: validate that request is GET, path is empty, query empty, headers sensible?
 		callAndStopOnFailure(VCICheckOAuthAuthorizationServerMetadataRequest.class, ConditionResult.FAILURE, "RFC8414-3.1");
 
 		JsonObject serverConfiguration = env.getObject("server");
