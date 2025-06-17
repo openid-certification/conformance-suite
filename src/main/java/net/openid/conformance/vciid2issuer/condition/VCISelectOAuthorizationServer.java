@@ -17,7 +17,7 @@ public class VCISelectOAuthorizationServer extends VCIFetchOAuthorizationServerM
 		JsonElement credentialIssuerMetadataEl = env.getElementFromObject("vci", "credential_issuer_metadata");
 		JsonObject credentialIssuerMetadata = credentialIssuerMetadataEl.getAsJsonObject();
 
-		String iss = env.getString("config", "server.discoveryIssuer");
+		String credentialIssuerIssuer = OIDFJSON.getString(credentialIssuerMetadata.get("credential_issuer"));
 		String forcedAuthorizationServer = env.getString("config", "vci.authorization_server");
 
 		JsonElement authorizationServersEL = credentialIssuerMetadata.get("authorization_servers");
@@ -37,7 +37,7 @@ public class VCISelectOAuthorizationServer extends VCIFetchOAuthorizationServerM
 
 		String wantedAuthorizationServerIssuer = forcedAuthorizationServer;
 		if (wantedAuthorizationServerIssuer == null) {
-			wantedAuthorizationServerIssuer = iss;
+			wantedAuthorizationServerIssuer = credentialIssuerIssuer;
 		}
 
 		int index;
@@ -51,7 +51,7 @@ public class VCISelectOAuthorizationServer extends VCIFetchOAuthorizationServerM
 			index = authorizationServerArray.asList().indexOf(new JsonPrimitive(wantedAuthorizationServerIssuer));
 			if (index < 0) {
 				throw error("Authorization server listed in 'Authorization Server URL' or  in the test configuration is not listed in the 'authorization_servers' array in the credential issuer metadata.",
-					args("test_config_issuer_url", iss, "authorization_server_issuer_url", wantedAuthorizationServerIssuer, "authorization_servers", authorizationServerArray));
+					args("test_config_issuer_url", credentialIssuerIssuer, "authorization_server_issuer_url", wantedAuthorizationServerIssuer, "authorization_servers", authorizationServerArray));
 			}
 		}
 
