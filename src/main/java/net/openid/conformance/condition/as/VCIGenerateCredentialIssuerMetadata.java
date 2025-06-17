@@ -35,7 +35,7 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 			baseUrl = baseUrl + "/";
 		}
 
-		String credentialIssuer = env.getString("base_url");
+		String credentialIssuer = baseUrl;
 		String credentialEndpointUrl = baseUrl + "credential";
 		String nonceEndpointUrl = baseUrl + "nonce";
 		String credentialConfigurationId = "eu.europa.ec.eudi.pid.1";
