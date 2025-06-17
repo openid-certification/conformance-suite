@@ -10,6 +10,7 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
@@ -18,7 +19,9 @@ import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CreateClientAttestationJwt extends AbstractCondition {
@@ -40,11 +43,15 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 			throw error("Client attestation key could not be parsed", e);
 		}
 
-		String keyId = env.getString("vci","client_attestation_key_id");
+		String commaSeparatedClientCerts = env.getString("vci", "client_attestation_certs");
+		List<Base64> clientCertList = Arrays.stream(commaSeparatedClientCerts.split(",")).map(Base64::new).toList();
+
+		String keyId = env.getString("vci", "client_attestation_key_id");
 
 		JWSHeader.Builder headerBuilder = new JWSHeader //
 			.Builder(JWSAlgorithm.ES256) //
 			.keyID(keyId) //
+			.x509CertChain(clientCertList) //
 			.type(new JOSEObjectType("oauth-client-attestation+jwt"));
 
 		JWSHeader header = headerBuilder.build();
@@ -71,7 +78,7 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 
 		SignedJWT jwt = new SignedJWT(header, claimsSet);
 
-		ECKey signingKey = null;
+		ECKey signingKey;
 		try {
 			signingKey = (ECKey)JWKUtil.getSigningKey(env.getElementFromObject("config", "vci.client_attester_keys_jwks").getAsJsonObject());
 		} catch (ParseException e) {
