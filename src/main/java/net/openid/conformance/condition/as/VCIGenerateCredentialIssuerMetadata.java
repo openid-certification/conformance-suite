@@ -62,9 +62,14 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 					"format": "$(credentialFormat)",
 					"vct": "$(vct)",
 					"cryptographic_binding_methods_supported": ["jwk"],
-					"credential_signing_alg_values_supported": ["ES256"]
+					"credential_signing_alg_values_supported": ["ES256"],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": ["ES256"]
+						}
+					}
+				}
 			}
-		  }
 		}
 		""", Map.of(
 			"credentialIssuer", credentialIssuer,
