@@ -103,6 +103,7 @@ import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.VCIGenerateCredentialIssuerMetadata;
@@ -1919,7 +1920,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = VCIID2ClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
-		addTokenEndpointAuthMethodSupported = null;
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly.class;
 		validateClientAuthenticationSteps = VCIValidateClientAuthenticationWithClientAttestationJWT.class;
 	}
 
