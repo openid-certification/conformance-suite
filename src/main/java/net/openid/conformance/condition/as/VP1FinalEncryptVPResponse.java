@@ -16,17 +16,41 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 	@PostEnvironment(required = "direct_post_request_form_parameters")
 	public Environment evaluate(Environment env) {
 
-		final JsonElement jwksEl = env.getElementFromObject("authorization_request_object", "claims.client_metadata.jwks");
+		final JsonElement jwksEl;
+		try {
+			jwksEl = env.getElementFromObject("authorization_request_object", "claims.client_metadata.jwks");
+		} catch (Exception e) {
+			throw error("Couldn't read client_metadata.jwks from authorization request", e, args("authorization_request", env.getObject("authorization_request_object")));
+		}
 		if (jwksEl == null) {
-			throw error("An encrypted response was requested by client_metadata.jwks is not present in the received request.");
+			throw error("An encrypted response was requested but client_metadata.jwks is not present in the received request.");
+		}
+		if (!jwksEl.isJsonObject()) {
+			throw error("client_metadata.jwks must be a JSON object", args("client_jwks", jwksEl));
 		}
 
 		JsonObject clientJwks = jwksEl.getAsJsonObject();
 		// just use the alg from the first key for now
-		String alg = OIDFJSON.getString(clientJwks.get("keys").getAsJsonArray().get(0).getAsJsonObject().get("alg"));
+		JsonElement algEl;
+		try {
+			algEl = clientJwks.get("keys").getAsJsonArray().get(0).getAsJsonObject().get("alg");
+		} catch (Exception e) {
+			throw error("Couldn't read alg from first key in client_metadata.jwks from authorization request", e, args("authorization_request", env.getObject("authorization_request_object")));
+		}
+		if (algEl == null) {
+			throw error("Key in client_metadata in request does not contain alg field", args("client_jwks", clientJwks));
+		}
+		String alg = OIDFJSON.getString(algEl);
 
-		// and just use the first enc
-		String enc = OIDFJSON.getString(env.getElementFromObject("authorization_request_object", "claims.client_metadata.encrypted_response_enc_values_supported").getAsJsonArray().get(0));
+		// and just use the first enc - if there's not one default to A128GCM as per OID4VP spec
+		JsonElement encValuesSupported = env.getElementFromObject("authorization_request_object", "claims.client_metadata.encrypted_response_enc_values_supported");
+		String enc;
+		if (encValuesSupported != null) {
+			enc = OIDFJSON.getString(encValuesSupported.getAsJsonArray().get(0));
+		} else {
+			enc = "A128GCM";
+			log("encrypted_response_enc_values_supported is not present in client_metadata in the authorization request parameters - defaulting to " + enc + " as per OID4VP spec");
+		}
 
 		String response = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY).toString();
 
