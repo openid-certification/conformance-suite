@@ -34,7 +34,7 @@ public class ValidateClientAttestation extends AbstractVerifyJwsSignature {
 		jwksKeys.add(cnfJwk);
 		jwks.add("keys", jwksKeys);
 
-		verifyJwsSignature(clientAttestationPop, jwks, "client_attestation_pop", false, "dummyjwks");
+		verifyJwsSignature(clientAttestationPop, jwks, "client_attestation_pop", false, "jwk_from_cnf");
 
 		return env;
 	}
