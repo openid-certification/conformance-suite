@@ -7,6 +7,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 {
@@ -54,9 +55,9 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 
 		String response = env.getObject(CreateAuthorizationEndpointResponseParams.ENV_KEY).toString();
 
-		// FIXME - OID4VP doesn't require these values to be used for apu/apv, so we should probably use different values
-		String apu = env.getString("mdoc_generated_nonce");
-		String apv = env.getString("nonce");
+		// Neither OID4VP nor HAIP require any particular values for apu/apv, nor even require them to be present, so we should probably leave them out in some requests
+		String apu = RandomStringUtils.secure().nextAlphanumeric(16); // there may not be a reason to restrict this to alphanumerics
+		String apv = RandomStringUtils.secure().nextAlphanumeric(16);
 		Base64URL apub64 = apu != null ? Base64URL.encode(apu) : null;
 		Base64URL apvb64 = apv != null ? Base64URL.encode(apv) : null;
 
