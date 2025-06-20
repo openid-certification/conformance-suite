@@ -1621,9 +1621,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");
 		validateRedirectUriInRequestObject();
-		if (authorizationRequestType == AuthorizationRequestType.RAR){
-			callAndStopOnFailure(RARSupport.EnsureRequestObjectContainValidRAR.class, ConditionResult.FAILURE, "RAR-2.0");
-		}
 	}
 
 	protected void validateRedirectUriInRequestObject() {
