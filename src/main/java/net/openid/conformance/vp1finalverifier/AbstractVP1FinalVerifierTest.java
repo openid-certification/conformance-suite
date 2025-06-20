@@ -1,4 +1,4 @@
-package net.openid.conformance.vpid3verifier;
+package net.openid.conformance.vp1finalverifier;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
@@ -6,25 +6,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.AddDCQLVPTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddPeVpTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.AddPresentationSubmissionToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
-import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
-import net.openid.conformance.condition.as.CreateIsoMdocPresentationSubmission;
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
-import net.openid.conformance.condition.as.CreateSdJwtPresentationSubmission;
 import net.openid.conformance.condition.as.CreateWalletIsoMdlAnnexBSessionTranscript;
-import net.openid.conformance.condition.as.EncryptVPResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -45,6 +39,8 @@ import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
+import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
+import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -91,17 +87,15 @@ import org.springframework.web.servlet.view.RedirectView;
 
 
 @VariantParameters({
-	VPID3VerifierCredentialFormat.class,
-	VPID3VerifierClientIdScheme.class,
-	VPID3VerifierResponseMode.class,
-	VPID3VerifierRequestMethod.class,
-	VPID3VerifierQueryLanguage.class
+	VP1FinalVerifierCredentialFormat.class,
+	VP1FinalVerifierClientIdPrefix.class,
+	VP1FinalVerifierResponseMode.class,
+	VP1FinalVerifierRequestMethod.class
 })
-public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
-	protected VPID3VerifierClientIdScheme clientIdScheme;
-	protected VPID3VerifierResponseMode responseMode;
-	protected VPID3VerifierRequestMethod clientRequestType;
-	protected VPID3VerifierQueryLanguage queryLanguage;
+public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
+	protected VP1FinalVerifierClientIdPrefix clientIdScheme;
+	protected VP1FinalVerifierResponseMode responseMode;
+	protected VP1FinalVerifierRequestMethod clientRequestType;
 
 	protected boolean receivedAuthorizationRequest;
 	protected boolean testFinished = false;
@@ -131,14 +125,13 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 			waitTimeoutSeconds = OIDFJSON.getInt(config.get("waitTimeoutSeconds"));
 		}
 
-		responseMode = getVariant(VPID3VerifierResponseMode.class);
+		responseMode = getVariant(VP1FinalVerifierResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
 
-		clientIdScheme = getVariant(VPID3VerifierClientIdScheme.class);
+		clientIdScheme = getVariant(VP1FinalVerifierClientIdPrefix.class);
 		env.putString("client_id_scheme", clientIdScheme.toString());
 
-		clientRequestType = getVariant(VPID3VerifierRequestMethod.class);
-		queryLanguage = getVariant(VPID3VerifierQueryLanguage.class);
+		clientRequestType = getVariant(VP1FinalVerifierRequestMethod.class);
 
 		configureServerConfiguration();
 
@@ -208,7 +201,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 	protected void configureClientConfiguration() {
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
-		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-ID3-5.10.1");
+		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.10.1");
 		processAndValidateClientJwks();
 		validateClientMetadata();
 	}
@@ -332,7 +325,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 	}
 
 	protected void extractAuthorizationEndpointRequestParameters() {
-		if(clientRequestType == VPID3VerifierRequestMethod.REQUEST_URI_SIGNED) {
+		if(clientRequestType == VP1FinalVerifierRequestMethod.REQUEST_URI_SIGNED) {
 			fetchAndProcessRequestUri();
 //		} else if(clientRequestType == ClientRequestType.REQUEST_OBJECT) {
 //			callAndStopOnFailure(ExtractRequestObject.class, "OIDCC-6.1");
@@ -341,7 +334,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 //			callAndStopOnFailure(EnsureRequestDoesNotContainRequestObject.class, "OIDCC-6.1");
 		}
 
-		if(clientRequestType == VPID3VerifierRequestMethod.REQUEST_URI_SIGNED) {
+		if(clientRequestType == VP1FinalVerifierRequestMethod.REQUEST_URI_SIGNED) {
 			validateRequestObject();
 			callAndStopOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class);
 			skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
@@ -351,8 +344,6 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class, "OIDCC-6.1", "OIDCC-6.2");
 
-		// FIXME extract presentation definition
-
 		extractNonceFromAuthorizationEndpointRequestParameters();
 
 		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, ConditionResult.INFO, EnsureAuthorizationRequestContainsPkceCodeChallenge.class, ConditionResult.FAILURE, "RFC7636-4.3");
@@ -360,6 +351,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
 		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-ID2-5.2");
+		// FIXME entropy / size check on nonce? valid characters?
 	}
 
 	protected void validateAuthorizationEndpointRequestParameters() {
@@ -420,14 +412,14 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 		// FIXME: validate rest of request
 		// FIXME: validate client_metadata
-		callAndContinueOnFailure(CheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING);
 
 
 		endTestIfRequiredAuthorizationRequestParametersAreMissing();
 	}
 
 	protected void validateRequestObject() {
-		callAndContinueOnFailure(ValidateRequestObjectTypIsOAuthQauthReqJwt.class, ConditionResult.FAILURE, "OID4VP-ID3-5");
+		callAndContinueOnFailure(ValidateRequestObjectTypIsOAuthQauthReqJwt.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5");
 		skipIfElementMissing("authorization_request_object", "claims.exp", ConditionResult.INFO,
 			OIDCCValidateRequestObjectExp.class, ConditionResult.FAILURE, "RFC7519-4.1.4");
 		callAndContinueOnFailure(ValidateRequestObjectIat.class, ConditionResult.WARNING, "OIDCC-6.1");
@@ -449,7 +441,7 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");
 
 		// FIXME probably need to somehow validate the x5c header is trusted/valid for the client
-		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-ID3-5.10.4");
+		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10.4");
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
@@ -494,31 +486,17 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
-		switch (getVariant(VPID3VerifierCredentialFormat.class)) {
+		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
 				callAndStopOnFailure(CreateSdJwtKbCredential.class);
-
-				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
-					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
-				} else {
-					callAndStopOnFailure(CreateSdJwtPresentationSubmission.class);
-					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
-					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
-				}
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
 				callAndStopOnFailure(CreateWalletIsoMdlAnnexBSessionTranscript.class);
 				callAndStopOnFailure(CreateMdocCredential.class);
-				if (queryLanguage == VPID3VerifierQueryLanguage.DCQL) {
-					callAndStopOnFailure(AddDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
-				} else {
-					callAndStopOnFailure(CreateIsoMdocPresentationSubmission.class);
-					callAndStopOnFailure(AddPeVpTokenToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
-					callAndStopOnFailure(AddPresentationSubmissionToAuthorizationEndpointResponseParams.class, "OID4VP-ID3-7.1");
-				}
 			}
 		}
+		callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
 
 		customizeAuthorizationEndpointResponseParams();
 
@@ -549,15 +527,15 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(BuildUnsignedRequestToDirectPostEndpoint.class);
 				break;
 			case DIRECT_POST_JWT:
-				callAndStopOnFailure(EncryptVPResponse.class);
+				callAndStopOnFailure(VP1FinalEncryptVPResponse.class);
 				break;
 		}
 		callAndStopOnFailure(CallDirectPostEndpoint.class);
 
 		call(exec().mapKey("endpoint_response", "direct_post_response"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-ID3-8.2");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VP-ID3-8.2");
-		callAndContinueOnFailure(ValidateDirectPostResponse.class, ConditionResult.WARNING, "OID4VP-ID3-8.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(ValidateDirectPostResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8.2");
 	}
 
 	/**

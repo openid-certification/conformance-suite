@@ -1,4 +1,6 @@
-package net.openid.conformance.variant;
+package net.openid.conformance.vpid3verifier;
+
+import net.openid.conformance.variant.VariantParameter;
 
 @VariantParameter(
 	name = "request_method",
