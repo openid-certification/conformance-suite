@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as;
 
+import com.google.crypto.tink.internal.JsonParser;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -7,6 +8,8 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+
+import java.io.IOException;
 
 /**
  * Merges http request parameters and request object parameters
@@ -45,7 +48,10 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 		JsonObject authzEndpointReqParams = env.getObject("authorization_endpoint_http_request_params");
 		JsonObject effective = authzEndpointReqParams.deepCopy();
 		effective.remove("request_uri");
+
 		customizeEffectiveAuthorizationRequestParams(env, effective);
+
+		convertAuthorizationDetailsToJsonObjectOfPresent(effective);
 
 		//override request parameters if authorization_request_object exists
 		if(env.containsObject("authorization_request_object")) {
@@ -76,6 +82,28 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 		env.putObject(ENV_KEY, effective);
 		logSuccess("Merged http request parameters with request object claims", args(ENV_KEY, effective));
 		return env;
+	}
+
+	protected void convertAuthorizationDetailsToJsonObjectOfPresent(JsonObject authorizationRequestParams) {
+		if (!authorizationRequestParams.has("authorization_details")) {
+			return;
+		}
+
+		JsonElement rawAuthorizationDetailsEl = authorizationRequestParams.get("authorization_details");
+		if (rawAuthorizationDetailsEl == null) {
+			throw error("authorization_details must not be null or empty");
+		}
+
+		var authorizationDetailsString = OIDFJSON.getString(rawAuthorizationDetailsEl);
+		try {
+			JsonElement authorizationDetailsEl = JsonParser.parse(authorizationDetailsString);
+			if (!authorizationDetailsEl.isJsonArray()) {
+				throw error("authorization_details must be a json array", args("authorization_details", authorizationDetailsString));
+			}
+			authorizationRequestParams.add("authorization_details", authorizationDetailsEl.getAsJsonArray());
+		} catch (IOException e) {
+			throw error("Unable to parse authorization_details into JsonArray",e, args("authorization_details", authorizationDetailsString));
+		}
 	}
 
 }

@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.TemplateProcessor;
@@ -119,6 +120,48 @@ public class RARSupport {
 			}
 
 			JsonArray auth_details = getJsonArrayFromEnvironment(env, "authorization_request_object", "claims.authorization_details", "authorization_details claim under request object", true);
+			for (JsonElement element : auth_details) {
+				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
+					throw error("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
+				}
+				boolean supported = false;
+				String elementType = OIDFJSON.getString(element.getAsJsonObject().get("type"));
+				for (JsonElement supportedType : supportedTypes) {
+					if (OIDFJSON.getString(supportedType).equals(elementType)) {
+						supported = true;
+					}
+				}
+				if (!supported) {
+					throw error("The authorization_details claims has entries with unsupported `type`", args("bad_entry", element.getAsJsonObject(), "supportedTypes", supportedTypes));
+				}
+			}
+
+			JsonObject rich_authorization_request = new JsonObject();
+			rich_authorization_request.add("rar", auth_details);
+			env.putObject("rich_authorization_request", rich_authorization_request);
+			logSuccess("Rich request found and every type is supported", rich_authorization_request);
+			return env;
+
+		}
+
+	}
+
+	public static class EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR extends AbstractCondition {
+
+		@Override
+		@PreEnvironment(required = {CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "config"})
+		@PostEnvironment(required = "rich_authorization_request")
+		public Environment evaluate(Environment env) {
+
+			JsonElement rarTypeValues = env.getElementFromObject("config", "resource.authorization_details_types_supported");
+			JsonArray supportedTypes = new JsonArray();
+			if (rarTypeValues.isJsonArray()) {
+				supportedTypes = rarTypeValues.getAsJsonArray();
+			} else {
+				supportedTypes.add(rarTypeValues);
+			}
+
+			JsonArray auth_details = getJsonArrayFromEnvironment(env, "effective_authorization_endpoint_request", "authorization_details", "authorization_details claim under effective_authorization_endpoint_request", true);
 			for (JsonElement element : auth_details) {
 				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
 					throw error("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());

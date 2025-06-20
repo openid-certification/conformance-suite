@@ -142,6 +142,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.common.RARSupport;
+import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
@@ -1279,6 +1280,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
 		callAndStopOnFailure(CreateEffectiveAuthorizationPARRequestParameters.class);
+		if (authorizationRequestType == AuthorizationRequestType.RAR) {
+			callAndStopOnFailure(EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR.class, ConditionResult.FAILURE, "RAR-2.0");
+		}
 
 		endTestIfRequiredParametersAreMissing();
 		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-SP-FINAL-5.3.2.2-1");
