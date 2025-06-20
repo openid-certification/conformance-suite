@@ -243,6 +243,33 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return value.getAsJsonArray();
 	}
 
+
+	public JsonArray parseJsonArrayFromEnvironment(Environment env, String key, String path, String friendlyName, boolean failIfEmpty) {
+
+		JsonElement value = env.getElementFromObject(key, path);
+
+		if (value == null) {
+			throw error(friendlyName+" is missing", args(key, env.getObject(key)));
+		}
+
+		JsonArray array;
+		if (value.isJsonArray()) {
+			array = value.getAsJsonArray();
+		} else {
+			String valueString = OIDFJSON.getString(value);
+			JsonElement parsedValue = JsonParser.parseString(valueString);
+			if (!parsedValue.isJsonArray()) {
+				throw error(friendlyName + " is not a JSON array", args("value", value));
+			}
+			array = parsedValue.getAsJsonArray();
+		}
+
+		if (failIfEmpty && array.isEmpty()) {
+			throw error(friendlyName+" is empty", args("value", value));
+		}
+		return array;
+	}
+
 	/*
 	 * Logging utilities
 	 */
