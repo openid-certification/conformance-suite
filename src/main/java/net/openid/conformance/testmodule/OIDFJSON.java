@@ -179,6 +179,8 @@ public final class OIDFJSON {
 				jsonArray = new JsonArray(1);
 				jsonArray.add(jsonElement);
 			}
+		} else {
+			jsonArray = new JsonArray();
 		}
 		return jsonArray;
 	}
