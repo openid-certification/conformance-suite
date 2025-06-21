@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.List;
 
@@ -14,7 +15,21 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 
 		JsonArray authDetails = getJsonArrayFromEnvironment(env, "rich_authorization_request", "rar", "authorization_details", false);
 
-		for(JsonObject openIdCredential : extractOpenIdCredentials(env)) {
+		// TODO revise population of credentials in authorization_details
+		for (var i = 0; i < authDetails.size(); i++) {
+			JsonObject authDetail = authDetails.get(i).getAsJsonObject();
+
+			// use first openid_credential with configuration_id eu.europa.ec.eudi.pid.1
+			if ("openid_credential".equals(OIDFJSON.getString(authDetail.get("type")))
+					&& "eu.europa.ec.eudi.pid.1".equals(OIDFJSON.getString(authDetail.get("credential_configuration_id")))) {
+				JsonArray credentialIdentifiers = new JsonArray();
+				credentialIdentifiers.add("eu.europa.ec.eudi.pid.1:foo");
+				authDetail.add("credential_identifiers", credentialIdentifiers);
+				return env;
+			}
+		}
+
+		for (JsonObject openIdCredential : extractOpenIdCredentials(env)) {
 			authDetails.add(openIdCredential);
 		}
 
