@@ -625,8 +625,12 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		}
 	}
 
-	protected void requestAuthorizationCode() {
+	protected void callTokenEndpoint() {
 		callAndStopOnFailure(CallTokenEndpoint.class);
+	}
+
+	protected void requestAuthorizationCode() {
+		callTokenEndpoint();
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 		callAndStopOnFailure(CheckForAccessTokenValue.class);
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
