@@ -162,12 +162,12 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 
 	protected ResponseType responseType;
 	protected boolean formPost;
-	private boolean serverSupportsDiscovery;
+	protected boolean serverSupportsDiscovery;
 
 	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
 	protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
-	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+	protected Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	public static class ConfigureClientForClientSecretJwt extends AbstractConditionSequence {
 		@Override
