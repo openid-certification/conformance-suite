@@ -1,5 +1,10 @@
 package net.openid.conformance.condition.client;
 
+import com.nimbusds.jose.util.Base64;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.DataItem;
@@ -7,16 +12,11 @@ import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cbor.Simple;
 import org.multipaz.crypto.Algorithm;
 import org.multipaz.crypto.Crypto;
-import com.nimbusds.jose.util.Base64;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.as.AbstractMdocSessionTranscript;
-import net.openid.conformance.testmodule.Environment;
 
 import java.util.Map;
 import java.util.Set;
 
-public class CreateVerifierIsoMdocDCAPISessionTranscript extends AbstractMdocSessionTranscript {
+public class CreateVerifierIsoMdocDCAPISessionTranscript extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = { "client_id", "origin", "nonce" })
 	@PostEnvironment(strings = "session_transcript")
