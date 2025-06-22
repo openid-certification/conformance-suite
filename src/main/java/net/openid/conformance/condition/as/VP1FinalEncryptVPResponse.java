@@ -31,7 +31,7 @@ public class VP1FinalEncryptVPResponse extends AbstractJWEEncryptString
 		}
 
 		JsonObject clientJwks = jwksEl.getAsJsonObject();
-		// just use the alg from the first key for now
+		// just use the alg from the first key for now - this matches the logic in CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted
 		JsonElement algEl;
 		try {
 			algEl = clientJwks.get("keys").getAsJsonArray().get(0).getAsJsonObject().get("alg");
