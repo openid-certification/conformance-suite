@@ -4,7 +4,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CreateWalletIsoMdlAnnexBSessionTranscript extends AbstractMdocSessionTranscript {
+public class CreateWalletIsoMdlAnnexBSessionTranscript extends AbstractIso18013Part7AnnexBMdocSessionTranscript {
 
 	@Override
 	@PreEnvironment(strings = "mdoc_generated_nonce")

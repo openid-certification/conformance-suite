@@ -1,20 +1,20 @@
 package net.openid.conformance.condition.as;
 
+import com.nimbusds.jose.util.Base64;
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.testmodule.Environment;
+import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cbor.Simple;
 import org.multipaz.crypto.Algorithm;
 import org.multipaz.crypto.Crypto;
-import com.nimbusds.jose.util.Base64;
-import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.testmodule.Environment;
-import org.multipaz.cbor.Cbor;
 
 import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractMdocSessionTranscript extends AbstractCondition {
+public abstract class AbstractIso18013Part7AnnexBMdocSessionTranscript extends AbstractCondition {
 	public void createSessionTranscript(Environment env, String clientId, String responseUri, String nonce, String mdocGeneratedNonce) {
 		// the contents of the handover / session transcript is as defined in ISO 18013 part 7 section B.4.4
 

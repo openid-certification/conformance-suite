@@ -2,10 +2,10 @@ package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.as.AbstractMdocSessionTranscript;
+import net.openid.conformance.condition.as.AbstractIso18013Part7AnnexBMdocSessionTranscript;
 import net.openid.conformance.testmodule.Environment;
 
-public class CreateVerifierIsoMdlAnnexBSessionTranscript extends AbstractMdocSessionTranscript {
+public class CreateVerifierIsoMdlAnnexBSessionTranscript extends AbstractIso18013Part7AnnexBMdocSessionTranscript {
 	@Override
 	@PreEnvironment(strings = { "mdoc_generated_nonce", "response_uri", "nonce" }, required = "config")
 	@PostEnvironment(strings = "session_transcript")
