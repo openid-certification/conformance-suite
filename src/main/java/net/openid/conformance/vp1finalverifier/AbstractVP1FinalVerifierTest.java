@@ -18,7 +18,6 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
 import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
-import net.openid.conformance.condition.as.CreateWalletIsoMdlAnnexBSessionTranscript;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -69,6 +68,8 @@ import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSigne
 import net.openid.conformance.condition.client.BuildUnsignedRequestToDirectPostEndpoint;
 import net.openid.conformance.condition.client.CallDirectPostEndpoint;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
+import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted;
+import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -492,7 +493,14 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
-				callAndStopOnFailure(CreateWalletIsoMdlAnnexBSessionTranscript.class);
+				switch (responseMode) {
+					case DIRECT_POST:
+						callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted.class);
+						break;
+					case DIRECT_POST_JWT:
+						callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted.class);
+						break;
+				}
 				callAndStopOnFailure(CreateMdocCredential.class);
 			}
 		}

@@ -5,8 +5,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
-import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.multipaz.cbor.ArrayBuilder;
 import org.multipaz.cbor.Cbor;
@@ -22,12 +20,8 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.Set;
 
-public class CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript extends AbstractCondition {
-	@Override
-	@PreEnvironment(strings = { "origin", "nonce" })
-	@PostEnvironment(strings = "session_transcript")
-	public Environment evaluate(Environment env) {
-		JsonObject jwkJson = env.getObject("decryption_jwk");
+public abstract class AbstractCreateVP1FinalIsoMdocRedirectSessionTranscript extends AbstractCondition {
+	protected void calculateSessionTranscript(Environment env, JsonObject jwkJson, String clientId, String nonce, String responseUri) {
 		byte[] jwkThumbprint = null;
 		if (jwkJson != null) {
 			try {
@@ -39,36 +33,35 @@ public class CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript extends Abstrac
 			}
 		}
 
-		String origin = env.getString("origin");
-		String nonce =  env.getString("nonce");
-
 		// https://openid.net/specs/openid-4-verifiable-presentations-1_0-29.html#appendix-B.2.6.2
 		Map<String, String> sessionTranscriptInput = Map.of(
 			"jwkThumbprint_b64", jwkThumbprint != null ? Base64.encode(jwkThumbprint).toString() : "<null>",
-			"origin", origin,
-			"nonce", nonce);
+			"client_id", clientId,
+			"nonce", nonce,
+			"response_uri", responseUri);
 
 		ArrayBuilder<CborBuilder> builder = CborArray.Companion.builder()
-			.add(origin)
+			.add(clientId)
 			.add(nonce);
 		if (jwkThumbprint != null) {
 			builder.add(jwkThumbprint);
 		} else {
 			builder.add(Simple.Companion.getNULL());
 		}
+		builder.add(responseUri);
 		byte[] handoverInfo = Cbor.INSTANCE.encode(
 			builder.end().build());
 		byte[] handoverInfoHash = Crypto.INSTANCE.digest(Algorithm.SHA256, handoverInfo);
 
 		String handoverInfoDiagnostics = Cbor.INSTANCE.toDiagnostics(handoverInfo,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
-		log("Created OpenID4VPDCAPIHandoverInfo",
+		log("Created OpenID4VPHandover",
 			args("handover_info_b64", Base64.encode(handoverInfo).toString(),
 				"handover_info_hash_b64", Base64.encode(handoverInfoHash).toString(),
 				"cbor_diagnostic", handoverInfoDiagnostics));
 
 		DataItem handover = CborArray.Companion.builder()
-			.add("OpenID4VPDCAPIHandover")
+			.add("OpenID4VPHandover")
 			.add(handoverInfoHash)
 			.end()
 			.build();
@@ -93,8 +86,5 @@ public class CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript extends Abstrac
 			args("session_transcript_input", sessionTranscriptInput,
 				"session_transcript_b64", transcript_b64,
 				"cbor_diagnostic", diagnostics));
-
-		return env;
 	}
-
 }
