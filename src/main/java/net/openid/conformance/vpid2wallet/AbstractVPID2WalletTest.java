@@ -24,7 +24,6 @@ import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedi
 import net.openid.conformance.condition.client.CheckAudInBindingJwt;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
@@ -67,6 +66,7 @@ import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameI
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
+import net.openid.conformance.condition.client.VPID2CheckForUnexpectedParametersInVpAuthorizationResponse;
 import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
@@ -488,7 +488,7 @@ public abstract class AbstractVPID2WalletTest extends AbstractRedirectServerTest
 		callAndContinueOnFailure(ValidatePresentationSubmission.class, ConditionResult.FAILURE, "OID4VP-ID3-7.1");
 		// FIXME: verify presentation_submission?
 
-		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(VPID2CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
 
 		switch (credentialFormat) {
