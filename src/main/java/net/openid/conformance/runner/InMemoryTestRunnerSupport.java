@@ -128,7 +128,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 					if (testModule.getStatusUpdated().plus(waitingTestTimeout).isBefore(Instant.now())) {
 						removeRunningTest(testId);
 						testModule.getTestExecutionManager().runInBackground(() -> {
-							testModule.stop("The test was idle for more than %s minutes.".formatted(waitingTestTimeout.getSeconds() / 60));
+							testModule.stop("The test was idle for more than %s minutes.".formatted(waitingTestTimeout.toMinutes()));
 							return "stopped";
 						});
 					}
