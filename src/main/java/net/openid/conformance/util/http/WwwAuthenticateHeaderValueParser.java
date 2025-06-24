@@ -1,7 +1,7 @@
 package net.openid.conformance.util.http;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +77,7 @@ public class WwwAuthenticateHeaderValueParser {
 	public static Map<String, String> extractChallenges(String headerValue) {
 
 		if (headerValue == null || headerValue.isBlank()) {
-			return Collections.emptyMap();
+			return new HashMap<>();
 		}
 
 		Map<String, String> result = new LinkedHashMap<>();
