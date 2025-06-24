@@ -206,12 +206,12 @@
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-jvm</artifactId>
-			<version>0.90</version>
+			<version>0.91.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-doctypes-jvm</artifactId>
-			<version>0.90</version>
+			<version>0.91.0</version>
 		</dependency>
 
 		<dependency>
@@ -329,6 +329,7 @@
 						<arg>-Xlint:-processing</arg>
 						<arg>-Xlint:unchecked</arg>
 						<arg>-Xlint:deprecation</arg>
+						<arg>-Werror</arg>
 						<!-- As per https://errorprone.info/docs/installation -->
 						<arg>-XDcompilePolicy=simple</arg>
 						<arg>--should-stop=ifError=FLOW</arg>
