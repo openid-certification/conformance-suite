@@ -60,7 +60,6 @@ import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNo
 import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
-import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
@@ -106,7 +105,6 @@ import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
-import net.openid.conformance.condition.as.VCIGenerateCredentialIssuerMetadata;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerAsString;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -217,6 +215,7 @@ import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
+import net.openid.conformance.vciid2wallet.condition.VCIGenerateCredentialIssuerMetadata;
 import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vciid2wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
@@ -1665,10 +1664,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CID-SP-5");
 				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-5", "CID-IDA-5.2-10");
 			}
-			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
+			checkRequestedScopes();
 		}
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
+	}
+
+	protected void checkRequestedScopes() {
+		// TODO check for scopes?
+		// callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 	}
 
 	protected void validateRequestObjectForPAREndpointRequest() {

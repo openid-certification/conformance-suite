@@ -27,7 +27,9 @@ public class ValidateClientAttestation extends AbstractVerifyJwsSignature {
 
 		String clientAttestationPop = env.getString("client_attestation_pop");
 
-		// validate clientattestationpop with key from cnf
+		// TODO validate clientattestationpop with key from cnf
+
+		// Similar to validate the SD key binding JWT -> see cnf claim with key binding
 
 		JsonObject jwks = new JsonObject();
 		JsonArray jwksKeys = new JsonArray();

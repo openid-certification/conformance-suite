@@ -177,6 +177,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.condition.VCICheckCacheControlHeaderInResponse;
+import net.openid.conformance.vciid2issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vciid2issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
@@ -308,12 +309,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 		}
 
-		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
-		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
-			throw new TestFailureException(getId(), "credential_configuration_id cannot be null or empty!");
-		}
-		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
-
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
 		isOpenId = false;
@@ -347,6 +342,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
 
+		determineCredentialConfigurationTransferMethod();
+
 		if (isOpenId || jarm) {
 			callAndStopOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
@@ -377,6 +374,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void determineCredentialConfigurationTransferMethod() {
+
+		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
+		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
+			throw new TestFailureException(getId(), "credential_configuration_id cannot be null or empty!");
+		}
+		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
+
+		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
 	}
 
 	protected void setupResourceEndpoint() {

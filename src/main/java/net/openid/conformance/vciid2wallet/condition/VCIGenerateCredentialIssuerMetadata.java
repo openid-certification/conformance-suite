@@ -1,4 +1,4 @@
-package net.openid.conformance.condition.as;
+package net.openid.conformance.vciid2wallet.condition;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -49,6 +49,7 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 		String credentialEndpointUrl = (mtlsConstrain ? mtlsBaseUrl: baseUrl) + "credential";
 		String nonceEndpointUrl = (mtlsConstrain ? mtlsBaseUrl: baseUrl) + "nonce";
 		String credentialConfigurationId = "eu.europa.ec.eudi.pid.1";
+		String credentialScope = "eudi.pid.1";
 		String credentialFormat = "dc+sd-jwt";
 		String vct = "urn:eudi:pid:1";
 
@@ -61,6 +62,7 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 				"$(credentialConfigurationId)": {
 					"format": "$(credentialFormat)",
 					"vct": "$(vct)",
+					"scope": "$(scope)",
 					"cryptographic_binding_methods_supported": ["jwk"],
 					"credential_signing_alg_values_supported": ["ES256"],
 					"proof_types_supported": {
@@ -77,7 +79,8 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 			"nonceEndpoint", nonceEndpointUrl,
 			"credentialConfigurationId", credentialConfigurationId,
 			"credentialFormat", credentialFormat,
-			"vct", vct
+			"vct", vct,
+			"scope", credentialScope
 		));
 
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
@@ -87,6 +90,10 @@ public class VCIGenerateCredentialIssuerMetadata extends AbstractCondition {
 		env.putString("credential_issuer_metadata_url", baseUrl + ".well-known/openid-credential-issuer");
 		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
 		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
+
+		JsonObject scopeToCredentialMap = new JsonObject();
+		scopeToCredentialMap.addProperty(credentialScope, credentialConfigurationId);
+		env.putObject("credential_issuer_credential_configuration_id_scope_map", scopeToCredentialMap);
 
 		logSuccess("Created credential issuer metadata", args("credential_issuer", metadataJson));
 
