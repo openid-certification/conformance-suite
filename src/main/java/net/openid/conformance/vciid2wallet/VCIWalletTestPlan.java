@@ -17,7 +17,9 @@ public class VCIWalletTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					VCIWalletHappyPath.class
+					VCIWalletHappyPath.class,
+					VCIWalletHappyPathUsingScopes.class,
+					VCIWalletHappyPathUsingScopesWithoutAuthorizationDetailsInTokenResponse.class
 				),
 				List.of(
 				)

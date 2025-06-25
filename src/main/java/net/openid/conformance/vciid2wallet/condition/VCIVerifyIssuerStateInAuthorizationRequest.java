@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class VCIVerifyIssuerStateInAuthorizationRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(strings = {"vci"}, required = "par_endpoint_http_request_params")
+	@PreEnvironment
 	public Environment evaluate(Environment env) {
 
 		String expectedIssuerState = env.getString("vci","issuer_state");
