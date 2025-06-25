@@ -32,25 +32,26 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 		String issuer = env.getString("client_attestation","issuer");
 		String clientId = env.getString("client", "client_id");
 
-		String clientAttestationKey = env.getString("vci", "client_attestation_key");
+		String clientInstanceKey = env.getString("vci", "client_attestation_key");
 		JsonObject cnf = new JsonObject();
 		try {
-			JWK clientAttestationKeyJwk = JWK.parse(clientAttestationKey);
-			JWK clientAttestationKeyPublicJwk = clientAttestationKeyJwk.toPublicJWK();
-			JsonObject clientAttestationKeyJwkObj = JsonParser.parseString(clientAttestationKeyPublicJwk.toJSONString()).getAsJsonObject();
-			cnf.add("jwk", clientAttestationKeyJwkObj);
+			JWK clientInstanceKeyJwk = JWK.parse(clientInstanceKey);
+			JWK clientInstanceKeyPublicJwk = clientInstanceKeyJwk.toPublicJWK();
+			JsonObject clientInstancePublicKeyJwk = JsonParser.parseString(clientInstanceKeyPublicJwk.toJSONString()).getAsJsonObject();
+			cnf.add("jwk", clientInstancePublicKeyJwk);
 		} catch (ParseException e) {
 			throw error("Client attestation key could not be parsed", e);
 		}
 
 		String commaSeparatedClientCerts = env.getString("vci", "client_attestation_certs");
+		// TODO use certificate from client attester configuration!
 		List<Base64> clientCertList = Arrays.stream(commaSeparatedClientCerts.split(",")).map(Base64::new).toList();
 
 		String keyId = env.getString("vci", "client_attestation_key_id");
 
 		JWSHeader.Builder headerBuilder = new JWSHeader //
 			.Builder(JWSAlgorithm.ES256) //
-			.keyID(keyId) //
+			.keyID(keyId) // TODO omit key
 			.x509CertChain(clientCertList) //
 			.type(new JOSEObjectType("oauth-client-attestation+jwt"));
 

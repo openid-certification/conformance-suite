@@ -273,6 +273,48 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                             <div class="config-form-container">
+                                <h3 class="config-form-container-header">Credential Issuer</h3>
+
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Issuer URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Credential Issuer URL."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="server.discoveryIssuer"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Signing JWK</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Signing key to be used for issuing credentials, in JWK format."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="credential.signing_jwk" data-json-type="jsonobject"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Configuration ID</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The credential_configuration_id to use. Defaults to eu.europa.ec.eudi.pid.1."></span>
+                                            </div>
+                                            <input class="form-control config-form-element" data-json-target="vci.credential_configuration_id"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="config-form-container">
                                 <h3 class="config-form-container-header">Server</h3>
 
                                 <div class="row config-form-element-container">
@@ -355,18 +397,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL to server's .well-known/openid-configuration."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="server.discoveryUrl"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">discoveryIssuer</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Server's issuer URL."></span>
-                                            </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="server.discoveryIssuer"></input>
                                         </div>
                                     </div>
                                 </div>
@@ -1533,35 +1563,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="config-form-container">
-                                <h3 class="config-form-container-header">Credential Issuer</h3>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Signing JWK</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Signing key to be used for issuing credentials, in JWK format."></span>
-                                            </div>
-                                            <textarea class="form-control config-form-element" data-json-target="credential.signing_jwk" data-json-type="jsonobject"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Credential Configuration ID</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The credential_configuration_id to use. Defaults to eu.europa.ec.eudi.pid.1."></span>
-                                            </div>
-                                            <input class="form-control config-form-element" data-json-target="vci.credential_configuration_id"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
                             </div>
 
                         </div>

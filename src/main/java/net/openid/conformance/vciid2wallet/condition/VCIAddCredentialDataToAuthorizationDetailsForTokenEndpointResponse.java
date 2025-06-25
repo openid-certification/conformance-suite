@@ -13,7 +13,18 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 	@Override
 	public Environment evaluate(Environment env) {
 
+		if (env.getObject("rich_authorization_request") == null) {
+			// create rar if missing
+			JsonObject richAuthorizationRequest = new JsonObject();
+			richAuthorizationRequest.add("rar", new JsonArray());
+			env.putObject("rich_authorization_request", richAuthorizationRequest);
+		}
+
 		JsonArray authDetails = getJsonArrayFromEnvironment(env, "rich_authorization_request", "rar", "authorization_details", false);
+		if (authDetails == null) {
+			log("No authorization details found");
+			return env;
+		}
 
 		// TODO revise population of credentials in authorization_details
 		for (var i = 0; i < authDetails.size(); i++) {

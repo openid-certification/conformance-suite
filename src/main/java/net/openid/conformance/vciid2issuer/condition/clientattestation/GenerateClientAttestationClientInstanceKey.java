@@ -33,7 +33,7 @@ public class GenerateClientAttestationClientInstanceKey extends AbstractGenerate
 		env.putString("vci", "client_attestation_key_id", clientInstanceKey.getKeyID());
 		env.putString("vci", "client_attestation_key", clientInstanceKeyJson);
 
-		String base64Cert = generateCertificateFromKey(clientInstanceKey);
+		String base64Cert = generateCertificateFromKey(clientInstanceKey); // TODO remove this!!
 
 		env.putString("vci", "client_attestation_certs", base64Cert);
 
