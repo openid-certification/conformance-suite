@@ -6,8 +6,10 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
@@ -27,12 +29,12 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 		String issuer = env.getString("server","issuer");
 		String clientId = env.getString("client","client_id");
 
-		String clientInstanceKey = env.getString("vci", "client_attestation_key");
+		String clientInstanceKey = env.getString("vci", "client_instance_key");
 		JWK clientInstanceKeyJwk;
 		try {
 			clientInstanceKeyJwk = JWK.parse(clientInstanceKey);
 		} catch (ParseException e) {
-			throw error("Client attestation key could not be parsed", e);
+			throw error("Client instance key could not be parsed", e, args("client_instance_key", clientInstanceKey));
 		}
 
 		JWSHeader.Builder headerBuilder = new JWSHeader //
@@ -66,10 +68,15 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 
 		JWSSigner signer;
 		try {
-			signer = new ECDSASigner((ECKey) clientInstanceKeyJwk); // FIXME need to cope with RSA too
+			signer = createJwsSigner(clientInstanceKeyJwk, clientInstanceKey);
+		} catch (JOSEException e) {
+			throw error("Failed to create signer for client instance key", e, args("client_instance_key", clientInstanceKey));
+		}
+
+		try {
 			jwt.sign(signer);
 		} catch (JOSEException e) {
-			throw error("Failed to sign client attestation jwt", e);
+			throw error("Failed to sign client attestation jwt with client instance key", e, args("client_instance_key", clientInstanceKey));
 		}
 
 		String jwtString = jwt.serialize();
@@ -79,6 +86,16 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 		log("Generated client attestation proof jwt", args("client_attestation_pop", jwtString));
 
 		return env;
+	}
+
+	protected JWSSigner createJwsSigner(JWK clientInstanceKeyJwk, String clientInstanceKey) throws JOSEException {
+		if (clientInstanceKeyJwk instanceof ECKey) {
+			return new ECDSASigner((ECKey) clientInstanceKeyJwk);
+		} else if (clientInstanceKeyJwk instanceof RSAKey) {
+			return new RSASSASigner((RSAKey) clientInstanceKeyJwk);
+		} else {
+			throw error("Unsupported client instance key type", args("client_instance_key", clientInstanceKey));
+		}
 	}
 
 	protected Instant getExp(Instant iat) {
