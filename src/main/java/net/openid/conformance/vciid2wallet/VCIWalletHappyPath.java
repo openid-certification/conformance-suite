@@ -18,7 +18,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 		"server.jwks",
 		"client.client_id",
-		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
 		"client.jwks",
@@ -27,7 +26,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"vci.credential_offer_endpoint"
 	}
 )
-
 public class VCIWalletHappyPath extends AbstractVCIWalletTest {
 
 	@Override

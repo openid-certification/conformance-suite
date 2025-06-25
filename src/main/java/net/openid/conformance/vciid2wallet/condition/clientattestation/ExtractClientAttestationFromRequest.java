@@ -33,7 +33,8 @@ public class ExtractClientAttestationFromRequest extends AbstractCondition {
 			throw error("Could not find OAuth-Client-Attestation-PoP in request headers", args("headers", requestHeaders));
 		}
 
-		// TODO handle concatenated serialization format
+		// TODO handle concatenated serialization format???
+		// see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-05#section-7
 
 		String clientAttestation = OIDFJSON.getString(clientAttestationHeaderEl);
 		JsonObject clientAttestationObj = parseJwt("OAuth-Client-Attestation", clientAttestation);

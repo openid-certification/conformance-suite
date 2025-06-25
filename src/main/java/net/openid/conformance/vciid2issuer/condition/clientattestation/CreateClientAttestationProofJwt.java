@@ -27,10 +27,10 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 		String issuer = env.getString("server","issuer");
 		String clientId = env.getString("client","client_id");
 
-		String clientAttestationKey = env.getString("vci", "client_attestation_key");
-		JWK clientAttestationKeyJwk;
+		String clientInstanceKey = env.getString("vci", "client_attestation_key");
+		JWK clientInstanceKeyJwk;
 		try {
-			clientAttestationKeyJwk = JWK.parse(clientAttestationKey);
+			clientInstanceKeyJwk = JWK.parse(clientInstanceKey);
 		} catch (ParseException e) {
 			throw error("Client attestation key could not be parsed", e);
 		}
@@ -66,7 +66,7 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 
 		JWSSigner signer;
 		try {
-			signer = new ECDSASigner((ECKey) clientAttestationKeyJwk); // FIXME need to cope with RSA too
+			signer = new ECDSASigner((ECKey) clientInstanceKeyJwk); // FIXME need to cope with RSA too
 			jwt.sign(signer);
 		} catch (JOSEException e) {
 			throw error("Failed to sign client attestation jwt", e);
