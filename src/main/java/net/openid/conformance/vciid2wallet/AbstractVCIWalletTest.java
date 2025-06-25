@@ -3,6 +3,7 @@ package net.openid.conformance.vciid2wallet;
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -195,6 +196,7 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.util.TemplateProcessor;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
@@ -215,8 +217,9 @@ import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
-import net.openid.conformance.vciid2wallet.condition.VCIGenerateCredentialIssuerMetadata;
+import net.openid.conformance.vciid2wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
+import net.openid.conformance.vciid2wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
 import net.openid.conformance.vciid2wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
@@ -229,6 +232,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.Map;
 
 @VariantParameters({
 	VCIID2ClientAuthType.class,
@@ -260,9 +265,6 @@ import org.springframework.web.servlet.view.RedirectView;
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {
 	"client.scope", // scope is always openid
 	"client2.scope"
-})
-@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
-		"resource.authorization_details_types_supported"
 })
 @VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="private_key_jwt", configurationFields = {"client_attestation.issuer"})
 @VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="mtls", configurationFields = {"client_attestation.issuer"})
@@ -435,7 +437,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		callAndStopOnFailure(new VCIGenerateCredentialIssuerMetadata(isMTLSConstrain()));
+		configureCredentialIssuerMetadata();
+
 		exposeEnvString("credential_issuer");
 		exposeEnvString("credential_issuer_metadata_url");
 		exposeEnvString("credential_issuer_nonce_endpoint_url");
@@ -460,6 +463,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		if (authorizationRequestType == AuthorizationRequestType.RAR){
+			callAndStopOnFailure(VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes.class);
 			callAndStopOnFailure(AddSupportedAuthorizationTypesToServerConfiguration.class);
 		}
 
@@ -474,6 +478,98 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+	}
+
+	protected void configureCredentialIssuerMetadata() {
+		JsonObject credentialIssuerMetadata = getCredentialIssuerMetadata();
+		env.putObject("credential_issuer_metadata", credentialIssuerMetadata);
+
+		configureSupportedCredentialConfigurations();
+
+		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2");
+	}
+
+	protected JsonObject getCredentialIssuerMetadata() {
+
+		String baseUrl = env.getString("base_url");
+		String mtlsBaseUrl = env.getString("base_mtls_url");
+
+		if (baseUrl.isEmpty()) {
+			throw new TestFailureException(getId(), "Base URL is empty");
+		}
+
+		if (mtlsBaseUrl.isEmpty()) {
+			throw new TestFailureException(getId(), "Base MTLS URL is empty");
+		}
+
+		if (!baseUrl.endsWith("/")) {
+			baseUrl = baseUrl + "/";
+		}
+		if (!mtlsBaseUrl.endsWith("/")) {
+			mtlsBaseUrl = mtlsBaseUrl + "/";
+		}
+
+		String credentialIssuer = baseUrl;
+		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl: baseUrl) + "credential";
+		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl: baseUrl) + "nonce";
+
+		String metadata = TemplateProcessor.process("""
+		{
+			"credential_issuer": "$(credentialIssuer)",
+			"credential_endpoint": "$(credentialEndpoint)",
+			"nonce_endpoint": "$(nonceEndpoint)"
+		}
+		""", Map.of(
+			"credentialIssuer", credentialIssuer,
+			"credentialEndpoint", credentialEndpointUrl,
+			"nonceEndpoint", nonceEndpointUrl
+		));
+
+		env.putString("credential_issuer", credentialIssuer);
+		env.putString("credential_issuer_metadata_url", baseUrl + ".well-known/openid-credential-issuer");
+		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
+		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
+
+		return JsonParser.parseString(metadata).getAsJsonObject();
+	}
+
+	protected void configureSupportedCredentialConfigurations() {
+
+		JsonObject supportedCredentialConfigurations = getSupportedCredentialConfigurations();
+		env.getObject("credential_issuer_metadata").add("credential_configurations_supported", supportedCredentialConfigurations);
+
+		JsonObject scopeToCredentialMap = new JsonObject();
+
+		for (var configurationId : supportedCredentialConfigurations.keySet()) {
+			JsonObject credentialConfiguration = supportedCredentialConfigurations.getAsJsonObject(configurationId);
+			if (credentialConfiguration.has("scope")) {
+				String scope = OIDFJSON.getString(credentialConfiguration.get("scope"));
+				scopeToCredentialMap.addProperty(scope, configurationId);
+			}
+		}
+
+		env.putObject("credential_configuration_id_scope_map", scopeToCredentialMap);
+	}
+
+	protected JsonObject getSupportedCredentialConfigurations() {
+
+		String json = """
+			{
+				"eu.europa.ec.eudi.pid.1": {
+					"format": "dc+sd-jwt",
+					"vct": "urn:eudi:pid:1",
+					"cryptographic_binding_methods_supported": [ "jwk" ],
+					"credential_signing_alg_values_supported": [ "ES256" ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					}
+				}
+			}
+			""";
+
+		return JsonParser.parseString(json).getAsJsonObject();
 	}
 
 	/**
@@ -1523,9 +1619,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		callAndStopOnFailure(VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse.class);
 
-//		if (authorizationRequestType == AuthorizationRequestType.RAR) {
+		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
-//		}
+		}
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {

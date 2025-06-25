@@ -1,12 +1,14 @@
 package net.openid.conformance.vciid2wallet.condition;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse extends AbstractCondition {
 
@@ -27,35 +29,62 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 		}
 
 		// TODO revise population of credentials in authorization_details
-		for (var i = 0; i < authDetails.size(); i++) {
-			JsonObject authDetail = authDetails.get(i).getAsJsonObject();
+		if (!authDetails.isEmpty()) {
+			for (var i = 0; i < authDetails.size(); i++) {
+				JsonObject authDetail = authDetails.get(i).getAsJsonObject();
 
-			// use first openid_credential with configuration_id eu.europa.ec.eudi.pid.1
-			if ("openid_credential".equals(OIDFJSON.getString(authDetail.get("type")))
-					&& "eu.europa.ec.eudi.pid.1".equals(OIDFJSON.getString(authDetail.get("credential_configuration_id")))) {
+				// use first openid_credential with configuration_id eu.europa.ec.eudi.pid.1
+				if ("openid_credential".equals(OIDFJSON.getString(authDetail.get("type")))
+						&& "eu.europa.ec.eudi.pid.1".equals(OIDFJSON.getString(authDetail.get("credential_configuration_id")))) {
+
+					JsonArray credentialIdentifiers = new JsonArray();
+					String credentialIdentifier = "eu.europa.ec.eudi.pid.1:" + UUID.randomUUID();
+					credentialIdentifiers.add(credentialIdentifier);
+					authDetail.add("credential_identifiers", credentialIdentifiers);
+
+					log("Used credential_configuration from authorization_details",
+							args("credential_configuration_id", credentialIdentifier, "credential_identifiers", credentialIdentifiers));
+
+					return env;
+				}
+			}
+		} else {
+
+			String scope = env.getString("effective_authorization_endpoint_request", "scope");
+			if (scope == null || scope.isBlank()) {
+				throw error("Scope must not be empty if authorization_details are not present");
+			}
+
+			JsonObject credentialConfigurationIdScopeMap = env.getObject("credential_configuration_id_scope_map");
+			if (credentialConfigurationIdScopeMap == null) {
+				throw error("credential_configuration_id_scope_map object must not be null");
+			}
+
+			for (String credentialConfigurationScopeCandidate : Set.of(scope.split(" "))) {
+				JsonElement maybeCredentialConfigurationId = credentialConfigurationIdScopeMap.get(credentialConfigurationScopeCandidate);
+				if (maybeCredentialConfigurationId == null) {
+					continue;
+				}
+
+				String credentialConfigurationId = OIDFJSON.getString(maybeCredentialConfigurationId);
+
+				JsonObject authDetail = new JsonObject();
+				authDetail.addProperty("type", "openid_credential");
+				authDetail.addProperty("credential_configuration_id", credentialConfigurationId);
+
 				JsonArray credentialIdentifiers = new JsonArray();
-				credentialIdentifiers.add("eu.europa.ec.eudi.pid.1:foo");
+				String credentialIdentifier = "eu.europa.ec.eudi.pid.1:" + UUID.randomUUID();
+				credentialIdentifiers.add(credentialIdentifier);
 				authDetail.add("credential_identifiers", credentialIdentifiers);
-				return env;
+
+				authDetails.add(authDetail);
+
+				log("Used credential_configuration from scope",
+						args("credential_configuration_id", credentialIdentifier, "credential_identifiers", credentialIdentifiers, "credential_scope", credentialConfigurationScopeCandidate));
+
 			}
 		}
 
-		for (JsonObject openIdCredential : extractOpenIdCredentials(env)) {
-			authDetails.add(openIdCredential);
-		}
-
 		return env;
-	}
-
-	protected List<JsonObject> extractOpenIdCredentials(Environment env) {
-
-		JsonObject openIdCredential = new JsonObject();
-		openIdCredential.addProperty("type", "openid_credential");
-		openIdCredential.addProperty("credential_configuration_id", "eu.europa.ec.eudi.pid.1");
-		JsonArray credentialIdentifiers = new JsonArray();
-		credentialIdentifiers.add("eu.europa.ec.eudi.pid.1:foo");
-		openIdCredential.add("credential_identifiers", credentialIdentifiers);
-
-		return List.of(openIdCredential);
 	}
 }

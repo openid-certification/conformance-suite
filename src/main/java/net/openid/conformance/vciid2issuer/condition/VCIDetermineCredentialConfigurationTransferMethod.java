@@ -10,7 +10,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 
 public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractCondition {
 
@@ -27,34 +26,32 @@ public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractC
 			throw error("Missing credential_configuration_id not provided");
 		}
 
-		log("Found explicitly configured credential_configuration_id", args("credential_configuration_id", vciCredentialConfigurationId));
-
-		Map<String, String> credentialConfigurationScopes = new HashMap<>();
+		var credentialConfigScopeMapping = new HashMap<String, String>();
 		JsonObject credentialConfigurationsSupported = env.getElementFromObject("vci", "credential_issuer_metadata.credential_configurations_supported").getAsJsonObject();
-		for (String credentialConfigurationId : credentialConfigurationsSupported.keySet()) {
-			JsonObject credentialConfiguration = credentialConfigurationsSupported.getAsJsonObject(credentialConfigurationId);
+		for (String credentialConfigId : credentialConfigurationsSupported.keySet()) {
+			JsonObject credentialConfiguration = credentialConfigurationsSupported.getAsJsonObject(credentialConfigId);
 
-			if (!vciCredentialConfigurationId.equals(credentialConfigurationId)) {
+			if (!vciCredentialConfigurationId.equals(credentialConfigId)) {
 				// skip other credential configuration ids
 				continue;
 			}
 
 			JsonElement scopeEl = credentialConfiguration.get("scope");
 			if (scopeEl == null) {
-				credentialConfigurationScopes.put(credentialConfigurationId, null);
+				credentialConfigScopeMapping.put(credentialConfigId, null);
 			} else {
 				String scopeValue = OIDFJSON.getString(scopeEl);
-				credentialConfigurationScopes.put(credentialConfigurationId, scopeValue);
+				credentialConfigScopeMapping.put(credentialConfigId, scopeValue);
 			}
 		}
 
-		if (!credentialConfigurationScopes.containsKey(vciCredentialConfigurationId)) {
+		if (!credentialConfigScopeMapping.containsKey(vciCredentialConfigurationId)) {
 			throw error("Couldn't find expected credential_configuration in credential issuer metadata",
 				args("credential_configuration_id", vciCredentialConfigurationId,
 					"credential_configurations_supported", credentialConfigurationsSupported));
 		}
 
-		String credentialConfigurationScope = credentialConfigurationScopes.get(vciCredentialConfigurationId);
+		String credentialConfigurationScope = credentialConfigScopeMapping.get(vciCredentialConfigurationId);
 		if (credentialConfigurationScope != null) {
 			// if credential_configuration contains scope -> use scope to pass instead of the credential_configuration_id
 			String scope = env.getString("config", "client.scope");
@@ -68,17 +65,19 @@ public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractC
 			scope = String.join(" ", new LinkedHashSet<>(List.of(scope.split(" "))));
 
 			env.putString("config", "client.scope", scope);
-			logSuccess("Added scope value for credential_configuration_id to request scope", args("scope", scope, "credential_scope", credentialConfigurationScope, "credential_configuration_id", vciCredentialConfigurationId));
+			logSuccess("Using credential scope value to reference credential_configuration_id", args("scope", scope, "credential_scope", credentialConfigurationScope, "credential_configuration_id", vciCredentialConfigurationId));
 		} else {
 			// if credential_configuration contains no scope -> use authorization_details to pass credential_configuration_id
-			JsonObject resourceObject = env.getElementFromObject("config", "resource").getAsJsonObject();
-			JsonObject credentialConfigurationObject = new JsonObject();
-			credentialConfigurationObject.addProperty("type", "openid_credential");
-			credentialConfigurationObject.addProperty("credential_configuration_id", vciCredentialConfigurationId);
+			JsonObject credentialConfig = new JsonObject();
+			credentialConfig.addProperty("type", "openid_credential");
+			credentialConfig.addProperty("credential_configuration_id", vciCredentialConfigurationId);
 
-			resourceObject.add("richAuthorizationRequest", OIDFJSON.convertJsonObjectListToJsonArray(List.of(credentialConfigurationObject)));
+			JsonObject rar = new JsonObject();
+			rar.add("payload", OIDFJSON.convertJsonObjectListToJsonArray(List.of(credentialConfig)));
+			env.putObject("rar", rar);
 
-			logSuccess("Added element for credential_configuration_id to request authorization_details", args("rar_element", credentialConfigurationObject, "credential_configuration_id", vciCredentialConfigurationId));
+			logSuccess("Using authorization_details to refer to credential_configuration_id",
+				args("rar_element", credentialConfig, "credential_configuration_id", vciCredentialConfigurationId));
 		}
 
 		return env;

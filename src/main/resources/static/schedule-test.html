@@ -312,6 +312,42 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     </div>
                                 </div>
 
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Issuer Metadata URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL that server will use for OID4VCI credential issuer metadata."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_issuer_metadata_url"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Offer Endpoint URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL for the OID4VCI credential offer endpoint. If you are using HAIP, use 'haip://'"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_offer_endpoint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Authorization Server URL Override</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full issuer URL for the OAuth2 Authorization Server. When this is not set, the testsuite will use the discoveryIssuer as authorizationServer, otherwise when this is set the testsuite will use this authorization server to obtain an access_token for the tests."></span>
+                                            </div>
+                                            <input type="url" class="form-control config-form-element" data-json-target="vci.authorization_server"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
                             <div class="config-form-container">
@@ -1499,45 +1535,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                             <div class="config-form-container">
-                                <h3 class="config-form-container-header">OpenID4VCI</h3>
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Credential Issuer Metadata URL</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL that server will use for OID4VCI credential issuer metadata."></span>
-                                            </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_issuer_metadata_url"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Credential Offer Endpoint URL</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL for the OID4VCI credential offer endpoint. If you are using HAIP, use 'haip://'"></span>
-                                            </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_offer_endpoint"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Authorization Server URL</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full issuer URL for the OAuth2 Authorization Server. When this is not set, the testsuite will use the discoveryIssuer as authorizationServer, otherwise when this is set the testsuite will use this authorization server to obtain an access_token for the tests."></span>
-                                            </div>
-                                            <input type="url" class="form-control config-form-element" data-json-target="vci.authorization_server"></input>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="config-form-container">
                                 <h3 class="config-form-container-header">Client Attestation</h3>
 
                                 <div class="row config-form-element-container">
@@ -1548,6 +1545,18 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys of the client attester"></span>
                                             </div>
                                             <textarea placeholder="REQUIRED" class="form-control config-form-element" data-json-target="vci.client_attester_keys_jwks"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Client Attester Certificate</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Base64 encoded Attester Keys Certificate."></span>
+                                            </div>
+                                            <textarea type="text" class="form-control config-form-element" data-json-target="vci.client_attester_certificate"></textarea>
                                         </div>
                                     </div>
                                 </div>
