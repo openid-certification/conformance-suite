@@ -55,7 +55,7 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 					"cbor_diagnostic", diagnostics));
 		}
 		if (!docs.get(0).getDeviceSignedAuthenticated()) {
-			throw error("mdoc device-signed data was neither properly MACed nor signed by a DeviceKey in the MSO.",
+			throw error("mdoc device-signed data was neither properly MACed nor signed by a DeviceKey in the MSO. This may mean the contents of the Session Transcript are wrong - expand the items above where the conformance suite calculates the session transcript to see what values were used.",
 				args("cbor_diagnostic", diagnostics));
 		}
 
