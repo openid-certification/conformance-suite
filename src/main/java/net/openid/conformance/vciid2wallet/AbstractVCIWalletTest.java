@@ -136,6 +136,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.common.RARSupport;
+import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
@@ -1557,6 +1558,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
 		callAndStopOnFailure(CreateEffectiveAuthorizationPARRequestParameters.class);
+		if (authorizationRequestType == AuthorizationRequestType.RAR) {
+			callAndStopOnFailure(EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR.class, ConditionResult.FAILURE, "RAR-2.0");
+		}
 
 		endTestIfRequiredParametersAreMissing();
 		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-SP-ID2-5.3.1.2-1");
@@ -1617,9 +1621,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");
 		validateRedirectUriInRequestObject();
-		if (authorizationRequestType == AuthorizationRequestType.RAR){
-			callAndStopOnFailure(RARSupport.EnsureRequestObjectContainValidRAR.class, ConditionResult.FAILURE, "RAR-2.0");
-		}
 	}
 
 	protected void validateRedirectUriInRequestObject() {

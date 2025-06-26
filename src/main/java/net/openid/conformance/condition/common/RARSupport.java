@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.TemplateProcessor;
@@ -103,10 +104,10 @@ public class RARSupport {
 	// RP Test SUPPORT
 
 
-	public static class EnsureRequestObjectContainValidRAR extends AbstractCondition {
+	public static class EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR extends AbstractCondition {
 
 		@Override
-		@PreEnvironment(required = {"authorization_request_object", "config"})
+		@PreEnvironment(required = {CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "config"})
 		@PostEnvironment(required = "rich_authorization_request")
 		public Environment evaluate(Environment env) {
 
@@ -118,7 +119,7 @@ public class RARSupport {
 				supportedTypes.add(rarTypeValues);
 			}
 
-			JsonArray auth_details = getJsonArrayFromEnvironment(env, "authorization_request_object", "claims.authorization_details", "authorization_details claim under request object", true);
+			JsonArray auth_details = getJsonArrayFromEnvironment(env, "effective_authorization_endpoint_request", "authorization_details", "authorization_details claim under effective_authorization_endpoint_request", true);
 			for (JsonElement element : auth_details) {
 				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
 					throw error("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
