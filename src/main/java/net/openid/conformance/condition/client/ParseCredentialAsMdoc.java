@@ -18,7 +18,7 @@ import java.util.Set;
 
 public class ParseCredentialAsMdoc extends AbstractCondition {
 	@Override
-	@PreEnvironment(strings = { "credential", "session_transcript" }, required = "decryption_jwk")
+	@PreEnvironment(strings = { "credential", "session_transcript" })
 //	@PostEnvironment(required = "mdoc")
 	public Environment evaluate(Environment env) {
 		// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure as defined in ISO/IEC 18013-5.
@@ -31,21 +31,20 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 
 		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 
+		DeviceResponseParser parser = new DeviceResponseParser(bytes, sessionTranscript);
+
 		// this is only required for MACed mdocs
 		JsonObject jwkJson = env.getObject("decryption_jwk");
 		JWK jwk = null;
-		try {
-			jwk = JWK.parse(jwkJson.toString());
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
+		if (jwkJson != null) {
+			try {
+				jwk = JWK.parse(jwkJson.toString());
+			} catch (ParseException e) {
+				throw new RuntimeException(e);
+			}
+			var key = TestAppUtils.convertToEcPrivateKey(jwk);
+			parser.setEphemeralReaderKey(key); // pass encryption key
 		}
-
-		DeviceResponseParser parser = new DeviceResponseParser(bytes, sessionTranscript);
-		//EcPrivateKeyDoubleCoordinate();
-
-		var key = TestAppUtils.convertToEcPrivateKey(jwk);
-		parser.setEphemeralReaderKey(key); // pass encryption key
-
 
 		DeviceResponseParser.DeviceResponse response = parser.parse();
 		List<DeviceResponseParser.Document> docs = response.getDocuments();
