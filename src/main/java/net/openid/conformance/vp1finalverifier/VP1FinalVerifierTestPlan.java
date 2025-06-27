@@ -4,7 +4,6 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
 
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
@@ -35,12 +34,6 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 		String clientIdPrefix = v.get("client_id_prefix");
 
 		String certProfile = "OID4VP-1.0-FINAL Verifier";
-
-		if (credentialFormat.equals(VP1FinalVerifierCredentialFormat.ISO_MDL.toString()) &&
-			!responseMode.equals(VP1FinalVerifierResponseMode.DIRECT_POST_JWT.toString())) {
-			throw new RuntimeException(String.format("Invalid configuration for %s: Direct POST JWT must be used for ISO mDL as the JWE header apu is needed to validate the mdoc device binding.",
-				MethodHandles.lookup().lookupClass().getSimpleName()));
-		}
 
 		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIdPrefix + " " + responseMode;
 
