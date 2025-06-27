@@ -16,7 +16,6 @@ public class AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest extends Abst
 
 		var clientMetaData = (JsonObject) JsonParser.parseString("""
 {
-	"require_signed_request_object": true,
 	"vp_formats_supported": {
 	  "mso_mdoc": {
 		"alg": [
