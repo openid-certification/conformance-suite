@@ -223,15 +223,18 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		private boolean serverSupportsDiscovery;
 		private boolean secondClient;
 
-		public ConfigureClientForMtls(boolean serverSupportsDiscovery, boolean secondClient) {
+		private boolean checkClientAuthMtlsSupported;
+
+		public ConfigureClientForMtls(boolean serverSupportsDiscovery, boolean secondClient, boolean checkClientAuthMtlsSupported) {
 			this.secondClient = secondClient;
 			this.serverSupportsDiscovery = serverSupportsDiscovery;
+			this.checkClientAuthMtlsSupported = checkClientAuthMtlsSupported;
 		}
 
 		@Override
 		public void evaluate() {
 			if (!secondClient) {
-				if (serverSupportsDiscovery) {
+				if (serverSupportsDiscovery && checkClientAuthMtlsSupported) {
 					callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, ConditionResult.FAILURE);
 				}
 				callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
@@ -337,7 +340,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMtls() {
 		profileStaticClientConfiguration = ConfigureStaticClient.class;
-		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(serverSupportsDiscovery(), isSecondClient());
+		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(serverSupportsDiscovery(), isSecondClient(), true);
 		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
