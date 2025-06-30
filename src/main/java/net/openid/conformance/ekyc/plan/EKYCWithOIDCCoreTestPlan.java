@@ -16,6 +16,7 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 
 
+
 @PublishTestPlan(
 	testPlanName = "ekyc-test-plan-oidccore",
 	displayName = "OpenID for IDA using OpenID Connect Core",
