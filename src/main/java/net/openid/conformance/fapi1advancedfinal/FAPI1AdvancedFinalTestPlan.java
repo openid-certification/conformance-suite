@@ -131,8 +131,8 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 				break;
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
-				if (!privateKey) {
-					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
+				if (!privateKey || !jarm) {
+					throw new RuntimeException("Invalid configuration for %s: private_key_jwt/JARM are required for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
