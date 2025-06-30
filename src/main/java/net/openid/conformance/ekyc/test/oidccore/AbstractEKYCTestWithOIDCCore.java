@@ -1,10 +1,8 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallProtectedResource;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
-import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
+import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull;
 import net.openid.conformance.ekyc.condition.client.CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromIdToken;
 import net.openid.conformance.ekyc.condition.client.ExtractVerifiedClaimsFromUserinfoResponse;
@@ -14,28 +12,16 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUser
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoResponseAgainstRequest;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsRequestAgainstSchema;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
-import net.openid.conformance.openid.AbstractOIDCCServerTest;
-import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
-import net.openid.conformance.variant.AuthRequestMethod;
-import net.openid.conformance.variant.AuthRequestNonRepudiationMethod;
+import net.openid.conformance.openid.AbstractOIDCCServerSecurityProfileTest;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.SecurityProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.variant.VariantParameters;
 
-
-@VariantParameters({
-	SecurityProfile.class,
-	AuthRequestMethod.class,
-	AuthRequestNonRepudiationMethod.class,
-	AccessTokenSenderConstrainMethod.class
-})
 
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none"
 })
 
-public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerTest {
+public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSecurityProfileTest {
 
 	@Override
 	protected void createAuthorizationRequest() {
@@ -91,13 +77,8 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerTe
 
 	@Override
 	protected void requestProtectedResource() {
-		eventLog.startBlock(currentClientString() + "Userinfo endpoint tests");
-		callAndStopOnFailure(CallProtectedResource.class);
-		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
-		call(exec().unmapKey("endpoint_response"));
+		super.requestProtectedResource();
 		processVerifiedClaimsInUserinfo();
-		eventLog.endBlock();
 	}
 
 	protected void processVerifiedClaimsInUserinfo() {
