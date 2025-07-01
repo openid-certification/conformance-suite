@@ -1395,7 +1395,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 			if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
 				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "CID-SP-5");
 				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CID-SP-5");
-				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-5", "CID-IDA-5.2-10");
+				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-6", "CID-IDA-5.2-10");
 			}
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 		}
