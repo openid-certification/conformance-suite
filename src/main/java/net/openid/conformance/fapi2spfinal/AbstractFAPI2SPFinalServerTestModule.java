@@ -552,7 +552,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
 		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, profileAuthorizationEndpointSetupSteps);
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU) {
-			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-5", "CID-IDA-5.2-10"));
+			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-4", "CID-IDA-5.2-10"));
 		}
 		if (isRarRequest){
 			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
