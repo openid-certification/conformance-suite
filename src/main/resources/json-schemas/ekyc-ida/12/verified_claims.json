@@ -24,22 +24,13 @@
         },
         "attachments": {
             "type": "array",
-            "items": {
-                "oneOf": [
-                    {
-                        "$ref": "#/$defs/external_attachment"
-                    },
-                    {
-                        "$ref": "#/$defs/embedded_attachment"
-                    }
-                ]
-            },
             "minItems": 1
         },
         "check_details": {
             "type": "array",
-            "prefixItems": [
-                {
+            "items": {
+                "type": "object",
+                "properties": {
                     "check_id": {
                         "type": "string"
                     },
@@ -53,24 +44,10 @@
                         "type": "string",
                         "format": "date-time"
                     }
-                }
-            ]
-        },
-        "digest": {
-            "type": "object",
-            "required": [
-                "alg",
-                "value"
-            ],
-            "properties": {
-                "alg": {
-                    "type": "string"
                 },
-                "value": {
-                    "type": "string",
-                    "contentEncoding": "base64"
-                }
-            }
+                "required": ["check_method"]
+            },
+            "minItems": 1
         },
         "distributed_claims": {
             "required": [
@@ -142,9 +119,6 @@
                         }
                     }
                 },
-                "number": {
-                    "$ref": "#/$defs/document_number"
-                },
                 "serial_number": {
                     "type": "string"
                 }
@@ -152,28 +126,6 @@
         },
         "document_number": {
             "type": "string"
-        },
-        "embedded_attachment": {
-            "type": "object",
-            "required": [
-                "content_type",
-                "content"
-            ],
-            "properties": {
-                "content": {
-                    "type": "string",
-                    "contentEncoding": "base64"
-                },
-                "content_type": {
-                    "type": "string"
-                },
-                "desc": {
-                    "type": "string"
-                },
-                "txn": {
-                    "type": "string"
-                }
-            }
         },
         "evidence": {
             "type": "object",
@@ -243,13 +195,6 @@
                             },
                             "document_details": {
                                 "$ref": "#/$defs/document_details"
-                            },
-                            "method": {
-                                "type": "string"
-                            },
-                            "time": {
-                                "type": "string",
-                                "format": "date-time"
                             }
                         }
                     },
@@ -279,7 +224,7 @@
                                     },
                                     "created_at": {
                                         "type": "string",
-                                        "format": "date"
+                                        "format": "date-time"
                                     },
                                     "date_of_expiry": {
                                         "type": "string",
@@ -318,10 +263,6 @@
                                         }
                                     }
                                 }
-                            },
-                            "time": {
-                                "type": "string",
-                                "format": "date-time"
                             }
                         }
                     },
@@ -361,6 +302,9 @@
                                                 "type": "string",
                                                 "format": "date"
                                             },
+                                            "country_code": {
+                                                "type": "string"
+                                            },
                                             "country": {
                                                 "type": "string"
                                             },
@@ -397,48 +341,12 @@
                             },
                             "derived_claims": {
                                 "$ref": "https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json#/$defs/claims_type"
-                            },
-                            "time": {
-                                "type": "string",
-                                "format": "date-time"
                             }
                         }
                     },
                     "else": true
                 }
             ]
-        },
-        "external_attachment": {
-            "type": "object",
-            "required": [
-                "digest",
-                "url"
-            ],
-            "properties": {
-                "access_token": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "desc": {
-                    "type": "string"
-                },
-                "digest": {
-                    "$ref": "#/$defs/digest"
-                },
-                "expires_in": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "txn": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string",
-                    "format": "uri"
-                }
-            }
         },
         "verified_claims_def": {
             "type": "object",
@@ -466,8 +374,9 @@
                             "properties": {
                                 "assurance_details": {
                                     "type": "array",
-                                    "prefixItems": [
-                                        {
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
                                             "assurance_classification": {
                                                 "type": "string"
                                             },
@@ -476,8 +385,9 @@
                                             },
                                             "evidence_ref": {
                                                 "type": "array",
-                                                "items": [
-                                                    {
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
                                                         "check_id": {
                                                             "type": "string"
                                                         },
@@ -489,11 +399,13 @@
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                ]
+                                                    },
+                                                    "required": ["check_id"]
+                                                }
                                             }
                                         }
-                                    ]
+                                    },
+                                    "minItems": 1
                                 },
                                 "policy": {
                                     "type": "string"
