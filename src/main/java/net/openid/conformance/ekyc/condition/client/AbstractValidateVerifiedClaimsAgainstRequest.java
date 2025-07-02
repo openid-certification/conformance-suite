@@ -108,7 +108,7 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		compareTrustFrameworks(requestedVerification.get("trust_framework"), returnedVerification.get("trust_framework"));
 
 		if(requestedVerification.has("time")) {
-			checkTime(requestedVerification, returnedVerification, true);
+			checkTime(requestedVerification, returnedVerification, true, true);
 		}
 
 		// assurance_process
@@ -289,23 +289,30 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 					String evidenceType = OIDFJSON.getString(returnedObject.get("type"));
 					switch (evidenceType) {
 						case "document":
-							compareDocumentType(requestedEvidence, returnedObject);
+							if( compareDocumentType(requestedEvidence, returnedObject) ) {
+								++typeMatchCount;
+							}
 							break;
 						case "electronic_record":
-							compareElectronicRecordType(requestedEvidence, returnedObject);
+							if(compareElectronicRecordType(requestedEvidence, returnedObject) ) {
+								++typeMatchCount;
+							}
 							break;
 						case "vouch":
-							compareVouchType(requestedEvidence, returnedObject);
+							if(compareVouchType(requestedEvidence, returnedObject)) {
+								++typeMatchCount;
+							}
 							break;
 						case "electronic_signature":
-							compareElectronicSignatureType(requestedEvidence, returnedObject);
+							if(compareElectronicSignatureType(requestedEvidence, returnedObject)) {
+								++typeMatchCount;
+							}
 							break;
 						default:
 							throw error("Invalid evidence type", args("evidence type", evidenceType));
 					}
 
 					// TODO handle derived_claims for all types
-					typeMatchCount++;
 				} else {
 					throw error("Evidence type does not match request", args("request", requestedEvidence, "response", returnedObject));
 				}
@@ -317,17 +324,21 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		return typeMatchCount >= 1;
 	}
 
-	protected void compareDocumentType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
+	protected boolean compareDocumentType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
 
+		// use the response value to compare with the request, as this simplifies the logic of
+		// figuring out what 'type' is requested. The request value can be null which makes it
+		// difficult to determine how to process the type
 		if(returnedEvidenceObject.has("type")) {
 			if(OIDFJSON.getString(returnedEvidenceObject.get("type")).equals("document")) {
-				compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null,"type");
+				boolean isValid = compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null,"type");
 				if(requestedEvidence.has("check_details")) {
-					validateEvidenceCheckDetails(requestedEvidence.get("check_details"), returnedEvidenceObject.get("check_details"));
+					isValid = isValid && validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
 				}
 				if(requestedEvidence.has("document_details")) {
-					validateEvidenceDocumentDetails(requestedEvidence.get("document_details"), returnedEvidenceObject.get("document_details"));
+					isValid = isValid && validateEvidenceDocumentDetails(requestedEvidence.get("document_details"), safeGetJsonObjectElement(returnedEvidenceObject, "document_details"));
 				}
+				return isValid;
 
 				// TDOO derived_claims
 			} else {
@@ -338,50 +349,100 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		}
 	}
 
-	protected void validateEvidenceCheckDetails(JsonElement requestedCheckDetails, JsonElement returnedCheckDetails) {
-		validateElementsAreObjects("evidence check_details", requestedCheckDetails, returnedCheckDetails);
-		JsonObject requestedCheckDetailsObject = requestedCheckDetails.getAsJsonObject();
-		JsonObject returnedCheckDetailsObject = returnedCheckDetails.getAsJsonObject();
-		validateObjectsContainRequiredElements("evidence check_details", requestedCheckDetailsObject,returnedCheckDetailsObject, "check_method");
-		compareConstrainableElementList(requestedCheckDetailsObject, returnedCheckDetailsObject, null,"check_method", "organization", "check_id");
-		//time
-		if(requestedCheckDetailsObject.has("time")) {
-			checkTime(requestedCheckDetailsObject, returnedCheckDetailsObject, false);
+	protected boolean validateEvidenceCheckDetails(JsonElement requestedCheckDetails, JsonElement returnedCheckDetails) {
+		int matchCount = 0;
+		if(requestedCheckDetails == null) {
+			// check_details not requested, no need to check
+			return true;
+		}
+		if(requestedCheckDetails.isJsonArray() ) {
+			JsonArray requestedCheckDetailsArray = requestedCheckDetails.getAsJsonArray();
+			if(returnedCheckDetails == null) {
+				// no response returned
+				return false;
+			}
+			if(!returnedCheckDetails.isJsonArray()) {
+				throw error("Unexpected check_details element in response. Must be an array.",
+					args("check_details reponse", returnedCheckDetails));
+			}
+			JsonArray returnedCheckDetailsArray = returnedCheckDetails.getAsJsonArray();
+			for(JsonElement requestedCheckDetailsElement : requestedCheckDetailsArray) {
+				for(JsonElement returnedCheckDetailsElement: returnedCheckDetailsArray) {
+					validateElementsAreObjects("evidence check_details", requestedCheckDetailsElement, returnedCheckDetailsElement);
+					JsonObject requestedCheckDetailsObject = requestedCheckDetailsElement.getAsJsonObject();
+					JsonObject returnedCheckDetailsObject = returnedCheckDetailsElement.getAsJsonObject();
+					validateObjectsContainRequiredElements("evidence check_details", requestedCheckDetailsObject,returnedCheckDetailsObject, "check_method");
+					boolean isValid = compareConstrainableElementList(requestedCheckDetailsObject, returnedCheckDetailsObject, null,"check_method", "organization", "check_id");
+					if (requestedCheckDetailsObject.has("time")) {
+						isValid = isValid && checkTime(requestedCheckDetailsObject, returnedCheckDetailsObject, false, false);
+					}
+					if( isValid) {
+						log("check_details matched", args("result", ConditionResult.INFO.toString(),"req", requestedCheckDetailsObject, "res", returnedCheckDetailsObject));
+						++matchCount;
+					} else {
+						log("check_details mismatched", args("result", ConditionResult.INFO.toString(),"req", requestedCheckDetailsObject, "res", returnedCheckDetailsObject));
+					}
+				}
+			}
+			boolean matched = matchCount >= requestedCheckDetailsArray.size();
+			log("validateEvidenceCheckDetails result", args("result", ConditionResult.INFO.toString(),"res", matched, "count", matchCount));
+			return matchCount >= requestedCheckDetailsArray.size();
+		} else {
+			throw error("Unexpected check_details element in request. Must be an array.",
+				args("check_details request", requestedCheckDetails));
 		}
 	}
 
-	protected void validateEvidenceDocumentDetails(JsonElement requestedDocDetails, JsonElement returnedDocDetails) {
-		validateElementsAreObjects("evidence document_details", requestedDocDetails, returnedDocDetails);
-		JsonObject requestedDocDetailsObject = requestedDocDetails.getAsJsonObject();
-		JsonObject returnedDocDetailsObject = returnedDocDetails.getAsJsonObject();
-		validateObjectsContainRequiredElements("evidence document_details", requestedDocDetailsObject,returnedDocDetailsObject, "type");
-		compareConstrainableElementList(requestedDocDetailsObject, returnedDocDetailsObject,null, "type", null, "document_number", "serial_number", "date_of_issuance", "date_of_expiry");
-		if(requestedDocDetailsObject.has("issuer")) {
-			validateEvidenceDocumentDetailsIssuer(requestedDocDetailsObject.get("issuer"), returnedDocDetailsObject.get("issuer"));
+	protected boolean validateEvidenceDocumentDetails(JsonElement requestedDocDetails, JsonElement returnedDocDetails) {
+		boolean isValid = true;
+		if(requestedDocDetails != null) {
+			if(returnedDocDetails != null) {
+				validateElementsAreObjects("evidence document_details", requestedDocDetails, returnedDocDetails);
+				JsonObject requestedDocDetailsObject = requestedDocDetails.getAsJsonObject();
+				JsonObject returnedDocDetailsObject = returnedDocDetails.getAsJsonObject();
+				validateObjectsContainRequiredElements("evidence document_details", requestedDocDetailsObject,returnedDocDetailsObject, "type");
+				isValid = compareConstrainableElementList(requestedDocDetailsObject, returnedDocDetailsObject,null, "type", null, "document_number", "serial_number", "date_of_issuance", "date_of_expiry");
+				if(requestedDocDetailsObject.has("issuer")) {
+					isValid = isValid && validateEvidenceDocumentDetailsIssuer(requestedDocDetailsObject.get("issuer"), safeGetJsonObjectElement(returnedDocDetailsObject, "issuer"));
+				}
+			} else {
+				isValid = false;
+			}
 		}
+		return isValid;
 	}
 
-	protected void validateEvidenceDocumentDetailsIssuer(JsonElement requestedIssuer, JsonElement returnedIssuer) {
-		validateElementsAreObjects("document_details issuer", requestedIssuer, returnedIssuer);
-		JsonObject requestedIssuerObject = requestedIssuer.getAsJsonObject();
-		JsonObject returnedIssuerObject = returnedIssuer.getAsJsonObject();
-		final String[] documentIssuerClaims = {"name", "country_code", "jurisdiction",
-			// OIDC address claims
-			"formatted", "street_address", "locality", "region", "postal_code", "country"};
-		compareConstrainableElementList(requestedIssuerObject, returnedIssuerObject, null, documentIssuerClaims);
+	protected boolean validateEvidenceDocumentDetailsIssuer(JsonElement requestedIssuer, JsonElement returnedIssuer) {
+		boolean isValid = true;
+		if(requestedIssuer != null) {
+			if(returnedIssuer != null) {
+				validateElementsAreObjects("document_details issuer", requestedIssuer, returnedIssuer);
+				JsonObject requestedIssuerObject = requestedIssuer.getAsJsonObject();
+				JsonObject returnedIssuerObject = returnedIssuer.getAsJsonObject();
+				final String[] documentIssuerClaims = {"name", "country_code", "jurisdiction",
+					// OIDC address claims
+					"formatted", "street_address", "locality", "region", "postal_code", "country"};
+				isValid = compareConstrainableElementList(requestedIssuerObject, returnedIssuerObject, null, documentIssuerClaims);
+			} else {
+				isValid = false;
+			}
+		}
+		return isValid;
 	}
 
-	protected void compareElectronicRecordType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
+	protected boolean compareElectronicRecordType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
 
 		if(returnedEvidenceObject.has("type")) {
+			boolean isValid = true;
 			if(OIDFJSON.getString(returnedEvidenceObject.get("type")).equals("electronic_record")) {
-				compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null, "type");
+				isValid = compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null, "type");
 				if(requestedEvidence.has("check_details")) {
-					validateEvidenceCheckDetails(requestedEvidence.get("check_details"), returnedEvidenceObject.get("check_details"));
+					isValid = isValid && validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
 				}
 				if(requestedEvidence.has("record")) {
-					validateEvidenceRecord(requestedEvidence.get("record"), returnedEvidenceObject.get("record"));
+					isValid = isValid && validateEvidenceRecord(requestedEvidence.get("record"), safeGetJsonObjectElement(returnedEvidenceObject, "record"));
 				}
+				return isValid;
 			} else {
 				throw error("Evidence type is not electronic_record", args("evidence type", OIDFJSON.getString(returnedEvidenceObject.get("type"))));
 			}
@@ -390,38 +451,56 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		}
 	}
 
-	protected void validateEvidenceRecord(JsonElement requestedRecord, JsonElement returnedRecord) {
-		validateElementsAreObjects("evidence record", requestedRecord, returnedRecord);
-		JsonObject requestedRecordObject = requestedRecord.getAsJsonObject();
-		JsonObject returnedRecordObject = returnedRecord.getAsJsonObject();
-		validateObjectsContainRequiredElements("evidence record", requestedRecordObject,returnedRecordObject, "type");
-		compareConstrainableElementList(requestedRecordObject, returnedRecordObject, null, "type", "created_at", "date_of_expiry");
-		if(requestedRecordObject.has("source")) {
-			validateEvidenceRecordSource(requestedRecordObject.get("source"), returnedRecordObject.get("source"));
+	protected boolean validateEvidenceRecord(JsonElement requestedRecord, JsonElement returnedRecord) {
+		boolean isValid = true;
+		if(requestedRecord != null) {
+			if(returnedRecord != null) {
+				validateElementsAreObjects("evidence record", requestedRecord, returnedRecord);
+				JsonObject requestedRecordObject = requestedRecord.getAsJsonObject();
+				JsonObject returnedRecordObject = returnedRecord.getAsJsonObject();
+				validateObjectsContainRequiredElements("evidence record", requestedRecordObject,returnedRecordObject, "type");
+				isValid = compareConstrainableElementList(requestedRecordObject, returnedRecordObject, null, "type", "created_at", "date_of_expiry");
+				if(requestedRecordObject.has("source")) {
+					isValid = isValid && validateEvidenceRecordSource(requestedRecordObject.get("source"), returnedRecordObject.get("source"));
+				}
+
+			} else {
+				isValid = false;
+			}
 		}
+		return isValid;
 	}
 
-	protected void validateEvidenceRecordSource(JsonElement requestedSource, JsonElement returnedSource) {
-		validateElementsAreObjects("record source", requestedSource, returnedSource);
-		JsonObject requestedSourceObject = requestedSource.getAsJsonObject();
-		JsonObject returnedSourceObject = returnedSource.getAsJsonObject();
-		final String[] recordSourceClaims = {"name", "country_code", "jurisdiction",
-			// OIDC address claims
-			"formatted", "street_address", "locality", "region", "postal_code", "country"};
-		compareConstrainableElementList(requestedSourceObject, returnedSourceObject, null, recordSourceClaims);
+	protected boolean validateEvidenceRecordSource(JsonElement requestedSource, JsonElement returnedSource) {
+		boolean isValid = true;
+		if(requestedSource != null) {
+			if(returnedSource != null) {
+				validateElementsAreObjects("record source", requestedSource, returnedSource);
+				JsonObject requestedSourceObject = requestedSource.getAsJsonObject();
+				JsonObject returnedSourceObject = returnedSource.getAsJsonObject();
+				final String[] recordSourceClaims = {"name", "country_code", "jurisdiction",
+					// OIDC address claims
+					"formatted", "street_address", "locality", "region", "postal_code", "country"};
+				isValid = compareConstrainableElementList(requestedSourceObject, returnedSourceObject, null, recordSourceClaims);
+			} else {
+				isValid = false;
+			}
+		}
+		return isValid;
 	}
 
-	protected void compareVouchType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
+	protected boolean compareVouchType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
 
 		if(returnedEvidenceObject.has("type")) {
 			if(OIDFJSON.getString(returnedEvidenceObject.get("type")).equals("vouch")) {
-				compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null, "type");
+				boolean isValid = compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null, "type");
 				if(requestedEvidence.has("check_details")) {
-					validateEvidenceCheckDetails(requestedEvidence.get("check_details"), returnedEvidenceObject.get("check_details"));
+					isValid = isValid && validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
 				}
 				if(requestedEvidence.has("attestation")) {
-					validateEvidenceAttestation(requestedEvidence.get("attestation"), returnedEvidenceObject.get("attestation"));
+					isValid = isValid && validateEvidenceAttestation(requestedEvidence.get("attestation"), safeGetJsonObjectElement(returnedEvidenceObject, "attestation"));
 				}
+				return isValid;
 			} else {
 				throw error("Evidence type is not vouch", args("evidence type", OIDFJSON.getString(returnedEvidenceObject.get("type"))));
 			}
@@ -430,32 +509,48 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		}
 	}
 
-	protected void validateEvidenceAttestation(JsonElement requestedAttestation, JsonElement returnedAttestation) {
-		validateElementsAreObjects("evidence attestation", requestedAttestation, returnedAttestation);
-		JsonObject requestedAttestationObject = requestedAttestation.getAsJsonObject();
-		JsonObject returnedAttestationObject = returnedAttestation.getAsJsonObject();
-		validateObjectsContainRequiredElements("evidence attestation", requestedAttestationObject,returnedAttestationObject, "type");
-		compareConstrainableElementList(requestedAttestationObject, returnedAttestationObject,null, "type", "reference_number", "date_of_issuance", "date_of_expiry");
-		if(requestedAttestationObject.has("voucher")) {
-			validateEvidenceAttestationVoucher(requestedAttestationObject.get("voucher"), returnedAttestationObject.get("voucher"));
+	protected boolean validateEvidenceAttestation(JsonElement requestedAttestation, JsonElement returnedAttestation) {
+		boolean isValid = true;
+		if(requestedAttestation != null) {
+			if(returnedAttestation != null) {
+				validateElementsAreObjects("evidence attestation", requestedAttestation, returnedAttestation);
+				JsonObject requestedAttestationObject = requestedAttestation.getAsJsonObject();
+				JsonObject returnedAttestationObject = returnedAttestation.getAsJsonObject();
+				validateObjectsContainRequiredElements("evidence attestation", requestedAttestationObject,returnedAttestationObject, "type");
+				isValid = compareConstrainableElementList(requestedAttestationObject, returnedAttestationObject,null, "type", "reference_number", "date_of_issuance", "date_of_expiry");
+				if(requestedAttestationObject.has("voucher")) {
+					isValid = isValid && validateEvidenceAttestationVoucher(requestedAttestationObject.get("voucher"), safeGetJsonObjectElement(returnedAttestationObject, "voucher"));
+				}
+			} else {
+				isValid = false;
+			}
 		}
+		return isValid;
 	}
 
-	protected void validateEvidenceAttestationVoucher(JsonElement requestedVoucher, JsonElement returnedVoucher) {
-		validateElementsAreObjects("attestation voucher", requestedVoucher, returnedVoucher);
-		JsonObject requestedVoucherObject = requestedVoucher.getAsJsonObject();
-		JsonObject returnedVoucherObject = returnedVoucher.getAsJsonObject();
-		final String[] attestationVoucherClaims = {"name", "birthdate", "country_code", "occupation", "organization",
-			// OIDC address claims
-			"formatted", "street_address", "locality", "region", "postal_code", "country"};
-		compareConstrainableElementList(requestedVoucherObject, returnedVoucherObject, null, attestationVoucherClaims);
+	protected boolean validateEvidenceAttestationVoucher(JsonElement requestedVoucher, JsonElement returnedVoucher) {
+		boolean isValid = true;
+		if(requestedVoucher != null) {
+			if(returnedVoucher != null) {
+				validateElementsAreObjects("attestation voucher", requestedVoucher, returnedVoucher);
+				JsonObject requestedVoucherObject = requestedVoucher.getAsJsonObject();
+				JsonObject returnedVoucherObject = returnedVoucher.getAsJsonObject();
+				final String[] attestationVoucherClaims = {"name", "birthdate", "country_code", "occupation", "organization",
+					// OIDC address claims
+					"formatted", "street_address", "locality", "region", "postal_code", "country"};
+				isValid = compareConstrainableElementList(requestedVoucherObject, returnedVoucherObject, null, attestationVoucherClaims);
+			} else {
+				isValid = false;
+			}
+		}
+		return isValid;
 	}
 
-	protected void compareElectronicSignatureType(JsonObject requestedElectronicSignature, JsonObject returnedElectronicSignature) {
+	protected boolean compareElectronicSignatureType(JsonObject requestedElectronicSignature, JsonObject returnedElectronicSignature) {
 
 		if(returnedElectronicSignature.has("type")) {
 			if(OIDFJSON.getString(returnedElectronicSignature.get("type")).equals("electronic_signature")) {
-				compareConstrainableElementList(requestedElectronicSignature, returnedElectronicSignature, null, "type", "signature_type", "issuer", "serial_number", "created_at");
+				return compareConstrainableElementList(requestedElectronicSignature, returnedElectronicSignature, null, "type", "signature_type", "issuer", "serial_number", "created_at");
 			} else {
 				throw error("Evidence type is not electronic_signature", args("evidence type", OIDFJSON.getString(returnedElectronicSignature.get("type"))));
 			}
@@ -464,17 +559,20 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		}
 	}
 
-	protected void compareConstrainableElementList(JsonObject requested, JsonObject returned, JsonObject expected, String ... elementsList) {
+	protected boolean compareConstrainableElementList(JsonObject requested, JsonObject returned, JsonObject expected, String ... elementsList) {
 		for(String element : elementsList) {
 			if(requested.has(element)) {
-				compareConstrainableElement(element, requested.get(element),  safeGetJsonObjectElement(returned, element), safeGetJsonObjectElement(expected, element));
+				if(!compareConstrainableElement(element, requested.get(element),  safeGetJsonObjectElement(returned, element), safeGetJsonObjectElement(expected, element))) {
+					return false;
+				}
 			}
 		}
+		return true;
 	}
 
 		//TODO how does "essential" affect this behavior? e.g if a "value" was provided but not "essential" can the OP ignore the "value"?
 	protected boolean compareConstrainableElement(String claimName, JsonElement requested, JsonElement returned, JsonElement expected) {
-		return compareConstrainableElementImpl(claimName, requested, returned, expected,true);
+		return compareConstrainableElementImpl(claimName, requested, returned, expected,false);
 	}
 
 	// checks whether response matches requested values, but does not throw on failure
@@ -583,7 +681,7 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		}
 	}
 
-	protected void checkTime(JsonObject requestedVerification, JsonObject returnedVerification, boolean logSuccess) {
+	protected boolean checkTime(JsonObject requestedVerification, JsonObject returnedVerification, boolean logSuccess, boolean throwOnFalse) {
 		JsonElement requestedTime = requestedVerification.get("time");
 		if(requestedTime.isJsonNull()) {
 			//time must be present
@@ -591,6 +689,7 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				if(logSuccess) {
 					logSuccess("As requested, verification.time element is present in returned response",
 						args("time", returnedVerification.get("time")));
+					return true;
 				}
 			}
 		} else if(requestedTime.isJsonObject()) {
@@ -607,16 +706,24 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				ZonedDateTime verificationTime = ZonedDateTime.parse(returnedTimeInISOFormat, DateTimeFormatter.ISO_INSTANT);
 				Instant now = Instant.now();
 				if(verificationTime.isBefore(now.minusSeconds(maxAge).atZone(ZoneOffset.UTC))) {
-					throw error("Verification time is before the requested max_age",
-						args("max_age", maxAge, "now", now.toString(), "verificationTime", returnedTimeInISOFormat));
+					if(throwOnFalse) {
+						throw error("Verification time is before the requested max_age",
+							args("max_age", maxAge, "now", now.toString(), "verificationTime", returnedTimeInISOFormat));
+					} else {
+						return false;
+					}
 				} else {
 					if(logSuccess) {
 						logSuccess("Verification time is within allowed limits",
 							args("max_age", maxAge, "now", now.toString(), "verificationTime", returnedTimeInISOFormat));
+						return true;
 					}
 				}
+			} else {
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/* IN REQUEST:
