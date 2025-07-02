@@ -27,6 +27,7 @@ public class EKYCTestUserinfoContainsDataNotAdvertisedInOPMetadata extends Abstr
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
 		JsonElement userinfo = env.getElementFromObject("config", "ekyc.userinfo");
 		if (userinfo==null) {
 			//the test will stop here
