@@ -4,22 +4,25 @@
     "$defs": {
         "check_details": {
             "type": "array",
-            "prefixItems": [
-                {
+            "items": {
+                "type": "object",
+                "properties": {
                     "check_id": {
-                        "type": "string"
+                        "$ref": "#/$defs/constrainable_element"
                     },
                     "check_method": {
-                        "type": "string"
+                        "$ref": "#/$defs/constrainable_element"
                     },
                     "organization": {
-                        "type": "string"
+                        "$ref": "#/$defs/constrainable_element"
                     },
                     "time": {
                         "$ref": "#/$defs/datetime_element"
                     }
-                }
-            ]
+                },
+                "required": ["check_method"]
+            },
+            "minItems": 1
         },
         "claims_element": {
             "oneOf": [
@@ -38,11 +41,6 @@
                                 "properties": {
                                     "essential": {
                                         "type": "boolean"
-                                    },
-                                    "purpose": {
-                                        "type": "string",
-                                        "maxLength": 300,
-                                        "minLength": 3
                                     }
                                 }
                             }
@@ -62,11 +60,6 @@
                     "properties": {
                         "essential": {
                             "type": "boolean"
-                        },
-                        "purpose": {
-                            "type": "string",
-                            "maxLength": 300,
-                            "minLength": 3
                         },
                         "value": {
                             "type": "string"
@@ -96,11 +89,6 @@
                         "max_age": {
                             "type": "integer",
                             "minimum": 0
-                        },
-                        "purpose": {
-                            "type": "string",
-                            "maxLength": 300,
-                            "minLength": 3
                         }
                     }
                 }
@@ -152,9 +140,6 @@
                             "$ref": "#/$defs/simple_element"
                         }
                     }
-                },
-                "personal_number": {
-                    "$ref": "#/$defs/simple_element"
                 },
                 "serial_number": {
                     "$ref": "#/$defs/simple_element"
@@ -226,12 +211,6 @@
                             },
                             "document_details": {
                                 "$ref": "#/$defs/document_details"
-                            },
-                            "method": {
-                                "$ref": "#/$defs/constrainable_element"
-                            },
-                            "time": {
-                                "$ref": "#/$defs/datetime_element"
                             }
                         }
                     },
@@ -277,6 +256,9 @@
                                             "formatted": {
                                                 "$ref": "#/$defs/simple_element"
                                             },
+                                            "jurisdiction": {
+                                                "$ref": "#/$defs/simple_element"
+                                            },
                                             "locality": {
                                                 "$ref": "#/$defs/simple_element"
                                             },
@@ -295,9 +277,6 @@
                                         }
                                     }
                                 }
-                            },
-                            "time": {
-                                "$ref": "#/$defs/datetime_element"
                             }
                         }
                     },
@@ -337,6 +316,9 @@
                                             "birthdate": {
                                                 "$ref": "#/$defs/datetime_element"
                                             },
+                                            "country_code": {
+                                                "$ref": "#/$defs/simple_element"
+                                            },
                                             "country": {
                                                 "$ref": "#/$defs/simple_element"
                                             },
@@ -370,9 +352,6 @@
                             },
                             "check_details": {
                                 "$ref": "#/$defs/check_details"
-                            },
-                            "time": {
-                                "$ref": "#/$defs/datetime_element"
                             }
                         }
                     },
@@ -390,11 +369,6 @@
                     "properties": {
                         "essential": {
                             "type": "boolean"
-                        },
-                        "purpose": {
-                            "type": "string",
-                            "maxLength": 300,
-                            "minLength": 3
                         }
                     }
                 }
@@ -453,22 +427,25 @@
                                                     "$ref": "#/$defs/constrainable_element"
                                                 },
                                                 "evidence_ref": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "txn"
-                                                    ],
-                                                    "additionalProperties": true,
-                                                    "properties": {
-                                                        "evidence_classification": {
-                                                            "$ref": "#/$defs/constrainable_element"
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "check_id" : {
+                                                                "$ref": "#/$defs/constrainable_element"
+                                                            },
+                                                            "evidence_metadata": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "evidence_classification": {
+                                                                        "$ref": "#/$defs/constrainable_element"
+                                                                    }
+                                                                }
+                                                            }
                                                         },
-                                                        "evidence_metadata": {
-                                                            "$ref": "#/$defs/constrainable_element"
-                                                        },
-                                                        "txn": {
-                                                            "$ref": "#/$defs/constrainable_element"
-                                                        }
-                                                    }
+                                                        "required": ["check_id"]
+                                                    },
+                                                    "minItems": 1
                                                 }
                                             }
                                         ]
