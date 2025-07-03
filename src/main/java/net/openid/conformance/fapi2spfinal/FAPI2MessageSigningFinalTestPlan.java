@@ -82,7 +82,6 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails.class,
 		FAPI2SPFinalEnsureClientAssertionWithWrongAudFails.class,
 		FAPI2SPFinalEnsureClientAssertionWithNoSubFails.class,
-		FAPI2SPFinalEnsureClientAssertionWithTokenEndpointAudSucceeds.class,
 
 		FAPI2SPFinalDpopNegativeTests.class,
 
