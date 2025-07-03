@@ -186,6 +186,7 @@ import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMet
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
+import net.openid.conformance.vciid2issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vciid2issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vciid2issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vciid2issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
@@ -363,9 +364,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 		}
 
-		if (isRarRequest) {
-//			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
-		}
 		whichClient = 1;
 
 		// Set up the client configuration
@@ -687,6 +685,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-5", "CID-IDA-5.2-10"));
 		}
 		if (isRarRequest) {
+			seq.then(condition(VCIGenerateRichAuthorizationRequestForCredential.class).onFail(ConditionResult.FAILURE).requirements("OID4VCI-ID2-5.1.1"));
 			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
 		}
 		return seq;
