@@ -136,7 +136,7 @@ public abstract class AbstractRedirectServerTestModule extends AbstractTestModul
 		logger.info(getId() + ": Sending JS to user's browser to submit URL fragment (hash) to " + submissionUrl);
 
 		if (abortIfRedirectFragmentNotReceived) {
-			final long waitTimeoutSeconds = 5;
+			final long waitTimeoutSeconds = 10;
 			final long thisRedirect = currentRedirect;
 			getTestExecutionManager().runInBackground(() -> {
 				Thread.sleep(waitTimeoutSeconds * 1000L);

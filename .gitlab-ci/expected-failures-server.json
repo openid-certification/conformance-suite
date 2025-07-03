@@ -20,15 +20,6 @@
         "comment": "known case where authlete doesn't implement a 'should'"
     },
     {
-        "test-name": "fapi2-security-profile-id2-attempt-reuse-authorization-code-after-one-second",
-        "variant": "*",
-        "configuration-filename": "authlete*.json",
-        "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
-        "condition": "EnsureHttpStatusCodeIs4xx",
-        "expected-result": "warning",
-        "comment": "known case where authlete doesn't implement a 'should'"
-    },
-    {
         "test-name": "fapi1-advanced-final-refresh-token",
         "variant": {
                 "client_auth_type": "private_key_jwt",
@@ -58,20 +49,6 @@
         "condition": "VerifyNewJwksHasNewSigningKey",
         "expected-result": "failure",
         "comment": "CI can't trigger key rotation"
-    },
-    {
-        "test-name": "fapi2-security-profile-id2-dpop-negative-tests",
-        "variant": {
-            "openid": "openid_connect",
-            "client_auth_type": "private_key_jwt",
-            "sender_constrain": "dpop",
-            "fapi_profile": "openbanking_brazil"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-brazil-privatekey-dpop.json",
-        "current-block": "DPoP reuse, Second use of the same jti, this 'should' fail",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "warning",
-        "comment": "Authlete doesn't support jti uniqueness"
     },
     {
         "test-name": "fapi2-security-profile-id2-client-test-happy-path",
@@ -104,72 +81,6 @@
         "condition": "AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject",
         "expected-result": "failure",
         "comment": "Ignore missing txn claim in CI environment"
-    },
-    {
-        "test-name": "fapi2-security-profile-id2-par-test-par-endpoint-url-as-audience-fails",
-        "variant": {
-            "fapi_profile": "cbuae"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-id2-par-test-par-endpoint-url-as-audience-fails",
-        "variant": {
-            "fapi_profile": "cbuae"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-id2-par-test-array-as-audience-fails",
-        "variant": {
-            "fapi_profile": "cbuae"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-id2-par-test-array-as-audience-fails",
-        "variant": {
-            "fapi_profile": "cbuae"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-id2-par-test-token-endpoint-url-as-audience-fails",
-        "variant": {
-            "fapi_profile": "cbuae"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-id2-par-test-token-endpoint-url-as-audience-fails",
-        "variant": {
-            "fapi_profile": "cbuae"
-        },
-        "configuration-filename": "authlete-fapi2securityprofile-privatekey-jar-cbuae.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
     },
     {
         "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
@@ -287,59 +198,5 @@
         "condition": "CheckForUnexpectedParametersInVpClientMetadata",
         "expected-result": "warning",
         "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
-        "variant": "*",
-        "configuration-filename": "authlete-fapi2securityprofile-*.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-token-endpoint-url-as-audience-fails",
-        "variant": "*",
-        "configuration-filename": "authlete-fapi2securityprofile-*.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
-        "variant": "*",
-        "configuration-filename": "authlete-fapi2securityprofile-*.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-array-as-audience-fails",
-        "variant": "*",
-        "configuration-filename": "authlete-fapi2securityprofile-*.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
-        "variant": "*",
-        "configuration-filename": "authlete-fapi2securityprofile-*.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
-    },
-    {
-        "test-name": "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
-        "variant": "*",
-        "configuration-filename": "authlete-fapi2securityprofile-*.json",
-        "current-block": "Make request to PAR endpoint",
-        "condition": "EnsureHttpStatusCodeIs400or401",
-        "expected-result": "failure",
-        "comment": "Private key aud validation for CBUAE is not implemented"
     }
 ]
