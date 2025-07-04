@@ -84,7 +84,6 @@ public class ValidateClientLogoUris extends AbstractClientValidationCondition
 						appendError("failure_reason", "Invalid content type, " +
 								"content-type is not 'image'",
 							"details", args("uri", uri, "content_type", httpHeaders.getContentType().toString()));
-						continue;
 					}
 				} catch (RestClientException ex) {
 					appendError("failure_reason", "Http error",

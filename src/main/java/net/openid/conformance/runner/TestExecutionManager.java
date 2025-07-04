@@ -114,6 +114,7 @@ public class TestExecutionManager {
 		}
 	}
 
+	@SuppressWarnings("UndefinedEquals")
 	public synchronized void cancelAllBackgroundTasksExceptFinalisation() {
 		for (Future<?> f : futures) {
 			if (f.equals(finalisationFuture)) {
