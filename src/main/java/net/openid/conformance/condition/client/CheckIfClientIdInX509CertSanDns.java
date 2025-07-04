@@ -19,6 +19,9 @@ public class CheckIfClientIdInX509CertSanDns extends AbstractGetSigningKey {
 		JsonObject jwks = env.getObject("client_jwks");
 		JWK jwk = getSigningKey("client", jwks);
 		List<X509Certificate> certChain = jwk.getParsedX509CertChain();
+		if (certChain == null) {
+			throw error("x509_san_dns has been selected as the client authentication method, but the first key in the client_jwks does not contain an 'x5c' header");
+		}
 		X509Certificate certificate = certChain.get(0);
 
 		Collection<List<?>> sanList;
