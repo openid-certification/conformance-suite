@@ -68,6 +68,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalEnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
 		FAPI2SPFinalEnsureRedirectUriInAuthorizationRequest.class,
 		FAPI2SPFinalEnsureResponseTypeCodeIdTokenFails.class,
+		FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails.class,
 
 		// Negative tests for token endpoint
 		FAPI2SPFinalEnsureClientIdInTokenEndpoint.class,
