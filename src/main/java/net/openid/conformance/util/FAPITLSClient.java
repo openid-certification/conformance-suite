@@ -1,7 +1,7 @@
 package net.openid.conformance.util;
 
-import org.bouncycastle.tls.CipherSuite;
 import org.bouncycastle.tls.CertificateRequest;
+import org.bouncycastle.tls.CipherSuite;
 import org.bouncycastle.tls.DefaultTlsClient;
 import org.bouncycastle.tls.NameType;
 import org.bouncycastle.tls.ProtocolVersion;
@@ -14,10 +14,10 @@ import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.stream.IntStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.util.stream.IntStream;
 
 
 public class FAPITLSClient extends DefaultTlsClient {
@@ -35,7 +35,7 @@ public class FAPITLSClient extends DefaultTlsClient {
 
 	};
 
-	// List of ciphers permitted in FAPI specs for TLS 1.2.
+	// List of ciphers permitted in FAPI specs for TLS 1.2 (which align with the older BCP195, RFC7525)
 	private static final int[] FAPI_TLS_1_2_CIPHERS = {
 			CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
 			CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
@@ -43,7 +43,7 @@ public class FAPITLSClient extends DefaultTlsClient {
 			CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	};
 
-	// List of ciphers recommended in BCP195 spec for TLS 1.2.
+	// List of ciphers recommended in BCP195 spec for TLS 1.2 (at the time of writing, BCP195 refers to RFC9325)
 	private static final int[] BCP195_TLS_1_2_CIPHERS = {
 			CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 			CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,

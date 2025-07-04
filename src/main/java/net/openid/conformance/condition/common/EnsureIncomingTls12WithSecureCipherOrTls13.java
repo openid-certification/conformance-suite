@@ -48,7 +48,7 @@ public class EnsureIncomingTls12WithSecureCipherOrTls13 extends AbstractConditio
 	}
 
 	protected List<String> getRecomendedCiphers() {
-		// List of recommended cyphers from BCP195; note that apache uses the OpenSSL cipher name
+		// List of recommended ciphers from the older version of BCP195 (RFC7525); note that apache uses the OpenSSL cipher name
 		// unlike the constants found in the CipherSuite enum used by DisallowInsecureCipher which
 		// uses the IANA name.
 		//

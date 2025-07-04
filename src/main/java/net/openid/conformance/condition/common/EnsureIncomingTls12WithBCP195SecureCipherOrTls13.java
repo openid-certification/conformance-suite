@@ -8,7 +8,7 @@ public class EnsureIncomingTls12WithBCP195SecureCipherOrTls13 extends EnsureInco
 
 	@Override
 	protected List<String> getRecomendedCiphers() {
-		// List of the latest recommended cyphers from BCP195; note that apache uses the OpenSSL cipher name
+		// List of the latest recommended ciphers from BCP195 (currently RFC9325); note that apache uses the OpenSSL cipher name
 		// unlike the constants found in the CipherSuite enum used by DisallowInsecureCipher which
 		// uses the IANA name.
 		//
