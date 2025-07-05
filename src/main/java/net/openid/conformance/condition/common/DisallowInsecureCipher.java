@@ -1,7 +1,7 @@
 package net.openid.conformance.condition.common;
 
+import net.openid.conformance.util.FAPITLSClient;
 
-import com.google.common.collect.ImmutableList;
 import org.bouncycastle.tls.CipherSuite;
 import org.bouncycastle.tls.ProtocolVersion;
 
@@ -10,15 +10,12 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 
 @SuppressWarnings("deprecation")
 public class DisallowInsecureCipher extends AbstractCheckInsecureCiphers {
-
-	private static final List<Integer> ALLOWED_CIPHERS = ImmutableList.of(
-		CipherSuite.TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
-		CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		CipherSuite.TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
-		CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384);
 
 	private static final Map<Integer, String> CIPHER_NAMES = new HashMap<>();
 
@@ -35,7 +32,7 @@ public class DisallowInsecureCipher extends AbstractCheckInsecureCiphers {
 				&& ((modifiers & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL)) {
 				try {
 					int cipherId = field.getInt(null);
-					if (!CipherSuite.isSCSV(cipherId) && !ALLOWED_CIPHERS.contains(cipherId)) {
+					if (!CipherSuite.isSCSV(cipherId)) {
 						CIPHER_NAMES.put(cipherId, name);
 					}
 				} catch (IllegalAccessException e) {
@@ -48,11 +45,24 @@ public class DisallowInsecureCipher extends AbstractCheckInsecureCiphers {
 
 	@Override
 	Map<Integer, String> getInsecureCiphers() {
-		return CIPHER_NAMES;
+		// Obtain a list of allowed ciphers.
+		List<Integer> allowed_ciphers = IntStream.of(FAPITLSClient.getTLS12Ciphers(useBCP195Ciphers())).boxed().collect( Collectors.toList());
+		Map<Integer, String> insecure_cipher_names = new HashMap<>(CIPHER_NAMES);
+
+		// Remove the allowed ciphers from the list of available ciphers.
+		for (Integer cipherId: allowed_ciphers) {
+			insecure_cipher_names.remove(cipherId);
+		}
+
+		return insecure_cipher_names;
 	}
 
 	@Override
 	ProtocolVersion getProtocolVersion() {
 		return ProtocolVersion.TLSv12;
+	}
+
+	protected boolean useBCP195Ciphers() {
+		return false;
 	}
 }

@@ -20,10 +20,10 @@ import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8Conte
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
 import net.openid.conformance.condition.common.CheckForBCP195InsecureFAPICiphers;
-import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
+import net.openid.conformance.condition.common.EnsureTLS12RequireBCP195Ciphers;
+import net.openid.conformance.condition.common.RequireOnlyBCP195RecommendedCiphersForTLS12;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -112,10 +112,10 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 	}
 
 	protected void checkEndpointTLS() {
-		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
+		callAndContinueOnFailure(EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
 		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
 		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2");
+		callAndContinueOnFailure(RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2");
 		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5", "RFC9325A-A", "RFC9325-4.2");
 	}
 
