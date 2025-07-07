@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidD
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = { "mtls" })
+@VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = { "mtls" })
 public class FAPI2SPID2EnsureMismatchedDpopJktFails extends AbstractFAPI2SPID2ServerTestModule {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

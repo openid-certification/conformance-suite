@@ -206,7 +206,7 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -226,7 +226,7 @@ import org.springframework.web.servlet.view.RedirectView;
 	FAPIResponseMode.class,
 	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
-	AccessTokenSenderConstrainMethod.class,
+	FAPI2SenderConstrainMethod.class,
 		AuthorizationRequestType.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
@@ -279,7 +279,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	protected FAPIClientType fapiClientType;
 
-	protected AccessTokenSenderConstrainMethod accessTokenSenderConstrainMethod;
+	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
 
 	protected FAPI2AuthRequestMethod fapi2AuthRequestMethod;
 
@@ -317,11 +317,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected void endTestIfRequiredParametersAreMissing(){}
 
 	protected Boolean isDpopConstrain() {
-		return accessTokenSenderConstrainMethod == AccessTokenSenderConstrainMethod.DPOP;
+		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP;
 	}
 
 	protected Boolean isMTLSConstrain() {
-		return accessTokenSenderConstrainMethod == AccessTokenSenderConstrainMethod.MTLS;
+		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS;
 	}
 
 	@Override
@@ -339,7 +339,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		clientAuthType = getVariant(ClientAuthType.class);
 		fapiClientType = getVariant(FAPIClientType.class);
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
-		accessTokenSenderConstrainMethod = getVariant(AccessTokenSenderConstrainMethod.class);
+		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
 
 		profileRequiresMtlsEverywhere =
@@ -1687,7 +1687,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		configureResponseModeSteps = AddJARMToServerConfiguration.class;
 	}
 
-	@VariantSetup(parameter = AccessTokenSenderConstrainMethod.class, value = "mtls")
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "mtls")
 	public void setupSenderConstrainMethodMTLS() {
 		generateSenderConstrainedAccessToken = GenerateBearerAccessToken.class;
 		validateSenderConstrainedTokenSteps = RequireMtlsAccessToken.class;
@@ -1695,7 +1695,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		senderConstrainTokenRequestHelper = new MtlsTokenRequestHelper();
 	}
 
-	@VariantSetup(parameter = AccessTokenSenderConstrainMethod.class, value = "dpop")
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
 	public void setupSenderConstrainMethodDPop() {
 		generateSenderConstrainedAccessToken = GenerateDpopAccessToken.class;
 		validateSenderConstrainedTokenSteps = RequireDpopAccessToken.class;

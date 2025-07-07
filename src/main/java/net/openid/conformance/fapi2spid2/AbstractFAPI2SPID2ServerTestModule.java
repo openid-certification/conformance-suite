@@ -171,7 +171,7 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
-import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -189,7 +189,7 @@ import java.util.function.Supplier;
 	ClientAuthType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPIOpenIDConnect.class,
-	AccessTokenSenderConstrainMethod.class,
+	FAPI2SenderConstrainMethod.class,
 	FAPI2ID2OPProfile.class,
 	FAPIOpenIDConnect.class,
 	FAPIResponseMode.class,
@@ -213,7 +213,7 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
-@VariantConfigurationFields(parameter = AccessTokenSenderConstrainMethod.class, value = "dpop", configurationFields = {
+@VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {
 	"client.dpop_signing_alg",
 	"client2.dpop_signing_alg",
 })
@@ -269,11 +269,11 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	protected Boolean isDpop() {
-		return getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.DPOP;
+		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 	}
 
 	protected Boolean isMTLS() {
-		return getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.MTLS;
+		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS;
 	}
 
 	@Override
@@ -373,7 +373,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		exposeEnvString("client_id");
 
 		boolean mtlsRequired =
-			getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.MTLS ||
+			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
 			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
 			profileRequiresMtlsEverywhere;
 
@@ -392,7 +392,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
 		boolean mtlsRequired =
-			getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.MTLS ||
+			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
 			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
 			profileRequiresMtlsEverywhere;
 
@@ -427,7 +427,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 
 		boolean mtlsRequired =
-			getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.MTLS ||
+			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
 			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
 			profileRequiresMtlsEverywhere;
 
@@ -1014,7 +1014,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 
 
-		boolean mtlsRequired = getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.MTLS ||
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
 			profileRequiresMtlsEverywhere;
 
 		JsonObject mtls = null;
@@ -1117,7 +1117,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	public void setupPrivateKeyJwt() {
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
 
-		if (getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.MTLS) {
+		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
 
@@ -1172,7 +1172,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		profileIdTokenValidationSteps = null;
 	}
 
-	@VariantSetup(parameter = AccessTokenSenderConstrainMethod.class, value = "dpop")
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
 	public void setupCreateDpopForEndpointSteps() {
 		createDpopForParEndpointSteps = () -> CreateDpopProofSteps.createParEndpointDpopSteps();
 		createDpopForTokenEndpointSteps = () -> CreateDpopProofSteps.createTokenEndpointDpopSteps();
