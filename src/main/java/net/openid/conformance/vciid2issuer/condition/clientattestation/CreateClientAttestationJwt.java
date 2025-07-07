@@ -48,13 +48,6 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 			throw error("Client attestation key could not be parsed", e);
 		}
 
-		String clientAttestationCertificate = env.getString("config", "vci.client_attester_certificate");
-		if (clientAttestationCertificate == null) {
-			throw error("Client attestation certificate could not be found");
-		}
-
-		List<Base64> clientCertList = Arrays.stream(clientAttestationCertificate.split(",")).map(Base64::new).toList();
-
 		JsonElement clientAttesterKeysJwksEl = env.getElementFromObject("config", "vci.client_attester_keys_jwks");
 		if (clientAttesterKeysJwksEl == null) {
 			throw error("client_attester_keys_jwks could not be found");
@@ -83,6 +76,13 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 		} catch (JOSEException e) {
 			throw error("Failed to create jws signer for client attestation jwt", e);
 		}
+
+		// see: https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0-03.html#section-4.3.1-2
+		String clientAttestationCertificate = env.getString("config", "vci.client_attester_certificate");
+		if (clientAttestationCertificate == null) {
+			throw error("Client attestation certificate could not be found");
+		}
+		List<Base64> clientCertList = Arrays.stream(clientAttestationCertificate.split(",")).map(Base64::new).toList();
 
 		JWSHeader.Builder headerBuilder = new JWSHeader //
 			.Builder(jwsAlgorithm) //
