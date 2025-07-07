@@ -34,7 +34,7 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 	@PreEnvironment(required = {"vci", "config", "client"})
 	public Environment evaluate(Environment env) {
 
-		String issuer = env.getString("client_attestation","issuer");
+		String issuer = env.getString("config", "vci.client_attestation.issuer");
 		String clientId = env.getString("client", "client_id");
 
 		String clientInstanceKey = env.getString("vci", "client_instance_key");
@@ -123,7 +123,7 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 
 		env.putString("client_attestation", jwtString);
 
-		log("Generated client attestation jwt", args("client_attestation", jwtString));
+		log("Generated client attestation jwt", args("client_attestation", jwtString, "issuer", issuer, "sub", clientId));
 
 		return env;
 	}
