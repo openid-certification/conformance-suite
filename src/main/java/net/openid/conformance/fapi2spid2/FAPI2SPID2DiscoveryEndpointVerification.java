@@ -39,7 +39,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
-import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
@@ -56,7 +56,7 @@ import net.openid.conformance.variant.VariantSetup;
 )
 @VariantParameters({
 	FAPI2ID2OPProfile.class,
-	AccessTokenSenderConstrainMethod.class,
+	FAPI2SenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
 	FAPIResponseMode.class,
 	FAPIOpenIDConnect.class
@@ -112,7 +112,7 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
-		isDpop = getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.DPOP;
+		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}

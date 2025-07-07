@@ -199,7 +199,7 @@ import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
-import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
@@ -233,7 +233,7 @@ import org.springframework.web.servlet.view.RedirectView;
 	FAPI2ID2OPProfile.class,
 	FAPIResponseMode.class,
 	FAPI2AuthRequestMethod.class,
-	AccessTokenSenderConstrainMethod.class,
+	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
@@ -291,7 +291,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected VCIID2ClientAuthType clientAuthType;
 
-	protected AccessTokenSenderConstrainMethod accessTokenSenderConstrainMethod;
+	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
 
 	protected FAPI2AuthRequestMethod fapi2AuthRequestMethod;
 
@@ -335,11 +335,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void endTestIfRequiredParametersAreMissing(){}
 
 	protected Boolean isDpopConstrain() {
-		return accessTokenSenderConstrainMethod == AccessTokenSenderConstrainMethod.DPOP;
+		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP;
 	}
 
 	protected Boolean isMTLSConstrain() {
-		return accessTokenSenderConstrainMethod == AccessTokenSenderConstrainMethod.MTLS;
+		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS;
 	}
 
 	@Override
@@ -356,7 +356,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		responseMode = getVariant(FAPIResponseMode.class);
 		clientAuthType = getVariant(VCIID2ClientAuthType.class);
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
-		accessTokenSenderConstrainMethod = getVariant(AccessTokenSenderConstrainMethod.class);
+		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
 
 		profileRequiresMtlsEverywhere =
@@ -1940,7 +1940,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		configureResponseModeSteps = AddJARMToServerConfiguration.class;
 	}
 
-	@VariantSetup(parameter = AccessTokenSenderConstrainMethod.class, value = "mtls")
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "mtls")
 	public void setupSenderConstrainMethodMTLS() {
 		generateSenderConstrainedAccessToken = GenerateBearerAccessToken.class;
 		validateSenderConstrainedTokenSteps = RequireMtlsAccessToken.class;
@@ -1948,7 +1948,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		senderConstrainTokenRequestHelper = new MtlsTokenRequestHelper();
 	}
 
-	@VariantSetup(parameter = AccessTokenSenderConstrainMethod.class, value = "dpop")
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
 	public void setupSenderConstrainMethodDPop() {
 		generateSenderConstrainedAccessToken = GenerateDpopAccessToken.class;
 		validateSenderConstrainedTokenSteps = RequireDpopAccessToken.class;

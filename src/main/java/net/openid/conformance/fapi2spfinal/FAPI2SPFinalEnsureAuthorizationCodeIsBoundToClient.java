@@ -12,7 +12,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpoint
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-ensure-authorization-code-is-bound-to-client",
@@ -51,7 +51,7 @@ public class FAPI2SPFinalEnsureAuthorizationCodeIsBoundToClient extends Abstract
 
 		// Now try with the wrong certificate
 		boolean mtlsRequired =
-			getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.MTLS ||
+			getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
 			getVariant(ClientAuthType.class) == ClientAuthType.MTLS ||
 			profileRequiresMtlsEverywhere;
 

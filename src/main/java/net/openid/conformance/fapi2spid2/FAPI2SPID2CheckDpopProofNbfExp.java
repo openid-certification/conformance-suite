@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.SetDpopNbfToNow;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.AccessTokenSenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -32,12 +32,12 @@ import net.openid.conformance.variant.VariantSetup;
 		}
 	)
 
-@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values={"mtls"})
+@VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values={"mtls"})
 public class FAPI2SPID2CheckDpopProofNbfExp extends AbstractFAPI2SPID2ServerTestModule {
 
 
 	@Override
-	@VariantSetup(parameter = AccessTokenSenderConstrainMethod.class, value = "dpop")
+	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
 	public void setupCreateDpopForEndpointSteps() {
 		super.setupCreateDpopForEndpointSteps();
 
