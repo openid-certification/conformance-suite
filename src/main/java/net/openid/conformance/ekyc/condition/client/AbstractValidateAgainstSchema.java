@@ -6,7 +6,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.networknt.schema.ExecutionConfig;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersionDetector;
@@ -20,8 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 public abstract class AbstractValidateAgainstSchema extends AbstractCondition {
-	protected static final String ekycVerifiedClaimsRequestResourceFile = "json-schemas/ekyc-ida/12/verified_claims_request.json";
-	protected static final String ekycVerifiedClaimsResourceFile = "json-schemas/ekyc-ida/12/verified_claims.json";
+	protected static final String ekycVerifiedClaimsRequestResourceFile = "json-schemas/ekyc-ida/verified_claims_request.json";
+	protected static final String ekycVerifiedClaimsResourceFile = "json-schemas/ekyc-ida/verified_claims.json";
 
 	private static ObjectMapper mapper = new ObjectMapper();
 
@@ -46,16 +45,11 @@ public abstract class AbstractValidateAgainstSchema extends AbstractCondition {
 	protected static Set<ValidationMessage> checkJsonNodeSchema(String jsonToValidate, JsonNode schemaJsonNode) throws IOException {
 		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(schemaJsonNode), builder ->
 			// This creates a mapping from $id which starts with https://bitbucket.org/openid/ekyc-ida/raw/master/schema/ to the retrieval URI resources:json-schemas/ekyc-ida/12/
-			builder.schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://bitbucket.org/openid/ekyc-ida/raw/master/schema/", "resource:json-schemas/ekyc-ida/12/"))
+			builder.schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://bitbucket.org/openid/ekyc-ida/raw/master/schema/", "resource:json-schemas/ekyc-ida/"))
 		);
 		JsonSchema schema = factory.getSchema(schemaJsonNode);
 		JsonNode node = mapper.readTree(jsonToValidate);
-		Set<ValidationMessage> errors = schema.validate(node, executionContext -> {
-			ExecutionConfig executionConfig = executionContext.getExecutionConfig();
-			executionConfig.setDebugEnabled(true);
-//			executionConfig.setAnnotationCollectionEnabled(true);
-//			executionConfig.setAnnotationCollectionFilter(keyword -> true);
-		});
+		Set<ValidationMessage> errors = schema.validate(node);
 		return errors;
 	}
 
