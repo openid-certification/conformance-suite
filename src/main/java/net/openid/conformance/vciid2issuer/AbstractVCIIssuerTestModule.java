@@ -99,7 +99,6 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateResourceRespons
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
@@ -402,7 +401,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			// always use the MTLS version if available, as ConnectID always uses mtls sender constraining
 			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-5");
 		} else {
-			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 			callAndStopOnFailure(VCIResolveCredentialEndpointToUse.class);
 			call(sequence(resourceConfiguration));
 		}
