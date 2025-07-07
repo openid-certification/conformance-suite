@@ -3,12 +3,14 @@ package net.openid.conformance.vciid2wallet.condition.clientattestation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractVerifyJwsSignature;
 import net.openid.conformance.testmodule.Environment;
 
-public class ValidateClientAttestation extends AbstractVerifyJwsSignature {
+public class ValidateClientAttestationKeyBindingSignature extends AbstractVerifyJwsSignature {
 
 	@Override
+	@PreEnvironment(required = "client_attestation_object")
 	public Environment evaluate(Environment env) {
 
 		JsonElement cnfEl = env.getElementFromObject("client_attestation_object", "claims.cnf");
@@ -26,8 +28,6 @@ public class ValidateClientAttestation extends AbstractVerifyJwsSignature {
 		log("Found jwk in cnf claim of the client attestation", args("jwk", cnfJwk));
 
 		String clientAttestationPop = env.getString("client_attestation_pop");
-
-		// Similar to validate the SD key binding JWT -> see cnf claim with key binding
 
 		JsonObject jwks = new JsonObject();
 		JsonArray jwksKeys = new JsonArray();

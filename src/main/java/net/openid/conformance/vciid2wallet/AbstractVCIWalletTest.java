@@ -373,6 +373,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			profile == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
 			profile == FAPI2ID2OPProfile.CBUAE;
 
+		if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
+			if (env.getString("config", "vci.client_attestation.issuer") == null) {
+				throw new TestFailureException(getId(), "vci.client_attestation.issuer must be configured if client_attestation is used as client authentication method.");
+			}
+		}
+
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
