@@ -13,7 +13,6 @@ public class SaveMutualTLsAuthenticationToConfig extends AbstractCondition {
 	@PostEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
-		// these are not PEM encoded, need to be careful if
 		String certString = env.getString("mutual_tls_authentication", "cert");
 		String keyString = env.getString("mutual_tls_authentication", "key");
 		String caString = env.getString("mutual_tls_authentication", "ca");
@@ -31,7 +30,7 @@ public class SaveMutualTLsAuthenticationToConfig extends AbstractCondition {
 		}
 
 		// these are not PEM encoded, need to be careful if expecting config.mtls to be PEM format
-		// ExtractMTLSCertificatesFromConfiguration alread ytakes this into account
+		// ExtractMTLSCertificatesFromConfiguration already takes this into account
 		env.putObject("config", "mtls", mtls);
 
 		logSuccess("Mutual TLS authentication credentials saved to config", mtls);
