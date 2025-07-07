@@ -217,14 +217,15 @@ import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
-import net.openid.conformance.vciid2wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vciid2wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
+import net.openid.conformance.vciid2wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vciid2wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vciid2wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
+import net.openid.conformance.vciid2wallet.condition.clientattestation.AddClientAttestationPoPNonceRequiredToServerConfiguration;
 import net.openid.conformance.vciid2wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
@@ -373,12 +374,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			profile == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
 			profile == FAPI2ID2OPProfile.CBUAE;
 
-		if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "vci.client_attestation.issuer") == null) {
-				throw new TestFailureException(getId(), "vci.client_attestation.issuer must be configured if client_attestation is used as client authentication method.");
-			}
-		}
-
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
@@ -438,6 +433,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 		} else {
 			callAndStopOnFailure(FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
+		}
+
+		if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
+			if (env.getString("config", "vci.client_attestation.issuer") == null) {
+				throw new TestFailureException(getId(), "vci.client_attestation.issuer must be configured if client_attestation is used as client authentication method.");
+			}
+			callAndStopOnFailure(AddClientAttestationPoPNonceRequiredToServerConfiguration.class, ConditionResult.FAILURE, "OAuth2-ATCA05-8-2" );
 		}
 
 		exposeEnvString("discoveryUrl");
