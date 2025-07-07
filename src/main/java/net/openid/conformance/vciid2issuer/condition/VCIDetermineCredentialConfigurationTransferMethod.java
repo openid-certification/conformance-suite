@@ -8,7 +8,6 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractCondition {
@@ -53,19 +52,9 @@ public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractC
 
 		String credentialConfigurationScope = credentialConfigScopeMapping.get(vciCredentialConfigurationId);
 		if (credentialConfigurationScope != null) {
-			// if credential_configuration contains scope -> use scope to pass instead of the credential_configuration_id
-			String scope = env.getString("config", "client.scope");
-			if (scope == null) {
-				scope = credentialConfigurationScope;
-			} else {
-				scope = scope + " " + credentialConfigurationScope;
-			}
-
-			// deduplicate scopes if necessary
-			scope = String.join(" ", new LinkedHashSet<>(List.of(scope.split(" "))));
-
-			env.putString("config", "client.scope", scope);
-			logSuccess("Using credential scope value to reference credential_configuration_id", args("scope", scope, "credential_scope", credentialConfigurationScope, "credential_configuration_id", vciCredentialConfigurationId));
+			// force scope to be set to the scope from the credential_configuration
+			env.putString("config", "client.scope", credentialConfigurationScope);
+			logSuccess("Using credential scope value to reference credential_configuration_id", args("scope", credentialConfigurationScope, "credential_configuration_id", vciCredentialConfigurationId));
 		} else {
 			// if credential_configuration contains no scope -> use authorization_details to pass credential_configuration_id
 			JsonObject credentialConfig = new JsonObject();

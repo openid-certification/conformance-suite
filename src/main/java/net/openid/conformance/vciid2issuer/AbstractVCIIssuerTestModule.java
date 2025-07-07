@@ -306,10 +306,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			return;
 		}
 
-		if (scopeContains("openid")) {
-			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
-		}
-
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
 		isOpenId = false;
