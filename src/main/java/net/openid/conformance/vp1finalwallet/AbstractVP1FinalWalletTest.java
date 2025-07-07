@@ -49,7 +49,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript;
-import net.openid.conformance.condition.client.CreateVerifierIsoMdlAnnexBSessionTranscript;
+import net.openid.conformance.condition.client.CreateVP1FinalWalletIsoMdocRedirectSessionTranscript;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
@@ -57,7 +57,6 @@ import net.openid.conformance.condition.client.ExtractAuthorizationEndpointRespo
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEHeaderApu;
 import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractVP1FinalVpTokenDCQL;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -80,7 +79,6 @@ import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicK
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
-import net.openid.conformance.condition.client.ValidateJWEHeaderApvIsAuthRequestNonce;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
@@ -477,11 +475,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				// FIXME: need to validate jwe header
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
 				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.3");
-				if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL && !isBrowserApi()) {
-					// there are ISO part 7 requirements, HAIP/OID4VP over DC API doesn't currently set any requirements for apu/apv
-					callAndContinueOnFailure(ExtractMDocGeneratedNonceFromJWEHeaderApu.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
-					callAndContinueOnFailure(ValidateJWEHeaderApvIsAuthRequestNonce.class, ConditionResult.FAILURE, "ISO18013-7-B.4.3.3.2");
-				}
 				break;
 		}
 
@@ -490,7 +483,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		callAndStopOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
 		callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8");
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
 
 		switch (credentialFormat) {
@@ -498,10 +491,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				// mdoc
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
 				if (isBrowserApi()) {
-					callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript.class);
+					callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript.class, "OID4VP-1FINALA-B.2.6.2");
 				} else {
-					// FIXME update for final, there's now a proper session transcript
-					callAndStopOnFailure(CreateVerifierIsoMdlAnnexBSessionTranscript.class);
+					callAndStopOnFailure(CreateVP1FinalWalletIsoMdocRedirectSessionTranscript.class, "OID4VP-1FINALA-B.2.6.1");
 				}
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
 				break;

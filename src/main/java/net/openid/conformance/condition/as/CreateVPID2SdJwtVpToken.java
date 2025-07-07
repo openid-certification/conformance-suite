@@ -93,7 +93,6 @@ public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 		ArrayList<Disclosure> disclosures = new ArrayList<>();
 
 		builder.putClaim("vct", "https://example.bmi.bund.de/credential/pid/1.0");
-		// fixme: vct#integrity ? but not sure what value to put
 
 		disclosures.add(builder.putSDClaim("given_name", "Erika"));
 		disclosures.add(builder.putSDClaim("family_name", "Mustermann"));
@@ -135,7 +134,7 @@ public class CreateVPID2SdJwtVpToken extends AbstractCondition {
 
 		JWSSigner signer = null;
 		try {
-			signer = new ECDSASigner((ECKey)credentialSigningJwk); // FIXME need to cope with RSA too
+			signer = new ECDSASigner((ECKey)credentialSigningJwk);
 			jwt.sign(signer);
 		} catch (JOSEException e) {
 			throw new RuntimeException(e);

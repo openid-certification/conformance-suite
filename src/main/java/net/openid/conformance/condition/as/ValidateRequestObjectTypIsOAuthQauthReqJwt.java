@@ -15,7 +15,7 @@ public class ValidateRequestObjectTypIsOAuthQauthReqJwt extends AbstractConditio
 		String typ = env.getString("authorization_request_object", "header.typ");
 
 		if (typ == null) {
-			throw error("typ is missing in request object header", args("expected"));
+			throw error("typ is missing in request object header", args("expected", REQ_OBJ_TYP));
 		}
 
 		if (typ.equalsIgnoreCase(REQ_OBJ_TYP)) {

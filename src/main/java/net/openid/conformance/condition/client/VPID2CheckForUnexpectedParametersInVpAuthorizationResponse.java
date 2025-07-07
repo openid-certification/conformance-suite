@@ -8,11 +8,12 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.util.List;
 
-public class CheckForUnexpectedParametersInVpAuthorizationResponse extends AbstractCondition {
+public class VPID2CheckForUnexpectedParametersInVpAuthorizationResponse extends AbstractCondition {
 
-	// https://openid.net/specs/openid-4-verifiable-presentations-1_0-29.html#section-8
+	// https://openid.net/specs/openid-4-verifiable-presentations-1_0-ID2.html#section-6.1
 	private static final List<String> EXPECTED_PARAMS = ImmutableList.of(
 		"vp_token",
+		"presentation_submission",
 		"state",
 		"iss"
 	);
@@ -34,7 +35,7 @@ public class CheckForUnexpectedParametersInVpAuthorizationResponse extends Abstr
 		if (unexpectedParams.size() == 0) {
 			logSuccess("authorization response includes only expected parameters", callbackParams);
 		} else {
-			throw error("authorization response includes unexpected parameters. This may be because the wallet supports extensions the test suite is unaware of, or the wallet may be returning values it should not, or returning values in an incorrect location.", unexpectedParams);
+			throw error("authorization response includes unexpected parameters. This may be because the server supports extensions the test suite is unaware of, or the server may be returning values it should not, or returning values in an incorrect location.", unexpectedParams);
 		}
 
 		return env;

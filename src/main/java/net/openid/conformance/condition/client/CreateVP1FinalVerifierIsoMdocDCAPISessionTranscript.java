@@ -1,43 +1,63 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64;
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.as.AbstractMdocSessionTranscript;
 import net.openid.conformance.testmodule.Environment;
+import org.multipaz.cbor.ArrayBuilder;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.CborArray;
+import org.multipaz.cbor.CborBuilder;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.cbor.Simple;
 import org.multipaz.crypto.Algorithm;
 import org.multipaz.crypto.Crypto;
 
+import java.text.ParseException;
 import java.util.Map;
 import java.util.Set;
 
-public class CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript extends AbstractMdocSessionTranscript {
+public class CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript extends AbstractCondition {
 	@Override
-	@PreEnvironment(strings = { "client_id", "origin", "nonce" })
+	@PreEnvironment(strings = { "origin", "nonce" })
 	@PostEnvironment(strings = "session_transcript")
 	public Environment evaluate(Environment env) {
-		String jwkThumbprint = env.getString("client_id"); // FIXME
+		JsonObject jwkJson = env.getObject("decryption_jwk");
+		byte[] jwkThumbprint = null;
+		if (jwkJson != null) {
+			try {
+				JWK jwk = JWK.parse(jwkJson.toString());
+				// computeThumbprint return base64url, but the spec requires us to use the raw bytes of the hash output
+				jwkThumbprint = jwk.computeThumbprint().decode();
+			} catch (ParseException | JOSEException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		String origin = env.getString("origin");
 		String nonce =  env.getString("nonce");
 
 		// https://openid.net/specs/openid-4-verifiable-presentations-1_0-29.html#appendix-B.2.6.2
 		Map<String, String> sessionTranscriptInput = Map.of(
-			"jwkThumbprint", jwkThumbprint,
+			"jwkThumbprint_b64", jwkThumbprint != null ? Base64.encode(jwkThumbprint).toString() : "<null>",
 			"origin", origin,
 			"nonce", nonce);
 
+		ArrayBuilder<CborBuilder> builder = CborArray.Companion.builder()
+			.add(origin)
+			.add(nonce);
+		if (jwkThumbprint != null) {
+			builder.add(jwkThumbprint);
+		} else {
+			builder.add(Simple.Companion.getNULL());
+		}
 		byte[] handoverInfo = Cbor.INSTANCE.encode(
-			CborArray.Companion.builder()
-				.add(origin)
-				.add(nonce)
-				.add(jwkThumbprint)
-				.end()
-				.build());
+			builder.end().build());
 		byte[] handoverInfoHash = Crypto.INSTANCE.digest(Algorithm.SHA256, handoverInfo);
 
 		String handoverInfoDiagnostics = Cbor.INSTANCE.toDiagnostics(handoverInfo,
