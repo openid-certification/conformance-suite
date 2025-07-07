@@ -174,7 +174,6 @@ import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
-import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
@@ -228,9 +227,6 @@ import java.util.function.Supplier;
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {"resource.resourceUrlAccountRequests", "resource.resourceUrlAccountsResource"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au", configurationFields = {"resource.cdrVersion"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {"client.org_jwks", "consent.productType", "resource.consentUrl", "resource.brazilCpf", "resource.brazilCnpj", "resource.brazilOrganizationId", "resource.brazilPaymentConsent", "resource.brazilPixPayment", "directory.keystore"})
-@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = {
-	"none"
-})
 @VariantConfigurationFields(parameter = AccessTokenSenderConstrainMethod.class, value = "dpop", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg",})
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
