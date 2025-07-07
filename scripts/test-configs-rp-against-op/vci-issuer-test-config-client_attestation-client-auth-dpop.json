@@ -7,6 +7,9 @@
     },
     "vci": {
         "credential_configuration_id": "eu.europa.ec.eudi.pid.1",
+        "client_attestation": {
+            "issuer": "https://client-attester.example.org/"
+        },
         "client_attester_keys_jwks": {
             "keys": [
                 {

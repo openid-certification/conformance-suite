@@ -2,11 +2,13 @@
     "alias": "oidf-fapi-op-test",
     "description": "VCI Issuer test config for running against wallet tests (no mtls)",
     "server": {
-        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration",
         "discoveryIssuer": "{BASEURL}test/a/oidf-fapi-rp-test/"
     },
     "vci": {
-        "credential_configuration_id": "eu.europa.ec.eudi.pid.1"
+        "credential_configuration_id": "eu.europa.ec.eudi.pid.1",
+        "client_attestation": {
+            "issuer": "https://client-attester.example.org/"
+        }
     },
     "client": {
         "client_id": "52480754053",
@@ -25,10 +27,6 @@
                 }
             ]
         }
-    },
-    "resource": {
-        "resourceUrl": "{BASEURL}test/a/oidf-fapi-rp-test/credential",
-        "institution_id": "xxx"
     },
     "client2": {
         "client_id": "61732691006",
