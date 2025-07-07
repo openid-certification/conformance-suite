@@ -19,7 +19,6 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 		String certString = env.getString("config", "mtls.cert");
 		String keyString = env.getString("config", "mtls.key");
 		String caString = env.getString("config", "mtls.ca");
-		String kty = env.getString("config", "mtls.kty");
 
 		if (Strings.isNullOrEmpty(certString) || Strings.isNullOrEmpty(keyString)) {
 			throw error("Couldn't find TLS client certificate or key for MTLS");
@@ -47,9 +46,6 @@ public class ExtractMTLSCertificatesFromConfiguration extends AbstractCondition 
 		mtls.addProperty("key", keyString);
 		if (caString != null) {
 			mtls.addProperty("ca", caString);
-		}
-		if (kty != null) {
-			mtls.addProperty("kty", kty);
 		}
 
 		env.putObject("mutual_tls_authentication", mtls);
