@@ -88,7 +88,6 @@ async def run_queue(q, parallel_jobs):
 async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     test_plan = test_plan_obj['test']['test_name']
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
-    start_section(test_plan, "Results", True)
     with open(config_file) as f:
         json_config = f.read()
     json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
@@ -144,7 +143,6 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
         start_time_for_save = time.time()
         filename = await conformance.exporthtml(plan_id, output_dir)
         print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
-    end_section(test_plan)
     print('\n\n')
     plan_results.append({
         'test_plan': test_plan,
@@ -900,7 +898,7 @@ def start_section(name, heading, collapsed=False):
         return
     sys.stdout.flush()
     sys.stderr.flush()
-    # documentation: https://docs.gitlab.com/ee/ci/jobs/#custom-collapsible-sections
+    # documentation: https://docs.gitlab.com/ci/jobs/job_logs/#custom-collapsible-sections
     if collapsed:
         name += "[collapsed=true]"
     print("\x1b[0Ksection_start:{}:{}\r\x1b[0K{}".format(secondssince1970(), name, heading), file=sys.__stdout__)
