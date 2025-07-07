@@ -84,7 +84,6 @@ public class GenerateMTLSCertificateFromJWKs extends AbstractCondition {
 		}
 
 		mtls.addProperty("key", Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()));
-		mtls.addProperty("kty", jwk.getKeyType().getValue());
 
 		env.putObject("mutual_tls_authentication", mtls);
 
