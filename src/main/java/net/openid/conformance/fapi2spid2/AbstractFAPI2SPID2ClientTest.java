@@ -232,9 +232,6 @@ import org.springframework.web.servlet.view.RedirectView;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantNotApplicable(parameter = AccessTokenSenderConstrainMethod.class, values = {
-	"none"
-})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"
 })
