@@ -26,7 +26,7 @@ public class CreateClientAttestationProofJwt extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String issuer = env.getString("server","issuer");
+		String issuer = env.getString("vci","credential_issuer");
 		String clientId = env.getString("client","client_id");
 
 		String clientInstanceKey = env.getString("vci", "client_instance_key");
