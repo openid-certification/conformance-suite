@@ -15,11 +15,11 @@
                     "kid": "key1",
                     "x": "r3AhAtAaGBZOAn7QwsIKi_YKrA3IvIrVRGps9gVgz00",
                     "y": "HxAv6cxZ7-N-oD8Q3niWHQqpVMwQrFm0STV58tIdbHg",
-                    "alg": "ES256"
+                    "alg": "ES256",
+                    "x5c": ["MIIBDjCBtqADAgECAgYBl6aBZxIwCgYIKoZIzj0EAwIwDzENMAsGA1UEAwwEa2V5MTAeFw0yNTA2MjUwOTUzMDdaFw0yNjA0MjEwOTUzMDdaMA8xDTALBgNVBAMMBGtleTEwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASvcCEC0BoYFk4CftDCwgqL9gqsDci8itVEamz2BWDPTR8QL+nMWe/jfqA/EN54lh0KqVTMEKxZtEk1efLSHWx4MAoGCCqGSM49BAMCA0cAMEQCIE9XH1rkfpFRNGBKPX3mfZq0HiC+23dUF0JddUbOnIAPAiBOefYpruKIDGh8hxky3pQ3AKBVezaCu55s4njOSgJYrA=="]
                 }
             ]
-        },
-        "client_attester_certificate": "MIIBDjCBtqADAgECAgYBl6aBZxIwCgYIKoZIzj0EAwIwDzENMAsGA1UEAwwEa2V5MTAeFw0yNTA2MjUwOTUzMDdaFw0yNjA0MjEwOTUzMDdaMA8xDTALBgNVBAMMBGtleTEwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASvcCEC0BoYFk4CftDCwgqL9gqsDci8itVEamz2BWDPTR8QL+nMWe/jfqA/EN54lh0KqVTMEKxZtEk1efLSHWx4MAoGCCqGSM49BAMCA0cAMEQCIE9XH1rkfpFRNGBKPX3mfZq0HiC+23dUF0JddUbOnIAPAiBOefYpruKIDGh8hxky3pQ3AKBVezaCu55s4njOSgJYrA=="
+        }
     },
     "client": {
         "client_id": "52480754053",

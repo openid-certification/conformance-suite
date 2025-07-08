@@ -235,7 +235,7 @@ import java.util.function.Supplier;
 	"client2.scope"})
 //@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {"resource.richAuthorizationRequest",})
 @VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
-@VariantConfigurationFields(parameter = VCIID2ClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attester_keys_jwks", "vci.client_attester_certificate"})
+@VariantConfigurationFields(parameter = VCIID2ClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attester_keys_jwks"})
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -1284,7 +1284,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
 		callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1", "HAIP-4.3.1-2");
-
 		callAndStopOnFailure(CreateClientAttestationProofJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
 	}
 

@@ -12,6 +12,7 @@ public class GenerateClientAttestationClientInstanceKey extends AbstractGenerate
 		JWK clientInstanceKey = super.createJwkForAlg(getClientInstanceKeyAlgorithm());
 		String clientInstanceKeyJson = clientInstanceKey.toJSONString();
 		env.putString("vci", "client_instance_key", clientInstanceKeyJson);
+		env.putString("vci", "client_instance_key_public", clientInstanceKey.toPublicJWK().toString());
 
 		log("Generated client_instance_key", args("client_instance_key", clientInstanceKeyJson));
 

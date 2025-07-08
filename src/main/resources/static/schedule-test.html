@@ -1542,21 +1542,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys of the client attester"></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys of the client attester in JWKS format. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate"></span>
                                             </div>
                                             <textarea placeholder="REQUIRED" class="form-control config-form-element" data-json-target="vci.client_attester_keys_jwks"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Client Attester Certificate</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Base64 encoded Attester Keys Certificate."></span>
-                                            </div>
-                                            <textarea placeholder="REQUIRED" type="text" class="form-control config-form-element" data-json-target="vci.client_attester_certificate"></textarea>
                                         </div>
                                     </div>
                                 </div>

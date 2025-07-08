@@ -14,6 +14,10 @@ public class VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes exten
 	@PreEnvironment(required = "config")
 	public Environment evaluate(Environment env) {
 
+		if (env.getElementFromObject("config", "resource") == null) {
+			env.putObject("config", "resource", new JsonObject());
+		}
+
 		JsonObject resourceObject = env.getElementFromObject("config", "resource").getAsJsonObject();
 		// inject openid_credential types to authorization_details_types_supported config
 		resourceObject.add("authorization_details_types_supported", OIDFJSON.convertListToJsonArray(List.of("openid_credential")));
