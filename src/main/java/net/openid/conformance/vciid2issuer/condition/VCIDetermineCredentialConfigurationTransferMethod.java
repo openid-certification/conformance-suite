@@ -22,7 +22,7 @@ public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractC
 
 		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
 		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
-			throw error("Missing credential_configuration_id not provided");
+			throw error("credential_configuration_id not provided in test configuration");
 		}
 
 		var credentialConfigScopeMapping = new HashMap<String, String>();
