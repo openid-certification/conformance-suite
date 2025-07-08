@@ -34,7 +34,10 @@ public class CreateClientAttestationJwt extends AbstractCondition {
 	@PreEnvironment(required = {"vci", "config", "client"})
 	public Environment evaluate(Environment env) {
 
-		String issuer = env.getString("config", "vci.client_attestation.issuer");
+		String issuer = env.getString("config", "vci.client_attestation_issuer");
+		if (issuer == null || issuer.isBlank()) {
+			throw error("Client attestation issuer must not be null or empty");
+		}
 		String clientId = env.getString("client", "client_id");
 
 		String clientInstanceKey = env.getString("vci", "client_instance_key");
