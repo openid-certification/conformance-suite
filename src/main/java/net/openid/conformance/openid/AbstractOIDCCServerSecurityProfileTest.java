@@ -242,7 +242,10 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 					env.putString("client_name", env.getString("dynamic_registration_request", "client_name"));
 				}
 				callAndStopOnFailure(GenerateMTLSCertificateFromJWKs.class);
-				callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
+				// Add x5c to client JWK only if using MTLS client auth
+				if(getVariant(ClientAuthType.class) == ClientAuthType.MTLS) {
+					callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
+				}
 				// save MTLS information so it can be extracted later
 				callAndStopOnFailure(SaveMutualTLsAuthenticationToConfig.class);
 			}
