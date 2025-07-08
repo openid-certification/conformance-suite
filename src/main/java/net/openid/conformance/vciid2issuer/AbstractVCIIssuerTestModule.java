@@ -527,16 +527,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	public void start() {
 
 		switch (vciAuthorizationCodeFlowVariant) {
+
 			case WALLET_INITIATED -> {
-
 				setStatus(Status.RUNNING);
-//				eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
-
 				switch (vciGrantType) {
 					case AUTHORIZATION_CODE -> performAuthorizationFlow();
 					case PRE_AUTHORIZATION_CODE -> throw new UnsupportedOperationException("Pre-authorization code is not supported for wallet initiated flow");
 				}
 			}
+
 			case ISSUER_INITIATED -> {
 				waitForCredentialOffer();
 			}
