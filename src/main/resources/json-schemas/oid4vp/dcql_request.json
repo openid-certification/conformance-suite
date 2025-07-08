@@ -1,0 +1,207 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "DCQLQuery": {
+            "type": "object",
+            "properties": {
+                "credentials": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            { "$ref": "#/definitions/VcSdJwtCredentialQuery" },
+                            { "$ref": "#/definitions/VcSdJwtCredentialQueryWithClaimSets" },
+                            { "$ref": "#/definitions/MdocCredentialQuery" },
+                            { "$ref": "#/definitions/MdocCredentialQueryWithClaimSets" }
+                        ]
+                    }
+                },
+                "credential_sets": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/CredentialSet" }
+                }
+            },
+            "required": ["credentials"]
+        },
+        "VcSdJwtCredentialQuery": {
+            "type": "object",
+            "properties": {
+                "id": { "type": "string" },
+                "format": { "enum": ["dc+sd-jwt", "vc+sd-jwt"] },
+                "multiple": { "type": "boolean" },
+                "meta": { "$ref": "#/definitions/VcSdJwtCredentialQueryMeta" },
+                "claims": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/VcSdJwtCredentialQueryClaim" }
+                },
+                "trusted_authorities": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/TrustedAuthorities" }
+                }
+            },
+            "required": ["id", "format", "meta"]
+        },
+        "VcSdJwtCredentialQueryWithClaimSets": {
+            "allOf": [
+                { "$ref": "#/definitions/VcSdJwtCredentialQuery" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "claims": {
+                            "type": "array",
+                            "items": { "$ref": "#/definitions/VcSdJwtCredentialQueryClaimWithId" }
+                        },
+                        "claim_sets": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": { "type": "string" }
+                            }
+                        }
+                    },
+                    "required": ["claims", "claim_sets"]
+                }
+            ]
+        },
+        "VcSdJwtCredentialQueryMeta": {
+            "type": "object",
+            "properties": {
+                "vct_values": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+            }
+        },
+        "VcSdJwtCredentialQueryClaim": {
+            "type": "object",
+            "properties": {
+                "id": { "type": "string" },
+                "path": {
+                    "type": "array",
+                    "items": { "type": ["string", "number", "null"] }
+                },
+                "values": {
+                    "type": "array",
+                    "items": { "type": ["string", "number", "boolean"] }
+                }
+            },
+            "required": ["path"]
+        },
+        "VcSdJwtCredentialQueryClaimWithId": {
+            "allOf": [
+                { "$ref": "#/definitions/VcSdJwtCredentialQueryClaim" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "id": { "type": "string" }
+                    },
+                    "required": ["id"]
+                }
+            ]
+        },
+        "MdocCredentialQuery": {
+            "type": "object",
+            "properties": {
+                "id": { "type": "string" },
+                "format": { "enum": ["mso_mdoc"] },
+                "multiple": { "type": "boolean" },
+                "meta": { "$ref": "#/definitions/MdocCredentialQueryMeta" },
+                "claims": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/MdocCredentialQueryClaim" }
+                },
+                "trusted_authorities": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/TrustedAuthorities" }
+                }
+            },
+            "required": ["id", "format", "meta"]
+        },
+        "MdocCredentialQueryWithClaimSets": {
+            "allOf": [
+                { "$ref": "#/definitions/MdocCredentialQuery" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "claims": {
+                            "type": "array",
+                            "items": { "$ref": "#/definitions/MdocCredentialQueryClaimWithId" }
+                        },
+                        "claim_sets": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": { "type": "string" }
+                            }
+                        }
+                    },
+                    "required": ["claims", "claim_sets"]
+                }
+            ]
+        },
+        "MdocCredentialQueryMeta": {
+            "type": "object",
+            "properties": {
+                "doctype_value": { "type": "string" }
+            }
+        },
+        "MdocCredentialQueryClaim": {
+            "type": "object",
+            "properties": {
+                "id": { "type": "string" },
+                "path": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "values": {
+                    "type": "array",
+                    "items": { "type": ["string", "number", "boolean"] }
+                }
+            },
+            "required": ["path"]
+        },
+        "MdocCredentialQueryClaimWithId": {
+            "allOf": [
+                { "$ref": "#/definitions/MdocCredentialQueryClaim" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "id": { "type": "string" }
+                    },
+                    "required": ["id"]
+                }
+            ]
+        },
+        "TrustedAuthorities": {
+            "type": "object",
+            "properties": {
+                "type": { "enum": ["aki", "etsi_tl", "open_fed"] },
+                "values": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+            },
+            "required": ["type", "values"]
+        },
+        "CredentialSet": {
+            "type": "object",
+            "properties": {
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                },
+                "required": { "type": "boolean" },
+                "purpose": { "type": "string" }
+            },
+            "required": ["options"]
+        }
+    },
+    "type": "object",
+    "properties": {
+        "DCQLQuery": { "$ref": "#/definitions/DCQLQuery" }
+    }
+}
