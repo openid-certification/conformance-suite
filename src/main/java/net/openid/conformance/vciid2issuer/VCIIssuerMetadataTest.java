@@ -22,7 +22,7 @@ import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialIssuer
 	summary = "This test case validates the metadata exposed by the credential issuer, as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) specification.",
 	profile = "OID4VCI-ID2",
 	configurationFields = {
-		"server.discoveryIssuer"
+		"vci.credential_issuer_url"
 	}
 )
 @VariantParameters({VCIServerMetadata.class, VCIID2ClientAuthType.class})

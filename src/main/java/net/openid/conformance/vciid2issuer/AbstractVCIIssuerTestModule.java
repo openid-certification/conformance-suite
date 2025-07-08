@@ -221,10 +221,10 @@ import java.util.function.Supplier;
 	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="private_key_jwt", configurationFields = {
-	"vci.client_attestation.issuer"
+	"vci.client_attestation_issuer"
 })
 @VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="mtls", configurationFields = {
-	"vci.client_attestation.issuer"
+	"vci.client_attestation_issuer"
 })
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {"resource.resourceUrlAccountRequests", "resource.resourceUrlAccountsResource"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au", configurationFields = {"resource.cdrVersion"})
@@ -1277,8 +1277,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void generateClientAttestationKeys() {
 
 		if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "vci.client_attestation.issuer") == null) {
-				throw new TestFailureException(getId(), "vci.client_attestation.issuer must be configured if client_attestation is configured as client authentication method.");
+			if (env.getString("config", "vci.client_attestation_issuer") == null) {
+				throw new TestFailureException(getId(), "vci.client_attestation_issuer must be configured if client_attestation is configured as client authentication method.");
 			}
 		}
 

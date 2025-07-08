@@ -1,14 +1,9 @@
 {
     "alias": "oidf-fapi-op-test",
     "description": "VCI Issuer test config for running against wallet tests (no mtls)",
-    "server": {
-        "discoveryIssuer": "{BASEURL}test/a/oidf-fapi-rp-test/"
-    },
     "vci": {
-        "credential_configuration_id": "eu.europa.ec.eudi.pid.1",
-        "client_attestation": {
-            "issuer": "https://client-attester.example.org/"
-        }
+        "credential_issuer_url": "{BASEURL}test/a/oidf-fapi-rp-test/",
+        "credential_configuration_id": "eu.europa.ec.eudi.pid.1"
     },
     "client": {
         "client_id": "52480754053",

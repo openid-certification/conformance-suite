@@ -267,9 +267,9 @@ import java.util.Map;
 	"client.scope", // scope is always openid
 	"client2.scope"
 })
-@VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="private_key_jwt", configurationFields = {"vci.client_attestation.issuer"})
-@VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="mtls", configurationFields = {"vci.client_attestation.issuer"})
-@VariantConfigurationFields(parameter = VCIID2ClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attestation.issuer"})
+@VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="private_key_jwt", configurationFields = {"vci.client_attestation_issuer"})
+@VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="mtls", configurationFields = {"vci.client_attestation_issuer"})
+@VariantConfigurationFields(parameter = VCIID2ClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attestation_issuer"})
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
@@ -436,8 +436,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "vci.client_attestation.issuer") == null) {
-				throw new TestFailureException(getId(), "vci.client_attestation.issuer must be configured if client_attestation is used as client authentication method.");
+			if (env.getString("config", "vci.client_attestation_issuer") == null) {
+				throw new TestFailureException(getId(), "vci.client_attestation_issuer must be configured if client_attestation is used as client authentication method.");
 			}
 			callAndStopOnFailure(AddClientAttestationPoPNonceRequiredToServerConfiguration.class, ConditionResult.FAILURE, "OAuth2-ATCA05-8-2" );
 		}
