@@ -26,10 +26,6 @@
             ]
         }
     },
-    "resource": {
-        "resourceUrl": "{BASEURLMTLS}test-mtls/a/oidf-fapi-rp-test/credential",
-        "institution_id": "xxx"
-    },
     "client2": {
         "client_id": "61732691006",
         "scope": "accounts",
