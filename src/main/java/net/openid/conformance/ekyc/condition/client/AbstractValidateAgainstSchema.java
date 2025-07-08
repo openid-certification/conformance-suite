@@ -70,7 +70,6 @@ public abstract class AbstractValidateAgainstSchema extends AbstractCondition {
 			if(!schemaElement.isJsonObject()) {
 				throw error("Schema element is not a JSON object", args(schemaElementName, schemaElement));
 			}
-			log("Validating data against schema", args(schemaElementName, schemaElement));
 			Set<ValidationMessage> errors = checkStringSchema(dataElement.toString(), schemaElement.toString());
 			if (!errors.isEmpty()) {
 				JsonArray jsonErrors = new JsonArray();
