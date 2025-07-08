@@ -36,6 +36,7 @@ import net.openid.conformance.condition.client.AddRequestObjectSigningAlgRS256To
 import net.openid.conformance.condition.client.AddResponseTypesArrayToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodToDynamicRegistrationRequestFromEnvironment;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthSigningAlgES256ToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest;
@@ -291,6 +292,10 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 					callAndContinueOnFailure(AddTokenEndpointAuthSigningAlgRS256ToDynamicRegistrationRequest.class, ConditionResult.WARNING);
 					break;
 			}
+		} else if (getVariant(ClientAuthType.class) == ClientAuthType.MTLS) {
+			// add self_signed_tls_client_auth as client authentication method for MTLS
+			// if using PKI MTLS, override in config.client.registration_options
+			callAndContinueOnFailure(AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest.class, ConditionResult.WARNING);
 		}
 		if(getVariant(AuthRequestNonRepudiationMethod.class) == AuthRequestNonRepudiationMethod.SIGNED_NON_REPUDIATION) {
 			switch (signingAlg) {
