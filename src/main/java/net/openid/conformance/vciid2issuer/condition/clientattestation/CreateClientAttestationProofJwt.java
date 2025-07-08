@@ -1,6 +1,5 @@
 package net.openid.conformance.vciid2issuer.condition.clientattestation;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEObjectType;
@@ -10,6 +9,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWKUtil;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -47,10 +47,7 @@ public class CreateClientAttestationProofJwt extends AbstractSignJWT {
 		// TODO add support for nonce retrieval https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-05#section-8
 		// claims.addProperty("nonce", nonce);
 
-		JsonObject jwks = new JsonObject();
-		JsonArray keys = new JsonArray();
-		keys.add(JsonParser.parseString(clientInstanceKey).getAsJsonObject());
-		jwks.add("keys", keys);
+		JsonObject jwks = JWKUtil.createJwksObjectFromJwkObjects(JsonParser.parseString(clientInstanceKey).getAsJsonObject());
 
 		signJWT(env, claims, jwks, true);
 

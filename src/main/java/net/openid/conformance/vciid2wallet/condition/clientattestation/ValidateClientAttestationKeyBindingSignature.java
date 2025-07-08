@@ -1,11 +1,11 @@
 package net.openid.conformance.vciid2wallet.condition.clientattestation;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractVerifyJwsSignature;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWKUtil;
 
 public class ValidateClientAttestationKeyBindingSignature extends AbstractVerifyJwsSignature {
 
@@ -29,10 +29,7 @@ public class ValidateClientAttestationKeyBindingSignature extends AbstractVerify
 
 		String clientAttestationPop = env.getString("client_attestation_pop");
 
-		JsonObject jwks = new JsonObject();
-		JsonArray jwksKeys = new JsonArray();
-		jwksKeys.add(cnfJwk);
-		jwks.add("keys", jwksKeys);
+		JsonObject jwks = JWKUtil.createJwksObjectFromJwkObjects(cnfJwk);
 
 		verifyJwsSignature(clientAttestationPop, jwks, "client_attestation_pop", false, "jwk_from_cnf");
 
