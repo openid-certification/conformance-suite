@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -67,6 +68,12 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 	protected void checkAuthServerMetadata(String authServerMetadataPath) {
 		env.runWithMapKey("current_auth_server_metadata_path", authServerMetadataPath, () -> {
 			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "OID4VCI-ID2-11.3");
+
+			if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
+				env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
+				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA05-12.2");
+				env.removeObject("server");
+			}
 		});
 	}
 }
