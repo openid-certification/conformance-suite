@@ -613,6 +613,21 @@ public class Environment {
 	}
 
 	/**
+	 * Executes the given code block with the supplied key mapping and resets the mapping after completion.
+	 * @param from
+	 * @param to
+	 * @param code
+	 */
+	public void runWithMapKey(String from, String to, Runnable code) {
+		mapKey(from, to);
+		try {
+			code.run();
+		} finally {
+			unmapKey(from);
+		}
+	}
+
+	/**
 	 * To allow conditions catch these exceptions when necessary
 	 * i.e to catch and throw a nicer 'error(..., args(...))' from a condition
 	 */

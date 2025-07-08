@@ -51,15 +51,6 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 			logSuccess("Successfully parsed credential issuer metadata", credentialIssuerMetadata);
 			env.putObject("vci","credential_issuer_metadata", credentialIssuerMetadata);
 
-			JsonObject serverObject = env.getObject("server");
-			if (serverObject == null) {
-				env.putObject("server", credentialIssuerMetadata);
-			} else {
-				for (var entry : credentialIssuerMetadata.entrySet()) {
-					serverObject.add(entry.getKey(), entry.getValue());
-				}
-			}
-
 			String issuerUrl = OIDFJSON.getString(credentialIssuerMetadata.get("credential_issuer"));
 			env.putString("vci", "credential_issuer", issuerUrl);
 			try {
@@ -117,11 +108,13 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 	protected String extractMetadataEndpointUrl(Environment env) {
 
 		String iss = env.getString("config", "server.discoveryIssuer");
-		if (!iss.endsWith("/")) {
-			iss += "/";
-		}
+
 		if (Strings.isNullOrEmpty(iss)) {
 			throw error("Couldn't find server.discoveryIssuer field for discovery purposes");
+		}
+
+		if (!iss.endsWith("/")) {
+			iss += "/";
 		}
 
 		return iss + WELL_KNOWN_CREDENTIAL_ISSUER_METADATA_PATH;

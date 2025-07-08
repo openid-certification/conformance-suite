@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vciid2issuer.condition.VCIAuthorizationServerMetadataValidation;
@@ -13,7 +14,6 @@ import net.openid.conformance.vciid2issuer.condition.VCICredentialIssuerMetadata
 import net.openid.conformance.vciid2issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialIssuerUri;
-import net.openid.conformance.variant.VCIServerMetadata;
 
 @PublishTestModule(
 	testName = "oid4vci-id2-issuer-metadata-test",
@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VCIServerMetadata;
 		"server.discoveryIssuer"
 	}
 )
-@VariantParameters({VCIServerMetadata.class,})
+@VariantParameters({VCIServerMetadata.class, VCIID2ClientAuthType.class})
 @VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 public class VCIIssuerMetadataTest extends AbstractVciTest {
 
@@ -50,15 +50,23 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 			JsonObject credentialIssuerMetadata = env.getElementFromObject("vci", "credential_issuer_metadata").getAsJsonObject();
 			JsonElement authorizationServersEL = credentialIssuerMetadata.get("authorization_servers");
 			if (authorizationServersEL == null) {
-				callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "OID4VCI-ID2-11.3");
+				String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", 0);
+				checkAuthServerMetadata(authServerMetadataPath);
 			} else {
 				JsonArray authServers = authorizationServersEL.getAsJsonArray();
 				for (int i = 0; i < authServers.size(); i++) {
-					callAndStopOnFailure(new VCIAuthorizationServerMetadataValidation(i), Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "OID4VCI-ID2-11.3");
+					String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", i);
+					checkAuthServerMetadata(authServerMetadataPath);
 				}
 			}
 		});
 
 		fireTestFinished();
+	}
+
+	protected void checkAuthServerMetadata(String authServerMetadataPath) {
+		env.runWithMapKey("current_auth_server_metadata_path", authServerMetadataPath, () -> {
+			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "OID4VCI-ID2-11.3");
+		});
 	}
 }
