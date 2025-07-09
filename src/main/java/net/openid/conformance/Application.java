@@ -2,12 +2,12 @@ package net.openid.conformance;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.token.TokenService;
 import net.openid.conformance.ui.ServerInfoTemplate;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bson.Document;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,7 +119,7 @@ public class Application {
 
 	public static void main(String[] args) {
 
-		Security.addProvider(new BouncyCastleProvider());
+		Security.addProvider(BouncyCastleProviderSingleton.getInstance());
 
 		SpringApplication springApplication = new SpringApplication(Application.class);
 		springApplication.addListeners(new PreparedEventListener());
