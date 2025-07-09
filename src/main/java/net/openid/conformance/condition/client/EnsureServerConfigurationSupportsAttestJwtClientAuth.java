@@ -1,6 +1,5 @@
 package net.openid.conformance.condition.client;
 
-import com.google.gson.JsonElement;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
@@ -17,14 +16,6 @@ public class EnsureServerConfigurationSupportsAttestJwtClientAuth extends Abstra
 	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
-
-		JsonElement supportedAuthMethods = env.getElementFromObject("server", "token_endpoint_auth_methods_supported");
-
-		if (supportedAuthMethods == null) {
-			logSuccess("server discovery document does not contain token_endpoint_auth_methods_supported, so by default attest_jwt_client_auth support is supported");
-			return env;
-		}
-
 		return validate(env, environmentVariable, Arrays.asList(SET_VALUES), 1,
 			errorMessageNotEnough);
 	}
