@@ -7,6 +7,8 @@ import net.openid.conformance.variant.VCIServerMetadata;
 
 public abstract class AbstractVciTest extends AbstractTestModule {
 
+	protected VCIID2ClientAuthType clientAuthType;
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
@@ -16,6 +18,8 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 
 		JsonObject vciConfig = new JsonObject();
 		env.putObject("vci", vciConfig);
+
+		clientAuthType = getVariant(VCIID2ClientAuthType.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);

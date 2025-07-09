@@ -36,13 +36,13 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 			String credentialIssuer = OIDFJSON.getString(credentialIssuerMetadata.get("credential_issuer"));
 			String authorizationServerMetadataUrl = createAuthorizationServerMetadataUrl(credentialIssuer);
 			log("Derived authorization server metadata endpoint URL from credential issuer.", args("credential_issuer", credentialIssuer, "authorization_server_metadata_url", authorizationServerMetadataUrl));
-			JsonObject authorizationServerMetadataResponse = tryFetchAuthorizationServerMetadataFromUrl(env, credentialIssuer, authorizationServerMetadataUrl);
+			JsonObject authorizationServerMetadataResponse = tryFetchAuthorizationServerMetadataFromUrl(0, env, credentialIssuer, authorizationServerMetadataUrl);
 
 			env.putString("vci", "authorization_servers.count", "1");
 			JsonObject authorizationServerMetadata = JsonParser.parseString(OIDFJSON.getString(authorizationServerMetadataResponse.get("body"))).getAsJsonObject();
 			env.putObject("vci", "authorization_servers.server0.authorization_server_metadata", authorizationServerMetadata);
 
-			logSuccess("Fetched authorization server metadata", args("credential_issuer", credentialIssuer, "authorization_server_metadata", authorizationServerMetadata));
+			logSuccess("Fetched authorization server metadata (derived from credential issuer)", args("credential_issuer", credentialIssuer, "authorization_server_metadata", authorizationServerMetadata));
 			return env;
 		}
 
@@ -61,7 +61,7 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 			String authorizationServerIssuer = OIDFJSON.getString(element);
 			String authorizationServerMetadataUrl = createAuthorizationServerMetadataUrl(authorizationServerIssuer);
 			log(String.format("Derived authorization server %d metadata endpoint URL from OAuth authorization server issuer.", i), args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataUrl));
-			JsonObject authorizationServerMetadataResponse = tryFetchAuthorizationServerMetadataFromUrl(env, authorizationServerIssuer, authorizationServerMetadataUrl);
+			JsonObject authorizationServerMetadataResponse = tryFetchAuthorizationServerMetadataFromUrl(i, env, authorizationServerIssuer, authorizationServerMetadataUrl);
 			JsonObject authorizationServerMetadata = JsonParser.parseString(OIDFJSON.getString(authorizationServerMetadataResponse.get("body"))).getAsJsonObject();
 			authorizationServerMetadataDataList.add(authorizationServerMetadata);
 			env.putObject("vci", "authorization_servers.server" + i + ".authorization_server_metadata", authorizationServerMetadata);
@@ -73,11 +73,11 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 		return env;
 	}
 
-	protected JsonObject tryFetchAuthorizationServerMetadataFromUrl(Environment env, String authorizationServerIssuer, String authorizationServerMetadataEndpointUrl) {
+	protected JsonObject tryFetchAuthorizationServerMetadataFromUrl(int authServerIndex, Environment env, String authorizationServerIssuer, String authorizationServerMetadataEndpointUrl) {
 
-		log("Fetching metadata from authorization server", args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
+		log("Fetching metadata from authorization server: " + authServerIndex, args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
 		JsonObject authorizationServerMetadataResponse = fetchAuthorizationServerMetadata(env, authorizationServerMetadataEndpointUrl);
-		log("Fetched metadata from authorization server", args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
+		log("Fetched metadata from authorization server: " + authServerIndex, args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
 		return authorizationServerMetadataResponse;
 	}
 

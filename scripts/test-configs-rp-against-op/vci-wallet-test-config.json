@@ -72,6 +72,7 @@
         }
     },
     "vci": {
-        "credential_offer_endpoint": "{BASEURL}test/a/oidf-fapi-op-test/credential_offer"
+        "credential_offer_endpoint": "{BASEURL}test/a/oidf-fapi-op-test/credential_offer",
+        "client_attestation_issuer": "https://client-attester.example.org/"
     }
 }

@@ -161,4 +161,25 @@ public class JWKUtil {
 
 		return signingJwk;
 	}
+
+	/**
+	 * Creates a {@link JsonObject} with a keys array containing the JWK {@link JsonObject}.
+	 * @param keys
+	 * @return
+	 */
+	public static JsonObject createJwksObjectFromJwkObjects(JsonObject ... keys) {
+
+		if (keys == null) {
+			throw new InvalidArgumentException("keys must not be null");
+		}
+
+		JsonObject jwks = new JsonObject();
+		JsonArray jwksKeys = new JsonArray();
+		for (JsonObject key : keys) {
+			jwksKeys.add(key);
+		}
+
+		jwks.add("keys", jwksKeys);
+		return jwks;
+	}
 }

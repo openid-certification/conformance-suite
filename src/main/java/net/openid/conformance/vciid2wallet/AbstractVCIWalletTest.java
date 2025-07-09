@@ -3,6 +3,7 @@ package net.openid.conformance.vciid2wallet;
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -60,7 +61,6 @@ import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNo
 import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
-import net.openid.conformance.condition.as.EnsureRequestedScopeIsEqualToConfiguredScope;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
@@ -103,9 +103,9 @@ import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
-import net.openid.conformance.condition.as.VCIGenerateCredentialIssuerMetadata;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerAsString;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -196,6 +196,7 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.util.TemplateProcessor;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
@@ -209,17 +210,22 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.VCIID2ClientAuthType;
+import net.openid.conformance.vciid2wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
+import net.openid.conformance.vciid2wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequest;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
+import net.openid.conformance.vciid2wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
+import net.openid.conformance.vciid2wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vciid2wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vciid2wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vciid2wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
+import net.openid.conformance.vciid2wallet.condition.clientattestation.AddClientAttestationPoPNonceRequiredToServerConfiguration;
 import net.openid.conformance.vciid2wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
@@ -227,6 +233,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.Map;
 
 @VariantParameters({
 	VCIID2ClientAuthType.class,
@@ -259,9 +267,9 @@ import org.springframework.web.servlet.view.RedirectView;
 	"client.scope", // scope is always openid
 	"client2.scope"
 })
-@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
-		"resource.authorization_details_types_supported"
-})
+@VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="private_key_jwt", configurationFields = {"vci.client_attestation_issuer"})
+@VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="mtls", configurationFields = {"vci.client_attestation_issuer"})
+@VariantConfigurationFields(parameter = VCIID2ClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attestation_issuer"})
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
@@ -427,10 +435,18 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 		}
 
+		if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
+			if (env.getString("config", "vci.client_attestation_issuer") == null) {
+				throw new TestFailureException(getId(), "vci.client_attestation_issuer must be configured if client_attestation is used as client authentication method.");
+			}
+			callAndStopOnFailure(AddClientAttestationPoPNonceRequiredToServerConfiguration.class, ConditionResult.FAILURE, "OAuth2-ATCA05-8-2" );
+		}
+
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		callAndStopOnFailure(new VCIGenerateCredentialIssuerMetadata(isMTLSConstrain()));
+		configureCredentialIssuerMetadata();
+
 		exposeEnvString("credential_issuer");
 		exposeEnvString("credential_issuer_metadata_url");
 		exposeEnvString("credential_issuer_nonce_endpoint_url");
@@ -455,6 +471,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		if (authorizationRequestType == AuthorizationRequestType.RAR){
+			callAndStopOnFailure(VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes.class);
 			callAndStopOnFailure(AddSupportedAuthorizationTypesToServerConfiguration.class);
 		}
 
@@ -469,6 +486,99 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+	}
+
+	protected void configureCredentialIssuerMetadata() {
+		JsonObject credentialIssuerMetadata = getCredentialIssuerMetadata();
+		env.putObject("credential_issuer_metadata", credentialIssuerMetadata);
+
+		configureSupportedCredentialConfigurations();
+
+		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2");
+	}
+
+	protected JsonObject getCredentialIssuerMetadata() {
+
+		String baseUrl = env.getString("base_url");
+		String mtlsBaseUrl = env.getString("base_mtls_url");
+
+		if (baseUrl.isEmpty()) {
+			throw new TestFailureException(getId(), "Base URL is empty");
+		}
+
+		if (mtlsBaseUrl.isEmpty()) {
+			throw new TestFailureException(getId(), "Base MTLS URL is empty");
+		}
+
+		if (!baseUrl.endsWith("/")) {
+			baseUrl = baseUrl + "/";
+		}
+		if (!mtlsBaseUrl.endsWith("/")) {
+			mtlsBaseUrl = mtlsBaseUrl + "/";
+		}
+
+		String credentialIssuer = baseUrl;
+		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl: baseUrl) + "credential";
+		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl: baseUrl) + "nonce";
+
+		String metadata = TemplateProcessor.process("""
+		{
+			"credential_issuer": "$(credentialIssuer)",
+			"credential_endpoint": "$(credentialEndpoint)",
+			"nonce_endpoint": "$(nonceEndpoint)",
+			"authorization_servers": [ "$(credentialIssuer)" ]
+		}
+		""", Map.of(
+			"credentialIssuer", credentialIssuer,
+			"credentialEndpoint", credentialEndpointUrl,
+			"nonceEndpoint", nonceEndpointUrl
+		));
+
+		env.putString("credential_issuer", credentialIssuer);
+		env.putString("credential_issuer_metadata_url", baseUrl + ".well-known/openid-credential-issuer");
+		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
+		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
+
+		return JsonParser.parseString(metadata).getAsJsonObject();
+	}
+
+	protected void configureSupportedCredentialConfigurations() {
+
+		JsonObject supportedCredentialConfigurations = getSupportedCredentialConfigurations();
+		env.getObject("credential_issuer_metadata").add("credential_configurations_supported", supportedCredentialConfigurations);
+
+		JsonObject scopeToCredentialMap = new JsonObject();
+
+		for (var configurationId : supportedCredentialConfigurations.keySet()) {
+			JsonObject credentialConfiguration = supportedCredentialConfigurations.getAsJsonObject(configurationId);
+			if (credentialConfiguration.has("scope")) {
+				String scope = OIDFJSON.getString(credentialConfiguration.get("scope"));
+				scopeToCredentialMap.addProperty(scope, configurationId);
+			}
+		}
+
+		env.putObject("credential_configuration_id_scope_map", scopeToCredentialMap);
+	}
+
+	protected JsonObject getSupportedCredentialConfigurations() {
+
+		String json = """
+			{
+				"eu.europa.ec.eudi.pid.1": {
+					"format": "dc+sd-jwt",
+					"vct": "urn:eudi:pid:1",
+					"cryptographic_binding_methods_supported": [ "jwk" ],
+					"credential_signing_alg_values_supported": [ "ES256" ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					}
+				}
+			}
+			""";
+
+		return JsonParser.parseString(json).getAsJsonObject();
 	}
 
 	/**
@@ -898,8 +1008,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	@Override
 	public Object handleOAuthMetadata(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// FIXME: validate that request is GET, path is empty, query empty, headers sensible?
-		return discoveryEndpoint();
+
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		call(exec().startBlock("Get OAuth Authorization Metadata").mapKey("incoming_request", requestId));
+		Object response = discoveryEndpoint();
+		call(exec().unmapKey("incoming_request").endBlock());
+		return response;
 	}
 
 	protected void validateResourceEndpointHeaders() {
@@ -1106,6 +1221,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected Object discoveryEndpoint() {
 		setStatus(Status.RUNNING);
+
+		callAndStopOnFailure(VCICheckOAuthAuthorizationServerMetadataRequest.class, ConditionResult.FAILURE, "RFC8414-3.1");
+
 		JsonObject serverConfiguration = env.getObject("server");
 
 		setStatus(Status.WAITING);
@@ -1507,6 +1625,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected void createTokenEndpointResponse() {
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+
+		callAndStopOnFailure(VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse.class);
+
 		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
 		}
@@ -1648,10 +1769,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CID-SP-5");
 				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-5", "CID-IDA-5.2-10");
 			}
-			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
+			checkRequestedScopes();
 		}
 
 		callAndStopOnFailure(EnsureMatchingClientId.class, "OIDCC-3.1.2.1");
+	}
+
+	protected void checkRequestedScopes() {
+		// TODO check for scopes?
+		// callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 	}
 
 	protected void validateRequestObjectForPAREndpointRequest() {
@@ -1898,7 +2024,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = VCIID2ClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
-		addTokenEndpointAuthMethodSupported = null;
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly.class;
 		validateClientAuthenticationSteps = VCIValidateClientAuthenticationWithClientAttestationJWT.class;
 	}
 

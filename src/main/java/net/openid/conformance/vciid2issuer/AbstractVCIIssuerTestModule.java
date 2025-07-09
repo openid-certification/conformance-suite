@@ -99,7 +99,6 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateResourceRespons
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
@@ -176,18 +175,21 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vciid2issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vciid2issuer.condition.VCICheckCacheControlHeaderInResponse;
+import net.openid.conformance.vciid2issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vciid2issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
+import net.openid.conformance.vciid2issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractCredentialResponse;
-import net.openid.conformance.vciid2issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vciid2issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vciid2issuer.condition.VCIGenerateProofJwt;
-import net.openid.conformance.vciid2issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
+import net.openid.conformance.vciid2issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
+import net.openid.conformance.vciid2issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vciid2issuer.condition.VCISelectOAuthorizationServer;
+import net.openid.conformance.vciid2issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
+import net.openid.conformance.vciid2issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialNonceResponse;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOfferRequestParams;
@@ -219,10 +221,10 @@ import java.util.function.Supplier;
 	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="private_key_jwt", configurationFields = {
-	"client_attestation.issuer"
+	"vci.client_attestation_issuer"
 })
 @VariantHidesConfigurationFields(parameter = VCIID2ClientAuthType.class, value="mtls", configurationFields = {
-	"client_attestation.issuer"
+	"vci.client_attestation_issuer"
 })
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk", configurationFields = {"resource.resourceUrlAccountRequests", "resource.resourceUrlAccountsResource"})
 @VariantConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "consumerdataright_au", configurationFields = {"resource.cdrVersion"})
@@ -231,9 +233,9 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
 	"client2.scope"})
-@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {"resource.richAuthorizationRequest",})
+//@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {"resource.richAuthorizationRequest",})
 @VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
-@VariantConfigurationFields(parameter = VCIID2ClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attester_keys_jwks",})
+@VariantConfigurationFields(parameter = VCIID2ClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attester_keys_jwks"})
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -303,16 +305,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			return;
 		}
 
-		if (scopeContains("openid")) {
-			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
-		}
-
-		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
-		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
-			throw new TestFailureException(getId(), "credential_configuration_id cannot be null or empty!");
-		}
-		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
-
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
 		isOpenId = false;
@@ -328,16 +320,26 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		FAPI2ID2OPProfile variant = getVariant(FAPI2ID2OPProfile.class);
 		profileRequiresMtlsEverywhere = variant == FAPI2ID2OPProfile.OPENBANKING_UK || variant == FAPI2ID2OPProfile.CONSUMERDATARIGHT_AU || variant == FAPI2ID2OPProfile.OPENBANKING_BRAZIL || variant == FAPI2ID2OPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
 			variant == FAPI2ID2OPProfile.CBUAE;
-		callAndStopOnFailure(CreateRedirectUri.class);
 
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
 
-		callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
+		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(getVariant(VCIServerMetadata.class));
+
+		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
+
+		eventLog.startBlock("Fetch Authorization Server Metadata");
 
 		callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "RFC8414-3.1");
 
 		callAndStopOnFailure(VCISelectOAuthorizationServer.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
+
+		eventLog.endBlock();
+
+		eventLog.startBlock("Configure Test");
+
+		callAndStopOnFailure(CreateRedirectUri.class);
+
+		// this is inserted by the create call above, expose it to the test environment for publication
+		exposeEnvString("redirect_uri");
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
@@ -345,6 +347,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// make sure the server configuration passes some basic sanity checks
 		callAndStopOnFailure(CheckServerConfiguration.class);
+
+		determineCredentialConfigurationTransferMethod();
 
 		if (isOpenId || jarm) {
 			callAndStopOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
@@ -355,20 +359,22 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 		}
 
-		if (isRarRequest) {
-			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
-		}
 		whichClient = 1;
 
 		// Set up the client configuration
+		eventLog.startBlock("Configure Client");
 		configureClient();
+		eventLog.endBlock();
+
+		eventLog.startBlock("Configure Resource Endpoint");
 		setupResourceEndpoint();
+		eventLog.endBlock();
 
 		if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
+			eventLog.startBlock("Configure Client Attestation");
 			generateClientAttestationKeys();
+			eventLog.endBlock();
 		}
-
-		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(getVariant(VCIServerMetadata.class));
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -378,13 +384,24 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		fireSetupDone();
 	}
 
+	protected void determineCredentialConfigurationTransferMethod() {
+
+		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
+		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
+			throw new TestFailureException(getId(), "credential_configuration_id cannot be null or empty!");
+		}
+		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
+
+		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
+	}
+
 	protected void setupResourceEndpoint() {
 		// Set up the resource endpoint configuration
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
 			// always use the MTLS version if available, as ConnectID always uses mtls sender constraining
 			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-5");
 		} else {
-			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
+			callAndStopOnFailure(VCIResolveCredentialEndpointToUse.class);
 			call(sequence(resourceConfiguration));
 		}
 	}
@@ -510,16 +527,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	public void start() {
 
 		switch (vciAuthorizationCodeFlowVariant) {
+
 			case WALLET_INITIATED -> {
-
 				setStatus(Status.RUNNING);
-				eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
-
 				switch (vciGrantType) {
 					case AUTHORIZATION_CODE -> performAuthorizationFlow();
 					case PRE_AUTHORIZATION_CODE -> throw new UnsupportedOperationException("Pre-authorization code is not supported for wallet initiated flow");
 				}
 			}
+
 			case ISSUER_INITIATED -> {
 				waitForCredentialOffer();
 			}
@@ -662,6 +678,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-5", "CID-IDA-5.2-10"));
 		}
 		if (isRarRequest) {
+			seq.then(condition(VCIGenerateRichAuthorizationRequestForCredential.class).onFail(ConditionResult.FAILURE).requirements("OID4VCI-ID2-5.1.1"));
 			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
 		}
 		return seq;
@@ -1066,7 +1083,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void requestProtectedResource() {
 
 		// verify the access token against a protected resource
-		eventLog.startBlock(currentClientString() + "Credential endpoint tests");
+		eventLog.startBlock(currentClientString() + " Prepare Credential endpoint requests");
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
@@ -1101,10 +1118,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			mtls = env.getObject("mutual_tls_authentication");
 			env.removeObject("mutual_tls_authentication");
 		}
+		eventLog.endBlock();
 
 		// check for nonce endpoint
 		JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
 		if (nonceEndpointEl != null) {
+			eventLog.startBlock(currentClientString() + " Call credential nonce endpoint");
 
 			String nonceEndpoint = OIDFJSON.getString(nonceEndpointEl);
 			String originalResourceUrl = env.getString("protected_resource_url");
@@ -1116,7 +1135,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			} else {
 				callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-ID2-7", "FAPI2-SP-ID2-5.3.3-2");
 			}
+			eventLog.endBlock();
 
+			eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
 
@@ -1124,7 +1145,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
 
 			env.putString("protected_resource_url", originalResourceUrl);
+
+			eventLog.endBlock();
 		}
+
+		eventLog.startBlock(currentClientString() + " Call Credential Endpoint");
 
 		// use HTTP POST to call credentials endpoint
 		env.putString("resource", "resourceMethod", "POST");
@@ -1132,19 +1157,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-ID2-8.2.1.1");
 
-		// TODO generate a proper credential request
-		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
-		String credentialConfigId = env.getString("config", "vci.credential_configuration_id");
-		String credentialProofJwt = env.getString("vci", "proof.jwt");
-		env.putString("resource_request_entity", """
-			{
-				"credential_configuration_id": "%s",
-				"proof": {
-					"proof_type": "jwt",
-					"jwt": "%s"
-			   }
-			}
-			""".formatted(credentialConfigId, credentialProofJwt));
+		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-ID2-8.2");
 
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
@@ -1156,7 +1169,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		eventLog.endBlock();
 
+		eventLog.startBlock(currentClientString() + " Verify Credential Endpoint Response");
 		// TODO Use HTTP status code 200 for directly issued credentials and 202 for deferred credentials
 		// Wording in ID2 Draft 15 says always 202, but that was a mistake see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-8.3
 		// Fixed: here https://github.com/openid/OpenID4VCI/pull/490
@@ -1262,14 +1277,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void generateClientAttestationKeys() {
 
 		if (clientAuthType == VCIID2ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "client_attestation.issuer") == null) {
-				throw new TestFailureException(getId(), "client_attestation.issuer must be configured if client_attestation is configured as client authentication method.");
+			if (env.getString("config", "vci.client_attestation_issuer") == null) {
+				throw new TestFailureException(getId(), "vci.client_attestation_issuer must be configured if client_attestation is configured as client authentication method.");
 			}
 		}
 
 		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
-		callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
-
+		callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1", "HAIP-4.3.1-2");
 		callAndStopOnFailure(CreateClientAttestationProofJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
 	}
 

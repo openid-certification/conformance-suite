@@ -1,99 +1,75 @@
 package net.openid.conformance.vciid2issuer.condition.clientattestation;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.JWKUtil;
 
-import java.text.ParseException;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 
-public class CreateClientAttestationJwt extends AbstractCondition {
+public class CreateClientAttestationJwt extends AbstractSignJWT {
 
 	@Override
+	@PreEnvironment(required = {"vci", "config", "client"})
 	public Environment evaluate(Environment env) {
 
-		String issuer = env.getString("client_attestation","issuer");
+		String issuer = env.getString("config", "vci.client_attestation_issuer");
+		if (issuer == null || issuer.isBlank()) {
+			throw error("Client attestation issuer must not be null or empty");
+		}
+
 		String clientId = env.getString("client", "client_id");
-
-		String clientAttestationKey = env.getString("vci", "client_attestation_key");
-		JsonObject cnf;
-		try {
-			JWK clientAttestationKeyJwk = JWK.parse(clientAttestationKey);
-			cnf = JsonParser.parseString(clientAttestationKeyJwk.toPublicJWK().toJSONString()).getAsJsonObject();
-		} catch (ParseException e) {
-			throw error("Client attestation key could not be parsed", e);
+		if (clientId == null || clientId.isBlank()) {
+			throw error("Client ID must not be null or empty");
 		}
 
-		String keyId = env.getString("vci","client_attestation_key_id");
+		JsonElement clientAttesterKeysJwksEl = env.getElementFromObject("config", "vci.client_attester_keys_jwks");
+		if (clientAttesterKeysJwksEl == null) {
+			throw error("client_attester_keys_jwks could not be found");
+		}
 
-		JWSHeader.Builder headerBuilder = new JWSHeader //
-			.Builder(JWSAlgorithm.ES256) //
-			.keyID(keyId) //
-			.type(new JOSEObjectType("oauth-client-attestation+jwt"));
+		String clientInstanceKeyPublicString = env.getString("vci", "client_instance_key_public");
+		if (clientInstanceKeyPublicString == null) {
+			throw error("client_instance_key_public could not be found");
+		}
 
-		JWSHeader header = headerBuilder.build();
-
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("iss", issuer);
-		claims.put("sub", clientId);
-
+		JsonObject claims = new JsonObject();
+		claims.addProperty("iss", issuer);
+		claims.addProperty("sub", clientId);
 		Instant iat = Instant.now();
-		Instant exp = getExp(iat);
+		Instant exp = iat.plusSeconds(5 * 60);
+		claims.addProperty("iat", iat.getEpochSecond());
+		claims.addProperty("nbf", iat.getEpochSecond());
+		claims.addProperty("exp", exp.getEpochSecond());
 
-		claims.put("iat", iat.getEpochSecond());
-		claims.put("nbf", iat.getEpochSecond());
-		claims.put("exp", exp.getEpochSecond());
+		JsonObject clientInstanceKeyPublic = JsonParser.parseString(clientInstanceKeyPublicString).getAsJsonObject();
+		JsonObject cnf = new JsonObject();
+		cnf.add("jwk", clientInstanceKeyPublic);
+		claims.add("cnf", cnf);
 
-		claims.put("cnf", cnf);
+		JsonObject jwks = clientAttesterKeysJwksEl.getAsJsonObject();
 
-		JWTClaimsSet claimsSet;
-		try {
-			claimsSet = JWTClaimsSet.parse(claims);
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
-
-		SignedJWT jwt = new SignedJWT(header, claimsSet);
-
-		ECKey signingKey = null;
-		try {
-			signingKey = (ECKey)JWKUtil.getSigningKey(env.getElementFromObject("config", "vci.client_attester_keys_jwks").getAsJsonObject());
-		} catch (ParseException e) {
-			throw error("Failed to extract signing key for client attestation jwt", e);
-		}
-
-		JWSSigner signer;
-		try {
-			signer = new ECDSASigner(signingKey); // FIXME need to cope with RSA too
-			jwt.sign(signer);
-		} catch (JOSEException e) {
-			throw error("Failed to sign client attestation jwt", e);
-		}
-
-		String jwtString = jwt.serialize();
-
-		env.putString("client_attestation", jwtString);
-
-		log("Generated client attestation jwt", args("client_attestation", jwtString));
+		signJWT(env, claims, jwks, true, false,
+			true, // see: https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0-03.html#section-4.3.1-2
+			true);
 
 		return env;
 	}
 
-	protected Instant getExp(Instant iat) {
-		return iat.plusSeconds(5 * 60);
+	@Override
+	protected JOSEObjectType getMediaType() {
+		return new JOSEObjectType("oauth-client-attestation+jwt");
+	}
+
+	@Override
+	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
+		env.putString("client_attestation", jws);
+		logSuccess("Generated the Client Attestation JWT", args("client_attestation", verifiableObj));
 	}
 }

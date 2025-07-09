@@ -2,6 +2,7 @@ package net.openid.conformance.testmodule;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
@@ -155,6 +156,10 @@ public final class OIDFJSON {
 			list.add(converter.apply(item));
 		}
 		return list;
+	}
+
+	public static JsonArray convertJsonObjectListToJsonArray(List<JsonObject> list) {
+		return convertListToJsonArray(list, o -> o);
 	}
 
 	public static JsonArray convertListToJsonArray(List<String> list) {

@@ -14,23 +14,20 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test case validates the standard credential issuance flow using an emulated wallet, as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) specification. It begins by retrieving metadata from both the Credential Issuer and the OAuth 2.0 Authorization Server. An authorization request is initiated using Pushed Authorization Requests (PAR), and an access token is obtained. The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce, and successfully requests a credential from the Credential Endpoint. Additionally, this test passes the aud value as an array containing both good and bad values and expects the server to auth server must accept it.",
 	profile = "OID4VCI-ID2",
 	configurationFields = {
-		"server.discoveryIssuer",
+		"vci.credential_issuer_url",
 		"client.client_id",
-		"client.scope",
 		"client.jwks",
 		"mtls.key",
 		"mtls.cert",
 		"mtls.ca",
 		"client2.client_id",
-		"client2.scope",
 		"client2.jwks",
 		"mtls2.key",
 		"mtls2.cert",
 		"mtls2.ca",
-		"resource.resourceUrl",
 		"vci.credential_configuration_id",
 		"vci.authorization_server",
-		"client_attestation.issuer"
+		"client_attestation_issuer"
 	}
 )
 @VariantNotApplicable(

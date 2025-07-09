@@ -273,6 +273,84 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                             <div class="config-form-container">
+                                <h3 class="config-form-container-header">Credential Issuer</h3>
+
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Issuer URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Credential Issuer URL."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_issuer_url"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Signing JWK</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Signing key to be used for issuing credentials, in JWK format."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="credential.signing_jwk" data-json-type="jsonobject"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Configuration ID</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The credential_configuration_id to use. Defaults to eu.europa.ec.eudi.pid.1."></span>
+                                            </div>
+                                            <input class="form-control config-form-element" data-json-target="vci.credential_configuration_id"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Issuer Metadata URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL that server will use for OID4VCI credential issuer metadata."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_issuer_metadata_url"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Offer Endpoint URL</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL for the OID4VCI credential offer endpoint. If you are using HAIP, use 'haip://'"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_offer_endpoint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Authorization Server URL Override</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full issuer URL for the OAuth2 Authorization Server. When this is not set, the testsuite will use the discoveryIssuer as authorizationServer, otherwise when this is set the testsuite will use this authorization server to obtain an access_token for the tests."></span>
+                                            </div>
+                                            <input type="url" class="form-control config-form-element" data-json-target="vci.authorization_server"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="config-form-container">
                                 <h3 class="config-form-container-header">Server</h3>
 
                                 <div class="row config-form-element-container">
@@ -355,18 +433,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL to server's .well-known/openid-configuration."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="server.discoveryUrl"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">discoveryIssuer</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Server's issuer URL."></span>
-                                            </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="server.discoveryIssuer"></input>
                                         </div>
                                     </div>
                                 </div>
@@ -1469,49 +1535,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                             <div class="config-form-container">
-                                <h3 class="config-form-container-header">OpenID4VCI</h3>
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Credential Issuer Metadata URL</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL that server will use for OID4VCI credential issuer metadata."></span>
-                                            </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_issuer_metadata_url"></input>
-                                        </div>
-                                    </div>
-                                </div>
+                                <h3 class="config-form-container-header">Client Attestation</h3>
 
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Credential Offer Endpoint URL</div>
+                                    <div class="col-md-2 key">Client Attester Keys JWKS</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full URL for the OID4VCI credential offer endpoint. If you are using HAIP, use 'haip://'"></span>
-                                            </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="vci.credential_offer_endpoint"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Authorization Server URL</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Full issuer URL for the OAuth2 Authorization Server. When this is not set, the testsuite will use the discoveryIssuer as authorizationServer, otherwise when this is set the testsuite will use this authorization server to obtain an access_token for the tests."></span>
-                                            </div>
-                                            <input type="url" class="form-control config-form-element" data-json-target="vci.authorization_server"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">client_attester_keys_jwks</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys of the client attester"></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys of the client attester in JWKS format. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate"></span>
                                             </div>
                                             <textarea placeholder="REQUIRED" class="form-control config-form-element" data-json-target="vci.client_attester_keys_jwks"></textarea>
                                         </div>
@@ -1525,40 +1556,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="URI used as the client attestation issuer"></span>
                                             </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="client_attestation.issuer"></input>
+                                            <input placeholder="REQUIRED" type="text" class="form-control config-form-element" data-json-target="vci.client_attestation_issuer"></input>
                                         </div>
                                     </div>
                                 </div>
-
-                            </div>
-
-                            <div class="config-form-container">
-                                <h3 class="config-form-container-header">Credential Issuer</h3>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Signing JWK</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Signing key to be used for issuing credentials, in JWK format."></span>
-                                            </div>
-                                            <textarea class="form-control config-form-element" data-json-target="credential.signing_jwk" data-json-type="jsonobject"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">Credential Configuration ID</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The credential_configuration_id to use. Defaults to eu.europa.ec.eudi.pid.1."></span>
-                                            </div>
-                                            <input class="form-control config-form-element" data-json-target="vci.credential_configuration_id"></input>
-                                        </div>
-                                    </div>
-                                </div>
-
                             </div>
 
                         </div>
