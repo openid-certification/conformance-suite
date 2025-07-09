@@ -1,28 +1,24 @@
 package net.openid.conformance.security;
 
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.web.FilterInvocation;
-import org.springframework.security.web.access.channel.ChannelProcessor;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.util.Collection;
+import java.io.IOException;
 
 /**
  * Ensures that only https traffic is passed through the filter chain.
  */
-public class RejectPlainHttpTrafficChannelProcessor implements ChannelProcessor {
-
+public class RejectPlainHttpTrafficFilter extends OncePerRequestFilter {
 	@Override
-	public void decide(FilterInvocation invocation, Collection<ConfigAttribute> config) {
-
-		if (!invocation.getHttpRequest().getScheme().equals("https")) {
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+		if (!"https".equals(request.getScheme())) {
 			// It's important that the reverse proxy settings are correct - if we receive a request that appears to be http here, then, e.g., we will send the user to the http version of the login page when they logout.
 			throw new RuntimeException("A non-https request has been received by the conformance suite. The external interface should always use https; if https is in use then there may be a problem with the reverse-proxy apache in front of the suite not setting the X-Forwarded-Proto (etc) http headers correctly. URL: "+
-				invocation.getHttpRequest().getRequestURI()+"    "+invocation.getHttpRequest().getRequestURL().toString());
+				request.getRequestURI()+"    "+request.getRequestURL().toString());
 		}
-	}
-
-	@Override
-	public boolean supports(ConfigAttribute attribute) {
-		return true;
+		filterChain.doFilter(request, response);
 	}
 }
