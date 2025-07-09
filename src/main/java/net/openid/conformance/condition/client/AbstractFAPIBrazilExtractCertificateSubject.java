@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import net.openid.conformance.condition.AbstractCondition;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -9,7 +10,6 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 
 import javax.security.auth.x500.X500Principal;
 import java.io.ByteArrayInputStream;
-import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -74,8 +74,8 @@ public abstract class AbstractFAPIBrazilExtractCertificateSubject extends Abstra
 	protected X509Certificate generateCertificateFromMTLSCert(String certString) {
 		CertificateFactory certFactory = null;
 		try {
-			certFactory = CertificateFactory.getInstance("X.509", "BC");
-		} catch (CertificateException | NoSuchProviderException | IllegalArgumentException e) {
+			certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProviderSingleton.getInstance());
+		} catch (CertificateException | IllegalArgumentException e) {
 			throw error("Couldn't get CertificateFactory", e);
 		}
 

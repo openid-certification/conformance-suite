@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.util;
 
 import com.google.common.collect.Lists;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -64,7 +65,7 @@ public class MtlsKeystoreBuilder {
 		ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(spec.getEncoded()));
 		PrivateKeyInfo pki = PrivateKeyInfo.getInstance(bIn.readObject());
 
-		return new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(pki);
+		return new JcaPEMKeyConverter().setProvider(BouncyCastleProviderSingleton.getInstance()).getPrivateKey(pki);
 	}
 
 	protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {

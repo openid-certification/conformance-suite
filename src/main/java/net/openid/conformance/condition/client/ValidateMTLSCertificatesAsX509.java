@@ -2,6 +2,7 @@ package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -52,8 +53,8 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
 		CertificateFactory certFactory = null;
 		try {
-			certFactory = CertificateFactory.getInstance("X.509", "BC");
-		} catch (CertificateException | NoSuchProviderException | IllegalArgumentException e) {
+			certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProviderSingleton.getInstance());
+		} catch (CertificateException | IllegalArgumentException e) {
 			throw error("Couldn't get CertificateFactory", e);
 		}
 
@@ -111,8 +112,8 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		RSAPrivateKey privateKey;
 		try {
 			KeySpec kspec = new PKCS8EncodedKeySpec(decodedKey);
-			privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA", "BC").generatePrivate(kspec);
-		} catch (InvalidKeySpecException | IllegalArgumentException | NoSuchAlgorithmException | NoSuchProviderException e) {
+			privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA", BouncyCastleProviderSingleton.getInstance()).generatePrivate(kspec);
+		} catch (InvalidKeySpecException | IllegalArgumentException | NoSuchAlgorithmException e) {
 			throw error("Couldn't generate private key", e, args("key", keyString));
 		}
 
@@ -129,7 +130,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
 			// try to generate private key is PKCS8
 			KeySpec kspec = new PKCS8EncodedKeySpec(decodedKey);
-			privateKey = KeyFactory.getInstance("EC", "BC").generatePrivate(kspec);
+			privateKey = KeyFactory.getInstance("EC", BouncyCastleProviderSingleton.getInstance()).generatePrivate(kspec);
 
 		} catch (InvalidKeySpecException e) {
 
@@ -143,13 +144,13 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
 				byte[] server_pkcs8 = new PrivateKeyInfo(algId, pKey).getEncoded();
 
-				privateKey = KeyFactory.getInstance("EC", "BC").generatePrivate(new PKCS8EncodedKeySpec(server_pkcs8));
+				privateKey = KeyFactory.getInstance("EC", BouncyCastleProviderSingleton.getInstance()).generatePrivate(new PKCS8EncodedKeySpec(server_pkcs8));
 
-			} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException ex) {
+			} catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
 				throw error("Couldn't generate private key", e, args("key", keyString));
 			}
 
-		} catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+		} catch (NoSuchAlgorithmException e) {
 			throw error("Provider or Algorithm of KeyFactory is invalid", e);
 		}
 
