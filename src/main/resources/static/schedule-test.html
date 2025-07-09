@@ -1359,9 +1359,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="List of unverified claims to request in each test"></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="List of unverified claims to request in each test. Must be a single claim name or a JSON array of claim names."></span>
                                             </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="ekyc.unverified_claims_names"></input>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ekyc.unverified_claims_names" placeholder="Ex: nickname or [&quot;nickname&quot;, &quot;picture&quot;]"></input>
                                         </div>
                                     </div>
                                 </div>
@@ -1370,9 +1370,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="List of verified claims to request in each test"></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="List of verified claims to request in each test. Must be a single claim name or a JSON array of claim names."></span>
                                             </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="ekyc.verified_claims_names"></input>
+                                            <input type="text" class="form-control config-form-element" data-json-target="ekyc.verified_claims_names" placeholder="Ex: email or [&quot;name&quot;, &quot;email&quot;]"></input>
                                         </div>
                                     </div>
                                 </div>
@@ -1383,9 +1383,36 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Custom claims request. Must be a valid json object that can be added directly to the request as the top level 'claims' element."></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Custom claims request. Must be a valid json object that can be added directly to the request as the top level 'claims' element. Must be a single JSON object or a JSON array of objects."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc.verified_claims_request_list" data-json-type="jsonobject"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc.verified_claims_request_list" data-json-type="jsonobject" placeholder="Ex:
+{
+    &quot;id_token&quot;: {
+        &quot;verified_claims&quot;: {
+            &quot;verification&quot;: {
+                &quot;trust_framework&quot;: {
+                    &quot;value&quot;: &quot;nist_800_63A&quot;
+                }
+            },
+            &quot;claims&quot;: {
+                &quot;given_name&quot;: null
+            }
+        }
+    },
+    &quot;userinfo&quot;: {
+        &quot;verified_claims&quot;: {
+            &quot;verification&quot;: {
+                &quot;trust_framework&quot;: {
+                    &quot;value&quot;: &quot;nist_800_63A&quot;
+                }
+            },
+            &quot;claims&quot;: {
+                &quot;given_name&quot;: null,
+                &quot;address&quot;: null
+            }
+        }
+    }
+}"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1394,9 +1421,30 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="A complete set of end-user data as held by the OpenID Provider in the form it would be returned via the userinfo endpoint. Enter the entire userinfo json."></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="A complete set of end-user data as held by the OpenID Provider in the form it would be returned via the userinfo endpoint. Enter the entire userinfo json. Must be a single JSON object or a JSON array of objects."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc.userinfo" data-json-type="jsonobject"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc.userinfo" data-json-type="jsonobject" placeholder="Ex:
+{
+    &quot;claims&quot;: {
+        &quot;birthdate&quot;: &quot;1990-01-01&quot;,
+        &quot;given_name&quot;: &quot;John&quot;,
+        &quot;family_name&quot;: &quot;Joe&quot;,
+        &quot;work_phone&quot;: &quot;12345968845&quot;
+    },
+    &quot;verification&quot;: {
+        &quot;trust_framework&quot;: &quot;nist_800_63A&quot;,
+        &quot;evidence&quot;: [
+            {
+                &quot;type&quot;: &quot;document&quot;,
+                &quot;check_details&quot;: [
+                    {
+                        &quot;check_method&quot;: &quot;vpiruv&quot;
+                    }
+                ]
+            }
+        ]
+    }
+}"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1405,9 +1453,30 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="List of expected verified_claims values for end-user data keyed by the sub identifier in the ID Token or UserInfo responses."></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JSON obect containing expected verified_claims values for end-user data keyed by the sub identifier in the ID Token or UserInfo responses. Response claim values will be compared to this list when no explicit value is requested."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc.expected_verified_claims" data-json-type="jsonobject"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc.expected_verified_claims" data-json-type="jsonobject" placeholder="
+{
+    &quot;sub_id1&quot;: {
+        &quot;verification&quot;: {
+            &quot;trust_framework&quot;: &quot;trust_framework_example1&quot;
+        },
+        &quot;claims&quot;: {
+            &quot;given_name&quot;: &quot;John&quot;,
+            &quot;family_name&quot;: &quot;Joe&quot;
+        }
+    },
+    &quot;sub_id2&quot;: {
+        &quot;verification&quot;: {
+            &quot;trust_framework&quot;: &quot;trust_framework_example2&quot;
+        },
+        &quot;claims&quot;: {
+            &quot;given_name&quot;: &quot;Jane&quot;,
+            &quot;family_name&quot;: &quot;Doe&quot;
+        }
+    }
+}
+"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1416,9 +1485,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Additional schemas to validate eKYC requests"></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Additional schemas to validate eKYC requests. Must be a single JSON object or a JSON array of object, each of which is a valid JSON schema object."></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc.request_schemas" data-json-type="jsonobject"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc.request_schemas" data-json-type="jsonobject" placeholder="See https://bitbucket.org/openid/ekyc-ida/raw/master/schema/verified_claims_request.json"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1428,9 +1497,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Additional schemas to validate eKYC responses"></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Additional schemas to validate eKYC responses. Must be a single JSON object or a JSON array of object, each of which is a valid JSON schema object"></span>
                                             </div>
-                                            <textarea class="form-control config-form-element" data-json-target="ekyc.response_schemas" data-json-type="jsonobject"></textarea>
+                                            <textarea class="form-control config-form-element" data-json-target="ekyc.response_schemas" data-json-type="jsonobject" placeholder="See https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json"></textarea>
                                         </div>
                                     </div>
                                 </div>
