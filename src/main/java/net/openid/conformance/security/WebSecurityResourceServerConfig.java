@@ -2,7 +2,6 @@ package net.openid.conformance.security;
 
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.servlet.Filter;
-import jakarta.ws.rs.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,12 +21,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Configuration
 @Order(1)
@@ -54,9 +56,7 @@ public class WebSecurityResourceServerConfig {
 		http.csrf(AbstractHttpConfigurer::disable);
 
 		// enforce https
-		http.requiresChannel(channelRequest -> {
-			channelRequest.anyRequest().requiresSecure().channelProcessors(List.of(new RejectPlainHttpTrafficChannelProcessor()));
-		});
+		http.addFilterAfter(new RejectPlainHttpTrafficFilter(), WebAsyncManagerIntegrationFilter.class);
 
 		http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.NEVER));
 
@@ -129,12 +129,33 @@ public class WebSecurityResourceServerConfig {
 	}
 
 	private RequestMatcher getApiMatcher() {
-		return new OrRequestMatcher(new AntPathRequestMatcher("/api/server"), new AntPathRequestMatcher("/api/currentuser"), new AntPathRequestMatcher("/api/runner/**"), new AntPathRequestMatcher("/api/log/**"), new AntPathRequestMatcher("/api/info/**"), new AntPathRequestMatcher("/api/plan/**"), new AntPathRequestMatcher("/api/token/**"), new AntPathRequestMatcher("/api/lastconfig"));
+		return new OrRequestMatcher(Stream.of( //
+			"/api/server", //
+			"/api/currentuser", //
+			"/api/runner/**", //
+			"/api/log/**", //
+			"/api/info/**", //
+			"/api/plan/**", //
+			"/api/token/**", //
+			"/api/lastconfig" //
+			).<RequestMatcher>map(pattern -> PathPatternRequestMatcher.withDefaults().matcher(pattern)).toList());
 	}
 
 	private RequestMatcher getPublicMatcher() {
 		// Matches following paths IIF the ?public query parameter is present
-		return new AndRequestMatcher(new OrRequestMatcher(new AntPathRequestMatcher("/api/ui/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/info/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/log", HttpMethod.GET), new AntPathRequestMatcher("/api/log/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/log/export/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/plan", HttpMethod.GET), new AntPathRequestMatcher("/api/plan/?*", HttpMethod.GET), new AntPathRequestMatcher("/api/plan/export/?*", HttpMethod.GET)), new PublicRequestMatcher());
+		return new AndRequestMatcher( //
+			new OrRequestMatcher( //
+				Stream.of( //
+					"/api/ui/?*", //
+					"/api/info/?*", //
+					"/api/log", //
+					"/api/log/?*", //
+					"/api/log/export/?*", //
+					"/api/plan", //
+					"/api/plan/?*", //
+					"/api/plan/export/?*" //
+				).<RequestMatcher>map(path -> PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, path)).toList()), //
+			new PublicRequestMatcher());
 	}
 
 	@Bean
