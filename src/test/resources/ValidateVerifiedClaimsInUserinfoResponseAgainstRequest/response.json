@@ -26,7 +26,7 @@
         "document": {
           "type": "idcard"
         },
-        "type": "id_document"
+        "type": "document"
       }
     ],
     "verification_process": "7df98de2-8834-48fb-b817-ee087cad8497"

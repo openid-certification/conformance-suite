@@ -5,6 +5,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -21,7 +22,6 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.SkippedCondition;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -49,7 +49,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		boolean bcProviderPresent = Arrays.stream(Security.getProviders()).anyMatch(sp -> "BC".equals(sp.getName()));
 		if (!bcProviderPresent) {
-			Security.addProvider(new BouncyCastleProvider());
+			Security.addProvider(BouncyCastleProviderSingleton.getInstance());
 		}
 	}
 

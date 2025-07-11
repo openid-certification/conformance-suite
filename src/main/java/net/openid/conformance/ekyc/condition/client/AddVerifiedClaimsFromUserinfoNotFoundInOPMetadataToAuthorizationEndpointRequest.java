@@ -18,7 +18,7 @@ public class AddVerifiedClaimsFromUserinfoNotFoundInOPMetadataToAuthorizationEnd
 	@PreEnvironment(required = {"server", "config", "authorization_endpoint_request"})
 	@PostEnvironment(required = "authorization_endpoint_request", strings = "userinfo_contains_data_notfoundin_opmetadata")
 	public Environment evaluate(Environment env) {
-		JsonElement userinfo = env.getElementFromObject("config", "ekyc_userinfo");
+		JsonElement userinfo = env.getElementFromObject("config", "ekyc.userinfo");
 		if(userinfo==null){
 			throw error("User provided userinfo data is not set in configuration");
 		}
@@ -130,12 +130,6 @@ public class AddVerifiedClaimsFromUserinfoNotFoundInOPMetadataToAuthorizationEnd
 		} else {
 			evidenceSupported = new JsonArray();
 		}
-		JsonArray attachmentsSupported = null;
-		if(opMetadata.has("attachments_supported")){
-			attachmentsSupported = opMetadata.get("attachments_supported").getAsJsonArray();
-		} else {
-			attachmentsSupported = new JsonArray();
-		}
 		if (verificationInUserinfo.has("evidence")) {
 			JsonArray evidencesInUserinfo = verificationInUserinfo.get("evidence").getAsJsonArray();
 			JsonArray evidenceRequest = new JsonArray();
@@ -149,29 +143,7 @@ public class AddVerifiedClaimsFromUserinfoNotFoundInOPMetadataToAuthorizationEnd
 					JsonObject evidenceType = new JsonObject();
 					evidenceType.addProperty("value", OIDFJSON.getString(evidenceInUserinfo.get("type")));
 					evidence.add("type", evidenceType);
-					//TODO add evidence type specific items
-
-					//attachments
-					if (evidenceInUserinfo.has("attachments")) {
-						evidence.add("attachments", JsonNull.INSTANCE);
-						JsonArray attachmentsInUserinfo = evidenceInUserinfo.getAsJsonArray();
-						for (JsonElement attachmentElement : attachmentsInUserinfo) {
-							JsonObject attachmentObject = attachmentElement.getAsJsonObject();
-							if (attachmentObject.has("url")) {
-								//external attachment
-								if (!attachmentsSupported.contains(new JsonPrimitive("external"))) {
-									verificationElementMismatchCount++;
-								}
-							} else if (attachmentObject.has("content")) {
-								//embedded
-								if (!attachmentsSupported.contains(new JsonPrimitive("embedded"))) {
-									verificationElementMismatchCount++;
-								}
-							} else {
-								throw error("Unexpected attachment in userinfo", args("attachment", attachmentElement));
-							}
-						}
-					}
+					//TODO eKYC add evidence type specific items
 
 					evidenceRequest.add(evidence);
 				}

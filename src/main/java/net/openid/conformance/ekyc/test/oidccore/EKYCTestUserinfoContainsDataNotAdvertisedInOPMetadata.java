@@ -16,14 +16,19 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"This test will be skipped if userinfo data is not provided in configuration.",
 	profile = "OIDCC",
 	configurationFields = {
-		"ekyc_userinfo"
+		"ekyc.userinfo",
+		"ekyc.unverified_claims_names",
+		"ekyc.verified_claims_names",
+		"ekyc.request_schemas",
+		"ekyc.response_schemas"
 	}
 )
 public class EKYCTestUserinfoContainsDataNotAdvertisedInOPMetadata extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		JsonElement userinfo = env.getElementFromObject("config", "ekyc_userinfo");
+		super.onConfigure(config, baseUrl);
+		JsonElement userinfo = env.getElementFromObject("config", "ekyc.userinfo");
 		if (userinfo==null) {
 			//the test will stop here
 			fireTestSkipped("Skipping test as a userinfo json was not provided.");

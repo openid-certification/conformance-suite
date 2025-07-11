@@ -4,13 +4,9 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.ekyc.condition.client.EnsureVerifiedClaimsSupportedParameterIsTrue;
-import net.openid.conformance.ekyc.condition.client.ValidateAttachmentsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration;
-import net.openid.conformance.ekyc.condition.client.ValidateDigestAlgorithmsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsCheckMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsSupportedInServerConfiguration;
-import net.openid.conformance.ekyc.condition.client.ValidateDocumentsValidationMethodsSupportedInServerConfiguration;
-import net.openid.conformance.ekyc.condition.client.ValidateDocumentsVerificationMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateElectronicRecordsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateEvidenceSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateTrustFrameworksSupportedInServerConfiguration;
@@ -24,7 +20,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "OIDCC",
 	configurationFields = {
 		"trust_framework",
-		"verified_claim_names"
+		"verified_claim_names",
+		"ekyc.unverified_claims_names",
+		"ekyc.verified_claims_names",
+		"ekyc.request_schemas",
+		"ekyc.response_schemas"
 	}
 )
 public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
@@ -56,18 +56,10 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 		// OP supports (see @!predefined_values).
 		validateDocumentsCheckMethodsSupportedInServerConfiguration();
 
-		validateDocumentsValidationMethodsSupportedInServerConfiguration();
-
-		validateDocumentsVerificationMethodsSupportedInServerConfiguration();
-
 		validateElectronicRecordsSupportedInServerConfiguration();
 
 		//claims_in_verified_claims_supported: JSON array containing all claims supported within verified_claims.
 		validateClaimsInVerifiedClaimsSupported();
-
-		validateAttachmentsSupportedInServerConfiguration();
-
-		validateDigestAlgorithmsSupportedInServerConfiguration();
 	}
 
 	protected void validateTrustFrameworksSupportedInServerConfiguration() {
@@ -86,28 +78,12 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 		callAndContinueOnFailure(ValidateDocumentsCheckMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
-	protected void validateDocumentsValidationMethodsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDocumentsValidationMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
-	}
-
-	protected void validateDocumentsVerificationMethodsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDocumentsVerificationMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
-	}
-
 	protected void validateElectronicRecordsSupportedInServerConfiguration() {
 		callAndContinueOnFailure(ValidateElectronicRecordsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
 	protected void validateClaimsInVerifiedClaimsSupported() {
 		callAndContinueOnFailure(ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
-	}
-
-	protected void validateAttachmentsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateAttachmentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
-	}
-
-	protected void validateDigestAlgorithmsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDigestAlgorithmsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
 	}
 
 }

@@ -1,43 +1,50 @@
 package net.openid.conformance.ekyc.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public abstract class AbstractAddOnlyOneSimpleVerifiedClaimToAuthorizationEndpointRequest extends AbstractAddVerifiedClaimToAuthorizationEndpointRequest {
+public abstract class AbstractAddVerifiedClaimsToAuthorizationEndpointRequest extends AbstractAddVerifiedClaimToAuthorizationEndpointRequest {
 	@Override
-	@PreEnvironment(required = {"server", "authorization_endpoint_request"})
+	@PreEnvironment(required = {"server", "authorization_endpoint_request", "config"})
 	@PostEnvironment(required = "authorization_endpoint_request")
 	public Environment evaluate(Environment env) {
 		JsonElement verifiedClaimsSupportedElement = env.getElementFromObject("server", "claims_in_verified_claims_supported");
 		if(verifiedClaimsSupportedElement==null) {
 			throw error("claims_in_verified_claims_supported element in server configuration is required for this test");
 		}
+		JsonArray verifiedClaimsSupportedList = verifiedClaimsSupportedElement.getAsJsonArray();
 		JsonObject verifiedClaims = new JsonObject();
 		JsonObject verification = new JsonObject();
 		verification.add("trust_framework", JsonNull.INSTANCE);
 		verifiedClaims.add("verification", verification);
 		JsonObject claims = new JsonObject();
 
-		// This section of code to get select the verified claim is to ensure interoperability
-		// with Authlete server, since using the first claim from the list does not work
-		// This will be changed to use user configurable claims as requested by the WG
-		boolean hasGivenName = verifiedClaimsSupportedElement.getAsJsonArray().contains(new JsonPrimitive("given_name"));
-		boolean hasFamilyName = verifiedClaimsSupportedElement.getAsJsonArray().contains(new JsonPrimitive("family_name"));
-		JsonElement claimName;
-		if (hasGivenName) {
-			claimName = new JsonPrimitive("given_name");
-		} else if(hasFamilyName) {
-			claimName = new JsonPrimitive("family_name");
+		JsonElement verifiedClaimsNamesElement = env.getElementFromObject("config","ekyc.verified_claims_names");
+		JsonArray requestedVerifiedClaimsList;
+		if(null != verifiedClaimsNamesElement) {
+			if(verifiedClaimsNamesElement.isJsonArray()) {
+				requestedVerifiedClaimsList = verifiedClaimsNamesElement.getAsJsonArray();
+			} else if(verifiedClaimsNamesElement.isJsonPrimitive()) {
+				requestedVerifiedClaimsList = new JsonArray();
+				requestedVerifiedClaimsList.add(verifiedClaimsNamesElement);
+			} else {
+				throw error("ekyc.verified_claims_names is not JSON array or primitive", args("ekyc.verified_claims_names", verifiedClaimsNamesElement));
+			}
+			for(JsonElement claimName : requestedVerifiedClaimsList) {
+				if(!verifiedClaimsSupportedList.contains(claimName)) {
+					continue;
+				}
+				claims.add(OIDFJSON.getString(claimName), getClaimValue());
+			}
 		} else {
-			claimName = verifiedClaimsSupportedElement.getAsJsonArray().get(0);
+			claims.add(OIDFJSON.getString(verifiedClaimsSupportedList.get(0)), getClaimValue());
 		}
-		claims.add(OIDFJSON.getString(claimName), getClaimValue());
 
 		verifiedClaims.add("claims", claims);
 		addVerifiedClaims(env, verifiedClaims, true, true);

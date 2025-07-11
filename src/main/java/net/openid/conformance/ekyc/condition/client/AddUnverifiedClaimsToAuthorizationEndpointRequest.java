@@ -31,6 +31,10 @@ public class AddUnverifiedClaimsToAuthorizationEndpointRequest extends AbstractA
 		if(claimsSupportedElement==null) {
 			throw error("claims_supported element in server configuration is required for this test");
 		}
+		JsonElement unverifiedClaimsNamesElement = env.getElementFromObject("config","ekyc.unverified_claims_names");
+		log("unverified claims request", args("claims", unverifiedClaimsNamesElement));
+
+
 		JsonObject claimsToRequest = env.getObject("unverified_claims_to_request");
 		for(String claimName : claimsToRequest.keySet()) {
 			JsonObject claimInfo = claimsToRequest.get(claimName).getAsJsonObject();

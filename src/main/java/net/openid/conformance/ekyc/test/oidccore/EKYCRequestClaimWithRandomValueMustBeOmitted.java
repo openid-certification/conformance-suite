@@ -18,6 +18,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		" The claims object in verified_claims must be omitted or must not contain the requested claim from the response as the value cannot be fulfilled.",
 	profile = "OIDCC",
 	configurationFields = {
+		"ekyc.unverified_claims_names",
+		"ekyc.verified_claims_names",
+		"ekyc.request_schemas",
+		"ekyc.response_schemas"
 	}
 )
 public class EKYCRequestClaimWithRandomValueMustBeOmitted extends AbstractEKYCTestWithOIDCCore {

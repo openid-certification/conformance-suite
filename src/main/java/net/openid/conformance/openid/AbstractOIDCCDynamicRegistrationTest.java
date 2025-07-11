@@ -75,7 +75,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMtls() {
-		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(true, false);
+		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(true, false, true);
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 

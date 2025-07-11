@@ -134,11 +134,6 @@
     "passport",
     "driving_permit"
   ],
-  "documents_verification_methods_supported": [
-    "pipp",
-    "sripp",
-    "eid"
-  ],
   "claims_in_verified_claims_supported": [
     "given_name",
     "family_name",
