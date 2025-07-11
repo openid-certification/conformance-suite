@@ -45,6 +45,7 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 		}
 
 		if (proofPresent) {
+			// TODO remove this after upgrading to OPENIDVCI-draft16+
 			JsonElement proofEl = credentialRequestBodyJson.get("proof");
 			log("Found proof element in credential request", args("proof", proofEl));
 			JsonObject proofObject = proofEl.getAsJsonObject();
