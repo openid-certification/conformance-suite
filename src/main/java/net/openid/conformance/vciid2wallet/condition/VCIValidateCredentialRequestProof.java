@@ -93,13 +93,6 @@ public class VCIValidateCredentialRequestProof extends AbstractCondition {
 				env.removeObject("credential_issuer_nonce");
 			}
 
-			// Check Expiration
-			Date expirationTime = claimsSet.getExpirationTime();
-			if (expirationTime == null || Instant.now().isAfter(expirationTime.toInstant())) {
-				throw error("JWT proof validation failed: JWT has expired or expiration time (exp) is missing.");
-			}
-			log("Detected JWT proof has not expired yet", args("exp", expirationTime.toInstant()));
-
 			// Check Issued At
 			Date issueTime = claimsSet.getIssueTime();
 			if (issueTime == null || Instant.now().plus(5, ChronoUnit.MINUTES).isBefore(issueTime.toInstant())) {
