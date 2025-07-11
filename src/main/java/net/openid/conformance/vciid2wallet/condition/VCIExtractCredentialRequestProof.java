@@ -1,5 +1,7 @@
 package net.openid.conformance.vciid2wallet.condition;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -30,20 +32,64 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonObject credentialRequestBodyJson = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
-		JsonObject proofObject = credentialRequestBodyJson.get("proof").getAsJsonObject();
-		String proofType = OIDFJSON.getString(proofObject.get("proof_type"));
-		log("Detected proof type", args("proof_type", proofType));
-		if ("jwt".equals(proofType)) {
-			String jwtString = OIDFJSON.getString(proofObject.get("jwt"));
-			JsonObject proofJwt = null;
-			try {
-				proofJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtString);
-			} catch (ParseException e) {
-				throw error("Parsing SD-JWT credential jwt failed", e, args("proof_jwt", proofJwt));
+
+		boolean proofPresent = credentialRequestBodyJson.has("proof");
+		boolean proofsPresent = credentialRequestBodyJson.has("proofs");
+
+		if (!proofPresent && !proofsPresent) {
+			throw error("Neither proof nor proofs element is specified in credential request");
+		}
+
+		if (proofPresent == proofsPresent) {
+			throw error("In credential requests, only 'proof' or 'proofs' elements may be used, but not both.");
+		}
+
+		if (proofPresent) {
+			JsonElement proofEl = credentialRequestBodyJson.get("proof");
+			log("Found proof element in credential request", args("proof", proofEl));
+			JsonObject proofObject = proofEl.getAsJsonObject();
+			String proofType = OIDFJSON.getString(proofObject.get("proof_type"));
+			log("Detected proof type", args("proof_type", proofType));
+			if ("jwt".equals(proofType)) {
+				String jwtString = OIDFJSON.getString(proofObject.get("jwt"));
+				try {
+					JsonObject proofJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtString);
+					env.putObject("proof_jwt", proofJwt);
+				} catch (ParseException e) {
+					throw error("Parsing SD-JWT credential jwt failed", e, args("proof_jwt_string", jwtString));
+				}
+			} else {
+				throw error("Unsupported proof type found in proof element", args("proof_type", proofType));
 			}
-			env.putObject("proof_jwt", proofJwt);
-		} else {
-			throw new UnsupportedOperationException("Unsupported proof type " + proofType);
+		}
+
+		if (proofsPresent) {
+			JsonElement proofsEl = credentialRequestBodyJson.get("proofs");
+			log("Found proofs element in credential request", args("proofs", proofsEl));
+			JsonObject proofsObject = proofsEl.getAsJsonObject();
+
+			if (!proofsObject.has("jwt")) {
+				throw error("Missing jwt entry in in proofs element");
+			}
+
+			JsonElement jwtEl = proofsObject.get("jwt");
+			if (!jwtEl.isJsonArray()) {
+				throw error("Type of jwt attribute value in proofs element must be a JSON array", args("jwt", jwtEl));
+			}
+
+			JsonArray jwtArray = jwtEl.getAsJsonArray();
+			if (jwtArray.isEmpty()) {
+				throw error("jwt array must not be empty", args("jwt", jwtEl));
+			}
+
+			// for now we select the first item in the array
+			String jwtString = OIDFJSON.getString(jwtArray.get(0));
+			try {
+				JsonObject proofJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtString);
+				env.putObject("proof_jwt", proofJwt);
+			} catch (ParseException e) {
+				throw error("Parsing SD-JWT credential jwt failed", e, args("proof_jwt_string", jwtString));
+			}
 		}
 
 		return env;
