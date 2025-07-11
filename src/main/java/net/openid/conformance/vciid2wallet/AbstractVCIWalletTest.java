@@ -1753,7 +1753,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
 				"FAPI2-MS-ID1-5.3.2-1");
 		}
-		callAndStopOnFailure(ExtractRequestedScopes.class);
+
+		if (authorizationRequestType == AuthorizationRequestType.SIMPLE) {
+			// only check scopes if we expect scopes
+			callAndStopOnFailure(ExtractRequestedScopes.class);
+		}
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
