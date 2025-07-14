@@ -14,7 +14,12 @@ public class VCIValidateCredentialRequestStructure extends AbstractJsonSchemaBas
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject credentialRequestBodyJson = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
+		JsonElement bodyJson = env.getElementFromObject("incoming_request", "body_json");
+		if (bodyJson == null) {
+			throw error("Failed to detected json payload in incoming request.", args("incoming_request", env.getObject("incoming_request")));
+		}
+
+		JsonObject credentialRequestBodyJson = bodyJson.getAsJsonObject();
 
 		JsonElement credentialIdentifier = credentialRequestBodyJson.get("credential_identifier");
 		JsonElement credentialConfigId = credentialRequestBodyJson.get("credential_configuration_id");
