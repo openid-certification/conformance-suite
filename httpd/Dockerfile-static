@@ -3,7 +3,7 @@
 # tweaks, albeit it does mean you have to explicitly
 # access https://localhost:8443/static/
 # The only difference is apache config file used in the COPY line
-FROM debian:buster
+FROM debian/eol:buster
 RUN apt-get update \
 	&& apt-get install -y apache2 ssl-cert \
 	&& apt-get clean

@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian/eol:buster
 RUN apt-get update \
 	&& apt-get install -y apache2 ssl-cert \
 	&& apt-get clean
