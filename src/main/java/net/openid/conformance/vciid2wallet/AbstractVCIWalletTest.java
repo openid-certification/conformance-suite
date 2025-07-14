@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.jwk.JWK;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -193,6 +194,7 @@ import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
@@ -234,6 +236,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.text.ParseException;
 import java.util.Map;
 
 @VariantParameters({
@@ -406,6 +409,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
 		}
 
+		checkCredentialSigningKey(env);
+
 		vciGrantType = getVariant(VCIGrantType.class);
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-ID2-5.1.3-2.3");
@@ -486,6 +491,24 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+	}
+
+	protected void checkCredentialSigningKey(Environment env) {
+		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
+		if (credentialSigningJwkEl == null) {
+			throw new TestFailureException(getId(), "Credential Signing JWK missing from configuration.");
+		}
+
+		JWK credentialSigningJwk;
+		try {
+			credentialSigningJwk = JWK.parse(credentialSigningJwkEl.toString());
+		} catch (ParseException e) {
+			throw new TestFailureException(getId(), "Failed to create JWK from Credential Signing JWK: " + e.getMessage());
+		}
+
+		if (credentialSigningJwk.getX509CertChain() == null || credentialSigningJwk.getX509CertChain().isEmpty()) {
+			throw new TestFailureException(getId(), "Credential Signing JWK must contain the certificate chain in the x5c claim.");
+		}
 	}
 
 	protected void configureCredentialIssuerMetadata() {
@@ -1753,7 +1776,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
 				"FAPI2-MS-ID1-5.3.2-1");
 		}
-		callAndStopOnFailure(ExtractRequestedScopes.class);
+
+		if (authorizationRequestType == AuthorizationRequestType.SIMPLE) {
+			// only check scopes if we expect scopes
+			callAndStopOnFailure(ExtractRequestedScopes.class);
+		}
 
 		if(profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
