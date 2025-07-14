@@ -9,7 +9,10 @@ public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
 	@PostEnvironment(strings = "credential")
 	public Environment evaluate(Environment env) {
 
-		Object publicJWK = env.getElementFromObject("proof_jwt", "claims.jwt");
+		Object publicJWK = env.getElementFromObject("proof_jwt", "header.jwk");
+		if (publicJWK == null) {
+			throw error("Couldn't find public JWK in proof_jwt header.jwk");
+		}
 
 		String sdJwt = createSdJwt(env, publicJWK, null);
 
