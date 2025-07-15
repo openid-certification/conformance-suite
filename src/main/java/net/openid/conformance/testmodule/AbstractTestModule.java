@@ -1061,10 +1061,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	@Override
-	public Object handleOAuthMetadata(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		// for backwards compatibility with how the tests worked before this handler was introduced, the default behaviour is a 404 error
-		// (as at least one existing client, the one we use in the client_test oidcc tests, queries the oauth location first)
-		return new ResponseEntity<>(Map.of("error", "this test doesn't support the path '"+path+"'"), HttpStatus.NOT_FOUND);
+	public Object handleWellKnown(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		if (path.startsWith("/.well-known/oauth-authorization-server")) {
+			// for backwards compatibility with how the tests worked before this handler was introduced, the default behaviour is a 404 error
+			// (as at least one existing client, the one we use in the client_test oidcc tests, queries the oauth location first)
+			return new ResponseEntity<>(Map.of("error", "this test doesn't support the path '" + path + "'"), HttpStatus.NOT_FOUND);
+		}
+		throw new TestFailureException(getId(), "Got an HTTP request to '"+path+"' that wasn't expected");
 	}
 
 	@Override

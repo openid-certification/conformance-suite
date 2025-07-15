@@ -145,6 +145,7 @@ import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorRespon
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractDpopAccessTokenFromHeader;
@@ -213,7 +214,8 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vciid2issuer.VCIID2ClientAuthType;
 import net.openid.conformance.vciid2wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
-import net.openid.conformance.vciid2wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequest;
+import net.openid.conformance.vciid2wallet.condition.VCICheckIssuerMetadataRequestUrl;
+import net.openid.conformance.vciid2wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialEndpointResponse;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRedirectUrl;
@@ -810,7 +812,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else if (path.equals(".well-known/oauth-authorization-server")) {
 			throw new TestFailureException(getId(), "The wallet has formed the path to .well-known/oauth-authorization-server using the OpenID Connect rules, but the .well-known rules from RFC8414 must be used.");
 		} else if (path.equals(".well-known/openid-credential-issuer")) {
-			return credentialIssuerMetadataEndpoint(requestId);
+			throw new TestFailureException(getId(), "The wallet has formed the path to .well-known/openid-credential-issuer using the 'OpenID Connect rules', but since draft 16 of OID4VCI the .well-known rules from RFC8414 must be used.");
 		} else if (path.equals("par")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -1055,12 +1057,20 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	@Override
-	public Object handleOAuthMetadata(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+	public Object handleWellKnown(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
 		call(exec().startBlock("Get OAuth Authorization Metadata").mapKey("incoming_request", requestId));
-		Object response = discoveryEndpoint();
+		Object response;
+
+		if (path.startsWith("/.well-known/oauth-authorization-server")) {
+			response = discoveryEndpoint();
+		} else if (path.startsWith("/.well-known/openid-credential-issuer")) {
+			response = credentialIssuerMetadataEndpoint(requestId);
+		} else {
+			return super.handleWellKnown(path, req, res, session, requestParts);
+		}
 		call(exec().unmapKey("incoming_request").endBlock());
 		return response;
 	}
@@ -1270,7 +1280,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected Object discoveryEndpoint() {
 		setStatus(Status.RUNNING);
 
-		callAndStopOnFailure(VCICheckOAuthAuthorizationServerMetadataRequest.class, ConditionResult.FAILURE, "RFC8414-3.1");
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsGet.class, ConditionResult.FAILURE, "RFC8414-3.1");
+		callAndContinueOnFailure(VCICheckOAuthAuthorizationServerMetadataRequestUrl.class, ConditionResult.FAILURE, "RFC8414-3.1");
 
 		JsonObject serverConfiguration = env.getObject("server");
 
@@ -1292,6 +1303,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			JsonObject credentialIssuerMetadata = env.getObject("credential_issuer_metadata");
 			responseEntity = ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON).body(credentialIssuerMetadata);
 		}
+
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsGet.class, ConditionResult.FAILURE, "OID4VCI-11.2.2");
+		callAndContinueOnFailure(VCICheckIssuerMetadataRequestUrl.class, ConditionResult.FAILURE, "OID4VCI-11.2.2");
 
 		setStatus(Status.WAITING);
 		return responseEntity;
