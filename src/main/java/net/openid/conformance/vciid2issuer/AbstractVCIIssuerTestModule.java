@@ -1122,10 +1122,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		eventLog.endBlock();
 
+		eventLog.startBlock(currentClientString() + " Call credential nonce endpoint");
 		// check for nonce endpoint
 		JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
 		if (nonceEndpointEl != null) {
-			eventLog.startBlock(currentClientString() + " Call credential nonce endpoint");
 
 			String nonceEndpoint = OIDFJSON.getString(nonceEndpointEl);
 			String originalResourceUrl = env.getString("protected_resource_url");
@@ -1148,8 +1148,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			env.putString("protected_resource_url", originalResourceUrl);
 
-			eventLog.endBlock();
+		} else {
+			eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
 		}
+
+		eventLog.endBlock();
 
 		eventLog.startBlock(currentClientString() + " Call Credential Endpoint");
 
