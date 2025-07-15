@@ -549,7 +549,19 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			"credential_issuer": "$(credentialIssuer)",
 			"credential_endpoint": "$(credentialEndpoint)",
 			"nonce_endpoint": "$(nonceEndpoint)",
-			"authorization_servers": [ "$(credentialIssuer)" ]
+			"authorization_servers": [ "$(credentialIssuer)" ],
+			"credential_request_encryption": {
+				"jwks": {
+					"keys": []
+				},
+				"enc_values_supported": [],
+				"encryption_required": false
+			},
+			"credential_response_encryption": {
+				"alg_values_supported": [],
+				"enc_values_supported": [],
+				"encryption_required": false
+			}
 		}
 		""", Map.of(
 			"credentialIssuer", credentialIssuer,
