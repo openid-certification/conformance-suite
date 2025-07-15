@@ -988,7 +988,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 			// at this point we can assume the test is fully done
 			resourceEndpointCallComplete();
-			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), HttpStatus.ACCEPTED);
+			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 		}
 		return responseEntity;
 	}

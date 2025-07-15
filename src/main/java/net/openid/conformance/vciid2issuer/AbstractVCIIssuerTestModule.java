@@ -64,8 +64,8 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -1174,12 +1174,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		eventLog.endBlock();
 
 		eventLog.startBlock(currentClientString() + " Verify Credential Endpoint Response");
-		// TODO Use HTTP status code 200 for directly issued credentials and 202 for deferred credentials
-		// Wording in ID2 Draft 15 says always 202, but that was a mistake see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-8.3
-		// Fixed: here https://github.com/openid/OpenID4VCI/pull/490
-		callAndStopOnFailure(new EnsureHttpStatusCodeIsAnyOf(200,202), ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
-		callAndContinueOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
-		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-ID2-8.3");
+		// TODO: allow a deferred response with a transaction_id https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.3
+		callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-8.3");
+		callAndContinueOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-8.3");
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-8.3");
 
 		callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
 		callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");
