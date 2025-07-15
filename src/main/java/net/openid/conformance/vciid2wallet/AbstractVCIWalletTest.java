@@ -613,6 +613,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 						"jwt": {
 							"proof_signing_alg_values_supported": [ "ES256" ]
 						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID",
+							"description": "OpenID Conformance Test Fake PID description"
+						}
+						]
 					}
 				}
 			}
