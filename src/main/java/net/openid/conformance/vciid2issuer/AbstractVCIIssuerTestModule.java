@@ -147,6 +147,7 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.RARSupport;
+import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
@@ -162,7 +163,6 @@ import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequ
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -1122,32 +1122,21 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		eventLog.endBlock();
 
-		eventLog.startBlock(currentClientString() + " Call credential nonce endpoint");
+		eventLog.startBlock(currentClientString() + " Call credential issuer nonce endpoint");
 		// check for nonce endpoint
 		JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
 		if (nonceEndpointEl != null) {
 
-			String nonceEndpoint = OIDFJSON.getString(nonceEndpointEl);
-			String originalResourceUrl = env.getString("protected_resource_url");
-			env.putString("protected_resource_url", nonceEndpoint);
+			callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-7.1");
 
-			env.putString("resource", "resourceMethod", "POST");
-			if (isDpop()) {
-				requestProtectedResourceUsingDpop();
-			} else {
-				callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-ID2-7", "FAPI2-SP-ID2-5.3.3-2");
-			}
 			eventLog.endBlock();
 
 			eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
+			call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
+			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-7.2");
 
-			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
-			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
-
-			env.putString("protected_resource_url", originalResourceUrl);
-
+			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-7.2");
+			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-7.2");
 		} else {
 			eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
 		}
