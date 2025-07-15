@@ -67,12 +67,12 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 
 	protected void addProofInformation(Environment env, JsonObject credentialRequest) {
 		// Note that proof is no longer part of draft 16
-		JsonObject proofObject = createProofObject(env);
-		credentialRequest.add("proof", proofObject);
+//		JsonObject proofObject = createProofObject(env);
+//		credentialRequest.add("proof", proofObject);
 
 		// see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2-2.4
-//		JsonObject proofsObject = createProofsObject(env);
-//		credentialRequest.add("proofs", proofsObject);
+		JsonObject proofsObject = createProofsObject(env);
+		credentialRequest.add("proofs", proofsObject);
 	}
 
 	protected JsonObject createProofsObject(Environment env) {
