@@ -140,7 +140,7 @@ public interface TestModule {
 		HttpSession session,
 		JsonObject requestParts);
 
-	Object handleOAuthMetadata(String path,
+	Object handleWellKnown(String path,
 		HttpServletRequest req, HttpServletResponse res,
 		HttpSession session,
 		JsonObject requestParts);

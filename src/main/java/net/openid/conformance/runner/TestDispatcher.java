@@ -57,7 +57,7 @@ public class TestDispatcher implements DataUtils {
 
 	public static final String TEST_PATH = "/test/"; // path for incoming test requests
 	public static final String TEST_MTLS_PATH = "/test-mtls/"; // path for incoming MTLS requests
-	public static final String WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER = "/.well-known/oauth-authorization-server/";
+	public static final String WELL_KNOWN = "/.well-known/";
 
 	@Autowired
 	private TestRunnerSupport support;
@@ -69,7 +69,7 @@ public class TestDispatcher implements DataUtils {
 	 * Dispatch a request to a running test. This came in on the /test/ URL either as /test/test-id-string or /test/a/test-alias.
 	 * This requests may or may not be user-facing so we don't assume anything about the response.
 	 */
-	@RequestMapping({TEST_PATH + "**", TEST_MTLS_PATH + "**", WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER +"**"})
+	@RequestMapping({TEST_PATH + "**", TEST_MTLS_PATH + "**", WELL_KNOWN + "**"})
 	public Object handle(
 		HttpServletRequest req, HttpServletResponse res,
 		HttpSession session,
@@ -94,8 +94,9 @@ public class TestDispatcher implements DataUtils {
 		Iterator<String> pathParts = Splitter.on("/").split(finalPath).iterator();
 
 		String testId = pathParts.next(); // used to route to the right test
-		if (path.startsWith(WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER)) {
-			testId = pathParts.next(); // skip over the "test/" part - maybe we shouldn't be putting that in the issuer value?
+		if (path.startsWith(WELL_KNOWN)) {
+			pathParts.next(); // skip over the "openid-credential-issuer/" part
+			testId = pathParts.next(); // skip over the "test/" part
 		}
 
 		if (testId.equals("a")) {
@@ -182,8 +183,8 @@ public class TestDispatcher implements DataUtils {
 						throw new TestFailureException(test.getId(), "The endpoint " + path + " has been called using the conformance suite's base hostname, but must be called on the MTLS supporting hostname. See the 'Exported Values' section of the log for a running test to see the correct url to use.");
 					}
 					response = test.handleHttpMtls(restOfPath, req, res, session, requestParts);
-				} else if (path.startsWith(WELL_KNOWN_OAUTH_AUTHORIZATION_SERVER)) {
-					response = test.handleOAuthMetadata(restOfPath, req, res, session, requestParts);
+				} else if (path.startsWith(WELL_KNOWN)) {
+					response = test.handleWellKnown(path, req, res, session, requestParts);
 				} else {
 					throw new TestFailureException(test.getId(), "Failure to route to path " + path);
 				}

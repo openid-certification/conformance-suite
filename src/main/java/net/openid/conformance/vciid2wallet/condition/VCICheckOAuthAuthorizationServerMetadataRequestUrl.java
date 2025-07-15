@@ -5,15 +5,10 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.net.URI;
 
-public class VCICheckOAuthAuthorizationServerMetadataRequest extends AbstractCondition {
+public class VCICheckOAuthAuthorizationServerMetadataRequestUrl extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
-
-		String method = env.getString("incoming_request", "method");
-		if (!"GET".equals(method)) {
-			throw error("OAuth authorization server metadata request does not support method '" + method + "'");
-		}
 
 		String requestUrl = env.getString("incoming_request", "request_url");
 
@@ -27,7 +22,7 @@ public class VCICheckOAuthAuthorizationServerMetadataRequest extends AbstractCon
 			throw error("Auth Server metadata request does not match expected URL", args("expected_url", expectedRequestUrl, "request_url", requestUrl));
 		}
 
-		logSuccess("Detected expected OAuth authorization server metadata request", args("request_url", requestUrl));
+		logSuccess("OAuth authorization server metadata request is for correct URL", args("request_url", requestUrl));
 		return env;
 	}
 }
