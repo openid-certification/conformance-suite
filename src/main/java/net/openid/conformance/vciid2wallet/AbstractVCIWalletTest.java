@@ -922,18 +922,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
-		} else {
-			JsonObject nonceEndpointResponse = env.getObject("credential_nonce_response");
-			JsonObject headerJson = env.getObject("credential_nonce_response_headers");
-
-			if (requireResourceServerEndpointDpopNonce()) {
-				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
-			}
-			responseEntity = new ResponseEntity<>(nonceEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
-		}
+		JsonObject nonceEndpointResponse = env.getObject("credential_nonce_response");
+		JsonObject headerJson = env.getObject("credential_nonce_response_headers");
+		responseEntity = new ResponseEntity<>(nonceEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 
 		setStatus(Status.WAITING);
 		return responseEntity;
