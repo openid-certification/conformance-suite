@@ -127,6 +127,7 @@ import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeCh
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims;
+import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -205,9 +206,9 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
-import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
+import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -250,10 +251,13 @@ import java.util.Map;
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
 	VCIGrantType.class,
-	VCIAuthorizationCodeFlowVariant.class,
+	VCIWalletAuthorizationCodeFlowVariant.class,
 	VCICredentialOfferParameterVariant.class,
 })
-@VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
+@VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
+	"vci.credential_offer_endpoint"
+})
+@VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value="issuer_initiated_dc_api", configurationFields = {
 	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
@@ -319,7 +323,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected VCIGrantType vciGrantType;
 
-	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
+	protected VCIWalletAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
 
 	protected VCICredentialOfferParameterVariant vciCredentialOfferParameterVariantType;
 
@@ -419,7 +423,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-ID2-5.1.3-2.3");
 		}
 
-		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
+		vciAuthorizationCodeFlowVariant = getVariant(VCIWalletAuthorizationCodeFlowVariant.class);
 
 		vciCredentialOfferParameterVariantType = getVariant(VCICredentialOfferParameterVariant.class);
 
@@ -722,17 +726,17 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		switch(vciGrantType) {
 			case AUTHORIZATION_CODE -> {
-				switch(getVariant(VCIAuthorizationCodeFlowVariant.class)) {
+				switch(getVariant(VCIWalletAuthorizationCodeFlowVariant.class)) {
 					case WALLET_INITIATED -> {}
-					case ISSUER_INITIATED -> prepareCredentialOffer();
+					case ISSUER_INITIATED, ISSUER_INITIATED_DC_API -> prepareCredentialOffer();
 				}
 			}
 			case PRE_AUTHORIZATION_CODE -> {
-				switch(getVariant(VCIAuthorizationCodeFlowVariant.class)) {
+				switch(getVariant(VCIWalletAuthorizationCodeFlowVariant.class)) {
 					case WALLET_INITIATED -> {
 						throw new UnsupportedOperationException("Pre-Authorization_Code is not supported with Wallet_Initiated flow");
 					}
-					case ISSUER_INITIATED -> prepareCredentialOffer();
+					case ISSUER_INITIATED, ISSUER_INITIATED_DC_API -> prepareCredentialOffer();
 				}
 			}
 		}
@@ -755,8 +759,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(new VCICreateCredentialOfferRedirectUrl(vciCredentialOfferParameterVariantType), "OID4VCI-ID2-4.1");
 		browser.setShowQrCodes(true);
 
-		String credentialOfferRedirectUrl = env.getString("vci", "credential_offer_redirect_url");
-		browser.goToUrl(credentialOfferRedirectUrl);
+		if (vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED_DC_API) {
+			callAndStopOnFailure(BuildVCIDCAPIRequest.class);
+			JsonObject request = env.getObject("browser_api_request");
+			browser.requestCredential(request, ""); // FIXME for now, no submitUrl === it's a VCI request, not VP
+		} else {
+			String credentialOfferRedirectUrl = env.getString("vci", "credential_offer_redirect_url");
+			browser.goToUrl(credentialOfferRedirectUrl);
+		}
 	}
 
 	@Override
@@ -1734,7 +1744,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR.class);
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			if (vciAuthorizationCodeFlowVariant == VCIAuthorizationCodeFlowVariant.ISSUER_INITIATED) {
+			if (vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED ||
+				vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED_DC_API) {
 				callAndStopOnFailure(VCIVerifyIssuerStateInAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VCI-ID2-5.1.3");
 			}
 		}
