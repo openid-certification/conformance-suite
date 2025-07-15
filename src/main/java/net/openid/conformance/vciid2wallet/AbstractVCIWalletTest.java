@@ -220,6 +220,7 @@ import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRed
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
+import net.openid.conformance.vciid2wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
 import net.openid.conformance.vciid2wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
 import net.openid.conformance.vciid2wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vciid2wallet.condition.VCIPreparePreAuthorizationCode;
@@ -520,6 +521,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2");
 	}
 
+	protected void generateSignedCredentialIssuerMetadata() {
+		callAndStopOnFailure(VCIGenerateSignedCredentialIssuerMetadata.class, "OID4VCI-11.2.3");
+	}
+
 	protected JsonObject getCredentialIssuerMetadata() {
 
 		String baseUrl = env.getString("base_url");
@@ -797,7 +802,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else if (path.equals(".well-known/oauth-authorization-server")) {
 			throw new TestFailureException(getId(), "The wallet has formed the path to .well-known/oauth-authorization-server using the OpenID Connect rules, but the .well-known rules from RFC8414 must be used.");
 		} else if (path.equals(".well-known/openid-credential-issuer")) {
-			return credentialIssuerEndpoint();
+			return credentialIssuerMetadataEndpoint(requestId);
 		} else if (path.equals("par")) {
 			if(startingShutdown){
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
@@ -1265,12 +1270,23 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
 	}
 
-	protected Object credentialIssuerEndpoint() {
+	protected Object credentialIssuerMetadataEndpoint(String requestId) {
+
+		JsonElement acceptHeader = env.getElementFromObject(requestId, "headers.accept");
+
 		setStatus(Status.RUNNING);
-		JsonObject credentialIssuerMetadata = env.getObject("credential_issuer_metadata");
+		ResponseEntity<?> responseEntity;
+		if (acceptHeader != null && OIDFJSON.getString(acceptHeader).equalsIgnoreCase("application/jwt")) {
+			generateSignedCredentialIssuerMetadata();
+			String signedCredentialIssuerMetadata = env.getString("signed_credential_issuer_metadata");
+			responseEntity = ResponseEntity.status(HttpStatus.OK).contentType(MediaType.parseMediaType("application/jwt")).body(signedCredentialIssuerMetadata);
+		} else {
+			JsonObject credentialIssuerMetadata = env.getObject("credential_issuer_metadata");
+			responseEntity = ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON).body(credentialIssuerMetadata);
+		}
 
 		setStatus(Status.WAITING);
-		return new ResponseEntity<Object>(credentialIssuerMetadata, HttpStatus.OK);
+		return responseEntity;
 	}
 
 	protected void checkMtlsCertificate() {
