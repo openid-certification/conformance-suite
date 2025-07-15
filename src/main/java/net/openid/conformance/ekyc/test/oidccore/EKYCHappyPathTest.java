@@ -35,8 +35,8 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 	}
 
 	protected void validateEKYCSpecificServerConfiguration() {
-		//IA-9, The OP MUST support the claims parameter and needs to publish this in its openid-configuration using the claims_parameter_supported element.
-		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IA-9");
+		//IA-8, The OP MUST support the claims parameter and needs to publish this in its openid-configuration using the claims_parameter_supported element.
+		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IA-8");
 		//trust_frameworks_supported: JSON array containing all supported trust frameworks.
 		validateTrustFrameworksSupportedInServerConfiguration();
 
@@ -57,27 +57,27 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 	}
 
 	protected void validateTrustFrameworksSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateTrustFrameworksSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateTrustFrameworksSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateEvidenceSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateEvidenceSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateEvidenceSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateDocumentsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDocumentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateDocumentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateDocumentsCheckMethodsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDocumentsCheckMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateDocumentsCheckMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateElectronicRecordsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateElectronicRecordsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateElectronicRecordsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateClaimsInVerifiedClaimsSupported() {
-		callAndContinueOnFailure(ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 }
