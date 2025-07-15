@@ -19,6 +19,10 @@ public class ValidateCredentialCnfJwkIsPublicKey extends AbstractCondition {
 			throw error("cnf claim in SD-JWT does not include a jwk element");
 		}
 
+		if (!jwkEl.isJsonObject()) {
+			throw error("cnf.jwk claim in SD-JWT is not a JSON object", args("jwk", jwkEl));
+		}
+
 		try {
 			JWK jwk = JWK.parse(jwkEl.toString());
 			if(jwk instanceof OctetSequenceKey) {

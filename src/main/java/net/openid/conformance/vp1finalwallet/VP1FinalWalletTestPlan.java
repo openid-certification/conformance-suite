@@ -64,12 +64,6 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 
 		}
 
-		if (credentialFormat.equals(VP1FinalWalletCredentialFormat.ISO_MDL.toString()) &&
-			responseMode.equals(VP1FinalWalletResponseMode.DIRECT_POST.toString())) {
-			throw new RuntimeException(String.format("Invalid configuration for %s: Direct POST (without JWT) cannot be used for ISO mDL as the JWE header apu is needed to validate the mdoc device binding.",
-				MethodHandles.lookup().lookupClass().getSimpleName()));
-		}
-
 		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
 
 		return certProfile;
