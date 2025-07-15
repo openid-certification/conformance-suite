@@ -95,8 +95,8 @@ public class LogEntryHelper {
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("SDJWT-", "https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-");
 		specLinks.put("SDJWTVC-", "https://datatracker.ietf.org/doc/draft-ietf-oauth-sd-jwt-vc/#section-");
-		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0.htm#section-");
-		specLinks.put("IAVC-", "https://openid.net/specs/openid-ida-verified-claims-1_0.htm#section-");
+		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#section-");
+		specLinks.put("IAVC-", "https://openid.net/specs/openid-ida-verified-claims-1_0.html#section-");
 		specLinks.put("DPOP-", "https://www.rfc-editor.org/rfc/rfc9449#section-");
 		specLinks.put("KSA", "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security");
 		specLinks.put("OIDSSF-", "https://openid.net/specs/openid-sharedsignals-framework-1_0-ID3.html#section-");
