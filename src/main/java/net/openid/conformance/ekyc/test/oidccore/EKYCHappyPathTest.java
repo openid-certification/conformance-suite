@@ -3,7 +3,6 @@ package net.openid.conformance.ekyc.test.oidccore;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
-import net.openid.conformance.ekyc.condition.client.EnsureVerifiedClaimsSupportedParameterIsTrue;
 import net.openid.conformance.ekyc.condition.client.ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsCheckMethodsSupportedInServerConfiguration;
 import net.openid.conformance.ekyc.condition.client.ValidateDocumentsSupportedInServerConfiguration;
@@ -36,13 +35,8 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 	}
 
 	protected void validateEKYCSpecificServerConfiguration() {
-		//IA-9, The OP MUST support the claims parameter and needs to publish this in its openid-configuration using the claims_parameter_supported element.
-		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IA-9");
-		//verified_claims_supported: Boolean value indicating support for verified_claims, i.e. the OpenID Connect for Identity Assurance extension.
-		//Boolean value indicating support for verified_claims, i.e. the OpenID Connect for Identity Assurance extension
-		//this must be true for eKYC tests
-		callAndContinueOnFailure(EnsureVerifiedClaimsSupportedParameterIsTrue.class, Condition.ConditionResult.FAILURE, "IA-9");
-
+		//IA-8, The OP MUST support the claims parameter and needs to publish this in its openid-configuration using the claims_parameter_supported element.
+		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "IA-8");
 		//trust_frameworks_supported: JSON array containing all supported trust frameworks.
 		validateTrustFrameworksSupportedInServerConfiguration();
 
@@ -63,27 +57,27 @@ public class EKYCHappyPathTest extends AbstractEKYCTestWithOIDCCore {
 	}
 
 	protected void validateTrustFrameworksSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateTrustFrameworksSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateTrustFrameworksSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateEvidenceSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateEvidenceSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateEvidenceSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateDocumentsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDocumentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateDocumentsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateDocumentsCheckMethodsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateDocumentsCheckMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateDocumentsCheckMethodsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateElectronicRecordsSupportedInServerConfiguration() {
-		callAndContinueOnFailure(ValidateElectronicRecordsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateElectronicRecordsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 	protected void validateClaimsInVerifiedClaimsSupported() {
-		callAndContinueOnFailure(ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-9");
+		callAndContinueOnFailure(ValidateClaimsInVerifiedClaimsSupportedInServerConfiguration.class, Condition.ConditionResult.FAILURE, "IA-8");
 	}
 
 }

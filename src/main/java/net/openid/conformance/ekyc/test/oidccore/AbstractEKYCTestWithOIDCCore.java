@@ -65,9 +65,9 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 
 	protected void ensureReturnedVerifiedClaimsMatchOPMetadata(boolean isUserinfo) {
 		if(isUserinfo){
-			callAndContinueOnFailure(ValidateVerifiedClaimsInUserinfoAgainstOPMetadata.class, Condition.ConditionResult.FAILURE, "IA-9");
+			callAndContinueOnFailure(ValidateVerifiedClaimsInUserinfoAgainstOPMetadata.class, Condition.ConditionResult.FAILURE, "IA-8");
 		} else {
-			callAndContinueOnFailure(ValidateVerifiedClaimsInIdTokenAgainstOPMetadata.class, Condition.ConditionResult.FAILURE, "IA-9");
+			callAndContinueOnFailure(ValidateVerifiedClaimsInIdTokenAgainstOPMetadata.class, Condition.ConditionResult.FAILURE, "IA-8");
 		}
 	}
 
