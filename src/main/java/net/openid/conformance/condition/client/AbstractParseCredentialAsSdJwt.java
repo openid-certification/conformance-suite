@@ -71,7 +71,7 @@ public abstract class AbstractParseCredentialAsSdJwt extends AbstractCondition {
 				bindJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(bindingJwt);
 			} else {
 				if (bindingJwt != null) {
-					throw error("SD-JWT contains a key binding JWT", args("sdjwt", sdJwtStr));
+					throw error("SD-JWT appears to have a key binding JWT, but because it was received from an issuer it should not. The SD-JWT should end in a '~'.", args("sdjwt", sdJwtStr));
 				}
 			}
 		} catch (ParseException e) {
