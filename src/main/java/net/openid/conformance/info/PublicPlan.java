@@ -11,7 +11,7 @@ public class PublicPlan {
 	private VariantSelection variant;
 	private String description;
 
-	private String certificationProfileName;
+	private List<String> certificationProfileName;
 	private String started;
 	private List<Plan.Module> modules;
 	private String publish;
@@ -34,7 +34,7 @@ public class PublicPlan {
 		return description;
 	}
 
-	public String getCertificationProfileName() {
+	public List<String> getCertificationProfileName() {
 		return certificationProfileName;
 	}
 

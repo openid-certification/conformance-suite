@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -137,8 +138,9 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
+	public static List<String> certificationProfileName(VariantSelection variant) {
 
+		List<String> profiles = new ArrayList<>();
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
@@ -155,24 +157,24 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		boolean openid = clientType.equals("openid_connect");
 		boolean rar = "rar".equals(authRequestType);
 
-		String certProfile = "FAPI2MsgSigning Final ";
+		String certProfile = "FAPI2SP ";
 
 		if (openid) {
-			certProfile += "OpenID ";
+			profiles.add("FAPI2SP OpenID Connect");
 		}
 
 		switch (profile) {
 			case "plain_fapi":
 				break;
 			case "openbanking_uk":
-				certProfile = "UK-OB";
+				//certProfile = "UK-OB";
 				if (jarm) {
 					throw new RuntimeException("Invalid configuration for %s: JARM is not used in UK".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				break;
+				return List.of( "UK-OB");
 			case "consumerdataright_au":
-				certProfile = "AU-CDR";
+//				certProfile = "AU-CDR";
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -181,10 +183,9 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 					throw new RuntimeException("Invalid configuration for %s: JARM is not used in AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				break;
+				return List.of( "AU-CDR");
 			case "openbanking_brazil":
-				certProfile = "BR-OB";
-				break;
+				return List.of( "BR-OB");
 			case "connectid_au":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for ConnectID".formatted(
@@ -207,7 +208,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return certProfile + " ConnectID OP";
+				return List.of("FAPI2SP ConnectID OP");
 			case "cbuae":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for CBUAE".formatted(
@@ -235,35 +236,35 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return certProfile + " CBUAE OP";
+				return List.of("FAPI2SP CBUAE OP");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		certProfile += " OP w/";
-
 		switch (clientAuth) {
 			case "private_key_jwt":
-				certProfile += " Private Key";
+				certProfile += " private key";
 				break;
 			case "mtls":
-				certProfile += " MTLS client auth";
+				certProfile += " MTLS";
 				break;
 		}
 		switch (senderConstrain) {
 			case "mtls":
-				certProfile += ", MTLS constrain";
+				certProfile += " + MTLS";
 				break;
 			case "dpop":
-				certProfile += ", DPoP";
+				certProfile += " + DPoP";
 				break;
 		}
+		profiles.add(certProfile);
+
 		switch (requestMethod) {
 			case "unsigned":
 				break;
 			case "signed_non_repudiation":
-				certProfile += ", JAR";
+				profiles.add("FAPI2SP JAR");
 				break;
 		}
 		switch (responseMode) {
@@ -271,11 +272,11 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 				// nothing
 				break;
 			case "jarm":
-				certProfile += ", JARM";
+				profiles.add("FAPI2SP JARM");
 				break;
 		}
 
 
-		return certProfile;
+		return profiles;
 	}
 }
