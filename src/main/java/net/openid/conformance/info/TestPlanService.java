@@ -14,7 +14,7 @@ public interface TestPlanService {
 	 */
 	void updateTestPlanWithModule(String planId, String testName, VariantSelection variant, String id);
 
-	void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, String certificationProfileName, List<Plan.Module> testModules, String summary, String publish);
+	void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, List<String> certificationProfileName, List<Plan.Module> testModules, String summary, String publish);
 
 	/**
 	 * @param id

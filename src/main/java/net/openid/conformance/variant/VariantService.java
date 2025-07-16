@@ -20,6 +20,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -426,8 +427,9 @@ public class VariantService {
 			return new ArrayList<>(fields);
 		}
 
-		public String certificationProfileForVariant(VariantSelection variantSelection) {
-			String certProfile = null;
+		@SuppressWarnings("unchecked")
+		public List<String> certificationProfileForVariant(VariantSelection variantSelection) {
+
 
 			try {
 				// Test plans can implement a static method to list modules with variants to run them with; as
@@ -435,9 +437,13 @@ public class VariantService {
 				// we have to call this via reflection:
 				Method m = planClass.getDeclaredMethod("certificationProfileName", VariantSelection.class);
 				Object result = m.invoke(null, variantSelection);
-				certProfile = (String) result;
+				if (result instanceof List) {
+					return (List<String>) result;
+				}
+				return List.of((String)result);
 			} catch (NoSuchMethodException e) {
 				// class doesn't implement this so doesn't have any certification profiles
+				return Collections.emptyList();
 			} catch (IllegalAccessException e) {
 				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
 			} catch (InvocationTargetException e) {
@@ -447,8 +453,6 @@ public class VariantService {
 				}
 				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
 			}
-
-			return certProfile;
 		}
 
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
