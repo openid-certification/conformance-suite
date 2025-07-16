@@ -20,7 +20,10 @@ public class VCICreateCredentialOffer extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String credentialIssuer = env.getString("base_url");
+		String credentialIssuer = env.getString("credential_issuer_metadata", "credential_issuer");
+		if (credentialIssuer == null) {
+			throw error("Couldn't find credential_issuer in credential_issuer_metadata");
+		}
 		String issuerState = env.getString("vci", "issuer_state");
 
 		JsonArray credentialConfigurationIds = OIDFJSON.convertListToJsonArray(List.of("eu.europa.ec.eudi.pid.1"));
