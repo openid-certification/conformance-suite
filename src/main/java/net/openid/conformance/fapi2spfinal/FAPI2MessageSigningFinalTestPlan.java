@@ -157,7 +157,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		boolean openid = clientType.equals("openid_connect");
 		boolean rar = "rar".equals(authRequestType);
 
-		String certProfile = "FAPI2SP ";
+		String certProfile = "FAPI2MS ";
 
 		if (openid) {
 			profiles.add("FAPI2SP OpenID Connect");
@@ -172,7 +172,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 					throw new RuntimeException("Invalid configuration for %s: JARM is not used in UK".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				return List.of( "UK-OB");
+				return List.of( "FAPI2MS UK-OB OP");
 			case "consumerdataright_au":
 //				certProfile = "AU-CDR";
 				if (!privateKey) {
@@ -183,9 +183,9 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 					throw new RuntimeException("Invalid configuration for %s: JARM is not used in AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				return List.of( "AU-CDR");
+				return List.of( "FAPI2MS AU-CDR OP");
 			case "openbanking_brazil":
-				return List.of( "BR-OB");
+				return List.of( "FAPI2MS BR-OB OP");
 			case "connectid_au":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for ConnectID".formatted(
@@ -208,7 +208,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return List.of("FAPI2SP ConnectID OP");
+				return List.of("FAPI2MS with ConnectId support");
 			case "cbuae":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for CBUAE".formatted(
@@ -236,7 +236,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return List.of("FAPI2SP CBUAE OP");
+				return List.of("FAPI2MS OpenID CBUAE OP");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -264,7 +264,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 			case "unsigned":
 				break;
 			case "signed_non_repudiation":
-				profiles.add("FAPI2SP JAR");
+				profiles.add("FAPI2MS JAR");
 				break;
 		}
 		switch (responseMode) {
@@ -272,7 +272,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 				// nothing
 				break;
 			case "jarm":
-				profiles.add("FAPI2SP JARM");
+				profiles.add("FAPI2MS JARM");
 				break;
 		}
 
