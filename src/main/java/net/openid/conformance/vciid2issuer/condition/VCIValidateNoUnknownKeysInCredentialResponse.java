@@ -25,7 +25,7 @@ public class VCIValidateNoUnknownKeysInCredentialResponse extends AbstractCondit
 		unexpected.removeAll(expected);
 
 		if (!unexpected.isEmpty()) {
-			throw error("Unexpected keys in credential response", args("unexpected", unexpected, "expected", expected));
+			throw error("Unexpected keys in credential response. This may indicate the issuer has misunderstood the spec, or it may be using extensions the test suite is unaware of.", args("unexpected", unexpected, "expected", expected));
 		}
 
 		logSuccess("No unexpected keys in credential response", args("expected", expected));
