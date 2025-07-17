@@ -4,8 +4,8 @@ import net.openid.conformance.variant.VariantParameter;
 
 @VariantParameter(
 	name = "client_auth_type",
-	displayName = "VCI Client Authentication Type",
-	description = "The type of client authentication your VCI software supports. If you support multiple types of client authentication test each one, one at a time."
+	displayName = "Client Authentication Type",
+	description = "The type of client authentication your authorization server supports. If you support multiple types of client authentication test each one, one at a time."
 )
 public enum VCIID2ClientAuthType {
 
