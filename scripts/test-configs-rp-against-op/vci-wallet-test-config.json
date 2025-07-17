@@ -74,5 +74,26 @@
     "vci": {
         "credential_offer_endpoint": "{BASEURL}test/a/oidf-fapi-op-test/credential_offer",
         "client_attestation_issuer": "https://client-attester.example.org/"
-    }
+    },
+    "browser": [
+        {
+            "comment": "expect an immediate redirect back to the conformance suite",
+            "match": "https://*/test/a/oidf-fapi-op-test/credential_offer*",
+            "tasks": [
+                {
+                    "task": "Verify Complete",
+                    "match": "https://*/test/a/oidf-fapi-op-test/credential_offer*",
+                    "commands": [
+                        [
+                            "wait",
+                            "xpath",
+                            "//*",
+                            5,
+                            "The response has been sent to the server for processing"
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
 }

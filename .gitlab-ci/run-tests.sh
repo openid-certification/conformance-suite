@@ -377,6 +377,11 @@ makeServerTest() {
     DPOP="sender_constrain=dpop"
     PLAINFAPI="fapi_profile=plain_fapi"
     PLAINRESP="fapi_response_mode=plain_response"
+    WALLETINIT="vci_authorization_code_flow_variant=wallet_initiated"
+    ISSUERINIT="vci_authorization_code_flow_variant=issuer_initiated"
+    AUTHCODE="vci_grant_type=authorization_code"
+    OFFERBYVALUE="vci_credential_offer_variant=by_value"
+    OFFERBYREF="vci_credential_offer_variant=by_reference"
          # client_auth=private_key, sender_constrain=mtls
     TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$PRIVATE_KEY][$UNSIGNED][$MTLSAT][$PLAINFAPI][$PLAINRESP]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$PRIVATE_KEY][$UNSIGNED][$MTLSAT][$PLAINFAPI][$PLAINRESP][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
          # client_auth=private_key, sender_constrain=dpop
@@ -386,7 +391,12 @@ makeServerTest() {
         # client_auth=mtls, sender_constrain=dpop
     TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-mtls-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
         # client_auth=client_attestation, sender_constrain=dpop
-    TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
+    TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
+        # client_auth=client_attestation, sender_constrain=dpop - issuer initiated (credential offer by value)
+    TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$AUTHCODE][$OFFERBYVALUE]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$AUTHCODE][$OFFERBYVALUE][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
+        # client_auth=client_attestation, sender_constrain=dpop - issuer initiated (credential offer by reference)
+    TESTS="${TESTS} oid4vci-id2-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$AUTHCODE][$OFFERBYREF]:oid4vci-id2-wallet-happy-path{oid4vci-id2-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$AUTHCODE][$OFFERBYREF][vci_credential_issuer_metadata=discovery]:oid4vci-id2-issuer-metadata-test,oid4vci-id2-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
+
 }
 
 makeCIBATest() {
