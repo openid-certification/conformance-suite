@@ -170,7 +170,6 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
-import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -215,7 +214,6 @@ import java.util.function.Supplier;
 	VCIServerMetadata.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
-	VCICredentialOfferParameterVariant.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
