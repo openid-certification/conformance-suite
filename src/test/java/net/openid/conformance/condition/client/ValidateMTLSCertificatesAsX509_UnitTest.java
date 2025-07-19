@@ -731,4 +731,52 @@ public class ValidateMTLSCertificatesAsX509_UnitTest {
 		});
 	}
 
+	@Test
+	public void testEvaluateEd25519_noErrorWithEddsaPrivateKey() {
+
+		cert = "MIIBmTCCAUugAwIBAgIUXcf+V0HQsVcQJIK6bfpkGCaEXoQwBQYDK2VwMEExCzAJBgNVBAYTAkNaMQ8wDQYDVQQIDAZQcmFndWUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAgFw0yMjA5MDkwNzUyMDhaGA8yMTIyMDgxNjA3NTIwOFowQTELMAkGA1UEBhMCQ1oxDzANBgNVBAgMBlByYWd1ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMCowBQYDK2VwAyEApyKRP0sXY0n2wIiOiqjIA5A0hJsPgx3pOkOxVbw+tQCjUzBRMB0GA1UdDgQWBBQa6T59VcYnpBWB8XJn5SIj6sQ2BjAfBgNVHSMEGDAWgBQa6T59VcYnpBWB8XJn5SIj6sQ2BjAPBgNVHRMBAf8EBTADAQH/MAUGAytlcANBAJCysllbx2lQVG5rKb3CU80w0MACydUsMrDvkSPH0wKn7kE8gjXOmN4rZRNMwuPKXrLD3XkNhwi8D+tDgMl80Q0=";
+
+		key = "MC4CAQAwBQYDK2VwBCIEIBFmSfxGjEewJqE7EtYHQUUDgT4NeE70aXvhWupzf3+U";
+
+		caString = "";
+
+		JsonObject config = JsonParser.parseString("{"
+			+ "\"cert\":\"" + cert + "\","
+			+ "\"key\":\"" + key + "\","
+			+ "\"ca\":\"" + caString + "\""
+			+ "}").getAsJsonObject();
+
+		env.putObject("mutual_tls_authentication", config);
+
+		cond.execute(env);
+
+		verify(env, atLeastOnce()).getString("mutual_tls_authentication", "cert");
+		verify(env, atLeastOnce()).getString("mutual_tls_authentication", "key");
+		verify(env, atLeastOnce()).getString("mutual_tls_authentication", "ca");
+	}
+
+	@Test
+	public void testEvaluateEd25519_ErrorWithWrongCert() {
+		assertThrows(ConditionError.class, () -> {
+
+			cert = "MIIBmTCCAUugAwIBAgIUXcf+V0HQsVcQJIK6bfpkGCaEXoQwBQYDK2VwMEExCzAJBgNVBAYTAkNaMQ8wDQYDVQQIDAZQcmFndWUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAgFw0yMjA5MDkwNzUyMDhaGA8yMTIyMDgxNjA3NTIwOFowQTELMAkGA1UEBhMCQ1oxDzANBgNVBAgMBlByYWd1ZTEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMCowBQYDK2VwAyEApyKRP0sXY0n2wIiOiqjIA5A0hJsPgx3pOkOxVbw+tQCjUzBRMB0GA1UdDgQWBBQa6T59VcYnpBWB8XJn5SIj6sQ2BjAfBgNVHSMEGDAWgBQa6T59VcYnpBWB8XJn5SIj6sQ2BjAPBgNVHRMBAf8EBTADAQH/MAUGAytlcANBAJCysllbx2lQVG5rKb3CU80w0MACydUsMrDvkSPH0wKn7kE8gjXOmN4rZRNMwuPKXrLD3XkNhwi8D+tDgMl80Q0=";
+
+			key = "MC4CAQAwBQYDK2VwBCIEIHfm10tgDdPl51UIi+OlzCwnqTLbxk7IjB8qhwMzF3LG";
+
+			caString = "";
+
+			JsonObject config = JsonParser.parseString("{"
+				+ "\"cert\":\"" + cert + "\","
+				+ "\"key\":\"" + key + "\","
+				+ "\"ca\":\"" + caString + "\""
+				+ "}").getAsJsonObject();
+
+			env.putObject("mutual_tls_authentication", config);
+
+			cond.execute(env);
+
+		});
+
+	}
+
 }
