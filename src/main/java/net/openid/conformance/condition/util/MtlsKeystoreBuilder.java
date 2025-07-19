@@ -69,14 +69,14 @@ public class MtlsKeystoreBuilder {
 
 	protected static PrivateKey generateAlgPrivateKeyFromDER(String alg, byte[] keyBytes) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 		try {
-			// try to generate private key using PKCS8, works for both RSA and EC alg
+			// try to generate private key using PKCS8, works for both RSA and EC and Ed25519 alg
 			// RSA alg will handle both PKCS1 and PKCS8 format here
-			// EC alg will throw exception for PKCS1
+			// EC alg will throw exception for PKCS1, Ed25519 not possible with PKCS1
 			KeySpec kspec = new PKCS8EncodedKeySpec(keyBytes);
 			return KeyFactory.getInstance(alg, BouncyCastleProviderSingleton.getInstance()).generatePrivate(kspec);
 		} catch (InvalidKeySpecException e) {
 			if("EC".equals(alg)) {
-				// try to generate private key using PKCS1, code from ValidateMTLSCertificatesAsX509.verifyECPrivateKey
+				// try to generate private key using PKCS1, code from ValidateMTLSCertificatesAsX509.generateAlgPrivateKeyFromDER
 				ASN1Sequence seq = ASN1Sequence.getInstance(keyBytes);
 				org.bouncycastle.asn1.sec.ECPrivateKey pKey = org.bouncycastle.asn1.sec.ECPrivateKey.getInstance(seq);
 				AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.id_ecPublicKey, pKey.getParametersObject());
