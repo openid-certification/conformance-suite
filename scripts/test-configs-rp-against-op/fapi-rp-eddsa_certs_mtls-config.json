@@ -1,0 +1,54 @@
+{
+    "alias": "oidf-fapi-rp-test",
+    "description": "FAPI RP test config for running against OP tests (EDDSA Signature)",
+    "server": {
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "OKP",
+                    "d": "JEk9oOYONmqY47yctvk6evthsZNnEu2CpXqdvU3kGDQ",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "5cRxI-p5IXPbtd3QZExFFgVf8spbymEQZ4vwzixc3QE",
+                    "x": "YT2su-2OHrVm_Cf0yheQFtr41ND3qGe3w_FUu3pm8sk",
+                    "alg": "EdDSA"
+                }
+            ]
+        }
+    },
+    "client": {
+        "client_id": "52480754053",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "OKP",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "dHg59YomyTbIDozWyGD-5zNMVRjBLbIWtdLor0vQ5xc",
+                    "x": "1NF31XUGltZmf4t4CyHdVSSovTY2A7sKAg0FWt6Gg5s",
+                    "alg": "EdDSA"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIBPDCB7wIUTImnQu4efcRh7Tnn8M7CV9Lc/g0wBQYDK2VwMEExCzAJBgNVBAYT\nAlVTMQswCQYDVQQIDAJDQTENMAsGA1UECgwEQUNNRTEWMBQGA1UEAwwNdGVzdC5h\nY21lLmNvbTAeFw0yNTA3MTYyMjA2NTdaFw0yNzA2MTYyMjA2NTdaMEExCzAJBgNV\nBAYTAlVTMQswCQYDVQQIDAJDQTENMAsGA1UECgwEQUNNRTEWMBQGA1UEAwwNdGVz\ndC5hY21lLmNvbTAqMAUGAytlcAMhAD5vOGgkvdhlO2hADLTImhvJ/pjzkKsJRgk8\ngXx8atMBMAUGAytlcANBAJs4EJQtlmIbzOS0TNj+ezpk9ETsaTGi85yWOD8/gixK\nkqZmUB8A8ZcRT/lU9uAAgqkhYFPrGPvsGEGPoVqsIA4=\n-----END CERTIFICATE-----\n",
+        "redirect_uri": "{BASEURL}test/a/oidf-fapi-op-test/callback"
+    },
+    "client2": {
+        "client_id": "61732691006",
+        "scope": "openid accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "OKP",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "jtAUMIDTLgaFlxh_-DoevlMn0DQZJNyQAi_34tcT1QI",
+                    "x": "03TY8u8MkPrgHQy5psgj9z5Q2f_cdtGXKJ7V-qYTBBM",
+                    "alg": "EdDSA"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIBPjCB8QIUH/K3qO2FnXqvBsQPQV4izy3BuhgwBQYDK2VwMEIxCzAJBgNVBAYT\nAlVTMQswCQYDVQQIDAJDQTENMAsGA1UECgwEQUNNRTEXMBUGA1UEAwwOdGVzdDIu\nYWNtZS5jb20wHhcNMjUwNzE5MDEyOTUyWhcNMjcwNjE5MDEyOTUyWjBCMQswCQYD\nVQQGEwJVUzELMAkGA1UECAwCQ0ExDTALBgNVBAoMBEFDTUUxFzAVBgNVBAMMDnRl\nc3QyLmFjbWUuY29tMCowBQYDK2VwAyEAvKetUcG2a6RDrveC4we+EEEELtGCtxXR\nZCOZXC57fNkwBQYDK2VwA0EAcrd9hrepTE/Cx3TNaOUL6YjvHDacjxs8YScVUbNO\nBiPm1SqDjn7NsmoBXIZbTT4kcHjhnCzHgQCNZu2R0n53DA==\n-----END CERTIFICATE-----"
+    }
+}
