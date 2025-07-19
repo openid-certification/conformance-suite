@@ -8,6 +8,7 @@ import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.token.TokenService;
 import net.openid.conformance.ui.ServerInfoTemplate;
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bson.Document;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,7 +120,9 @@ public class Application {
 
 	public static void main(String[] args) {
 
-		Security.addProvider(BouncyCastleProviderSingleton.getInstance());
+		// Insert BC providers at higher priority
+		Security.insertProviderAt(BouncyCastleProviderSingleton.getInstance(), 1);
+		Security.insertProviderAt(new BouncyCastleJsseProvider(), 2);
 
 		SpringApplication springApplication = new SpringApplication(Application.class);
 		springApplication.addListeners(new PreparedEventListener());
