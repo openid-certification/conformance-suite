@@ -16,15 +16,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.KeyManager;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.Security;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 class MtlsKeystoreBuilder_UnitTest {
@@ -47,7 +41,8 @@ class MtlsKeystoreBuilder_UnitTest {
 	void setUp() {
 		cond = new MtlsKeystoreBuilder();
 		extractMtlsCond = new ExtractMTLSCertificatesFromConfiguration();
-		extractMtlsCond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);;
+		extractMtlsCond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		;
 	}
 
 	@AfterEach
@@ -55,9 +50,9 @@ class MtlsKeystoreBuilder_UnitTest {
 	}
 
 	@Test
-	public void testRSA_Pkcs8_noError() throws Exception{
+	public void testRSA_Pkcs8_noError() throws Exception {
 
-		String cert =  "-----BEGIN CERTIFICATE-----\n" +
+		String cert = "-----BEGIN CERTIFICATE-----\n" +
 			"MIIFbzCCA1egAwIBAgIUDqU5m/pE5M1SITdUScwkOROva2IwDQYJKoZIhvcNAQEL\n" +
 			"BQAwRzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExDTALBgNVBAoM\n" +
 			"BEFDTUUxFDASBgNVBAMMC1Rlc3Qgc2VydmVyMB4XDTI1MDcxNjAxMzIzOVoXDTI2\n" +
@@ -160,8 +155,8 @@ class MtlsKeystoreBuilder_UnitTest {
 	}
 
 	@Test
-	public void testRSA_Pkcs_noError() throws Exception{
-		String cert =  "-----BEGIN CERTIFICATE-----\n" +
+	public void testRSA_Pkcs_noError() throws Exception {
+		String cert = "-----BEGIN CERTIFICATE-----\n" +
 			"MIIFbzCCA1egAwIBAgIUDqU5m/pE5M1SITdUScwkOROva2IwDQYJKoZIhvcNAQEL\n" +
 			"BQAwRzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExDTALBgNVBAoM\n" +
 			"BEFDTUUxFDASBgNVBAMMC1Rlc3Qgc2VydmVyMB4XDTI1MDcxNjAxMzIzOVoXDTI2\n" +
@@ -260,9 +255,9 @@ class MtlsKeystoreBuilder_UnitTest {
 	}
 
 	@Test
-	public void testEC_Pkcs1_noError() throws Exception{
+	public void testEC_Pkcs1_noError() throws Exception {
 
-		String cert =  "-----BEGIN CERTIFICATE-----\n" +
+		String cert = "-----BEGIN CERTIFICATE-----\n" +
 			"MIIB4jCCAYmgAwIBAgIUNUXl1CHXlpHJ7u2SQb4nQYhcQ9cwCgYIKoZIzj0EAwIw\n" +
 			"RzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExDTALBgNVBAoMBEFD\n" +
 			"TUUxFDASBgNVBAMMC1Rlc3QgU2VydmVyMB4XDTI1MDcxNjAxNTUxN1oXDTI2MDcx\n" +
@@ -299,9 +294,9 @@ class MtlsKeystoreBuilder_UnitTest {
 	}
 
 	@Test
-	public void testEC_Pkcs8_noError() throws Exception{
+	public void testEC_Pkcs8_noError() throws Exception {
 
-		String cert =  "-----BEGIN CERTIFICATE-----\n" +
+		String cert = "-----BEGIN CERTIFICATE-----\n" +
 			"MIIB4jCCAYmgAwIBAgIUNUXl1CHXlpHJ7u2SQb4nQYhcQ9cwCgYIKoZIzj0EAwIw\n" +
 			"RzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExDTALBgNVBAoMBEFD\n" +
 			"TUUxFDASBgNVBAMMC1Rlc3QgU2VydmVyMB4XDTI1MDcxNjAxNTUxN1oXDTI2MDcx\n" +
@@ -337,4 +332,38 @@ class MtlsKeystoreBuilder_UnitTest {
 		assertNotNull(km);
 	}
 
+	@Test
+	public void testEd25519_Pkcs8_noError() throws Exception {
+
+		String cert = "-----BEGIN CERTIFICATE-----\n" +
+			"MIIBozCCAVWgAwIBAgIUD3QN/VuPMCparGilF6xrtYNl/dswBQYDK2VwMEcxCzAJ\n" +
+			"BgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMQ0wCwYDVQQKDARBQ01FMRQw\n" +
+			"EgYDVQQDDAtUZXN0IFNlcnZlcjAeFw0yNTA3MTYyMDUzMzVaFw0yNjA3MTYyMDUz\n" +
+			"MzVaMEcxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMQ0wCwYDVQQK\n" +
+			"DARBQ01FMRQwEgYDVQQDDAtUZXN0IFNlcnZlcjAqMAUGAytlcAMhADJtcwDuyvdU\n" +
+			"hXPevI2dxyfilabDEbYzHUoffRHguCQGo1MwUTAdBgNVHQ4EFgQU55zlHengF6U1\n" +
+			"c7B4iWo3oj6fk/swHwYDVR0jBBgwFoAU55zlHengF6U1c7B4iWo3oj6fk/swDwYD\n" +
+			"VR0TAQH/BAUwAwEB/zAFBgMrZXADQQAf5JPoFUjh+JN6T4b41rgeubSngj1g/Znh\n" +
+			"vXJ/g/0kpaDdhdVVupghwjj49yDzT2kjKtHT6JrUGSPtnjE0dsUH\n" +
+			"-----END CERTIFICATE-----";
+
+		String key = "-----BEGIN PRIVATE KEY-----\n" +
+			"MC4CAQAwBQYDK2VwBCIEIDBeyu9bwL0X67Pvxk2Gb/xBJw7wbtYcbsTZmBetLVms\n" +
+			"-----END PRIVATE KEY-----";
+		String ca = "";
+
+		JsonObject config = JsonParser.parseString("{\"mtls\":{"
+			+ "\"cert\":\"" + cert + "\","
+			+ "\"key\":\"" + key + "\","
+			+ "\"ca\":\"" + ca + "\""
+			+ "}}").getAsJsonObject();
+
+		env.putObject("config", config);
+
+		extractMtlsCond.execute(env);
+
+		KeyManager[] km = MtlsKeystoreBuilder.configureMtls(env);
+
+		assertNotNull(km);
+	}
 }
