@@ -113,7 +113,6 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 				break;
 			case "openbanking_brazil":
 				return List.of( "FAPI2MS RP BR-OB");
-				break;
 			case "connectid_au":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for ConnectID".formatted(
