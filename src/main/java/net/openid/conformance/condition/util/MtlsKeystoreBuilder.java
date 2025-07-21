@@ -89,7 +89,8 @@ public class MtlsKeystoreBuilder {
 
 
 	protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509", BouncyCastleProviderSingleton.getInstance());
+//		CertificateFactory factory = CertificateFactory.getInstance("X.509", BouncyCastleProviderSingleton.getInstance());
+		CertificateFactory factory = CertificateFactory.getInstance("X.509");
 
 		return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certBytes));
 	}

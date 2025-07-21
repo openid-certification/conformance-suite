@@ -3,12 +3,12 @@ package net.openid.conformance;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
+import jakarta.annotation.PostConstruct;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.token.TokenService;
 import net.openid.conformance.ui.ServerInfoTemplate;
-import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
 import org.bson.Document;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import jakarta.annotation.PostConstruct;
 import java.security.Security;
 
 @SpringBootApplication
@@ -121,8 +120,7 @@ public class Application {
 	public static void main(String[] args) {
 
 		// Insert BC providers at higher priority
-		Security.insertProviderAt(BouncyCastleProviderSingleton.getInstance(), 1);
-		Security.insertProviderAt(new BouncyCastleJsseProvider(), 2);
+		Security.addProvider(BouncyCastleProviderSingleton.getInstance());
 
 		SpringApplication springApplication = new SpringApplication(Application.class);
 		springApplication.addListeners(new PreparedEventListener());
