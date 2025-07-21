@@ -19,7 +19,7 @@ import java.util.Map;
 )
 public class FAPI2SPFinalClientTestPlan implements TestPlan {
 
-	public static String certificationProfileName(VariantSelection variant) {
+	public static List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
@@ -28,28 +28,27 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 		boolean privateKey = clientAuth.equals("private_key_jwt");
 		String clientType = v.get("fapi_client_type");
 		boolean openid = clientType.equals("oidc");
-
-		String certProfile = "FAPI2SPFinal ";
+		List<String> profiles = new ArrayList<>();
+		String certProfile = "FAPI2SP RP ";
 
 		if (openid) {
-			certProfile += "OpenID ";
+
+			profiles.add(certProfile + "OpenID Connect");
 		}
 
 		switch (profile) {
 			case "plain_fapi":
 				break;
 			case "openbanking_uk":
-				certProfile += " UK-OB";
-				break;
+				return List.of(certProfile + " UK-OB");
 			case "consumerdataright_au":
-				certProfile += " AU-CDR";
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				break;
+				return List.of(certProfile + " AU-CDR");
 			case "openbanking_brazil":
-				return "Not a conformance profile. Please use 'FAPI2-Security-Profile-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
+				throw new RuntimeException("Not a conformance profile. Please use 'FAPI2-Security-Profile-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.");
 			case "connectid_au":
 				throw new RuntimeException("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -60,11 +59,9 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		certProfile += " RP w/";
-
 		switch (clientAuth) {
 			case "private_key_jwt":
-				certProfile += " Private Key";
+				certProfile += " private key";
 				break;
 			case "mtls":
 				certProfile += " MTLS";
@@ -72,14 +69,14 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 		}
 		switch (senderConstrain) {
 			case "mtls":
-				certProfile += ", MTLS constrain";
+				certProfile += " + MTLS";
 				break;
 			case "dpop":
-				certProfile += ", DPoP";
+				certProfile += " + DPoP";
 				break;
 		}
-
-		return certProfile.replaceAll("  ", " ");
+		profiles.add(certProfile);
+		return profiles;
 	}
 
 	public static List<ModuleListEntry> testModulesWithVariants() {

@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -65,8 +66,9 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
+	public static List<String> certificationProfileName(VariantSelection variant) {
 
+		List<String> profiles = new ArrayList<>();
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
 		String clientAuth = v.get("client_auth_type");
@@ -83,22 +85,21 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		boolean openid = clientType.equals("oidc");
 		boolean rar = "rar".equals(authRequestType);
 
-		String certProfile = "FAPI2MsgSigning Final ";
+		String certProfile = "FAPI2SP SP ";
 
 		if (openid) {
-			certProfile += "OpenID ";
+			profiles.add(certProfile + "OpenID Connect");
 		}
 
 		switch (profile) {
 			case "plain_fapi":
 				break;
 			case "openbanking_uk":
-				certProfile = "UK-OB";
 				if (jarm) {
 					throw new RuntimeException("Invalid configuration for %s: JARM is not used in UK".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				break;
+				return List.of( "FAPI2MS RP UK-OB");
 			case "consumerdataright_au":
 				certProfile = "AU-CDR";
 				if (!privateKey) {
@@ -111,7 +112,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				certProfile = "BR-OB";
+				return List.of( "FAPI2MS RP BR-OB");
 				break;
 			case "connectid_au":
 				if (!privateKey) {
@@ -131,7 +132,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return certProfile + " ConnectID RP";
+				return List.of( "FAPI2MS RP with ConnectId support");
 			case "cbuae":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for CBUAE".formatted(
@@ -154,32 +155,32 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 
-				return certProfile + " CBUAE RP";
+				return List.of( "FAPI2MS RP CBUAE RP");
 		}
-
-		certProfile += " RP w/";
 
 		switch (clientAuth) {
 			case "private_key_jwt":
-				certProfile += " Private Key";
+				certProfile += " private key";
 				break;
 			case "mtls":
-				certProfile += " MTLS client auth";
+				certProfile += " MTLS";
 				break;
 		}
 		switch (senderConstrain) {
 			case "mtls":
-				certProfile += ", MTLS constrain";
+				certProfile += " + MTLS";
 				break;
 			case "dpop":
-				certProfile += ", DPoP";
+				certProfile += " + DPoP";
 				break;
 		}
+		profiles.add( certProfile );
+
 		switch (requestMethod) {
 			case "unsigned":
 				break;
 			case "signed_non_repudiation":
-				certProfile += ", JAR";
+				profiles.add( "FAPI2MS RP JAR" );
 				break;
 		}
 		switch (responseMode) {
@@ -187,11 +188,10 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 				// nothing
 				break;
 			case "jarm":
-				certProfile += ", JARM";
+				profiles.add( "FAPI2MS RP JARM" );
 				break;
 		}
 
-
-		return certProfile;
+		return profiles;
 	}
 }

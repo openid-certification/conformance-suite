@@ -157,22 +157,21 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		boolean openid = clientType.equals("openid_connect");
 		boolean rar = "rar".equals(authRequestType);
 
-		String certProfile = "FAPI2MS ";
+		String certProfile = "FAPI2SP OP";
 
 		if (openid) {
-			profiles.add("FAPI2SP OpenID Connect");
+			profiles.add("FAPI2SP OP OpenID Connect");
 		}
 
 		switch (profile) {
 			case "plain_fapi":
 				break;
 			case "openbanking_uk":
-				//certProfile = "UK-OB";
 				if (jarm) {
 					throw new RuntimeException("Invalid configuration for %s: JARM is not used in UK".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				return List.of( "FAPI2MS UK-OB OP");
+				return List.of( "FAPI2MS OP UK-OB");
 			case "consumerdataright_au":
 //				certProfile = "AU-CDR";
 				if (!privateKey) {
@@ -183,9 +182,9 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 					throw new RuntimeException("Invalid configuration for %s: JARM is not used in AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				return List.of( "FAPI2MS AU-CDR OP");
+				return List.of( "FAPI2MS OP AU-CDR");
 			case "openbanking_brazil":
-				return List.of( "FAPI2MS BR-OB OP");
+				return List.of( "FAPI2MS OP BR-OB");
 			case "connectid_au":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for ConnectID".formatted(
@@ -208,7 +207,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return List.of("FAPI2MS with ConnectId support");
+				return List.of("FAPI2MS OP with ConnectId support");
 			case "cbuae":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for CBUAE".formatted(
@@ -236,7 +235,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return List.of("FAPI2MS OpenID CBUAE OP");
+				return List.of("FAPI2MS OP CBUAE");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -264,7 +263,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 			case "unsigned":
 				break;
 			case "signed_non_repudiation":
-				profiles.add("FAPI2MS JAR");
+				profiles.add("FAPI2MS OP JAR");
 				break;
 		}
 		switch (responseMode) {
@@ -272,7 +271,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 				// nothing
 				break;
 			case "jarm":
-				profiles.add("FAPI2MS JARM");
+				profiles.add("FAPI2MS OP JARM");
 				break;
 		}
 
