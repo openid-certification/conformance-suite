@@ -60,7 +60,9 @@ public class MtlsKeystoreBuilder {
 		keystore.setCertificateEntry("cert-key-alias", cert);
 		keystore.setKeyEntry("cert-key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
 
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("PKIX");
+//		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+//		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("PKIX", new BouncyCastleJsseProvider());
 		keyManagerFactory.init(keystore, "changeit".toCharArray());
 
 		return  keyManagerFactory.getKeyManagers();
