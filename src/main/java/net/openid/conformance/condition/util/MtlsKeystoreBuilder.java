@@ -57,8 +57,8 @@ public class MtlsKeystoreBuilder {
 
 		KeyStore keystore = KeyStore.getInstance("JKS");
 		keystore.load(null);
-		keystore.setCertificateEntry("cert-alias", cert);
-		keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
+		keystore.setCertificateEntry("cert-key-alias", cert);
+		keystore.setKeyEntry("cert-key-alias", key, "changeit".toCharArray(), chain.toArray(new Certificate[chain.size()]));
 
 		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 		keyManagerFactory.init(keystore, "changeit".toCharArray());
