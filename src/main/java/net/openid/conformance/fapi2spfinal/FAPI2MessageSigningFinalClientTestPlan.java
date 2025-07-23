@@ -85,7 +85,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		boolean openid = clientType.equals("oidc");
 		boolean rar = "rar".equals(authRequestType);
 
-		String certProfile = "FAPI2SP OP ";
+		String certProfile = "FAPI2SP RP ";
 
 		if (openid) {
 			profiles.add(certProfile + "OpenID Connect");
