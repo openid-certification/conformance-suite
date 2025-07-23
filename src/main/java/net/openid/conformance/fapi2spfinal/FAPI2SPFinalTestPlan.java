@@ -48,7 +48,10 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
+	public static List<String> certificationProfileName(VariantSelection variant) {
+
+		List<String> profiles = new ArrayList<>();
+
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
@@ -58,28 +61,23 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 		String clientType = v.get("openid");
 		boolean openid = clientType.equals("openid_connect");
 
-		String certProfile = "FAPI2SPFinal ";
-
 		if (openid) {
-			certProfile += "OpenID ";
+			profiles.add("FAPI2SP OP OpenID Connect");
 		}
 
 		switch (profile) {
 			case "plain_fapi":
 				break;
 			case "openbanking_uk":
-				certProfile = "UK-OB";
-				break;
+				return List.of("FAPI2SP OP UK-OB");
 			case "consumerdataright_au":
-				certProfile = "AU-CDR";
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				break;
+				return List.of("FAPI2SP OP AU-CDR");
 			case "openbanking_brazil":
-				certProfile = "BR-OB";
-				break;
+				return List.of( "FAPI2SP OP BR-OF");
 			case "connectid_au":
 				throw new RuntimeException("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -90,25 +88,26 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
-		certProfile += " OP w/";
+		String certProfile = "FAPI2SP OP ";
 
 		switch (clientAuth) {
 			case "private_key_jwt":
-				certProfile += " Private Key";
+				certProfile += "private key";
 				break;
 			case "mtls":
-				certProfile += " MTLS client auth";
-				break;
-		}
-		switch (senderConstrain) {
-			case "mtls":
-				certProfile += ", MTLS constrain";
-				break;
-			case "dpop":
-				certProfile += ", DPoP";
+				certProfile += "MTLS";
 				break;
 		}
 
-		return certProfile.replaceAll("  ", " ");
+		switch (senderConstrain) {
+			case "mtls":
+				certProfile += " + MTLS";
+				break;
+			case "dpop":
+				certProfile += " + DPoP";
+				break;
+		}
+		profiles.add(certProfile);
+		return profiles;
 	}
 }

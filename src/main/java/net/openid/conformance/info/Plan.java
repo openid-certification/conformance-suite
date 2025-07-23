@@ -28,7 +28,7 @@ public class Plan {
 	private Map<String, String> owner;
 	@Indexed
 	private String description;
-	private String certificationProfileName;
+	private List<String> certificationProfileName;
 	private List<Module> modules;
 	private String version;
 	private String summary;
@@ -75,7 +75,7 @@ public class Plan {
 			Instant started,
 			Map<String, String> owner,
 			String description,
-			String certificationProfileName,
+			List<String> certificationProfileName,
 			List<Module> testModules,
 			String version,
 			String summary,
@@ -123,7 +123,7 @@ public class Plan {
 		return description;
 	}
 
-	public String getCertificationProfileName() {
+	public List<String> getCertificationProfileName() {
 		return certificationProfileName;
 	}
 

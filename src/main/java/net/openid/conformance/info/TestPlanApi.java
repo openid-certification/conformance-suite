@@ -111,7 +111,7 @@ public class TestPlanApi implements DataUtils {
 			throw new RuntimeException("No test modules in plan '" + planName + "' are applicable for specified variant");
 		}
 
-		String certProfile = holder.certificationProfileForVariant(variant);
+		List<String> certProfile = holder.certificationProfileForVariant(variant);
 
 		planService.createTestPlan(id, planName, variant, config, description, certProfile, testModules, holder.info.summary(), publish);
 

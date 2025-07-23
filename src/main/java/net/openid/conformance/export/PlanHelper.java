@@ -135,7 +135,7 @@ public class PlanHelper {
 		throw new RuntimeException("Error getting plan descripton. This is a bug in the suite.");
 	}
 
-	public String getCertificationProfileName() {
+	public List<String> getCertificationProfileName() {
 		try {
 			if(planExportInfo.getPlanInfo() instanceof PublicPlan) {
 				PublicPlan publicPlan = (PublicPlan)planExportInfo.getPlanInfo();

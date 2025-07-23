@@ -46,7 +46,9 @@
                         <% if (plan.certificationProfileName) { %>
                         <div class="row">
                             <div class="col-md-1">Certification profile:</div>
-                            <div class="col-md-11"><%- plan.certificationProfileName %></div>
+                            <div class="col-md-11">
+                                <%- Array.isArray(plan.certificationProfileName) ? plan.certificationProfileName.join(', ') : plan.certificationProfileName %>
+                            </div>
                         </div>
                         <% } %>
 
