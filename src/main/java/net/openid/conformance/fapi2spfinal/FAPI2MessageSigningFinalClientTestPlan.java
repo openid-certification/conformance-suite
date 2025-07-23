@@ -85,7 +85,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		boolean openid = clientType.equals("oidc");
 		boolean rar = "rar".equals(authRequestType);
 
-		String certProfile = "FAPI2SP SP ";
+		String certProfile = "FAPI2SP OP ";
 
 		if (openid) {
 			profiles.add(certProfile + "OpenID Connect");
@@ -112,7 +112,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				return List.of( "FAPI2MS RP BR-OB");
+				return List.of( "FAPI2MS RP BR-OF");
 			case "connectid_au":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for ConnectID".formatted(
@@ -154,7 +154,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 
-				return List.of( "FAPI2MS RP CBUAE RP");
+				return List.of( "FAPI2MS RP CBUAE");
 		}
 
 		switch (clientAuth) {

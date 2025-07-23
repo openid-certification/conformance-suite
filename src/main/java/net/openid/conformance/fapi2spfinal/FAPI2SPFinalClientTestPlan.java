@@ -48,7 +48,7 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 				}
 				return List.of(certProfile + " AU-CDR");
 			case "openbanking_brazil":
-				throw new RuntimeException("Not a conformance profile. Please use 'FAPI2-Security-Profile-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.");
+				throw new RuntimeException("Not a conformance profile. Please use 'FAPI2-Security-Profile-Final: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OF RP certification.");
 			case "connectid_au":
 				throw new RuntimeException("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));

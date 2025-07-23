@@ -69,15 +69,15 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 			case "plain_fapi":
 				break;
 			case "openbanking_uk":
-				return List.of("FAPI2SP OP UK-OB OP");
+				return List.of("FAPI2SP OP UK-OB");
 			case "consumerdataright_au":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
-				return List.of("FAPI2SP OP AU-CDR OP");
+				return List.of("FAPI2SP OP AU-CDR");
 			case "openbanking_brazil":
-				return List.of( "FAPI2SP OP BR-OB OP");
+				return List.of( "FAPI2SP OP BR-OF");
 			case "connectid_au":
 				throw new RuntimeException("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
