@@ -5,7 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.text.RandomStringGenerator;
 
 public class ConnectIdAddPurposeToAuthorizationEndpointRequest extends AbstractCondition {
 
@@ -20,7 +20,9 @@ public class ConnectIdAddPurposeToAuthorizationEndpointRequest extends AbstractC
 			purposeLength = 280; // default to a purpose of length 280
 		}
 
-		String purpose= RandomStringUtils.secure().nextAlphanumeric(purposeLength);
+		// Generator for a string containing only non-ASCII (Hangul Jano) characters to force UTF8 encoding.
+		RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange(0x1100, 0x01159).get();
+		String purpose= generator.generate(purposeLength);
 		authorizationEndpointRequest.addProperty("purpose", purpose);
 
 		logSuccess("Added purpose parameter to request", args("purpose length", purposeLength, "request", authorizationEndpointRequest));
