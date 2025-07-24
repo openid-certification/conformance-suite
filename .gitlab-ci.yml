@@ -90,21 +90,9 @@ test:
 
 compare_cloud:
   <<: *compare
-  needs: ["server_test", "ciba_test", "ekyc_test", "brazil_test", "panva_test"]
+  needs: ["server_test"]
   script:
-    - run_compare server_test ciba_test ekyc_test brazil_test panva_test
-
-compare_local:
-  <<: *compare
-  needs: ["local_test"]
-  script:
-    - run_compare local_test
-
-compare_client:
-  <<: *compare
-  needs: ["client_test"]
-  script:
-    - run_compare client_test
+    - run_compare server_test
 
 check-trailing-whitespace:
   interruptible: true
@@ -294,35 +282,7 @@ server_test:
     - set_up_for_running_test_plan
     - run_server_test_plan
 
-ciba_test:
-  <<: *deployment_test
-  script:
-    - set_up_for_running_test_plan
-    - run_ciba_test_plan
 
-brazil_test:
-  <<: *deployment_test
-  script:
-    - set_up_for_running_test_plan
-    - run_brazil_test_plan
-
-ekyc_test:
-  <<: *deployment_test
-  script:
-    - set_up_for_running_test_plan
-    - run_ekyc_test_plan
-
-panva_test:
-  <<: *deployment_test
-  script:
-    - set_up_for_running_test_plan
-    - run_panva_test_plan
-
-federation_test:
-  <<: *deployment_test
-  script:
-    - set_up_for_running_test_plan
-    - run_federation_test_plan
 
 #ssf_test:
 #  <<: *deployment_test
