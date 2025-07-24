@@ -51,6 +51,14 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 	}
 
 	@Test
+	void shouldReportNoErrorsForSpecAppendixExampleMetadata() throws Exception {
+		// from https://github.com/openid/OpenID4VCI/pull/584
+		String metadataString = readFile("metadata/openid4vci-1_0/valid-openid-credential-issuer-metadata-spec-appendix-example.json");
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		validation.evaluate(env);
+	}
+
+	@Test
 	void shouldReportNoValidationErrorForCorrectEudiwMetadata() throws Exception {
 		// credential issuer metadata from https://issuer.eudiw.dev/.well-known/openid-credential-issuer
 		String metadataString = readFile("metadata/openid4vci-1_0/valid-openid-credential-issuer-metadata-eudiw.json");
