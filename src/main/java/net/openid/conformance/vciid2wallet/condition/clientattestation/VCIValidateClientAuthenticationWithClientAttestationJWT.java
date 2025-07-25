@@ -9,6 +9,7 @@ public class VCIValidateClientAuthenticationWithClientAttestationJWT extends Abs
 
 		callAndStopOnFailure(ExtractClientAttestationFromRequest.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA05-6.2");
 		callAndStopOnFailure(ValidateClientAttestationKeyBindingSignature.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA05-6.2");
+		callAndStopOnFailure(CheckForClientAttestationProofJwtReuse.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA05-9.1", "OAuth2-ATCA05-5.2");
 		callAndStopOnFailure(ValidateClientAttestationIssuer.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA05-6.2");
 	}
 }
