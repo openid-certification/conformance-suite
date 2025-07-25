@@ -199,7 +199,6 @@ import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInC
 import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToParEndpointRequest;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToTokenEndpointRequest;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.CreateClientAttestationJwt;
-import net.openid.conformance.vciid2issuer.condition.clientattestation.CreateClientAttestationProofJwt;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -258,6 +257,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	protected Class<? extends ConditionSequence> addProtectedResourceEndpointClientAuthentication;
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
 	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
@@ -792,8 +792,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void createPreAuthorizationCodeRequest() {
 
 		callAndStopOnFailure(VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant.class);
-
-		addClientAuthenticationToTokenEndpointRequest();
 	}
 
 	protected void createAuthorizationCodeRequest() {
@@ -802,9 +800,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (env.getObject("token_endpoint_request_headers") == null) {
 			env.putObject("token_endpoint_request_headers", new JsonObject());
 		}
-		env.mapKey("request_headers", "token_endpoint_request_headers");
-		addClientAuthenticationToTokenEndpointRequest();
-		env.unmapKey("request_headers");
 
 		addPkceCodeVerifier();
 	}
@@ -814,7 +809,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		env.mapKey("request_headers", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
+		env.unmapKey("request_headers");
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
@@ -834,6 +831,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop()) {
 			int i = 0;
 			while (i < MAX_RETRY) {
+				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
 				if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
@@ -1071,6 +1069,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			final int MAX_RETRY = 2;
 			int i = 0;
 			while (i < MAX_RETRY) {
+
 				call(sequence(createDpopForResourceEndpointSteps));
 				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "OID4VCI-ID2-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 				if (Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
@@ -1278,7 +1277,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
 		callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1", "HAIP-4.3.1-2");
-		callAndStopOnFailure(CreateClientAttestationProofJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
+
+		// we generate a new CreateClientAttestationProofJwt via the AddClientAttestationClientAuthToEndpointRequest sequence
 	}
 
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")

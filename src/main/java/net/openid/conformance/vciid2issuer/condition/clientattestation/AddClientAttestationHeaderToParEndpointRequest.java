@@ -1,12 +1,9 @@
 package net.openid.conformance.vciid2issuer.condition.clientattestation;
 
-import net.openid.conformance.sequence.AbstractConditionSequence;
-
-public class AddClientAttestationHeaderToParEndpointRequest extends AbstractConditionSequence {
+public class AddClientAttestationHeaderToParEndpointRequest extends AddClientAttestationClientAuthToEndpointRequest {
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(AddClientAttestationHeaderToRequest.class, "OAuth2-ATCA05-6.1");
-		callAndStopOnFailure(AddClientAttestationProofHeaderToRequest.class, "OAuth2-ATCA05-6.1");
+		super.evaluate();
 	}
 }
