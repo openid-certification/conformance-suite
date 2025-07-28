@@ -21,6 +21,7 @@ import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizati
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsNotSet;
 import net.openid.conformance.condition.client.CheckJwksUriIsHostedOnOpenBankingDirectory;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsCodeChallengeMethodS256;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsCDRAcrClaim;
 import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
@@ -177,6 +178,7 @@ public class FAPI1AdvancedFinalDiscoveryEndpointVerification extends AbstractFAP
 
 			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CheckDiscEndpointScopesSupportedContainsOpenId.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsCDRAcrClaim.class, Condition.ConditionResult.WARNING);
 		}
 	}
 
