@@ -840,6 +840,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				++i;
 			}
 		} else {
+			addClientAuthenticationToTokenEndpointRequest();
 			callAndStopOnFailure(fullResponse ? CallTokenEndpointAndReturnFullResponse.class : CallTokenEndpoint.class, requirements);
 		}
 	}
