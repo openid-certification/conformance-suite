@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureAccessDeniedErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsOpenBankingUkScaAcrClaim;
 import net.openid.conformance.condition.client.ExpectAccessDeniedErrorPage;
 import net.openid.conformance.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -40,6 +41,12 @@ import net.openid.conformance.variant.VariantSetup;
 // only applicable to UK OpenBanking as the SCA acr value we use is specific to that ecosystem
 @VariantNotApplicable(parameter = FAPI2ID2OPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au",  "cbuae" })
 public class FAPI2SPID2TestEssentialAcrScaClaim extends AbstractFAPI2SPID2ExpectingAuthorizationEndpointPlaceholderOrCallback {
+
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndContinueOnFailure(EnsureServerConfigurationSupportsOpenBankingUkScaAcrClaim.class, Condition.ConditionResult.WARNING);
+	}
 
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "openbanking_uk")
 	@Override
