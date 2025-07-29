@@ -32,9 +32,11 @@ resources:
 javaArgs: "-Xmx724M -Djdk.tls.maxHandshakeMessageSize=65536 -Dfintechlabs.show_external_ip_address=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/dump/"
 mongodb:
   image:
-    # this is currently the latest 6.0.x according to https://hub.docker.com/r/bitnami/mongodb/tags and https://www.mongodb.com/docs/manual/release-notes/6.0/
+    registry: docker.io
+    repository: bitnamilegacy/mongodb
+    # this is currently the latest 6.0.x according to https://hub.docker.com/r/bitnamilegacy/mongodb/tags and https://www.mongodb.com/docs/manual/release-notes/6.0/
     # it should be kept in sync with the version we're using for dev in the docker compose files
-    tag: 6.0.13
+    tag: 6.0.13-debian-11-r9
   auth:
       enabled: false
   usePassword: false
