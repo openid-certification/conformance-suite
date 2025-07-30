@@ -31,4 +31,5 @@ public @interface PublishTestPlan {
 
 	String summary() default "";
 
+	boolean requireClientLog();
 }

@@ -13,6 +13,7 @@ import java.util.Map;
 	testPlanName = "fapi-ciba-id1-test-plan",
 	displayName = "FAPI-CIBA-ID1: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = false,
 	testModules = {
 		// Discovery
 		FAPICIBAID1DiscoveryEndpointVerification.class,

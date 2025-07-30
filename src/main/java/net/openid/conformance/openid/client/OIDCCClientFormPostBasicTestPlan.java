@@ -10,7 +10,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-client-formpost-basic-certification-test-plan",
 	displayName = "OpenID Connect Core: Form Post Basic Certification Profile Relying Party Tests",
-	profile = TestPlan.ProfileNames.rptest
+	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true
 )
 public class OIDCCClientFormPostBasicTestPlan extends AbstractFormPostTestPlan {
 

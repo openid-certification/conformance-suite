@@ -113,7 +113,7 @@ public class TestPlanApi implements DataUtils {
 
 		List<String> certProfile = holder.certificationProfileForVariant(variant);
 
-		planService.createTestPlan(id, planName, variant, config, description, certProfile, testModules, holder.info.summary(), publish);
+		planService.createTestPlan(id, planName, variant, config, description, certProfile, testModules, holder.info.summary(), publish, holder.info.requireClientLog());
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", planName);

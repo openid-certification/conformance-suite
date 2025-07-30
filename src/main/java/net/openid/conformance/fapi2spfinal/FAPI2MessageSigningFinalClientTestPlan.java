@@ -13,7 +13,8 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi2-message-signing-final-client-test-plan",
 	displayName = "FAPI2-Message-Signing-Final: Relying Party (client) test",
-	profile = TestPlan.ProfileNames.rptest
+	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true
 )
 public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(

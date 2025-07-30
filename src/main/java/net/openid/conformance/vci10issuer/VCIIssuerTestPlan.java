@@ -8,7 +8,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oid4vci-1_0-issuer-test-plan",
 	displayName = "OpenID for Verifiable Credential Issuance draft 16: Test an issuer (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
-	profile = TestPlan.ProfileNames.vciissuer
+	profile = TestPlan.ProfileNames.vciissuer,
+	requireClientLog = false
 )
 public class VCIIssuerTestPlan implements TestPlan {
 

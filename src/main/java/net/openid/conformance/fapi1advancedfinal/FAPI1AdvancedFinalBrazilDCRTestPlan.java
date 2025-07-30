@@ -11,7 +11,8 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi1-advanced-final-brazil-dcr-test-plan",
 	displayName = "FAPI1-Advanced-Final: Brazil Dynamic Client Registration Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = false
 )
 public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 

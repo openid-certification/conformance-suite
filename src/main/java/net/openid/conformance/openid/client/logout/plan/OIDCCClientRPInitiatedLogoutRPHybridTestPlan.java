@@ -14,7 +14,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-client-rp-initiated-logout-rp-hybrid",
 	displayName = "OpenID Connect Core: RP Initiated Logout RP Certification Profile Relying Party Tests (Hybrid)",
-	profile = TestPlan.ProfileNames.rplogouttest
+	profile = TestPlan.ProfileNames.rplogouttest,
+	requireClientLog = true
 )
 public class OIDCCClientRPInitiatedLogoutRPHybridTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {

@@ -15,7 +15,8 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-final-client-test-plan",
 	displayName = "FAPI2-Security-Profile-Final: Relying Party (client) test",
-	profile = TestPlan.ProfileNames.rptest
+	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true
 )
 public class FAPI2SPFinalClientTestPlan implements TestPlan {
 

@@ -12,7 +12,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-rp-initiated-logout-certification-test-plan",
 	displayName = "OpenID Connect Core: Rp Initiated Logout Certification Profile Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = true
 )
 public class OIDCCRpInitiatedLogoutTestPlan implements TestPlan {
 

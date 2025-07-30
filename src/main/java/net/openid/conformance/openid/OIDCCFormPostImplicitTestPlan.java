@@ -9,7 +9,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-formpost-implicit-certification-test-plan",
 	displayName = "OpenID Connect Core: Form Post Implicit Certification Profile Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = false
 )
 public class OIDCCFormPostImplicitTestPlan extends AbstractFormPostTestPlan {
 

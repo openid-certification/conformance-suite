@@ -9,6 +9,7 @@ import net.openid.conformance.variant.VariantSelection;
 	displayName = "OpenID Shared Signals Framework: Receiver test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Receiver.",
 	profile = TestPlan.ProfileNames.ssftest,
+	requireClientLog = false,
 	testModules = {
 
 	}

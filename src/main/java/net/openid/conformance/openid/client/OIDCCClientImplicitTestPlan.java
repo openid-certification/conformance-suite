@@ -13,7 +13,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-client-implicit-certification-test-plan",
 	displayName = "OpenID Connect Core: Implicit Certification Profile Relying Party Tests",
-	profile = TestPlan.ProfileNames.rptest
+	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true
 )
 public class OIDCCClientImplicitTestPlan implements TestPlan {
 

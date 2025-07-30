@@ -81,7 +81,7 @@ public class DBTestPlanService implements TestPlanService {
 	}
 
 	@Override
-	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, List<String> certificationProfileName, List<Plan.Module> testModules, String summary, String publish) {
+	public void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, List<String> certificationProfileName, List<Plan.Module> testModules, String summary, String publish, boolean requireClientLog) {
 
 		ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
 
@@ -97,7 +97,8 @@ public class DBTestPlanService implements TestPlanService {
 				testModules,
 				version,
 				summary, // from the plan definition
-				publish));
+				publish,
+				requireClientLog));
 	}
 
 	@Override

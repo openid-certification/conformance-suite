@@ -40,7 +40,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 
 @Component
-public class VariantService {
+public final class VariantService {
 	private static final String SEARCH_PACKAGE = "net.openid";
 
 	private final Map<Class<?>, ParameterHolder<? extends Enum<?>>> variantParametersByClass;

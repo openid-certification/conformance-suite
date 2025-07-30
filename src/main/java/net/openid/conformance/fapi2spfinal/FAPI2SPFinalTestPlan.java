@@ -15,7 +15,8 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-final-test-plan",
 	displayName = "FAPI2-Security-Profile-Final: Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = false
 )
 public class FAPI2SPFinalTestPlan implements TestPlan {
 

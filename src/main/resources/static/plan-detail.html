@@ -150,15 +150,16 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             to complete the certification process.</p>
                         </li>
                     </ol>
-
-                    <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
-                    <div>
-                        <div class="mb-3 row">
-                            <fieldset>
-                                <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
-                                <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
-                                <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
-                            </fieldset>
+                    <div id="clientSideDataSection">
+                        <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
+                        <div>
+                            <div class="mb-3 row">
+                                <fieldset>
+                                    <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
+                                    <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
+                                    <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
+                                </fieldset>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -256,6 +257,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             })
             .then((data) => {
                 document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
+                if(data.requireClientLog){
+                    document.getElementById('clientSideDataBtn').setAttribute('required', 'true');
+                    document.getElementById('clientSideDataSection').removeAttribute('hidden');
+                } else {
+                    document.getElementById('clientSideDataBtn').removeAttribute('required');
+                    document.getElementById('clientSideDataSection').setAttribute('hidden', 'true');
+                }
                 document.querySelectorAll('.content')?.forEach(function(element) {
                     element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant)}));
                 });
