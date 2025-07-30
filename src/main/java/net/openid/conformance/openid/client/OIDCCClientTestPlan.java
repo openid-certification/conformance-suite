@@ -15,6 +15,7 @@ import net.openid.conformance.plan.TestPlan;
 	testPlanName = "oidcc-client-test-plan",
 	displayName = "OpenID Connect Core Client Tests: Comprehensive client test (not part of certification program)",
 	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true,
 	testModules = {
 		OIDCCClientTest.class,
 		OIDCCClientTestNonceInvalid.class,

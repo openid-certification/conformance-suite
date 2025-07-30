@@ -13,7 +13,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-3rdparty-init-login-certification-test-plan",
 	displayName = "OpenID Connect Core: 3rd party initiated login Certification Profile Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = false
 )
 public class OIDCC3rdPartyInitLoginTestPlan implements TestPlan {
 

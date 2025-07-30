@@ -11,7 +11,8 @@ import java.util.Map;
 @PublishTestPlan(
 	testPlanName = "oid4vp-1final-wallet-test-plan",
 	displayName = "OpenID for Verifiable Presentations 1.0 Final: Test a wallet - alpha tests (not currently part of certification program)",
-	profile = TestPlan.ProfileNames.wallettest
+	profile = TestPlan.ProfileNames.wallettest,
+	requireClientLog = false
 )
 public class VP1FinalWalletTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {

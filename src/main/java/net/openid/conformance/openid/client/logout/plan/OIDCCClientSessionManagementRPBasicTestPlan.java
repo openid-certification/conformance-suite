@@ -11,7 +11,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-client-rp-session-management-rp-basic",
 	displayName = "OpenID Connect Core: Session Management RP Certification Profile Relying Party Tests (Basic)",
-	profile = TestPlan.ProfileNames.rplogouttest
+	profile = TestPlan.ProfileNames.rplogouttest,
+	requireClientLog = true
 )
 public class OIDCCClientSessionManagementRPBasicTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {

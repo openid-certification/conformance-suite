@@ -13,6 +13,7 @@ import java.util.Map;
 	testPlanName = "fapi-ciba-id1-client-test-plan",
 	displayName = "FAPI-CIBA-ID1: Relying Party (client test) (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true,
 	testModules = {
 		// Happy path test
 		FAPICIBAClientTest.class,
