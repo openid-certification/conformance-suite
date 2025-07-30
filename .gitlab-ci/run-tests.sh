@@ -447,64 +447,64 @@ makeCIBATest() {
 makeEkycTests() {
 
     # client_tauth_type = private_key_jwt
-    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=private_key_jwt][server_metadata=discovery][response_type=code][client_registration=dynamic_client][response_mode=default][security_profile=openid_connect][auth_request_method=http_query][auth_request_non_repudiation_method=unsigned][sender_constrain=none][fapi_response_mode=plain_response] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=private_key_jwt][server_metadata=discovery][response_type=code][client_registration=dynamic_client][response_mode=default][security_profile=none][auth_request_method=http_query][auth_request_non_repudiation_method=unsigned][sender_constrain=none][fapi_response_mode=plain_response] authlete-ekyc-privatekey-final.json"
 
     # sender_constrain (none, dpop, mtls)
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=none] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=none] authlete-ekyc-privatekey-final.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=dpop] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=dpop] authlete-ekyc-privatekey-final.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=mtls] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=mtls] authlete-ekyc-privatekey-final.json"
 
 
 
     # auth_request_method = request_object_pushed, auth_request_non_repudiation_method = signed_non_repudiation
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=none] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=none] authlete-ekyc-privatekey-final.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=dpop] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=dpop] authlete-ekyc-privatekey-final.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=mtls] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=mtls] authlete-ekyc-privatekey-final.json"
 
 
     # auth_request_method = request_object_pushed, auth_request_non_repudiation_method = signed_non_repudiation
     # response_mode=form_post, fapi_response_mode=jarm
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=none] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=none] authlete-ekyc-privatekey-final.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=dpop] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=dpop] authlete-ekyc-privatekey-final.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=mtls] authlete-ekyc-privatekey-final.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=private_key_jwt][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=mtls] authlete-ekyc-privatekey-final.json"
 
 
     #--------------------------------------------
 
     # client_tauth_type = mtls
-    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=mtls][server_metadata=discovery][response_type=code][client_registration=dynamic_client][response_mode=default][security_profile=openid_connect][auth_request_method=http_query][auth_request_non_repudiation_method=unsigned][sender_constrain=none][fapi_response_mode=plain_response] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[client_auth_type=mtls][server_metadata=discovery][response_type=code][client_registration=dynamic_client][response_mode=default][security_profile=none][auth_request_method=http_query][auth_request_non_repudiation_method=unsigned][sender_constrain=none][fapi_response_mode=plain_response] authlete-ekyc-mtls.json"
 
 
     # sender_constrain (none, dpop, mtls)
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=none] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=none] authlete-ekyc-mtls.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=dpop] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=dpop] authlete-ekyc-mtls.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=mtls] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=http_query][response_type=code][auth_request_non_repudiation_method=unsigned][response_mode=default][fapi_response_mode=plain_response][sender_constrain=mtls] authlete-ekyc-mtls.json"
 
 
 
     # auth_request_method = request_object_pushed, auth_request_non_repudiation_method = signed_non_repudiation
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=none] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=none] authlete-ekyc-mtls.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=dpop] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=dpop] authlete-ekyc-mtls.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=mtls] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=default][fapi_response_mode=plain_response][sender_constrain=mtls] authlete-ekyc-mtls.json"
 
 
     # auth_request_method = request_object_pushed, auth_request_non_repudiation_method = signed_non_repudiation
     # response_mode=form_post, fapi_response_mode=jarm
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=none] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=none] authlete-ekyc-mtls.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=dpop] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=dpop] authlete-ekyc-mtls.json"
 
-    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=openid_connect][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=mtls] authlete-ekyc-mtls.json"
+    TESTS="${TESTS} ekyc-test-plan-oidccore[server_metadata=discovery][client_registration=dynamic_client][security_profile=none][client_auth_type=mtls][auth_request_method=request_object_pushed][response_type=code][auth_request_non_repudiation_method=signed_non_repudiation][response_mode=form_post][fapi_response_mode=jarm][sender_constrain=mtls] authlete-ekyc-mtls.json"
 
 
 

@@ -6,7 +6,7 @@ package net.openid.conformance.variant;
 	description = "Security Profile specification that tests will follow"
 )
 public enum SecurityProfile {
-	OPENID_CONNECT,
+	NONE,
 	FAPI1_BASE,
 	FAPI1_ADVANCED,
 	FAPI2_SP,

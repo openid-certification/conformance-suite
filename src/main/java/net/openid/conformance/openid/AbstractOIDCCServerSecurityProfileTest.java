@@ -133,7 +133,7 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 	protected Boolean isJarm;
 	protected Boolean allowPlainErrorResponseForJarm = false;
 	protected Boolean isPar;
-	protected Boolean isOpenId;
+	protected Boolean isOpenId = true;
 	protected Boolean usePkce = true;
 	protected Boolean isSignedRequest;
 
@@ -190,7 +190,6 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
 		isPar = getVariant(AuthRequestMethod.class) == AuthRequestMethod.REQUEST_OBJECT_PUSHED;
-		isOpenId = getVariant(SecurityProfile.class) == SecurityProfile.OPENID_CONNECT;
 		isJarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isSignedRequest = getVariant(AuthRequestNonRepudiationMethod.class) == AuthRequestNonRepudiationMethod.SIGNED_NON_REPUDIATION;
 	}
