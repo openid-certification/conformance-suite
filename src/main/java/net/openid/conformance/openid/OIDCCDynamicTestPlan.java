@@ -13,7 +13,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-dynamic-certification-test-plan",
 	displayName = "OpenID Connect Core: Dynamic Certification Profile Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = false
 )
 public class OIDCCDynamicTestPlan implements TestPlan {
 

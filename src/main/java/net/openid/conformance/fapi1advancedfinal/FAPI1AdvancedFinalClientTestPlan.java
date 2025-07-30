@@ -11,6 +11,7 @@ import java.util.Map;
 	testPlanName = "fapi1-advanced-final-client-test-plan",
 	displayName = "FAPI1-Advanced-Final: Relying Party (client test)",
 	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true,
 	testModules = {
 		FAPI1AdvancedFinalClientTest.class,
 		FAPI1AdvancedFinalClientTestEncryptedIdToken.class,

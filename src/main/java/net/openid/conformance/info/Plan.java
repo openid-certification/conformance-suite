@@ -34,6 +34,7 @@ public class Plan {
 	private String summary;
 	@Indexed
 	private String publish;
+	private boolean requireClientLog;
 
 	private Boolean immutable;
 
@@ -79,7 +80,8 @@ public class Plan {
 			List<Module> testModules,
 			String version,
 			String summary,
-			String publish) {
+			String publish,
+				boolean requireClientLog) {
 		this._id = id;
 		this.planName = planName;
 		this.variant = variant;
@@ -93,6 +95,7 @@ public class Plan {
 		this.version = version;
 		this.summary = summary;
 		this.publish = publish;
+		this.requireClientLog = requireClientLog;
 	}
 
 	public String getId() {
@@ -145,5 +148,9 @@ public class Plan {
 
 	public Boolean getImmutable() {
 		return immutable;
+	}
+
+	public Boolean requireClientLog() {
+		return requireClientLog;
 	}
 }

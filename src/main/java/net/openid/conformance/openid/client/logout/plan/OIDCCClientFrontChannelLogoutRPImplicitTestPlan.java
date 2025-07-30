@@ -11,7 +11,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-client-front-channel-logout-rp-implicit",
 	displayName = "OpenID Connect Core: Front Channel Logout RP Certification Profile Relying Party Tests (Implicit)",
-	profile = TestPlan.ProfileNames.rplogouttest
+	profile = TestPlan.ProfileNames.rplogouttest,
+	requireClientLog = true
 )
 public class OIDCCClientFrontChannelLogoutRPImplicitTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {

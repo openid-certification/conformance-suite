@@ -11,7 +11,8 @@ import java.util.Map;
 @PublishTestPlan(
 	testPlanName = "oid4vp-id3-verifier-test-plan",
 	displayName = "OpenID for Verifiable Presentations ID3 (plus draft 24): Test a verifier (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
-	profile = TestPlan.ProfileNames.verifierTest
+	profile = TestPlan.ProfileNames.verifierTest,
+	requireClientLog = false
 )
 public class VPID3VerifierTestPlan implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {

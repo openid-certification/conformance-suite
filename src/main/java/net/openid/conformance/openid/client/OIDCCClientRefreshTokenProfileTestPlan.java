@@ -7,6 +7,7 @@ import net.openid.conformance.plan.TestPlan;
 	testPlanName = "oidcc-client-refreshtoken-test-plan",
 	displayName = "OpenID Connect Core Client Refresh Token Profile Tests: Relying party refresh token tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true,
 	testModules = {
 		OIDCCClientTestRefreshToken.class,
 		OIDCCClientTestRefreshTokenInvalidIssuer.class,

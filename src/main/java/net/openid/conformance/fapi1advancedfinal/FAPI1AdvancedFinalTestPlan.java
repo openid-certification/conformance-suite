@@ -11,6 +11,7 @@ import java.util.Map;
 	testPlanName = "fapi1-advanced-final-test-plan",
 	displayName = "FAPI1-Advanced-Final: Authorization server test",
 	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = false,
 	testModules = {
 		// Normal well behaved client cases
 		FAPI1AdvancedFinalDiscoveryEndpointVerification.class,

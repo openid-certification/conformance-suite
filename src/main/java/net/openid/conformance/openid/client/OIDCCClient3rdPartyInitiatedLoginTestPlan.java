@@ -8,6 +8,7 @@ import net.openid.conformance.variant.VariantSelection;
 	testPlanName = "oidcc-client-test-3rd-party-init-login-test-plan",
 	displayName = "OpenID Connect Core Client Login Tests: Relying party 3rd party initiated login tests",
 	profile = TestPlan.ProfileNames.rptest,
+	requireClientLog = true,
 	testModules = {
 		OIDCCClient3rdPartyInitiatedLoginTest.class
 	}

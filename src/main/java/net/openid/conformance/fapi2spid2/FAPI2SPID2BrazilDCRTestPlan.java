@@ -10,7 +10,8 @@ import java.util.List;
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-id2-brazil-dcr-test-plan",
 	displayName = "FAPI2-Security-Profile-ID2: Brazil Dynamic Client Registration Authorization server test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	requireClientLog = false
 )
 public class FAPI2SPID2BrazilDCRTestPlan implements TestPlan {
 
