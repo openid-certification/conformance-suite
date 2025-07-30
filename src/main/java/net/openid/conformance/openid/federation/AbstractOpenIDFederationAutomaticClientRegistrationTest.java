@@ -212,6 +212,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void makeAuthorizationRequest() {
+
+		callAndStopOnFailure(EnsureEntityIsOpenIdProvider.class, Condition.ConditionResult.FAILURE);
+
 		buildRequestObject();
 		signRequestObject();
 		encryptRequestObject();
