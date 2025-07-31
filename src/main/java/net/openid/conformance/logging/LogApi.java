@@ -48,7 +48,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -65,6 +67,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @Controller
 @RequestMapping(value = "/api")
@@ -187,7 +191,7 @@ public class LogApi {
 
 					String sigFileName = "test-log-" + id + ".sig";
 
-					addFilesToZip(archiveOutputStream, jsonFileName, sigFileName, export);
+					addStringFileToZip(archiveOutputStream, jsonFileName, sigFileName, export);
 
 					archiveOutputStream.close();
 				} catch (Exception ex) {
@@ -281,7 +285,7 @@ public class LogApi {
 
 						TestExportInfo infoExport = (TestExportInfo) testLogInfoExport.get("export");
 
-						addFilesToZip(archiveOutputStream, jsonFileName, sigFileName, infoExport);
+						addStringFileToZip(archiveOutputStream, jsonFileName, sigFileName, infoExport);
 
 					}
 
@@ -293,40 +297,6 @@ public class LogApi {
 		};
 
 		return ResponseEntity.ok().headers(headers).body(responseBody);
-	}
-
-	protected void addFilesToZip(ZipArchiveOutputStream archiveOutputStream, String jsonFileName, String sigFileName, TestExportInfo export) throws Exception {
-
-		ZipArchiveEntry testLog = new ZipArchiveEntry(jsonFileName);
-
-		Signature signature = Signature.getInstance("SHA1withRSA");
-		signature.initSign(keyManager.getSigningPrivateKey());
-
-		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
-
-		String json = gson.toJson(export);
-
-		testLog.setSize(json.getBytes().length);
-		archiveOutputStream.putArchiveEntry(testLog);
-
-		signatureOutputStream.write(json.getBytes());
-
-		signatureOutputStream.flush();
-		signatureOutputStream.close();
-
-		archiveOutputStream.closeArchiveEntry();
-
-		ZipArchiveEntry signatureFile = new ZipArchiveEntry(sigFileName);
-
-		byte[] src = signature.sign();
-		String encodedSignature = Base64.getUrlEncoder().encodeToString(src);
-		signatureFile.setSize(encodedSignature.getBytes().length);
-
-		archiveOutputStream.putArchiveEntry(signatureFile);
-
-		archiveOutputStream.write(encodedSignature.getBytes());
-
-		archiveOutputStream.closeArchiveEntry();
 	}
 
 	protected Optional<?> getTestInfo(boolean publicOnly, String testId) {
@@ -562,6 +532,10 @@ public class LogApi {
 			planName = plan.getPlanName();
 			variant = plan.getVariant();
 			modules = plan.getModules();
+
+			if(forCertification && plan.requireClientLog() && (clientSideData == null || clientSideData.isEmpty())) {
+				return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			}
 		}
 
 		//plan summary page
@@ -617,7 +591,7 @@ public class LogApi {
 							sigFileName = "test-logs/" + sigFileName;
 						}
 
-						addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, testLogInfoExport.getExport(), htmlExportRenderer);
+						addStringFileToZip(archiveOutputStream, htmlFileName, sigFileName, htmlExportRenderer.createHtmlForTestLogs(testLogInfoExport.getExport()) );
 
 						String jsonLogFilename = "test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json";
 						String jsonLogSigFilename = "test-log-"+testLogInfoExport.getTestModuleName()+"-" + testLogInfoExport.getTestId() + ".json.sig";
@@ -625,16 +599,23 @@ public class LogApi {
 							jsonLogFilename = "test-logs/" + jsonLogFilename;
 							jsonLogSigFilename = "test-logs/" + jsonLogSigFilename;
 						}
-						addFilesToZip(archiveOutputStream, jsonLogFilename, jsonLogSigFilename, testLogInfoExport.getExport());
+						addStringFileToZip(archiveOutputStream, jsonLogFilename, jsonLogSigFilename, testLogInfoExport.getExport());
 
 					}
 
 					if(clientSideData!=null && clientSideData.getSize()>0) {
-						ZipArchiveEntry zipEntry = new ZipArchiveEntry("client-data/" + clientSideData.getOriginalFilename());
-						zipEntry.setSize(clientSideData.getSize());
-						archiveOutputStream.putArchiveEntry(zipEntry);
-						archiveOutputStream.write(clientSideData.getBytes());
-						archiveOutputStream.closeArchiveEntry();
+
+						ZipInputStream clientSideDataZip = new ZipInputStream(clientSideData.getInputStream());
+						for(ZipEntry nextEntry = clientSideDataZip.getNextEntry();
+							nextEntry != null;
+							nextEntry = clientSideDataZip.getNextEntry()){
+							addFileToZip(archiveOutputStream,
+								"client-data/" + nextEntry.getName(),
+								"client-data/" + nextEntry.getName() + ".sig",
+								clientSideDataZip);
+						}
+						clientSideDataZip.close();
+
 					}
 					archiveOutputStream.close();
 				} catch (Exception ex) {
@@ -663,73 +644,33 @@ public class LogApi {
 			indexJsonFilename = "test-logs/" + indexJsonFilename;
 			indexJsonSigFilename = "test-logs/" + indexJsonSigFilename;
 		}
-		ZipArchiveEntry testLog = new ZipArchiveEntry(indexFilename);
-
-		Signature signature = Signature.getInstance("SHA1withRSA");
-		signature.initSign(keyManager.getSigningPrivateKey());
-
-		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
-
 		String html = htmlExportRenderer.createHtmlForPlan(planExportInfo);
-		byte[] htmlBytes = html.getBytes(StandardCharsets.UTF_8);
 
-		testLog.setSize(htmlBytes.length);
-		archiveOutputStream.putArchiveEntry(testLog);
-
-		signatureOutputStream.write(htmlBytes);
-
-		signatureOutputStream.flush();
-		signatureOutputStream.close();
-
-		archiveOutputStream.closeArchiveEntry();
-
-		ZipArchiveEntry signatureFile = new ZipArchiveEntry(indexSigFilename);
-
-		byte[] src = signature.sign();
-		String encodedSignature = Base64.getUrlEncoder().encodeToString(src);
-		signatureFile.setSize(encodedSignature.getBytes().length);
-
-		archiveOutputStream.putArchiveEntry(signatureFile);
-
-		archiveOutputStream.write(encodedSignature.getBytes());
-
-		archiveOutputStream.closeArchiveEntry();
+		addStringFileToZip(archiveOutputStream,indexFilename,indexSigFilename, html);
 
 		if(!forCertification){
 			return;
 		}
-		//serializing the PlanInfo as json
-		ZipArchiveEntry testJson = new ZipArchiveEntry(indexJsonFilename);
 
-		String json = gson.toJson(planExportInfo.getPlanInfo());
-		byte[] jsonBytes = json.getBytes(StandardCharsets.UTF_8);
-
-		testJson.setSize(jsonBytes.length);
-
-		archiveOutputStream.putArchiveEntry(testJson);
-
-		Signature jsonSignature = Signature.getInstance("SHA1withRSA");
-		jsonSignature.initSign(keyManager.getSigningPrivateKey());
-		SignatureOutputStream jsonSignatureOutputStream = new SignatureOutputStream(archiveOutputStream, jsonSignature);
-		jsonSignatureOutputStream.write(jsonBytes);
-		jsonSignatureOutputStream.flush();
-		jsonSignatureOutputStream.close();
-		archiveOutputStream.closeArchiveEntry();
-
-		//Serializing the signature of the json file
-
-		ZipArchiveEntry jsonSignatureFile = new ZipArchiveEntry(indexJsonSigFilename);
-		encodedSignature = Base64.getUrlEncoder().encodeToString(jsonSignature.sign());
-		jsonSignatureFile.setSize(encodedSignature.getBytes().length);
-		archiveOutputStream.putArchiveEntry(jsonSignatureFile);
-		archiveOutputStream.write(encodedSignature.getBytes());
-		archiveOutputStream.closeArchiveEntry();
-
+		addStringFileToZip(archiveOutputStream,indexJsonFilename,indexJsonSigFilename, planExportInfo.getPlanInfo());
 
 	}
 
-	protected void addHTMLFileToZip(ZipArchiveOutputStream archiveOutputStream, String htmlFileName, String sigFileName,
-									TestExportInfo export, HtmlExportRenderer htmlExportRenderer) throws Exception {
+	protected void addStringFileToZip(ZipArchiveOutputStream archiveOutputStream, String htmlFileName, String sigFileName,
+									  Object content) throws Exception {
+		String textContent = gson.toJson(content);
+		this.addStringFileToZip(archiveOutputStream,htmlFileName,sigFileName, textContent);
+	}
+
+	protected void addStringFileToZip(ZipArchiveOutputStream archiveOutputStream, String htmlFileName, String sigFileName,
+									String content) throws Exception {
+
+		byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
+		this.addFileToZip(archiveOutputStream,htmlFileName,sigFileName, new ByteArrayInputStream(contentBytes));
+	}
+
+	protected void addFileToZip(ZipArchiveOutputStream archiveOutputStream, String htmlFileName, String sigFileName,
+									InputStream content) throws Exception {
 
 		ZipArchiveEntry testLog = new ZipArchiveEntry(htmlFileName);
 
@@ -738,13 +679,15 @@ public class LogApi {
 
 		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
 
-		String html = htmlExportRenderer.createHtmlForTestLogs(export);
-		byte[] htmlBytes = html.getBytes(StandardCharsets.UTF_8);
-
-		testLog.setSize(htmlBytes.length);
+//		testLog.setSize(contentSize);
 		archiveOutputStream.putArchiveEntry(testLog);
 
-		signatureOutputStream.write(htmlBytes);
+		byte[] contentArray = new byte[1024];
+		int bytesRead = content.read(contentArray);
+		while (bytesRead  != -1) {
+			signatureOutputStream.write(contentArray, 0, bytesRead);
+			bytesRead = content.read(contentArray);
+		}
 
 		signatureOutputStream.flush();
 		signatureOutputStream.close();
@@ -808,9 +751,9 @@ public class LogApi {
 
 					String sigFileName = TestHelper.generateSigFileName(testModuleNameFinal, id);
 
-					addHTMLFileToZip(archiveOutputStream, htmlFileName, sigFileName, export, htmlExportRenderer);
+					addStringFileToZip(archiveOutputStream, htmlFileName, sigFileName, htmlExportRenderer.createHtmlForTestLogs(export));
 
-					addFilesToZip(archiveOutputStream, "test-log-"+testModuleNameFinal+"-" + id + ".json",
+					addStringFileToZip(archiveOutputStream, "test-log-"+testModuleNameFinal+"-" + id + ".json",
 						"test-log-"+testModuleNameFinal+"-" + id + ".json.sig", export);
 
 					archiveOutputStream.close();
