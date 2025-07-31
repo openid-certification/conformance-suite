@@ -290,9 +290,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			return NonBlocking.trustAnchorFetchResponse(env, getId(), requestId);
 		}
 
-		String sub = env.getString(requestId, "method").equalsIgnoreCase("POST")
-			? env.getString(requestId, "body_form_params.sub")
-			: env.getString(requestId, "query_string_params.sub");
+		String sub = env.getString(requestId, "query_string_params.sub");
 		String alias = env.getString("config", "alias");
 		if (sub.endsWith(alias)) {
 			return NonBlocking.trustAnchorFetchResponse(env, getId(), requestId);
@@ -374,6 +372,19 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 	protected Object trustAnchorResolveResponse(String requestId) {
 
+		String sub = env.getString(requestId, "query_string_params.sub");
+		String alias = env.getString("config", "alias");
+		if (sub.endsWith(alias)) {
+			JsonObject error = new JsonObject();
+			error.addProperty("error", "invalid_request");
+			error.addProperty("error_description", "The test suite is (technically) not able to build " +
+				"a trust chain that includes the test alias entity, i.e. " + sub);
+			return ResponseEntity
+				.status(400)
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(error);
+		}
+
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("Trust anchor resolve endpoint").mapKey("incoming_request", requestId));
 
@@ -389,7 +400,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		if (error != null) {
 			response = errorResponse(error, errorDescription, statusCode);
 		} else {
-			String sub = env.getString("resolve_endpoint_parameter_sub");
+			sub = env.getString("resolve_endpoint_parameter_sub");
 			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(sub));
 			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 			fetchAndVerifyEntityStatement();
