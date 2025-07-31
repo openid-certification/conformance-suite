@@ -1879,6 +1879,91 @@ function registerAlphaTestToggle() {
             }
         }
 
+        function registerEkycSecurityProfileChangeEvent() {
+            const securityProfile = document.getElementById('vp_security_profile');
+
+            /**
+             * Disables the option values in the select element which is not in the list
+             * @param selectElementId select element ID
+             * @param optionValues array of allowable option values
+             */
+            function updateAllowableSelectOptionValues(selectElementId, optionValues) {
+                const selectElement = document.getElementById('vp_' + selectElementId);
+                // start with 1, 0 = 'select' value
+                for (var opt, j=1; opt=selectElement.options[j]; j++) {
+                    if(optionValues.includes(opt.value) || (optionValues.includes('*'))) {
+                        opt.disabled = false;
+                    } else {
+                        opt.disabled = true;
+                        if(selectElement.selectedIndex == j) {
+                            selectElement.selectedIndex = 0;
+                            const e = new Event("change");
+                            selectElement.dispatchEvent(e);
+                        }
+                    }
+                }
+            }
+
+            const security_profile_options = {
+                none : {
+                    client_auth_type : ['*'],
+                    response_type : ['*'],
+                    response_mode : ['*'],
+                    fapi_response_mode : ['*'],
+                    auth_request_method : ['*'],
+                    auth_request_non_repudiation_method : ['*'],
+                    sender_constrain : ['*']
+                },
+                fapi1_base: {
+                    client_auth_type : ['mtls', 'private_key_jwt', 'client_secret_jwt'],
+                    response_type : ['*'],
+                    response_mode : ['default'],
+                    fapi_response_mode : ['plain_response'],
+                    auth_request_method : ['http_query'],
+                    auth_request_non_repudiation_method : ['unsigned'],
+                    sender_constrain : ['none']
+                },
+                fapi1_advanced : {
+                    client_auth_type : ['mtls', 'private_key_jwt'],
+                    response_type : ['code', 'code id_token'],
+                    response_mode : ['default'],
+                    fapi_response_mode : ['jarm'],
+                    auth_request_method : ['request_object_by_value', 'request_object_pushed'],
+                    auth_request_non_repudiation_method : ['signed_non_repudiation'],
+                    sender_constrain : ['mtls']
+                },
+                fapi2_sp : {
+                    client_auth_type : ['mtls', 'private_key_jwt'],
+                    response_type : ['code'],
+                    response_mode : ['default'],
+                    fapi_response_mode : ['plain_response'],
+                    auth_request_method : ['request_object_pushed'],
+                    auth_request_non_repudiation_method : ['unsigned'],
+                    sender_constrain : ['dpop', 'mtls']
+                },
+                fapi2_ms : {
+                    client_auth_type : ['mtls', 'private_key_jwt'],
+                    response_type : ['code'],
+                    response_mode : ['default'],
+                    fapi_response_mode : ['*'],
+                    auth_request_method : ['request_object_pushed'],
+                    auth_request_non_repudiation_method : ['signed_non_repudiation'],
+                    sender_constrain : ['dpop', 'mtls']
+                }
+            };
+
+            function onSecurityProfileChange() {
+                if(undefined != security_profile_options[securityProfile.value]) {
+                    for(const[key, value] of Object.entries(security_profile_options[securityProfile.value])) {
+                        updateAllowableSelectOptionValues(key, value);
+                    }
+                }
+             }
+            securityProfile.addEventListener("change", onSecurityProfileChange);
+            // invoke once to update variant values
+            onSecurityProfileChange();
+        }
+
         function loadAvailableTests() {
             return fetch('/api/runner/available')
                 .then((response) => response.json())
@@ -2363,6 +2448,9 @@ function registerAlphaTestToggle() {
                         element.querySelector('.config-form-container-header').style.display = 'none';
                     }
                 });
+                if(planName == "ekyc-test-plan-oidccore") {
+                    registerEkycSecurityProfileChangeEvent();
+                }
             }
         }
 
@@ -2426,6 +2514,9 @@ function registerAlphaTestToggle() {
                     }
                 });
 
+                if(itemSelected == "ekyc-test-plan-oidccore") {
+                    registerEkycSecurityProfileChangeEvent();
+                }
                 document.getElementById('variantSelectors').style.display = '';
             } else {
 
