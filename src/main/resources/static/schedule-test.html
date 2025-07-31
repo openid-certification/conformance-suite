@@ -2377,8 +2377,25 @@ function registerAlphaTestToggle() {
 
             if (map[itemSelected] && map[itemSelected].variants && Object.keys(map[itemSelected].variants).length > 0) {
 
+                // sort order for variant parameter names, smaller values will be rendered on 'top' of the list
+                // same values will be FIFO
+                const variantSortOrder = {
+                    security_profile : 0,
+                    server_metadata : 1,
+                    client_registration : 2,
+                    response_type : 3
+                }
+                function sortVariantKeyPair(variantKeyPair) {
+                    if(undefined != variantSortOrder[variantKeyPair[0]]) {
+                        return variantSortOrder[variantKeyPair[0]];
+                    }
+                    // default order
+                    return 10;
+                }
+
                 // update the variant display
-                _.each(map[itemSelected].variants, function(values, parameter) {
+                var sortedVariants = _.fromPairs(_.sortBy(_.toPairs(map[itemSelected].variants), sortVariantKeyPair));
+                _.each(sortedVariants, function(values, parameter) {
 
                     var id = 'vp_' + parameter;
                     var selector = '<div class="mb-3 row">' +
