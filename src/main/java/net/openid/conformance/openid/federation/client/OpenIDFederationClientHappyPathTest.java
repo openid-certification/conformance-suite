@@ -290,6 +290,14 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			return NonBlocking.trustAnchorFetchResponse(env, getId(), requestId);
 		}
 
+		String sub = env.getString(requestId, "method").equalsIgnoreCase("POST")
+			? env.getString(requestId, "body_form_params.sub")
+			: env.getString(requestId, "query_string_params.sub");
+		String alias = env.getString("config", "alias");
+		if (sub.endsWith(alias)) {
+			return NonBlocking.trustAnchorFetchResponse(env, getId(), requestId);
+		}
+
 		setStatus(Status.RUNNING);
 		call(exec().startBlock("Trust anchor fetch endpoint").mapKey("incoming_request", requestId));
 
