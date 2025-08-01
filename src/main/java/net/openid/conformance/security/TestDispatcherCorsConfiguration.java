@@ -15,6 +15,8 @@ public class TestDispatcherCorsConfiguration implements CorsConfigurable {
 	public static final String TEST_PATH_WITH_CORS_EXCLUSIONS = TestDispatcher.TEST_PATH + "**" + PATH_WITH_EXCLUSIONS;
 	public static final String TEST_MTLS_PATH_WITH_CORS_EXCLUSIONS = TestDispatcher.TEST_MTLS_PATH + "**" + PATH_WITH_EXCLUSIONS;
 
+	public static final String WELL_KNOWN_PATH = TestDispatcher.WELL_KNOWN + "**/test/**";
+
 	@Override
 	public Map<String, CorsConfiguration> getCorsConfigurations() {
 
@@ -24,9 +26,9 @@ public class TestDispatcherCorsConfiguration implements CorsConfigurable {
 
 		return ImmutableMap.of(
 			TEST_PATH_WITH_CORS_EXCLUSIONS, testDispatcherConfiguration,
-			TEST_MTLS_PATH_WITH_CORS_EXCLUSIONS, testDispatcherConfiguration
+			TEST_MTLS_PATH_WITH_CORS_EXCLUSIONS, testDispatcherConfiguration,
+			WELL_KNOWN_PATH, testDispatcherConfiguration
 		);
 
 	}
-
 }
