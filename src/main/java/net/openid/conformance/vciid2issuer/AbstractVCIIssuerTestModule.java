@@ -196,7 +196,7 @@ import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialNonceR
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
-import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToParEndpointRequest;
+import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToTokenEndpointRequest;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
@@ -257,7 +257,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
-	protected Class<? extends ConditionSequence> addProtectedResourceEndpointClientAuthentication;
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
 	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
@@ -1265,7 +1264,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
-		addParEndpointClientAuthentication = AddClientAttestationHeaderToParEndpointRequest.class;
+		addParEndpointClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 	}
 
 	protected void generateClientAttestationKeys() {
