@@ -1,10 +1,13 @@
 package net.openid.conformance.vciid2wallet;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.vciid2wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
+import net.openid.conformance.vciid2wallet.condition.VCIInjectRequestScopePreAuthorizedCodeFlow;
 
 @PublishTestModule(
 	testName = "oid4vci-id2-wallet-happy-path-with-scopes",
@@ -33,6 +36,14 @@ public class VCIWalletHappyPathUsingScopes extends VCIWalletHappyPath {
 		JsonObject euidPid = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.1");
 		euidPid.addProperty("scope", "eudi.pid.1");
 		return supportedCredentialConfigurations;
+	}
+
+	@Override
+	protected void injectCredentialConfigurationDetailsIntoRequestContextForPreAuthorizedCodeFlow() {
+		super.injectCredentialConfigurationDetailsIntoRequestContextForPreAuthorizedCodeFlow();
+		if (authorizationRequestType == AuthorizationRequestType.SIMPLE) {
+			callAndStopOnFailure(VCIInjectRequestScopePreAuthorizedCodeFlow.class, Condition.ConditionResult.FAILURE);
+		}
 	}
 
 	@Override
