@@ -240,6 +240,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.net.URI;
 import java.text.ParseException;
 import java.util.Map;
 
@@ -451,33 +452,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(AddClientAttestationPoPNonceRequiredToServerConfiguration.class, ConditionResult.FAILURE, "OAuth2-ATCA05-8-2" );
 		}
 
-		exposeEnvString("discoveryUrl");
-		exposeEnvString("issuer");
-
 		configureCredentialIssuerMetadata();
+		configureOauthAuthorizationServerMetadata();
 
 		exposeEnvString("credential_issuer");
 		exposeEnvString("credential_issuer_metadata_url");
-		exposeEnvString("credential_issuer_nonce_endpoint_url");
-		exposeEnvString("credential_issuer_credential_endpoint_url");
-
-		if (profile == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
-			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
-			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
-			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
-		} else if (profile == FAPI2ID2OPProfile.CONNECTID_AU) {
-			// nothing to expose; the endpoints all come from discovery (the userinfo endpoint is used as the resource endpoint)
-		} else if (profile == FAPI2ID2OPProfile.OPENBANKING_UK) {
-			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
-			exposePath("account_requests_endpoint", ACCOUNT_REQUESTS_PATH);
-		} else {
-			if (isMTLSConstrain()) {
-				exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
-			} else {
-				exposePath("accounts_endpoint", ACCOUNTS_PATH);
-			}
-		}
+		exposeEnvString("oauth_authorization_server_metadata_url");
 
 		if (authorizationRequestType == AuthorizationRequestType.RAR){
 			callAndStopOnFailure(VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes.class);
@@ -495,6 +475,18 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+	}
+
+	protected void configureOauthAuthorizationServerMetadata() {
+		String oauthAuthorizationServerMetadataUrl = generateWellKnownUrlForPath(env.getString("credential_issuer"), "oauth-authorization-server");
+		env.putString("oauth_authorization_server_metadata_url", oauthAuthorizationServerMetadataUrl);
+	}
+
+	protected String generateWellKnownUrlForPath(String issuer, String wellKnownTypePath) {
+		URI serverIssuerUri = URI.create(issuer);
+		String serverIssuerPath = serverIssuerUri.getPath();
+		String wellKnownBaseUrl = serverIssuerUri.getScheme() + "://" + serverIssuerUri.getAuthority() + "/.well-known";
+		return wellKnownBaseUrl + "/" + wellKnownTypePath  + serverIssuerPath;
 	}
 
 	protected void checkCredentialSigningKey(Environment env) {
@@ -565,8 +557,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			"nonceEndpoint", nonceEndpointUrl
 		));
 
+		String credentialIssuerMetadataUrl = generateWellKnownUrlForPath(credentialIssuer, "openid-credential-issuer");
+		env.putString("credential_issuer_metadata_url", credentialIssuerMetadataUrl);
+
 		env.putString("credential_issuer", credentialIssuer);
-		env.putString("credential_issuer_metadata_url", baseUrl + ".well-known/openid-credential-issuer");
 		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
 		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
 
@@ -1049,7 +1043,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else if (path.startsWith("/.well-known/openid-credential-issuer")) {
 			response = credentialIssuerMetadataEndpoint(requestId);
 		} else {
-			return super.handleWellKnown(path, req, res, session, requestParts);
+			response = super.handleWellKnown(path, req, res, session, requestParts);
 		}
 		call(exec().unmapKey("incoming_request").endBlock());
 		return response;
