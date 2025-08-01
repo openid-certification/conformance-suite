@@ -192,7 +192,11 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 	}
 
 	protected Object entityConfigurationResponse() {
-		if (opToRpMode()) {
+		boolean nonBlocking = true;
+		// We need to default to the non-blocking version since
+		// requests to the well-known endpoint might come in at any time,
+		// and we don't want tests to fail because of it
+		if (nonBlocking) {
 			env.mapKey("entity_configuration_claims", "server");
 			env.mapKey("entity_configuration_claims_jwks", "server_jwks");
 			return NonBlocking.entityConfigurationResponse(env, getId());
