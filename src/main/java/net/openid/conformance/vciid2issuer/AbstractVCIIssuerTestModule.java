@@ -197,7 +197,6 @@ import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
-import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToTokenEndpointRequest;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import org.springframework.web.servlet.ModelAndView;
@@ -1260,7 +1259,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	@VariantSetup(parameter = VCIID2ClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
-		addTokenEndpointClientAuthentication = AddClientAttestationHeaderToTokenEndpointRequest.class;
+		addTokenEndpointClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
