@@ -2,6 +2,7 @@ package net.openid.conformance.openid.federation;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -89,6 +90,10 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 
 	@Override
 	protected Object entityConfigurationResponse() {
+		if (startingShutdown) {
+			return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("The test has already run to completion.");
+		}
+
 		if (opToRpMode()) {
 			env.mapKey("entity_configuration_claims", "server");
 			env.mapKey("entity_configuration_claims_jwks", "client_jwks");

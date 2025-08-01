@@ -172,7 +172,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	protected Object entityConfigurationResponse() {
 		boolean nonBlocking = true;
-		// TODO: Default to this
+		// We need to default to the non-blocking version since
+		// requests to the well-known endpoint might come in at any time,
+		// and we don't want tests to fail because of it
 		if (nonBlocking) {
 			env.mapKey("entity_configuration_claims", "server");
 			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
