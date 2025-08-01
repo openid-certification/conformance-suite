@@ -325,23 +325,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected VCICredentialOfferParameterVariant vciCredentialOfferParameterVariantType;
 
-	/**
-	 * Exposes, in the web frontend, a path that the user needs to know
-	 *
-	 * @param name Name to use in the frontend
-	 * @param path Path, relative to baseUrl
-	 */
-	private void exposePath(String name, String path) {
-		env.putString(name, env.getString("base_url") + "/" + path);
-		exposeEnvString(name);
-	}
-
-	private void exposeMtlsPath(String name, String path) {
-		String baseUrlMtls = env.getString("base_mtls_url");
-		env.putString(name, baseUrlMtls + "/" + path);
-		exposeEnvString(name);
-	}
-
 	protected abstract void addCustomValuesToIdToken();
 
 	protected void addCustomSignatureOfIdToken(){}
