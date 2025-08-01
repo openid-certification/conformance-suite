@@ -220,6 +220,7 @@ import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferRed
 import net.openid.conformance.vciid2wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vciid2wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vciid2wallet.condition.VCIGenerateIssuerState;
+import net.openid.conformance.vciid2wallet.condition.VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow;
 import net.openid.conformance.vciid2wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
 import net.openid.conformance.vciid2wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vciid2wallet.condition.VCIPreparePreAuthorizationCode;
@@ -1517,6 +1518,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 			// FIXME is this needed for pre-authorization_code flow?
 			// call(sequence(CheckPkceCodeVerifier.class));
+
+			if (authorizationRequestType == AuthorizationRequestType.RAR) {
+				callAndStopOnFailure(VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow.class,  ConditionResult.FAILURE);
+			}
 
 			issueAccessToken();
 
