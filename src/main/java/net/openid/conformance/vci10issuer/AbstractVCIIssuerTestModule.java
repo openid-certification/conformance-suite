@@ -170,6 +170,7 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
+import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -197,6 +198,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceRe
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
 import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
@@ -218,6 +220,7 @@ import java.util.function.Supplier;
 	VCIServerMetadata.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
+	VCICredentialOfferParameterVariant.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
@@ -567,10 +570,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	@Override
 	public void start() {
 
+		setStatus(Status.RUNNING);
 		switch (vciAuthorizationCodeFlowVariant) {
 
 			case WALLET_INITIATED -> {
-				setStatus(Status.RUNNING);
 				switch (vciGrantType) {
 					case AUTHORIZATION_CODE -> performAuthorizationFlow();
 					case PRE_AUTHORIZATION_CODE -> throw new UnsupportedOperationException("Pre-authorization code is not supported for wallet initiated flow");
@@ -585,6 +588,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void waitForCredentialOffer() {
 		expose("credential_offer_endpoint", env.getString("base_url") + "/credential_offer");
+		callAndStopOnFailure(VCIWaitForCredentialOffer.class,  ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
 		setStatus(Status.WAITING);
 	}
 
