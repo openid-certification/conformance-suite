@@ -1025,7 +1025,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 	}
 
 	protected void validateRedirectUriForAuthorizationCodeGrantType() {
-		callAndStopOnFailure(ValidateRedirectUri.class);
+		callAndContinueOnFailure(ValidateRedirectUri.class, ConditionResult.FAILURE);
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {
