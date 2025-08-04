@@ -19,7 +19,8 @@
                     "x5c": ["MIIBDjCBtqADAgECAgYBl6aBZxIwCgYIKoZIzj0EAwIwDzENMAsGA1UEAwwEa2V5MTAeFw0yNTA2MjUwOTUzMDdaFw0yNjA0MjEwOTUzMDdaMA8xDTALBgNVBAMMBGtleTEwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASvcCEC0BoYFk4CftDCwgqL9gqsDci8itVEamz2BWDPTR8QL+nMWe/jfqA/EN54lh0KqVTMEKxZtEk1efLSHWx4MAoGCCqGSM49BAMCA0cAMEQCIE9XH1rkfpFRNGBKPX3mfZq0HiC+23dUF0JddUbOnIAPAiBOefYpruKIDGh8hxky3pQ3AKBVezaCu55s4njOSgJYrA=="]
                 }
             ]
-        }
+        },
+        "static_tx_code": "123456"
     },
     "client": {
         "client_id": "52480754053",
