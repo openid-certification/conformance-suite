@@ -1122,35 +1122,44 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 let browserApiRequest = JSON.parse(this.dataset.browserapirequest);
                                 let browserApiSubmitUrl = this.dataset.browserapisubmiturl;
 
-                                const xhr = new XMLHttpRequest();
-                                xhr.open('POST', browserApiSubmitUrl, true);
-                                xhr.responseType = "json";
-                                xhr.onload = function () {
-                                    console.log('XMLHttpRequest call succeeded. Response:' + JSON.stringify(this.response));
-                                };
-                                xhr.onerror = function (error) {
-                                    console.log('Error from XMLHttpRequest');
-                                };
-                                try {
-                                    const credentialResponse = await navigator.credentials.get(browserApiRequest)
+                                if (browserApiSubmitUrl === "") {
+                                    navigator.credentials.create(browserApiRequest)
+                                } else {
+                                    const xhr = new XMLHttpRequest();
+                                    xhr.open('POST', browserApiSubmitUrl, true);
+                                    xhr.responseType = "json";
+                                    xhr.onload = function () {
+                                        console.log('XMLHttpRequest call succeeded. Response:' + JSON.stringify(this.response));
+                                    };
+                                    xhr.onerror = function (error) {
+                                        console.log('Error from XMLHttpRequest');
+                                    };
+                                    try {
+                                        const credentialResponse = await navigator.credentials.get(browserApiRequest)
 
-                                    console.log("credential response");
-                                    console.log(credentialResponse);
-                                    if (credentialResponse.constructor.name === 'DigitalCredential') {
-                                        const data = credentialResponse.data
-                                        const protocol = credentialResponse.protocol
-                                        console.log("Response Data: " + data + " Protocol: " + protocol)
-                                        xhr.send(JSON.stringify({"data": data, "protocol": protocol}));
-                                    } else {
-                                        xhr.send(JSON.stringify({"bad_response_type" : credentialResponse.constructor.name}));
-                                        throw new Error("Unknown response type")
+                                        console.log("credential response");
+                                        console.log(credentialResponse);
+                                        if (credentialResponse.constructor.name === 'DigitalCredential') {
+                                            const data = credentialResponse.data
+                                            const protocol = credentialResponse.protocol
+                                            console.log("Response Data: " + data + " Protocol: " + protocol)
+                                            xhr.send(JSON.stringify({"data": data, "protocol": protocol}));
+                                        } else {
+                                            xhr.send(JSON.stringify({"bad_response_type": credentialResponse.constructor.name}));
+                                            throw new Error("Unknown response type")
+                                        }
+
+                                    } catch (err) {
+                                        console.log("Exception");
+                                        console.log(err);
+                                        xhr.send(JSON.stringify({
+                                            "exception": {
+                                                "name": err.name,
+                                                "message": err.message
+                                            }
+                                        }));
+                                        alert(err)
                                     }
-
-                                } catch (err) {
-                                    console.log("Exception");
-                                    console.log(err);
-                                    xhr.send(JSON.stringify({"exception": {"name": err.name, "message": err.message}}));
-                                    alert(err)
                                 }
                             }
                         }

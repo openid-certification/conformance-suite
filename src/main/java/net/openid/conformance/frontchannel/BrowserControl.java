@@ -162,7 +162,12 @@ public class BrowserControl implements DataUtils {
 	 * @param method	  the HTTP method to be used
 	 */
 	public void goToUrl(String url, String placeholder, String method) {
-		// find the first matching command set based on the url pattern in 'match'
+		goToUrl(url, placeholder, method, 0);
+	}
+
+	public void goToUrl(String url, String placeholder, String method, int delaySeconds){
+
+			// find the first matching command set based on the url pattern in 'match'
 		logger.debug(testId + ": goToUrl called for " + url);
 		for (JsonElement commandsEl : browserCommands) {
 			JsonObject commands = commandsEl.getAsJsonObject();
@@ -178,7 +183,7 @@ public class BrowserControl implements DataUtils {
 					limit--;
 					commands.addProperty("match-limit", limit);
 				}
-				WebRunner wr = new WebRunner(url, commands.getAsJsonArray("tasks"), placeholder, method);
+				WebRunner wr = new WebRunner(url, commands.getAsJsonArray("tasks"), placeholder, method, delaySeconds);
 				executionManager.runInBackground(wr);
 				logger.debug(testId + ": WebRunner submitted to task executor for: " + url);
 
@@ -236,16 +241,18 @@ public class BrowserControl implements DataUtils {
 		private String lastException;
 		private String placeholder;
 		private String method;
+		private final int delaySeconds;
 
 		/**
 		 * @param url   url to go to
 		 * @param tasks {@link JsonArray} of commands to perform once we get to the page
 		 */
-		private WebRunner(String url, JsonArray tasks, String placeholder, String method) {
+		private WebRunner(String url, JsonArray tasks, String placeholder, String method, int delaySeconds) {
 			this.url = url;
 			this.tasks = tasks;
 			this.placeholder = placeholder;
 			this.method = method;
+			this.delaySeconds = delaySeconds;
 
 			// each WebRunner gets it's own driver... that way two could run at the same time for the same test.
 			this.driver = new ResponseCodeHtmlUnitDriver();
@@ -255,6 +262,12 @@ public class BrowserControl implements DataUtils {
 		public String call() {
 			try {
 				logger.info(testId + ": Sending BrowserControl to: " + url);
+
+				try {
+					Thread.sleep(delaySeconds * 1000L);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
 
 				if (Objects.equals(method, "POST")) {
 
