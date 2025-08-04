@@ -24,35 +24,44 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 	 * @param requestedVerifiedClaimsElement json object or array
 	 * @param returnedVerifiedClaimsElement json object or array
 	 */
-	protected void validateResponseAgainstRequestedVerifiedClaims(JsonElement requestedVerifiedClaimsElement, JsonElement returnedVerifiedClaimsElement, JsonElement expectedValuesConfig) {
+	protected boolean validateResponseAgainstRequestedVerifiedClaims(JsonElement requestedVerifiedClaimsElement, JsonElement returnedVerifiedClaimsElement, JsonElement expectedValuesConfig) {
 		if(requestedVerifiedClaimsElement.isJsonObject()) {
-			validateResponseAgainstSingleRequestedVerifiedClaims(requestedVerifiedClaimsElement.getAsJsonObject(), returnedVerifiedClaimsElement, expectedValuesConfig);
+			return validateResponseAgainstSingleRequestedVerifiedClaims(requestedVerifiedClaimsElement.getAsJsonObject(), returnedVerifiedClaimsElement, expectedValuesConfig);
 		} else if(requestedVerifiedClaimsElement.isJsonArray()) {
+			boolean foundValidResponse = false;
 			for(JsonElement element : requestedVerifiedClaimsElement.getAsJsonArray()) {
 				if(element.isJsonObject()) {
 					JsonObject jsonObject = element.getAsJsonObject();
-					validateResponseAgainstSingleRequestedVerifiedClaims(jsonObject, returnedVerifiedClaimsElement, expectedValuesConfig);
+					// request arrays act as OR conditions, return after first valid response???
+					foundValidResponse = foundValidResponse || validateResponseAgainstSingleRequestedVerifiedClaims(jsonObject, returnedVerifiedClaimsElement, expectedValuesConfig);
 				} else {
 					throw error("Unexpected element in verified_claims array in request", args("element", element));
 				}
 			}
+			return foundValidResponse;
 		} else {
 			throw error("Unexpected verified_claims element in request. Must be either an array or object",
 						args("element", requestedVerifiedClaimsElement));
 		}
+
 	}
 
-	protected void validateResponseAgainstSingleRequestedVerifiedClaims(JsonObject requestedVerifiedClaims, JsonElement returnedVerifiedClaimsElement, JsonElement expectedValuesConfig) {
+
+	protected boolean validateResponseAgainstSingleRequestedVerifiedClaims(JsonObject requestedVerifiedClaims, JsonElement returnedVerifiedClaimsElement, JsonElement expectedValuesConfig) {
 		if(returnedVerifiedClaimsElement.isJsonArray()) {
+			boolean foundValidResponse = false;
+			// check response array for matches against the request
 			for(JsonElement element : returnedVerifiedClaimsElement.getAsJsonArray()) {
 				if(element.isJsonObject()) {
-					validateOneOnOne(requestedVerifiedClaims, element.getAsJsonObject(), safeGetElementAsJsonObject(expectedValuesConfig));
+					// arrays act as OR conditions, return after first valid response???
+					foundValidResponse = foundValidResponse || validateOneOnOne(requestedVerifiedClaims, element.getAsJsonObject(), safeGetElementAsJsonObject(expectedValuesConfig));
 				} else {
 					throw error("Unexpected element in verified_claims array in request", args("element", element));
 				}
 			}
+			return foundValidResponse;
 		} else if(returnedVerifiedClaimsElement.isJsonObject()) {
-			validateOneOnOne(requestedVerifiedClaims, returnedVerifiedClaimsElement.getAsJsonObject(), safeGetElementAsJsonObject(expectedValuesConfig));
+			return validateOneOnOne(requestedVerifiedClaims, returnedVerifiedClaimsElement.getAsJsonObject(), safeGetElementAsJsonObject(expectedValuesConfig));
 		} else {
 			throw error("Returned verified_claims element is neither an array or object",
 						args("element", returnedVerifiedClaimsElement));
@@ -87,7 +96,7 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 	 * @param requestedVerifiedClaims
 	 * @param returnedVerifiedClaims
 	 */
-	protected void validateOneOnOne(JsonObject requestedVerifiedClaims, JsonObject returnedVerifiedClaims, JsonObject expectedVerifiedClaimsConfig){
+	protected boolean validateOneOnOne(JsonObject requestedVerifiedClaims, JsonObject returnedVerifiedClaims, JsonObject expectedVerifiedClaimsConfig){
 		JsonObject requestedClaims = requestedVerifiedClaims.get("claims").getAsJsonObject();
 		JsonObject returnedClaims = returnedVerifiedClaims.get("claims").getAsJsonObject();
 		boolean foundAtLeastOneMatch = false;
@@ -99,51 +108,45 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		}
 		if(!foundAtLeastOneMatch) {
 			//no need to compare these. requested claims are not included in this verified_claims in response
-			return;
+			return false;
 		}
 		JsonObject requestedVerification = requestedVerifiedClaims.get("verification").getAsJsonObject();
 		JsonObject returnedVerification = returnedVerifiedClaims.get("verification").getAsJsonObject();
 		JsonObject expectedVerification = safeGetElementAsJsonObject(safeGetJsonObjectElement(expectedVerifiedClaimsConfig, "verification"));
-		//trust_framework
-		compareTrustFrameworks(requestedVerification.get("trust_framework"), returnedVerification.get("trust_framework"));
 
-		if(requestedVerification.has("time")) {
-			checkTime(requestedVerification, returnedVerification, true, true);
+		//trust_framework
+		boolean isValid = compareTrustFrameworks(requestedVerification.get("trust_framework"), returnedVerification.get("trust_framework"));
+
+		if(isValid && requestedVerification.has("time")) {
+			isValid = checkTime(requestedVerification, returnedVerification, true, true);
 		}
 
 		// assurance_process
-		if(requestedVerification.has("assurance_process")) {
-			validateAssuranceProcess(requestedVerification.get("assurance_process"), returnedVerification.get("assurance_process"), safeGetJsonObjectElement(expectedVerification, "assurance_process"));
+		if(isValid && requestedVerification.has("assurance_process")) {
+			isValid = validateAssuranceProcess(requestedVerification.get("assurance_process"), returnedVerification.get("assurance_process"), safeGetJsonObjectElement(expectedVerification, "assurance_process"));
 		}
-
-		compareConstrainableElementList(returnedVerification, returnedVerification, expectedVerification,
-			"assurance_level", "verification_process");
-
-//		if(requestedVerification.has("assurance_level")) {
-//			compareConstrainableElement("assurance_level", requestedVerification.get("assurance_level"), returnedVerification.get("assurance_level"), safeGetJsonObjectElement(expectedVerification, "assurance_level"));
-//		}
-//
-//		if(requestedVerification.has("verification_process")) {
-//			validateVerificationProcess(requestedVerification.get("verification_process"), returnedVerification.get("verification_process"));
-//		}
-
-		if(requestedVerification.has("evidence")) {
-			validateEvidence(requestedVerification.get("evidence"), returnedVerification.get("evidence"), safeGetJsonObjectElement(expectedVerification, "evidence"));
+		if(isValid) {
+			isValid = compareConstrainableElementList(returnedVerification, returnedVerification, expectedVerification,
+				"assurance_level", "verification_process");
 		}
+		if(isValid && requestedVerification.has("evidence")) {
+			isValid = validateEvidence(requestedVerification.get("evidence"), returnedVerification.get("evidence"), safeGetJsonObjectElement(expectedVerification, "evidence"));
+		}
+		return isValid;
 	}
 
-	protected void validateAssuranceProcess(JsonElement requestedAssuranceProcess, JsonElement returnedAssuranceProcess, JsonElement expectedAssuranceProcess) {
+	protected boolean validateAssuranceProcess(JsonElement requestedAssuranceProcess, JsonElement returnedAssuranceProcess, JsonElement expectedAssuranceProcess) {
 		if(requestedAssuranceProcess.isJsonObject()) {
 			JsonObject requestedAssuranceProcessObject = requestedAssuranceProcess.getAsJsonObject();
 			JsonObject returnedAssuranceProcessObject = returnedAssuranceProcess.getAsJsonObject();
 			JsonObject expectedAssuranceProcessObject = safeGetElementAsJsonObject(expectedAssuranceProcess);
 
-			compareConstrainableElementList(requestedAssuranceProcessObject, returnedAssuranceProcessObject, expectedAssuranceProcessObject, "policy", "procedure");
+			boolean isValid = compareConstrainableElementList(requestedAssuranceProcessObject, returnedAssuranceProcessObject, expectedAssuranceProcessObject, "policy", "procedure");
 
-			if(requestedAssuranceProcessObject.has("assurance_details")) {
-				validateAssuranceProcessAssuranceDetails(requestedAssuranceProcessObject.get("assurance_details"), returnedAssuranceProcessObject.get("assurance_details"));
+			if(isValid && requestedAssuranceProcessObject.has("assurance_details")) {
+				isValid = validateAssuranceProcessAssuranceDetails(requestedAssuranceProcessObject.get("assurance_details"), returnedAssuranceProcessObject.get("assurance_details"));
 			}
-
+			return isValid;
 		} else {
 			throw error("Unexpected assurance_process in request",
 				args("assurance_process", requestedAssuranceProcess));
@@ -154,10 +157,11 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 	// Validate the assurance_details for assurance_type and assurance_classification only
 	// evidence_ref is an array and may contain check_id which RP may not know
 	// TODO possibly check expected values
-	protected void validateAssuranceProcessAssuranceDetails(JsonElement requestedAssuranceDetails, JsonElement returnedAssuranceDetails) {
+	protected boolean validateAssuranceProcessAssuranceDetails(JsonElement requestedAssuranceDetails, JsonElement returnedAssuranceDetails) {
 		if(requestedAssuranceDetails.isJsonArray()) {
 			if(returnedAssuranceDetails == null) {
-				throw error("assurance_details was requested but none was returned", args("assurance_details", requestedAssuranceDetails));
+				log("assurance_details was requested but none was returned", args("assurance_details", requestedAssuranceDetails));
+				return false;
 			}
 			JsonArray requestedAssuranceDetailsArray = requestedAssuranceDetails.getAsJsonArray();
 			JsonArray returnedAssuranceDetailsArray = returnedAssuranceDetails.getAsJsonArray();
@@ -193,10 +197,12 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 			}).toList();
 
 			if(matchedResponseList.size() != requestedAssuranceDetailsArray.size()) {
-				throw error("Number of responses for assurance_details does not match requests",
+				log("Number of responses for assurance_details does not match requests",
 					args("expected", requestedAssuranceDetailsArray.size(), "actual", matchedResponseList.size(),
 						"request", requestedAssuranceDetailsArray, "response", returnedAssuranceDetails));
+				return false;
 			}
+			return true;
 		} else {
 			throw error("Unexpected assurance_details in request",
 				args("assurance_details", requestedAssuranceDetails));
@@ -251,16 +257,18 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 	 * @param requestedEvidenceElement
 	 * @param returnedEvidenceElement
 	 */
-	protected void validateEvidence(JsonElement requestedEvidenceElement, JsonElement returnedEvidenceElement, JsonElement expectedEvidenceElement) {
+	protected boolean validateEvidence(JsonElement requestedEvidenceElement, JsonElement returnedEvidenceElement, JsonElement expectedEvidenceElement) {
+		boolean isValid = false;
 		JsonArray requestedEvidence = requestedEvidenceElement.getAsJsonArray();
 		JsonArray returnedEvidence = returnedEvidenceElement.getAsJsonArray();
 //		JsonArray expectedEvidence = (null != expectedEvidenceElement) ? returnedEvidenceElement.getAsJsonArray() : null;
 		if(requestedEvidence.size()==1) {
 			JsonObject evidenceObject = requestedEvidence.get(0).getAsJsonObject();
 			if(validateSingleEvidence(evidenceObject, returnedEvidence)){
-				logSuccess("Returned evidence match requested");
+				log("Returned evidence match requested");
+				isValid = true;
 			} else {
-				throw error("Response does not contain an evidence with the requested type",
+				log("Response does not contain an evidence with the requested type",
 					args("requested_type", evidenceObject.get("type"), "returned_evidence", returnedEvidence));
 			}
 		} else {
@@ -271,12 +279,13 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				atLeastOneMatched = (atLeastOneMatched || validateSingleEvidence(evidenceObject, returnedEvidence));
 			}
 			if(atLeastOneMatched) {
-				logSuccess("Returned evidence match one of the requested evidence types");
+				log("Returned evidence match one of the requested evidence types");
 			} else {
-				throw error("Response does not contain an evidence matching one of the requested evidence types",
+				log("Response does not contain an evidence matching one of the requested evidence types",
 					args("requested", requestedEvidence, "returned", returnedEvidence));
 			}
 		}
+		return isValid;
 	}
 
 	protected boolean validateSingleEvidence(JsonObject requestedEvidence, JsonArray returnedEvidence) {
@@ -332,11 +341,11 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		if(returnedEvidenceObject.has("type")) {
 			if(OIDFJSON.getString(returnedEvidenceObject.get("type")).equals("document")) {
 				boolean isValid = compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null,"type");
-				if(requestedEvidence.has("check_details")) {
-					isValid = isValid && validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
+				if(isValid && requestedEvidence.has("check_details")) {
+					isValid = validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
 				}
-				if(requestedEvidence.has("document_details")) {
-					isValid = isValid && validateEvidenceDocumentDetails(requestedEvidence.get("document_details"), safeGetJsonObjectElement(returnedEvidenceObject, "document_details"));
+				if(isValid && requestedEvidence.has("document_details")) {
+					isValid = validateEvidenceDocumentDetails(requestedEvidence.get("document_details"), safeGetJsonObjectElement(returnedEvidenceObject, "document_details"));
 				}
 				return isValid;
 
@@ -373,8 +382,8 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 					JsonObject returnedCheckDetailsObject = returnedCheckDetailsElement.getAsJsonObject();
 					validateObjectsContainRequiredElements("evidence check_details", requestedCheckDetailsObject,returnedCheckDetailsObject, "check_method");
 					boolean isValid = compareConstrainableElementList(requestedCheckDetailsObject, returnedCheckDetailsObject, null,"check_method", "organization", "check_id");
-					if (requestedCheckDetailsObject.has("time")) {
-						isValid = isValid && checkTime(requestedCheckDetailsObject, returnedCheckDetailsObject, false, false);
+					if (isValid && requestedCheckDetailsObject.has("time")) {
+						isValid = checkTime(requestedCheckDetailsObject, returnedCheckDetailsObject, false, false);
 					}
 					if( isValid) {
 						log("check_details matched", args("result", ConditionResult.INFO.toString(),"req", requestedCheckDetailsObject, "res", returnedCheckDetailsObject));
@@ -402,8 +411,8 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				JsonObject returnedDocDetailsObject = returnedDocDetails.getAsJsonObject();
 				validateObjectsContainRequiredElements("evidence document_details", requestedDocDetailsObject,returnedDocDetailsObject, "type");
 				isValid = compareConstrainableElementList(requestedDocDetailsObject, returnedDocDetailsObject,null, "type", null, "document_number", "serial_number", "date_of_issuance", "date_of_expiry");
-				if(requestedDocDetailsObject.has("issuer")) {
-					isValid = isValid && validateEvidenceDocumentDetailsIssuer(requestedDocDetailsObject.get("issuer"), safeGetJsonObjectElement(returnedDocDetailsObject, "issuer"));
+				if(isValid && requestedDocDetailsObject.has("issuer")) {
+					isValid = validateEvidenceDocumentDetailsIssuer(requestedDocDetailsObject.get("issuer"), safeGetJsonObjectElement(returnedDocDetailsObject, "issuer"));
 				}
 			} else {
 				isValid = false;
@@ -433,14 +442,13 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 	protected boolean compareElectronicRecordType(JsonObject requestedEvidence, JsonObject returnedEvidenceObject) {
 
 		if(returnedEvidenceObject.has("type")) {
-			boolean isValid = true;
 			if(OIDFJSON.getString(returnedEvidenceObject.get("type")).equals("electronic_record")) {
-				isValid = compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null, "type");
-				if(requestedEvidence.has("check_details")) {
-					isValid = isValid && validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
+				boolean isValid = compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null, "type");
+				if(isValid && requestedEvidence.has("check_details")) {
+					isValid = validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
 				}
-				if(requestedEvidence.has("record")) {
-					isValid = isValid && validateEvidenceRecord(requestedEvidence.get("record"), safeGetJsonObjectElement(returnedEvidenceObject, "record"));
+				if(isValid && requestedEvidence.has("record")) {
+					isValid = validateEvidenceRecord(requestedEvidence.get("record"), safeGetJsonObjectElement(returnedEvidenceObject, "record"));
 				}
 				return isValid;
 			} else {
@@ -460,8 +468,8 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				JsonObject returnedRecordObject = returnedRecord.getAsJsonObject();
 				validateObjectsContainRequiredElements("evidence record", requestedRecordObject,returnedRecordObject, "type");
 				isValid = compareConstrainableElementList(requestedRecordObject, returnedRecordObject, null, "type", "created_at", "date_of_expiry");
-				if(requestedRecordObject.has("source")) {
-					isValid = isValid && validateEvidenceRecordSource(requestedRecordObject.get("source"), returnedRecordObject.get("source"));
+				if(isValid && requestedRecordObject.has("source")) {
+					isValid = validateEvidenceRecordSource(requestedRecordObject.get("source"), returnedRecordObject.get("source"));
 				}
 
 			} else {
@@ -494,11 +502,11 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 		if(returnedEvidenceObject.has("type")) {
 			if(OIDFJSON.getString(returnedEvidenceObject.get("type")).equals("vouch")) {
 				boolean isValid = compareConstrainableElementList(requestedEvidence, returnedEvidenceObject, null, "type");
-				if(requestedEvidence.has("check_details")) {
-					isValid = isValid && validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
+				if(isValid && requestedEvidence.has("check_details")) {
+					isValid = validateEvidenceCheckDetails(requestedEvidence.get("check_details"), safeGetJsonObjectElement(returnedEvidenceObject, "check_details"));
 				}
-				if(requestedEvidence.has("attestation")) {
-					isValid = isValid && validateEvidenceAttestation(requestedEvidence.get("attestation"), safeGetJsonObjectElement(returnedEvidenceObject, "attestation"));
+				if(isValid && requestedEvidence.has("attestation")) {
+					isValid = validateEvidenceAttestation(requestedEvidence.get("attestation"), safeGetJsonObjectElement(returnedEvidenceObject, "attestation"));
 				}
 				return isValid;
 			} else {
@@ -518,8 +526,8 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				JsonObject returnedAttestationObject = returnedAttestation.getAsJsonObject();
 				validateObjectsContainRequiredElements("evidence attestation", requestedAttestationObject,returnedAttestationObject, "type");
 				isValid = compareConstrainableElementList(requestedAttestationObject, returnedAttestationObject,null, "type", "reference_number", "date_of_issuance", "date_of_expiry");
-				if(requestedAttestationObject.has("voucher")) {
-					isValid = isValid && validateEvidenceAttestationVoucher(requestedAttestationObject.get("voucher"), safeGetJsonObjectElement(returnedAttestationObject, "voucher"));
+				if(isValid && requestedAttestationObject.has("voucher")) {
+					isValid = validateEvidenceAttestationVoucher(requestedAttestationObject.get("voucher"), safeGetJsonObjectElement(returnedAttestationObject, "voucher"));
 				}
 			} else {
 				isValid = false;
@@ -760,12 +768,13 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 
 	IN RESPONSE: string
 	 */
-	protected void compareTrustFrameworks(JsonElement requestedTrustFramework, JsonElement returnedTrustFramework) {
+	protected boolean compareTrustFrameworks(JsonElement requestedTrustFramework, JsonElement returnedTrustFramework) {
+		boolean isValid = false;
 		if(requestedTrustFramework.isJsonNull()) {
 			//anything works
 			logSuccess("Requested trust_framework was null so any value will be accepted",
 				args("returned", returnedTrustFramework));
-			return;
+			isValid = true;
 		}
 		if(requestedTrustFramework.isJsonObject()) {
 			JsonObject requestedTF = requestedTrustFramework.getAsJsonObject();
@@ -773,11 +782,13 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 				if(requestedTF.get("value").equals(returnedTrustFramework)) {
 					logSuccess("Requested trust_framework matches the returned value",
 						args("trust_framework", returnedTrustFramework));
+					isValid = true;
 				}
 			} else if(requestedTF.has("values")) {
 				if (requestedTF.get("values").getAsJsonArray().contains(returnedTrustFramework)) {
 					logSuccess("Returned trust_framework is one of the expected values",
 						args("trust_framework", returnedTrustFramework));
+					isValid = true;
 				} else {
 					throw error("Returned trust_framework value is not one of the requested ones",
 						args("requested", requestedTF.get("values"), "returned", returnedTrustFramework));
@@ -785,16 +796,18 @@ public abstract class AbstractValidateVerifiedClaimsAgainstRequest extends Abstr
 			} else if(requestedTF.isEmpty()) {
 				logSuccess("Requested trust_framework was empty object so any value will be accepted",
 					args("returned", returnedTrustFramework));
+				isValid = true;
 			} else if(requestedTF.size() == 1 && requestedTF.getAsJsonPrimitive("essential") != null) {
 				logSuccess("Requested trust_framework was object with only essential:false so any value will be accepted",
 					args("returned", returnedTrustFramework));
+				isValid = true;
 			} else {
 				// I'm not entirely clear what this error means; it doesn't appear to be a requirement in the spec
 				// I think it might be a requirement when configuring the test rather than a requirement from the spec
 				throw error("Requested trust_framework must contain either value or values",
 							args("requestedTrustFramework", requestedTrustFramework));
 			}
-			return;
+			return isValid;
 		}
 		throw error("Unexpected requested trust_framework type in request",
 					args("requestedTrustFramework", requestedTrustFramework));
