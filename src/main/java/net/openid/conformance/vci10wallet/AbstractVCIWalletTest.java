@@ -231,6 +231,7 @@ import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCo
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
+import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationPoPNonceRequiredToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
@@ -1484,6 +1485,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			call(sequence(validateClientAuthenticationSteps));
 		}
 
+		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+			callAndStopOnFailure(VCIValidateTxCode.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5");
+		}
+
 		Object tokenResponseOb =  handleTokenEndpointGrantType(requestId);
 		if(isDpopConstrain()) {
 			call(exec().unmapKey("incoming_request"));
@@ -1630,7 +1635,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected void validateRedirectUriForAuthorizationCodeGrantType() {
-		callAndContinueOnFailure(ValidateRedirectUri.class, ConditionResult.FAILURE);
+		callAndStopOnFailure(ValidateRedirectUri.class);
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {
