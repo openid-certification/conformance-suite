@@ -1635,7 +1635,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected void validateRedirectUriForAuthorizationCodeGrantType() {
-		callAndStopOnFailure(ValidateRedirectUri.class);
+		callAndContinueOnFailure(ValidateRedirectUri.class, ConditionResult.FAILURE);
 	}
 
 	protected Object authorizationCodeGrantType(String requestId) {
