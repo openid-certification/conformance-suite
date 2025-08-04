@@ -19,7 +19,7 @@ public class VCIValidateNoUnknownKeysInCredentialResponse extends AbstractCondit
 
 		JsonObject endpointResponse = env.getObject("endpoint_response").getAsJsonObject();
 		JsonObject credentialResponseBodyJson = JsonParser.parseString(OIDFJSON.getString(endpointResponse.get("body"))).getAsJsonObject();
-		Set<String> expected = Set.of("credentials", "transaction_id", "notification_id");
+		Set<String> expected = Set.of("credentials", "transaction_id", "notification_id", "interval");
 
 		Set<String> unexpected = credentialResponseBodyJson.keySet();
 		unexpected.removeAll(expected);

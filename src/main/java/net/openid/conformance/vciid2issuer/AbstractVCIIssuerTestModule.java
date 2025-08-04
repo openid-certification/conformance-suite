@@ -64,8 +64,8 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -147,6 +147,7 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
 import net.openid.conformance.condition.common.RARSupport;
+import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
@@ -162,7 +163,6 @@ import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequ
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -196,10 +196,8 @@ import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialNonceR
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vciid2issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
-import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToParEndpointRequest;
-import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationHeaderToTokenEndpointRequest;
+import net.openid.conformance.vciid2issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.CreateClientAttestationJwt;
-import net.openid.conformance.vciid2issuer.condition.clientattestation.CreateClientAttestationProofJwt;
 import net.openid.conformance.vciid2issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -792,8 +790,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void createPreAuthorizationCodeRequest() {
 
 		callAndStopOnFailure(VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant.class);
-
-		addClientAuthenticationToTokenEndpointRequest();
 	}
 
 	protected void createAuthorizationCodeRequest() {
@@ -802,9 +798,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (env.getObject("token_endpoint_request_headers") == null) {
 			env.putObject("token_endpoint_request_headers", new JsonObject());
 		}
-		env.mapKey("request_headers", "token_endpoint_request_headers");
-		addClientAuthenticationToTokenEndpointRequest();
-		env.unmapKey("request_headers");
 
 		addPkceCodeVerifier();
 	}
@@ -814,7 +807,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		env.mapKey("request_headers", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
+		env.unmapKey("request_headers");
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
@@ -834,6 +829,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop()) {
 			int i = 0;
 			while (i < MAX_RETRY) {
+				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
 				if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
@@ -842,6 +838,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				++i;
 			}
 		} else {
+			addClientAuthenticationToTokenEndpointRequest();
 			callAndStopOnFailure(fullResponse ? CallTokenEndpointAndReturnFullResponse.class : CallTokenEndpoint.class, requirements);
 		}
 	}
@@ -1071,6 +1068,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			final int MAX_RETRY = 2;
 			int i = 0;
 			while (i < MAX_RETRY) {
+
 				call(sequence(createDpopForResourceEndpointSteps));
 				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "OID4VCI-ID2-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 				if (Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
@@ -1122,34 +1120,26 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		eventLog.endBlock();
 
+		eventLog.startBlock(currentClientString() + " Call credential issuer nonce endpoint");
 		// check for nonce endpoint
 		JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
 		if (nonceEndpointEl != null) {
-			eventLog.startBlock(currentClientString() + " Call credential nonce endpoint");
 
-			String nonceEndpoint = OIDFJSON.getString(nonceEndpointEl);
-			String originalResourceUrl = env.getString("protected_resource_url");
-			env.putString("protected_resource_url", nonceEndpoint);
+			callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-7.1");
 
-			env.putString("resource", "resourceMethod", "POST");
-			if (isDpop()) {
-				requestProtectedResourceUsingDpop();
-			} else {
-				callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-ID2-7", "FAPI2-SP-ID2-5.3.3-2");
-			}
 			eventLog.endBlock();
 
 			eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
-			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
+			call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
+			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-7.2");
 
-			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
-			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2");
-
-			env.putString("protected_resource_url", originalResourceUrl);
-
-			eventLog.endBlock();
+			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-7.2");
+			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-7.2");
+		} else {
+			eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
 		}
+
+		eventLog.endBlock();
 
 		eventLog.startBlock(currentClientString() + " Call Credential Endpoint");
 
@@ -1174,12 +1164,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		eventLog.endBlock();
 
 		eventLog.startBlock(currentClientString() + " Verify Credential Endpoint Response");
-		// TODO Use HTTP status code 200 for directly issued credentials and 202 for deferred credentials
-		// Wording in ID2 Draft 15 says always 202, but that was a mistake see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-8.3
-		// Fixed: here https://github.com/openid/OpenID4VCI/pull/490
-		callAndStopOnFailure(new EnsureHttpStatusCodeIsAnyOf(200,202), ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
-		callAndContinueOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.3");
-		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-ID2-8.3");
+		// TODO: allow a deferred response with a transaction_id https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.3
+		callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-8.3");
+		callAndContinueOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-8.3");
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-8.3");
 
 		callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
 		callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");
@@ -1271,11 +1259,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	@VariantSetup(parameter = VCIID2ClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
-		addTokenEndpointClientAuthentication = AddClientAttestationHeaderToTokenEndpointRequest.class;
+		addTokenEndpointClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
-		addParEndpointClientAuthentication = AddClientAttestationHeaderToParEndpointRequest.class;
+		addParEndpointClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 	}
 
 	protected void generateClientAttestationKeys() {
@@ -1288,7 +1276,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
 		callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1", "HAIP-4.3.1-2");
-		callAndStopOnFailure(CreateClientAttestationProofJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA05-1");
+
+		// we generate a new CreateClientAttestationProofJwt via the AddClientAttestationClientAuthToEndpointRequest sequence
 	}
 
 	@VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")

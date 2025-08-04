@@ -32,14 +32,16 @@ public abstract class AbstractCallEndpointWithPost extends AbstractCallEndpoint 
 		this.endpointName = endpointUri;
 		this.responseEnvironmentKey = responseEnvironmentKey;
 
-		JsonObject formJson = env.getObject(requestFormParametersEnvKey);
 		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-		for (String key : formJson.keySet()) {
-			JsonElement json = formJson.get(key);
-			if (json.isJsonObject()) {
-				form.add(key, json.toString());
-			} else {
-				form.add(key, OIDFJSON.getString(formJson.get(key)));
+		if (requestFormParametersEnvKey != null) {
+			JsonObject formJson = env.getObject(requestFormParametersEnvKey);
+			for (String key : formJson.keySet()) {
+				JsonElement json = formJson.get(key);
+				if (json.isJsonObject()) {
+					form.add(key, json.toString());
+				} else {
+					form.add(key, OIDFJSON.getString(formJson.get(key)));
+				}
 			}
 		}
 

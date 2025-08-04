@@ -21,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -113,11 +114,10 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 			throw error("Couldn't find vci.credential_issuer_url field for discovery purposes");
 		}
 
-		if (!iss.endsWith("/")) {
-			iss += "/";
-		}
+		URI serverIssuerUri = URI.create(iss);
+		String serverIssuerPath = serverIssuerUri.getPath();
 
-		return iss + WELL_KNOWN_CREDENTIAL_ISSUER_METADATA_PATH;
+		return serverIssuerUri.getScheme() + "://" + serverIssuerUri.getAuthority() + "/" + WELL_KNOWN_CREDENTIAL_ISSUER_METADATA_PATH + serverIssuerPath;
 	}
 
 }
