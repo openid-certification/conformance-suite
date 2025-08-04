@@ -504,7 +504,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected void generateSignedCredentialIssuerMetadata() {
-		callAndStopOnFailure(VCIGenerateSignedCredentialIssuerMetadata.class, "OID4VCI-11.2.3");
+		callAndStopOnFailure(VCIGenerateSignedCredentialIssuerMetadata.class, "OID4VCI-11.2.3", "HAIP-4.1");
 	}
 
 	protected JsonObject getCredentialIssuerMetadata() {
