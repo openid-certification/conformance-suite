@@ -16,6 +16,7 @@ import java.util.Map;
 )
 public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
+		FAPI2SPID2ClientTestDiscoveryIssuerMismatch.class,
 		FAPI2SPID2ClientTestHappyPath.class,
 		FAPI2SPID2ClientTestInvalidIss.class,
 		FAPI2SPID2ClientTestInvalidAud.class,
