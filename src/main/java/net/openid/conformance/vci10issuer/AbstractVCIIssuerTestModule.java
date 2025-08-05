@@ -236,7 +236,6 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
 	"client2.scope"})
-//@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {"resource.richAuthorizationRequest",})
 @VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attester_keys_jwks"})
 @VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code", configurationFields = {"vci.static_tx_code"})
