@@ -55,7 +55,7 @@ public class VCIGenerateSignedCredentialIssuerMetadata extends AbstractSignJWT {
 
 		JsonObject jwks = JWKUtil.createJwksObjectFromJwkObjects(credentialSigningJwkEl.getAsJsonObject());
 
-		signJWT(env, claims, jwks, true);
+		signJWT(env, claims, jwks, true, true, true, true);
 
 		return env;
 	}

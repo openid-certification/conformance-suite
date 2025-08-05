@@ -182,6 +182,7 @@ import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointReques
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
+import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
@@ -191,13 +192,17 @@ import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpoint
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
+import net.openid.conformance.vci10issuer.condition.VCIUseStaticTxCodeFromConfig;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
+import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
 import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Arrays;
@@ -231,9 +236,9 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "connectid_au", configurationFields = {"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
 	"client2.scope"})
-//@VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {"resource.richAuthorizationRequest",})
 @VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attester_keys_jwks"})
+@VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code", configurationFields = {"vci.static_tx_code"})
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -449,11 +454,35 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
-		if ("credential_offer".equals(path)) {
-			return handleCredentialOffer(req, res, session, requestParts);
-		}
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		call(exec().mapKey("client_request", requestId));
 
-		return super.handleHttp(path, req, res, session, requestParts);
+		try {
+			if ("credential_offer".equals(path)) {
+				return handleCredentialOffer(req, res, session, requestParts);
+			}
+
+			if ("tx_code".equals(path)) {
+				return handleTxCode();
+			}
+
+			return super.handleHttp(path, req, res, session, requestParts);
+		} finally {
+			call(exec().unmapKey("client_request"));
+		}
+	}
+
+	protected Object handleTxCode() {
+
+		setStatus(Status.RUNNING);
+		callAndStopOnFailure(VCIExtractTxCodeFromRequest.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5");
+		performPreAuthorizationCodeFlow();
+
+		return new ModelAndView("resultCaptured",
+			ImmutableMap.of(
+				"returnUrl", "/log-detail.html?log=" + getId()
+			));
 	}
 
 	protected Object handleCredentialOffer(HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -471,7 +500,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 				processCredentialOffer(requestParts);
 
-				performPreAuthorizationCodeFlow();
+				if (env.getElementFromObject("config", "vci.static_tx_code") != null) {
+					callAndStopOnFailure(VCIUseStaticTxCodeFromConfig.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5");
+
+					performPreAuthorizationCodeFlow();
+				} else {
+					waitForTxCode();
+				}
 			}
 		}
 
@@ -479,6 +514,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			ImmutableMap.of(
 				"returnUrl", "/log-detail.html?log=" + getId()
 			));
+	}
+
+	protected void waitForTxCode() {
+		expose("tx_code_endpoint", env.getString("base_url") + "/tx_code?code=your_tx_code");
+		callAndStopOnFailure(VCIWaitForTxCode.class,ConditionResult.FAILURE, "OID4VCI-ID2-3.5");
+
+		setStatus(Status.WAITING);
+		// performPreAuthorizationCodeFlow() is called in handleTxCode()
 	}
 
 	protected void processCredentialOffer(JsonObject requestParts) {
@@ -524,10 +567,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	@Override
 	public void start() {
 
+		setStatus(Status.RUNNING);
 		switch (vciAuthorizationCodeFlowVariant) {
 
 			case WALLET_INITIATED -> {
-				setStatus(Status.RUNNING);
 				switch (vciGrantType) {
 					case AUTHORIZATION_CODE -> performAuthorizationFlow();
 					case PRE_AUTHORIZATION_CODE -> throw new UnsupportedOperationException("Pre-authorization code is not supported for wallet initiated flow");
@@ -542,6 +585,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void waitForCredentialOffer() {
 		expose("credential_offer_endpoint", env.getString("base_url") + "/credential_offer");
+		callAndStopOnFailure(VCIWaitForCredentialOffer.class,  ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
 		setStatus(Status.WAITING);
 	}
 

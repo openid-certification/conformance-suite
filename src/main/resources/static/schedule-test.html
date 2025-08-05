@@ -348,6 +348,19 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     </div>
                                 </div>
 
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Static tx_code</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Static tx_code value for pre-authorized code flow. Useful for CI integrations. Leave empty if the tx_value is supplied during test execution. The test will expose a /tx_code endpoint that can be used to supply the tx_code via GET $BASE_URL/tx_code?code=your_tx_code."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="vci.static_tx_code"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+
                             </div>
 
                             <div class="config-form-container">

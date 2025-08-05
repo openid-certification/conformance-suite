@@ -170,7 +170,29 @@ public class TestPlanApi implements DataUtils {
 			});
 		}
 
+		// FIXME: Remove workaround for dangling testplan configurations and implement explicit support for testplan migrations
+		if (testPlanObj.has("planName")) {
+			String planName = OIDFJSON.getString(testPlanObj.get("planName"));
+			Map<String, String> map = getOldTestPlanToNewTestPlanMap();
+			// rename testplan if necessary
+			if (map.containsKey(planName)) {
+				String newPlanName = map.get(planName);
+				testPlanObj.addProperty("planName", newPlanName);
+			}
+		}
+
 		return new ResponseEntity<>(testPlanObj, HttpStatus.OK);
+	}
+
+	/**
+	 * Maps old testplan names to new testplan names to retain configurations.
+	 * @return
+	 */
+	protected Map<String, String> getOldTestPlanToNewTestPlanMap() {
+		return Map.ofEntries(
+			Map.entry("oid4vci-id2-issuer-test-plan", "oid4vci-1_0-issuer-test-plan"),
+			Map.entry("oid4vci-id2-wallet-test-plan", "oid4vci-1_0-wallet-test-plan")
+		);
 	}
 
 	@PostMapping(value = "/plan/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

@@ -369,6 +369,7 @@ makeServerTest() {
 
     # OpenID4VCI op-against-rp
     SIMPLE="authorization_request_type=simple"
+    RAR="authorization_request_type=rar"
     PRIVATE_KEY="client_auth_type=private_key_jwt"
     MTLSAUTH="client_auth_type=mtls"
     CLIATTAUTH="client_auth_type=client_attestation"
@@ -380,8 +381,11 @@ makeServerTest() {
     WALLETINIT="vci_authorization_code_flow_variant=wallet_initiated"
     ISSUERINIT="vci_authorization_code_flow_variant=issuer_initiated"
     AUTHCODE="vci_grant_type=authorization_code"
+    PREAUTHCODE="vci_grant_type=pre_authorization_code"
     OFFERBYVALUE="vci_credential_offer_variant=by_value"
     OFFERBYREF="vci_credential_offer_variant=by_reference"
+
+    # Authorization Code Flow
          # client_auth=private_key, sender_constrain=mtls
     TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$PRIVATE_KEY][$UNSIGNED][$MTLSAT][$PLAINFAPI][$PLAINRESP]:oid4vci-1_0-wallet-happy-path{oid4vci-1_0-issuer-test-plan[$SIMPLE][$PRIVATE_KEY][$UNSIGNED][$MTLSAT][$PLAINFAPI][$PLAINRESP][vci_credential_issuer_metadata=discovery]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
          # client_auth=private_key, sender_constrain=dpop
@@ -397,6 +401,11 @@ makeServerTest() {
         # client_auth=client_attestation, sender_constrain=dpop - issuer initiated (credential offer by reference)
     TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$AUTHCODE][$OFFERBYREF]:oid4vci-1_0-wallet-happy-path{oid4vci-1_0-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$AUTHCODE][$OFFERBYREF][vci_credential_issuer_metadata=discovery]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
 
+    # Pre-Authorized Code Flow
+        # client_auth=mtls, sender_constrain=dpop, grant_type=pre_authorization_code - issuer initiated (credential offer by value), oid4vci-1_0-wallet-happy-path-with-scopes, because of authorization_request_type=simple requires a scope mapping in credentail metadata
+    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE]:oid4vci-1_0-wallet-happy-path-with-scopes{oid4vci-1_0-issuer-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][vci_credential_issuer_metadata=discovery]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
+        # client_auth=mtls, sender_constrain=dpop, grant_type=pre_authorization_code - issuer initiated (credential offer by value)
+    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$RAR][$MTLSAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE]:oid4vci-1_0-wallet-happy-path{oid4vci-1_0-issuer-test-plan[$RAR][$MTLSAUTH][$UNSIGNED][$DPOP][$PLAINFAPI][$PLAINRESP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][vci_credential_issuer_metadata=discovery]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-ensure-request-object-with-multiple-aud-succeeds}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
 }
 
 makeCIBATest() {

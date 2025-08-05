@@ -26,7 +26,7 @@ public class VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer extends Abs
 		String preAuthorizedCode  = OIDFJSON.getString(preAuthorizedCodeGrantObject.get("pre-authorized_code"));
 		env.putString("vci", "pre-authorized_code", preAuthorizedCode);
 
-		String txCodeValue = "123456"; // FIXME obtain proper tx_code value
+		String txCodeValue = env.getString("vci", "tx_code");
 		env.putString("vci", "pre-authorized_code_tx_code_value", txCodeValue);
 
 		logSuccess("Found pre-authorized_code in Pre-authorized code grant", args("pre-authorized_code", preAuthorizedCode, "tx_code_value", txCodeValue, "credential_offer", credentialOfferObject));
