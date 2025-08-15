@@ -9,6 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -60,7 +61,7 @@ public class CompareIdTokenClaims extends AbstractCondition {
 		}
 		JsonPrimitive claim1 = firstIdToken.getAsJsonPrimitive(CLAIM_AZP);
 		JsonPrimitive claim2 = secondIdToken.getAsJsonPrimitive(CLAIM_AZP);
-		if(claim2!=null && !claim2.equals(claim1)) {
+		if(!Objects.equals(claim1, claim2)) {
 			throw error(CLAIM_AZP + " claims are not the same", args("claim1", claim1, "claim2", claim2));
 		}
 		JsonObject values = new JsonObject();
