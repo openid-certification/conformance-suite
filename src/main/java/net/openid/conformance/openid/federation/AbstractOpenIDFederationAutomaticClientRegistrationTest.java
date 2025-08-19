@@ -2,6 +2,7 @@ package net.openid.conformance.openid.federation;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,9 +31,14 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAutho
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.openid.AbstractOIDCCServerTest;
+import net.openid.conformance.openid.federation.client.AddFederationEntityMetadataToTrustAnchorEntityConfiguration;
+import net.openid.conformance.openid.federation.client.AddSelfHostedTrustAnchorToEntityConfiguration;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
+import net.openid.conformance.openid.federation.client.GenerateTrustAnchorEntityConfiguration;
+import net.openid.conformance.openid.federation.client.LoadTrustAnchorJWKs;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
+import net.openid.conformance.openid.federation.client.ValidateTrustAnchorJWKs;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -138,6 +144,20 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
 		exposeEnvString("entity_configuration_url");
+
+		env.putString("trust_anchor_entity_identifier", baseUrl + "/trust-anchor");
+		exposeEnvString("trust_anchor_entity_identifier");
+
+		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
+		exposeEnvString("trust_anchor_entity_configuration_url");
+
+		if (isSelfHostedTrustAnchorConfigured()) {
+			callAndStopOnFailure(LoadTrustAnchorJWKs.class);
+			callAndStopOnFailure(ValidateTrustAnchorJWKs.class, "RFC7517-1.1");
+			callAndStopOnFailure(GenerateTrustAnchorEntityConfiguration.class);
+			callAndStopOnFailure(AddFederationEntityMetadataToTrustAnchorEntityConfiguration.class);
+			callAndStopOnFailure(AddSelfHostedTrustAnchorToEntityConfiguration.class);
+		}
 
 		call(sequence(profileStaticClientConfiguration));
 

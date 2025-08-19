@@ -16,7 +16,7 @@ import org.springframework.http.HttpMethod;
 			"If the server does not return an invalid_request, invalid_request_object, invalid_client or a similar well-defined " +
 			"and appropriate error back to the client, it must show an error page saying the request is invalid due to " +
 			"an invalid client_id — upload a screenshot of the error page.",
-profile = "OIDFED"
+		profile = "OIDFED"
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInQueryParametersTest extends OpenIDFederationAutomaticClientRegistrationTest {

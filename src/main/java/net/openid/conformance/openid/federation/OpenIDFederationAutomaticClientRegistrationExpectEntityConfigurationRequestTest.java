@@ -2,9 +2,6 @@ package net.openid.conformance.openid.federation;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -28,7 +25,9 @@ import org.springframework.http.ResponseEntity;
 		"federation.trust_anchor",
 		"federation.trust_anchor_jwks",
 		"federation.authority_hints",
-		"internal.op_to_rp_mode"
+		"internal.op_to_rp_mode",
+		"federation_trust_anchor.immediate_subordinates",
+		"federation_trust_anchor.trust_anchor_jwks",
 	}
 )
 @SuppressWarnings("unused")
@@ -76,15 +75,6 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 	@Override
 	public void start() {
 		setStatus(Status.WAITING);
-	}
-
-	@Override
-	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
-		return switch (path) {
-			case ".well-known/openid-federation" -> entityConfigurationResponse();
-			case "jwks" -> clientJwksResponse();
-			default -> null;
-		};
 	}
 
 	@Override
