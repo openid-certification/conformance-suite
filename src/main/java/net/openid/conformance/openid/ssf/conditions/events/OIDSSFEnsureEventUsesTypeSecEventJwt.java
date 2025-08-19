@@ -1,0 +1,27 @@
+package net.openid.conformance.openid.ssf.conditions.events;
+
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+
+public class OIDSSFEnsureEventUsesTypeSecEventJwt extends AbstractCondition {
+
+	@PreEnvironment(required = {"ssf"})
+	@Override
+	public Environment evaluate(Environment env) {
+
+		String tokenType = env.getString("ssf", "verification.token.header.typ");
+
+		if (tokenType == null) {
+			throw error("Couldn't find typ");
+		}
+
+		if (!"secevent+jwt".equals(tokenType)) {
+			throw error("Invalid token type '"+tokenType+"'. Should be 'secevent+jwt'", args("typ", tokenType));
+		}
+
+		logSuccess("Valid token type 'secevent+jwt'", args("typ", tokenType));
+
+		return env;
+	}
+}
