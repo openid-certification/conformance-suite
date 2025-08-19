@@ -6,11 +6,11 @@ import net.openid.conformance.testmodule.Environment;
 
 public class OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt extends AbstractCondition {
 
-	@PreEnvironment(required = {"ssf"})
+	@PreEnvironment(required = {"set_token"})
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String tokenType = env.getString("ssf", "verification.token.header.typ");
+		String tokenType = env.getString("set_token", "header.typ");
 
 		if (tokenType == null) {
 			throw error("Couldn't find typ");

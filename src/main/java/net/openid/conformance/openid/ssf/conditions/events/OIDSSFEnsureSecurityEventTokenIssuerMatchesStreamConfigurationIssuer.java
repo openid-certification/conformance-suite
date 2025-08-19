@@ -9,11 +9,11 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 public class OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer extends AbstractCondition {
 
-	@PreEnvironment(required = {"ssf"})
+	@PreEnvironment(required = {"set_token"})
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonElement setTokenClaimsEl = env.getElementFromObject("ssf", "verification.token.claims");
+		JsonElement setTokenClaimsEl = env.getElementFromObject("set_token", "claims");
 
 		if (setTokenClaimsEl == null) {
 			throw error("Couldn't find SET token claims");

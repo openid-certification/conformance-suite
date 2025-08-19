@@ -15,7 +15,7 @@ public class OIDSSFEnsureEventContainsStreamAudience extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonElement setAudienceElement = env.getElementFromObject("ssf", "verification.token.claims.aud");
+		JsonElement setAudienceElement = env.getElementFromObject("set_token", "claims.aud");
 		if (setAudienceElement == null) {
 			throw error("Could not find required 'aud' claim in verification token");
 		}

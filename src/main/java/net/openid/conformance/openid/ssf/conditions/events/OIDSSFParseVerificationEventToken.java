@@ -23,6 +23,7 @@ public class OIDSSFParseVerificationEventToken extends AbstractCondition {
 		}
 
 		env.putObject("ssf", "verification.token", tokenJsonObject);
+		env.putObject("set_token", tokenJsonObject);
 
 		logSuccess("Parsed verification event token", args("token", tokenJsonObject));
 
