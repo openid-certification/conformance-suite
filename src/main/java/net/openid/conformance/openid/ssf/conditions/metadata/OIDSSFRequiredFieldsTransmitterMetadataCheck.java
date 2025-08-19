@@ -13,8 +13,7 @@ import java.util.Set;
 public class OIDSSFRequiredFieldsTransmitterMetadataCheck extends AbstractCondition {
 
 	private static final Set<String> REQUIRED_FIELDS = Set.of(
-		"issuer",
-		"authorization_schemes"
+		"issuer"
 	);
 
 	@Override

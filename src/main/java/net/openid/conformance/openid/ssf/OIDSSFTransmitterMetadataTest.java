@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.FetchOauthProtectedResourceMetada
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldConfigurationEndpoint;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldJwksUri;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldStatusEndpoint;
@@ -77,11 +78,10 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTestModule {
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFOptionalFieldsTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1");
-		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class,
-				isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
-						? Condition.ConditionResult.FAILURE
-						: Condition.ConditionResult.WARNING
-				, "OIDSSF-7.1.1", "CAEPIOP-2.3.7");
+		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1.1");
+		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			callAndContinueOnFailure(OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1", "CAEPIOP-2.3.7");
+		}
 		callAndContinueOnFailure(OIDSSFCheckSupportedDeliveryMethods.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1", "OIDSSF-8.1.1");
 
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
