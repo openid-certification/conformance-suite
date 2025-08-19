@@ -4,7 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class OIDSSFEnsureEventUsesTypeSecEventJwt extends AbstractCondition {
+public class OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt extends AbstractCondition {
 
 	@PreEnvironment(required = {"ssf"})
 	@Override
