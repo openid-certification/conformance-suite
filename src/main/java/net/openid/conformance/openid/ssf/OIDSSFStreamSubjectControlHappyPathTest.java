@@ -79,8 +79,8 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTestM
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
-			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
+			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -89,17 +89,17 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTestM
 		// - iss_sub
 		// - opaque (for the Verification event only)
 		eventLog.runBlock("Add Subject to Stream Configuration", () -> {
-			callAndStopOnFailure(OIDSSFAddSubjectToStreamConfigCall.class, "OIDSSF-7.1.3.1");
+			callAndStopOnFailure(OIDSSFAddSubjectToStreamConfigCall.class, "OIDSSF-8.1.3.1");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.3.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.3.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
 		// remove subject(s)
 		eventLog.runBlock("Remove Subject from Stream Configuration", () -> {
-			callAndStopOnFailure(OIDSSFRemoveSubjectToStreamConfigCall.class, "OIDSSF-7.1.3.2");
+			callAndStopOnFailure(OIDSSFRemoveSubjectToStreamConfigCall.class, "OIDSSF-8.1.3.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.3.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs204.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.3.2");
 			call(exec().unmapKey("endpoint_response"));
 		});
 

@@ -206,7 +206,7 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
 	private void verifySetInResponse() {
 		// TODO find requirements for SET token signature
 		callAndContinueOnFailure(OIDSSFVerifySignatureOfVerificationEventToken.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.4.1");
+		callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		}
@@ -221,13 +221,13 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTestModule {
 
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenTxnClaim.class, Condition.ConditionResult.INFO, "OIDSSF-4.1.9");
 
-		callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.4.1");
-		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.4.1");
+		callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			// ensure subjectFormat is one of email, iss_sub, opaque
 			// callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
 		}
-		callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-10.3.1.1");
+		callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
 	}
 
 	@Override
