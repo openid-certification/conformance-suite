@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.DeriveOauthProtectedResourceMetad
 import net.openid.conformance.condition.client.FetchOauthProtectedResourceMetadata;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldConfigurationEndpoint;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldJwksUri;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldStatusEndpoint;
@@ -14,9 +15,9 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequired
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckScopesWithOauthProtectedResourceMetadata;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckSupportedDeliveryMethods;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckTransmitterMetadataIssuer;
-import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFDefaultSubjectsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFOptionalFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFRequiredFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFSpecVersionTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
@@ -74,6 +75,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTestModule {
 		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2");
 		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-7.1", "CAEPIOP-2.3.7");
 		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-7.1");
+		callAndContinueOnFailure(OIDSSFOptionalFieldsTransmitterMetadataCheck.class, Condition.ConditionResult.INFO, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class,
 				isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
