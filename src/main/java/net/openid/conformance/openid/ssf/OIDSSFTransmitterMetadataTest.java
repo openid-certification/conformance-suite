@@ -18,6 +18,7 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckSupporte
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckTransmitterMetadataIssuer;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFDefaultSubjectsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureNonEmptyArrayClaimsCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFOptionalFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFRequiredFieldsTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFSpecVersionTransmitterMetadataCheck;
@@ -91,6 +92,8 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTestModule {
 			callAndContinueOnFailure(OIDSSFCheckRequiredFieldStatusEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.5");
 			callAndContinueOnFailure(OIDSSFCheckRequiredFieldVerificationEndpoint.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.6");
 		}
+
+		callAndContinueOnFailure(OIDSSFEnsureNonEmptyArrayClaimsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2.3");
 
 		// Workaround because we cannot use env.mapKey("server","ssf.transmitter_metadata")
 		JsonObject transmitterMetadata = env.getElementFromObject("ssf", "transmitter_metadata").getAsJsonObject();
