@@ -121,11 +121,13 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 	String extractMetadataEndpointUrl(Environment env) {
 
 		String iss = env.getString("config", "ssf.transmitter.issuer");
-		if (!iss.endsWith("/")) {
-			iss += "/";
-		}
+
 		if (Strings.isNullOrEmpty(iss)) {
 			throw error("Couldn't find ssf.transmitter.issuer field for discovery purposes");
+		}
+
+		if (!iss.endsWith("/")) {
+			iss += "/";
 		}
 
 		return iss + WELL_KNOWN_SSF_CONFIGURATION_PATH;
