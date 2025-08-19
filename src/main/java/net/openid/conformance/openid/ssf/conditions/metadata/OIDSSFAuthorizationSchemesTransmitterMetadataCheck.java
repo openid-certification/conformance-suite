@@ -19,7 +19,7 @@ public class OIDSSFAuthorizationSchemesTransmitterMetadataCheck extends Abstract
 			throw error("Missing required field authorization_schemes!");
 		}
 
-		// OIDSSF-6.1.1
+		// OIDSSF-7.1.1
 		JsonArray authorizationSchemes = transmitterMetadata.getAsJsonArray("authorization_schemes");
 
 		// CAEPIOP-2.3.7

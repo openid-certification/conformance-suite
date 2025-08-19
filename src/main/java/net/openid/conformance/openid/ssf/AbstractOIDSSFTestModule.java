@@ -134,10 +134,10 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 
 		switch (getVariant(SsfServerMetadata.class)) {
 			case DISCOVERY:
-				callAndStopOnFailure(OIDSSFGetDynamicTransmitterConfiguration.class, "OIDSSF-6.2");
+				callAndStopOnFailure(OIDSSFGetDynamicTransmitterConfiguration.class, "OIDSSF-7.2");
 				break;
 			case STATIC:
-				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-6.2");
+				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-7.2");
 				break;
 		}
 

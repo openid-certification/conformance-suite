@@ -71,16 +71,16 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTestModule {
 
 	private void validateTransmitterMetadata() {
 
-		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.2");
-		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-6.1", "CAEPIOP-2.3.7");
-		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-6.1");
-		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1");
+		callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuer.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2");
+		callAndStopOnFailure(OIDSSFEnsureHttpsUrlsTransmitterMetadataCheck.class, "OIDSSF-7.1", "CAEPIOP-2.3.7");
+		callAndStopOnFailure(OIDSSFRequiredFieldsTransmitterMetadataCheck.class, "OIDSSF-7.1");
+		callAndContinueOnFailure(OIDSSFDefaultSubjectsTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1");
 		callAndContinueOnFailure(OIDSSFAuthorizationSchemesTransmitterMetadataCheck.class,
 				isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)
 						? Condition.ConditionResult.FAILURE
 						: Condition.ConditionResult.WARNING
-				, "OIDSSF-6.1.1", "CAEPIOP-2.3.7");
-		callAndContinueOnFailure(OIDSSFCheckSupportedDeliveryMethods.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1", "OIDSSF-7.1.1");
+				, "OIDSSF-7.1.1", "CAEPIOP-2.3.7");
+		callAndContinueOnFailure(OIDSSFCheckSupportedDeliveryMethods.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1", "OIDSSF-8.1.1");
 
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			callAndContinueOnFailure(OIDSSFSpecVersionTransmitterMetadataCheck.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.3.1");
