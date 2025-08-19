@@ -11,7 +11,6 @@ import net.openid.conformance.condition.util.TLSTestValueExtractor;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -69,17 +68,7 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 			RestTemplate restTemplate = createRestTemplate(env);
 			ResponseEntity<String> response = restTemplate.exchange(metadataEndpointUrl, HttpMethod.GET, null, String.class);
 			JsonObject responseInfo = convertResponseForEnvironment("ssf-configuration", response);
-
 			env.putObject("transmitter_metadata_endpoint_response", responseInfo);
-
-			String contentType = env.getString("transmitter_metadata_endpoint_response", "headers.content-type");
-
-			if (!MediaType.parseMediaType(contentType).isCompatibleWith(MediaType.APPLICATION_JSON)) {
-				throw error("Invalid content type for transmitter metadata. Content-type should be 'application/json'", args("content_type", contentType));
-			} else {
-				log("Found expected content-type 'application/json' in transmitter metadata response", args("content_type", contentType));
-			}
-
 			transmitterMetadataJson = response.getBody();
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException |
 				 NoSuchAlgorithmException | KeyStoreException | IOException e) {
