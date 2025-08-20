@@ -110,5 +110,15 @@
         "condition": "ExtractJWTFromFederationEndpointResponse",
         "expected-result": "failure",
         "comment": "The entity has not been updated with the latest spec change on the anchor -> trust_anchor parameter name change on the resolve endpoint"
+    },
+
+    {
+        "test-name": "*",
+        "variant": "*",
+        "configuration-filename": "*",
+        "current-block": "*",
+        "condition": "CheckDiscEndpointUserinfoEndpoint",
+        "expected-result": "warning",
+        "comment": "This is a warning about missing userinfo endpoint, and we're not interested in that here"
     }
 ]

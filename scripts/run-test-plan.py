@@ -555,6 +555,7 @@ def analyze_result_logs(module_id, test_name, variant, test_result, plan_result,
         Check if an expected failure/warning read from an 'expected' JSON file matches the current test module
 
         The match is lose and allows the following:
+        - test-name may contain shell-style wildcards (mainly '*')
         - configuration-filename may contain shell-style wildcards (mainly '*')
         - variant may be listed as a "*" to match all variants
         - if variant is an object, only the keys/values listed in JSON will be checked (i.e. the entry will be assumed
@@ -563,6 +564,8 @@ def analyze_result_logs(module_id, test_name, variant, test_result, plan_result,
         :param obj: expected_failure_obj entry from json expected list to test
         :return: True if entry matches the current test module
         """
+        if fnmatch.fnmatch(test_name, obj['configuration-filename']):
+            return True
         if obj['test-name'] != test_name:
             return False
         if not fnmatch.fnmatch(config_filename, obj['configuration-filename']):
@@ -1225,7 +1228,13 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'federation':
-            if not federation_test or re.match(r'openid-federation-client', m) or re.match(r'openid-federation-automatic-client-registration', m):
+            if(
+                not federation_test
+                or re.match(r'openid-federation-client', m)
+                or re.match(r'openid-federation-automatic-client-registration-expect-entity-configuration-request', m)
+                or re.match(r'openid-federation-automatic-client-registration-invalid', m)
+                or re.match(r'openid-federation-automatic-client-registration-with-.*-trust-chain', m)
+            ):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'all-except-logout':
