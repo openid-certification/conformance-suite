@@ -7,13 +7,9 @@ import net.openid.conformance.testmodule.Environment;
 
 public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest extends AbstractValidateVerifiedClaimsAgainstRequest {
 
-	public ValidateVerifiedClaimsInUserinfoResponseAgainstRequest() {
-	}
-
 	public ValidateVerifiedClaimsInUserinfoResponseAgainstRequest(boolean checkExpectedValuesConfiguration) {
 		this.checkExpectedValuesConfiguration = checkExpectedValuesConfiguration;
 	}
-
 
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_request", "verified_claims_response"})
@@ -32,7 +28,9 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest extends Abst
 				expectedValuesConfig = env.getElementFromObject("config", "ekyc.expected_verified_claims."+sub);
 			}
 		}
-		validateResponseAgainstRequestedVerifiedClaims(requestedVerifiedClaimsElement, verifiedClaimsElementFromResponse, expectedValuesConfig);
+		if(!validateResponseAgainstRequestedVerifiedClaims(requestedVerifiedClaimsElement, verifiedClaimsElementFromResponse, expectedValuesConfig)) {
+			throw error("Verified claims in Userinfo do not match request", args("request", requestedVerifiedClaimsElement, "response", verifiedClaimsElementFromResponse, "expected response if no value is requested", expectedValuesConfig));
+		}
 
 		logSuccess("Verified claims are valid", args("response", verifiedClaimsElementFromResponse,
 			"requested", requestedVerifiedClaimsElement));
