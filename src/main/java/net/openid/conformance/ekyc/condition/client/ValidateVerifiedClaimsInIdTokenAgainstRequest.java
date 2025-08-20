@@ -7,6 +7,11 @@ import net.openid.conformance.testmodule.Environment;
 
 public class ValidateVerifiedClaimsInIdTokenAgainstRequest extends AbstractValidateVerifiedClaimsAgainstRequest {
 
+	public ValidateVerifiedClaimsInIdTokenAgainstRequest(boolean checkExpectedValuesConfiguration) {
+		this.checkExpectedValuesConfiguration = checkExpectedValuesConfiguration;
+	}
+
+
 	@Override
 	@PreEnvironment(required = {"server", "authorization_endpoint_request", "verified_claims_response"})
 	public Environment evaluate(Environment env) {
@@ -28,7 +33,9 @@ public class ValidateVerifiedClaimsInIdTokenAgainstRequest extends AbstractValid
 		if(verifiedClaimsElementFromResponse==null) {
 			throw error("verified_claims not found");
 		}
-		validateResponseAgainstRequestedVerifiedClaims(requestedVerifiedClaimsElement, verifiedClaimsElementFromResponse, expectedValuesConfig);
+		if(!validateResponseAgainstRequestedVerifiedClaims(requestedVerifiedClaimsElement, verifiedClaimsElementFromResponse, expectedValuesConfig)) {
+			throw error("Verified claims in ID Token do not match request", args("request", requestedVerifiedClaimsElement, "response", verifiedClaimsElementFromResponse, "expected response if no value is requested", expectedValuesConfig));
+		}
 
 		logSuccess("Verified claims are valid", args("response", verifiedClaimsElementFromResponse,
 			"requested", requestedVerifiedClaimsElement));
