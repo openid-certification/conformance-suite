@@ -17,6 +17,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.JWTUtil;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -46,6 +47,10 @@ public class NonBlocking {
 			sub = env.getString("incoming_request", "query_string_params.sub");
 		}
 
+		if (sub == null || sub.isEmpty()) {
+			return errorResponse("invalid_request", "Missing required sub parameter in request", 400);
+		}
+
 		String federationEndpointUrl = EntityUtils.appendWellKnown(sub);
 
 		String result = new RestTemplate().getForObject(federationEndpointUrl, String.class);
@@ -73,6 +78,16 @@ public class NonBlocking {
 		env.unmapKey("incoming_request");
 
 		return response;
+	}
+
+	protected static ResponseEntity<Object> errorResponse(String error, String errorDescription, Integer statusCode) {
+		JsonObject errorObject = new JsonObject();
+		errorObject.addProperty("error", error);
+		errorObject.addProperty("error_description", errorDescription);
+		return ResponseEntity
+			.status(HttpStatus.valueOf(statusCode))
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(errorObject);
 	}
 
 	protected static String signClaims(String testId, JsonObject claims, JsonObject jwks, JOSEObjectType typ) {
