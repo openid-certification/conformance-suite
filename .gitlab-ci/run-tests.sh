@@ -525,6 +525,28 @@ makeEkycTests() {
 }
 
 makeFederationTests() {
+    # OP vs RP tests
+    TESTS="${TESTS} openid-federation-entity-joined-to-test-federation-rp-test-plan[server_metadata=discovery][client_registration=automatic]:openid-federation-client-happy-path{ \
+        openid-federation-entity-joined-to-test-federation-op-test-plan[server_metadata=discovery][client_registration=automatic]:\
+        openid-federation-entity-configuration, openid-federation-automatic-client-registration-with-jar-and-get \
+    } ../conformance-suite/scripts/test-configs-rp-against-op/federation-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/federation-rp-test-config.json \
+    }"
+    TESTS="${TESTS} openid-federation-entity-joined-to-test-federation-rp-test-plan[server_metadata=discovery][client_registration=automatic]:openid-federation-client-happy-path{ \
+        openid-federation-entity-joined-to-test-federation-op-test-plan[server_metadata=discovery][client_registration=automatic]:\
+        openid-federation-automatic-client-registration-with-jar-and-post \
+    } ../conformance-suite/scripts/test-configs-rp-against-op/federation-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/federation-rp-test-config.json \
+    }"
+    TESTS="${TESTS} openid-federation-entity-joined-to-test-federation-rp-test-plan[server_metadata=discovery][client_registration=automatic]:openid-federation-client-happy-path{ \
+        openid-federation-entity-joined-to-test-federation-op-test-plan[server_metadata=discovery][client_registration=automatic]:\
+        openid-federation-automatic-client-registration-with-par \
+    } ../conformance-suite/scripts/test-configs-rp-against-op/federation-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/federation-rp-test-config.json \
+    }"
+    TESTS="${TESTS} openid-federation-entity-joined-to-test-federation-rp-test-plan[server_metadata=discovery][client_registration=automatic]:openid-federation-client-happy-path{ \
+        openid-federation-entity-joined-to-test-federation-op-test-plan[server_metadata=discovery][client_registration=automatic]:\
+        openid-federation-automatic-client-registration-with-jar-and-encrypted-request-object \
+    } ../conformance-suite/scripts/test-configs-rp-against-op/federation-op-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/federation-rp-test-config.json \
+    }"
+
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/authlete-federation-fapidev-as.json"
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/authlete-federation-trust-anchor.json"
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=static][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/sweden-federation-bankid.json"

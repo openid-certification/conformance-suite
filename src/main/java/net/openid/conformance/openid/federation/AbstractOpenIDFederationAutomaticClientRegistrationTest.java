@@ -372,7 +372,5 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void onPostAuthorizationFlowComplete() {
-		fireTestFinished();
 	}
-
 }

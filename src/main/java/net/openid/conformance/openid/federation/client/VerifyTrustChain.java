@@ -16,7 +16,7 @@ public class VerifyTrustChain extends AbstractCondition {
 		String trustChainTrustAnchor = env.getString("trust_chain", "trust_anchor");
 		JsonArray trustChain = env.getElementFromObject("trust_chain", "trust_chain").getAsJsonArray();
 
-		boolean ignoreExpAndIatValidation = "true".equals(env.getString("config", "internal.op_to_rp_mode"));
+		boolean ignoreExpAndIatValidation = "true".equals(env.getString("config", "internal.ignore_exp_iat"));
 
 		TrustChainVerifier.VerificationResult result =
 			TrustChainVerifier.verifyTrustChain(trustChainSubject, trustChainTrustAnchor, OIDFJSON.convertJsonArrayToList(trustChain), ignoreExpAndIatValidation);
