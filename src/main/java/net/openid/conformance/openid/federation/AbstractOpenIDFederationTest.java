@@ -77,7 +77,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 				default -> new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			};
 		}
-		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		return super.handleHttp(path, req, res, session, requestParts);
 	}
 
 	protected Object trustAnchorEntityConfigurationResponse() {
@@ -94,10 +94,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	protected Object jwksResponse(String mapKey) {
-		setStatus(Status.RUNNING);
 		JsonObject jwks = env.getObject(mapKey);
-		setStatus(Status.WAITING);
-
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.contentType(MediaType.APPLICATION_JSON)
