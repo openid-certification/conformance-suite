@@ -224,4 +224,45 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 
 	}
 
+	@Test
+	public void testEvaluate_fail_null_evidence() throws Exception {
+		String request = "{" +
+			"    \"claims\": {" +
+			"        \"id_token\": {" +
+			"            \"verified_claims\": {" +
+			"                \"claims\": {" +
+			"                    \"birthdate\": null," +
+			"                    \"given_name\": null," +
+			"                    \"family_name\": null" +
+			"                }," +
+			"                \"verification\": {" +
+			"                    \"trust_framework\": {" +
+			"                        \"value\": \"de_aml\"" +
+			"                    }," +
+			"                    \"evidence\": [" +
+			"                        {" +
+			"                            \"type\": null" +
+			"                        }," +
+			"                        {" +
+			"                            \"type\": {" +
+			"                                \"value\": \"document\"" +
+			"                            }" +
+			"                        }," +
+			"                        {" +
+			"                            \"type\": {" +
+			"                                \"value\": \"electronic_record\"" +
+			"                            }" +
+			"                        }" +
+			"                    ]" +
+			"                }" +
+			"            }" +
+			"        }" +
+			"    }" +
+			"}";
+
+		assertThrows(ConditionError.class, () -> {
+			runTest(request);
+		});
+
+	}
 }
