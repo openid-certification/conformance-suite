@@ -2,7 +2,6 @@ package net.openid.conformance.openid.federation;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
-import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -83,27 +82,14 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 			return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("The test has already run to completion.");
 		}
 
-		if (opToRpMode()) {
-			env.mapKey("entity_configuration_claims", "server");
-			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
-			startWaitingForTimeout();
-			return NonBlocking.entityConfigurationResponse(env, getId());
-		}
-
-		setStatus(Status.RUNNING);
-
 		env.mapKey("entity_configuration_claims", "server");
-		callAndStopOnFailure(SignEntityStatementWithClientKeys.class);
-		env.unmapKey("entity_configuration_claims");
-		String entityConfiguration = env.getString("signed_entity_statement");
-
-		setStatus(Status.WAITING);
+		env.mapKey("entity_configuration_claims_jwks", "client_jwks");
 		startWaitingForTimeout();
+		Object entityConfigurationResponse = NonBlocking.entityConfigurationResponse(env, getId());
+		env.unmapKey("entity_configuration_claims");
+		env.unmapKey("entity_configuration_claims_jwks");
 
-		return ResponseEntity
-			.status(HttpStatus.OK)
-			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
-			.body(entityConfiguration);
+		return entityConfigurationResponse;
 	}
 
 	// Allow additional calls to come in for 5 more seconds.
