@@ -30,13 +30,21 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new ValidateVerifiedClaimsInUserinfoResponseAgainstRequest();
+		cond = new ValidateVerifiedClaimsInUserinfoResponseAgainstRequest(true);
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
 	protected void runTestWithStringData(String requestData, String responseData) throws IOException {
+		runTestWithStringData(requestData, responseData, null);
+	}
+
+	protected void runTestWithStringData(String requestData, String responseData, String expectedResponse) throws IOException {
 		env.putObjectFromJsonString("authorization_endpoint_request", "claims.userinfo.verified_claims", requestData);
 		env.putObjectFromJsonString("verified_claims_response", "userinfo", responseData);
+		env.putString("userinfo", "sub", "user1234");
+		if(expectedResponse != null) {
+			env.putObjectFromJsonString("config", "ekyc.expected_verified_claims.user1234", expectedResponse);
+		}
 		cond.execute(env);
 
 	}
@@ -1002,6 +1010,464 @@ public class ValidateVerifiedClaimsInUserinfoResponseAgainstRequest_UnitTest {
 		""";
 
 		runTestWithStringData(requestJson, responseJson);
+	}
+
+	@Test
+	public void testEvaluateExpectedDocumentEvidence_noError() throws Exception {
+		String requestJson = """
+		{
+			"claims": {
+				"birthdate": null
+			},
+			"verification": {
+				"trust_framework": {
+					"value": "de_aml"
+				},
+				"verification_process": {
+					"value": "vp1"
+				},
+				"assurance_process": {
+					"policy": {
+						"value": "policy1"
+					},
+					"procedure": {
+						"value": "procedure1"
+					},
+					"assurance_details": [
+						{
+							"assurance_type": {
+								"value": "assurance_type1"
+							},
+							"assurance_classification": {
+								"value": "assurance_classification1"
+							},
+							"evidence_ref": [
+								{
+									"check_id": {
+										"value": "check_id2"
+									},
+									"evidence_metadata": {
+										"evidence_classification": {
+											"value": "evidence_classification1"
+										}
+									}
+								}
+							]
+						}
+					]
+				},
+				"evidence": [
+					{
+						"type": {
+							"value": "document"
+						},
+						"check_details": [
+							{
+								"check_method": {
+									"value": "checkMethod1"
+								},
+								"organization": {
+									"value": "myorg1"
+								},
+								"check_id": {
+									"value": "mycheckid1"
+								},
+								"time": {
+									"value": "2022-12-12T00:30Z"
+								}
+							}
+						],
+						"document_details": {
+							"type": {
+								"value": "idcard"
+							},
+							"document_number": {
+								"value": "docnum1234"
+							},
+							"serial_number": {
+								"value": "serial123"
+							},
+							"date_of_issuance": {
+								"value": "2020-01-01"
+							},
+							"date_of_expiry": {
+								"value": "2030-01-01"
+							},
+							"issuer": {
+								"name": {
+									"value": "issuername"
+								},
+								"country_code": {
+									"value": "US"
+								},
+								"jurisdiction": {
+									"value": "CA"
+								},
+								"street_address": {
+									"value": "123 Example St."
+								},
+								"locality": {
+									"value": "Hollywood"
+								},
+								"region": {
+									"value": "CA"
+								},
+								"postal_code": {
+									"value": "90210"
+								}
+							}
+						}
+					}
+				]
+			}
+		}
+		""";
+
+
+		String responseJson = """
+		{
+			"claims": {
+				"birthdate": "1950-01-01"
+			},
+			"verification": {
+				"trust_framework": "de_aml",
+				"verification_process": "vp1",
+				"assurance_process": {
+					"policy": "policy1",
+					"procedure": "procedure1",
+					"assurance_details": [
+						{
+							"assurance_type": "assurance_type1",
+							"assurance_classification": "assurance_classification1",
+							"evidence_ref": [
+								{
+									"check_id": "check_id2",
+									"evidence_metadata": {
+										"evidence_classification": "evidence_classification1"
+									}
+								}
+							]
+						}
+					]
+				},
+				"evidence": [
+					{
+						"type": "document",
+						"check_details": [
+							{
+								"check_method": "checkMethod1",
+								"organization": "myorg1",
+								"check_id": "mycheckid1",
+								"time": "2022-12-12T00:30Z"
+							}
+						],
+						"document_details": {
+							"type": "idcard",
+							"document_number": "docnum1234",
+							"serial_number": "serial123",
+							"date_of_issuance": "2020-01-01",
+							"date_of_expiry": "2030-01-01",
+							"issuer": {
+								"name": "issuername",
+								"country_code": "US",
+								"jurisdiction": "CA",
+								"street_address": "123 Example St.",
+								"locality": "Hollywood",
+								"region": "CA",
+								"postal_code": "90210"
+							}
+						}
+					}
+				]
+			}
+		}
+		""";
+
+
+		String expectedJson = """
+		{
+			"claims": {
+				"birthdate": "1950-01-01"
+			},
+			"verification": {
+				"trust_framework": "de_aml",
+				"verification_process": "vp1",
+				"assurance_process": {
+					"policy": "policy1",
+					"procedure": "procedure1",
+					"assurance_details": [
+						{
+							"assurance_type": "assurance_type1",
+							"assurance_classification": "assurance_classification1",
+							"evidence_ref": [
+								{
+									"check_id": "check_id2",
+									"evidence_metadata": {
+										"evidence_classification": "evidence_classification1"
+									}
+								}
+							]
+						}
+					]
+				},
+				"evidence": [
+					{
+						"type": "document",
+						"check_details": [
+							{
+								"check_method": "checkMethod1",
+								"organization": "myorg1",
+								"check_id": "mycheckid1",
+								"time": "2022-12-12T00:30Z"
+							}
+						],
+						"document_details": {
+							"type": "idcard",
+							"document_number": "docnum1234",
+							"serial_number": "serial123",
+							"date_of_issuance": "2020-01-01",
+							"date_of_expiry": "2030-01-01",
+							"issuer": {
+								"name": "issuername",
+								"country_code": "US",
+								"jurisdiction": "CA",
+								"street_address": "123 Example St.",
+								"locality": "Hollywood",
+								"region": "CA",
+								"postal_code": "90210"
+							}
+						}
+					}
+				]
+			}
+		}
+		""";
+
+		runTestWithStringData(requestJson, responseJson, expectedJson);
+	}
+
+	@Test
+	public void testEvaluateExpectedDocumentEvidenceassurance_details_noError() throws Exception {
+		String requestJson = """
+		{
+			"claims": {
+				"birthdate": null
+			},
+			"verification": {
+				"trust_framework": {
+					"value": "de_aml"
+				},
+				"verification_process": {
+					"value": "vp1"
+				},
+				"assurance_process": {
+					"policy": {
+						"value": "policy1"
+					},
+					"procedure": {
+						"value": "procedure1"
+					},
+					"assurance_details": [
+						{
+							"assurance_type": null,
+							"assurance_classification": null,
+							"evidence_ref": [
+								{
+									"check_id": {
+										"value": "check_id2"
+									},
+									"evidence_metadata": {
+										"evidence_classification": {
+											"value": "evidence_classification1"
+										}
+									}
+								}
+							]
+						}
+					]
+				},
+				"evidence": [
+					{
+						"type": {
+							"value": "document"
+						},
+						"check_details": [
+							{
+								"check_method": null,
+								"organization": null,
+								"check_id": null,
+								"time": {
+									"value": "2022-12-12T00:30Z"
+								}
+							}
+						],
+						"document_details": {
+							"type": {
+								"value": "idcard"
+							},
+							"document_number": {
+								"value": "docnum1234"
+							},
+							"serial_number": {
+								"value": "serial123"
+							},
+							"date_of_issuance": {
+								"value": "2020-01-01"
+							},
+							"date_of_expiry": {
+								"value": "2030-01-01"
+							},
+							"issuer": {
+								"name": {
+									"value": "issuername"
+								},
+								"country_code": {
+									"value": "US"
+								},
+								"jurisdiction": {
+									"value": "CA"
+								},
+								"street_address": {
+									"value": "123 Example St."
+								},
+								"locality": {
+									"value": "Hollywood"
+								},
+								"region": {
+									"value": "CA"
+								},
+								"postal_code": {
+									"value": "90210"
+								}
+							}
+						}
+					}
+				]
+			}
+		}
+		""";
+
+
+		String responseJson = """
+		{
+			"claims": {
+				"birthdate": "1950-01-01"
+			},
+			"verification": {
+				"trust_framework": "de_aml",
+				"verification_process": "vp1",
+				"assurance_process": {
+					"policy": "policy1",
+					"procedure": "procedure1",
+					"assurance_details": [
+						{
+							"assurance_type": "assurance_type1",
+							"assurance_classification": "assurance_classification1",
+							"evidence_ref": [
+								{
+									"check_id": "check_id2",
+									"evidence_metadata": {
+										"evidence_classification": "evidence_classification1"
+									}
+								}
+							]
+						}
+					]
+				},
+				"evidence": [
+					{
+						"type": "document",
+						"check_details": [
+							{
+								"check_method": "checkMethod1",
+								"organization": "myorg1",
+								"check_id": "mycheckid1",
+								"time": "2022-12-12T00:30Z"
+							}
+						],
+						"document_details": {
+							"type": "idcard",
+							"document_number": "docnum1234",
+							"serial_number": "serial123",
+							"date_of_issuance": "2020-01-01",
+							"date_of_expiry": "2030-01-01",
+							"issuer": {
+								"name": "issuername",
+								"country_code": "US",
+								"jurisdiction": "CA",
+								"street_address": "123 Example St.",
+								"locality": "Hollywood",
+								"region": "CA",
+								"postal_code": "90210"
+							}
+						}
+					}
+				]
+			}
+		}
+		""";
+
+
+		String expectedJson = """
+		{
+			"claims": {
+				"birthdate": "1950-01-01"
+			},
+			"verification": {
+				"trust_framework": "de_aml",
+				"verification_process": "vp1",
+				"assurance_process": {
+					"policy": "policy1",
+					"procedure": "procedure1",
+					"assurance_details": [
+						{
+							"assurance_type": "assurance_type1",
+							"assurance_classification": "assurance_classification1",
+							"evidence_ref": [
+								{
+									"check_id": "check_id2",
+									"evidence_metadata": {
+										"evidence_classification": "evidence_classification1"
+									}
+								}
+							]
+						}
+					]
+				},
+				"evidence": [
+					{
+						"type": "document",
+						"check_details": [
+							{
+								"check_method": "checkMethod1",
+								"organization": "myorg1",
+								"check_id": "mycheckid1",
+								"time": "2022-12-12T00:30Z"
+							}
+						],
+						"document_details": {
+							"type": "idcard",
+							"document_number": "docnum1234",
+							"serial_number": "serial123",
+							"date_of_issuance": "2020-01-01",
+							"date_of_expiry": "2030-01-01",
+							"issuer": {
+								"name": "issuername",
+								"country_code": "US",
+								"jurisdiction": "CA",
+								"street_address": "123 Example St.",
+								"locality": "Hollywood",
+								"region": "CA",
+								"postal_code": "90210"
+							}
+						}
+					}
+				]
+			}
+		}
+		""";
+
+		runTestWithStringData(requestJson, responseJson, expectedJson);
 	}
 
 }
