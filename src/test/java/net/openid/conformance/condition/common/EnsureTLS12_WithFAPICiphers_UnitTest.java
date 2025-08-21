@@ -51,7 +51,7 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 		 */
 
 		JsonObject tls = JsonParser.parseString("{"
-			+ "\"testHost\":\"example.com\","
+			+ "\"testHost\":\"openid.net\","
 			+ "\"testPort\":443"
 			+ "}").getAsJsonObject();
 
@@ -71,7 +71,7 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 		assertThrows(ConditionError.class, () -> {
 
 			JsonObject tls = JsonParser.parseString("{"
-				+ "\"testHost\":\"example.com\","
+				+ "\"testHost\":\"openid.net\","
 				+ "\"testPort\":80"
 				+ "}").getAsJsonObject();
 
@@ -106,7 +106,7 @@ public class EnsureTLS12_WithFAPICiphers_UnitTest
 		assertThrows(ConditionError.class, () -> {
 
 			JsonObject tls = JsonParser.parseString("{"
-				+ "\"testHost\":\"example.com\""
+				+ "\"testHost\":\"openid.net\""
 				+ "}").getAsJsonObject();
 
 			env.putObject("tls", tls);
