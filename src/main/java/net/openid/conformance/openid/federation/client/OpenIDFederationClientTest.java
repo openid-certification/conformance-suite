@@ -65,9 +65,9 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.util.List;
 
 @PublishTestModule(
-	testName = "openid-federation-client-happy-path",
-	displayName = "openid-federation-client-happy-path",
-	summary = "openid-federation-client-happy-path",
+	testName = "openid-federation-client-test",
+	displayName = "openid-federation-client-test",
+	summary = "openid-federation-client-test",
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.authority_hints",
@@ -84,7 +84,9 @@ import java.util.List;
 	}
 )
 @SuppressWarnings("unused")
-public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederationClientTest {
+public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTest {
+
+	private boolean startingShutdown = false;
 
 	protected ConditionCaller caller = this::callAndContinueOnFailure;
 
@@ -381,6 +383,7 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 
 		callAndContinueOnFailure(OIDCCLoadUserInfo.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(GenerateIdTokenClaims.class, Condition.ConditionResult.FAILURE);
+		beforeSigningIdToken();
 		callAndContinueOnFailure(SignIdToken.class, Condition.ConditionResult.FAILURE);
 		JsonObject response = new JsonObject();
 		response.addProperty("id_token", env.getString("id_token"));
@@ -391,6 +394,9 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 		fireTestFinished();
 
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
+	}
+
+	protected void beforeSigningIdToken() {
 	}
 
 	protected void extractAndVerifyRequestObject(FAPIAuthRequestMethod requestMethod) {
@@ -473,6 +479,23 @@ public class OpenIDFederationClientHappyPathTest extends AbstractOpenIDFederatio
 			.onSkip(Condition.ConditionResult.FAILURE)
 			.requirements("OIDCC-6.1")
 			.onFail(Condition.ConditionResult.FAILURE));
+	}
+
+	// Allow additional calls to come in for 5 more seconds.
+	protected void startWaitingForTimeout() {
+		if (startingShutdown) {
+			return;
+		}
+
+		this.startingShutdown = true;
+		getTestExecutionManager().runInBackground(() -> {
+			Thread.sleep(5 * 1000);
+			if (getStatus().equals(Status.WAITING)) {
+				setStatus(Status.RUNNING);
+				fireTestFinished();
+			}
+			return "done";
+		});
 	}
 
 }
