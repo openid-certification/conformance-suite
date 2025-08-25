@@ -40,6 +40,7 @@ import net.openid.conformance.openid.federation.client.SignEntityStatementWithCl
 import net.openid.conformance.openid.federation.client.ValidateTrustAnchorJWKs;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -237,6 +238,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndStopOnFailure(EnsureEntityIsOpenIdProvider.class, Condition.ConditionResult.FAILURE);
 
 		buildRequestObject();
+		env.putObject("authorization_endpoint_request", "claims", env.getObject("request_object_claims"));
 		signRequestObject();
 		encryptRequestObject();
 
@@ -367,8 +369,19 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected void redeemAuthorizationCode() {
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
+
 		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
+
+		env.putString("server", "issuer", env.getString("config", "federation.entity_identifier"));
+		performIdTokenValidation();
+		env.removeElement("server", "issuer");
+
 		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
+	}
+
+	protected void performIdTokenValidation() {
+		call(new PerformStandardIdTokenChecks());
+		callAndContinueOnFailure(ValidateIdTokenAudIsSingleElement.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
 	}
 
 	protected void onPostAuthorizationFlowComplete() {
