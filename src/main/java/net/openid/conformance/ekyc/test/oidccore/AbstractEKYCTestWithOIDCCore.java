@@ -60,7 +60,7 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 	}
 
 	protected void validateIdTokenVerifiedClaimsAgainstRequested() {
-		callAndContinueOnFailure(ValidateVerifiedClaimsInIdTokenAgainstRequest.class, Condition.ConditionResult.FAILURE, "IA-6");
+		callAndContinueOnFailure(new ValidateVerifiedClaimsInIdTokenAgainstRequest(true), Condition.ConditionResult.FAILURE, "IA-6");
 	}
 
 	protected void ensureReturnedVerifiedClaimsMatchOPMetadata(boolean isUserinfo) {
@@ -89,7 +89,7 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 	}
 
 	protected void validateUserinfoVerifiedClaimsAgainstRequested() {
-		callAndContinueOnFailure(ValidateVerifiedClaimsInUserinfoResponseAgainstRequest.class, Condition.ConditionResult.FAILURE, "IA-6");
+		callAndContinueOnFailure(new ValidateVerifiedClaimsInUserinfoResponseAgainstRequest(true), Condition.ConditionResult.FAILURE, "IA-6");
 	}
 
 }
