@@ -41,7 +41,7 @@ public class OIDSSFStreamRequiredFieldsCheck extends AbstractCondition {
 		missingFields.removeAll(requiredFields.keySet());
 
 		if (!missingFields.isEmpty()) {
-			throw error("Missing required fields in stream configuration", args("required_fields", REQUIRED_FIELDS, missingFields, "missing", missingFields));
+			throw error("Missing required fields in stream configuration", args("required_fields", REQUIRED_FIELDS, "missing_fields", missingFields));
 		}
 
 		logSuccess("Found all required fields in stream configuration", args("required_fields", requiredFields.keySet()));
