@@ -44,7 +44,7 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 
 		try {
 			JsonObject transmitterMetadata = JsonParser.parseString(transmitterMetadataJson).getAsJsonObject();
-			logSuccess("Successfully parsed transmitter metadata", transmitterMetadata);
+
 			env.putObject("ssf","transmitter_metadata", transmitterMetadata);
 			env.putObject("server", transmitterMetadata);
 			String issuerUrl = OIDFJSON.getString(transmitterMetadata.get("issuer"));
@@ -53,6 +53,8 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 			} catch (MalformedURLException e) {
 				throw error("Failed to parse URL", e, args("url", issuerUrl));
 			}
+
+			logSuccess("Successfully parsed transmitter metadata", transmitterMetadata);
 			return env;
 		} catch (JsonSyntaxException e) {
 			throw error(e, args("json", transmitterMetadataJson));
@@ -66,9 +68,7 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 			RestTemplate restTemplate = createRestTemplate(env);
 			ResponseEntity<String> response = restTemplate.exchange(metadataEndpointUrl, HttpMethod.GET, null, String.class);
 			JsonObject responseInfo = convertResponseForEnvironment("ssf-configuration", response);
-
 			env.putObject("transmitter_metadata_endpoint_response", responseInfo);
-
 			transmitterMetadataJson = response.getBody();
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException |
 				 NoSuchAlgorithmException | KeyStoreException | IOException e) {
@@ -121,11 +121,13 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 	String extractMetadataEndpointUrl(Environment env) {
 
 		String iss = env.getString("config", "ssf.transmitter.issuer");
-		if (!iss.endsWith("/")) {
-			iss += "/";
-		}
+
 		if (Strings.isNullOrEmpty(iss)) {
 			throw error("Couldn't find ssf.transmitter.issuer field for discovery purposes");
+		}
+
+		if (!iss.endsWith("/")) {
+			iss += "/";
 		}
 
 		return iss + WELL_KNOWN_SSF_CONFIGURATION_PATH;

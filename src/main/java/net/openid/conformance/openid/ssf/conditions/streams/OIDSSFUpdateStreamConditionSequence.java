@@ -9,7 +9,7 @@ public class OIDSSFUpdateStreamConditionSequence extends OIDSSFCreateStreamCondi
 		super.evaluate();
 		replace(OIDSSFCreateStreamConfigCall.class,
 			condition(OIDSSFUpdateStreamConfigCall.class)
-				.requirements("OIDSSF-7.1.1.3", "CAEPIOP-2.3.8.2")
+				.requirements("OIDSSF-8.1.1.3", "CAEPIOP-2.3.8.2")
 				.onFail(Condition.ConditionResult.FAILURE));
 	}
 }

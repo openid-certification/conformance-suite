@@ -59,7 +59,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			OIDSSFInsertBrokenStreamConfigJsonOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -69,7 +69,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			OIDSSFInjectInvalidAccessTokenOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -89,7 +89,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 //			call(exec().unmapKey("access_token"));
 //
 //			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-//			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
+//			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
 //			call(exec().unmapKey("endpoint_response"));
 //		});
 
@@ -101,7 +101,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
 
 			eventLog.log("Attempt to create another stream definition", args());
@@ -110,7 +110,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs409.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs409.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -118,10 +118,10 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 		eventLog.runBlock("Update Stream: Attempt to read an existing Stream Configuration with invalid access token", () -> {
 
 			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
-			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
 			OIDSSFInjectInvalidAccessTokenOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -137,10 +137,10 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 ////			// TODO obtainTransmitterAccessToken("openid");
 //
 ////			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
-//			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+//			callAndContinueOnFailure(OIDSSFReadStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
 //			call(exec().unmapKey("access_token"));
 //			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-//			callAndContinueOnFailure(EnsureHttpStatusCodeIs403.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
+//			callAndContinueOnFailure(EnsureHttpStatusCodeIs403.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
 //			call(exec().unmapKey("endpoint_response"));
 //		});
 
@@ -150,7 +150,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-7.1.1.2");
 			OIDSSFInjectDummyStreamId.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -160,7 +160,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFUpdateStreamConditionSequence.class));
 			OIDSSFInsertBrokenStreamConfigJsonOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.3");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -170,7 +170,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFUpdateStreamConditionSequence.class));
 			OIDSSFInjectInvalidAccessTokenOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.3");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -182,7 +182,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFUpdateStreamConditionSequence.class));
 			OIDSSFInjectDummyStreamId.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.3");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -192,7 +192,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFReplaceStreamConditionSequence.class));
 			OIDSSFInsertBrokenStreamConfigJsonOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.4");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -202,7 +202,7 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFReplaceStreamConditionSequence.class));
 			OIDSSFInjectInvalidAccessTokenOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.4");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -214,17 +214,17 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 			call(sequence(OIDSSFReplaceStreamConditionSequence.class));
 			OIDSSFInjectDummyStreamId.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.4");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
 		// Expect 401	if authorization failed or it is missing
 		eventLog.runBlock("Delete Stream: Delete Stream Configuration with invalid access token", () -> {
 			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
-			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.5");
+			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 			OIDSSFInjectInvalidAccessTokenOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.5");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -234,10 +234,10 @@ public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModu
 		eventLog.runBlock("Delete Stream: Delete Stream Configuration for unknown stream", () -> {
 			// check 401	if authorization failed or it is missing
 			callAndStopOnFailure(OIDSSFInjectDummyStreamId.class);
-			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.5");
+			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 			OIDSSFInjectDummyStreamId.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.1.1.5");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs404.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 			call(exec().unmapKey("endpoint_response"));
 		});
 

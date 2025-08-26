@@ -13,6 +13,8 @@ import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200Or404;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204Or404;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
@@ -134,12 +136,16 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 
 		switch (getVariant(SsfServerMetadata.class)) {
 			case DISCOVERY:
-				callAndStopOnFailure(OIDSSFGetDynamicTransmitterConfiguration.class, "OIDSSF-6.2");
+				callAndStopOnFailure(OIDSSFGetDynamicTransmitterConfiguration.class, "OIDSSF-7.2", "OIDSSF-7.2.3");
 				break;
 			case STATIC:
-				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-6.2");
+				callAndStopOnFailure(OIDSSFGetStaticTransmitterConfiguration.class, "OIDSSF-7.2", "OIDSSF-7.2.3");
 				break;
 		}
+		env.mapKey("endpoint_response", "transmitter_metadata_endpoint_response");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2.3");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2.3");
+		env.unmapKey("endpoint_response");
 
 		exposeEnvString("ssf_metadata_url", "ssf","transmitter_metadata_url");
 	}

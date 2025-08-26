@@ -6,9 +6,9 @@ public class OIDSSFCreateStreamConditionSequence extends AbstractConditionSequen
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(OIDSSFPrepareStreamConfigObject.class, "OIDSSF-7.1.1.1");
-		callAndStopOnFailure(OIDSSFPrepareStreamConfigObjectAddRequestedEvents.class, "OIDSSF-7.1.1.1");
-		callAndContinueOnFailure(OIDSSFPrepareStreamConfigObjectSetDeliveryMethod.class, "OIDSSF-7.1.1.1");
-		callAndStopOnFailure(OIDSSFCreateStreamConfigCall.class, "OIDSSF-7.1.1.1", "CAEPIOP-2.3.8.2");
+		callAndStopOnFailure(OIDSSFPrepareStreamConfigObject.class, "OIDSSF-8.1.1.1");
+		callAndStopOnFailure(OIDSSFPrepareStreamConfigObjectAddRequestedEvents.class, "OIDSSF-8.1.1.1");
+		callAndContinueOnFailure(OIDSSFPrepareStreamConfigObjectSetDeliveryMethod.class, "OIDSSF-8.1.1.1");
+		callAndStopOnFailure(OIDSSFCreateStreamConfigCall.class, "OIDSSF-8.1.1.1", "CAEPIOP-2.3.8.2");
 	}
 }

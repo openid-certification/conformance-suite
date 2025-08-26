@@ -6,11 +6,11 @@ import net.openid.conformance.testmodule.Environment;
 
 public class OIDSSFEnsureEventSignedWithRsa256 extends AbstractCondition {
 
-	@PreEnvironment(required = {"ssf"})
+	@PreEnvironment(required = {"set_token"})
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String tokenSignatureAlg = env.getString("ssf", "verification.token.header.alg");
+		String tokenSignatureAlg = env.getString("set_token", "header.alg");
 
 		if (tokenSignatureAlg == null) {
 			throw error("Couldn't find tokenSignatureAlg");

@@ -11,11 +11,11 @@ import java.util.Set;
 
 public class OIDSSFEnsureEventContainsStreamAudience extends AbstractCondition {
 
-	@PreEnvironment(required = {"ssf"})
+	@PreEnvironment(required = {"ssf", "set_token"})
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonElement setAudienceElement = env.getElementFromObject("ssf", "verification.token.claims.aud");
+		JsonElement setAudienceElement = env.getElementFromObject("set_token", "claims.aud");
 		if (setAudienceElement == null) {
 			throw error("Could not find required 'aud' claim in verification token");
 		}
@@ -28,11 +28,11 @@ public class OIDSSFEnsureEventContainsStreamAudience extends AbstractCondition {
 		Set<String> streamAudience = audienceToSet(streamAudienceElement);
 
 		if (!streamAudience.containsAll(setAudience)) {
-			throw error("Verification token audience does not match stream audience",
+			throw error("SET token audience does not match stream audience",
 				args("stream_audience", streamAudience, "token_audience", setAudience));
 		}
 
-		logSuccess("Verification token audience matches stream audience",
+		logSuccess("SET token audience matches stream audience",
 			args("stream_audience", streamAudience, "token_audience", setAudience));
 
 		return env;

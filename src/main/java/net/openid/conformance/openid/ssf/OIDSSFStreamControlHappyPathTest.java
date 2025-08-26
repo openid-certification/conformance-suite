@@ -16,6 +16,8 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamCo
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamStatusCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReplaceStreamConditionSequence;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamOptionalFieldsCheck;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamRequiredFieldsCheck;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamStatusCall;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
@@ -56,22 +58,24 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
-			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
-			callAndContinueOnFailure(OIDSSFCheckStreamAudience.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.1");
-			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "CAEPIOP-2.3.8.1");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
+			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
+			callAndContinueOnFailure(OIDSSFCheckStreamAudience.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.1");
+			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
+			callAndContinueOnFailure(OIDSSFStreamRequiredFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
+			callAndContinueOnFailure(OIDSSFStreamOptionalFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 
 			call(exec().unmapKey("endpoint_response"));
 		});
 
 		eventLog.runBlock("Read Stream Configuration", () -> {
-			callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-7.1.1.2", "CAEPIOP-2.3.8.2");
+			callAndStopOnFailure(OIDSSFReadStreamConfigCall.class, "OIDSSF-8.1.1.2", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
-			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.2");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
+			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
 
-			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING,"OIDSSF-7.1.4.1", "OIDCAEP-3");
-			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1", "CAEPIOP-2.3.8.1");
+			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING,"OIDSSF-8.1.4.1", "OIDCAEP-3");
+			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
 			// TODO check: In the event that there are no Event Streams configured, the Transmitter MUST return an empty list.
 			// TODO check: stream configuration response
 			call(exec().unmapKey("endpoint_response"));
@@ -85,11 +89,11 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 
 			call(sequence(OIDSSFUpdateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.3");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.3");
 			// TODO check for 202 response
 			// 202	if the update request has been accepted, but not processed. Receiver MAY try the same request later to get processing result.
 			// TODO check for changed value
-			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.3");
+			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.3");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -98,10 +102,10 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 
 			call(sequence(OIDSSFReplaceStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.4");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.4");
 			// TODO check for 202 responses
 			// 202	if the replace request has been accepted, but not processed. Receiver MAY try the same request later in order to get processing result.
-			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.1.4");
+			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.4");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
@@ -109,9 +113,9 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 		eventLog.runBlock("Read Stream Status", () -> {
 			if (statusEndpoint != null) {
 				// stream status
-				callAndStopOnFailure(OIDSSFReadStreamStatusCall.class, "OIDSSF-7.1.2.1");
+				callAndStopOnFailure(OIDSSFReadStreamStatusCall.class, "OIDSSF-8.1.2.1");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.1");
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.1");
 				// TODO check: status response
 				call(exec().unmapKey("endpoint_response"));
 			} else {
@@ -127,21 +131,21 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTestModule {
 
 			for (StreamStatus status : StreamStatus.values()) {
 				eventLog.log(getName(), "Update stream status to " + status);
-				callAndContinueOnFailure(new OIDSSFUpdateStreamStatusCall(status), Condition.ConditionResult.FAILURE, "OIDSSF-7.1.2.1", "OIDSSF-7.1.2.2", "CAEPIOP-2.3.5");
+				callAndContinueOnFailure(new OIDSSFUpdateStreamStatusCall(status), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1", "OIDSSF-8.1.2.2", "CAEPIOP-2.3.5");
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
-				callAndContinueOnFailure(EnsureResponseIsJsonObject.class, Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
+				callAndContinueOnFailure(EnsureResponseIsJsonObject.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
 				// TODO check: status response
-				callAndContinueOnFailure(new OIDSSFCheckExpectedJsonResponseContents(args("status", status.name())), Condition.ConditionResult.WARNING, "OIDSSF-7.1.2.2");
+				callAndContinueOnFailure(new OIDSSFCheckExpectedJsonResponseContents(args("status", status.name())), Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
 			}
 
 			call(exec().unmapKey("endpoint_response"));
 		});
 
 		eventLog.runBlock("Delete Stream Configuration", () -> {
-			callAndStopOnFailure(OIDSSFDeleteStreamConfigCall.class, "OIDSSF-7.1.1.5", "CAEPIOP-2.3.8.2");
+			callAndStopOnFailure(OIDSSFDeleteStreamConfigCall.class, "OIDSSF-8.1.1.5", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.1.5");
+			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.1.5");
 			call(exec().unmapKey("endpoint_response"));
 		});
 
