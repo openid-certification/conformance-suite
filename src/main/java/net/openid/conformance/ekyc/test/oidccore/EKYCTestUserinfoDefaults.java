@@ -47,6 +47,6 @@ public class EKYCTestUserinfoDefaults extends AbstractEKYCTestWithOIDCCore {
 
 	@Override
 	protected void validateUserinfoVerifiedClaimsAgainstRequested() {
-		callAndContinueOnFailure(ValidateVerifiedClaimsInUserinfoResponseAgainstRequest.class, Condition.ConditionResult.FAILURE, "IA-6");
+		callAndContinueOnFailure(new ValidateVerifiedClaimsInUserinfoResponseAgainstRequest(true), Condition.ConditionResult.FAILURE, "IA-6");
 	}
 }
