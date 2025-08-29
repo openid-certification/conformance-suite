@@ -13,6 +13,10 @@ public class ValidateFederationRegistrationEndpoint extends AbstractValidateMeta
 	public Environment evaluate(Environment env) {
 
 		JsonElement clientRegistrationTypesSupportedElement = env.getElementFromObject("openid_provider_metadata", "client_registration_types_supported");
+		if (clientRegistrationTypesSupportedElement == null || clientRegistrationTypesSupportedElement.isJsonNull()) {
+			throw error("client_registration_types_supported is a required parameter",
+				args("client_registration_types_supported", clientRegistrationTypesSupportedElement));
+		}
 
 		boolean containsExplicit = clientRegistrationTypesSupportedElement.getAsJsonArray().contains(new JsonPrimitive("explicit" ));
 		if (containsExplicit) {
