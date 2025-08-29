@@ -44,6 +44,8 @@ import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
+import net.openid.conformance.openid.federation.AddAutomaticClientRegistrationTypeSupported;
+import net.openid.conformance.openid.federation.AddExplicitClientRegistrationTypeSupported;
 import net.openid.conformance.openid.federation.AddFederationEntityMetadataToEntityConfiguration;
 import net.openid.conformance.openid.federation.AddOpenIDProviderMetadataToEntityConfiguration;
 import net.openid.conformance.openid.federation.CallEntityStatementEndpointAndReturnFullResponse;
@@ -128,6 +130,8 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndStopOnFailure(GenerateEntityConfiguration.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
 		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
+		callAndStopOnFailure(AddAutomaticClientRegistrationTypeSupported.class);
+		callAndStopOnFailure(AddExplicitClientRegistrationTypeSupported.class);
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
 		callAndStopOnFailure(LoadTrustAnchorJWKs.class);
@@ -173,6 +177,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 			case "authorize" -> authorizeResponse(requestId);
 			case "par" -> parResponse(requestId);
 			case "token" -> tokenResponse(requestId);
+			case "register" -> registerResponse(requestId);
 			default -> super.handleHttp(path, req, res, session, requestParts);
 		};
 	}
@@ -394,6 +399,11 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		fireTestFinished();
 
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
+	}
+
+	protected Object registerResponse(String requestId) {
+		setStatus(Status.RUNNING);
+		throw new TestFailureException(getId(), "Not yet implemented");
 	}
 
 	protected void beforeSigningIdToken() {

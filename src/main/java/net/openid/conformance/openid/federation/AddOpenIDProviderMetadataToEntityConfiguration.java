@@ -67,7 +67,6 @@ public class AddOpenIDProviderMetadataToEntityConfiguration extends AbstractCond
 		openIdProvider.addProperty("jwks_uri", entityIdentifier + "/jwks");
 
 		JsonArray clientRegistrationTypesSupported = new JsonArray();
-		clientRegistrationTypesSupported.add("automatic");
 		openIdProvider.add("client_registration_types_supported", clientRegistrationTypesSupported);
 
 		server.add("metadata", metadata);
