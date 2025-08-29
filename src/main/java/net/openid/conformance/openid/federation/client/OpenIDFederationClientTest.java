@@ -170,7 +170,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 			case "jwks" -> jwksResponse();
 			case "fetch" -> fetchResponse(requestId);
 			case "list" -> listResponse(requestId);
-			case "authorize" -> authorizeResponse(requestId); // authorizeErrorResponse(requestId);
+			case "authorize" -> authorizeResponse(requestId);
 			case "par" -> parResponse(requestId);
 			case "token" -> tokenResponse(requestId);
 			default -> super.handleHttp(path, req, res, session, requestParts);
