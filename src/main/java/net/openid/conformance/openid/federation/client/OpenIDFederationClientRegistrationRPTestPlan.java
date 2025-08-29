@@ -11,6 +11,8 @@ import net.openid.conformance.variant.VariantSelection;
 	testModules = {
 		OpenIDFederationClientInvalidIssInEntityConfigurationTest.class,
 		OpenIDFederationClientInvalidSubInEntityConfigurationTest.class,
+		OpenIDFederationClientInvalidMissingExpInEntityConfigurationTest.class,
+		OpenIDFederationClientInvalidMissingIatInEntityConfigurationTest.class,
 		OpenIDFederationClientTest.class,
 		OpenIDFederationClientInvalidAudInIdTokenTest.class,
 		OpenIDFederationClientInvalidIssInIdTokenTest.class,
