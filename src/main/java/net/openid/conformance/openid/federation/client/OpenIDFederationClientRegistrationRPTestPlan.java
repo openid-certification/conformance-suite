@@ -13,7 +13,10 @@ import net.openid.conformance.variant.VariantSelection;
 		OpenIDFederationClientInvalidSubInEntityConfigurationTest.class,
 		OpenIDFederationClientInvalidMissingExpInEntityConfigurationTest.class,
 		OpenIDFederationClientInvalidMissingIatInEntityConfigurationTest.class,
+		OpenIDFederationClientInvalidMissingClientRegistrationTypesSupportedTest.class,
+		OpenIDFederationClientInvalidEmptyClientRegistrationTypesSupportedTest.class,
 		OpenIDFederationClientTest.class,
+		OpenIDFederationClienValidUnknownClientRegistrationTypesSupportedTest.class,
 		OpenIDFederationClientInvalidAudInIdTokenTest.class,
 		OpenIDFederationClientInvalidIssInIdTokenTest.class,
 	}
