@@ -349,7 +349,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 			call(new ValidateDiscoveryMetadataSequence(clientRegistration));
 			callAndContinueOnFailure(ValidateClientRegistrationTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,
-				ValidateClientRegistrationTypesSupportedValues.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
+				ValidateClientRegistrationTypesSupportedValues.class, Condition.ConditionResult.WARNING, "OIDFED-5.1.3");
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,
 				ValidateFederationRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,

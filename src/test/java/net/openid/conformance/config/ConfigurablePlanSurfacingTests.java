@@ -51,7 +51,7 @@ public class ConfigurablePlanSurfacingTests {
 	}
 
 	@Test
-	public void canConfigureMiltipleProfiles() {
+	public void canConfigureMultipleProfiles() {
 
 		Collection<VariantService.TestPlanHolder> testPlans = variantService(TestPlan.ProfileNames.optest, TestPlan.ProfileNames.rptest).getTestPlans();
 
