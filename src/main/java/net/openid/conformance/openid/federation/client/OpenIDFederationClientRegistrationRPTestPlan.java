@@ -12,6 +12,7 @@ import net.openid.conformance.variant.VariantSelection;
 		OpenIDFederationClientTest.class,
 		OpenIDFederationClientInvalidEntityConfigurationTest.class,
 		OpenIDFederationClientInvalidAudInIdTokenTest.class,
+		OpenIDFederationClientInvalidIssInIdTokenTest.class,
 	}
 )
 public class OpenIDFederationClientRegistrationRPTestPlan implements TestPlan {
