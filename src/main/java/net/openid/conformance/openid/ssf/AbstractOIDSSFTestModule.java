@@ -23,7 +23,6 @@ import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
-import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
@@ -44,8 +43,6 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.springframework.http.ResponseEntity;
-
-import java.util.Objects;
 
 @VariantParameters({
 	ServerMetadata.class,
@@ -117,14 +114,15 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 
 		exposeEnvString("alias", "config", "alias");
 
-		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.PUSH) {
-			callAndStopOnFailure(OIDSSFConfigurePushDeliveryMethod.class);
-			exposeEnvString("pushDeliveryEndpointUrl", "ssf", "push_delivery_endpoint_url");
-		}
+		configureServerEndpoints();
 
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void configureServerEndpoints() {
+
 	}
 
 	@Override

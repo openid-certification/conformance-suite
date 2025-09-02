@@ -39,7 +39,7 @@ import net.openid.conformance.variant.VariantParameters;
 })
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {
 })
-public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTestModule {
+public class OIDSSFStreamControlErrorResponseTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
 	public void start() {

@@ -12,7 +12,7 @@ public class OIDSSFConfigurePushDeliveryMethod extends AbstractCondition {
 		String pushDeliveryEndpointUrl = createPushDeliveryEndpointUrl(env);
 		env.putString("ssf", "push_delivery_endpoint_url", pushDeliveryEndpointUrl);
 
-		logSuccess("Configured push delivery endpoint url", args("push_delivery_endpoint_url", pushDeliveryEndpointUrl));
+		log("Configured push delivery endpoint url", args("push_delivery_endpoint_url", pushDeliveryEndpointUrl));
 
 		return env;
 	}
