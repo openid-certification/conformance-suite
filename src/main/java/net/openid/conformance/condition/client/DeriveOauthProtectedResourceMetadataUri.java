@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.OAuthUriUtil;
 
 public class DeriveOauthProtectedResourceMetadataUri extends AbstractCondition {
 
@@ -17,11 +18,7 @@ public class DeriveOauthProtectedResourceMetadataUri extends AbstractCondition {
 			return env;
 		}
 
-		String oauthProtectedResourceUri = issuer;
-		if (!issuer.endsWith("/")) {
-			oauthProtectedResourceUri += "/";
-		}
-		oauthProtectedResourceUri += ".well-known/oauth-protected-resource";
+		String oauthProtectedResourceUri = OAuthUriUtil.generateWellKnownUrlForPath(issuer, "oauth-protected-resource");
 
 		env.putString("server", "oauth_protected_resource_metadata_uri", oauthProtectedResourceUri);
 
