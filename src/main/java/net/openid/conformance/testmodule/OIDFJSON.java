@@ -7,6 +7,7 @@ import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -121,6 +122,13 @@ public final class OIDFJSON {
 		return json.getAsNumber();
 	}
 
+	public static String tryGetString(JsonElement jsonElement) {
+		if (jsonElement == null || jsonElement.isJsonNull()) {
+			return null;
+		}
+		return getString(jsonElement);
+	}
+
 	/**
 	 * Thrown if the value is JsonNull
 	 */
@@ -160,6 +168,10 @@ public final class OIDFJSON {
 
 	public static JsonArray convertJsonObjectListToJsonArray(List<JsonObject> list) {
 		return convertListToJsonArray(list, o -> o);
+	}
+
+	public static JsonArray convertSetToJsonArray(Set<String> set) {
+		return convertListToJsonArray(List.copyOf(set));
 	}
 
 	public static JsonArray convertListToJsonArray(List<String> list) {

@@ -54,11 +54,16 @@ public abstract class AbstractOIDSSFTestModule extends AbstractTestModule {
 
 		exposeEnvString("alias", "config", "alias");
 
+		configureServerMetadata();
 		configureServerEndpoints();
 
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	protected void configureServerMetadata() {
+
 	}
 
 	protected void configureServerEndpoints() {
