@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
+import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI;
 import static net.openid.conformance.openid.ssf.SsfEvents.getStandardCapeEvents;
 import static net.openid.conformance.openid.ssf.SsfEvents.getStandardRiscEvents;
 
@@ -117,11 +119,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		metadata.addProperty("issuer", issuer);
 		metadata.addProperty("spec_version", "1.0");
 		metadata.addProperty("jwks_uri", issuer + "/jwks");
-		metadata.add("delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of(
-				"urn:ietf:rfc:8935", // PUSH Delivery
-				"urn:ietf:rfc:8936" // POLL Delivery
-			)
-		));
+		metadata.add("delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of( //
+			DELIVERY_METHOD_PUSH_RFC_8935_URI, // PUSH Delivery
+			DELIVERY_METHOD_POLL_RFC_8936_URI // POLL Delivery
+		)));
 
 		metadata.addProperty("configuration_endpoint", issuer + "/streams");
 		metadata.addProperty("status_endpoint", issuer + "/status");
@@ -153,36 +154,28 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		Object response;
 		try {
-			if ("ssf-configuration".equals(path)) {
-				response = handleSsfConfigurationEndpoint(requestId);
-			} else if ("jwks".equals(path)) {
-				response = handleJwksEndpoint();
-			} else if ("poll".equals(path)) {
-				response = ensureAuthorized(req, res, session, requestParts, () -> {
+			switch (path) {
+				case "ssf-configuration" -> response = handleSsfConfigurationEndpoint(requestId);
+				case "jwks" -> response = handleJwksEndpoint();
+				case "poll" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleStreamPollingRequest(req, session, requestParts);
 				});
-			} else if ("streams".equals(path)) {
-				response = ensureAuthorized(req, res, session, requestParts, () -> {
-					return handleStreamConfigurationEndpointRequest(req, session, requestParts);
+				case "streams" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleStreamConfigurationEndpointRequest(path, req, res, session, requestParts);
 				});
-			} else if ("status".equals(path)) {
-				response = ensureAuthorized(req, res, session, requestParts, () -> {
-					return handleStreamStatusEndpointRequest(req, session, requestParts);
+				case "status" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleStreamStatusEndpointRequest(path, req, res, session, requestParts);
 				});
-			} else if ("verify".equals(path)) {
-				response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "verify" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleVerificationEndpointRequest(req, session, requestParts);
 				});
-			} else if ("add_subject".equals(path)) {
-				response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "add_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleSubjectsEndpointRequest(req, session, requestParts, StreamSubjectOperation.add);
 				});
-			} else if ("remove_subject".equals(path)) {
-				response = ensureAuthorized(req, res, session, requestParts, () -> {
+				case "remove_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleSubjectsEndpointRequest(req, session, requestParts, StreamSubjectOperation.remove);
 				});
-			} else {
-				response = super.handleHttp(path, req, res, session, requestParts);
+				default -> response = super.handleHttp(path, req, res, session, requestParts);
 			}
 		} finally {
 			setStatus(Status.WAITING);
@@ -249,7 +242,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(jwks);
 	}
 
-	protected ResponseEntity<?> handleStreamConfigurationEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+	protected ResponseEntity<?> handleStreamConfigurationEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		String method = req.getMethod();
 		switch (method) {
@@ -300,7 +293,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 		}
 
-		throw new UnsupportedOperationException("handleStreamConfigurationEndpointRequest");
+		return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 	}
 
 	protected ResponseEntity<?> handleResultWithBody(JsonObject createResult) {
@@ -345,11 +338,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		throw new UnsupportedOperationException("handleVerificationEndpointRequest");
 	}
 
-	protected ResponseEntity<?> handleStreamStatusEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+	protected ResponseEntity<?> handleStreamStatusEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		String method = req.getMethod();
 		if (!Set.of("GET", "POST").contains(method)) {
-			return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 		}
 
 		if (method.equals("GET")) {

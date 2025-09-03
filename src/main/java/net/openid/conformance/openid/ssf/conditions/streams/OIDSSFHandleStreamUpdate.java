@@ -8,6 +8,9 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.util.HashSet;
 import java.util.Set;
 
+import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
+import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI;
+
 public class OIDSSFHandleStreamUpdate extends AbstractOIDSSFHandleReceiverRequest {
 
 	@Override
@@ -80,11 +83,11 @@ public class OIDSSFHandleStreamUpdate extends AbstractOIDSSFHandleReceiverReques
 			JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
 			String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
 			switch (deliveryMethod) {
-				case "urn:ietf:rfc:8936":
+				case DELIVERY_METHOD_POLL_RFC_8936_URI:
 					String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
 					delivery.addProperty("endpoint_url", pollEndpointUrl);
 					break;
-				case "urn:ietf:rfc:8935":
+				case DELIVERY_METHOD_PUSH_RFC_8935_URI:
 					JsonElement endpointUrl = delivery.get("endpoint_url");
 					if (endpointUrl == null) {
 						resultObj.add("error", createErrorObj("bad_request", "endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery"));
