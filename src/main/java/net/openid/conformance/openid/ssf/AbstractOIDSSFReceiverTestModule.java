@@ -24,7 +24,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.BaseUrlUtil;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -170,10 +169,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 					return handleVerificationEndpointRequest(req, session, requestParts);
 				});
 				case "add_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
-					return handleSubjectsEndpointRequest(req, session, requestParts, StreamSubjectOperation.add);
+					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.add);
 				});
 				case "remove_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
-					return handleSubjectsEndpointRequest(req, session, requestParts, StreamSubjectOperation.remove);
+					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
 				});
 				default -> response = super.handleHttp(path, req, res, session, requestParts);
 			}
@@ -309,11 +308,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 
-	protected ResponseEntity<?> handleSubjectsEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts, StreamSubjectOperation operation) {
+	protected ResponseEntity<?> handleSubjectsEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts, StreamSubjectOperation operation) {
 
 		String method = req.getMethod();
 		if (!method.equals("POST")) {
-			return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 		}
 
 		if (StreamSubjectOperation.add == operation) {
