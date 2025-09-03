@@ -93,7 +93,7 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 
 			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 201);
-			log("Handled stream creation request", args("stream_id", streamId));
+			log("Handled stream creation request for stream_id=" + streamId, args("stream_id", streamId));
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("bad_request", e.getMessage()));
 			resultObj.addProperty("status_code", 400);

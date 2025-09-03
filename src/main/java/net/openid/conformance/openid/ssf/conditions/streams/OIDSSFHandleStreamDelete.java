@@ -49,7 +49,7 @@ public class OIDSSFHandleStreamDelete extends AbstractOIDSSFHandleReceiverReques
 		streamsObj.remove(streamId);
 
 		resultObj.addProperty("status_code", 204);
-		log("Handled stream deletion request", args("stream_id", streamId));
+		log("Handled stream deletion request for stream_id=" + streamId, args("stream_id", streamId));
 
 		eventStore.purgeStreamEvents(streamId);
 

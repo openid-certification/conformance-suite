@@ -56,7 +56,7 @@ public class OIDSSFHandleStreamVerificationRequest extends AbstractOIDSSFHandleR
 		resultObj.add("stream", streamConfig);
 
 		resultObj.addProperty("status_code", 204);
-		log("Handled stream verification request", args("stream_id", streamId, "verification_state", verificationState));
+		log("Handled stream verification request for stream_id=" + streamId, args("stream_id", streamId, "verification_state", verificationState));
 
 		return env;
 	}

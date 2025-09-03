@@ -43,7 +43,7 @@ public class OIDSSFHandleStreamStatusLookup extends AbstractOIDSSFHandleReceiver
 
 		resultObj.add("result", streamStatus);
 		resultObj.addProperty("status_code", 200);
-		log("Handled stream status request", args("stream_id", streamId, "status", streamStatus));
+		log("Handled stream status request for stream_id=" + streamId, args("stream_id", streamId, "status", streamStatus));
 
 		return env;
 	}

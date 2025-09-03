@@ -103,7 +103,7 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 
 		resultObj.add("result", streamConfigResult);
 		resultObj.addProperty("status_code", 200);
-		log("Handled stream replacement request: Replaced stream config", args("stream_id", streamId, "stream", streamConfigResult));
+		log("Handled stream replacement request: Replaced stream for stream_id=" + streamId, args("stream_id", streamId, "stream", streamConfigResult));
 
 		return env;
 	}

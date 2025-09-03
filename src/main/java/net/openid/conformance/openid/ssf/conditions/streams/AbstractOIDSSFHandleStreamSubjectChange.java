@@ -112,7 +112,7 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 		}
 
 		resultObj.addProperty("status_code", 200);
-		log("Handled stream subject " + getChangeType() + " request", args("stream_id", streamId, "stream_subjects", resultSubjects));
+		log("Handled stream subject " + getChangeType() + " request for stream_id=" + streamId, args("stream_id", streamId, "stream_subjects", resultSubjects));
 
 		return env;
 	}

@@ -37,7 +37,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 
 			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 200);
-			log("Handled stream lookup request: Found stream by stream_id", args("stream_id", streamId, "stream", streamConfigResult));
+			log("Handled stream lookup request: Found stream for stream_id=" + streamId, args("stream_id", streamId, "stream", streamConfigResult));
 			return env;
 		}
 
