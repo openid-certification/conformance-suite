@@ -19,7 +19,7 @@ public class OIDSSFHandleStreamStatusLookup extends AbstractOIDSSFHandleReceiver
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "missing stream_id parameter"));
 			resultObj.addProperty("status_code", 400);
-			log("Invalid stream status request: missing stream_id parameter");
+			log("Failed to handle stream status request: missing stream_id parameter");
 			return env;
 		}
 
@@ -27,7 +27,7 @@ public class OIDSSFHandleStreamStatusLookup extends AbstractOIDSSFHandleReceiver
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle SSF stream status request", args("stream_id", streamId));
+			log("Failed to handle stream status request: No streams configured", args("stream_id", streamId));
 			return env;
 		}
 
@@ -35,7 +35,7 @@ public class OIDSSFHandleStreamStatusLookup extends AbstractOIDSSFHandleReceiver
 		if (streamObj == null) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle SSF stream status request", args("stream_id", streamId));
+			log("Failed to handle stream status request: Stream not found", args("stream_id", streamId));
 			return env;
 		}
 
@@ -43,7 +43,7 @@ public class OIDSSFHandleStreamStatusLookup extends AbstractOIDSSFHandleReceiver
 
 		resultObj.add("result", streamStatus);
 		resultObj.addProperty("status_code", 200);
-		log("Handled SSF stream status request", args("stream_id", streamId, "status", streamStatus));
+		log("Handled stream status request", args("stream_id", streamId, "status", streamStatus));
 
 		return env;
 	}

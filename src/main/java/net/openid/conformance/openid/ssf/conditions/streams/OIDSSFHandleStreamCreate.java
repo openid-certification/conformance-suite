@@ -27,7 +27,7 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("parsing_error", e.getMessage()));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to parse SSF stream config input", args("error", resultObj.get("error")));
+			log("Failed to handle stream creation request: Failed to parse stream input", args("error", resultObj.get("error")));
 			return env;
 		}
 
@@ -35,7 +35,7 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 		if (!streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("conflict", "Only one stream allowed for receiver"));
 			resultObj.addProperty("status_code", 409);
-			log("Failed to create SSF stream config", args("error", resultObj.get("error")));
+			log("Failed to handle stream creation request: Too many streams configured for receiver", args("error", resultObj.get("error")));
 			return env;
 		}
 
@@ -43,7 +43,7 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 		if (!keysNotAllowedInUpdate.isEmpty()) {
 			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream config in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Found invalid keys for stream config in request body", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
+			log("Failed to handle stream creation request: Found invalid keys for stream in request body", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
 			return env;
 		}
 
@@ -72,7 +72,7 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 					if (endpointUrl == null) {
 						resultObj.add("error", createErrorObj("bad_request", "endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery"));
 						resultObj.addProperty("status_code", 400);
-						log("endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery", args("error", resultObj.get("error")));
+						log("Failed to handle stream creation request: Delivery endpoint_url missing", args("error", resultObj.get("error")));
 						return env;
 					}
 					break;
@@ -88,11 +88,11 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 
 			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 201);
-			log("Created SSF stream config", args("stream_id", streamId));
+			log("Handled stream creation request", args("stream_id", streamId));
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("bad_request", e.getMessage()));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to create SSF stream config", args("error", resultObj.get("error")));
+			log("Failed to handle stream creation request", args("error", resultObj.get("error")));
 		}
 
 		// TODO handle 403	if the Event Receiver is not allowed to create a stream

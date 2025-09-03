@@ -27,7 +27,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 
 			JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
 			if (streamConfigEl == null) {
-				log("Could not find stream by stream_id", args("stream_id", streamId));
+				log("Failed to handle stream lookup request: Could not find stream by stream_id", args("stream_id", streamId));
 				resultObj.addProperty("status_code", 404);
 				return env;
 			}
@@ -37,7 +37,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 
 			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 200);
-			log("Found stream by stream_id", args("stream_id", streamId, "stream", streamConfigResult));
+			log("Handled stream lookup request: Found stream by stream_id", args("stream_id", streamId, "stream", streamConfigResult));
 			return env;
 		}
 
@@ -46,7 +46,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 		if (streamConfigEl == null) {
 
 			// no streams are configured
-			log("Could not find any streams");
+			log("Handled stream lookup request: Could not find any streams");
 			resultObj.add("result", new JsonArray());
 			resultObj.addProperty("status_code", 200);
 			return env;
@@ -62,7 +62,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 			streams.add(streamConfigResult);
 		}
 
-		log("Found streams",  args("streams", streams));
+		log("Handled stream lookup request: Found " + streams.size() + " streams",  args("streams", streams));
 		resultObj.add("result", OIDFJSON.convertJsonObjectListToJsonArray(streams));
 		resultObj.addProperty("status_code", 200);
 		return env;

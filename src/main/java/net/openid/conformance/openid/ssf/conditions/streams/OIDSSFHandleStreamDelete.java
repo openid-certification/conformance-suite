@@ -19,7 +19,7 @@ public class OIDSSFHandleStreamDelete extends AbstractOIDSSFHandleReceiverReques
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "missing stream_id parameter"));
 			resultObj.addProperty("status_code", 400);
-			log("Invalid request to delete SSF stream config: missing stream_id parameter");
+			log("Failed to handle stream deletion request");
 			return env;
 		}
 
@@ -27,7 +27,7 @@ public class OIDSSFHandleStreamDelete extends AbstractOIDSSFHandleReceiverReques
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to delete SSF stream config", args("stream_id", streamId));
+			log("Failed to handle stream deletion request", args("stream_id", streamId));
 			return env;
 		}
 
@@ -35,14 +35,14 @@ public class OIDSSFHandleStreamDelete extends AbstractOIDSSFHandleReceiverReques
 		if (streamObj == null) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to delete SSF stream config", args("stream_id", streamId));
+			log("Failed to handle stream deletion request", args("stream_id", streamId));
 			return env;
 		}
 
 		streamsObj.remove(streamId);
 
 		resultObj.addProperty("status_code", 204);
-		log("Deleted SSF stream config", args("stream_id", streamId));
+		log("Handled stream deletion request", args("stream_id", streamId));
 
 		return env;
 	}

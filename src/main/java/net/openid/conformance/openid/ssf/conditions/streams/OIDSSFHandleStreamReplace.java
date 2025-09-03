@@ -22,7 +22,7 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("parsing_error", e.getMessage()));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to parse SSF stream config input", args("error", resultObj.get("error")));
+			log("Failed to handle stream replacement request: Failed to parse SSF stream config input", args("error", resultObj.get("error")));
 			return env;
 		}
 
@@ -30,7 +30,7 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Missing stream_in in request body", args("error", resultObj.get("error")));
+			log("Failed to handle stream replacement request: Missing stream_in in request body", args("error", resultObj.get("error")));
 			return env;
 		}
 
@@ -38,22 +38,22 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to update SSF stream config", args("error", resultObj.get("error")));
+			log("Failed to handle stream replacement request: No streams configured", args("error", resultObj.get("error")));
 			return env;
 		}
 
 		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
 		if (streamConfigEl == null) {
-			log("Could not find stream by stream_id", args("stream_id", streamId));
+			log("Failed to handle stream replacement request: Could not find stream by stream_id", args("stream_id", streamId));
 			resultObj.addProperty("status_code", 404);
 			return env;
 		}
 
 		Set<String> keysNotAllowedInUpdate = checkForInvalidKeysInStreamConfigInput(streamConfigInput);
 		if (!keysNotAllowedInUpdate.isEmpty()) {
-			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream config update in request body"));
+			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream replacement in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Found invalid keys for stream config update in request body", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
+			log("Failed to handle stream replacement request: Found invalid keys", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
 			return env;
 		}
 
@@ -85,7 +85,7 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 					if (endpointUrl == null) {
 						resultObj.add("error", createErrorObj("bad_request", "endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery"));
 						resultObj.addProperty("status_code", 400);
-						log("endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery", args("error", resultObj.get("error")));
+						log("Failed to handle stream replacement request: endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery", args("error", resultObj.get("error")));
 						return env;
 					}
 					break;
@@ -100,7 +100,7 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 
 		resultObj.add("result", streamConfigResult);
 		resultObj.addProperty("status_code", 200);
-		log("Updated SSF stream config", args("stream_id", streamId, "stream", streamConfigResult));
+		log("Handled stream replacement request: Replaced stream config", args("stream_id", streamId, "stream", streamConfigResult));
 
 		return env;
 	}

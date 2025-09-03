@@ -37,7 +37,7 @@ public class OIDSSFHandleAuthorizationHeader extends AbstractOIDSSFHandleReceive
 			return env;
 		}
 
-		logSuccess("Valid Authorization header present in request");
+		logSuccess("Found valid Authorization header in request",  args("authorization_header", authorizationHeader));
 
 		return env;
 	}
