@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamStatusValue;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -77,8 +78,15 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 					break;
 			}
 
+			OIDSSFStreamUtils.updateStreamStatus(streamConfig, StreamStatusValue.enabled, null);
+
+			// store raw stream config
 			streamsObj.add(streamId, streamConfig);
-			resultObj.add("result", streamConfig);
+
+			// remove internal fields from stream config for output
+			JsonObject streamConfigResult = copyStreamConfigWithoutInternalFields(streamConfig);
+
+			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 201);
 			log("Created SSF stream config", args("stream_id", streamId));
 		} catch (Exception e) {

@@ -3,14 +3,13 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class OIDSSFHandleStreamLookup extends AbstractCondition {
+public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverRequest {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -33,10 +32,12 @@ public class OIDSSFHandleStreamLookup extends AbstractCondition {
 				return env;
 			}
 
-			JsonObject streamConfigObj = streamConfigEl.getAsJsonObject();
-			resultObj.add("result", streamConfigObj);
+			JsonObject streamConfig = streamConfigEl.getAsJsonObject();
+			JsonObject streamConfigResult = copyStreamConfigWithoutInternalFields(streamConfig);
+
+			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 200);
-			log("Found stream by stream_id", args("stream_id", streamId, "stream", streamConfigObj));
+			log("Found stream by stream_id", args("stream_id", streamId, "stream", streamConfigResult));
 			return env;
 		}
 
@@ -55,7 +56,10 @@ public class OIDSSFHandleStreamLookup extends AbstractCondition {
 		List<JsonObject> streams = new ArrayList<>();
 		for(String streamIdKey : streamsObj.keySet()) {
 			JsonObject streamConfig = streamsObj.getAsJsonObject(streamIdKey);
-			streams.add(streamConfig);
+
+			JsonObject streamConfigResult = copyStreamConfigWithoutInternalFields(streamConfig);
+
+			streams.add(streamConfigResult);
 		}
 
 		log("Found streams",  args("streams", streams));

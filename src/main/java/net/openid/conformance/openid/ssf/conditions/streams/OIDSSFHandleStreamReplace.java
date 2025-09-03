@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamStatusValue;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -56,19 +57,19 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 			return env;
 		}
 
-		JsonObject streamConfigObj = streamConfigEl.getAsJsonObject();
+		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
 		// Handle updates for events_requested, description, delibery
 		if (streamConfigInput.has("description")) {
-			streamConfigObj.addProperty("description", OIDFJSON.getString(streamConfigInput.get("description")));
+			streamConfig.addProperty("description", OIDFJSON.getString(streamConfigInput.get("description")));
 		}
 
 		if (streamConfigInput.has("events_requested")) {
 			JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
 			Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
 
-			streamConfigObj.add("events_requested", streamConfigInput.get("events_requested"));
-			streamConfigObj.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
+			streamConfig.add("events_requested", streamConfigInput.get("events_requested"));
+			streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
 		}
 
 		if (streamConfigInput.has("delivery")) {
@@ -89,13 +90,17 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 					}
 					break;
 			}
-			streamConfigObj.add("delivery", delivery);
+			streamConfig.add("delivery", delivery);
 		}
 
-		streamsObj.add(streamId, streamConfigObj);
-		resultObj.add("result", streamConfigObj);
+		OIDSSFStreamUtils.updateStreamStatus(streamConfig, StreamStatusValue.enabled, null);
+
+		streamsObj.add(streamId, streamConfig);
+		JsonObject streamConfigResult = copyStreamConfigWithoutInternalFields(streamConfig);
+
+		resultObj.add("result", streamConfigResult);
 		resultObj.addProperty("status_code", 200);
-		log("Updated SSF stream config", args("stream_id", streamId, "stream", streamConfigObj));
+		log("Updated SSF stream config", args("stream_id", streamId, "stream", streamConfigResult));
 
 		return env;
 	}

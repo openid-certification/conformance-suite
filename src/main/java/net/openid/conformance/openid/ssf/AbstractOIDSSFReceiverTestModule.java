@@ -12,6 +12,8 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCr
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDelete;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamLookup;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamReplace;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusLookup;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusUpdate;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdate;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
@@ -25,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static net.openid.conformance.openid.ssf.SsfEvents.getStandardCapeEvents;
 import static net.openid.conformance.openid.ssf.SsfEvents.getStandardRiscEvents;
@@ -150,17 +153,29 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			} else if ("jwks".equals(path)) {
 				response = handleJwksEndpoint();
 			} else if ("poll".equals(path)) {
-				response = handleStreamPollingRequest(req, session, requestParts);
+				response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleStreamPollingRequest(req, session, requestParts);
+				});
 			} else if ("streams".equals(path)) {
-				response = handleStreamConfigurationEndpointRequest(req, session, requestParts);
+				response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleStreamConfigurationEndpointRequest(req, session, requestParts);
+				});
 			} else if ("status".equals(path)) {
-				response = handleStreamStatusEndpointRequest(req, session, requestParts);
+				response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleStreamStatusEndpointRequest(req, session, requestParts);
+				});
 			} else if ("verify".equals(path)) {
-				response = handleVerificationEndpointRequest(req, session, requestParts);
+				response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleVerificationEndpointRequest(req, session, requestParts);
+				});
 			} else if ("add_subject".equals(path)) {
-				response = handleSubjectsEndpointRequest(req, session, requestParts, "add");
+				response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleSubjectsEndpointRequest(req, session, requestParts, "add");
+				});
 			} else if ("remove_subject".equals(path)) {
-				response = handleSubjectsEndpointRequest(req, session, requestParts, "remove");
+				response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleSubjectsEndpointRequest(req, session, requestParts, "remove");
+				});
 			} else {
 				response = super.handleHttp(path, req, res, session, requestParts);
 			}
@@ -171,6 +186,21 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return response;
+	}
+
+	protected ResponseEntity<?> ensureAuthorized(HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts, Supplier<ResponseEntity<?>> requestHandler) {
+
+		callAndStopOnFailure(OIDSSFHandleAuthorizationHeader.class, "CAEPIOP-2.7.3");
+		JsonObject authResult = env.getElementFromObject("ssf", "auth_result").getAsJsonObject();
+
+		JsonElement authErrorEl = authResult.get("error");
+		if (authErrorEl != null) {
+			JsonObject authError = authErrorEl.getAsJsonObject();
+			int statusCode = authResult.get("status_code").getAsInt();
+			return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(authError);
+		}
+
+		return requestHandler.get();
 	}
 
 	@Override
@@ -200,7 +230,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return response;
 	}
 
-	protected Object handleSsfConfigurationEndpoint(String requestId) {
+	protected ResponseEntity<?> handleSsfConfigurationEndpoint(String requestId) {
 		JsonObject ssfConfig = getSsfConfiguration();
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ssfConfig);
 	}
@@ -209,22 +239,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return env.getElementFromObject("ssf", "transmitter_metadata").getAsJsonObject();
 	}
 
-	protected Object handleJwksEndpoint() {
+	protected ResponseEntity<?> handleJwksEndpoint() {
 		JsonObject jwks = env.getObject("server_jwks");
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(jwks);
 	}
 
-	protected Object handleStreamConfigurationEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
-
-		callAndStopOnFailure(OIDSSFHandleAuthorizationHeader.class, "CAEPIOP-2.7.3");
-		JsonObject authResult = env.getElementFromObject("ssf", "auth_result").getAsJsonObject();
-
-		JsonElement authErrorEl = authResult.get("error");
-		if (authErrorEl != null) {
-			JsonObject authError = authErrorEl.getAsJsonObject();
-			int statusCode = authResult.get("status_code").getAsInt();
-			return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(authError);
-		}
+	protected ResponseEntity<?> handleStreamConfigurationEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
 
 		String method = req.getMethod();
 		switch (method) {
@@ -291,23 +311,56 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 
-	protected Object handleSubjectsEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts, String operation) {
+	protected ResponseEntity<?> handleSubjectsEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts, String operation) {
 		throw new UnsupportedOperationException("handleSubjectsEndpointRequest:" + operation);
 	}
 
-	protected Object handleVerificationEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+	protected ResponseEntity<?> handleVerificationEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
 		throw new UnsupportedOperationException("handleVerificationEndpointRequest");
 	}
 
-	protected Object handleStreamStatusEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+	protected ResponseEntity<?> handleStreamStatusEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+
+		String method = req.getMethod();
+		switch (method) {
+
+			case "GET": {
+				callAndStopOnFailure(OIDSSFHandleStreamStatusLookup.class, "OIDSSF-8.1.2.1");
+				JsonObject statusLookupResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
+
+				JsonElement result = statusLookupResult.get("result");
+				int statusCode = statusLookupResult.get("status_code").getAsInt();
+
+				if (result == null) {
+					return ResponseEntity.status(statusCode).build();
+				}
+
+				return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+			}
+			case "POST": {
+
+				callAndStopOnFailure(OIDSSFHandleStreamStatusUpdate.class, "OIDSSF-8.1.2.2");
+				JsonObject statusUpdateResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
+
+				JsonElement result = statusUpdateResult.get("result");
+				int statusCode = statusUpdateResult.get("status_code").getAsInt();
+
+				if (result == null) {
+					return ResponseEntity.status(statusCode).build();
+				}
+
+				return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+			}
+		}
+
 		throw new UnsupportedOperationException("handleStreamStatusEndpointRequest");
 	}
 
-	protected Object handleStreamPollingRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
+	protected ResponseEntity<?> handleStreamPollingRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
 		throw new UnsupportedOperationException("handleStreamPollingRequest");
 	}
 
-	private Object oauthProtectedResourceServerMetadata() {
+	private ResponseEntity<?> oauthProtectedResourceServerMetadata() {
 		JsonObject resourceServerMetadata = env.getObject("resource_server_metadata");
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(resourceServerMetadata);
 	}

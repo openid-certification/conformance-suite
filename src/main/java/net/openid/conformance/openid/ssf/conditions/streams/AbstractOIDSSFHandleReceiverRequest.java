@@ -43,6 +43,17 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 		return streamsObj;
 	}
 
+	protected JsonObject copyStreamConfigWithoutInternalFields(JsonObject streamConfig) {
+		JsonObject streamConfigResult = streamConfig.deepCopy();
+		for (String key : streamConfig.keySet()) {
+			if (key.startsWith("_")) {
+				// remove internal fields, e.g. _status
+				streamConfigResult.remove(key);
+			}
+		}
+		return streamConfigResult;
+	}
+
 	protected Set<String> computeEventsDelivered(JsonObject streamConfigInput, JsonObject defaultConfig) {
 		List<String> eventsRequested = OIDFJSON.convertJsonArrayToList(streamConfigInput.get("events_requested").getAsJsonArray());
 		List<String> eventsSupported = OIDFJSON.convertJsonArrayToList(defaultConfig.get("events_supported").getAsJsonArray());
