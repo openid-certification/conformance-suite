@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -25,4 +26,12 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 	configurationFields = {"ssf.transmitter.push_endpoint_authorization_header"}
 )
 public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModule {
+
+	@Override
+	protected void afterStreamCreation(JsonObject createResult) {
+		super.afterStreamCreation(createResult);
+
+		// if cape interop profile
+		// enqueue supported cape events
+	}
 }

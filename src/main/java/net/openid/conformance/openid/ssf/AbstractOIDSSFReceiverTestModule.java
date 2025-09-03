@@ -80,6 +80,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject resourceServerMetadata = new JsonObject();
 		resourceServerMetadata.addProperty("resource", issuer);
+		resourceServerMetadata.add("scopes_supported", OIDFJSON.convertListToJsonArray(List.of("ssf.read", "ssf.manage")));
 
 		return resourceServerMetadata;
 	}
@@ -272,6 +273,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			case "POST": {
 				callAndStopOnFailure(OIDSSFHandleStreamCreate.class, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
+
+				afterStreamCreation(createResult);
+
 				return handleResultWithBody(createResult);
 			}
 
@@ -302,6 +306,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+	}
+
+	protected void afterStreamCreation(JsonObject createResult) {
+		// NOOP
 	}
 
 	protected ResponseEntity<?> handleResultWithBody(JsonObject createResult) {
