@@ -65,7 +65,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 		});
 
 		eventLog.runBlock("Validate OAuth Protected Resource Metadata", () -> {
-			callAndContinueOnFailure(OIDSSFCheckScopesWithOauthProtectedResourceMetadata.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2.1");
+			callAndContinueOnFailure(OIDSSFCheckScopesWithOauthProtectedResourceMetadata.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2");
 		});
 
 		fireTestFinished();
