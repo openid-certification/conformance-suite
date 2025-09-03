@@ -1,0 +1,63 @@
+package net.openid.conformance.openid.ssf.conditions.streams;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+
+public class OIDSSFHandleStreamVerificationRequest extends AbstractOIDSSFHandleReceiverRequest{
+
+	@Override
+	public Environment evaluate(Environment env) {
+
+		JsonObject resultObj = new JsonObject();
+		env.putObject("ssf", "stream_op_result", resultObj);
+
+		JsonObject verificationInput;
+		try {
+			verificationInput = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
+		} catch (Exception e) {
+			resultObj.add("error", createErrorObj("parsing_error", e.getMessage()));
+			resultObj.addProperty("status_code", 400);
+			log("Failed to handle stream update request: Failed to parse stream input", args("error", resultObj.get("error")));
+			return env;
+		}
+
+		String streamId = OIDFJSON.tryGetString(verificationInput.get("stream_id"));
+		if (streamId == null) {
+			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
+			resultObj.addProperty("status_code", 400);
+			log("Failed to handle stream update request: Missing stream_in in request body", args("error", resultObj.get("error")));
+			return env;
+		}
+
+		JsonObject streamsObj = getOrCreateStreamsObject(env);
+		if (streamsObj.isEmpty()) {
+			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
+			resultObj.addProperty("status_code", 404);
+			log("Failed to handle stream update request: No streams configured", args("error", resultObj.get("error")));
+			return env;
+		}
+
+		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+		if (streamConfigEl == null) {
+			log("Failed to handle stream update request: Stream not found", args("stream_id", streamId));
+			resultObj.addProperty("status_code", 404);
+			return env;
+		}
+
+		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
+
+		String verificationState = OIDFJSON.tryGetString(verificationInput.get("state"));
+		streamConfig.addProperty("_verification_state", verificationState);
+
+		streamsObj.add(streamId, streamConfig);
+
+		resultObj.add("stream", streamConfig);
+
+		resultObj.addProperty("status_code", 204);
+		log("Handled stream verification request", args("stream_id", streamId, "verification_state", verificationState));
+
+		return env;
+	}
+}

@@ -68,7 +68,8 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 			switch (deliveryMethod) {
 				case DELIVERY_METHOD_POLL_RFC_8936_URI:
 					String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
-					delivery.addProperty("endpoint_url", pollEndpointUrl);
+					String streamPollEndpointUrl = pollEndpointUrl + "?stream_id=" + streamId;
+					delivery.addProperty("endpoint_url", streamPollEndpointUrl);
 					break;
 				case DELIVERY_METHOD_PUSH_RFC_8935_URI:
 					JsonElement endpointUrl = delivery.get("endpoint_url");
@@ -80,6 +81,7 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 					}
 					break;
 			}
+			streamConfig.add("delivery", delivery);
 
 			OIDSSFStreamUtils.updateStreamStatus(streamConfig, StreamStatusValue.enabled, null);
 

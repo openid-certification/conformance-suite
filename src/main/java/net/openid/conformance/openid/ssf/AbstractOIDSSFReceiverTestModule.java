@@ -9,7 +9,9 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFHandleStreamSubjectChange.OIDSSFHandleStreamSubjectAdd;
 import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFHandleStreamSubjectChange.OIDSSFHandleStreamSubjectRemove;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreate;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDelete;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamLookup;
@@ -17,18 +19,23 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamRe
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusLookup;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusUpdate;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdate;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
+import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
+import net.openid.conformance.openid.ssf.eventstore.OIDSSFInMemoryEventStore;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.BaseUrlUtil;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -43,6 +50,8 @@ import static net.openid.conformance.openid.ssf.SsfEvents.getStandardRiscEvents;
 	SsfDeliveryMode.class,
 })
 public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTestModule {
+
+	protected OIDSSFEventStore eventStore = new OIDSSFInMemoryEventStore();
 
 	@Override
 	protected void configureServerMetadata() {
@@ -105,7 +114,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		super.configureServerEndpoints();
 
 		String ssfIssuer = env.getString("ssf", "issuer");
-		String pollEndpointUrl = ssfIssuer + "/poll";
+		String pollEndpointUrl = ssfIssuer + "/events";
 		env.putString("ssf", "poll_endpoint_url", pollEndpointUrl);
 
 		exposeEnvString("ssf_poll_endpoint", "ssf", "poll_endpoint_url");
@@ -156,8 +165,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			switch (path) {
 				case "ssf-configuration" -> response = handleSsfConfigurationEndpoint(requestId);
 				case "jwks" -> response = handleJwksEndpoint();
-				case "poll" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
-					return handleStreamPollingRequest(req, session, requestParts);
+				case "events" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
+					return handleStreamPollingRequest(path, req, res, session, requestParts);
 				});
 				case "streams" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleStreamConfigurationEndpointRequest(path, req, res, session, requestParts);
@@ -166,7 +175,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 					return handleStreamStatusEndpointRequest(path, req, res, session, requestParts);
 				});
 				case "verify" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
-					return handleVerificationEndpointRequest(req, session, requestParts);
+					return handleVerificationEndpointRequest(path, req, res, session, requestParts);
 				});
 				case "add_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.add);
@@ -267,7 +276,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "DELETE": {
-				callAndStopOnFailure(OIDSSFHandleStreamDelete.class, "OIDSSF-8.1.1.5");
+				callAndStopOnFailure(new OIDSSFHandleStreamDelete(eventStore), "OIDSSF-8.1.1.5");
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
@@ -333,8 +342,30 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 	}
 
-	protected ResponseEntity<?> handleVerificationEndpointRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
-		throw new UnsupportedOperationException("handleVerificationEndpointRequest");
+	protected ResponseEntity<?> handleVerificationEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		String method = req.getMethod();
+		if (!method.equals("POST")) {
+			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+		}
+
+		callAndStopOnFailure(OIDSSFHandleStreamVerificationRequest.class, "OIDSSF-8.1.4.2");
+		JsonObject verificationResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
+
+		JsonElement result = verificationResult.get("result");
+		int statusCode = verificationResult.get("status_code").getAsInt();
+
+		if (HttpStatus.valueOf(statusCode).is2xxSuccessful()) {
+			JsonObject stream = verificationResult.getAsJsonObject("stream");
+
+			env.putString("current_stream_id", OIDFJSON.tryGetString(stream.get("stream_id")));
+			callAndStopOnFailure(new OIDSSFGenerateVerificationSET(eventStore),"OIDSSF-8.1.4.2");
+		}
+
+		if (result == null) {
+			return ResponseEntity.status(statusCode).build();
+		}
+
+		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 	}
 
 	protected ResponseEntity<?> handleStreamStatusEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -362,8 +393,25 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 	}
 
-	protected ResponseEntity<?> handleStreamPollingRequest(HttpServletRequest req, HttpSession session, JsonObject requestParts) {
-		throw new UnsupportedOperationException("handleStreamPollingRequest");
+	protected ResponseEntity<?> handleStreamPollingRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+
+		String method = req.getMethod();
+		if (!Objects.equals("POST", method)) {
+			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+		}
+
+		callAndStopOnFailure(new OIDSSFHandlePollRequest(eventStore), "OIDSSF-6.1.2", "RFC8936-2.4");
+
+		JsonObject pollResult = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
+
+		JsonElement result = pollResult.get("result");
+		int statusCode = pollResult.get("status_code").getAsInt();
+
+		if (result == null) {
+			return ResponseEntity.status(statusCode).build();
+		}
+
+		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 	}
 
 	private ResponseEntity<?> oauthProtectedResourceServerMetadata() {

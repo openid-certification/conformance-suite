@@ -22,10 +22,10 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 		return Set.of("events_requested", "description");
 	}
 
-	protected JsonObject createErrorObj(String code, String message) {
+	protected JsonObject createErrorObj(String errCode, String description) {
 		JsonObject error = new JsonObject();
-		error.addProperty("code", code);
-		error.addProperty("message", message);
+		error.addProperty("err", errCode);
+		error.addProperty("description", description);
 		return error;
 	}
 

@@ -1,10 +1,17 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 public class OIDSSFHandleStreamDelete extends AbstractOIDSSFHandleReceiverRequest {
+
+	private final OIDSSFEventStore eventStore;
+
+	public OIDSSFHandleStreamDelete(OIDSSFEventStore eventStore) {
+		this.eventStore = eventStore;
+	}
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -43,6 +50,8 @@ public class OIDSSFHandleStreamDelete extends AbstractOIDSSFHandleReceiverReques
 
 		resultObj.addProperty("status_code", 204);
 		log("Handled stream deletion request", args("stream_id", streamId));
+
+		eventStore.purgeStreamEvents(streamId);
 
 		return env;
 	}

@@ -9,6 +9,7 @@ import java.util.Iterator;
 
 public class OIDSSFStreamUtils {
 
+
 	public enum StreamSubjectOperation {
 		add,
 		remove,
@@ -16,10 +17,20 @@ public class OIDSSFStreamUtils {
 
 	public enum StreamStatusValue {
 		enabled,
-		paused,
+		paused {
+			@Override
+			public boolean isEventDeliveryEnabled() {
+				return false;
+			}
+		},
 		disabled {
 			@Override
 			public boolean isStatusChangeAllowed(StreamStatusValue newStatus) {
+				return false;
+			}
+
+			@Override
+			public boolean isEventDeliveryEnabled() {
 				return false;
 			}
 		};
@@ -27,6 +38,16 @@ public class OIDSSFStreamUtils {
 		public boolean isStatusChangeAllowed(StreamStatusValue newStatus) {
 			return true;
 		}
+
+		public boolean isEventDeliveryEnabled() {
+			return true;
+		}
+	}
+
+	public static StreamStatusValue getStreamStatusValue(JsonObject streamConfig) {
+		JsonObject streamStatus = streamConfig.getAsJsonObject("_status");
+		StreamStatusValue currentStatus = StreamStatusValue.valueOf(OIDFJSON.getString(streamStatus.get("status")));
+		return currentStatus;
 	}
 
 	public static void updateStreamStatus(JsonObject streamConfig, StreamStatusValue newStatusValue, String reason) {
