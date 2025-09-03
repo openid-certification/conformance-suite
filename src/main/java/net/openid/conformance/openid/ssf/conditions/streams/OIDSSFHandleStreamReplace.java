@@ -96,7 +96,7 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 		OIDSSFStreamUtils.updateStreamStatus(streamConfig, StreamStatusValue.enabled, null);
 
 		streamsObj.add(streamId, streamConfig);
-		JsonObject streamConfigResult = copyStreamConfigWithoutInternalFields(streamConfig);
+		JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
 
 		resultObj.add("result", streamConfigResult);
 		resultObj.addProperty("status_code", 200);

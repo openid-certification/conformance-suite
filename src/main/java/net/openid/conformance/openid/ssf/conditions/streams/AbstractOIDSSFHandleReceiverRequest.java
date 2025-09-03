@@ -43,15 +43,15 @@ public abstract class AbstractOIDSSFHandleReceiverRequest extends AbstractCondit
 		return streamsObj;
 	}
 
-	protected JsonObject copyStreamConfigWithoutInternalFields(JsonObject streamConfig) {
-		JsonObject streamConfigResult = streamConfig.deepCopy();
-		for (String key : streamConfig.keySet()) {
+	protected JsonObject copyConfigObjectWithoutInternalFields(JsonObject configObject) {
+		JsonObject configResult = configObject.deepCopy();
+		for (String key : configObject.keySet()) {
 			if (key.startsWith("_")) {
 				// remove internal fields, e.g. _status
-				streamConfigResult.remove(key);
+				configResult.remove(key);
 			}
 		}
-		return streamConfigResult;
+		return configResult;
 	}
 
 	protected Set<String> computeEventsDelivered(JsonObject streamConfigInput, JsonObject defaultConfig) {

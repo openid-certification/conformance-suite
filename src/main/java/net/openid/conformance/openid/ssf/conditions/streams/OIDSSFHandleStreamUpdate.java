@@ -78,7 +78,7 @@ public class OIDSSFHandleStreamUpdate extends AbstractOIDSSFHandleReceiverReques
 
 		streamsObj.add(streamId, streamConfig);
 
-		JsonObject streamConfigResult = copyStreamConfigWithoutInternalFields(streamConfig);
+		JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
 
 		resultObj.add("result", streamConfigResult);
 		resultObj.addProperty("status_code", 200);

@@ -33,7 +33,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 			}
 
 			JsonObject streamConfig = streamConfigEl.getAsJsonObject();
-			JsonObject streamConfigResult = copyStreamConfigWithoutInternalFields(streamConfig);
+			JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
 
 			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 200);
@@ -57,7 +57,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 		for(String streamIdKey : streamsObj.keySet()) {
 			JsonObject streamConfig = streamsObj.getAsJsonObject(streamIdKey);
 
-			JsonObject streamConfigResult = copyStreamConfigWithoutInternalFields(streamConfig);
+			JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
 
 			streams.add(streamConfigResult);
 		}
