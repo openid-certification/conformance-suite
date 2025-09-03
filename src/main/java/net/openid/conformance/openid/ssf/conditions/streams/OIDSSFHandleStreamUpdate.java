@@ -63,7 +63,7 @@ public class OIDSSFHandleStreamUpdate extends AbstractOIDSSFHandleReceiverReques
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
-		// Handle updates for events_requested, description
+		// Handle updates for events_requested, description, delivery
 		if (streamConfigInput.has("description")) {
 			streamConfig.addProperty("description", OIDFJSON.getString(streamConfigInput.get("description")));
 		}
@@ -75,6 +75,29 @@ public class OIDSSFHandleStreamUpdate extends AbstractOIDSSFHandleReceiverReques
 			streamConfig.add("events_requested", streamConfigInput.get("events_requested"));
 			streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
 		}
+
+		if (streamConfigInput.has("delivery")) {
+			JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
+			String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
+			switch (deliveryMethod) {
+				case "urn:ietf:rfc:8936":
+					String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
+					delivery.addProperty("endpoint_url", pollEndpointUrl);
+					break;
+				case "urn:ietf:rfc:8935":
+					JsonElement endpointUrl = delivery.get("endpoint_url");
+					if (endpointUrl == null) {
+						resultObj.add("error", createErrorObj("bad_request", "endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery"));
+						resultObj.addProperty("status_code", 400);
+						log("Failed to handle stream update request: Delivery endpoint_url missing", args("error", resultObj.get("error")));
+						return env;
+					}
+					break;
+			}
+
+			streamConfig.add("delivery", delivery);
+		}
+
 
 		streamsObj.add(streamId, streamConfig);
 
