@@ -130,8 +130,15 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndStopOnFailure(GenerateEntityConfiguration.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
 		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
-		callAndStopOnFailure(AddAutomaticClientRegistrationTypeSupported.class);
-		callAndStopOnFailure(AddExplicitClientRegistrationTypeSupported.class);
+
+		ClientRegistration clientRegistration = getVariant(ClientRegistration.class);
+		if (ClientRegistration.AUTOMATIC.equals(clientRegistration)) {
+			callAndStopOnFailure(AddAutomaticClientRegistrationTypeSupported.class);
+		}
+		if (ClientRegistration.EXPLICIT.equals(clientRegistration)) {
+			callAndStopOnFailure(AddExplicitClientRegistrationTypeSupported.class);
+		}
+
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
 		callAndStopOnFailure(LoadTrustAnchorJWKs.class);

@@ -10,7 +10,7 @@ import net.openid.conformance.variant.VariantSelection;
 	profile = TestPlan.ProfileNames.federationTest,
 	testModules = {
 		OpenIDFederationEntityConfigurationTest.class,
-		OpenIDFederationListAndFetchTest.class,
+		// OpenIDFederationListAndFetchTest.class, TODO: Figure out a way to do this test for large federations
 		OpenIDFederationEnsureFetchWithInvalidSubFailsTest.class,
 		OpenIDFederationEnsureFetchWithIssAsSubFailsTest.class,
 		OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest.class,
