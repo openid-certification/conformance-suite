@@ -2,86 +2,20 @@
     {
         "test-name": "openid-federation-entity-configuration",
         "variant": "*",
-        "configuration-filename": "*sweden-federation-bankid.json",
-        "current-block": "*",
-        "condition": "ValidateEntityStatementExp",
-        "expected-result": "failure",
-        "comment": "It's a static entity statement and permanently expired."
-    },
-    {
-        "test-name": "openid-federation-entity-configuration",
-        "variant": "*",
-        "configuration-filename": "*sweden-federation-bankid.json",
-        "current-block": "*",
-        "condition": "CheckJwksUri",
-        "expected-result": "failure",
-        "comment": "The OP metadata doesn't specify a jwks_uri"
-    },
-    {
-        "test-name": "openid-federation-entity-configuration",
-        "variant": "*",
-        "configuration-filename": "*sweden-federation-bankid.json",
-        "current-block": "*",
-        "condition": "FetchServerKeys",
-        "expected-result": "failure",
-        "comment": "The OP metadata doesn't specify a jwks_uri"
-    },
-
-    {
-        "test-name": "openid-federation-entity-configuration",
-        "variant": "*",
         "configuration-filename": "*sweden-federation-intermediate.json",
         "current-block": "*",
         "condition": "ValidateAbsenceOfFederationEntityMetadata",
         "expected-result": "failure",
         "comment": "-"
     },
-
     {
-        "test-name": "openid-federation-list-and-fetch",
+        "test-name": "openid-federation-entity-configuration",
         "variant": "*",
-        "configuration-filename": "*sweden-federation-intermediate.json",
-        "current-block": "*",
-        "condition": "EnsureContentTypeEntityStatementJwt",
-        "expected-result": "failure",
-        "comment": "-"
-    },
-    {
-        "test-name": "openid-federation-list-and-fetch",
-        "variant": "*",
-        "configuration-filename": "*sweden-federation-intermediate.json",
-        "current-block": "*",
-        "condition": "ExtractJWTFromFederationEndpointResponse",
-        "expected-result": "failure",
-        "comment": "-"
-    },
-    {
-        "test-name": "openid-federation-list-and-fetch",
-        "variant": "*",
-        "configuration-filename": "*sweden-federation-intermediate.json",
-        "current-block": "*",
-        "condition": "EnsureHttpStatusCodeIs200",
-        "expected-result": "failure",
-        "comment": "-"
-    },
-    {
-        "test-name": "openid-federation-list-and-fetch",
-        "variant": "*",
-        "configuration-filename": "*sweden-federation-intermediate.json",
-        "current-block": "*",
+        "configuration-filename": "*sweden-federation-bankid.json",
+        "current-block": "Validating subordinate statement by immediate superior https://sandbox.swedenconnect.se/oidfed/intermediate",
         "condition": "ValidateAbsenceOfAuthorityHints",
         "expected-result": "failure",
-        "comment": "-"
-    },
-
-    {
-        "test-name": "openid-federation-list-and-fetch",
-        "variant": "*",
-        "configuration-filename": "*sweden-federation-trust-anchor.json",
-        "current-block": "*",
-        "condition": "ValidateAbsenceOfFederationEntityMetadata",
-        "expected-result": "failure",
-        "comment": "-"
+        "comment": "Expected spec violation by third party"
     },
 
     {

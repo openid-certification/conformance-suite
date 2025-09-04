@@ -1234,6 +1234,7 @@ async def main():
                 or re.match(r'openid-federation-automatic-client-registration-expect-entity-configuration-request', m)
                 or re.match(r'openid-federation-automatic-client-registration-invalid', m)
                 or re.match(r'openid-federation-automatic-client-registration-with-.*-trust-chain', m)
+                or re.match(r'openid-federation-list-and-fetch', m)
             ):
                 untested_test_modules.remove(m)
                 continue

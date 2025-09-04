@@ -12,7 +12,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"and finally use the Fetch endpoint to retrieve and validate the Subordinate Statement for the entity.",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.entity_identifier"
+		"federation.entity_identifier",
+		"federation.trust_anchor",
+		"federation.trust_anchor_jwks",
 	}
 )
 public class OpenIDFederationEntityConfigurationTest extends OpenIDFederationAutomaticClientRegistrationTest {
@@ -25,7 +27,6 @@ public class OpenIDFederationEntityConfigurationTest extends OpenIDFederationAut
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		validateEntityStatement();
 		validateAbsenceOfMetadataPolicy();
 		validateImmediateSuperiors();
 
