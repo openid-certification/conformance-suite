@@ -12,8 +12,9 @@ import java.util.UUID;
 				"The test is isolated to the provided entity and will not proceed to its superiors nor subordinates.",
 		profile = "OIDFED",
 		configurationFields = {
-				"federation.entity_identifier",
-				"federation.trust_anchor_jwks"
+			"federation.entity_identifier",
+			"federation.trust_anchor",
+			"federation.trust_anchor_jwks",
 		}
 )
 public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends OpenIDFederationAutomaticClientRegistrationTest {
