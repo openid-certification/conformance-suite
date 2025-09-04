@@ -4,7 +4,14 @@ import com.google.gson.JsonElement;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
+import java.util.Set;
+
 public class ValidateClientRegistrationTypesValues extends AbstractValidateClientRegistrationValues {
+
+	@Override
+	Set<String> getValidClientRegistrationValues() {
+		return Set.of("automatic", "explicit");
+	}
 
 	@Override
 	@PreEnvironment(required = { "client" } )
