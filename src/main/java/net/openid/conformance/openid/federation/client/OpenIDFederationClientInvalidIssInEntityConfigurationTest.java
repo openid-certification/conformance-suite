@@ -2,8 +2,8 @@ package net.openid.conformance.openid.federation.client;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.Add30SecondExpValueToIdToken;
 import net.openid.conformance.condition.as.AddInvalidIssValueToIdToken;
-import net.openid.conformance.condition.as.AddShortExpValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
@@ -23,8 +23,8 @@ public class OpenIDFederationClientInvalidIssInEntityConfigurationTest extends O
 		JsonObject server = env.getObject("server");
 
 		env.mapKey("id_token_claims", "server");
-		callAndContinueOnFailure(AddShortExpValueToIdToken.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(AddInvalidIssValueToIdToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(Add30SecondExpValueToIdToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddInvalidIssValueToIdToken.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		env.unmapKey("id_token_claims");
 		setStatus(Status.WAITING);
 
