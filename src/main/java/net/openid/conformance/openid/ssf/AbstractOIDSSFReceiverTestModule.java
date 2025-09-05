@@ -9,7 +9,8 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFHandleStreamSubjectChange.OIDSSFHandleStreamSubjectAdd;
 import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFHandleStreamSubjectChange.OIDSSFHandleStreamSubjectRemove;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateVerificationSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamStatusUpdatedSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreate;
@@ -363,10 +364,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		int statusCode = verificationResult.get("status_code").getAsInt();
 
 		if (HttpStatus.valueOf(statusCode).is2xxSuccessful()) {
-			JsonObject stream = verificationResult.getAsJsonObject("stream");
-
-			env.putString("current_stream_id", OIDFJSON.tryGetString(stream.get("stream_id")));
-			callAndStopOnFailure(new OIDSSFGenerateVerificationSET(eventStore),"OIDSSF-8.1.4.2");
+			callAndStopOnFailure(new OIDSSFGenerateStreamVerificationSET(eventStore),"OIDSSF-8.1.4.2");
 		}
 
 		if (result == null) {
@@ -393,6 +391,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonElement result = statusOpResult.get("result");
 		int statusCode = statusOpResult.get("status_code").getAsInt();
+
+		// Only emit StreamStatusUpdate if stream is enabled
+		String requestedStatus = env.getString("incoming_request", "body_json.status");
+		if (method.equals("POST") && HttpStatus.valueOf(statusCode).is2xxSuccessful() && "enabled".equals(requestedStatus)) {
+			// only emit stream update event on successful status change
+			callAndStopOnFailure(new OIDSSFGenerateStreamStatusUpdatedSET(eventStore),"OIDSSF-8.1.5");
+		}
 
 		if (result == null) {
 			return ResponseEntity.status(statusCode).build();

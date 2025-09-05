@@ -34,11 +34,10 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 	}
 
 	@Override
-	@PreEnvironment(required = "server_jwks")
+	@PreEnvironment(required = {"server_jwks", "ssf"})
 	public Environment evaluate(Environment env) {
 
-		String streamId = env.getString("current_stream_id");
-		String serverIssuer = env.getString("ssf","issuer");
+		String streamId = getCurrentStreamId(env);
 
 		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
 		if (streamConfigEl == null) {
@@ -48,7 +47,8 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
-		String audience = env.getString("ssf","audience");
+		String serverIssuer = env.getString("ssf", "issuer");
+		String audience = env.getString("ssf", "audience");
 
 		try {
 			JWKSet jwkSet = JWKUtil.parseJWKSet(env.getObject("server_jwks").toString());
@@ -82,7 +82,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 			String setTokenString = signedJWT.serialize();
 
 			JsonObject setObject = JWTUtil.jwtStringToJsonObjectForEnvironment(setTokenString);
-			logSuccess("Created Security Event Token JWT", args("jwt", setTokenString, "decoded_jwt_json", setObject.toString(), "jti", setJti));
+			logSuccess("Created SET for event for stream_id=" + streamId + " with jti=" + setJti, args("jwt", setTokenString, "decoded_jwt_json", setObject.toString(), "jti", setJti));
 
 			afterSecurityEventTokenGenerated(env, streamId, streamConfig, setJti, setTokenString, setObject);
 		} catch (ParseException | JOSEException e) {
@@ -90,6 +90,10 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 		}
 
 		return env;
+	}
+
+	protected String getCurrentStreamId(Environment env) {
+		return env.getString("ssf", "current_stream_id");
 	}
 
 	protected void afterSecurityEventTokenGenerated(Environment env, String streamId, JsonObject streamConfig, String setJti, String setTokenString, JsonObject setObject) {

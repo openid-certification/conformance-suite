@@ -45,14 +45,17 @@ public class OIDSSFStreamUtils {
 	}
 
 	public static StreamStatusValue getStreamStatusValue(JsonObject streamConfig) {
-		JsonObject streamStatus = streamConfig.getAsJsonObject("_status");
-		StreamStatusValue currentStatus = StreamStatusValue.valueOf(OIDFJSON.getString(streamStatus.get("status")));
-		return currentStatus;
+		JsonObject streamStatus = getStreamStatus(streamConfig);
+		return StreamStatusValue.valueOf(OIDFJSON.getString(streamStatus.get("status")));
+	}
+
+	public static JsonObject getStreamStatus(JsonObject streamConfig) {
+		return streamConfig.getAsJsonObject("_status");
 	}
 
 	public static void updateStreamStatus(JsonObject streamConfig, StreamStatusValue newStatusValue, String reason) {
 
-		JsonObject streamStatus = streamConfig.getAsJsonObject("_status");
+		JsonObject streamStatus = getStreamStatus(streamConfig);
 		if (streamStatus == null) {
 			streamStatus = new JsonObject();
 			streamStatus.addProperty("stream_id", OIDFJSON.tryGetString(streamConfig.get("stream_id")));

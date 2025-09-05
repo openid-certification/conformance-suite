@@ -1,5 +1,6 @@
 package net.openid.conformance.testmodule;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -7,6 +8,7 @@ import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -127,6 +129,10 @@ public final class OIDFJSON {
 			return null;
 		}
 		return getString(jsonElement);
+	}
+
+	public static JsonObject convertMapToJsonObject(Map<String, Object> map) {
+		return new Gson().toJsonTree(map).getAsJsonObject();
 	}
 
 	/**

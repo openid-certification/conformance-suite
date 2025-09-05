@@ -6,27 +6,23 @@ import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class OIDSSFGenerateVerificationSET extends AbstractOIDSSFGenerateSET {
+import java.util.Map;
 
-	public OIDSSFGenerateVerificationSET(OIDSSFEventStore eventStore) {
+public class OIDSSFGenerateStreamStatusUpdatedSET extends AbstractOIDSSFGenerateStreamSET {
+
+	public OIDSSFGenerateStreamStatusUpdatedSET(OIDSSFEventStore eventStore) {
 		super(eventStore);
 	}
 
 	@Override
 	protected void addSubjectAndEvents(String streamId, JsonObject streamConfig, JWTClaimsSet.Builder claimsBuilder) {
 
-		JsonObject subject = new JsonObject();
-		subject.addProperty("format", "opaque");
-		subject.addProperty("id", streamId);
+		JsonObject streamStatus = OIDSSFStreamUtils.getStreamStatus(streamConfig);
 
-		JsonObject verificationEvent = new JsonObject();
-		verificationEvent.addProperty("state", OIDFJSON.tryGetString(streamConfig.get("_verification_state")));
-
-		JsonObject events = new JsonObject();
-		events.add("https://schemas.openid.net/secevent/ssf/event-type/verification", verificationEvent);
+		JsonObject events = OIDFJSON.convertMapToJsonObject(Map.of("https://schemas.openid.net/secevent/ssf/event-type/stream-updated", streamStatus));
 
 		claimsBuilder
-			.claim("sub_id", subject)
+			.claim("sub_id", generateStreamSubject(streamId))
 			.claim("events", events);
 	}
 
@@ -40,7 +36,5 @@ public class OIDSSFGenerateVerificationSET extends AbstractOIDSSFGenerateSET {
 		JsonObject jtiSetObject = new JsonObject();
 		jtiSetObject.addProperty(setJti, setTokenString);
 		eventStore.storeEvent(streamId, jtiSetObject);
-
-		// OIDSSFStreamUtils.publishSecurityEventTokenForStream(streamConfig, setJti, setTokenString);
 	}
 }
