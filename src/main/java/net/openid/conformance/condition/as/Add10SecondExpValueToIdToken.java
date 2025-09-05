@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.time.Instant;
 
-public class AddShortExpValueToIdToken extends AbstractCondition {
+public class Add10SecondExpValueToIdToken extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "id_token_claims")

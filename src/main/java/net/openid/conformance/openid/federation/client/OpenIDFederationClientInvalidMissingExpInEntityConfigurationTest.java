@@ -22,7 +22,7 @@ public class OpenIDFederationClientInvalidMissingExpInEntityConfigurationTest ex
 		JsonObject server = env.getObject("server");
 
 		env.mapKey("id_token_claims", "server");
-		callAndContinueOnFailure(RemoveExpFromIdToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(RemoveExpFromIdToken.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		env.unmapKey("id_token_claims");
 		setStatus(Status.WAITING);
 
