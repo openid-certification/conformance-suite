@@ -15,7 +15,7 @@ public class OpenIDFederationClientInvalidAudInIdTokenTest extends OpenIDFederat
 
 	@Override
 	protected void beforeSigningIdToken() {
-		callAndContinueOnFailure(AddInvalidAudValueToIdToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddInvalidAudValueToIdToken.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.7-3");
 	}
 
 }
