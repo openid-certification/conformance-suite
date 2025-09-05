@@ -17,7 +17,7 @@ public class OpenIDFederationClientInvalidEmptyClientRegistrationTypesSupportedT
 	@Override
 	protected Object entityConfigurationResponse() {
 		setStatus(Status.RUNNING);
-		callAndContinueOnFailure(AddEmptyClientRegistrationTypesSupportedInEntityConfiguration.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddEmptyClientRegistrationTypesSupportedInEntityConfiguration.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 		setStatus(Status.WAITING);
 
 		Object response = super.entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);

@@ -15,7 +15,7 @@ public class OpenIDFederationClientInvalidIssInIdTokenTest extends OpenIDFederat
 
 	@Override
 	protected void beforeSigningIdToken() {
-		callAndContinueOnFailure(AddInvalidIssValueToIdToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddInvalidIssValueToIdToken.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.7-2");
 	}
 
 }
