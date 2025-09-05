@@ -16,7 +16,7 @@ public class SignClientAuthenticationAssertion extends AbstractSignJWT {
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.getObject("client_assertion_claims");
 		JsonObject jwks = env.getObject("client_jwks");
-		return signJWT(env, claims, jwks);
+		return signJWT(env, claims, jwks, true);
 	}
 
 	@Override
