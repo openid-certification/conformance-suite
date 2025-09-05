@@ -18,4 +18,6 @@ public final class SsfConstants {
 	public enum StreamStatus {
 		enabled, paused, disabled;
 	}
+
+	public static String SECURITY_EVENT_TOKEN_CONTENT_TYPE = "application/secevent+jwt";
 }

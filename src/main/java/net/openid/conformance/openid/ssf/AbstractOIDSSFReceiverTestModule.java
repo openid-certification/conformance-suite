@@ -6,21 +6,25 @@ import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.ws.rs.core.Response;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
-import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFHandleStreamSubjectChange.OIDSSFHandleStreamSubjectAdd;
-import net.openid.conformance.openid.ssf.conditions.streams.AbstractOIDSSFHandleStreamSubjectChange.OIDSSFHandleStreamSubjectRemove;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamStatusUpdatedSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreate;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDelete;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamLookup;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamReplace;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusLookup;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusUpdate;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamSubjectAdd;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamSubjectRemove;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdate;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFInMemoryEventStore;
@@ -34,11 +38,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
@@ -46,13 +55,12 @@ import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUS
 import static net.openid.conformance.openid.ssf.SsfEvents.getStandardCapeEvents;
 import static net.openid.conformance.openid.ssf.SsfEvents.getStandardRiscEvents;
 
-@VariantParameters({
-	SsfProfile.class,
-	SsfDeliveryMode.class,
-})
+@VariantParameters({SsfProfile.class, SsfDeliveryMode.class,})
 public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTestModule {
 
 	protected OIDSSFEventStore eventStore = new OIDSSFInMemoryEventStore();
+
+	protected ConcurrentMap<String, DeferredAction> deferredActions = new ConcurrentHashMap<>();
 
 	@Override
 	protected void configureServerMetadata() {
@@ -185,15 +193,76 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				case "remove_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
 				});
+				case "__tick" -> response = handleNextAction();
 				default -> response = super.handleHttp(path, req, res, session, requestParts);
 			}
 		} finally {
-			setStatus(Status.WAITING);
+			if (!Set.of(Status.WAITING, Status.FINISHED).contains(getStatus())) {
+				setStatus(Status.WAITING);
+			}
 			env.removeObject(requestId);
 			env.unmapKey("incoming_request");
 		}
 
 		return response;
+	}
+
+	public static abstract class DeferredAction implements Runnable {
+
+		private final String description;
+
+		public DeferredAction(String description) {
+			this.description = description;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+	}
+
+	@SuppressWarnings("FutureReturnValueIgnored")
+	protected void scheduleDeferredAction(DeferredAction action) {
+		scheduleDeferredAction(action, 1, TimeUnit.SECONDS);
+	}
+
+	@SuppressWarnings("FutureReturnValueIgnored")
+	protected void scheduleDeferredAction(DeferredAction action, int amount, TimeUnit timeUnit) {
+
+		String taskId = UUID.randomUUID().toString();
+		String issuer = env.getString("ssf", "issuer");
+		String tickUri = issuer + "/__tick?task=" + taskId;
+
+		deferredActions.put(taskId, action);
+
+		eventLog.log(getId(), action.getDescription() + " with task_id=" + taskId);
+
+		Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+
+			if (getStatus() == Status.FINISHED) {
+				return;
+			}
+
+			ResponseEntity<Void> tickStatus = RestClient.create(tickUri).post().retrieve().toBodilessEntity();
+			System.out.println("Submitted scheduled task with task_id=" + taskId + " and status=" + tickStatus.getStatusCode());
+		}, amount, timeUnit);
+	}
+
+	protected Object handleNextAction() {
+
+		JsonObject queryParams = env.getElementFromObject("incoming_request", "query_string_params").getAsJsonObject();
+
+		String taskId = OIDFJSON.tryGetString(queryParams.get("task"));
+
+		eventLog.log(getId(), "Processing action for task_id=" + taskId);
+
+		DeferredAction deferredAction = deferredActions.remove(taskId);
+		if (deferredAction == null) {
+			return Response.noContent().build();
+		}
+
+		deferredAction.run();
+
+		return Response.accepted().build();
 	}
 
 	protected ResponseEntity<?> ensureAuthorized(HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts, Supplier<ResponseEntity<?>> requestHandler) {
@@ -364,7 +433,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		int statusCode = verificationResult.get("status_code").getAsInt();
 
 		if (HttpStatus.valueOf(statusCode).is2xxSuccessful()) {
-			callAndStopOnFailure(new OIDSSFGenerateStreamVerificationSET(eventStore),"OIDSSF-8.1.4.2");
+			callAndStopOnFailure(new OIDSSFGenerateStreamVerificationSET(eventStore), "OIDSSF-8.1.4.2");
+
+			String streamId = env.getString("incoming_request", "body_json.stream_id");
+
+			if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
+				scheduleDeferredAction(new OIDSSFHandlePushDeliveryAction(streamId));
+			}
 		}
 
 		if (result == null) {
@@ -372,6 +447,39 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+	}
+
+	protected class OIDSSFHandlePushDeliveryAction extends DeferredAction {
+
+		protected final String streamId;
+
+		protected OIDSSFHandlePushDeliveryAction(String streamId) {
+			super("Schedule event delivery via push");
+			this.streamId = streamId;
+		}
+
+		@Override
+		public void run() {
+			OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 16);
+			if (eventsBatch == null) {
+				// stream was removed in-between, so we don't need to push data
+				return;
+			}
+
+			// TODO handle SSF PUSH retry???
+			for (var event : eventsBatch.events()) {
+				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::onStreamVerificationSuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
+			}
+
+			if (eventsBatch.moreAvailable()) {
+				// reschedule action
+				scheduleDeferredAction(this);
+			}
+		}
+	}
+
+	protected void onStreamVerificationSuccess(String streamId) {
+
 	}
 
 	protected ResponseEntity<?> handleStreamStatusEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -396,7 +504,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		String requestedStatus = env.getString("incoming_request", "body_json.status");
 		if (method.equals("POST") && HttpStatus.valueOf(statusCode).is2xxSuccessful() && "enabled".equals(requestedStatus)) {
 			// only emit stream update event on successful status change
-			callAndStopOnFailure(new OIDSSFGenerateStreamStatusUpdatedSET(eventStore),"OIDSSF-8.1.5");
+			callAndStopOnFailure(new OIDSSFGenerateStreamStatusUpdatedSET(eventStore), "OIDSSF-8.1.5");
 		}
 
 		if (result == null) {
@@ -430,5 +538,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	private ResponseEntity<?> oauthProtectedResourceServerMetadata() {
 		JsonObject resourceServerMetadata = env.getObject("resource_server_metadata");
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(resourceServerMetadata);
+	}
+
+	@Override
+	public void fireTestFinished() {
+		super.fireTestFinished();
+
+		deferredActions.clear();
 	}
 }

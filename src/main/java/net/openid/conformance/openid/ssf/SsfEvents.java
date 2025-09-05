@@ -5,6 +5,10 @@ import java.util.Set;
 
 public class SsfEvents {
 
+	public static final String STREAM_VERIFICATION_EVENT = "https://schemas.openid.net/secevent/ssf/event-type/verification";
+
+	public static final String STREAM_UPDATED_EVENT = "https://schemas.openid.net/secevent/ssf/event-type/stream-updated";
+
 	public static Set<String> getStandardCapeEvents() {
 		return new HashSet<>(Set.of(
 			// CAEP events
@@ -15,7 +19,7 @@ public class SsfEvents {
 			"https://schemas.openid.net/secevent/caep/event-type/device-compliance-change", //
 			"https://schemas.openid.net/secevent/caep/event-type/assurance-level-change", //
 			"https://schemas.openid.net/secevent/caep/event-type/token-claims-change", //
-			"https://schemas.openid.net/secevent/ssf/event-type/verification", //
+			STREAM_VERIFICATION_EVENT, //
 			// See: https://openid.github.io/sharedsignals/openid-caep-1_0.html#name-risk-level-change
 			"https://schemas.openid.net/secevent/caep/event-type/risk-level-change" //
 		));

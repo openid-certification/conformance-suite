@@ -1,52 +1,12 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.openqa.selenium.InvalidArgumentException;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOIDSSFHandleReceiverRequest {
-
-	public static class OIDSSFHandleStreamSubjectAdd extends AbstractOIDSSFHandleStreamSubjectChange {
-
-		@Override
-		protected String getChangeType() {
-			return "add";
-		}
-
-		@Override
-		protected void changeSubjects(JsonObject streamConfig, JsonObject streamSubjectInput) {
-			JsonObject subjectObj = streamSubjectInput.getAsJsonObject("subject");
-
-
-			if (OIDSSFStreamUtils.getInvalidSubjectExample().equals(subjectObj)) {
-				throw new IllegalArgumentException("Invalid subject");
-			}
-
-			JsonPrimitive verified = streamSubjectInput.getAsJsonPrimitive("verified");
-			OIDSSFStreamUtils.addStreamSubject(streamConfig, subjectObj, verified != null ? verified.getAsBoolean() : null);
-		}
-	}
-
-	public static class OIDSSFHandleStreamSubjectRemove extends AbstractOIDSSFHandleStreamSubjectChange {
-
-		@Override
-		protected String getChangeType() {
-			return "remove";
-		}
-
-		@Override
-		protected void changeSubjects(JsonObject streamConfig, JsonObject streamSubjectInput) {
-			JsonObject subjectObj = streamSubjectInput.getAsJsonObject("subject");
-			OIDSSFStreamUtils.removeStreamSubject(streamConfig, subjectObj);
-		}
-	}
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -80,7 +40,7 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 			return env;
 		}
 
-		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			log("Failed to handle stream subject " + getChangeType() + " request: Stream not found", args("stream_id", streamId, "error", resultObj.get("error")));
@@ -91,7 +51,7 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
 		try {
-			changeSubjects(streamConfig, streamSubjectInput);
+			changeSubjects(streamConfig, streamSubjectInput, resultObj);
 		} catch (InvalidArgumentException e) {
 			resultObj.add("error", createErrorObj("invalid_subject", e.getMessage()));
 			log("Failed to handle stream subject " + getChangeType() + " request: Invalid subject", args("stream_id", streamId, "error", resultObj.get("error")));
@@ -102,22 +62,12 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 		// store updated stream subjects
 		streamsObj.add(streamId, streamConfig);
 
-		JsonObject streamSubjects = streamConfig.getAsJsonObject("_subjects");
-
-		List<JsonObject> resultSubjects = new ArrayList<>();
-		JsonArray subjects = streamSubjects.getAsJsonArray("subjects");
-		for (var subject : subjects) {
-			// remove internal _verified field from subject
-			resultSubjects.add(copyConfigObjectWithoutInternalFields(subject.getAsJsonObject()));
-		}
-
-		resultObj.addProperty("status_code", 200);
-		log("Handled stream subject " + getChangeType() + " request for stream_id=" + streamId, args("stream_id", streamId, "stream_subjects", resultSubjects));
+		logSuccess("Handled stream subject " + getChangeType() + " request for stream_id=" + streamId, args("stream_id", streamId));
 
 		return env;
 	}
 
 	protected abstract String getChangeType();
 
-	protected abstract void changeSubjects(JsonObject streamConfig, JsonObject streamSubjectInput);
+	protected abstract void changeSubjects(JsonObject streamConfig, JsonObject streamSubjectInput, JsonObject resultObj);
 }

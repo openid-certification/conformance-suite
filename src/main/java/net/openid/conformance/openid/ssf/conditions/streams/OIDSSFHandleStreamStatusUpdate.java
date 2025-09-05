@@ -40,7 +40,7 @@ public class OIDSSFHandleStreamStatusUpdate extends AbstractOIDSSFHandleReceiver
 			return env;
 		}
 
-		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			log("Failed to handle stream status update request: Stream not found", args("stream_id", streamId, "error", resultObj.get("error")));
@@ -77,7 +77,7 @@ public class OIDSSFHandleStreamStatusUpdate extends AbstractOIDSSFHandleReceiver
 		resultObj.add("result", streamStatus);
 
 		resultObj.addProperty("status_code", 200);
-		log("Handled update stream status update request for stream_id=" + streamId, args("stream_id", streamId, "status", streamStatus));
+		logSuccess("Handled update stream status update request for stream_id=" + streamId, args("stream_id", streamId, "status", streamStatus));
 
 		return env;
 	}

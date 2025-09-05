@@ -39,7 +39,7 @@ public class OIDSSFHandleStreamVerificationRequest extends AbstractOIDSSFHandleR
 			return env;
 		}
 
-		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			log("Failed to handle stream update request: Stream not found", args("stream_id", streamId));
 			resultObj.addProperty("status_code", 404);
@@ -56,7 +56,7 @@ public class OIDSSFHandleStreamVerificationRequest extends AbstractOIDSSFHandleR
 		resultObj.add("stream", streamConfig);
 
 		resultObj.addProperty("status_code", 204);
-		log("Handled stream verification request for stream_id=" + streamId, args("stream_id", streamId, "verification_state", verificationState));
+		logSuccess("Handled stream verification request for stream_id=" + streamId, args("stream_id", streamId, "verification_state", verificationState));
 
 		return env;
 	}

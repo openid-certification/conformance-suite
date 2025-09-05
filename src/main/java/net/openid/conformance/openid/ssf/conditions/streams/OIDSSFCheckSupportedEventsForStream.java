@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openid.ssf.SsfEvents;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -14,7 +15,7 @@ public class OIDSSFCheckSupportedEventsForStream extends AbstractCondition {
 
 	public static final Set<String> VERIFICATION_EVENT_TYPES = Set.of(
 		// see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-7.1.4.1
-		"https://schemas.openid.net/secevent/ssf/event-type/verification"
+		SsfEvents.STREAM_VERIFICATION_EVENT
 	);
 
 	public static final Set<String> CAEP_EVENT_TYPES = Set.of(

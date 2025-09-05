@@ -25,7 +25,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 		if (streamId != null) {
 			// explicit stream lookup
 
-			JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+			JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 			if (streamConfigEl == null) {
 				log("Failed to handle stream lookup request: Could not find stream by stream_id", args("stream_id", streamId));
 				resultObj.addProperty("status_code", 404);
@@ -62,7 +62,7 @@ public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverReques
 			streams.add(streamConfigResult);
 		}
 
-		log("Handled stream lookup request: Found " + streams.size() + " streams",  args("streams", streams));
+		logSuccess("Handled stream lookup request: Found " + streams.size() + " streams",  args("streams", streams));
 		resultObj.add("result", OIDFJSON.convertJsonObjectListToJsonArray(streams));
 		resultObj.addProperty("status_code", 200);
 		return env;

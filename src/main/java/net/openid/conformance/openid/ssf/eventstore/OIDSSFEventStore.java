@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.ssf.eventstore;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 
 import java.util.List;
 
@@ -9,13 +10,17 @@ import java.util.List;
  */
 public interface OIDSSFEventStore {
 
-	void storeEvent(String streamId, JsonObject eventObject);
+	void storeEvent(String streamId, OIDSSFSecurityEvent eventObject);
 
-	PollInfo pollEvents(String streamId, int maxCount, boolean waitForEvents, long waitTimeSeconds);
+	default EventsBatch pollEvents(String streamId, int maxCount) {
+		return pollEvents(streamId, maxCount, false, 0);
+	}
+
+	EventsBatch pollEvents(String streamId, int maxCount, boolean waitForEvents, long waitTimeSeconds);
 
 	void purgeStreamEvents(String streamId);
 
-	record PollInfo(List<JsonObject> events, boolean moreAvailable) {
+	record EventsBatch(List<OIDSSFSecurityEvent> events, boolean moreAvailable) {
 	}
 
 	void registerAckForStreamEvent(String streamId, String jti);

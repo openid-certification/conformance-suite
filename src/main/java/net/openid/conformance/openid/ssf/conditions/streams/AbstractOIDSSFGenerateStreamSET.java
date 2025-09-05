@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.testmodule.Environment;
 
-public abstract class AbstractOIDSSFGenerateStreamSET extends AbstractOIDSSFGenerateSET{
+public abstract class AbstractOIDSSFGenerateStreamSET extends AbstractOIDSSFGenerateSET {
 
 	public AbstractOIDSSFGenerateStreamSET(OIDSSFEventStore eventStore) {
 		super(eventStore);

@@ -3,8 +3,9 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
-import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore.PollInfo;
+import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore.EventsBatch;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -44,7 +45,7 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 			return env;
 		}
 
-		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			log("Failed to handle stream poll request: Stream not found", args("stream_id", streamId));
 			resultObj.addProperty("status_code", 404);
@@ -110,20 +111,20 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 			int maxWaitTimeSeconds = 10;
 			boolean waitForEvents = !returnImmediately;
 
-			PollInfo pollInfo = eventStore.pollEvents(streamId, maxCount, waitForEvents, maxWaitTimeSeconds);
+			EventsBatch eventsBatch = eventStore.pollEvents(streamId, maxCount, waitForEvents, maxWaitTimeSeconds);
 
 			// merge jti-SET pairs into the poll response
 			// see: https://www.rfc-editor.org/rfc/rfc8936.html#section-2.5
-			for (JsonObject setEvent : pollInfo.events()) {
-				setsObject.asMap().putAll(setEvent.asMap());
+			for (OIDSSFSecurityEvent setEvent : eventsBatch.events()) {
+				setsObject.addProperty(setEvent.jti(), setEvent.securityEventToken());
 			}
 
-			if (pollInfo.moreAvailable()) {
+			if (eventsBatch.moreAvailable()) {
 				pollResultObj.addProperty("moreAvailable", true);
 			}
 		}
 
-		log("Handled stream events polling request for stream_id=" + streamId, args("stream_id", streamId, "polling_request", pollRequestInput));
+		logSuccess("Handled stream events polling request for stream_id=" + streamId, args("stream_id", streamId, "polling_request", pollRequestInput));
 
 		resultObj.add("result", pollResultObj);
 		resultObj.addProperty("status_code", 200);

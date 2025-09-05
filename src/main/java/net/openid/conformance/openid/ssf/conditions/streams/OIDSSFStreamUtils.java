@@ -3,12 +3,13 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.SsfConstants;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.Iterator;
 
 public class OIDSSFStreamUtils {
-
 
 	public enum StreamSubjectOperation {
 		add,
@@ -44,6 +45,15 @@ public class OIDSSFStreamUtils {
 		}
 	}
 
+	public static boolean isPushDelivery(JsonObject streamConfig) {
+
+		if (streamConfig == null) {
+			return false;
+		}
+
+		return SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI.equals(OIDSSFStreamUtils.getStreamDeliveryMethod(streamConfig));
+	}
+
 	public static StreamStatusValue getStreamStatusValue(JsonObject streamConfig) {
 		JsonObject streamStatus = getStreamStatus(streamConfig);
 		return StreamStatusValue.valueOf(OIDFJSON.getString(streamStatus.get("status")));
@@ -51,6 +61,19 @@ public class OIDSSFStreamUtils {
 
 	public static JsonObject getStreamStatus(JsonObject streamConfig) {
 		return streamConfig.getAsJsonObject("_status");
+	}
+
+	public static JsonObject getStreamConfig(Environment env, String streamId) {
+		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+		if (streamConfigEl == null) {
+			return null;
+		}
+		return streamConfigEl.getAsJsonObject();
+	}
+
+	public static String getStreamDeliveryMethod(JsonObject streamConfig) {
+		JsonObject delivery = streamConfig.getAsJsonObject("delivery");
+		return OIDFJSON.tryGetString(delivery.get("method"));
 	}
 
 	public static void updateStreamStatus(JsonObject streamConfig, StreamStatusValue newStatusValue, String reason) {

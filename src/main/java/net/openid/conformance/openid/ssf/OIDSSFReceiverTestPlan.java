@@ -10,7 +10,8 @@ import net.openid.conformance.variant.VariantSelection;
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Receiver.",
 	profile = TestPlan.ProfileNames.ssftest,
 	testModules = {
-		OIDSSFReceiverHappyPathTest.class
+		OIDSSFReceiverHappyPathTest.class,
+		OIDSSFReceiverStreamVerificationTest.class
 	}
 )
 public class OIDSSFReceiverTestPlan implements TestPlan {

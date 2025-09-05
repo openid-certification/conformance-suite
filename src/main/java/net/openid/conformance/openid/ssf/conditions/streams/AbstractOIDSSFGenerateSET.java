@@ -39,7 +39,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 
 		String streamId = getCurrentStreamId(env);
 
-		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			log("Failed to generate verification event token: Could not find stream by stream_id", args("stream_id", streamId));
 			return env;
@@ -48,7 +48,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 
 		String serverIssuer = env.getString("ssf", "issuer");
-		String audience = env.getString("ssf", "audience");
+		String audience = env.getString("config", "ssf.stream.audience");
 
 		try {
 			JWKSet jwkSet = JWKUtil.parseJWKSet(env.getObject("server_jwks").toString());
@@ -82,7 +82,8 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 			String setTokenString = signedJWT.serialize();
 
 			JsonObject setObject = JWTUtil.jwtStringToJsonObjectForEnvironment(setTokenString);
-			logSuccess("Created SET for event for stream_id=" + streamId + " with jti=" + setJti, args("jwt", setTokenString, "decoded_jwt_json", setObject.toString(), "jti", setJti));
+			setObject.remove("jwt");
+			logSuccess("Created SET for event for stream_id=" + streamId + " with jti=" + setJti, args("jwt", setTokenString, "decoded_jwt_json", setObject, "jti", setJti));
 
 			afterSecurityEventTokenGenerated(env, streamId, streamConfig, setJti, setTokenString, setObject);
 		} catch (ParseException | JOSEException e) {

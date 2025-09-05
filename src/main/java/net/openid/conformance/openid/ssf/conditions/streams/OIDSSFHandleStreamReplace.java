@@ -45,7 +45,7 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 			return env;
 		}
 
-		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams." + streamId);
+		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			log("Failed to handle stream replacement request: Could not find stream by stream_id", args("stream_id", streamId));
 			resultObj.addProperty("status_code", 404);
@@ -103,7 +103,7 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 
 		resultObj.add("result", streamConfigResult);
 		resultObj.addProperty("status_code", 200);
-		log("Handled stream replacement request: Replaced stream for stream_id=" + streamId, args("stream_id", streamId, "stream", streamConfigResult));
+		logSuccess("Handled stream replacement request: Replaced stream for stream_id=" + streamId, args("stream_id", streamId, "stream", streamConfigResult));
 
 		return env;
 	}

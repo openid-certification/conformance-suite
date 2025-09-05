@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.eventstore;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 
 	public static final int MAX_CAPACITY = 1000;
 
-	protected Cache<String, BlockingQueue<JsonObject>> streamEventsCache = CacheBuilder.newBuilder() //
+	protected Cache<String, BlockingQueue<OIDSSFSecurityEvent>> streamEventsCache = CacheBuilder.newBuilder() //
 		.expireAfterWrite(30, TimeUnit.MINUTES) // auto-remove entries 30min after insertion/update
 		.build();
 
@@ -32,13 +33,13 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 		.build();
 
 	@Override
-	public void storeEvent(String streamId, JsonObject eventObject) {
-		BlockingQueue<JsonObject> queue = getStreamEventQueue(streamId);
+	public void storeEvent(String streamId, OIDSSFSecurityEvent eventObject) {
+		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
 
 		queue.add(eventObject);
 	}
 
-	protected BlockingQueue<JsonObject> getStreamEventQueue(String streamId) {
+	protected BlockingQueue<OIDSSFSecurityEvent> getStreamEventQueue(String streamId) {
 		try {
 			return streamEventsCache.get(streamId, () -> new ArrayBlockingQueue<>(MAX_CAPACITY));
 		} catch (ExecutionException e) {
@@ -63,19 +64,23 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 	}
 
 	@Override
-	public PollInfo pollEvents(String streamId, int maxCount, boolean waitForEvents, long waitTimeSeconds) {
-		BlockingQueue<JsonObject> queue = getStreamEventQueue(streamId);
+	public EventsBatch pollEvents(String streamId, int maxCount, boolean waitForEvents, long waitTimeSeconds) {
+		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
+
+		if (queue==null) {
+			return new EventsBatch(List.of(), false);
+		}
 
 		int maxCountClamped = Math.min(Math.max(maxCount, 0), MAX_CAPACITY);
 
 		long startTime = System.currentTimeMillis();
 
-		List<JsonObject> events = new ArrayList<>();
+		List<OIDSSFSecurityEvent> events = new ArrayList<>();
 		int items = 0;
 		boolean moreAvailable = false;
 		while (!queue.isEmpty() || waitForEvents) {
 
-			JsonObject event;
+			OIDSSFSecurityEvent event;
 
 			if (waitForEvents) {
 				try {
@@ -104,12 +109,12 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 			}
 		}
 
-		return new PollInfo(events, moreAvailable);
+		return new EventsBatch(events, moreAvailable);
 	}
 
 	@Override
 	public void purgeStreamEvents(String streamId) {
-		BlockingQueue<JsonObject> queue = getStreamEventQueue(streamId);
+		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
 		streamEventsCache.invalidate(streamId);
 		if (queue != null) {
 			queue.clear();
