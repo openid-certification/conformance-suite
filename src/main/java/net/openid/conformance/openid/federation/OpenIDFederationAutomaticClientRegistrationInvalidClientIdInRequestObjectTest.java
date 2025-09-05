@@ -34,7 +34,7 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInRequest
 	@Override
 	protected void buildRequestObject() {
 		super.buildRequestObject();
-		callAndContinueOnFailure(AddInvalidClientIdToRequestObject.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddInvalidClientIdToRequestObject.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
 	}
 
 	@Override
@@ -52,7 +52,8 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInRequest
 	protected void processCallback() {
 		env.mapKey("authorization_endpoint_response", "callback_query_params");
 		performGenericAuthorizationEndpointErrorResponseValidation();
-		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient.class,
+			Condition.ConditionResult.WARNING, "OIDFED-12.1.3");
 		fireTestFinished();
 	}
 

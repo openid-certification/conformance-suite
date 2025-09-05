@@ -22,7 +22,7 @@ public class OpenIDFederationClientInvalidMissingIatInEntityConfigurationTest ex
 		JsonObject server = env.getObject("server");
 
 		env.mapKey("id_token_claims", "server");
-		callAndContinueOnFailure(RemoveIatFromIdToken.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(RemoveIatFromIdToken.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		env.unmapKey("id_token_claims");
 		setStatus(Status.WAITING);
 

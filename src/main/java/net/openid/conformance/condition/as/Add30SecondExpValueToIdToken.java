@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 
 import java.time.Instant;
 
-public class AddShortExpValueToIdToken extends AbstractCondition {
+public class Add30SecondExpValueToIdToken extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "id_token_claims")
@@ -17,13 +17,13 @@ public class AddShortExpValueToIdToken extends AbstractCondition {
 
 		JsonObject claims = env.getObject("id_token_claims");
 
-		Instant exp = Instant.now().plusSeconds(10);
+		Instant exp = Instant.now().plusSeconds(30);
 
 		claims.addProperty("exp", exp.getEpochSecond());
 
 		env.putObject("id_token_claims", claims);
 
-		logSuccess("Added a 10 second lifetime exp value to claims", args("id_token_claims", claims, "exp", exp));
+		logSuccess("Added a0 second lifetime exp value to claims", args("id_token_claims", claims, "exp", exp));
 
 		return env;
 

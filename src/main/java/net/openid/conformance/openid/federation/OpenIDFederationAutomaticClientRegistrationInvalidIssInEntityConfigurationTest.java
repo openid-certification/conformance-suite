@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 public class OpenIDFederationAutomaticClientRegistrationInvalidIssInEntityConfigurationTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	private boolean startingShutdown = false;
+	private boolean startingSkipped = false;
 
 	@Override
 	protected FAPIAuthRequestMethod getRequestMethod() {
@@ -28,6 +29,13 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidIssInEntityConfig
 	@Override
 	protected HttpMethod getHttpMethodForAuthorizeRequest() {
 		return HttpMethod.GET;
+	}
+
+	@Override
+	public void start() {
+		setStatus(Status.RUNNING);
+		startWaitingForSkip();
+		setStatus(Status.WAITING);
 	}
 
 	@Override
@@ -63,6 +71,22 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidIssInEntityConfig
 			if (getStatus().equals(Status.WAITING)) {
 				setStatus(Status.RUNNING);
 				fireTestFinished();
+			}
+			return "done";
+		});
+	}
+
+	protected void startWaitingForSkip() {
+		if (startingSkipped) {
+			return;
+		}
+
+		this.startingSkipped = true;
+		getTestExecutionManager().runInBackground(() -> {
+			Thread.sleep(30 * 1000);
+			if (getStatus().equals(Status.WAITING)) {
+				setStatus(Status.RUNNING);
+				fireTestSkipped("No request to the entity configuration endpoint has been received after 30 seconds.");
 			}
 			return "done";
 		});

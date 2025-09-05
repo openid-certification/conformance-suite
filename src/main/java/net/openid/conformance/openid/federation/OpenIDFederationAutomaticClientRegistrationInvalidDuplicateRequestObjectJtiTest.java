@@ -64,7 +64,8 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidDuplicateRequestO
 		if (secondRound) {
 			env.mapKey("authorization_endpoint_response", "callback_query_params");
 			performGenericAuthorizationEndpointErrorResponseValidation();
-			callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient.class, Condition.ConditionResult.WARNING);
+			callAndContinueOnFailure(CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient.class,
+				Condition.ConditionResult.WARNING, "OIDFED-12.1.3");
 			fireTestFinished();
 		} else {
 			secondRound = true;
