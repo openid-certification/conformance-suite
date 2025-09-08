@@ -14,7 +14,8 @@ import org.springframework.http.ResponseEntity;
 	displayName = "openid-federation-automatic-client-registration-expect-entity-configuration-request",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP. " +
 		"When the test has been started, it is expecting a request to its .well-known/openid-federation " +
-		"endpoint, after which the test is completed.",
+		"endpoint, after which the test is completed. If no such request is received within 30 seconds, " +
+		"the test is skipped.",
 	profile = "OIDFED",
 	configurationFields = {
 		"client.jwks",
@@ -33,6 +34,7 @@ import org.springframework.http.ResponseEntity;
 public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfigurationRequestTest extends AbstractOpenIDFederationAutomaticClientRegistrationTest {
 
 	private boolean startingShutdown = false;
+	private boolean startingSkipped = false;
 
 	@Override
 	protected FAPIAuthRequestMethod getRequestMethod() {
@@ -74,6 +76,7 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 	@Override
 	public void start() {
 		setStatus(Status.WAITING);
+		startWaitingForSkip();
 	}
 
 	@Override
@@ -104,6 +107,22 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 			if (getStatus().equals(Status.WAITING)) {
 				setStatus(Status.RUNNING);
 				fireTestFinished();
+			}
+			return "done";
+		});
+	}
+
+	protected void startWaitingForSkip() {
+		if (startingSkipped) {
+			return;
+		}
+
+		this.startingSkipped = true;
+		getTestExecutionManager().runInBackground(() -> {
+			Thread.sleep(30 * 1000);
+			if (getStatus().equals(Status.WAITING)) {
+				setStatus(Status.RUNNING);
+				fireTestSkipped("No request to the entity configuration endpoint has been received after 30 seconds.");
 			}
 			return "done";
 		});
