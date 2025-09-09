@@ -46,7 +46,8 @@ public class OIDSSFCheckSupportedEventsForStream extends AbstractCondition {
 		"https://schemas.openid.net/secevent/risc/event-type/opt-out-effective",
 		"https://schemas.openid.net/secevent/risc/event-type/recovery-activated",
 		"https://schemas.openid.net/secevent/risc/event-type/recovery-information-changed",
-		"https://schemas.openid.net/secevent/risc/event-type/sessions-revoked"
+		"https://schemas.openid.net/secevent/risc/event-type/sessions-revoked",
+		"https://schemas.openid.net/secevent/risc/event-type/credential-compromise"
 	);
 
 	public static final Set<String> STANDARD_EVENT_TYPES;
