@@ -88,7 +88,8 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 					if (endpointUrl == null) {
 						resultObj.add("error", createErrorObj("bad_request", "endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery"));
 						resultObj.addProperty("status_code", 400);
-						log("Failed to handle stream replacement request: endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery", args("error", resultObj.get("error")));
+						log("Failed to handle stream replacement request: endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery",
+							args("error", resultObj.get("error")));
 						return env;
 					}
 					break;
@@ -101,9 +102,10 @@ public class OIDSSFHandleStreamReplace extends AbstractOIDSSFHandleReceiverReque
 		streamsObj.add(streamId, streamConfig);
 		JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
 
+		resultObj.addProperty("stream_id", streamId);
 		resultObj.add("result", streamConfigResult);
 		resultObj.addProperty("status_code", 200);
-		logSuccess("Handled stream replacement request: Replaced stream for stream_id=" + streamId, args("stream_id", streamId, "stream", streamConfigResult));
+		logSuccess("Handled stream replacement request: Replaced stream for stream_id=" + streamId, args("stream_id", streamId, "stream_input", streamConfigInput));
 
 		return env;
 	}

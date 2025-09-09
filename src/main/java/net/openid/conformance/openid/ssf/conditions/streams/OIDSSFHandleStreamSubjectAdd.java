@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class OIDSSFHandleStreamSubjectAdd extends AbstractOIDSSFHandleStreamSubjectChange {
 
@@ -21,15 +22,7 @@ public class OIDSSFHandleStreamSubjectAdd extends AbstractOIDSSFHandleStreamSubj
 		JsonPrimitive verified = streamSubjectInput.getAsJsonPrimitive("verified");
 		OIDSSFStreamUtils.addStreamSubject(streamConfig, subjectObj, verified != null ? verified.getAsBoolean() : null);
 
-//		JsonObject streamSubjects = streamConfig.getAsJsonObject("_subjects");
-//
-//		List<JsonObject> resultSubjects = new ArrayList<>();
-//		JsonArray subjects = streamSubjects.getAsJsonArray("subjects");
-//		for (var subject : subjects) {
-//			// remove internal _verified field from subject
-//			resultSubjects.add(copyConfigObjectWithoutInternalFields(subject.getAsJsonObject()));
-//		}
-
+		resultObj.addProperty("stream_id", OIDFJSON.tryGetString(streamConfig.get("stream_id")));
 		resultObj.addProperty("status_code", 200);
 	}
 }

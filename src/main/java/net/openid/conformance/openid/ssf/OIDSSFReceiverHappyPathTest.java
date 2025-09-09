@@ -1,9 +1,12 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
+
+import java.util.concurrent.TimeUnit;
 
 @PublishTestModule(
 	testName = "openid-ssf-receiver-happypath",
@@ -22,16 +25,80 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 )
 @VariantConfigurationFields(
 	parameter = SsfDeliveryMode.class,
-	value="push",
+	value = "push",
 	configurationFields = {"ssf.transmitter.push_endpoint_authorization_header"}
 )
 public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModule {
 
+	String createdStreamId;
+
+	String updatedStreamId;
+
+	String updatedStatusStreamId;
+
+	String replacedStreamId;
+
+	String deletedStreamId;
+
 	@Override
-	protected void afterStreamCreation(JsonObject createResult) {
-		super.afterStreamCreation(createResult);
+	protected void afterStreamCreation(String streamId, JsonObject result, JsonElement error) {
 
 		// if cape interop profile
 		// enqueue supported cape events
+		createdStreamId = streamId;
+
+		scheduleDeferredAction(new DeferredAction("Wait for stream management operations") {
+
+			@Override
+			public void run() {
+
+				if (isFinished()) {
+
+					eventLog.log(getId(), "Detected stream creation, update, updateStatus, replace, deletion.");
+					fireTestFinished();
+					return;
+				}
+
+				scheduleDeferredAction(this, 3, TimeUnit.SECONDS);
+
+			}
+		}, 10, TimeUnit.SECONDS);
+	}
+
+	@Override
+	protected boolean isFinished() {
+		return createdStreamId != null
+			&& createdStreamId.equals(updatedStreamId)
+			&& createdStreamId.equals(updatedStatusStreamId)
+			&& createdStreamId.equals(replacedStreamId)
+			&& createdStreamId.equals(deletedStreamId);
+	}
+
+	@Override
+	protected void afterStreamUpdate(String streamId, JsonObject result, JsonElement error) {
+		if (streamId != null) {
+			updatedStreamId = streamId;
+		}
+	}
+
+	@Override
+	protected void afterStreamReplace(String streamId, JsonObject result, JsonElement error) {
+		if (streamId != null) {
+			replacedStreamId = streamId;
+		}
+	}
+
+	@Override
+	protected void afterStreamDeletion(String streamId, JsonObject result, JsonElement error) {
+		if (streamId != null) {
+			deletedStreamId = streamId;
+		}
+	}
+
+	@Override
+	protected void onStreamStatusUpdateSuccess(String streamId, JsonElement result) {
+		if (streamId != null) {
+			updatedStatusStreamId = streamId;
+		}
 	}
 }

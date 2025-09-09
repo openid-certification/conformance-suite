@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.ws.rs.core.Response;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamStatusUpdatedSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
@@ -135,7 +136,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonObject metadata = new JsonObject();
 
 		metadata.addProperty("issuer", issuer);
-		metadata.addProperty("spec_version", "1.0");
+		metadata.addProperty("spec_version", "1_0");
 		metadata.addProperty("jwks_uri", issuer + "/jwks");
 		metadata.add("delivery_methods_supported", OIDFJSON.convertListToJsonArray(List.of( //
 			DELIVERY_METHOD_PUSH_RFC_8935_URI, // PUSH Delivery
@@ -249,7 +250,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	protected Object handleNextAction() {
 
-		JsonObject queryParams = env.getElementFromObject("incoming_request", "query_string_params").getAsJsonObject();
+		JsonElement queryParamEl = env.getElementFromObject("incoming_request", "query_string_params");
+		if (queryParamEl == null) {
+			return Response.noContent().build();
+		}
+
+		JsonObject queryParams = queryParamEl.getAsJsonObject();
 
 		String taskId = OIDFJSON.tryGetString(queryParams.get("task"));
 
@@ -343,8 +349,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			case "POST": {
 				callAndStopOnFailure(OIDSSFHandleStreamCreate.class, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
-
-				afterStreamCreation(createResult);
+				JsonElement error = createResult.get("error");
+				afterStreamCreation(OIDFJSON.tryGetString(createResult.get("stream_id")), createResult, error);
 
 				return handleResultWithBody(createResult);
 			}
@@ -355,22 +361,23 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
 				int statusCode = deleteResult.get("status_code").getAsInt();
-
-				if (error != null) {
-					return ResponseEntity.status(statusCode).build();
-				}
+				afterStreamDeletion(OIDFJSON.tryGetString(deleteResult.get("stream_id")), deleteResult, error);
 				return ResponseEntity.status(statusCode).build();
 			}
 
 			case "PATCH": {
 				callAndStopOnFailure(OIDSSFHandleStreamUpdate.class, "OIDSSF-8.1.1.3");
 				JsonObject updateResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
+				JsonElement error = updateResult.get("error");
+				afterStreamUpdate(OIDFJSON.tryGetString(updateResult.get("stream_id")), updateResult, error);
 				return handleResultWithBody(updateResult);
 			}
 
 			case "PUT": {
 				callAndStopOnFailure(OIDSSFHandleStreamReplace.class, "OIDSSF-8.1.1.4");
 				JsonObject replaceResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
+				JsonElement error = replaceResult.get("error");
+				afterStreamReplace(OIDFJSON.tryGetString(replaceResult.get("stream_id")), replaceResult, error);
 				return handleResultWithBody(replaceResult);
 			}
 		}
@@ -378,8 +385,20 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 	}
 
-	protected void afterStreamCreation(JsonObject createResult) {
+	protected void afterStreamReplace(String streamId, JsonObject replaceResult, JsonElement error) {
+
+	}
+
+	protected void afterStreamDeletion(String streamId, JsonObject deleteResult, JsonElement error) {
+
+	}
+
+	protected void afterStreamCreation(String streamId, JsonObject createResult, JsonElement error) {
 		// NOOP
+	}
+
+	protected void afterStreamUpdate(String streamId, JsonObject updateResult, JsonElement error) {
+
 	}
 
 	protected ResponseEntity<?> handleResultWithBody(JsonObject createResult) {
@@ -468,7 +487,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 			// TODO handle SSF PUSH retry???
 			for (var event : eventsBatch.events()) {
-				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::onStreamVerificationSuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
+				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterStreamVerificationSuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 			}
 
 			if (eventsBatch.moreAvailable()) {
@@ -478,7 +497,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 	}
 
-	protected void onStreamVerificationSuccess(String streamId) {
+	protected void afterStreamVerificationSuccess(String streamId) {
 
 	}
 
@@ -502,7 +521,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		// Only emit StreamStatusUpdate if stream is enabled
 		String requestedStatus = env.getString("incoming_request", "body_json.status");
-		if (method.equals("POST") && HttpStatus.valueOf(statusCode).is2xxSuccessful() && "enabled".equals(requestedStatus)) {
+		if (method.equals("POST") && HttpStatus.valueOf(statusCode).is2xxSuccessful() && StreamStatus.enabled.name().equals(requestedStatus)) {
 			// only emit stream update event on successful status change
 			callAndStopOnFailure(new OIDSSFGenerateStreamStatusUpdatedSET(eventStore), "OIDSSF-8.1.5");
 		}
@@ -511,8 +530,16 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return ResponseEntity.status(statusCode).build();
 		}
 
+		onStreamStatusUpdateSuccess(OIDFJSON.tryGetString(statusOpResult.get("stream_id")), statusOpResult);
+
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 	}
+
+	protected void onStreamStatusUpdateSuccess(String streamId, JsonElement result) {
+
+	}
+
+	protected abstract boolean isFinished();
 
 	protected ResponseEntity<?> handleStreamPollingRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 

@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -17,10 +18,14 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	String verifiedStreamId;
 
 	@Override
-	protected void afterStreamCreation(JsonObject createResult) {
+	protected void afterStreamCreation(String streamId, JsonObject createResult, JsonElement error) {
 
 		// if cape interop profile
 		// enqueue supported cape events
+		if (createResult == null) {
+			return;
+		}
+
 		JsonObject result = createResult.get("result").getAsJsonObject();
 		createdStreamId = OIDFJSON.tryGetString(result.get("stream_id"));
 
@@ -29,7 +34,7 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 			@Override
 			public void run() {
 
-				if (createdStreamId != null && createdStreamId.equals(verifiedStreamId)) {
+				if (isFinished()) {
 
 					eventLog.log(getId(), "Detected created and verified stream.");
 					fireTestFinished();
@@ -43,7 +48,12 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	}
 
 	@Override
-	protected void onStreamVerificationSuccess(String streamId) {
+	protected boolean isFinished() {
+		return createdStreamId != null && createdStreamId.equals(verifiedStreamId);
+	}
+
+	@Override
+	protected void afterStreamVerificationSuccess(String streamId) {
 		verifiedStreamId = streamId;
 	}
 }

@@ -91,9 +91,11 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 			// remove internal fields from stream config for output
 			JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
 
+			resultObj.addProperty("stream_id", streamId);
 			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 201);
-			logSuccess("Handled stream creation request for stream_id=" + streamId, args("stream_id", streamId, "stream_config", streamConfigInput));
+			logSuccess("Handled stream creation request for stream_id=" + streamId,
+				args("stream_id", streamId, "stream_input", streamConfigInput));
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("bad_request", e.getMessage()));
 			resultObj.addProperty("status_code", 400);

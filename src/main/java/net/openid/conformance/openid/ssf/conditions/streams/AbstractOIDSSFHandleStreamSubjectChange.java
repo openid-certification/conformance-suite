@@ -62,7 +62,8 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 		// store updated stream subjects
 		streamsObj.add(streamId, streamConfig);
 
-		logSuccess("Handled stream subject " + getChangeType() + " request for stream_id=" + streamId, args("stream_id", streamId));
+		logSuccess("Handled stream subject " + getChangeType() + " request for stream_id=" + streamId, args("stream_id", streamId,
+			"subject_input", streamSubjectInput,  "change_type", getChangeType()));
 
 		return env;
 	}

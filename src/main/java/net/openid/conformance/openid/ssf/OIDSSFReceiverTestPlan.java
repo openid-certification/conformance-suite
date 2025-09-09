@@ -11,6 +11,7 @@ import net.openid.conformance.variant.VariantSelection;
 	profile = TestPlan.ProfileNames.ssftest,
 	testModules = {
 		OIDSSFReceiverHappyPathTest.class,
+		OIDSSFReceiverStreamCreateDeleteTest.class,
 		OIDSSFReceiverStreamVerificationTest.class
 	}
 )

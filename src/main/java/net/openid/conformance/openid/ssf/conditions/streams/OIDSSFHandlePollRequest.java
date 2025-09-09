@@ -126,6 +126,7 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 
 		logSuccess("Handled stream events polling request for stream_id=" + streamId, args("stream_id", streamId, "polling_request", pollRequestInput));
 
+		resultObj.addProperty("stream_id", streamId);
 		resultObj.add("result", pollResultObj);
 		resultObj.addProperty("status_code", 200);
 		return env;

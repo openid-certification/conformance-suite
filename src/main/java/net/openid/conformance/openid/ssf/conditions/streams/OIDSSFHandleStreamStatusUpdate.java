@@ -76,8 +76,9 @@ public class OIDSSFHandleStreamStatusUpdate extends AbstractOIDSSFHandleReceiver
 		JsonObject streamStatus = streamConfig.getAsJsonObject("_status");
 		resultObj.add("result", streamStatus);
 
+		resultObj.addProperty("stream_id", streamId);
 		resultObj.addProperty("status_code", 200);
-		logSuccess("Handled update stream status update request for stream_id=" + streamId, args("stream_id", streamId, "status", streamStatus));
+		logSuccess("Handled update stream status update request for stream_id=" + streamId, args("stream_id", streamId, "status_input", streamStatusInput));
 
 		return env;
 	}

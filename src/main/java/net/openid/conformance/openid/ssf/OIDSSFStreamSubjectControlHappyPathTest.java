@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFAddSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFRemoveSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
@@ -104,6 +105,14 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTrans
 		});
 
 		fireTestFinished();
+	}
+
+	@Override
+	public void cleanup() {
+		eventLog.runBlock("Cleanup", () -> {
+			callAndContinueOnFailure(OIDSSFDeleteStreamConfigCall.class, Condition.ConditionResult.INFO);
+			super.cleanup();
+		});
 	}
 
 }
