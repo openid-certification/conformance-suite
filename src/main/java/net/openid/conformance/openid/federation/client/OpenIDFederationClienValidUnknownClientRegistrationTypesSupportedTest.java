@@ -4,9 +4,11 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "openid-federation-client-valid-unknown-client-registration-types-support",
-	displayName = "openid-federation-client-valid-unknown-client-registration-types-support",
-	summary = "openid-federation-client-valid-unknown-client-registration-types-support",
+	testName = "openid-federation-client-valid-unknown-client-registration-types-supported",
+	displayName = "OpenID Federation client test: Valid 'unknown' value in client_registration_types_supported in entity configuration",
+	summary = "The entity configuration contains openid_provider metadata " +
+		"with the value 'unknown' added to the required property client_registration_types_supported array, " +
+		"which is allowed according to the specification.",
 	profile = "OIDFED"
 )
 @SuppressWarnings("unused")

@@ -6,8 +6,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "openid-federation-client-invalid-iss-in-id-token",
-	displayName = "openid-federation-client-invalid-iss-in-id-token",
-	summary = "openid-federation-client-invalid-iss-in-id-token",
+	displayName = "OpenID Federation client test: Invalid iss in id token",
+	summary = "The test deliberately inserts an invalid iss into the id token, " +
+		"which must be detected and rejected by the RP.",
 	profile = "OIDFED"
 )
 @SuppressWarnings("unused")
