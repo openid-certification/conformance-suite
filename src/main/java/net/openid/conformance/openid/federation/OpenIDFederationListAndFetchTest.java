@@ -41,6 +41,9 @@ public class OpenIDFederationListAndFetchTest extends OpenIDFederationAutomaticC
 		String listEndpoint = env.getString("federation_endpoint_url");
 		String fetchEndpoint = env.getString("federation_fetch_endpoint");
 		JsonArray listedEntities = validateListEndpoint(listEndpoint);
+		env.putInteger("number_of_subordinates_in_list_response", listedEntities.size());
+
+		callAndStopOnFailure(ValidateListAndFetchEndpointPresence.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1");
 		validateFetchEndpoint(fetchEndpoint, listedEntities);
 
 		fireTestFinished();
