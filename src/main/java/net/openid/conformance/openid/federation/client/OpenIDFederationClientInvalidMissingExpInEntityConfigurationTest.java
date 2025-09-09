@@ -9,8 +9,9 @@ import net.openid.conformance.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "openid-federation-client-invalid-missing-exp-in-entity-configuration",
-	displayName = "openid-federation-client-invalid-missing-exp-in-entity-configuration",
-	summary = "openid-federation-client-invalid-missing-exp-in-entity-configuration",
+	displayName = "OpenID Federation client test: Missing exp in entity configuration",
+	summary = "The test deliberately removes the exp from its entity configuration, " +
+		"which must be detected and rejected by the RP.",
 	profile = "OIDFED"
 )
 @SuppressWarnings("unused")
