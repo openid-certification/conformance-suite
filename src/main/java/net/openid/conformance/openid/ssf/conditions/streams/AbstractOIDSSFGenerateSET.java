@@ -82,7 +82,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 			String setTokenString = signedJWT.serialize();
 
 			JsonObject setObject = JWTUtil.jwtStringToJsonObjectForEnvironment(setTokenString);
-			setObject.remove("jwt");
+			setObject.remove("value");
 			logSuccess("Created SET for event for stream_id=" + streamId + " with jti=" + setJti, args("jwt", setTokenString, "decoded_jwt_json", setObject, "jti", setJti));
 
 			afterSecurityEventTokenGenerated(env, streamId, streamConfig, setJti, setTokenString, setObject);
