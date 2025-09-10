@@ -6,7 +6,7 @@ import net.openid.conformance.variant.VariantSelection;
 
 @PublishTestPlan(
 	testPlanName = "openid-federation-deployed-entity-test-plan",
-	displayName = "OpenID Federation: Deployed federation entity test plan (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
+	displayName = "OpenID Federation: Deployed federation entity test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
 	testModules = {
 		OpenIDFederationEntityConfigurationTest.class,
@@ -17,7 +17,7 @@ import net.openid.conformance.variant.VariantSelection;
 		OpenIDFederationCompareTrustChainToResolveTest.class,
 	}
 )
-public class OpenIDFederationTestPlan implements TestPlan {
+public class OpenIDFederationDeployedEntityTestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
 		return "OpenID Federation: Deployed federation entity";
