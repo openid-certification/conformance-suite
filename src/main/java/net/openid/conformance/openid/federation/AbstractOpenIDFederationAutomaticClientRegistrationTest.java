@@ -44,7 +44,7 @@ import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
-import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.FederationEntityMetadata;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -93,7 +93,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		callAndStopOnFailure(ExtractEntityIdentiferFromConfig.class, Condition.ConditionResult.FAILURE);
 
-		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
+		if (FederationEntityMetadata.STATIC.equals(getVariant(FederationEntityMetadata.class))) {
 			// This case is perhaps not applicable in the general case,
 			// but f ex the leaf entities in the Swedish sandbox federation
 			// do not publish their own entity configurations.
@@ -106,7 +106,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		eventLog.endBlock();
 
 		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
-		if (ServerMetadata.DISCOVERY.equals(getVariant(ServerMetadata.class))) {
+		if (FederationEntityMetadata.DISCOVERY.equals(getVariant(FederationEntityMetadata.class))) {
 			validateEntityStatement();
 		}
 		callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);

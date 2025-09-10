@@ -17,7 +17,7 @@ import net.openid.conformance.openid.federation.client.ValidateTrustAnchorParame
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.FederationEntityMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -35,10 +35,10 @@ import static net.openid.conformance.openid.federation.EntityUtils.appendWellKno
 import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnown;
 
 @VariantParameters({
-	ServerMetadata.class,
+	FederationEntityMetadata.class,
 	ClientRegistration.class
 })
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
+@VariantConfigurationFields(parameter = FederationEntityMetadata.class, value = "static", configurationFields = {
 	"federation.entity_configuration",
 })
 public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServerTestModule {
