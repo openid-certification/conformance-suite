@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class TestExecutionManager {
 
@@ -131,6 +132,18 @@ public class TestExecutionManager {
 			throw new RuntimeException("runInBackground called after runFinalisationTaskInBackground()");
 		}
 		futures.add(executorCompletionService.submit(new BackgroundTask(testId, callable, testRunnerSupport)));
+	}
+
+	public synchronized void scheduleInBackground(Callable<?> callable, long amount, TimeUnit timeUnit) {
+		if (finalisationStarted) {
+			throw new RuntimeException("runInBackground called after runFinalisationTaskInBackground()");
+		}
+		futures.add(executorCompletionService.submit(new BackgroundTask(testId, () -> {
+
+			timeUnit.sleep(amount);
+
+			return callable.call();
+		}, testRunnerSupport)));
 	}
 
 	/**
