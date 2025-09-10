@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openid.ssf.SsfEvents;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -10,8 +11,8 @@ import java.util.Set;
 public class OIDSSFPrepareStreamConfigObjectAddRequestedEvents extends AbstractOIDSSFPrepareStreamConfigObject {
 
 	public static final Set<String> DEFAULT_EVENTS = Set.of( //
-		"https://schemas.openid.net/secevent/caep/event-type/session-revoked", //
-		"https://schemas.openid.net/secevent/caep/event-type/credential-change" //
+		SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE, //
+		SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE //
 	);
 
 	@Override

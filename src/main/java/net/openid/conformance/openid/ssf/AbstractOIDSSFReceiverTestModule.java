@@ -1,13 +1,12 @@
 package net.openid.conformance.openid.ssf;
 
-import com.google.common.collect.Streams;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.ws.rs.core.Response;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamStatusUpdatedSET;
@@ -39,33 +38,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI;
-import static net.openid.conformance.openid.ssf.SsfEvents.getStandardCapeEvents;
-import static net.openid.conformance.openid.ssf.SsfEvents.getStandardRiscEvents;
 
 @VariantParameters({SsfProfile.class, SsfDeliveryMode.class,})
 public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTestModule {
 
-	protected OIDSSFEventStore eventStore = new OIDSSFInMemoryEventStore();
-
-	protected ConcurrentMap<String, DeferredAction> deferredActions = new ConcurrentHashMap<>();
+	protected OIDSSFEventStore eventStore;
 
 	@Override
 	protected void configureServerMetadata() {
 		super.configureServerMetadata();
+
+		eventStore = createEventStore();
 
 		generateJwks();
 		registerEventsSupported();
@@ -84,6 +78,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject resourceServerMetadata = generateResourceServerMetadata(issuer);
 		env.putObject("resource_server_metadata", resourceServerMetadata);
+	}
+
+	protected OIDSSFInMemoryEventStore createEventStore() {
+		return new OIDSSFInMemoryEventStore();
 	}
 
 	protected JsonObject generateResourceServerMetadata(String issuer) {
@@ -159,7 +157,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	public List<String> getEventsSupported() {
-		return Streams.concat(getStandardCapeEvents().stream(), getStandardRiscEvents().stream()).toList();
+		return List.copyOf(SsfEvents.STANDARD_EVENT_TYPES);
 	}
 
 	@Override
@@ -194,7 +192,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				case "remove_subject" -> response = ensureAuthorized(req, res, session, requestParts, () -> {
 					return handleSubjectsEndpointRequest(path, req, res, session, requestParts, StreamSubjectOperation.remove);
 				});
-				case "__tick" -> response = handleNextAction();
 				default -> response = super.handleHttp(path, req, res, session, requestParts);
 			}
 		} finally {
@@ -208,67 +205,23 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return response;
 	}
 
-	public static abstract class DeferredAction implements Runnable {
-
-		private final String description;
-
-		public DeferredAction(String description) {
-			this.description = description;
-		}
-
-		public String getDescription() {
-			return description;
-		}
-	}
-
 	@SuppressWarnings("FutureReturnValueIgnored")
-	protected void scheduleDeferredAction(DeferredAction action) {
-		scheduleDeferredAction(action, 1, TimeUnit.SECONDS);
-	}
+	protected void scheduleTask(Callable<String> action, int amount, TimeUnit timeUnit) {
 
-	@SuppressWarnings("FutureReturnValueIgnored")
-	protected void scheduleDeferredAction(DeferredAction action, int amount, TimeUnit timeUnit) {
-
-		String taskId = UUID.randomUUID().toString();
-		String issuer = env.getString("ssf", "issuer");
-		String tickUri = issuer + "/__tick?task=" + taskId;
-
-		deferredActions.put(taskId, action);
-
-		eventLog.log(getId(), action.getDescription() + " with task_id=" + taskId);
-
-		Executors.newSingleThreadScheduledExecutor().schedule(() -> {
-
-			if (getStatus() == Status.FINISHED) {
-				return;
+		getTestExecutionManager().scheduleInBackground(() -> {
+			Status status = getStatus();
+			if (status == Status.FINISHED || status == Status.INTERRUPTED) {
+				return "done";
 			}
 
-			ResponseEntity<Void> tickStatus = RestClient.create(tickUri).post().retrieve().toBodilessEntity();
-			System.out.println("Submitted scheduled task with task_id=" + taskId + " and status=" + tickStatus.getStatusCode());
+			setStatus(Status.RUNNING);
+			String result = action.call();
+
+			if (getStatus() != Status.WAITING) {
+				setStatus(Status.WAITING);
+			}
+			return result;
 		}, amount, timeUnit);
-	}
-
-	protected Object handleNextAction() {
-
-		JsonElement queryParamEl = env.getElementFromObject("incoming_request", "query_string_params");
-		if (queryParamEl == null) {
-			return Response.noContent().build();
-		}
-
-		JsonObject queryParams = queryParamEl.getAsJsonObject();
-
-		String taskId = OIDFJSON.tryGetString(queryParams.get("task"));
-
-		eventLog.log(getId(), "Processing action for task_id=" + taskId);
-
-		DeferredAction deferredAction = deferredActions.remove(taskId);
-		if (deferredAction == null) {
-			return Response.noContent().build();
-		}
-
-		deferredAction.run();
-
-		return Response.accepted().build();
 	}
 
 	protected ResponseEntity<?> ensureAuthorized(HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts, Supplier<ResponseEntity<?>> requestHandler) {
@@ -457,7 +410,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			String streamId = env.getString("incoming_request", "body_json.stream_id");
 
 			if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
-				scheduleDeferredAction(new OIDSSFHandlePushDeliveryAction(streamId));
+				scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
 			}
 		}
 
@@ -468,32 +421,33 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 	}
 
-	protected class OIDSSFHandlePushDeliveryAction extends DeferredAction {
+	protected class OIDSSFHandlePushDeliveryTask implements Callable<String> {
 
 		protected final String streamId;
 
-		protected OIDSSFHandlePushDeliveryAction(String streamId) {
-			super("Schedule event delivery via push");
+		protected OIDSSFHandlePushDeliveryTask(String streamId) {
 			this.streamId = streamId;
 		}
 
 		@Override
-		public void run() {
+		public String call() throws Exception {
 			OIDSSFEventStore.EventsBatch eventsBatch = eventStore.pollEvents(streamId, 16);
 			if (eventsBatch == null) {
 				// stream was removed in-between, so we don't need to push data
-				return;
+				return "done";
 			}
 
 			// TODO handle SSF PUSH retry???
 			for (var event : eventsBatch.events()) {
 				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterStreamVerificationSuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
+				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202),  Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
 			}
 
 			if (eventsBatch.moreAvailable()) {
-				// reschedule action
-				scheduleDeferredAction(this);
+				// reschedule push task to publish remaining events
+				scheduleTask(this, 1, TimeUnit.SECONDS);
 			}
+			return "done";
 		}
 	}
 
@@ -536,7 +490,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected void onStreamStatusUpdateSuccess(String streamId, JsonElement result) {
+	}
 
+	protected void onStreamEventAcknowledged(String streamId, String jti) {
+	}
+
+	protected void onStreamEventEnqueued(String streamId, String jti) {
 	}
 
 	protected abstract boolean isFinished();
@@ -548,7 +507,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 		}
 
-		callAndStopOnFailure(new OIDSSFHandlePollRequest(eventStore), "OIDSSF-6.1.2", "RFC8936-2.4");
+		callAndStopOnFailure(new OIDSSFHandlePollRequest(eventStore, this::onStreamEventAcknowledged), "OIDSSF-6.1.2", "RFC8936-2.4");
 
 		JsonObject pollResult = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
 
@@ -567,10 +526,37 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(resourceServerMetadata);
 	}
 
-	@Override
-	public void fireTestFinished() {
-		super.fireTestFinished();
+	protected class CheckTestFinishedTask implements Callable<String> {
 
-		deferredActions.clear();
+		protected final Supplier<Boolean> finishedCondition;
+		protected final boolean reschedule;
+
+		CheckTestFinishedTask(Supplier<Boolean> finishedCondition, boolean reschedule) {
+			this.reschedule = reschedule;
+			this.finishedCondition = finishedCondition;
+		}
+
+		CheckTestFinishedTask(Supplier<Boolean> finishedCondition) {
+			this(finishedCondition, true);
+		}
+
+		@Override
+		public String call() throws Exception {
+
+			if (finishedCondition.get()) {
+				fireTestFinished();
+				return "done";
+			}
+
+			if (reschedule) {
+				reschedule();
+			}
+
+			return "done";
+		}
+
+		protected void reschedule() {
+			scheduleTask(this, 1, TimeUnit.SECONDS);
+		}
 	}
 }

@@ -41,7 +41,7 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 		String authHeader = env.getString("ssf", "streams." + streamId + ".delivery.authorization_header");
 
 		this.endpointName = "receiver push endpoint";
-		this.responseEnvironmentKey = "push_endpoint_response";
+		this.responseEnvironmentKey = "endpoint_response";
 
 		log("Call " + endpointName + " for stream_id=" + streamId, args("stream_id", streamId, "push_endpoint", endpointUri));
 

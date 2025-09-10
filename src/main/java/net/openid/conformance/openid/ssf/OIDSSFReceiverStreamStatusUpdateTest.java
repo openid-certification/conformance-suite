@@ -9,11 +9,11 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import java.util.concurrent.TimeUnit;
 
 @PublishTestModule(
-	testName = "openid-ssf-receiver-stream-create-delete",
-	displayName = "OpenID Shared Signals Framework: Test Basic Receiver Stream Management",
-	summary = "This test verifies the receiver stream management. " +
+	testName = "openid-ssf-receiver-stream-status-update",
+	displayName = "OpenID Shared Signals Framework: Test Receiver Stream Status Management",
+	summary = "This test verifies the receiver stream status management. " +
 			"The test generates a dynamic transmitter and waits for a receiver to register a stream. " +
-			"The testsuite expects to observe a stream create, deletion request.",
+			"The testsuite expects to observe a stream create, status update with status paused, deletion request.",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.access_token",
@@ -27,9 +27,11 @@ import java.util.concurrent.TimeUnit;
 	configurationFields = {
 		"ssf.transmitter.push_endpoint_authorization_header"
 	})
-public class OIDSSFReceiverStreamCreateDeleteTest extends AbstractOIDSSFReceiverTestModule {
+public class OIDSSFReceiverStreamStatusUpdateTest extends AbstractOIDSSFReceiverTestModule {
 
 	volatile String createdStreamId;
+
+	volatile String updatedStatusStreamId;
 
 	volatile String deletedStreamId;
 
@@ -40,14 +42,16 @@ public class OIDSSFReceiverStreamCreateDeleteTest extends AbstractOIDSSFReceiver
 	}
 
 	@Override
-	public void fireTestFinished() {
-		eventLog.log(getId(), "Detected created and deleted stream.");
-		super.fireTestFinished();
+	protected boolean isFinished() {
+		return createdStreamId != null
+			&& createdStreamId.equals(deletedStreamId)
+			&& createdStreamId.equals(updatedStatusStreamId);
 	}
 
 	@Override
-	protected boolean isFinished() {
-		return createdStreamId != null && createdStreamId.equals(deletedStreamId);
+	public void fireTestFinished() {
+		eventLog.log(getId(), "Detected created and deleted stream.");
+		super.fireTestFinished();
 	}
 
 	@Override
@@ -58,6 +62,11 @@ public class OIDSSFReceiverStreamCreateDeleteTest extends AbstractOIDSSFReceiver
 		}
 
 		createdStreamId = streamId;
+	}
+
+	@Override
+	protected void onStreamStatusUpdateSuccess(String streamId, JsonElement result) {
+		updatedStatusStreamId = streamId;
 	}
 
 	@Override

@@ -15,6 +15,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
@@ -29,8 +30,11 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 
 	protected final OIDSSFEventStore eventStore;
 
-	public AbstractOIDSSFGenerateSET(OIDSSFEventStore eventStore) {
+	protected final String eventType;
+
+	public AbstractOIDSSFGenerateSET(OIDSSFEventStore eventStore, String eventType) {
 		this.eventStore = eventStore;
+		this.eventType = eventType;
 	}
 
 	@Override
@@ -83,7 +87,8 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 
 			JsonObject setObject = JWTUtil.jwtStringToJsonObjectForEnvironment(setTokenString);
 			setObject.remove("value");
-			logSuccess("Created SET for event for stream_id=" + streamId + " with jti=" + setJti, args("jwt", setTokenString, "decoded_jwt_json", setObject, "jti", setJti));
+			logSuccess("Created SET for event=%s for stream_id=%s with jti=%s".formatted(eventType, streamId, setJti),
+				args("jwt", setTokenString, "decoded_jwt_json", setObject, "jti", setJti));
 
 			afterSecurityEventTokenGenerated(env, streamId, streamConfig, setJti, setTokenString, setObject);
 		} catch (ParseException | JOSEException e) {
@@ -98,6 +103,7 @@ public abstract class AbstractOIDSSFGenerateSET extends AbstractCondition {
 	}
 
 	protected void afterSecurityEventTokenGenerated(Environment env, String streamId, JsonObject streamConfig, String setJti, String setTokenString, JsonObject setObject) {
+		eventStore.storeEvent(streamId, new OIDSSFSecurityEvent(setJti, setTokenString, eventType));
 	}
 
 	protected abstract void addSubjectAndEvents(String streamId, JsonObject streamConfig, JWTClaimsSet.Builder claimsBuilder);

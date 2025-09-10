@@ -1,9 +1,7 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonObject;
-import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.openid.ssf.SsfEvents;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -13,19 +11,12 @@ import java.util.Map;
 public class OIDSSFGenerateStreamVerificationSET extends AbstractOIDSSFGenerateStreamSET {
 
 	public OIDSSFGenerateStreamVerificationSET(OIDSSFEventStore eventStore) {
-		super(eventStore);
+		super(eventStore, SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE);
 	}
 
 	@Override
-	protected void addSubjectAndEvents(String streamId, JsonObject streamConfig, JWTClaimsSet.Builder claimsBuilder) {
-
-		JsonObject verificationEvent = OIDFJSON.convertMapToJsonObject(Map.of("state", OIDFJSON.tryGetString(streamConfig.get("_verification_state"))));
-
-		JsonObject events = OIDFJSON.convertMapToJsonObject(Map.of(SsfEvents.STREAM_VERIFICATION_EVENT, verificationEvent));
-
-		claimsBuilder
-			.claim("sub_id", generateStreamSubject(streamId))
-			.claim("events", events);
+	protected JsonObject getEventData(JsonObject streamConfig) {
+		return OIDFJSON.convertMapToJsonObject(Map.of("state", OIDFJSON.tryGetString(streamConfig.get("_verification_state"))));
 	}
 
 	@Override
@@ -34,7 +25,5 @@ public class OIDSSFGenerateStreamVerificationSET extends AbstractOIDSSFGenerateS
 
 		// clear verification state
 		streamConfig.remove("_verification_state");
-
-		eventStore.storeEvent(streamId, new OIDSSFSecurityEvent(setJti, setTokenString, SsfEvents.STREAM_VERIFICATION_EVENT));
 	}
 }

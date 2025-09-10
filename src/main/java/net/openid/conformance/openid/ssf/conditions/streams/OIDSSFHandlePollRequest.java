@@ -11,13 +11,17 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest {
 
-	private final OIDSSFEventStore eventStore;
+	protected final OIDSSFEventStore eventStore;
 
-	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore) {
+	protected BiConsumer<String, String> onStreamEventAcknowledged;
+
+	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore, BiConsumer<String, String> onStreamEventAcknowledged) {
 		this.eventStore = eventStore;
+		this.onStreamEventAcknowledged = onStreamEventAcknowledged;
 	}
 
 	@Override
@@ -84,17 +88,19 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 		}
 
 		// process acknowledgements if necessary
-		if (ackArrayEl != null) {
+		if (ackArrayEl != null && !ackArrayEl.isEmpty()) {
 			List<String> acks = OIDFJSON.convertJsonArrayToList(ackArrayEl);
+			log("Process acknowledgements for stream events for stream_id=" + streamId, args("ack", acks));
 			for (String jti : acks) {
 				eventStore.registerAckForStreamEvent(streamId, jti);
+				onStreamEventAcknowledged.accept(streamId, jti);
 			}
 		}
 
 		// process errors if necessary
 		if (setErrsEl != null) {
 			JsonObject setErrsObj = setErrsEl.getAsJsonObject();
-
+			log("Process errors for stream events for stream_id=" + streamId, args("setErrs", setErrsObj));
 			for (Map.Entry<String, JsonElement> entry : setErrsObj.entrySet()) {
 				String jti = entry.getKey();
 				JsonObject errorObj = entry.getValue().getAsJsonObject();
@@ -108,6 +114,7 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 
 			boolean returnImmediately = returnImmediatelyEl != null && returnImmediatelyEl.getAsBoolean();
 
+			log("Deliver stream events for stream_id=" + streamId, args("maxCount", maxCount, "returnImmediately", returnImmediately));
 			int maxWaitTimeSeconds = 10;
 			boolean waitForEvents = !returnImmediately;
 

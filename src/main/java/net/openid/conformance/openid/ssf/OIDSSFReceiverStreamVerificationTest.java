@@ -3,48 +3,49 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
 
 import java.util.concurrent.TimeUnit;
 
-@PublishTestModule(testName = "openid-ssf-receiver-stream-verification", displayName = "OpenID Shared Signals Framework: Validate Stream Verification", summary = "This test verifies the receiver stream management. " + "The test generates a dynamic transmitter and waits for a receiver to register a stream. ", profile = "OIDSSF", configurationFields = {"ssf.transmitter.access_token", "ssf.stream.audience", "ssf.subjects.valid", "ssf.subjects.invalid"})
-@VariantConfigurationFields(parameter = SsfDeliveryMode.class, value = "push", configurationFields = {"ssf.transmitter.push_endpoint_authorization_header"})
+@PublishTestModule(
+	testName = "openid-ssf-receiver-stream-verification",
+	displayName = "OpenID Shared Signals Framework: Test Receiver Stream Verification",
+	summary = "This test verifies the receiver stream verification. " +
+		"The test generates a dynamic transmitter and waits for a receiver to register a stream. " +
+		"The testsuite expects to observe a stream create, verification, deletion request.",
+	profile = "OIDSSF",
+	configurationFields = {
+		"ssf.transmitter.access_token",
+		"ssf.stream.audience",
+		"ssf.subjects.valid",
+		"ssf.subjects.invalid"
+	})
+@VariantConfigurationFields(parameter = SsfDeliveryMode.class,
+	value = "push",
+	configurationFields = {
+		"ssf.transmitter.push_endpoint_authorization_header"
+	})
 public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiverTestModule {
 
-	String createdStreamId;
+	volatile String createdStreamId;
 
-	String verifiedStreamId;
+	volatile String verifiedStreamId;
+
+	@Override
+	public void start() {
+		super.start();
+		scheduleTask(new CheckTestFinishedTask(this::isFinished), 10, TimeUnit.SECONDS);
+	}
 
 	@Override
 	protected void afterStreamCreation(String streamId, JsonObject createResult, JsonElement error) {
 
-		// if cape interop profile
-		// enqueue supported cape events
 		if (createResult == null) {
 			return;
 		}
 
-		JsonObject result = createResult.get("result").getAsJsonObject();
-		createdStreamId = OIDFJSON.tryGetString(result.get("stream_id"));
-
-		scheduleDeferredAction(new DeferredAction("Wait for stream verification") {
-
-			@Override
-			public void run() {
-
-				if (isFinished()) {
-
-					eventLog.log(getId(), "Detected created and verified stream.");
-					fireTestFinished();
-					return;
-				}
-
-				scheduleDeferredAction(this, 3, TimeUnit.SECONDS);
-
-			}
-		}, 10, TimeUnit.SECONDS);
+		createdStreamId = streamId;
 	}
 
 	@Override
@@ -55,5 +56,11 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	@Override
 	protected void afterStreamVerificationSuccess(String streamId) {
 		verifiedStreamId = streamId;
+	}
+
+	@Override
+	public void fireTestFinished() {
+		eventLog.log(getId(), "Detected created and verified stream.");
+		super.fireTestFinished();
 	}
 }

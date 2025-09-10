@@ -15,7 +15,7 @@ public class OIDSSFCheckVerificationEventState extends AbstractCondition {
 		JsonObject setClaimsJsonObject = env.getElementFromObject("ssf", "verification.token.claims").getAsJsonObject();
 
 		JsonObject eventsObject = setClaimsJsonObject.getAsJsonObject("events");
-		String verificationEventKey = SsfEvents.STREAM_VERIFICATION_EVENT;
+		String verificationEventKey = SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE;
 		JsonElement eventsEL = eventsObject.get(verificationEventKey);
 		if (eventsEL == null) {
 			throw error("Expected to find verification events object", args("missing_key", verificationEventKey, "events_object", eventsObject));

@@ -12,7 +12,9 @@ import net.openid.conformance.variant.VariantSelection;
 	testModules = {
 		OIDSSFReceiverHappyPathTest.class,
 		OIDSSFReceiverStreamCreateDeleteTest.class,
-		OIDSSFReceiverStreamVerificationTest.class
+		OIDSSFReceiverStreamStatusUpdateTest.class,
+		OIDSSFReceiverStreamVerificationTest.class,
+		OIDSSFReceiverSupportedEventsTest.class,
 	}
 )
 public class OIDSSFReceiverTestPlan implements TestPlan {

@@ -42,7 +42,7 @@ public class OIDSSFExtractVerificationEventFromReceivedSETs extends AbstractCond
 			throw error("Couldn't parse SET JWT", e);
 		}
 
-		if (eventsClaim == null || !eventsClaim.has(SsfEvents.STREAM_VERIFICATION_EVENT)) {
+		if (eventsClaim == null || !eventsClaim.has(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE)) {
 			throw error("Couldn't find verification event in polling response", args("events", eventsClaim, "polling_response", ssfPollingResponse));
 		}
 

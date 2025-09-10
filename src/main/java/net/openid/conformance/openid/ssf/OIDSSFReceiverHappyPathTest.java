@@ -10,11 +10,11 @@ import java.util.concurrent.TimeUnit;
 
 @PublishTestModule(
 	testName = "openid-ssf-receiver-happypath",
-	displayName = "OpenID Shared Signals Framework: Validate Receiver Handling",
-	summary = "This test verifies the receiver stream management and event delivery. " +
+	displayName = "OpenID Shared Signals Framework: Test Receiver Stream Management",
+	summary = "This test verifies the receiver stream management. " +
 		"The test generates a dynamic transmitter and waits for a receiver to register a stream. " +
-		"Then the testsuite will generate some supported events and deliver it to the receiver via the configured delivery mechanism. " +
-		"The testsuite will then wait for acknowledgement of those events.",
+		"The testsuite expects to observe a stream create, update, replacement and deletion request. " +
+		"The test completes once the events are observed",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.access_token",
@@ -30,48 +30,37 @@ import java.util.concurrent.TimeUnit;
 )
 public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModule {
 
-	String createdStreamId;
+	volatile String createdStreamId;
 
-	String updatedStreamId;
+	volatile String updatedStreamId;
 
-	String updatedStatusStreamId;
+	volatile String replacedStreamId;
 
-	String replacedStreamId;
-
-	String deletedStreamId;
+	volatile String deletedStreamId;
 
 	@Override
-	protected void afterStreamCreation(String streamId, JsonObject result, JsonElement error) {
+	public void start() {
+		super.start();
+		scheduleTask(new CheckTestFinishedTask(this::isFinished), 3, TimeUnit.SECONDS);
+	}
 
-		// if cape interop profile
-		// enqueue supported cape events
-		createdStreamId = streamId;
-
-		scheduleDeferredAction(new DeferredAction("Wait for stream management operations") {
-
-			@Override
-			public void run() {
-
-				if (isFinished()) {
-
-					eventLog.log(getId(), "Detected stream creation, update, updateStatus, replace, deletion.");
-					fireTestFinished();
-					return;
-				}
-
-				scheduleDeferredAction(this, 3, TimeUnit.SECONDS);
-
-			}
-		}, 10, TimeUnit.SECONDS);
+	@Override
+	public void fireTestFinished() {
+		eventLog.log(getId(), "Detected stream creation, update, replace, deletion.");
+		super.fireTestFinished();
 	}
 
 	@Override
 	protected boolean isFinished() {
 		return createdStreamId != null
 			&& createdStreamId.equals(updatedStreamId)
-			&& createdStreamId.equals(updatedStatusStreamId)
 			&& createdStreamId.equals(replacedStreamId)
 			&& createdStreamId.equals(deletedStreamId);
+	}
+
+	@Override
+	protected void afterStreamCreation(String streamId, JsonObject result, JsonElement error) {
+		createdStreamId = streamId;
 	}
 
 	@Override
@@ -92,13 +81,6 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 	protected void afterStreamDeletion(String streamId, JsonObject result, JsonElement error) {
 		if (streamId != null) {
 			deletedStreamId = streamId;
-		}
-	}
-
-	@Override
-	protected void onStreamStatusUpdateSuccess(String streamId, JsonElement result) {
-		if (streamId != null) {
-			updatedStatusStreamId = streamId;
 		}
 	}
 }
