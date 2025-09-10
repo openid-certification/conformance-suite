@@ -6,16 +6,16 @@ import net.openid.conformance.openid.federation.AbstractOpenIDFederationTest;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithClientSecretBasic;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
-import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.variant.FederationEntityMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
 @VariantParameters({
-	ServerMetadata.class,
+	FederationEntityMetadata.class,
 	ClientRegistration.class
 })
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
+@VariantConfigurationFields(parameter = FederationEntityMetadata.class, value = "static", configurationFields = {
 	"federation.entity_configuration",
 })
 public abstract class AbstractOpenIDFederationClientTest extends AbstractOpenIDFederationTest {
