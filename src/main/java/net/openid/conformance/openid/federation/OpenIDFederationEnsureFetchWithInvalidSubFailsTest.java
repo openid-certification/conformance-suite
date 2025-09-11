@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
