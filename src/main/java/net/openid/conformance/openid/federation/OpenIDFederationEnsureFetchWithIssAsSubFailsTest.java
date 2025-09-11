@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -41,7 +42,7 @@ public class OpenIDFederationEnsureFetchWithIssAsSubFailsTest extends OpenIDFede
 
 		eventLog.startBlock(String.format("Retrieving subordinate statement from %s", env.getString("federation_endpoint_url")));
 		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
-		validateFetchErrorResponse();
+		validateFetchErrorResponse(EnsureInvalidRequestError.class);
 		eventLog.endBlock();
 
 		fireTestFinished();

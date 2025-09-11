@@ -1569,21 +1569,53 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             </div>
 
                             <div class="config-form-container">
-                                <h3 class="config-form-container-header">Remote federation entity</h3>
+                                <h3 class="config-form-container-header">
+                                    Federation entity under test <span class="ms-3 badge bg-info-subtle border border-info-subtle text-info-emphasis rounded-pill"><i class="bi bi-info-circle-fill"></i>
+                                    This section relates to the <em>entity under test</em>, i.e. the entity that will be the primary subject of the test suite.
+                                    See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.
+                                </span>
+                                </h3>
 
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">remote_entity_identifier</div>
+                                    <div class="col-md-2 key">entity_identifier</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the
-                                                remote federation entity that the test will interface with. This URL MUST use the https scheme, have a host component,
+                                                federation entity that the test will interface with. This URL MUST use the https scheme, have a host component,
                                                 and MAY contain port and path components. It MUST NOT contain query parameter or fragment components."></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="federation.entity_identifier" />
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">trust_anchor</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the trust anchor
+                                                (i.e. the trust anchor of the entity configured above)."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="federation.trust_anchor" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">trust_anchor_jwks</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys for the entity's
+                                                trust anchor"></span>
+                                            </div>
+                                            <textarea placeholder="OPTIONAL" class="form-control config-form-element" data-json-target="federation.trust_anchor_jwks"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
                             <div class="config-form-container">
@@ -1655,30 +1687,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 Each row needs to contain a valid entity identifier."></span>
                                             </div>
                                             <textarea rows="3" class="form-control config-form-element config-form-element-array" data-json-target="federation.immediate_subordinates" data-json-type="jsonarray"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">trust_anchor</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the trust anchor"></span>
-                                            </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="federation.trust_anchor" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">trust_anchor_jwks</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys for the entity's trust anchor"></span>
-                                            </div>
-                                            <textarea placeholder="OPTIONAL" class="form-control config-form-element" data-json-target="federation.trust_anchor_jwks"></textarea>
                                         </div>
                                     </div>
                                 </div>

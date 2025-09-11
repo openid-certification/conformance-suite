@@ -1,6 +1,8 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureInvalidRequestError;
+import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.UUID;
@@ -40,7 +42,7 @@ public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends OpenIDFe
 
 		eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));
 		callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
-		validateFetchErrorResponse();
+		validateFetchErrorResponse(EnsureNotFoundError.class);
 		eventLog.endBlock();
 
 		fireTestFinished();
