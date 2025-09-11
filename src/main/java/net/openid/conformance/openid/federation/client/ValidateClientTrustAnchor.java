@@ -19,7 +19,7 @@ public class ValidateClientTrustAnchor extends ValidateUrlRequirements {
 		}
 
 		String clientTrustAnchor = OIDFJSON.getString(element);
-		if (clientTrustAnchor.equals(env.getString("config", "client.entity_identifier"))) {
+		if (clientTrustAnchor.equals(env.getString("config", "federation.entity_identifier"))) {
 			throw error("Configuration error: Client trust anchor cannot be the same as the client entity identifier");
 		}
 
