@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OIDSSFHandleStreamLookup extends AbstractOIDSSFHandleReceiverRequest {
+public class OIDSSFHandleStreamLookupRequest extends AbstractOIDSSFHandleReceiverRequest {
 
 	@Override
 	public Environment evaluate(Environment env) {

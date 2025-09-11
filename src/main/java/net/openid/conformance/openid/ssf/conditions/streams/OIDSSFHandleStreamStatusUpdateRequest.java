@@ -6,7 +6,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.St
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-public class OIDSSFHandleStreamStatusUpdate extends AbstractOIDSSFHandleReceiverRequest {
+public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleReceiverRequest {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -14,15 +14,14 @@ public class OIDSSFHandleStreamStatusUpdate extends AbstractOIDSSFHandleReceiver
 		JsonObject resultObj = new JsonObject();
 		env.putObject("ssf", "stream_op_result", resultObj);
 
-		JsonObject streamStatusInput;
-		try {
-			streamStatusInput = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
-		} catch (Exception e) {
-			resultObj.add("error", createErrorObj("parsing_error", e.getMessage()));
+		JsonElement streamStatusInputEl = env.getElementFromObject("ssf", "stream_status_input");
+		if (streamStatusInputEl == null) {
+			resultObj.add("error", createErrorObj("parsing_error", "Missing stream status input"));
 			resultObj.addProperty("status_code", 400);
 			log("Failed to handle stream status update request: Failed to parse stream status input", args("error", resultObj.get("error")));
 			return env;
 		}
+		JsonObject streamStatusInput = streamStatusInputEl.getAsJsonObject();
 
 		String streamId = OIDFJSON.tryGetString(streamStatusInput.get("stream_id"));
 		if (streamId == null) {

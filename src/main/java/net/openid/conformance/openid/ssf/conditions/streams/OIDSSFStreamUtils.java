@@ -54,6 +54,14 @@ public class OIDSSFStreamUtils {
 		return SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI.equals(OIDSSFStreamUtils.getStreamDeliveryMethod(streamConfig));
 	}
 
+	public static JsonObject getStreamFromRequestBody(Environment env) {
+		JsonElement bodyJsonEl = env.getElementFromObject("incoming_request", "body_json");
+		if (bodyJsonEl == null) {
+			return null;
+		}
+		return bodyJsonEl.getAsJsonObject();
+	}
+
 	public static StreamStatusValue getStreamStatusValue(JsonObject streamConfig) {
 		JsonObject streamStatus = getStreamStatus(streamConfig);
 		return StreamStatusValue.valueOf(OIDFJSON.getString(streamStatus.get("status")));

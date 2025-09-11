@@ -10,9 +10,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POLL_RFC_8936_URI;
-import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI;
 
-public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverRequest {
+public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceiverRequest {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -20,19 +19,15 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 		JsonObject resultObj = new JsonObject();
 		env.putObject("ssf", "stream_op_result", resultObj);
 
-		String ssfIssuer = env.getString("ssf", "issuer");
-		String audience = OIDFJSON.getString(env.getElementFromObject("config", "ssf.stream.audience"));
-
-		JsonObject streamConfigInput;
-
-		try {
-			streamConfigInput = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
-		} catch (Exception e) {
-			resultObj.add("error", createErrorObj("parsing_error", e.getMessage()));
+		JsonElement streamConfigInputEl = env.getElementFromObject("ssf", "stream_input");
+		if (streamConfigInputEl == null) {
+			resultObj.add("error", createErrorObj("bad_request", "Missing stream config "));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream creation request: Failed to parse stream input", args("error", resultObj.get("error")));
+			log("Failed to handle stream creation request: Missing stream config in request body", args("error", resultObj.get("error")));
 			return env;
 		}
+
+		JsonObject streamConfigInput = streamConfigInputEl.getAsJsonObject();
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (!streamsObj.isEmpty()) {
@@ -53,33 +48,38 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 		JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
 		Set<String> eventsDelivered = computeEventsDelivered(streamConfigInput, defaultConfig);
 
-		JsonObject streamConfig = streamConfigInput.deepCopy();
+		String streamId = generateStreamId();
+		String ssfIssuer = env.getString("ssf", "issuer");
+		String audience = getStreamAudience(env);
 
 		try {
-			String streamId = "stream_" + UUID.randomUUID();
+			JsonObject streamConfig = new JsonObject();
 			streamConfig.addProperty("stream_id", streamId);
 			streamConfig.addProperty("iss", ssfIssuer);
 			streamConfig.addProperty("aud", audience);
+			streamConfig.add("description", streamConfigInput.get("description"));
 			streamConfig.add("events_supported", defaultConfig.get("events_supported"));
 			streamConfig.add("events_delivered", OIDFJSON.convertSetToJsonArray(eventsDelivered));
+			streamConfig.add("events_requested", streamConfigInput.getAsJsonArray("events_requested"));
 
 			JsonObject delivery = streamConfigInput.getAsJsonObject("delivery");
+			if (delivery == null) {
+				// If delivery is not set, we use POLL delivery method as fallback
+				// see https://openid.github.io/sharedsignals/openid-sharedsignals-framework-1_0.html#section-8.1.1.1-5
+				delivery = new JsonObject();
+				delivery.addProperty("method", DELIVERY_METHOD_POLL_RFC_8936_URI);
+			}
+
+			// if delivery is configured and set to POLL we generate a poll delivery
 			String deliveryMethod = OIDFJSON.getString(delivery.get("method"));
-			switch (deliveryMethod) {
-				case DELIVERY_METHOD_POLL_RFC_8936_URI:
-					String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
-					String streamPollEndpointUrl = pollEndpointUrl + "?stream_id=" + streamId;
-					delivery.addProperty("endpoint_url", streamPollEndpointUrl);
-					break;
-				case DELIVERY_METHOD_PUSH_RFC_8935_URI:
-					JsonElement endpointUrl = delivery.get("endpoint_url");
-					if (endpointUrl == null) {
-						resultObj.add("error", createErrorObj("bad_request", "endpoint_url must be set for urn:ietf:rfc:8935 PUSH delivery"));
-						resultObj.addProperty("status_code", 400);
-						log("Failed to handle stream creation request: Delivery endpoint_url missing", args("error", resultObj.get("error")));
-						return env;
-					}
-					break;
+			if (deliveryMethod.equals(DELIVERY_METHOD_POLL_RFC_8936_URI)) {
+				String pollEndpointUrl = env.getString("ssf", "poll_endpoint_url");
+				String streamPollEndpointUrl = pollEndpointUrl + "?stream_id=" + streamId;
+				delivery.addProperty("endpoint_url", streamPollEndpointUrl);
+				log("Configured endpoint url for POLL delivery for stream_id=%s".formatted(streamId), args("endpoint_url", streamPollEndpointUrl, "delivery", delivery));
+			} else {
+				String pushEndpointUrl = OIDFJSON.getString(delivery.get("endpoint_url"));
+				log("Found endpoint url for PUSH delivery for stream_id=%s".formatted(streamId), args("endpoint_url", pushEndpointUrl, "delivery", delivery));
 			}
 			streamConfig.add("delivery", delivery);
 
@@ -107,4 +107,13 @@ public class OIDSSFHandleStreamCreate extends AbstractOIDSSFHandleReceiverReques
 
 		return env;
 	}
+
+	protected String getStreamAudience(Environment env) {
+		return OIDFJSON.getString(env.getElementFromObject("config", "ssf.stream.audience"));
+	}
+
+	protected String generateStreamId() {
+		return "stream_" + UUID.randomUUID();
+	}
+
 }

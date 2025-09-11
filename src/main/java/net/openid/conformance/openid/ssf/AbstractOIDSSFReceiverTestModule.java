@@ -14,15 +14,20 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStream
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreate;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDelete;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamLookup;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamReplace;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamRequestBodyParsing;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreateRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreateRequestValidation;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDeleteRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDeleteRequestValidation;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamLookupRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamReplaceRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusLookup;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusUpdate;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusUpdateRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusUpdateRequestParsing;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamSubjectAdd;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamSubjectRemove;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdate;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamUpdateRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamVerificationRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils.StreamSubjectOperation;
@@ -286,7 +291,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		switch (method) {
 
 			case "GET": {
-				callAndStopOnFailure(OIDSSFHandleStreamLookup.class, "OIDSSF-8.1.1.2");
+				callAndStopOnFailure(OIDSSFHandleStreamLookupRequest.class, "OIDSSF-8.1.1.2");
 				JsonObject lookupResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 
 				JsonElement result = lookupResult.get("result");
@@ -300,7 +305,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "POST": {
-				callAndStopOnFailure(OIDSSFHandleStreamCreate.class, "OIDSSF-8.1.1.1");
+				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
+				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.1");
+				callAndStopOnFailure(OIDSSFHandleStreamCreateRequest.class, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = createResult.get("error");
 				afterStreamCreation(OIDFJSON.tryGetString(createResult.get("stream_id")), createResult, error);
@@ -309,7 +316,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "DELETE": {
-				callAndStopOnFailure(new OIDSSFHandleStreamDelete(eventStore), "OIDSSF-8.1.1.5");
+				callAndContinueOnFailure(OIDSSFHandleStreamDeleteRequestValidation.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
+				callAndStopOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore), "OIDSSF-8.1.1.5");
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
@@ -319,7 +327,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "PATCH": {
-				callAndStopOnFailure(OIDSSFHandleStreamUpdate.class, "OIDSSF-8.1.1.3");
+				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
+				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.3");
+				callAndStopOnFailure(OIDSSFHandleStreamUpdateRequest.class, "OIDSSF-8.1.1.3");
 				JsonObject updateResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = updateResult.get("error");
 				afterStreamUpdate(OIDFJSON.tryGetString(updateResult.get("stream_id")), updateResult, error);
@@ -327,7 +337,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "PUT": {
-				callAndStopOnFailure(OIDSSFHandleStreamReplace.class, "OIDSSF-8.1.1.4");
+				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
+				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.4");
+				callAndStopOnFailure(OIDSSFHandleStreamReplaceRequest.class, "OIDSSF-8.1.1.4");
 				JsonObject replaceResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = replaceResult.get("error");
 				afterStreamReplace(OIDFJSON.tryGetString(replaceResult.get("stream_id")), replaceResult, error);
@@ -465,7 +477,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		if (method.equals("GET")) {
 			callAndStopOnFailure(OIDSSFHandleStreamStatusLookup.class, "OIDSSF-8.1.2.1");
 		} else if (method.equals("POST")) {
-			callAndStopOnFailure(OIDSSFHandleStreamStatusUpdate.class, "OIDSSF-8.1.2.2");
+			callAndContinueOnFailure(OIDSSFHandleStreamStatusUpdateRequestParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
+			callAndStopOnFailure(OIDSSFHandleStreamStatusUpdateRequest.class, "OIDSSF-8.1.2.2");
 		}
 
 		JsonObject statusOpResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
