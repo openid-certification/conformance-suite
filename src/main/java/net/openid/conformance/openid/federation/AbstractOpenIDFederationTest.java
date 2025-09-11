@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureNotFoundError;
@@ -311,14 +312,14 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		env.unmapKey("endpoint_response");
 	}
 
-	protected void validateFetchErrorResponse() {
+	protected void validateFetchErrorResponse(Class<? extends AbstractCondition> condition) {
 		env.mapKey("endpoint_response", "federation_endpoint_response");
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
 		callAndContinueOnFailure(EnsureResponseIsJsonObject.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
 		env.unmapKey("endpoint_response");
 
 		env.mapKey("authorization_endpoint_response", "endpoint_response_body");
-		skipIfMissing(new String[]{"authorization_endpoint_response"}, null, Condition.ConditionResult.FAILURE, EnsureNotFoundError.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		skipIfMissing(new String[]{"authorization_endpoint_response"}, null, Condition.ConditionResult.INFO, condition, Condition.ConditionResult.WARNING, "OIDFED-8.1.2");
 		env.unmapKey("authorization_endpoint_response");
 	}
 
