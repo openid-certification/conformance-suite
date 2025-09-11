@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.openid.federation.client.ExtractParametersForTrustAnchorResolveEndpoint;
 import net.openid.conformance.openid.federation.client.SignResolveResponseWithTrustAnchorKeys;

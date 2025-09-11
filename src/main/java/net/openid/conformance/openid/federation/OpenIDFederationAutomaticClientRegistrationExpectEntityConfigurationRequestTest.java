@@ -18,16 +18,16 @@ import org.springframework.http.ResponseEntity;
 		"the test is skipped.",
 	profile = "OIDFED",
 	configurationFields = {
-		"client.jwks",
-		"client.trust_chain",
+		"federation.client_jwks",
+		"federation.client_trust_chain",
 		"federation.entity_identifier",
-		"federation.entity_identifier_host_override",
 		"federation.trust_anchor",
 		"federation.trust_anchor_jwks",
-		"federation.authority_hints",
-		"internal.op_to_rp_mode",
+		"federation.rp_entity_identifier_host_override",
+		"federation.rp_authority_hints",
 		"federation_trust_anchor.immediate_subordinates",
 		"federation_trust_anchor.trust_anchor_jwks",
+		"internal.op_to_rp_mode",
 	}
 )
 @SuppressWarnings("unused")
@@ -58,7 +58,7 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 
-		String hostOverride = OIDFJSON.getStringOrNull(config.get("federation").getAsJsonObject().get("entity_identifier_host_override"));
+		String hostOverride = OIDFJSON.getStringOrNull(config.get("federation").getAsJsonObject().get("op_entity_identifier_host_override"));
 		if (!Strings.isNullOrEmpty(hostOverride)) {
 			baseUrl = EntityUtils.replaceHostnameInUrl(baseUrl, hostOverride);
 		}

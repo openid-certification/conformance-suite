@@ -2,6 +2,7 @@ package net.openid.conformance.openid.federation;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -75,7 +76,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 
-		String hostOverride = OIDFJSON.getStringOrNull(config.get("federation").getAsJsonObject().get("entity_identifier_host_override"));
+		String hostOverride = OIDFJSON.getStringOrNull(config.get("federation").getAsJsonObject().get("rp_entity_identifier_host_override"));
 		if (!Strings.isNullOrEmpty(hostOverride)) {
 			baseUrl = EntityUtils.replaceHostnameInUrl(baseUrl, hostOverride);
 		}
@@ -123,15 +124,28 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		String baseUrl = env.getString("base_url");
 
-		JsonObject clientConfig = env.getElementFromObject("config", "client").getAsJsonObject();
+		JsonElement clientConfigElm = env.getElementFromObject("config", "client");
+		if (clientConfigElm == null) {
+			clientConfigElm = new JsonObject();
+			env.putObject("config", "client", clientConfigElm.getAsJsonObject());
+		}
+		JsonObject clientConfig = clientConfigElm.getAsJsonObject();
+
 		clientConfig.addProperty("client_id", baseUrl);
 
 		String clientRegistrationType = getVariant(ClientRegistration.class).toString();
 		env.putString("client_registration_type", clientRegistrationType);
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
+		env.putObject("client", "jwks", env.getElementFromObject("config", "federation.client_jwks").getAsJsonObject());
+		env.putObject("client", "trust_chain", env.getElementFromObject("config", "federation.client_trust_chain").getAsJsonObject());
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
+
+		JsonElement configuredAuthorityHints = env.getElementFromObject("config", "federation.rp_authority_hints");
+		if (configuredAuthorityHints!= null) {
+			env.putArray("config", "federation.authority_hints", configuredAuthorityHints.getAsJsonArray());
+		}
 
 		env.mapKey("server_public_jwks", "client_public_jwks");
 		callAndStopOnFailure(GenerateEntityConfiguration.class);
