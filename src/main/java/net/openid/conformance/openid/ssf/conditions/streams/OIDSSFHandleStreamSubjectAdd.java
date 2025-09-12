@@ -20,7 +20,7 @@ public class OIDSSFHandleStreamSubjectAdd extends AbstractOIDSSFHandleStreamSubj
 		}
 
 		JsonPrimitive verified = streamSubjectInput.getAsJsonPrimitive("verified");
-		OIDSSFStreamUtils.addStreamSubject(streamConfig, subjectObj, verified != null ? verified.getAsBoolean() : null);
+		OIDSSFStreamUtils.addStreamSubject(streamConfig, subjectObj, verified != null ? OIDFJSON.getBoolean(verified) : null);
 
 		resultObj.addProperty("stream_id", OIDFJSON.tryGetString(streamConfig.get("stream_id")));
 		resultObj.addProperty("status_code", 200);

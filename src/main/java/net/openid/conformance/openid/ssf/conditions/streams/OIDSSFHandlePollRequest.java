@@ -109,10 +109,10 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 		}
 
 		// retrieve events if necessary
-		int maxCount = maxEventsEl != null ? maxEventsEl.getAsInt() : 16;
+		int maxCount = maxEventsEl != null ? OIDFJSON.getInt(maxEventsEl) : 16;
 		if (maxCount > 0) {
 
-			boolean returnImmediately = returnImmediatelyEl != null && returnImmediatelyEl.getAsBoolean();
+			boolean returnImmediately = returnImmediatelyEl != null && OIDFJSON.getBoolean(returnImmediatelyEl);
 
 			log("Deliver stream events for stream_id=" + streamId, args("maxCount", maxCount, "returnImmediately", returnImmediately));
 			int maxWaitTimeSeconds = 10;

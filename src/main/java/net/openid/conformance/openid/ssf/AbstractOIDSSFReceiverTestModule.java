@@ -237,7 +237,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonElement authErrorEl = authResult.get("error");
 		if (authErrorEl != null) {
 			JsonObject authError = authErrorEl.getAsJsonObject();
-			int statusCode = authResult.get("status_code").getAsInt();
+			int statusCode = OIDFJSON.getInt(authResult.get("status_code"));
 			return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(authError);
 		}
 
@@ -295,7 +295,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				JsonObject lookupResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 
 				JsonElement result = lookupResult.get("result");
-				int statusCode = lookupResult.get("status_code").getAsInt();
+				int statusCode = OIDFJSON.getInt(lookupResult.get("status_code"));
 
 				if (result == null) {
 					return ResponseEntity.status(statusCode).build();
@@ -321,7 +321,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
-				int statusCode = deleteResult.get("status_code").getAsInt();
+				int statusCode = OIDFJSON.getInt(deleteResult.get("status_code"));
 				afterStreamDeletion(OIDFJSON.tryGetString(deleteResult.get("stream_id")), deleteResult, error);
 				return ResponseEntity.status(statusCode).build();
 			}
@@ -369,7 +369,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	protected ResponseEntity<?> handleResultWithBody(JsonObject createResult) {
 		JsonElement result = createResult.get("result");
 		JsonElement error = createResult.get("error");
-		int statusCode = createResult.get("status_code").getAsInt();
+		int statusCode = OIDFJSON.getInt(createResult.get("status_code"));
 
 		if (error != null) {
 			return ResponseEntity.status(statusCode).build();
@@ -395,7 +395,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonObject subjectChangeResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 
 		JsonElement result = subjectChangeResult.get("result");
-		int statusCode = subjectChangeResult.get("status_code").getAsInt();
+		int statusCode = OIDFJSON.getInt(subjectChangeResult.get("status_code"));
 
 		if (result == null) {
 			return ResponseEntity.status(statusCode).build();
@@ -414,7 +414,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonObject verificationResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 
 		JsonElement result = verificationResult.get("result");
-		int statusCode = verificationResult.get("status_code").getAsInt();
+		int statusCode = OIDFJSON.getInt(verificationResult.get("status_code"));
 
 		if (HttpStatus.valueOf(statusCode).is2xxSuccessful()) {
 			callAndStopOnFailure(new OIDSSFGenerateStreamVerificationSET(eventStore), "OIDSSF-8.1.4.2");
@@ -484,7 +484,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonObject statusOpResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 
 		JsonElement result = statusOpResult.get("result");
-		int statusCode = statusOpResult.get("status_code").getAsInt();
+		int statusCode = OIDFJSON.getInt(statusOpResult.get("status_code"));
 
 		// Only emit StreamStatusUpdate if stream is enabled
 		String requestedStatus = env.getString("incoming_request", "body_json.status");
@@ -525,7 +525,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonObject pollResult = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
 
 		JsonElement result = pollResult.get("result");
-		int statusCode = pollResult.get("status_code").getAsInt();
+		int statusCode = OIDFJSON.getInt(pollResult.get("status_code"));
 
 		if (result == null) {
 			return ResponseEntity.status(statusCode).build();
