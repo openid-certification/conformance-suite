@@ -16,6 +16,7 @@ public class OIDSSFHandleStreamSubjectAdd extends AbstractOIDSSFHandleStreamSubj
 		JsonObject subjectObj = streamSubjectInput.getAsJsonObject("subject");
 
 		if (OIDSSFStreamUtils.getInvalidSubjectExample().equals(subjectObj)) {
+			log("Rejecting attempt to add invalid subject", args("subject", subjectObj));
 			throw new IllegalArgumentException("Invalid subject");
 		}
 

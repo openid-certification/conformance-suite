@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import org.openqa.selenium.InvalidArgumentException;
 
 public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOIDSSFHandleReceiverRequest {
 
@@ -12,6 +11,7 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 	public Environment evaluate(Environment env) {
 
 		JsonObject resultObj = new JsonObject();
+		resultObj.addProperty("change_type", getChangeType());
 		env.putObject("ssf", "stream_op_result", resultObj);
 
 		JsonObject streamSubjectInput;
@@ -52,7 +52,7 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 
 		try {
 			changeSubjects(streamConfig, streamSubjectInput, resultObj);
-		} catch (InvalidArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			resultObj.add("error", createErrorObj("invalid_subject", e.getMessage()));
 			log("Failed to handle stream subject " + getChangeType() + " request: Invalid subject", args("stream_id", streamId, "error", resultObj.get("error")));
 			resultObj.addProperty("status_code", 403);

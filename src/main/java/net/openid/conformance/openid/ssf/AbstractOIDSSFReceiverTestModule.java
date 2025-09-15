@@ -386,10 +386,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 		}
 
-		if (StreamSubjectOperation.add == operation) {
-			callAndStopOnFailure(OIDSSFHandleStreamSubjectAdd.class, "OIDSSF-8.1.3.2");
-		} else if (StreamSubjectOperation.remove == operation) {
-			callAndStopOnFailure(OIDSSFHandleStreamSubjectRemove.class, "OIDSSF-8.1.3.3");
+		switch (operation) {
+			case add -> callAndStopOnFailure(OIDSSFHandleStreamSubjectAdd.class, "OIDSSF-8.1.3.2");
+			case remove -> callAndStopOnFailure(OIDSSFHandleStreamSubjectRemove.class, "OIDSSF-8.1.3.3");
 		}
 
 		JsonObject subjectChangeResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
