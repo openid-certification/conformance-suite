@@ -90,7 +90,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 								"initiating_entity", "policy",
 								"reason_admin", Map.of("en", "Policy Violation: C076E822"),
 								"reason_user", Map.of("en", "This device is no longer compliant.", "it", "Questo dispositivo non e piu conforme."))
-							, Set.of("OIDCAEP-3.1"));
+							, Set.of("OIDCAEP-3.1", "CAEPIOP-3.1"));
 
 						case SsfEvents.CAEP_TOKEN_CLAIMS_CHANGE_EVENT_TYPE -> new SsfEvent(eventType
 							, Map.of("event_timestamp", timestamp, "claims", Map.of("role", "ro-admin"))
@@ -104,7 +104,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 								"friendly_name", "Jane's USB authenticator",
 								"initiating_entity", "user",
 								"reason_admin", Map.of("en", "User self-enrollment"))
-							, Set.of("OIDCAEP-3.3"));
+							, Set.of("OIDCAEP-3.3", "CAEPIOP-3.2"));
 
 						case SsfEvents.CAEP_ASSURANCE_LEVEL_CHANGE_EVENT_TYPE -> new SsfEvent(eventType
 							, Map.of("event_timestamp", timestamp,
