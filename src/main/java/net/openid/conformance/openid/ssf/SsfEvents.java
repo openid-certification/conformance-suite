@@ -104,4 +104,13 @@ public class SsfEvents {
 		STANDARD_EVENT_TYPES = Set.copyOf(events);
 	}
 
+	public static final Set<String> CAEP_INTEROP_EVENT_TYPES;
+	static {
+		Set<String> events = new LinkedHashSet<>();
+		events.addAll(SsfEvents.SSF_EVENT_TYPES);
+		events.add(CAEP_SESSION_REVOKED_EVENT_TYPE);
+		events.add(CAEP_CREDENTIAL_CHANGE_EVENT_TYPE);
+		CAEP_INTEROP_EVENT_TYPES = events;
+	}
+
 }

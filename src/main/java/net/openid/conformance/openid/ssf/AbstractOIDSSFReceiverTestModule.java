@@ -162,6 +162,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	public List<String> getEventsSupported() {
+		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			return List.copyOf(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
+		}
 		return List.copyOf(SsfEvents.STANDARD_EVENT_TYPES);
 	}
 
