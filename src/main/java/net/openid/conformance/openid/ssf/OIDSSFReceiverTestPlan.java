@@ -15,6 +15,7 @@ import net.openid.conformance.variant.VariantSelection;
 		OIDSSFReceiverStreamStatusUpdateTest.class,
 		OIDSSFReceiverStreamVerificationTest.class,
 		OIDSSFReceiverSupportedEventsTest.class,
+		OIDSSFReceiverStreamCaepInteropTest.class
 	}
 )
 public class OIDSSFReceiverTestPlan implements TestPlan {
