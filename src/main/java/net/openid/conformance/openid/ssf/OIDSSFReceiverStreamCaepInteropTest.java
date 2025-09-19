@@ -2,6 +2,8 @@ package net.openid.conformance.openid.ssf;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -66,16 +68,19 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		}
 
 		createdStreamId = streamId;
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 	}
 
 	@Override
 	protected void afterStreamLookup(String streamId, JsonObject lookupResult, JsonElement error) {
 		readStreamId = streamId;
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Lookup"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 	}
 
 	@Override
 	protected void onStatusStatusLookup(String streamId, JsonObject statusOpResult) {
 		readStreamStatusStreamId = streamId;
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Status Lookup"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 	}
 
 	@Override
@@ -83,6 +88,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		// needed if SSF Receiver uses push delivery
 		if (SsfEvents.isVerificationEvent(event.type())) {
 			verificationStreamId = streamId;
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 		}
 	}
 
@@ -91,6 +97,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		// needed if SSF Receiver uses push delivery
 		if (SsfEvents.isVerificationEvent(event.type())) {
 			verificationStreamId = streamId;
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 		}
 	}
 }
