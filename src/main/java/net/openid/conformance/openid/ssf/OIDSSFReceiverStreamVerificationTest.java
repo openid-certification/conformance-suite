@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -54,8 +55,10 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 	}
 
 	@Override
-	protected void afterStreamVerificationSuccess(String streamId) {
-		verifiedStreamId = streamId;
+	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
+		if (SsfEvents.isVerificationEvent(event.type())) {
+			verifiedStreamId = streamId;
+		}
 	}
 
 	@Override

@@ -10,6 +10,9 @@ import java.util.List;
  */
 public interface OIDSSFEventStore {
 
+	record EventsBatch(List<OIDSSFSecurityEvent> events, boolean moreAvailable) {
+	}
+
 	void storeEvent(String streamId, OIDSSFSecurityEvent eventObject);
 
 	default EventsBatch pollEvents(String streamId, int maxCount) {
@@ -20,12 +23,11 @@ public interface OIDSSFEventStore {
 
 	void purgeStreamEvents(String streamId);
 
-	record EventsBatch(List<OIDSSFSecurityEvent> events, boolean moreAvailable) {
-	}
+	OIDSSFSecurityEvent registerAckForStreamEvent(String streamId, String jti);
 
-	void registerAckForStreamEvent(String streamId, String jti);
+	OIDSSFSecurityEvent getRegisteredSecurityEvent(String streamId, String jti);
 
-	boolean isStreamEventAck(String streamId, String jti);
+	boolean isStreamEventAcked(String streamId, String jti);
 
 	void registerErrorForStreamEvent(String streamId, String jti, JsonObject error);
 

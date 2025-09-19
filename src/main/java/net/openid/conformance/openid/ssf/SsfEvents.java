@@ -113,4 +113,7 @@ public class SsfEvents {
 		CAEP_INTEROP_EVENT_TYPES = events;
 	}
 
+	public static boolean isVerificationEvent(String type) {
+		return SSF_STREAM_VERIFICATION_EVENT_TYPE.equals(type);
+	}
 }

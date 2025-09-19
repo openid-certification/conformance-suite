@@ -20,15 +20,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 
 	private final String streamId;
 	private final OIDSSFSecurityEvent event;
-	private final Consumer<String> onSuccess;
+	private final BiConsumer<String, OIDSSFSecurityEvent> onSuccess;
 
-	public OIDSSFHandlePushDeliveryToReceiver(String streamId, OIDSSFSecurityEvent event, Consumer<String> onSuccess) {
+	public OIDSSFHandlePushDeliveryToReceiver(String streamId, OIDSSFSecurityEvent event, BiConsumer<String, OIDSSFSecurityEvent> onSuccess) {
 		this.streamId = streamId;
 		this.event = event;
 		this.onSuccess = onSuccess;
@@ -63,7 +63,7 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 
 			logSuccess("Got " + endpointName + " response", env.getObject(responseEnvironmentKey));
 
-			onSuccess.accept(streamId);
+			onSuccess.accept(streamId, event);
 			return env;
 		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException |
 				 KeyStoreException | IOException | UnrecoverableKeyException e) {

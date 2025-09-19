@@ -26,7 +26,9 @@ public class OIDSSFHandleStreamCreateRequestValidation extends AbstractCondition
 
 		JsonElement streamConfigInputEl = env.getElementFromObject("ssf", "stream_input");
 		if (streamConfigInputEl == null) {
-			throw error("Failed to validate stream request: Stream config missing", args("error", "Could not find stream config in request body"));
+			String rawStreamInput = env.getString("ssf", "stream_input_raw");
+			throw error("Failed to validate stream request: Stream config missing or invalid",
+				args("error", "Could not find stream config in request body", "unparsed_stream_input", rawStreamInput));
 		}
 
 		JsonObject streamConfigInput = streamConfigInputEl.getAsJsonObject();

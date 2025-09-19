@@ -9,6 +9,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamStatusUpdatedSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
@@ -304,6 +305,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 					return ResponseEntity.status(statusCode).build();
 				}
 
+				JsonElement error = lookupResult.get("error");
+				afterStreamLookup(OIDFJSON.tryGetString(lookupResult.get("stream_id")), lookupResult, error);
+
 				return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 			}
 
@@ -351,6 +355,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+	}
+
+	protected void afterStreamLookup(String streamId, JsonObject lookupResult, JsonElement error) {
+
 	}
 
 	protected void afterStreamReplace(String streamId, JsonObject replaceResult, JsonElement error) {
@@ -453,7 +461,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 			// TODO handle SSF PUSH retry???
 			for (var event : eventsBatch.events()) {
-				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterStreamVerificationSuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
+				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202),  Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
 			}
 
@@ -465,7 +473,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 	}
 
-	protected void afterStreamVerificationSuccess(String streamId) {
+	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
 
 	}
 
@@ -476,9 +484,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 		}
 
-		if (method.equals("GET")) {
+		boolean isReadStreamStatus = method.equals("GET");
+		boolean isUpdateStreamStatus = method.equals("POST");
+
+		if (isReadStreamStatus) {
 			callAndStopOnFailure(OIDSSFHandleStreamStatusLookup.class, "OIDSSF-8.1.2.1");
-		} else if (method.equals("POST")) {
+		} else if (isUpdateStreamStatus) {
 			callAndContinueOnFailure(OIDSSFHandleStreamStatusUpdateRequestParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
 			callAndStopOnFailure(OIDSSFHandleStreamStatusUpdateRequest.class, "OIDSSF-8.1.2.2");
 		}
@@ -488,26 +499,34 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		JsonElement result = statusOpResult.get("result");
 		int statusCode = OIDFJSON.getInt(statusOpResult.get("status_code"));
 
-		// Only emit StreamStatusUpdate if stream is enabled
-		String requestedStatus = env.getString("incoming_request", "body_json.status");
-		if (method.equals("POST") && HttpStatus.valueOf(statusCode).is2xxSuccessful() && StreamStatus.enabled.name().equals(requestedStatus)) {
-			// only emit stream update event on successful status change
-			callAndStopOnFailure(new OIDSSFGenerateStreamStatusUpdatedSET(eventStore), "OIDSSF-8.1.5");
-		}
-
 		if (result == null) {
 			return ResponseEntity.status(statusCode).build();
 		}
 
-		onStreamStatusUpdateSuccess(OIDFJSON.tryGetString(statusOpResult.get("stream_id")), statusOpResult);
+		// Only emit StreamStatusUpdate if stream is enabled
+		String requestedStatus = env.getString("incoming_request", "body_json.status");
+		if (isUpdateStreamStatus && HttpStatus.valueOf(statusCode).is2xxSuccessful() && StreamStatus.enabled.name().equals(requestedStatus)) {
+			// only emit stream update event on successful status change
+			callAndStopOnFailure(new OIDSSFGenerateStreamStatusUpdatedSET(eventStore), "OIDSSF-8.1.5");
+		}
+
+		if (isUpdateStreamStatus) {
+			onStreamStatusUpdateSuccess(OIDFJSON.tryGetString(statusOpResult.get("stream_id")), statusOpResult);
+		} else {
+			onStatusStatusLookup(OIDFJSON.tryGetString(statusOpResult.get("stream_id")), statusOpResult);
+		}
 
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
+	}
+
+	protected void onStatusStatusLookup(String streamId, JsonObject statusOpResult) {
+
 	}
 
 	protected void onStreamStatusUpdateSuccess(String streamId, JsonElement result) {
 	}
 
-	protected void onStreamEventAcknowledged(String streamId, String jti) {
+	protected void onStreamEventAcknowledged(String streamId, String jti, OIDSSFSecurityEvent event) {
 	}
 
 	protected void onStreamEventEnqueued(String streamId, String jti) {

@@ -20,11 +20,17 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 
 	public static final int MAX_CAPACITY = 1000;
 
-	protected Cache<String, BlockingQueue<OIDSSFSecurityEvent>> streamEventsCache = CacheBuilder.newBuilder() //
+	protected Cache<String, BlockingQueue<OIDSSFSecurityEvent>> streamEventQueueCache = CacheBuilder.newBuilder() //
 		.expireAfterWrite(30, TimeUnit.MINUTES) // auto-remove entries 30min after insertion/update
 		.build();
 
-	protected Cache<String, Set<String>> streamAcksCache = CacheBuilder.newBuilder() //
+	// streamId -> [jti]
+	protected Cache<String, Set<String>> streamAcksAckedCache = CacheBuilder.newBuilder() //
+		.expireAfterWrite(30, TimeUnit.MINUTES) // auto-remove entries 30min after insertion/update
+		.build();
+
+	// streamId -> {jti, Event}
+	protected Cache<String, ConcurrentMap<String, OIDSSFSecurityEvent>> streamEventsCache = CacheBuilder.newBuilder() //
 		.expireAfterWrite(30, TimeUnit.MINUTES) // auto-remove entries 30min after insertion/update
 		.build();
 
@@ -37,19 +43,28 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
 
 		queue.add(eventObject);
+		getStreamEventsCache(streamId).put(eventObject.jti(), eventObject);
 	}
 
 	protected BlockingQueue<OIDSSFSecurityEvent> getStreamEventQueue(String streamId) {
 		try {
-			return streamEventsCache.get(streamId, () -> new ArrayBlockingQueue<>(MAX_CAPACITY));
+			return streamEventQueueCache.get(streamId, () -> new ArrayBlockingQueue<>(MAX_CAPACITY));
 		} catch (ExecutionException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected Set<String> getStreamAcksCache(String streamId) {
+	protected ConcurrentMap<String, OIDSSFSecurityEvent> getStreamEventsCache(String streamId) {
 		try {
-			return streamAcksCache.get(streamId, ConcurrentSkipListSet::new);
+			return streamEventsCache.get(streamId, ConcurrentHashMap::new);
+		} catch (ExecutionException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Set<String> getStreamEventAcksAckedCache(String streamId) {
+		try {
+			return streamAcksAckedCache.get(streamId, ConcurrentSkipListSet::new);
 		} catch (ExecutionException e) {
 			throw new RuntimeException(e);
 		}
@@ -115,13 +130,13 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 	@Override
 	public void purgeStreamEvents(String streamId) {
 		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
-		streamEventsCache.invalidate(streamId);
+		streamEventQueueCache.invalidate(streamId);
 		if (queue != null) {
 			queue.clear();
 		}
 
-		Set<String> streamAcks = getStreamAcksCache(streamId);
-		streamAcksCache.invalidate(streamId);
+		Set<String> streamAcks = getStreamEventAcksAckedCache(streamId);
+		streamAcksAckedCache.invalidate(streamId);
 		if (streamAcks != null) {
 			streamAcks.clear();
 		}
@@ -131,16 +146,31 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 		if (streamSetErrors != null) {
 			streamSetErrors.clear();
 		}
+
+		ConcurrentMap<String, OIDSSFSecurityEvent> streamAcksPending = getStreamEventsCache(streamId);
+		streamEventsCache.invalidate(streamId);
+		if (streamAcksPending != null) {
+			streamAcksPending.clear();
+		}
 	}
 
 	@Override
-	public void registerAckForStreamEvent(String streamId, String jti) {
-		getStreamAcksCache(streamId).add(jti);
+	public OIDSSFSecurityEvent registerAckForStreamEvent(String streamId, String jti) {
+		// mark the jti as acked for the stream
+		getStreamEventAcksAckedCache(streamId).add(jti);
+
+		// return the stored pending event
+		return getRegisteredSecurityEvent(streamId, jti);
 	}
 
 	@Override
-	public boolean isStreamEventAck(String streamId, String jti) {
-		return getStreamAcksCache(streamId).contains(jti);
+	public OIDSSFSecurityEvent getRegisteredSecurityEvent(String streamId, String jti) {
+		return getStreamEventsCache(streamId).get(jti);
+	}
+
+	@Override
+	public boolean isStreamEventAcked(String streamId, String jti) {
+		return getStreamEventAcksAckedCache(streamId).contains(jti);
 	}
 
 	@Override

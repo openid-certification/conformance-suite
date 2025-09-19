@@ -35,9 +35,10 @@ public class OIDSSFHandleStreamLookupRequest extends AbstractOIDSSFHandleReceive
 			JsonObject streamConfig = streamConfigEl.getAsJsonObject();
 			JsonObject streamConfigResult = copyConfigObjectWithoutInternalFields(streamConfig);
 
+			resultObj.addProperty("stream_id", streamId);
 			resultObj.add("result", streamConfigResult);
 			resultObj.addProperty("status_code", 200);
-			log("Handled stream lookup request: Found stream for stream_id=" + streamId, args("stream_id", streamId, "stream", streamConfigResult));
+			logSuccess("Handled stream lookup request: Found stream for stream_id=" + streamId, args("stream_id", streamId, "stream", streamConfigResult));
 			return env;
 		}
 

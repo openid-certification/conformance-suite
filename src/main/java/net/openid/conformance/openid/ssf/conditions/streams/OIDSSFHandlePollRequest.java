@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.ssf.conditions.EventAckConsumer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore.EventsBatch;
@@ -11,15 +12,14 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest {
 
 	protected final OIDSSFEventStore eventStore;
 
-	protected BiConsumer<String, String> onStreamEventAcknowledged;
+	protected EventAckConsumer onStreamEventAcknowledged;
 
-	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore, BiConsumer<String, String> onStreamEventAcknowledged) {
+	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore, EventAckConsumer onStreamEventAcknowledged) {
 		this.eventStore = eventStore;
 		this.onStreamEventAcknowledged = onStreamEventAcknowledged;
 	}
@@ -92,8 +92,8 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 			List<String> acks = OIDFJSON.convertJsonArrayToList(ackArrayEl);
 			log("Process acknowledgements for stream events for stream_id=" + streamId, args("ack", acks));
 			for (String jti : acks) {
-				eventStore.registerAckForStreamEvent(streamId, jti);
-				onStreamEventAcknowledged.accept(streamId, jti);
+				OIDSSFSecurityEvent ackedEvent = eventStore.registerAckForStreamEvent(streamId, jti);
+				onStreamEventAcknowledged.accept(streamId, jti, ackedEvent);
 			}
 		}
 

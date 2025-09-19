@@ -18,11 +18,13 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 		JsonObject resultObj = new JsonObject();
 		env.putObject("ssf", "stream_op_result", resultObj);
 
+		String rawStreamInput = env.getString("ssf", "stream_input_raw");
+
 		JsonElement streamConfigInputEl = env.getElementFromObject("ssf", "stream_input");
 		if (streamConfigInputEl == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream config "));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream replacement request: Failed to parse SSF stream config input", args("error", resultObj.get("error")));
+			log("Failed to handle stream replacement request: Failed to parse SSF stream config input", args("error", resultObj.get("error"), "unparsed_stream_config", rawStreamInput));
 			return env;
 		}
 
