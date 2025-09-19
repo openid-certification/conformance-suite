@@ -3,7 +3,7 @@ package net.openid.conformance.openid.ssf.conditions.streams;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.openid.ssf.conditions.EventAckConsumer;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFEventAckConsumer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore.EventsBatch;
@@ -17,9 +17,9 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 
 	protected final OIDSSFEventStore eventStore;
 
-	protected EventAckConsumer onStreamEventAcknowledged;
+	protected OIDSSFEventAckConsumer onStreamEventAcknowledged;
 
-	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore, EventAckConsumer onStreamEventAcknowledged) {
+	public OIDSSFHandlePollRequest(OIDSSFEventStore eventStore, OIDSSFEventAckConsumer onStreamEventAcknowledged) {
 		this.eventStore = eventStore;
 		this.onStreamEventAcknowledged = onStreamEventAcknowledged;
 	}
