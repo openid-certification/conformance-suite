@@ -72,7 +72,7 @@ metadata:
       proxy_set_header X-Ssl-Cipher $ssl_cipher;
       proxy_set_header X-Ssl-Protocol $ssl_protocol;
       proxy_set_header X-Ssl-Cert $ssl_client_cert;
-      proxy_set_header Forwarded 'by=$remote_addr;for=10.0.0.1;host=$host;proto=$scheme';
+      proxy_set_header Forwarded 'by=10.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
       proxy_pass_request_headers on;
     nginx.org/server-snippets: |
       ssl_verify_client   optional_no_ca;
