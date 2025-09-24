@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
+import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
 import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
@@ -289,6 +290,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected ResponseEntity<?> handleSsfConfigurationEndpoint(String requestId) {
+		callAndContinueOnFailure(CheckIncomingRequestMethodIsGet.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2.1");
 		JsonObject ssfConfig = getSsfConfiguration();
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ssfConfig);
 	}
@@ -568,7 +570,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
 	}
 
-	private ResponseEntity<?> oauthProtectedResourceServerMetadata() {
+	protected ResponseEntity<?> oauthProtectedResourceServerMetadata() {
+		callAndContinueOnFailure(CheckIncomingRequestMethodIsGet.class, Condition.ConditionResult.FAILURE, "RFC9728-3.1");
 		JsonObject resourceServerMetadata = env.getObject("resource_server_metadata");
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(resourceServerMetadata);
 	}
