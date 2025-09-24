@@ -8,10 +8,8 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
-import net.openid.conformance.openid.ssf.SsfConstants.StreamStatus;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamStatusUpdatedSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
@@ -516,13 +514,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		if (result == null) {
 			return ResponseEntity.status(statusCode).build();
-		}
-
-		// Only emit StreamStatusUpdate if stream is enabled
-		String requestedStatus = env.getString("incoming_request", "body_json.status");
-		if (isUpdateStreamStatus && HttpStatus.valueOf(statusCode).is2xxSuccessful() && StreamStatus.enabled.name().equals(requestedStatus)) {
-			// only emit stream update event on successful status change
-			callAndStopOnFailure(new OIDSSFGenerateStreamStatusUpdatedSET(eventStore), "OIDSSF-8.1.5");
 		}
 
 		if (isUpdateStreamStatus) {
