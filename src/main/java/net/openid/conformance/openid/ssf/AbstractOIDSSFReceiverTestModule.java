@@ -15,13 +15,13 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStream
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamRequestBodyParsing;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreateRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDeleteRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDeleteRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamLookupRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamReplaceRequest;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamRequestBodyParsing;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusLookup;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusUpdateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamStatusUpdateRequestParsing;
@@ -75,7 +75,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		env.putString("ssf", "transmitter_access_token", transmitterAccessToken);
 		exposeEnvString("ssf_tx_access_token", "ssf", "transmitter_access_token");
 
-		String issuer = BaseUrlUtil.resolveEffectiveBaseUrl(env);
+		String issuer = resolveEffectiveIssuer();
 
 		env.putString("ssf", "issuer", issuer);
 		exposeEnvString("ssf_issuer", "ssf", "issuer");
@@ -85,6 +85,15 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject resourceServerMetadata = generateResourceServerMetadata(issuer);
 		env.putObject("resource_server_metadata", resourceServerMetadata);
+	}
+
+	protected String resolveEffectiveIssuer() {
+
+		String issuer = env.getString("config", "ssf.transmitter.issuer_override");
+		if (issuer == null) {
+			issuer = BaseUrlUtil.resolveEffectiveBaseUrl(env);
+		}
+		return issuer;
 	}
 
 	protected OIDSSFInMemoryEventStore createEventStore() {
@@ -433,7 +442,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			String streamId = env.getString("incoming_request", "body_json.stream_id");
 
 			if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
-				scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
+				scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, java.util.concurrent.TimeUnit.SECONDS);
 			}
 		}
 
