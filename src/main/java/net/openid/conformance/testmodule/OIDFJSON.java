@@ -125,7 +125,7 @@ public final class OIDFJSON {
 	}
 
 	public static String tryGetString(JsonElement jsonElement) {
-		if (jsonElement == null || jsonElement.isJsonNull()) {
+		if (jsonElement == null) {
 			return null;
 		}
 		return getString(jsonElement);
