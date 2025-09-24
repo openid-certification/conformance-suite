@@ -37,7 +37,7 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("invalid_request", "Missing stream_id in request parameter"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream poll request: Missing stream_in in request parameter", args("error", resultObj.get("error")));
+			log("Failed to handle stream poll request: Missing stream_id in request parameter", args("error", resultObj.get("error")));
 			return env;
 		}
 

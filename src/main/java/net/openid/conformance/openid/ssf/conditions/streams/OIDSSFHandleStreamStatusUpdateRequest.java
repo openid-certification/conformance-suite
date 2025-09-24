@@ -27,7 +27,7 @@ public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleR
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream status update request: Missing stream_in in stream status update request body", args("error", resultObj.get("error")));
+			log("Failed to handle stream status update request: Missing stream_id in stream status update request body", args("error", resultObj.get("error")));
 			return env;
 		}
 

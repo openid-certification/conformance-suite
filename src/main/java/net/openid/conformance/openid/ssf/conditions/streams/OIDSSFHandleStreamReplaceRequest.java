@@ -34,7 +34,7 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream replacement request: Missing stream_in in request body", args("error", resultObj.get("error")));
+			log("Failed to handle stream replacement request: Missing stream_id in request body", args("error", resultObj.get("error")));
 			return env;
 		}
 

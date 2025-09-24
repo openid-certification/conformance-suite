@@ -27,7 +27,7 @@ public class OIDSSFHandleStreamVerificationRequest extends AbstractOIDSSFHandleR
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream update request: Missing stream_in in request body", args("error", resultObj.get("error")));
+			log("Failed to handle stream update request: Missing stream_id in request body", args("error", resultObj.get("error")));
 			return env;
 		}
 
