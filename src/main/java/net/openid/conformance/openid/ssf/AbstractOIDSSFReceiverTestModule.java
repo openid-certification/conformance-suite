@@ -139,10 +139,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		super.configureServerEndpoints();
 
 		String ssfIssuer = env.getString("ssf", "issuer");
-		String pollEndpointUrl = ssfIssuer + "/events";
-		env.putString("ssf", "poll_endpoint_url", pollEndpointUrl);
 
-		exposeEnvString("ssf_poll_endpoint", "ssf", "poll_endpoint_url");
+		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.POLL) {
+			String pollEndpointUrl = ssfIssuer + "/events";
+			env.putString("ssf", "poll_endpoint_url", pollEndpointUrl);
+
+			exposeEnvString("ssf_poll_endpoint", "ssf", "poll_endpoint_url");
+		}
 	}
 
 	protected JsonObject generateTransmitterMetadata(String issuer) {
