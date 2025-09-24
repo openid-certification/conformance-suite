@@ -519,9 +519,18 @@ makeFederationTests() {
 }
 
 makeSsfTests() {
-#    TESTS="${TESTS} openid-ssf-test-plan[server_metadata=discovery][client_registration=static_client] ../conformance-suite/scripts/test-configs-ssf/xxxx.json"
-    echo "SSF not implemented yet"
-    TESTS="${TESTS}"
+
+    PUSH_DELIVERY="ssf_delivery_mode=push"
+    POLL_DELIVERY="ssf_delivery_mode=poll"
+    CAEP_INTEROP_PROFILE="ssf_profile=caep_interop"
+
+    STATIC_CLIENT="client_registration=static_client"
+    SERVER_METADATA_STATIC="server_metadata=static"
+    CLIENT_AUTH_CLIENT_SECRET_POST="client_auth_type=client_secret_post"
+    SSF_METADATA="ssf_server_metadata=discovery"
+    SSF_AUTH_MODE="ssf_auth_mode=static"
+
+    TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}../conformance-suite/scripts/test-configs-ssf/ssf-transmitter-test-config.json ../conformance-suite/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 }
 
 makeOid4VciTests() {
