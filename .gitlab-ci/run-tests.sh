@@ -702,7 +702,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ssf-tests" ]; then
     EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-ssf.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    TESTS="${TESTS} --show-untested-test-modules ssf"
+    # TESTS="${TESTS} --show-untested-test-modules ssf"
     TESTS="${TESTS} --export-dir ../conformance-suite"
 elif [ "$#" -eq 1 ] && [ "$1" = "--vci-tests" ]; then
     echo "Run oid4vci tests"
