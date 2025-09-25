@@ -1119,7 +1119,14 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	@Override
 	public void checkLockReleased() {
 		if (env.getLock().isHeldByCurrentThread()) {
-			throw new TestFailureException(getId(), "The test module has incorrectly left the lock held, this is a bug in the test module");
+			if (getStatus() == Status.RUNNING) {
+				// give a more helpful error message that tells the developer what they have most likely done
+				// wrong.
+				throw new TestFailureException(getId(), "The test status has been left as 'RUNNING'. This is a bug in the test module and probably means that a call to setStatus(Status.WAITING) is missing.");
+			}
+
+			// otherwise it's still wrong, but the reason why is going to be less obvious
+			throw new TestFailureException(getId(), "The test module has incorrectly left the lock held, this is a bug in the test module, it might be caused by a missing call to setStatus(Status.WAITING)");
 		}
 	}
 
