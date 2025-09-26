@@ -9,6 +9,8 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum SsfProfile {
 
+	DEFAULT,
+
 	CAEP_INTEROP;
 
 	@Override
