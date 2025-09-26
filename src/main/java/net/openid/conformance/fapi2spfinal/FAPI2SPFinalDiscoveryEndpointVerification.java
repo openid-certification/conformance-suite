@@ -75,6 +75,11 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "client_credentials_only")
+	public void setupClientCredentialsOnly() {
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+	}
+
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
