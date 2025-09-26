@@ -3,6 +3,7 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
@@ -21,8 +22,16 @@ import java.util.concurrent.TimeUnit;
 @PublishTestModule(
 	testName = "openid-ssf-receiver-stream-supported-events",
 	displayName = "OpenID Shared Signals Framework: Sends all supported events to the receiver",
-	summary = "This test verifies the receiver stream management. " +
-		"The test generates a dynamic transmitter and waits for a receiver to register a stream. ",
+	summary = """
+		This test verifies the receiver events delivery.
+		The test generates a dynamic transmitter and waits for a receiver to register a stream, it will then generate all supported events and expects a positive delivery of the events received.
+		Note that if the caep_interop profile is used, only the session-revoked and credential-change events are sent.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * (generates) events
+		 * Acknowledge the events
+		 * delete the stream
+		""",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.access_token",
@@ -40,6 +49,8 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 
 	volatile String createdStreamId;
 
+	volatile String deletedStreamId;
+
 	volatile ConcurrentMap<String, Set<String>> eventsAcked;
 
 	volatile ConcurrentMap<String, Set<String>> eventsEnqueued;
@@ -55,6 +66,10 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 	@Override
 	protected void onStreamEventAcknowledged(String streamId, String jti, OIDSSFSecurityEvent event) {
 		eventsAcked.computeIfAbsent(streamId, k -> new ConcurrentSkipListSet<>()).add(jti);
+
+		if (didReceiveExpectedAcksForAllDeliveredEvents()) {
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected expected delivery & ack notifications for stream_id=" + streamId), Condition.ConditionResult.FAILURE);
+		}
 	}
 
 	@Override
@@ -70,6 +85,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 		}
 
 		createdStreamId = streamId;
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 
 		if (createdStreamId != null) {
 			scheduleTask(() -> {
@@ -93,12 +109,23 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 	}
 
 	@Override
+	protected void afterStreamDeletion(String streamId, JsonObject deleteResult, JsonElement error) {
+		deletedStreamId = streamId;
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream deletion for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
+	}
+
+	@Override
 	protected boolean isFinished() {
 		return createdStreamId != null
 			&& !eventsEnqueued.isEmpty()
 			&& eventsEnqueued.get(createdStreamId) != null
 			&& eventsAcked.get(createdStreamId) != null
-			&& eventsAcked.get(createdStreamId).containsAll(eventsEnqueued.get(createdStreamId));
+			&& didReceiveExpectedAcksForAllDeliveredEvents()
+			&& createdStreamId.equals(deletedStreamId);
+	}
+
+	protected boolean didReceiveExpectedAcksForAllDeliveredEvents() {
+		return eventsAcked.get(createdStreamId).containsAll(eventsEnqueued.get(createdStreamId));
 	}
 
 	@Override

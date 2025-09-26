@@ -23,9 +23,9 @@ import java.util.concurrent.TimeUnit;
 		This test verifies the receiver stream management according to the capabilities listed in the CAEP Interop Profile 1.0.
 		The test generates a dynamic transmitter and waits for a receiver to register a stream.
 		The testsuite expects to observe the following interactions:
-		 * creating a stream
-		 * reading the stream configuration
-		 * reading stream status
+		 * create a stream
+		 * read the stream configuration
+		 * read the stream status
 		 * trigger a stream verification
 		 * acknowledge the stream verification.
 		 * retrieve and acknowledge the CAEP events 'session-revoked' and 'credential-change'""",
@@ -88,19 +88,19 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		}
 
 		createdStreamId = streamId;
-		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 	}
 
 	@Override
 	protected void afterStreamLookup(String streamId, JsonObject lookupResult, JsonElement error) {
 		readStreamId = streamId;
-		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Lookup"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Lookup for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 	}
 
 	@Override
 	protected void onStatusStatusLookup(String streamId, JsonObject statusOpResult) {
 		readStreamStatusStreamId = streamId;
-		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Status Lookup"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Status Lookup for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 	}
 
 	@Override
@@ -108,7 +108,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		// needed if SSF Receiver uses push delivery
 		if (SsfEvents.isVerificationEvent(event.type())) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 
 			afterStreamVerification(streamId, event);
 		}
