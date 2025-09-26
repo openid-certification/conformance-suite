@@ -37,7 +37,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"openbanking_uk",
 	"consumerdataright_au",
 	"connectid_au",
-		"cbuae"
+	"cbuae",
+	"client_credentials_only"
 })
 public class FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2SPFinalServerTestModule {
 

@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_brazil", "connectid_au", "cbuae", "client_credentials_only" })
 public class FAPI2SPFinalClientTestInvalidOpenBankingIntentId extends AbstractFAPI2SPFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
