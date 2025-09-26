@@ -188,6 +188,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		env.putObject(requestId, requestParts);
 		env.mapKey("incoming_request", requestId);
 
+		if (isFinished()) {
+			// ignore requests after the test finished.
+			// The transmitter tests might send additional cleanup requests which we don't need to handle here.
+			//
+			return ResponseEntity.noContent().build();
+		}
+
 		setStatus(Status.RUNNING);
 
 		Object response;
