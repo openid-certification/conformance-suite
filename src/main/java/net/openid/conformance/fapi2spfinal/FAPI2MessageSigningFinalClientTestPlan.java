@@ -93,6 +93,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 
 		switch (profile) {
 			case "plain_fapi":
+			case "fapi_client_credentials_grant":
 				break;
 			case "openbanking_uk":
 				if (jarm) {
