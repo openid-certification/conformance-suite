@@ -308,7 +308,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		switch (method) {
 
 			case "GET": {
-				callAndStopOnFailure(OIDSSFHandleStreamLookupRequest.class, "OIDSSF-8.1.1.2");
+				callAndContinueOnFailure(OIDSSFHandleStreamLookupRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.2");
 				JsonObject lookupResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 
 				JsonElement result = lookupResult.get("result");
@@ -327,7 +327,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			case "POST": {
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.1");
-				callAndStopOnFailure(OIDSSFHandleStreamCreateRequest.class, "OIDSSF-8.1.1.1");
+				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = createResult.get("error");
 				afterStreamCreation(OIDFJSON.tryGetString(createResult.get("stream_id")), createResult, error);
@@ -337,7 +337,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 			case "DELETE": {
 				callAndContinueOnFailure(OIDSSFHandleStreamDeleteRequestValidation.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
-				callAndStopOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore), "OIDSSF-8.1.1.5");
+				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = deleteResult.get("error");
@@ -349,7 +349,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			case "PATCH": {
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.3");
-				callAndStopOnFailure(OIDSSFHandleStreamUpdateRequest.class, "OIDSSF-8.1.1.3");
+				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				JsonObject updateResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = updateResult.get("error");
 				afterStreamUpdate(OIDFJSON.tryGetString(updateResult.get("stream_id")), updateResult, error);
@@ -359,7 +359,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			case "PUT": {
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.4");
-				callAndStopOnFailure(OIDSSFHandleStreamReplaceRequest.class, "OIDSSF-8.1.1.4");
+				callAndContinueOnFailure(OIDSSFHandleStreamReplaceRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				JsonObject replaceResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = replaceResult.get("error");
 				afterStreamReplace(OIDFJSON.tryGetString(replaceResult.get("stream_id")), replaceResult, error);
@@ -371,15 +371,15 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected void afterStreamLookup(String streamId, JsonObject lookupResult, JsonElement error) {
-
+		// NOOP
 	}
 
 	protected void afterStreamReplace(String streamId, JsonObject replaceResult, JsonElement error) {
-
+		// NOOP
 	}
 
 	protected void afterStreamDeletion(String streamId, JsonObject deleteResult, JsonElement error) {
-
+		// NOOP
 	}
 
 	protected void afterStreamCreation(String streamId, JsonObject createResult, JsonElement error) {
@@ -387,7 +387,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected void afterStreamUpdate(String streamId, JsonObject updateResult, JsonElement error) {
-
+		// NOOP
 	}
 
 	protected ResponseEntity<?> handleResultWithBody(JsonObject createResult) {
@@ -411,8 +411,8 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		switch (operation) {
-			case add -> callAndStopOnFailure(OIDSSFHandleStreamSubjectAdd.class, "OIDSSF-8.1.3.2");
-			case remove -> callAndStopOnFailure(OIDSSFHandleStreamSubjectRemove.class, "OIDSSF-8.1.3.3");
+			case add -> callAndContinueOnFailure(OIDSSFHandleStreamSubjectAdd.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.3.2");
+			case remove -> callAndContinueOnFailure(OIDSSFHandleStreamSubjectRemove.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.3.3");
 		}
 
 		JsonObject subjectChangeResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
@@ -433,7 +433,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 		}
 
-		callAndStopOnFailure(OIDSSFHandleStreamVerificationRequest.class, "OIDSSF-8.1.4.2");
+		callAndContinueOnFailure(OIDSSFHandleStreamVerificationRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
 		JsonObject verificationResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 
 		JsonElement result = verificationResult.get("result");
@@ -487,7 +487,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
-
+		// NOOP
 	}
 
 	protected ResponseEntity<?> handleStreamStatusEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
@@ -501,10 +501,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		boolean isUpdateStreamStatus = method.equals("POST");
 
 		if (isReadStreamStatus) {
-			callAndStopOnFailure(OIDSSFHandleStreamStatusLookup.class, "OIDSSF-8.1.2.1");
+			callAndContinueOnFailure(OIDSSFHandleStreamStatusLookup.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1");
 		} else if (isUpdateStreamStatus) {
 			callAndContinueOnFailure(OIDSSFHandleStreamStatusUpdateRequestParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
-			callAndStopOnFailure(OIDSSFHandleStreamStatusUpdateRequest.class, "OIDSSF-8.1.2.2");
+			callAndContinueOnFailure(OIDSSFHandleStreamStatusUpdateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
 		}
 
 		JsonObject statusOpResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
@@ -526,16 +526,19 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected void onStatusStatusLookup(String streamId, JsonObject statusOpResult) {
-
+		// NOOP
 	}
 
 	protected void onStreamStatusUpdateSuccess(String streamId, JsonElement result) {
+		// NOOP
 	}
 
 	protected void onStreamEventAcknowledged(String streamId, String jti, OIDSSFSecurityEvent event) {
+		// NOOP
 	}
 
 	protected void onStreamEventEnqueued(String streamId, String jti) {
+		// NOOP
 	}
 
 	protected abstract boolean isFinished();
@@ -547,7 +550,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
 		}
 
-		callAndStopOnFailure(new OIDSSFHandlePollRequest(eventStore, this::onStreamEventAcknowledged), "OIDSSF-6.1.2", "RFC8936-2.4");
+		callAndContinueOnFailure(new OIDSSFHandlePollRequest(eventStore, this::onStreamEventAcknowledged), Condition.ConditionResult.FAILURE, "OIDSSF-6.1.2", "RFC8936-2.4");
 
 		JsonObject pollResult = env.getElementFromObject("ssf", "poll_result").getAsJsonObject();
 

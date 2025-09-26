@@ -24,8 +24,7 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 		if (streamConfigInputEl == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream config "));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream replacement request: Failed to parse SSF stream config input", args("error", resultObj.get("error"), "unparsed_stream_config", rawStreamInput));
-			return env;
+			throw error("Failed to handle stream replacement request: Failed to parse SSF stream config input", args("error", resultObj.get("error"), "unparsed_stream_config", rawStreamInput));
 		}
 
 		JsonObject streamConfigInput = streamConfigInputEl.getAsJsonObject();
@@ -34,31 +33,27 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream replacement request: Missing stream_id in request body", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream replacement request: Missing stream_id in request body", args("error", resultObj.get("error")));
 		}
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle stream replacement request: No streams configured", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream replacement request: No streams configured", args("error", resultObj.get("error")));
 		}
 
 		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
-			log("Failed to handle stream replacement request: Could not find stream by stream_id", args("stream_id", streamId));
 			resultObj.addProperty("status_code", 404);
-			return env;
+			throw error("Failed to handle stream replacement request: Could not find stream by stream_id", args("stream_id", streamId));
 		}
 
 		Set<String> keysNotAllowedInUpdate = checkForInvalidKeysInStreamConfigInput(streamConfigInput);
 		if (!keysNotAllowedInUpdate.isEmpty()) {
 			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream replacement in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream replacement request: Found invalid keys", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
-			return env;
+			throw error("Failed to handle stream replacement request: Found invalid keys", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
 		}
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();

@@ -20,32 +20,28 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("parsing_error", e.getMessage()));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream subject " + getChangeType() + " request: Failed to parse stream status input", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Failed to parse stream status input", args("error", resultObj.get("error")));
 		}
 
 		String streamId = OIDFJSON.tryGetString(streamSubjectInput.get("stream_id"));
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream subject " + getChangeType() + " request: Missing stream_id in stream status update request body", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Missing stream_id in stream status update request body", args("error", resultObj.get("error")));
 		}
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle stream subject " + getChangeType() + " request: No streams configured", args("stream_id", streamId, "error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream subject " + getChangeType() + " request: No streams configured", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
-			log("Failed to handle stream subject " + getChangeType() + " request: Stream not found", args("stream_id", streamId, "error", resultObj.get("error")));
 			resultObj.addProperty("status_code", 404);
-			return env;
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Stream not found", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
@@ -54,9 +50,8 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 			changeSubjects(streamConfig, streamSubjectInput, resultObj);
 		} catch (IllegalArgumentException e) {
 			resultObj.add("error", createErrorObj("invalid_subject", e.getMessage()));
-			log("Failed to handle stream subject " + getChangeType() + " request: Invalid subject", args("stream_id", streamId, "error", resultObj.get("error")));
 			resultObj.addProperty("status_code", 403);
-			return env;
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Invalid subject", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		// store updated stream subjects

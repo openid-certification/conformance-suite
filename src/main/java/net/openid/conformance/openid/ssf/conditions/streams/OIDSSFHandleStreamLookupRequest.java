@@ -27,9 +27,8 @@ public class OIDSSFHandleStreamLookupRequest extends AbstractOIDSSFHandleReceive
 
 			JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 			if (streamConfigEl == null) {
-				log("Failed to handle stream lookup request: Could not find stream by stream_id", args("stream_id", streamId));
 				resultObj.addProperty("status_code", 404);
-				return env;
+				throw error("Failed to handle stream lookup request: Could not find stream by stream_id", args("stream_id", streamId));
 			}
 
 			JsonObject streamConfig = streamConfigEl.getAsJsonObject();

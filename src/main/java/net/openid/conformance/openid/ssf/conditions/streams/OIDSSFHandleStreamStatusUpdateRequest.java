@@ -18,8 +18,7 @@ public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleR
 		if (streamStatusInputEl == null) {
 			resultObj.add("error", createErrorObj("parsing_error", "Missing stream status input"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream status update request: Failed to parse stream status input", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream status update request: Failed to parse stream status input", args("error", resultObj.get("error")));
 		}
 		JsonObject streamStatusInput = streamStatusInputEl.getAsJsonObject();
 
@@ -27,24 +26,21 @@ public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleR
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream status update request: Missing stream_id in stream status update request body", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream status update request: Missing stream_id in stream status update request body", args("error", resultObj.get("error")));
 		}
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle stream status update request: No streams configured", args("stream_id", streamId, "error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream status update request: No streams configured", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
-			log("Failed to handle stream status update request: Stream not found", args("stream_id", streamId, "error", resultObj.get("error")));
 			resultObj.addProperty("status_code", 404);
-			return env;
+			throw error("Failed to handle stream status update request: Stream not found", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
@@ -54,9 +50,8 @@ public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleR
 			status = StreamStatusValue.valueOf(OIDFJSON.tryGetString(streamStatusInput.get("status")));
 		} catch (IllegalArgumentException e) {
 			resultObj.add("error", createErrorObj("bad_request", "Invalid stream status input"));
-			log("Failed to handle stream status update request: Invalid input", args("stream_id", streamId, "error", resultObj.get("error"), "status", streamStatusInput.get("status")));
 			resultObj.addProperty("status_code", 400);
-			return env;
+			throw error("Failed to handle stream status update request: Invalid input", args("stream_id", streamId, "error", resultObj.get("error"), "status", streamStatusInput.get("status")));
 		}
 
 		String reason = OIDFJSON.tryGetString(streamStatusInput.get("reason"));
@@ -64,9 +59,8 @@ public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleR
 			OIDSSFStreamUtils.updateStreamStatus(streamConfig, status, reason);
 		} catch (IllegalArgumentException e) {
 			resultObj.add("error", createErrorObj("bad_request", e.getMessage()));
-			log("Failed to handle stream status update request: Invalid status transition", args("stream_id", streamId, "error", resultObj.get("error")));
 			resultObj.addProperty("status_code", 400);
-			return env;
+			throw error("Failed to handle stream status update request: Invalid status transition", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		// store updated stream status

@@ -16,10 +16,12 @@ public class OIDSSFHandleStreamRequestBodyParsing extends AbstractCondition {
 		String rawStreamInput = env.getString("incoming_request", "body");
 		env.putString("ssf", "stream_input_raw", rawStreamInput);
 
+		String parseError = env.getString("incoming_request", "body_json_parse_error");
+
 		JsonObject streamConfigInput = OIDSSFStreamUtils.getStreamFromRequestBody(env);
-		if (streamConfigInput == null) {
+		if (streamConfigInput == null || parseError != null) {
 			env.removeElement("ssf", "stream_input");
-			throw error("Failed to parse stream request: Stream config missing or invalid", args("error", "Could not find stream config in request body", "unparsed_stream_input", rawStreamInput));
+			throw error("Failed to parse JSON in stream request: Stream config missing or invalid", args("error", "Could not find stream config in request body", "unparsed_stream_input", rawStreamInput, "parse_error", parseError));
 		}
 
 		env.putObject("ssf", "stream_input", streamConfigInput);

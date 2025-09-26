@@ -23,8 +23,7 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 		if (streamConfigInputEl == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream config "));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream creation request: Missing stream config in request body", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream creation request: Missing stream config in request body", args("error", resultObj.get("error")));
 		}
 
 		JsonObject streamConfigInput = streamConfigInputEl.getAsJsonObject();
@@ -33,16 +32,14 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 		if (!streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("conflict", "Only one stream allowed for receiver"));
 			resultObj.addProperty("status_code", 409);
-			log("Failed to handle stream creation request: Too many streams configured for receiver", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream creation request: Too many streams configured for receiver", args("error", resultObj.get("error")));
 		}
 
 		Set<String> keysNotAllowedInUpdate = checkForInvalidKeysInStreamConfigInput(streamConfigInput);
 		if (!keysNotAllowedInUpdate.isEmpty()) {
 			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream config in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream creation request: Found invalid keys for stream in request body", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
-			return env;
+			throw error("Failed to handle stream creation request: Found invalid keys for stream in request body", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
 		}
 
 		JsonObject defaultConfig = env.getElementFromObject("ssf", "default_config").getAsJsonObject();
@@ -96,16 +93,15 @@ public class OIDSSFHandleStreamCreateRequest extends AbstractOIDSSFHandleReceive
 			resultObj.addProperty("status_code", 201);
 			logSuccess("Handled stream creation request for stream_id=" + streamId,
 				args("stream_id", streamId, "stream_input", streamConfigInput));
+			return env;
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("bad_request", e.getMessage()));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream creation request", args("error", resultObj.get("error")));
+			throw error("Failed to handle stream creation request", args("error", resultObj.get("error")));
 		}
 
 		// TODO handle 403	if the Event Receiver is not allowed to create a stream
 		// see: https://openid.github.io/sharedsignals/openid-sharedsignals-framework-1_0.html#section-8.1.1.1-11
-
-		return env;
 	}
 
 	protected String getStreamAudience(Environment env) {

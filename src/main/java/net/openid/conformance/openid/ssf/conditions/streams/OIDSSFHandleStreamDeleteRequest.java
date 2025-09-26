@@ -23,24 +23,21 @@ public class OIDSSFHandleStreamDeleteRequest extends AbstractOIDSSFHandleReceive
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "missing stream_id parameter"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream deletion request", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream deletion request", args("error", resultObj.get("error")));
 		}
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "No streams found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle stream deletion request", args("stream_id", streamId, "error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream deletion request", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		JsonObject streamObj = streamsObj.getAsJsonObject(streamId);
 		if (streamObj == null) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle stream deletion request", args("stream_id", streamId, "error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream deletion request", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		streamsObj.remove(streamId);

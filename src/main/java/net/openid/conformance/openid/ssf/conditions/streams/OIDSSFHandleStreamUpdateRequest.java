@@ -22,8 +22,7 @@ public class OIDSSFHandleStreamUpdateRequest extends AbstractOIDSSFHandleReceive
 		if (streamConfigInputEl == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream config "));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream update request: Failed to parse stream input", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream update request: Failed to parse stream input", args("error", resultObj.get("error")));
 		}
 
 		JsonObject streamConfigInput = streamConfigInputEl.getAsJsonObject();
@@ -32,16 +31,14 @@ public class OIDSSFHandleStreamUpdateRequest extends AbstractOIDSSFHandleReceive
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream update request: Missing stream_id in request body", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream update request: Missing stream_id in request body", args("error", resultObj.get("error")));
 		}
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle stream update request: No streams configured", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream update request: No streams configured", args("error", resultObj.get("error")));
 		}
 
 		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
@@ -59,8 +56,7 @@ public class OIDSSFHandleStreamUpdateRequest extends AbstractOIDSSFHandleReceive
 		if (!keysNotAllowedInUpdate.isEmpty()) {
 			resultObj.add("error", createErrorObj("bad_request", "Found invalid keys for stream config update in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream update request: Found invalid keys", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
-			return env;
+			throw error("Failed to handle stream update request: Found invalid keys", args("error", resultObj.get("error"), "invalid_keys", keysNotAllowedInUpdate));
 		}
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();

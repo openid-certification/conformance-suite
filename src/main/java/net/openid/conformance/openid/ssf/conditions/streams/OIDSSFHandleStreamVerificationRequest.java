@@ -19,32 +19,28 @@ public class OIDSSFHandleStreamVerificationRequest extends AbstractOIDSSFHandleR
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("parsing_error", e.getMessage()));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream update request: Failed to parse stream input", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream update request: Failed to parse stream input", args("error", resultObj.get("error")));
 		}
 
 		String streamId = OIDFJSON.tryGetString(verificationInput.get("stream_id"));
 		if (streamId == null) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			log("Failed to handle stream update request: Missing stream_id in request body", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream update request: Missing stream_id in request body", args("error", resultObj.get("error")));
 		}
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Streams not found"));
 			resultObj.addProperty("status_code", 404);
-			log("Failed to handle stream update request: No streams configured", args("error", resultObj.get("error")));
-			return env;
+			throw error("Failed to handle stream update request: No streams configured", args("error", resultObj.get("error")));
 		}
 
 		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
 			resultObj.add("error", createErrorObj("not_found", "Streams not found"));
-			log("Failed to handle stream update request: Stream not found", args("stream_id", streamId, "error", resultObj.get("error")));
 			resultObj.addProperty("status_code", 404);
-			return env;
+			throw error("Failed to handle stream update request: Stream not found", args("stream_id", streamId, "error", resultObj.get("error")));
 		}
 
 		JsonObject streamConfig = streamConfigEl.getAsJsonObject();
