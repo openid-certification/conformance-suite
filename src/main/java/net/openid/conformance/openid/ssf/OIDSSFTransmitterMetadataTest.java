@@ -39,7 +39,7 @@ import net.openid.conformance.variant.VariantParameters;
 @VariantParameters({ServerMetadata.class, SsfDeliveryMode.class,})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
-public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTestModule {
+public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
 	public void start() {
@@ -59,14 +59,13 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTestModule {
 		});
 
 		eventLog.runBlock("Fetch OAuth Protected Resource Metadata", () -> {
-			// TODO fetch OAuth protected resource metadata
 			// https://ssf.caep.dev/.well-known/oauth-protected-resource
 			callAndContinueOnFailure(DeriveOauthProtectedResourceMetadataUri.class, Condition.ConditionResult.INFO, "CAEPIOP-2.7.3");
 			callAndContinueOnFailure(FetchOauthProtectedResourceMetadata.class, Condition.ConditionResult.INFO, "CAEPIOP-2.7.3");
 		});
 
 		eventLog.runBlock("Validate OAuth Protected Resource Metadata", () -> {
-			callAndContinueOnFailure(OIDSSFCheckScopesWithOauthProtectedResourceMetadata.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2.1");
+			callAndContinueOnFailure(OIDSSFCheckScopesWithOauthProtectedResourceMetadata.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2");
 		});
 
 		fireTestFinished();

@@ -1,0 +1,22 @@
+{
+    "alias": "ssf-tx-test-ci",
+    "description": "SSF Transmitter test by emulating an SSF Receiver",
+    "ssf": {
+        "subjects": {
+            "valid": {
+                "format": "opaque",
+                "id": "valid"
+            },
+            "invalid": {
+                "format": "opaque",
+                "id": "invalid"
+            }
+        },
+        "transmitter": {
+            "access_token": "abc1234",
+            "issuer": "{BASEURL}",
+            "metadata_suffix": "/test/a/ssf-rx-test-ci",
+            "push_endpoint_authorization_header": "pushToken"
+        }
+    }
+}

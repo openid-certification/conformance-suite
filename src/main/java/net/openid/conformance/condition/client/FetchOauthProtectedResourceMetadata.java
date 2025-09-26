@@ -33,7 +33,7 @@ public class FetchOauthProtectedResourceMetadata extends AbstractCondition {
 		if (!Strings.isNullOrEmpty(oauthResourceMedatataUrl)) {
 			// do the fetch
 
-			log("Fetching server key", args("oauth_protected_resource_metadata_uri", oauthResourceMedatataUrl));
+			log("Fetching protected resource server metadata", args("oauth_protected_resource_metadata_uri", oauthResourceMedatataUrl));
 
 			try {
 				RestTemplate restTemplate = createRestTemplate(env);

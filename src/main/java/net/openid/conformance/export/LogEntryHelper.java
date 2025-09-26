@@ -71,9 +71,12 @@ public class LogEntryHelper {
 		specLinks.put("RFC8705-", "https://tools.ietf.org/html/rfc8705#section-");
 		specLinks.put("RFC8707-", "https://tools.ietf.org/html/rfc8707#section-");
 		specLinks.put("RFC8485-", "https://tools.ietf.org/html/rfc8485#section-");
+		specLinks.put("RFC8935-", "https://tools.ietf.org/html/rfc8935#section-");
+		specLinks.put("RFC8936-", "https://tools.ietf.org/html/rfc8936#section-");
 		specLinks.put("RFC9325-", "https://tools.ietf.org/html/rfc9325.html#section-");
 		specLinks.put("RFC9325A-", "https://tools.ietf.org/html/rfc9325.html#appendix-");
 		specLinks.put("RFC9396-", "https://tools.ietf.org/html/rfc9396#section-");
+		specLinks.put("RFC9728-", "https://tools.ietf.org/html/rfc9728#section-");
 		specLinks.put("OBSP-", "https://openbanking.atlassian.net/wiki/spaces/DZ/pages/83919096/Open+Banking+Security+Profile+-+Implementer+s+Draft+v1.1.2#");
 		specLinks.put("OAuth2-ATCA05-", "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-05#section-");
 		specLinks.put("OAuth2-RT-", "https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#rfc.section.");
@@ -100,9 +103,10 @@ public class LogEntryHelper {
 		specLinks.put("IAVC-", "https://openid.net/specs/openid-ida-verified-claims-1_0.html#section-");
 		specLinks.put("DPOP-", "https://www.rfc-editor.org/rfc/rfc9449#section-");
 		specLinks.put("KSA", "https://ksaob.atlassian.net/wiki/spaces/KS20221101finalerrata1/pages/61014862/API+Security");
-		specLinks.put("OIDSSF-", "https://openid.net/specs/openid-sharedsignals-framework-1_0-05.html#section-");
-		specLinks.put("CAEPIOP-", "https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html#section-");
-		specLinks.put("OIDCAEP-", "https://openid.net/specs/openid-caep-1_0-ID2.html#section-");
+		specLinks.put("OIDSSF-", "https://openid.net/specs/openid-sharedsignals-framework-1_0-final.html#section-");
+		specLinks.put("CAEPIOP-", "https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html#section-");
+		specLinks.put("OIDRISC-", "https://openid.net/specs/openid-risc-1_0-final.html#section-");
+		specLinks.put("OIDCAEP-", "https://openid.net/specs/openid-caep-1_0-final.html#section-");
 		specLinks.put("CID-SP-", "https://cdn.connectid.com.au/specifications/digitalid-fapi-profile-01.html#section");
 		specLinks.put("CID-IDA-", "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html#section");
 		specLinks.put("CID-PURPOSE-", "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section-");

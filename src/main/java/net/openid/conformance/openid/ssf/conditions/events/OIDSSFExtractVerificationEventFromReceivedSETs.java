@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.nimbusds.jwt.JWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.openid.ssf.SsfEvents;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
@@ -41,7 +42,7 @@ public class OIDSSFExtractVerificationEventFromReceivedSETs extends AbstractCond
 			throw error("Couldn't parse SET JWT", e);
 		}
 
-		if (eventsClaim == null || !eventsClaim.has("https://schemas.openid.net/secevent/ssf/event-type/verification")) {
+		if (eventsClaim == null || !eventsClaim.has(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE)) {
 			throw error("Couldn't find verification event in polling response", args("events", eventsClaim, "polling_response", ssfPollingResponse));
 		}
 

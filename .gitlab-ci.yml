@@ -324,11 +324,11 @@ federation_test:
     - set_up_for_running_test_plan
     - run_federation_test_plan
 
-#ssf_test:
-#  <<: *deployment_test
-#  script:
-#    - set_up_for_running_test_plan
-#    - run_ssf_test_plan
+ssf_test:
+  <<: *deployment_test
+  script:
+    - set_up_for_running_test_plan
+    - run_ssf_test_plan
 
 local_test:
   stage: test
