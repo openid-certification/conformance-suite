@@ -32,4 +32,6 @@ public interface OIDSSFEventStore {
 	void registerErrorForStreamEvent(String streamId, String jti, JsonObject error);
 
 	JsonObject isErrorForStreamEvent(String streamId, String jti);
+
+	void cleanup();
 }

@@ -570,6 +570,12 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(resourceServerMetadata);
 	}
 
+	@Override
+	public void cleanup() {
+		super.cleanup();
+		eventStore.cleanup();
+	}
+
 	protected class CheckTestFinishedTask implements Callable<String> {
 
 		protected final Supplier<Boolean> finishedCondition;

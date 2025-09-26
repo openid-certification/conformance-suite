@@ -182,4 +182,13 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 	public JsonObject isErrorForStreamEvent(String streamId, String jti) {
 		return getStreamSetErrorsCache(streamId).get(jti);
 	}
+
+	@Override
+	public void cleanup() {
+
+		streamEventQueueCache.invalidateAll();
+		streamSetErrorsCache.invalidateAll();
+		streamAcksAckedCache.invalidateAll();
+		streamEventsCache.invalidateAll();
+	}
 }
