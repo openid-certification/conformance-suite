@@ -33,7 +33,7 @@ import org.springframework.http.ResponseEntity;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "connectid_au"})
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "connectid_au", "fapi_client_credentials_grant" })
 public class FAPI2SPFinalClientRefreshTokenTest extends AbstractFAPI2SPFinalClientTest {
 	private int numberOfTimesRefreshTokenUsed = 0;
 

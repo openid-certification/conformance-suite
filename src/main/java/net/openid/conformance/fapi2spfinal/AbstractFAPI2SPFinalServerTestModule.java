@@ -1134,6 +1134,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		profileIdTokenValidationSteps = null;
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
+	public void setupClientCredentialsOnly() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		preAuthorizationSteps = null;
+		profileAuthorizationEndpointSetupSteps = null;
+		profileIdTokenValidationSteps = null;
+	}
+
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;

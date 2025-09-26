@@ -17,7 +17,9 @@ public enum FAPI2FinalOPProfile {
 	// https://connectid.com.au
 	CONNECTID_AU,
 	// https://openfinanceuae.atlassian.net/wiki/spaces/StandardsDraft01/pages/39158001/Security+Profile+-+FAPI
-	CBUAE;
+	CBUAE,
+	// PLAIN_FAPI utilising client credentials grant only.
+	FAPI_CLIENT_CREDENTIALS_GRANT;
 
 	@Override
 	public String toString() {
