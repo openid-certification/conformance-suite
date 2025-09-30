@@ -437,7 +437,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			if (env.getString("config", "vci.client_attestation_issuer") == null) {
 				throw new TestFailureException(getId(), "vci.client_attestation_issuer must be configured if client_attestation is used as client authentication method.");
 			}
-			callAndStopOnFailure(AddClientAttestationPoPNonceRequiredToServerConfiguration.class, ConditionResult.FAILURE, "OAuth2-ATCA05-8-2" );
+			callAndStopOnFailure(AddClientAttestationPoPNonceRequiredToServerConfiguration.class, ConditionResult.FAILURE, "OAuth2-ATCA07-8-2");
 		}
 
 		configureCredentialIssuerMetadata();
