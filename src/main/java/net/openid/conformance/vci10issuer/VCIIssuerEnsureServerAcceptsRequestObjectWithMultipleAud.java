@@ -5,8 +5,6 @@ import net.openid.conformance.condition.client.AddMultipleAudToRequestObject;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2ID2OPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-ensure-request-object-with-multiple-aud-succeeds",
@@ -22,10 +20,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"vci.credential_configuration_id",
 		"vci.authorization_server",
 	}
-)
-@VariantNotApplicable(
-		parameter = FAPI2ID2OPProfile.class,
-		values = "cbuae"
 )
 public class VCIIssuerEnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractVCIIssuerTestModule {
 
