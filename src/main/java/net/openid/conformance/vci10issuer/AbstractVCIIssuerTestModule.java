@@ -298,9 +298,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		eventLog.startBlock("Fetch Authorization Server Metadata");
 
-		callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "RFC8414-3.1");
+		callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "RFC8414-3.1");
 
-		callAndStopOnFailure(VCISelectOAuthorizationServer.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
+		callAndStopOnFailure(VCISelectOAuthorizationServer.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 
 		eventLog.endBlock();
 
@@ -438,7 +438,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Object handleTxCode() {
 
 		setStatus(Status.RUNNING);
-		callAndStopOnFailure(VCIExtractTxCodeFromRequest.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5");
+		callAndStopOnFailure(VCIExtractTxCodeFromRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 		performPreAuthorizationCodeFlow();
 
 		return new ModelAndView("resultCaptured",
@@ -463,7 +463,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				processCredentialOffer(requestParts);
 
 				if (env.getElementFromObject("config", "vci.static_tx_code") != null) {
-					callAndStopOnFailure(VCIUseStaticTxCodeFromConfig.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5");
+					callAndStopOnFailure(VCIUseStaticTxCodeFromConfig.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 
 					performPreAuthorizationCodeFlow();
 				} else {
@@ -480,7 +480,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void waitForTxCode() {
 		expose("tx_code_endpoint", env.getString("base_url") + "/tx_code?code=your_tx_code");
-		callAndStopOnFailure(VCIWaitForTxCode.class,ConditionResult.FAILURE, "OID4VCI-ID2-3.5");
+		callAndStopOnFailure(VCIWaitForTxCode.class,ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 
 		setStatus(Status.WAITING);
 		// performPreAuthorizationCodeFlow() is called in handleTxCode()
@@ -488,16 +488,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void processCredentialOffer(JsonObject requestParts) {
 		JsonObject queryStringParams = requestParts.get("query_string_params").getAsJsonObject();
-		callAndStopOnFailure(new VCIValidateCredentialOfferRequestParams(requestParts), ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+		callAndStopOnFailure(new VCIValidateCredentialOfferRequestParams(requestParts), ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
 
 		if (queryStringParams.has("credential_offer_uri")) {
-			callAndStopOnFailure(VCIFetchCredentialOfferFromCredentialOfferUri.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1.3");
+			callAndStopOnFailure(VCIFetchCredentialOfferFromCredentialOfferUri.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.3");
 		}
 
-		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCITryToExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-4.1.1");
+			callAndStopOnFailure(VCITryToExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
 			// TODO add support for deriving authorization_server to use from credential offer,
 			//  see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-4.1.1-5.1.2.2
 		}
@@ -540,13 +540,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void waitForCredentialOffer() {
 		expose("credential_offer_endpoint", env.getString("base_url") + "/credential_offer");
-		callAndStopOnFailure(VCIWaitForCredentialOffer.class,  ConditionResult.FAILURE, "OID4VCI-ID2-4.1");
+		callAndStopOnFailure(VCIWaitForCredentialOffer.class,  ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
 		setStatus(Status.WAITING);
 	}
 
 	protected void performPreAuthorizationCodeFlow() {
 
-		callAndStopOnFailure(VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5", "OID4VCI-ID2-4.1.1");
+		callAndStopOnFailure(VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5", "OID4VCI-1FINAL-4.1.1");
 
 		performPostAuthorizationFlow();
 	}
@@ -667,7 +667,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
 		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, usePkce, profileAuthorizationEndpointSetupSteps, vciGrantType, vciAuthorizationCodeFlowVariant);
 		if (isRarRequest) {
-			seq.then(condition(VCIGenerateRichAuthorizationRequestForCredential.class).onFail(ConditionResult.FAILURE).requirements("OID4VCI-ID2-5.1.1"));
+			seq.then(condition(VCIGenerateRichAuthorizationRequestForCredential.class).onFail(ConditionResult.FAILURE).requirements("OID4VCI-1FINAL-5.1.1"));
 			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
 		}
 		return seq;
@@ -1006,7 +1006,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			while (i < MAX_RETRY) {
 
 				call(sequence(createDpopForResourceEndpointSteps));
-				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "OID4VCI-ID2-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "OID4VCI-1FINAL-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
 				if (Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 					break; // no nonce error so
 				}
@@ -1048,16 +1048,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
 		if (nonceEndpointEl != null) {
 
-			callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-7.1");
+			callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
 
 			eventLog.endBlock();
 
 			eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
 			call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
-			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-7.2");
+			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 
-			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-7.2");
-			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-7.2");
+			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 		} else {
 			eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
 		}
@@ -1070,14 +1070,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
-		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-ID2-8.2.1.1");
+		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-1FINALA-F.1");
 
-		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-ID2-8.2");
+		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
 
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-ID2-8", "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-8", "FAPI2-SP-ID2-5.3.3-2");
 		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
@@ -1088,9 +1088,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		eventLog.startBlock(currentClientString() + " Verify Credential Endpoint Response");
 		// TODO: allow a deferred response with a transaction_id https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.3
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-8.3");
-		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-8.3");
-		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-8.3");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
 		callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
 		callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-4.2.2.2");

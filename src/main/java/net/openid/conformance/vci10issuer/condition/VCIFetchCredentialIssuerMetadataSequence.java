@@ -16,10 +16,10 @@ public class VCIFetchCredentialIssuerMetadataSequence extends AbstractConditionS
 
 		switch (metadata) {
 			case DISCOVERY:
-				callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
+				callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 				break;
 			case STATIC:
-				callAndStopOnFailure(VCIGetStaticCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2.2");
+				callAndStopOnFailure(VCIGetStaticCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 				break;
 		}
 	}
