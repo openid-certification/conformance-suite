@@ -44,6 +44,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	protected Boolean isDpop;
+	protected boolean clientCredentailsGrant = false;
 
 	public static class MtlsChecks extends AbstractConditionSequence
 	{
@@ -124,7 +125,9 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		}
 
-		callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-5");
+		if (! clientCredentailsGrant) {
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-5");
+		}
 
 		call(sequence(variantAuthChecks));
 	}
