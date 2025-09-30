@@ -406,7 +406,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		vciGrantType = getVariant(VCIGrantType.class);
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-ID2-5.1.3-2.3");
+			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
 		}
 
 		vciAuthorizationCodeFlowVariant = getVariant(VCIWalletAuthorizationCodeFlowVariant.class);
@@ -501,11 +501,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		configureSupportedCredentialConfigurations();
 
-		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-ID2-11.2");
+		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2");
 	}
 
 	protected void generateSignedCredentialIssuerMetadata() {
-		callAndStopOnFailure(VCIGenerateSignedCredentialIssuerMetadata.class, "OID4VCI-11.2.3", "HAIP-4.1");
+		callAndStopOnFailure(VCIGenerateSignedCredentialIssuerMetadata.class, "OID4VCI-1FINAL-11.2.3", "HAIP-4.1");
 	}
 
 	protected JsonObject getCredentialIssuerMetadata() {
@@ -714,16 +714,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void prepareCredentialOffer() {
 
 		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCIPreparePreAuthorizationCode.class, "OID4VCI-ID2-3.5", "OID4VCI-ID2-4.1");
+			callAndStopOnFailure(VCIPreparePreAuthorizationCode.class, "OID4VCI-1FINAL-3.5", "OID4VCI-1FINAL-4.1");
 		}
 
-		callAndStopOnFailure(new VCICreateCredentialOffer(vciGrantType), "OID4VCI-ID2-4.1");
+		callAndStopOnFailure(new VCICreateCredentialOffer(vciGrantType), "OID4VCI-1FINAL-4.1");
 
 		if (vciCredentialOfferParameterVariantType == VCICredentialOfferParameterVariant.BY_REFERENCE) {
-			callAndStopOnFailure(VCICreateCredentialOfferUri.class, "OID4VCI-ID2-4.1.3");
+			callAndStopOnFailure(VCICreateCredentialOfferUri.class, "OID4VCI-1FINAL-4.1.3");
 		}
 
-		callAndStopOnFailure(new VCICreateCredentialOfferRedirectUrl(vciCredentialOfferParameterVariantType), "OID4VCI-ID2-4.1");
+		callAndStopOnFailure(new VCICreateCredentialOfferRedirectUrl(vciCredentialOfferParameterVariantType), "OID4VCI-1FINAL-4.1");
 		browser.setShowQrCodes(true);
 
 		if (vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED_DC_API) {
@@ -893,9 +893,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		call(exec().mapKey("incoming_request", requestId));
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-ID2-7.2" );
-		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-ID-7");
-		callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-ID2-7.2");
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2" );
+		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-ID-7");
+		callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity;
@@ -925,9 +925,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(false);
 
-		callAndStopOnFailure(VCIValidateCredentialRequestStructure.class, "OID4VCI-ID2-8.2");
-		callAndStopOnFailure(VCIExtractCredentialRequestProof.class, "OID4VCI-ID2-8.2.2");
-		callAndContinueOnFailure(VCIValidateCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-ID2-8.2.2");
+		callAndStopOnFailure(VCIValidateCredentialRequestStructure.class, "OID4VCI-1FINAL-8.2");
+		callAndStopOnFailure(VCIExtractCredentialRequestProof.class, "OID4VCI-1FINALA-F.4");
+		callAndContinueOnFailure(VCIValidateCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.4");
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
 		callAndStopOnFailure(CreateSdJwtCredential.class);
@@ -1272,8 +1272,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			responseEntity = ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON).body(credentialIssuerMetadata);
 		}
 
-		callAndContinueOnFailure(EnsureIncomingRequestMethodIsGet.class, ConditionResult.FAILURE, "OID4VCI-11.2.2");
-		callAndContinueOnFailure(VCICheckIssuerMetadataRequestUrl.class, ConditionResult.FAILURE, "OID4VCI-11.2.2");
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsGet.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2.2");
+		callAndContinueOnFailure(VCICheckIssuerMetadataRequestUrl.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2.2");
 
 		setStatus(Status.WAITING);
 		return responseEntity;
@@ -1486,7 +1486,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCIValidateTxCode.class, ConditionResult.FAILURE, "OID4VCI-ID2-3.5");
+			callAndStopOnFailure(VCIValidateTxCode.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 		}
 
 		Object tokenResponseOb =  handleTokenEndpointGrantType(requestId);
@@ -1725,7 +1725,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			if (vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED ||
 				vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED_DC_API) {
-				callAndStopOnFailure(VCIVerifyIssuerStateInAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VCI-ID2-5.1.3");
+				callAndStopOnFailure(VCIVerifyIssuerStateInAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-5.1.3");
 			}
 		}
 
