@@ -27,7 +27,6 @@ import net.openid.conformance.condition.client.AddIssToRequestObject;
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
@@ -62,10 +61,8 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -79,24 +76,18 @@ import net.openid.conformance.condition.client.ExpectNoIdTokenInTokenResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromJARMResponse;
 import net.openid.conformance.condition.client.ExtractCHash;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractJARMFromURLQuery;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfiguration;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
-import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceResponse;
 import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FAPI2ValidateJarmSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -104,10 +95,8 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
 import net.openid.conformance.condition.client.RejectErrorInUrlFragment;
-import net.openid.conformance.condition.client.RejectNonJarmResponsesInUrlQuery;
 import net.openid.conformance.condition.client.RejectStateInUrlFragmentForCodeFlow;
 import net.openid.conformance.condition.client.RequireIssInAuthorizationResponse;
-import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseModeToJWT;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToMtlsUserInfoEndpoint;
@@ -124,22 +113,12 @@ import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
-import net.openid.conformance.condition.client.ValidateJARMEncryptionAlg;
-import net.openid.conformance.condition.client.ValidateJARMEncryptionEnc;
-import net.openid.conformance.condition.client.ValidateJARMExpRecommendations;
-import net.openid.conformance.condition.client.ValidateJARMFromURLQueryEncryption;
-import net.openid.conformance.condition.client.ValidateJARMResponse;
-import net.openid.conformance.condition.client.ValidateJARMSignatureUsingKid;
-import net.openid.conformance.condition.client.ValidateJARMSigningAlg;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
-import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims;
-import net.openid.conformance.condition.client.ValidateResourceResponseSignature;
 import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
-import net.openid.conformance.condition.client.ValidateSuccessfulJARMResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
@@ -168,7 +147,6 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
-import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIServerMetadata;
@@ -237,8 +215,19 @@ import java.util.function.Supplier;
 	"client.scope", // scope is always openid
 	"client2.scope"})
 @VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
-@VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attester_keys_jwks"})
+@VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
+	"vci.client_attester_keys_jwks",
+	"vci.client_attestation_issuer"
+})
 @VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code", configurationFields = {"vci.static_tx_code"})
+@VariantConfigurationFields(parameter = VCIClientAuthType.class, value="mtls", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca",
+})
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
