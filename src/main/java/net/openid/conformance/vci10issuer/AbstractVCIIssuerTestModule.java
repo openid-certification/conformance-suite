@@ -192,7 +192,6 @@ import java.util.function.Supplier;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2ID2OPProfile.class,
-	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
 	VCIServerMetadata.class,
 	VCIGrantType.class,
@@ -231,7 +230,6 @@ import java.util.function.Supplier;
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
-	protected Boolean jarm;
 	protected boolean allowPlainErrorResponseForJarm = false;
 	protected Boolean isPar;
 	protected Boolean isOpenId;
@@ -297,7 +295,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			return;
 		}
 
-		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
 		isOpenId = false;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
@@ -342,7 +339,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		determineCredentialConfigurationTransferMethod();
 
-		if (isOpenId || jarm) {
+		if (isOpenId) {
 			callAndStopOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
 			callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
@@ -641,16 +638,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		private boolean isSecondClient;
 		private boolean isOpenId;
-		private boolean isJarm;
 		private boolean usePkce;
 		private Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 		private final VCIGrantType vciGrantType;
 		private final VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
 
-		public CreateAuthorizationRequestSteps(boolean isSecondClient, boolean isOpenId, boolean isJarm, boolean usePkce, Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps, VCIGrantType vciGrantType, VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant) {
+		public CreateAuthorizationRequestSteps(boolean isSecondClient, boolean isOpenId, boolean usePkce, Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps, VCIGrantType vciGrantType, VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant) {
 			this.isSecondClient = isSecondClient;
 			this.isOpenId = isOpenId;
-			this.isJarm = isJarm;
 			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
 			// currently not possible to use 'skip' to skip a conditionsequence within a condition sequence
 			this.usePkce = usePkce;
@@ -682,9 +677,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			}
 
 			callAndStopOnFailure(SetAuthorizationEndpointRequestResponseTypeToCode.class);
-			if (isJarm) {
-				callAndStopOnFailure(SetAuthorizationEndpointRequestResponseModeToJWT.class);
-			}
 
 			if (usePkce) {
 				call(new SetupPkceAndAddToAuthorizationRequest());
@@ -704,7 +696,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
-		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, profileAuthorizationEndpointSetupSteps, vciGrantType, vciAuthorizationCodeFlowVariant);
+		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, usePkce, profileAuthorizationEndpointSetupSteps, vciGrantType, vciAuthorizationCodeFlowVariant);
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CONNECTID_AU) {
 			seq.then(condition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class).requirements("CID-PURPOSE-5", "CID-IDA-5.2-10"));
 		}
@@ -777,11 +769,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		if (jarm) {
-			callAndContinueOnFailure(ValidateSuccessfulJARMResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
-		} else {
-			callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
-		}
+		callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
 
@@ -986,12 +974,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
 
-		if (jarm) {
-			processCallbackForJARM();
-		} else {
-			// FAPI2 always requires the auth code flow, use the query as the response
-			env.mapKey("authorization_endpoint_response", "callback_query_params");
-		}
+		// FAPI2 always requires the auth code flow, use the query as the response
+		env.mapKey("authorization_endpoint_response", "callback_query_params");
+
 		callAndContinueOnFailure(RejectErrorInUrlFragment.class, Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
 
 		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
@@ -1000,41 +985,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		eventLog.endBlock();
 	}
-
-	/**
-	 * For error responses, we allow a JARM response, or an error page or a plain (non-jarm) error response
-	 * per https://gitlab.com/openid/conformance-suite/-/issues/860
-	 */
-	protected void processCallbackForJARM() {
-		String errorParameter = env.getString("callback_query_params", "error");
-		String responseParameter = env.getString("callback_query_params", "response");
-		if (allowPlainErrorResponseForJarm && responseParameter == null && errorParameter != null) {
-			//plain error response, no jarm
-			callAndStopOnFailure(AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM.class);
-		} else {
-			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO, ValidateJARMFromURLQueryEncryption.class, Condition.ConditionResult.WARNING, "JARM-2.2");
-			callAndStopOnFailure(ExtractJARMFromURLQuery.class, "FAPI2-MS-ID1-5.4.2-2", "JARM-2.3.4", "JARM-2.3.1");
-
-			callAndContinueOnFailure(RejectNonJarmResponsesInUrlQuery.class, ConditionResult.FAILURE, "JARM-2.1");
-
-			callAndStopOnFailure(ExtractAuthorizationEndpointResponseFromJARMResponse.class);
-
-			callAndContinueOnFailure(ValidateJARMResponse.class, ConditionResult.FAILURE, "JARM-2.4-2", "JARM-2.4-3", "JARM-2.4-4");
-
-			callAndContinueOnFailure(FAPI2ValidateJarmSigningAlg.class, ConditionResult.FAILURE);
-
-			skipIfElementMissing("jarm_response", "jws_header", ConditionResult.INFO, ValidateJARMSigningAlg.class, ConditionResult.FAILURE);
-
-			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO, ValidateJARMEncryptionAlg.class, ConditionResult.FAILURE);
-
-			skipIfElementMissing("jarm_response", "jwe_header", ConditionResult.INFO, ValidateJARMEncryptionEnc.class, ConditionResult.FAILURE);
-
-			callAndContinueOnFailure(ValidateJARMExpRecommendations.class, ConditionResult.WARNING, "JARM-2.1");
-
-			callAndContinueOnFailure(ValidateJARMSignatureUsingKid.class, ConditionResult.FAILURE, "JARM-2.4-5");
-		}
-	}
-
 
 	protected void performProfileIdTokenValidation() {
 		if (profileIdTokenValidationSteps != null) {
@@ -1214,34 +1164,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 
 		eventLog.endBlock();
-	}
-
-	protected void validateBrazilPaymentInitiationSignedResponse() {
-		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
-		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, ConditionResult.FAILURE);
-
-		callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		// signature needs to be validated against the organisation jwks (already fetched during pre-auth steps)
-
-		call(exec().mapKey("server", "org_server"));
-		call(exec().mapKey("server_jwks", "org_server_jwks"));
-		callAndStopOnFailure(FetchServerKeys.class);
-		call(exec().unmapKey("server"));
-		call(exec().unmapKey("server_jwks"));
-
-		callAndContinueOnFailure(ValidateResourceResponseSignature.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		call(exec().unmapKey("endpoint_response"));
-		call(exec().unmapKey("endpoint_response_jwt"));
 	}
 
 	protected boolean isSecondClient() {
