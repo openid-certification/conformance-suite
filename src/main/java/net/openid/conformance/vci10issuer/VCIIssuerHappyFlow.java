@@ -28,17 +28,10 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 			"vci.credential_issuer_url",
 			"client.client_id",
 			"client.jwks",
-			"mtls.key",
-			"mtls.cert",
-			"mtls.ca",
 			"client2.client_id",
 			"client2.jwks",
-			"mtls2.key",
-			"mtls2.cert",
-			"mtls2.ca",
 			"vci.credential_configuration_id",
 			"vci.authorization_server",
-			"vci.client_attestation_issuer"
 		}
 	)
 public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
