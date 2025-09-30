@@ -7,8 +7,8 @@ public class AddClientAttestationClientAuthToEndpointRequest extends AbstractCon
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(CreateClientAttestationProofJwt.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA05-1");
-		callAndStopOnFailure(AddClientAttestationHeaderToRequest.class, "OAuth2-ATCA05-6.1");
-		callAndStopOnFailure(AddClientAttestationProofHeaderToRequest.class, "OAuth2-ATCA05-6.1");
+		callAndStopOnFailure(CreateClientAttestationProofJwt.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-1");
+		callAndStopOnFailure(AddClientAttestationHeaderToRequest.class, "OAuth2-ATCA07-6.1");
+		callAndStopOnFailure(AddClientAttestationProofHeaderToRequest.class, "OAuth2-ATCA07-6.1");
 	}
 }
