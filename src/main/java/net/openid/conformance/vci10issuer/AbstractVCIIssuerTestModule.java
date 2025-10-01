@@ -178,7 +178,6 @@ import java.util.function.Supplier;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
-	VCIServerMetadata.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
 })
@@ -192,7 +191,6 @@ import java.util.function.Supplier;
 	"vci.client_attestation_issuer"
 })
 @VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg",})
-@VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
 	"vci.client_attester_keys_jwks",
 	"vci.client_attestation_issuer"
@@ -292,7 +290,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		profileRequiresMtlsEverywhere = false;
 
 
-		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(getVariant(VCIServerMetadata.class));
+		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(VCIServerMetadata.DISCOVERY);
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
