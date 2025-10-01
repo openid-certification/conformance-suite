@@ -7,7 +7,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIServerMetadata;
-import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
@@ -26,7 +25,6 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerU
 	}
 )
 @VariantParameters({VCIServerMetadata.class, VCIClientAuthType.class})
-@VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
 public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 	@Override
