@@ -52,7 +52,8 @@ public class OIDSSFHandleStreamCreateRequestValidation extends AbstractCondition
 		unknownProperties.removeAll(supportedReceiverSuppliedProperties);
 
 		if (!unknownProperties.isEmpty()) {
-			log("Found unknown properties in stream request body", args("stream_config", streamConfigInput, "unknown_properties", unknownProperties));
+			log("Found unknown properties in stream request body. This may be because the server supports extensions the test suite is unaware of, or the server may be sending values it should not.",
+				args("stream_config", streamConfigInput, "unknown_properties", unknownProperties));
 		}
 	}
 

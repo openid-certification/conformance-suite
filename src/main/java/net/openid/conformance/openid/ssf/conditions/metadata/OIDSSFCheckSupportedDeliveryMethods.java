@@ -32,7 +32,7 @@ public class OIDSSFCheckSupportedDeliveryMethods extends AbstractCondition {
 		Set<String> unknownDeliveryMethods = findUnknownDeliveryMethods(supportedDeliveryMethods);
 
 		if (!unknownDeliveryMethods.isEmpty()) {
-			throw error("Found unknown delivery methods in transmitter_metadata",
+			throw error("Found unknown delivery methods in transmitter metadata. This may be because the server supports extensions the test suite is unaware of, or the server may be sending values it should not.",
 				args("unknown_delivery_methods", unknownDeliveryMethods,
 					"delivery_methods_supported", supportedDeliveryMethods,
 					"standard_delivery_methods", STANDARD_DELIVERY_METHODS));
