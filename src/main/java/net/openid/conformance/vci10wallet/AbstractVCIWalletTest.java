@@ -50,7 +50,6 @@ import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
-import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
@@ -118,8 +117,6 @@ import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
-import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
-import net.openid.conformance.condition.as.jarm.SignJARMResponse;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
@@ -184,7 +181,6 @@ import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToke
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
@@ -205,7 +201,6 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
-import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
@@ -249,7 +244,6 @@ import java.util.Map;
 @VariantParameters({
 	VCIClientAuthType.class,
 	FAPI2ID2OPProfile.class,
-	FAPIResponseMode.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
@@ -262,15 +256,6 @@ import java.util.Map;
 })
 @VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value="issuer_initiated_dc_api", configurationFields = {
 	"vci.credential_offer_endpoint"
-})
-@VariantHidesConfigurationFields(parameter = FAPIResponseMode.class, value = "jarm", configurationFields = {
-	"client2.client_id",
-	"client2.scope",
-	"client2.redirect_uri",
-	"client2.certificate",
-	"client2.jwks",
-	"client2.id_token_encrypted_response_alg",
-	"client2.id_token_encrypted_response_enc",
 })
 @VariantHidesConfigurationFields(parameter = FAPI2ID2OPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.scope",
@@ -307,8 +292,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	// Controls which endpoints we should expose to the client
 	protected FAPI2ID2OPProfile profile;
-
-	protected FAPIResponseMode responseMode;
 
 	protected VCIClientAuthType clientAuthType;
 
@@ -357,7 +340,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		profile = getVariant(FAPI2ID2OPProfile.class);
-		responseMode = getVariant(FAPIResponseMode.class);
+		setupResponseModePlain();
 		clientAuthType = getVariant(VCIClientAuthType.class);
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
@@ -1936,29 +1919,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		addCustomValuesToAuthorizationResponse();
 
-		if(responseMode==FAPIResponseMode.PLAIN_RESPONSE) {
-			callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.1.2.5");
-		}
-		if(responseMode==FAPIResponseMode.JARM) {
-			createJARMResponse();
-			//send via redirect
-			callAndStopOnFailure(SendJARMResponseWitResponseModeQuery.class, "OIDCC-3.3.2.5", "JARM-2.3.1");
-		}
+		callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.1.2.5");
 
 		exposeEnvString("authorization_endpoint_response_redirect");
-	}
-
-	protected void createJARMResponse() {
-		generateJARMResponseClaims();
-		//authorization_signed_response_alg will not be taken into account. signing_algorithm will be used
-		callAndStopOnFailure(SignJARMResponse.class,"JARM-2.2");
-		encryptJARMResponse();
-	}
-
-	protected void encryptJARMResponse() {
-		skipIfElementMissing("client", "authorization_encrypted_response_alg", ConditionResult.INFO,
-			EncryptJARMResponse.class, ConditionResult.FAILURE, "JARM-3");
-
 	}
 
 	protected void addCustomValuesToJarmResponse() {}
@@ -2114,14 +2077,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		accountsEndpointProfileSteps = null;
 	}
 
-	@VariantSetup(parameter = FAPIResponseMode.class, value = "plain_response")
 	public void setupResponseModePlain() {
 		configureResponseModeSteps = null;
-	}
-
-	@VariantSetup(parameter = FAPIResponseMode.class, value = "jarm")
-	public void setupResponseModeJARM() {
-		configureResponseModeSteps = AddJARMToServerConfiguration.class;
 	}
 
 	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "mtls")
