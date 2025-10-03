@@ -229,12 +229,20 @@ import java.util.Map;
 @VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value="issuer_initiated_dc_api", configurationFields = {
 	"vci.credential_offer_endpoint"
 })
-@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="private_key_jwt", configurationFields = {"vci.client_attestation_issuer"})
-@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="mtls", configurationFields = {"vci.client_attestation_issuer"})
-@VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {"vci.client_attestation_issuer"})
+@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="private_key_jwt", configurationFields = {
+	"vci.client_attestation_issuer"
+})
+@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="mtls", configurationFields = {
+	"vci.client_attestation_issuer"
+})
+@VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
+	"vci.client_attestation_issuer"
+})
+@VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "mtls", configurationFields = {
+	"client.certificate"
+})
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
-	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 
 	public static final String CREDENTIAL_PATH = "credential";

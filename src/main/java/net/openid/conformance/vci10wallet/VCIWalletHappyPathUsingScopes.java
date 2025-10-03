@@ -21,7 +21,6 @@ import net.openid.conformance.vci10wallet.condition.VCIInjectRequestScopePreAuth
 		"server.jwks",
 		"client.client_id",
 		"client.redirect_uri",
-		"client.certificate",
 		"client.jwks",
 		"credential.signing_jwk",
 		"waitTimeoutSeconds",
