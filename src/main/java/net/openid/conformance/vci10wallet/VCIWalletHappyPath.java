@@ -20,7 +20,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"server.jwks",
 		"client.client_id",
 		"client.redirect_uri",
-		"client.certificate",
 		"client.jwks",
 		"credential.signing_jwk",
 		"waitTimeoutSeconds",
