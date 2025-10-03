@@ -31,7 +31,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 	}
 
 	protected VCIFetchCredentialIssuerMetadataSequence createFetchCredentialIssuerMetadataSequence() {
-		return new VCIFetchCredentialIssuerMetadataSequence(getVariant(VCIServerMetadata.class));
+		return new VCIFetchCredentialIssuerMetadataSequence(VCIServerMetadata.DISCOVERY);
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
