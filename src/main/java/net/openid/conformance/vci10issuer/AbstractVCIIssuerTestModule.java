@@ -136,6 +136,7 @@ import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCIGrantType;
+import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -179,6 +180,7 @@ import java.util.function.Supplier;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
+	VCIProfile.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
 })
@@ -217,6 +219,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Boolean isRarRequest;
 
 	protected VCIClientAuthType clientAuthType;
+
+	protected VCIProfile vciProfile;
 
 	protected VCIGrantType vciGrantType;
 	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
@@ -280,6 +284,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		useDpopAuthCodeBinding = false;
 
 		clientAuthType = getVariant(VCIClientAuthType.class);
+		vciProfile = getVariant(VCIProfile.class);
 
 		vciGrantType = getVariant(VCIGrantType.class);
 		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
