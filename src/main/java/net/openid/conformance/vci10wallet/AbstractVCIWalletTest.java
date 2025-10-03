@@ -176,6 +176,7 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
+import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -219,6 +220,7 @@ import java.util.Map;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
+	VCIProfile.class,
 	VCIGrantType.class,
 	VCIWalletAuthorizationCodeFlowVariant.class,
 	VCICredentialOfferParameterVariant.class,
@@ -261,6 +263,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
 	private Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
 	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
+
+	protected VCIProfile vciProfile;
 
 	protected VCIClientAuthType clientAuthType;
 
@@ -314,6 +318,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
+
+		vciProfile = getVariant(VCIProfile.class);
 
 		profileRequiresMtlsEverywhere = false;
 
