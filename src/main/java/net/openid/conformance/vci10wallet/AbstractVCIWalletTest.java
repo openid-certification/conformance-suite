@@ -181,7 +181,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vci10issuer.VCIClientAuthType;
+import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;

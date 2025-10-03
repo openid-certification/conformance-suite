@@ -1,6 +1,4 @@
-package net.openid.conformance.vci10issuer;
-
-import net.openid.conformance.variant.VariantParameter;
+package net.openid.conformance.variant;
 
 @VariantParameter(
 	name = "client_auth_type",

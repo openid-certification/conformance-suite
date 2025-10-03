@@ -2,6 +2,7 @@ package net.openid.conformance.vci10issuer;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 
