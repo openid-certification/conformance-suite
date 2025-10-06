@@ -64,6 +64,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
@@ -77,6 +78,7 @@ import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
 import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
 import net.openid.conformance.condition.client.ExpectNoIdTokenInTokenResponse;
+import net.openid.conformance.condition.client.EnsureNoRefreshTokenInTokenResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -143,6 +145,7 @@ import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.ValidateSuccessfulJARMResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.common.CheckClientCredentialsOnlyServerConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
@@ -194,6 +197,16 @@ import java.util.function.Supplier;
 	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
 })
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi", configurationFields = {
+	"resource.resourceMethod",
+	"resource.resourceMediaType",
+	"resource.resourceRequestBody"
+})
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant", configurationFields = {
+	"resource.resourceMethod",
+	"resource.resourceMediaType",
+	"resource.resourceRequestBody"
+})
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
 	"resource.resourceUrlAccountRequests",
 	"resource.resourceUrlAccountsResource"
@@ -240,6 +253,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected Boolean profileRequiresMtlsEverywhere;
 	protected Boolean useDpopAuthCodeBinding;
 	protected Boolean isRarRequest;
+	protected Boolean clientCredentailsGrant;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -301,6 +315,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
+		clientCredentailsGrant = getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT;
 		useDpopAuthCodeBinding = false;
 
 		FAPI2FinalOPProfile variant = getVariant(FAPI2FinalOPProfile.class);
@@ -310,10 +325,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			variant == FAPI2FinalOPProfile.OPENBANKING_BRAZIL ||
 			variant == FAPI2FinalOPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
 			variant == FAPI2FinalOPProfile.CBUAE;
-		callAndStopOnFailure(CreateRedirectUri.class);
+		if (! clientCredentailsGrant) {
+			callAndStopOnFailure(CreateRedirectUri.class);
 
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
+			// this is inserted by the create call above, expose it to the test environment for publication
+			exposeEnvString("redirect_uri");
+		}
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
@@ -323,7 +340,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 
 		// make sure the server configuration passes some basic sanity checks
-		callAndStopOnFailure(CheckServerConfiguration.class);
+		if (clientCredentailsGrant) {
+			callAndStopOnFailure(CheckClientCredentialsOnlyServerConfiguration.class);
+		}
+		else {
+			callAndStopOnFailure(CheckServerConfiguration.class);
+		}
 
 		if (isOpenId || jarm) {
 			callAndStopOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
@@ -443,13 +465,22 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		setStatus(Status.RUNNING);
 
-		performAuthorizationFlow();
+		if (clientCredentailsGrant) {
+			performCredentialsFlow();
+		}
+		else {
+			performAuthorizationFlow();
+		}
 	}
 
 	protected void performPreAuthorizationSteps() {
 		if (preAuthorizationSteps != null) {
 			call(sequence(preAuthorizationSteps));
 		}
+	}
+
+	protected void performCredentialsFlow() {
+		performPostAuthorizationFlow();
 	}
 
 	protected void performAuthorizationFlow() {
@@ -646,12 +677,25 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		performPostAuthorizationFlow();
 	}
 
+	protected void createClientCredentialsGrantRequest() {
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+		addClientAuthenticationToTokenEndpointRequest();
+	}
+
 	protected void performPostAuthorizationFlow() {
 		eventLog.startBlock(currentClientString() + "Call token endpoint");
 
 		// call the token endpoint and complete the flow
-		createAuthorizationCodeRequest();
-		exchangeAuthorizationCode();
+		if (clientCredentailsGrant) {
+			createClientCredentialsGrantRequest();
+
+			callSenderConstrainedTokenEndpoint();
+			processTokenEndpointResponse();
+		}
+		else {
+			createAuthorizationCodeRequest();
+			exchangeAuthorizationCode();
+		}
 		requestProtectedResource();
 		onPostAuthorizationFlowComplete();
 	}
@@ -744,7 +788,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
+		if (clientCredentailsGrant) {
+			// FIXME: Treating as a warning until there is a resolution in:
+			// https://bitbucket.org/openid/fapi/issues/756/certification-team-query-refresh-tokens-in
+			callAndContinueOnFailure(EnsureNoRefreshTokenInTokenResponse.class, ConditionResult.WARNING, "RFC6749-4.4.3");
+		}
+		else {
+			callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
+		}
 
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
 			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
