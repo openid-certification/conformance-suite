@@ -21,6 +21,8 @@ public class OIDSSFStreamControlNegativeTestReplaceStreamWithInvalidBody extends
 	@Override
 	protected void testTransmitter() {
 
+		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
+
 		// Expect 400	if the request body cannot be parsed, a Transmitter-Supplied property is incorrect, or if the request is otherwise invalid
 		eventLog.runBlock("Replace Stream: Attempt to replace a Stream Configuration with invalid body", () -> {
 			callAndStopOnFailure(OIDSSFInsertBrokenStreamConfigJsonOverride.class);

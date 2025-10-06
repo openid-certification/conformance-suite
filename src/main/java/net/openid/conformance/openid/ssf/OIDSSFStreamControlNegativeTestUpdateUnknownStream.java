@@ -21,6 +21,8 @@ public class OIDSSFStreamControlNegativeTestUpdateUnknownStream extends Abstract
 	@Override
 	protected void testTransmitter() {
 
+		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
+
 		eventLog.runBlock("Create throw-away stream to collect valid but unknown stream_id", () -> {
 			call(sequence(OIDSSFCreateAndDeleteStreamConditionSequence.class));
 		});

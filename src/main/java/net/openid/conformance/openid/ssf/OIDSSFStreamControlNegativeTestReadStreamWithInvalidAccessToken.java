@@ -20,6 +20,9 @@ public class OIDSSFStreamControlNegativeTestReadStreamWithInvalidAccessToken ext
 
 	@Override
 	protected void testTransmitter() {
+
+		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
+
 		// expect 401	if authorization failed or it is missing
 		eventLog.runBlock("Attempt to read an existing Stream Configuration with invalid access token", () -> {
 

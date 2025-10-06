@@ -21,6 +21,8 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithDuplicateConfig exte
 	@Override
 	protected void testTransmitter() {
 
+		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
+
 		// expect 409	if the Transmitter does not support multiple streams per Receiver
 		eventLog.runBlock("Attempt to create multiple stream configuration with same access token", () -> {
 
