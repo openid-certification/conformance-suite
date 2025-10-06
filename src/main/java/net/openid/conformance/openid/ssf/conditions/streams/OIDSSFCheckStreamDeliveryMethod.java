@@ -33,7 +33,7 @@ public class OIDSSFCheckStreamDeliveryMethod extends AbstractCondition {
 		}
 
 		if (!SsfConstants.STANDARD_DELIVERY_METHODS.contains(deliveryMethod)) {
-			throw error("Found unknown delivery method in stream configuration",
+			throw error("Found unknown delivery method in stream configuration. This may be because the server supports extensions the test suite is unaware of, or the server may be sending values it should not.",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream"),
 					"unknown_delivery_method", deliveryMethod));
 		}
