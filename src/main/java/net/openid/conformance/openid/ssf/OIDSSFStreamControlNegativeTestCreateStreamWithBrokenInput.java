@@ -20,6 +20,7 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithBrokenInput extends 
 
 	@Override
 	protected void testTransmitter() {
+
 		// expect 400	if the request cannot be parsed
 		eventLog.runBlock("Attempt to create Stream Configuration with broken input", () -> {
 			callAndStopOnFailure(OIDSSFInsertBrokenStreamConfigJsonOverride.class);

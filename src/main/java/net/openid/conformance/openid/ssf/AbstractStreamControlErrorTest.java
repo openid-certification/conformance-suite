@@ -32,10 +32,15 @@ public abstract class AbstractStreamControlErrorTest extends AbstractOIDSSFTrans
 		setStatus(Status.RUNNING);
 
 		prepareTransmitterAccess();
+		beforeTestTransmitter();
 
 		testTransmitter();
 
 		fireTestFinished();
+	}
+
+	protected void beforeTestTransmitter() {
+		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
 	}
 
 	/**

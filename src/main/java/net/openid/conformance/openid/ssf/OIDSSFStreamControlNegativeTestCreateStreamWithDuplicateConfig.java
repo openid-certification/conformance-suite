@@ -24,8 +24,6 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithDuplicateConfig exte
 		// expect 409	if the Transmitter does not support multiple streams per Receiver
 		eventLog.runBlock("Attempt to create multiple stream configuration with same access token", () -> {
 
-			cleanUpStreamConfigurationIfNecessary();
-
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
