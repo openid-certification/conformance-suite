@@ -14,6 +14,7 @@ import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
+import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -64,6 +65,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
@@ -143,6 +145,7 @@ import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.ValidateSuccessfulJARMResponseFromAuthorizationEndpoint;
+import net.openid.conformance.condition.common.CheckClientCredentialsOnlyServerConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
@@ -240,6 +243,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected Boolean profileRequiresMtlsEverywhere;
 	protected Boolean useDpopAuthCodeBinding;
 	protected Boolean isRarRequest;
+	protected Boolean clientCredentailsOnly;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class <? extends ConditionSequence> resourceConfiguration;
@@ -301,6 +305,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
+		clientCredentailsOnly = getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT;
 		useDpopAuthCodeBinding = false;
 
 		FAPI2FinalOPProfile variant = getVariant(FAPI2FinalOPProfile.class);
@@ -310,10 +315,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			variant == FAPI2FinalOPProfile.OPENBANKING_BRAZIL ||
 			variant == FAPI2FinalOPProfile.CONNECTID_AU || // https://gitlab.com/idmvp/specifications/-/issues/29
 			variant == FAPI2FinalOPProfile.CBUAE;
-		callAndStopOnFailure(CreateRedirectUri.class);
+		if (! clientCredentailsOnly) {
+			callAndStopOnFailure(CreateRedirectUri.class);
 
-		// this is inserted by the create call above, expose it to the test environment for publication
-		exposeEnvString("redirect_uri");
+			// this is inserted by the create call above, expose it to the test environment for publication
+			exposeEnvString("redirect_uri");
+		}
 
 		// Make sure we're calling the right server configuration
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
@@ -323,7 +330,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 
 		// make sure the server configuration passes some basic sanity checks
-		callAndStopOnFailure(CheckServerConfiguration.class);
+		if (clientCredentailsOnly) {
+			callAndStopOnFailure(CheckClientCredentialsOnlyServerConfiguration.class);
+		}
+		else {
+			callAndStopOnFailure(CheckServerConfiguration.class);
+		}
 
 		if (isOpenId || jarm) {
 			callAndStopOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
@@ -443,13 +455,33 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		setStatus(Status.RUNNING);
 
-		performAuthorizationFlow();
+		if (clientCredentailsOnly) {
+			performCredentialsFlow();
+		}
+		else {
+			performAuthorizationFlow();
+		}
 	}
 
 	protected void performPreAuthorizationSteps() {
 		if (preAuthorizationSteps != null) {
 			call(sequence(preAuthorizationSteps));
 		}
+	}
+
+	protected void performCredentialsFlow() {
+		eventLog.startBlock(currentClientString() + "Make request to token endpoint");
+
+		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
+
+		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
+
+		processTokenEndpointResponse();
+		requestProtectedResource();
+		onPostAuthorizationFlowComplete();
+
+		eventLog.endBlock();
 	}
 
 	protected void performAuthorizationFlow() {
