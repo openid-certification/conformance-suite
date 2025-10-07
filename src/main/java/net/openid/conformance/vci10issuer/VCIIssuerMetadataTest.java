@@ -7,8 +7,10 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
+import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
 import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
@@ -24,7 +26,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerU
 		"vci.credential_issuer_url"
 	}
 )
-@VariantParameters({VCIClientAuthType.class})
+@VariantParameters({VCIClientAuthType.class, VCIProfile.class})
 public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 	@Override
@@ -38,6 +40,10 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 			callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 			callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
 			callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+
+			if (vciProfile == VCIProfile.HAIP) {
+				callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
+			}
 		});
 
 		eventLog.runBlock("Fetch OAuth Authorization Server Metadata", () -> {
