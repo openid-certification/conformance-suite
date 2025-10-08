@@ -28,6 +28,7 @@ import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrVal
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentials;
 import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.FAPIOBCheckDiscEndpointGrantTypesSupported;
@@ -174,7 +175,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	public static class ClientCredentialsOnlyDiscoveryEndpointChecks extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentials.class, Condition.ConditionResult.FAILURE);
 		}
 	}
 
