@@ -28,8 +28,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class FAPI2SPFinalAccessTokenTypeHeaderCaseSensitivity extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override
-	protected void exchangeAuthorizationCode() {
-		super.exchangeAuthorizationCode();
+	protected void processTokenEndpointResponse() {
+		super.processTokenEndpointResponse();
 		callAndStopOnFailure(SetAccessTokenTypeToInvertedCase.class, "RFC9110-11.1");
 	}
 

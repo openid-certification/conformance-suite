@@ -79,6 +79,7 @@ import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
 import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
 import net.openid.conformance.condition.client.ExpectNoIdTokenInTokenResponse;
+import net.openid.conformance.condition.client.EnsureNoRefreshTokenInTokenResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -474,8 +475,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
-		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
+		addClientAuthenticationToTokenEndpointRequest();
+		callSenderConstrainedTokenEndpoint();
 
 		processTokenEndpointResponse();
 		requestProtectedResource();
@@ -776,7 +777,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
+		if (clientCredentailsOnly) {
+			callAndContinueOnFailure(EnsureNoRefreshTokenInTokenResponse.class, ConditionResult.WARNING, "RFC6749-4.4.3");
+		}
+		else {
+			callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
+		}
 
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO,
 			EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");

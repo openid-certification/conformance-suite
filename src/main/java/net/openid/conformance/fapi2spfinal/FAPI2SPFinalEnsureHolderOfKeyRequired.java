@@ -74,12 +74,14 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 
 		// check that all known endpoints support TLS correctly
 
-		eventLog.startBlock("Authorization endpoint TLS test");
-		env.mapKey("tls", "authorization_endpoint_tls");
-		callAndContinueOnFailure(EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
-		// additional ciphers are allowed on the authorization endpoint
+		if (! clientCredentailsOnly) {
+			eventLog.startBlock("Authorization endpoint TLS test");
+			env.mapKey("tls", "authorization_endpoint_tls");
+			callAndContinueOnFailure(EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2");
+			callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+			callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+			// additional ciphers are allowed on the authorization endpoint
+		}
 
 		eventLog.startBlock("Token Endpoint TLS test");
 		env.mapKey("tls", "token_endpoint_tls");
@@ -106,7 +108,12 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		eventLog.endBlock();
 		env.unmapKey("tls");
 
-		performAuthorizationFlow();
+		if (clientCredentailsOnly) {
+			performCredentialsFlow();
+		}
+		else {
+			performAuthorizationFlow();
+		}
 	}
 
 	@Override
