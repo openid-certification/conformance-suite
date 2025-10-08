@@ -8,6 +8,8 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
 import net.openid.conformance.condition.client.ExpectPlainPkceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-par-plain-pkce-rejected",
@@ -31,6 +33,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+
 public class FAPI2SPFinalPAREnsurePlainPKCERejected extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

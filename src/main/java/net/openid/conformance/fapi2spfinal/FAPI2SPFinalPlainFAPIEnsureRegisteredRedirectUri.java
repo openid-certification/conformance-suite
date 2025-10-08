@@ -37,7 +37,7 @@ import jakarta.servlet.http.HttpSession;
 	}
 )
 // Allowing the OP to accept a 'redirect_uri' that has not been previously registered is for 'plain_fapi' only.
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant" })
 
 public class FAPI2SPFinalPlainFAPIEnsureRegisteredRedirectUri extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
