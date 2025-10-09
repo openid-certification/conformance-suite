@@ -3,7 +3,17 @@ package net.openid.conformance.condition.as;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
+import java.util.Map;
+
 public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
+
+	public CreateSdJwtCredential() {
+		super();
+	}
+
+	public CreateSdJwtCredential(Map<String, Object> additionalClaims) {
+		super(additionalClaims);
+	}
 
 	@Override
 	@PostEnvironment(strings = "credential")
