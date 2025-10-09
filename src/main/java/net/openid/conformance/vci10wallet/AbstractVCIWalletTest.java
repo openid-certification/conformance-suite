@@ -1,6 +1,7 @@
 package net.openid.conformance.vci10wallet;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -174,6 +175,7 @@ import net.openid.conformance.util.TemplateProcessor;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
@@ -182,7 +184,6 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
@@ -204,6 +205,7 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationPoPNonceRequiredToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
+import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -213,7 +215,9 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import java.net.URI;
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @VariantParameters({
 	VCIClientAuthType.class,
@@ -397,14 +401,33 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		configureClients();
 
+		configureOauthTokenStatusLists();
+
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
 	}
 
+	protected void configureOauthTokenStatusLists() {
+		JsonObject statusLists = new JsonObject();
+
+		JsonObject statusList = new JsonObject();
+		statusLists.add("status_list_1", statusList);
+
+		env.putObject("vci", "status_lists", statusLists);
+	}
+
 	protected void configureOauthAuthorizationServerMetadata() {
 		String oauthAuthorizationServerMetadataUrl = generateWellKnownUrlForPath(env.getString("credential_issuer"), "oauth-authorization-server");
 		env.putString("oauth_authorization_server_metadata_url", oauthAuthorizationServerMetadataUrl);
+
+		addTokenStatusListAggregationEndpointToOauthServerMetadata();
+	}
+
+	protected void addTokenStatusListAggregationEndpointToOauthServerMetadata() {
+		String issuer = env.getString("server", "issuer");
+		String listAggregationEndpoint = issuer + "statuslists";
+		env.putString("server", "status_list_aggregation_endpoint", listAggregationEndpoint);
 	}
 
 	protected String generateWellKnownUrlForPath(String issuer, String wellKnownTypePath) {
@@ -718,6 +741,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
 			}
 			return userinfoEndpoint(requestId);
+		} else if (path.startsWith("statuslists")) {
+			return statusListsEndpoints(requestId, path);
 		} else if (path.equals(".well-known/openid-configuration")) {
 			throw new TestFailureException(getId(), "The wallet has fetched .well-known/openid-configuration instead of .well-known/oauth-authorization-server as per RFC8414.");
 		} else if (path.equals(".well-known/oauth-authorization-server")) {
@@ -768,6 +793,56 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return credentialOfferEndpoint(requestId, path);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
+	}
+
+	protected Object statusListsEndpoints(String requestId, String path) {
+		setStatus(Status.RUNNING);
+
+		call(exec().mapKey("status_list_endpoint_request", requestId));
+
+		ResponseEntity<Object> response;
+		if (path.equals("statuslists") || path.equals("statuslists/")) {
+			// status list aggregation endpoint
+			// curl -k -H "Accept:application/statuslist+jwt" https://localhost.emobix.co.uk:8443/test/a/oidf-fapi-rp-test/statuslists
+
+			// https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-9.3
+			JsonObject aggreatedStatusList = new JsonObject();
+			JsonArray statusLists = new JsonArray();
+			// we only support one list for now
+			String statusListUrl = getStatusListUrl("1");
+			statusLists.add(statusListUrl);
+			aggreatedStatusList.add("statuslists", statusLists);
+			response = ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).body(aggreatedStatusList);
+		} else {
+			// status list endpoint
+			// curl -k -H "Accept:application/statuslist+jwt" https://localhost.emobix.co.uk:8443/test/a/oidf-fapi-rp-test/statuslists/1
+
+			// see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-8.1
+			String statusListId = path.substring(path.lastIndexOf("/") + 1);
+			String statusListReference = "status_lists.status_list_" + statusListId;
+			JsonElement statusListEl = env.getElementFromObject("vci", statusListReference);
+			if (statusListEl == null) {
+				response = ResponseEntity.notFound().build();
+			} else {
+				env.putString("current_status_list_id", statusListId);
+
+				callAndContinueOnFailure(VCIGenerateJwtStatusListToken.class, ConditionResult.INFO, "OTSL-5.1");
+
+				String currentStatusListJwt = env.getString("current_status_list_jwt");
+				// TODO add cors headers
+				// TODO handle time query parameter, see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-8.4
+				response = ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, "application/statuslist+jwt").body(currentStatusListJwt);
+			}
+		}
+
+		call(exec().unmapKey("status_list_endpoint_request").endBlock());
+
+		setStatus(Status.WAITING);
+		return response;
+	}
+
+	protected String getStatusListUrl(String statusListId) {
+		return env.getString("server", "issuer") + "statuslists/" + statusListId;
 	}
 
 	protected Object credentialOfferEndpoint(String requestId, String path) {
@@ -859,7 +934,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndContinueOnFailure(VCIValidateCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.4");
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-		callAndStopOnFailure(CreateSdJwtCredential.class);
+		if (vciProfile == VCIProfile.HAIP) {
+			Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
+			callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims));
+		} else {
+			callAndStopOnFailure(CreateSdJwtCredential.class);
+		}
+
 
 		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class);
 
@@ -888,6 +969,25 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 		}
 		return responseEntity;
+	}
+
+	protected Map<String, Object> additionalSdJwtClaimsForHaip() {
+
+		Map<Object, Object> statusList = generateStatusListEntryForSdJwtStatusClaim();
+
+		Map<Object, Object> status = new HashMap<>();
+		status.put("status_list", statusList);
+
+		Map<String, Object> additionalClaims = new HashMap<>();
+		additionalClaims.put("status", status);
+		return additionalClaims;
+	}
+
+	protected Map<Object, Object> generateStatusListEntryForSdJwtStatusClaim() {
+		Map<Object, Object> statusList = new HashMap<>();
+		statusList.put("idx", 0); // even indices indicate Status.VALID, odd indices indicate Status.INVALID, see: VCIGenerateJwtStatusListToken
+		statusList.put("uri", getStatusListUrl("1"));
+		return statusList;
 	}
 
 	@Override
@@ -1156,7 +1256,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected void resourceEndpointCallComplete() {
 		// at this point we can assume the test is fully done
-		fireTestFinished();
+
+		setStatus(Status.WAITING);
+
+		getTestExecutionManager().scheduleInBackground(() -> {
+			setStatus(Status.RUNNING);
+
+			fireTestFinished();
+			return null;
+		}, 5, TimeUnit.SECONDS);
+
 	}
 
 	protected Object discoveryEndpoint() {
