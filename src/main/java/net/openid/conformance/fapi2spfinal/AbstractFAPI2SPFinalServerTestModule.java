@@ -227,6 +227,7 @@ import java.util.function.Supplier;
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
 	"resource.richAuthorizationRequest",
 })
+// FIXME change mtls fields to be dependent on mtls client auth or mtls sender constrain or ecosystem != plain_fapi
 public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
