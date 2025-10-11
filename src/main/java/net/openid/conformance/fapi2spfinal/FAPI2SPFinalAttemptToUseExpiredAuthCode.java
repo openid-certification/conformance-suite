@@ -26,15 +26,9 @@ import org.apache.hc.core5.http.HttpStatus;
 		"client.client_id",
 		"client.scope",
 		"client.jwks",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
 		"client2.client_id",
 		"client2.scope",
 		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
 		"resource.resourceUrl"
 	}
 )
