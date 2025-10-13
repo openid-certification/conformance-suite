@@ -15,6 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ValidateCredentialJWTIat_UnitTest {
@@ -53,14 +57,13 @@ public class ValidateCredentialJWTIat_UnitTest {
 
 	@Test
 	public void testEvaluate_missingIat() {
-		assertThrows(ConditionError.class, () -> {
-			JsonObject claims = new JsonObject();
-			env.putObject("sdjwt", "credential.claims", claims);
 
-			cond.execute(env);
+		JsonObject claims = new JsonObject();
+		env.putObject("sdjwt", "credential.claims", claims);
 
-		});
+		cond.execute(env);
 
+		verify(eventLog, times(1)).log(anyString(), eq("'iat' is not present"));
 	}
 
 	@Test
