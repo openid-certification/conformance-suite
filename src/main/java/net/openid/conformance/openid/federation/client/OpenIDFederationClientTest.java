@@ -74,6 +74,8 @@ import java.util.List;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
+		"federation.trust_anchor",
+		"federation.client_jwks",
 		"federation.op_authority_hints",
 		"federation.immediate_subordinates",
 		"federation_trust_anchor.trust_anchor_jwks",
@@ -107,6 +109,12 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		}
 		env.putObject("config", "server.jwks", serverJwks.getAsJsonObject());
 
+		JsonElement clientJwks = env.getElementFromObject("config", "federation.client_jwks");
+		if (clientJwks == null) {
+			throw new TestFailureException(getId(), "Missing 'federation.client_jwks' configuration field");
+		}
+		env.putObject("config", "client.jwks", clientJwks.getAsJsonObject());
+
 		env.putString("entity_identifier", baseUrl);
 		exposeEnvString("entity_identifier");
 
@@ -131,7 +139,8 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		}
 
 		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-		callAndStopOnFailure(AddSelfHostedTrustAnchorToEntityConfiguration.class);
+		// TODO: Only add self-hosted if no explicit authority hints are provided?
+		// callAndStopOnFailure(AddSelfHostedTrustAnchorToEntityConfiguration.class);
 		callAndStopOnFailure(AddFederationEntityToTrustAnchorImmediateSubordinates.class);
 		callAndStopOnFailure(AddSelfToTrustAnchorImmediateSubordinates.class);
 
@@ -298,7 +307,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 
 		String rpEntity = env.getString("config", "federation.entity_identifier");
 		String opEntity = env.getString("entity_identifier");
-		String rpTrustAnchor = env.getString("config", "client.trust_anchor");
+		String rpTrustAnchor = env.getString("config", "federation.trust_anchor");
 		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(rpEntity));
 		fetchAndVerifyEntityStatement();
 		callAndContinueOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
@@ -395,7 +404,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndContinueOnFailure(VerifyGrantTypeIsPresent.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, Condition.ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		env.putString("server", "issuer", env.getString("client", "entity_identifier"));
+		env.putString("server", "issuer", env.getString("config", "federation.entity_identifier"));
 		env.putString("server", "token_endpoint", env.getString("server", "metadata.openid_provider.token_endpoint"));
 		call(sequence(validateClientAuthenticationSteps));
 		env.removeElement("server", "issuer");

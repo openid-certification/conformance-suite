@@ -137,8 +137,11 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("client_registration_type", clientRegistrationType);
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
-		env.putObject("client", "jwks", env.getElementFromObject("config", "federation.client_jwks").getAsJsonObject());
-		env.putObject("client", "trust_chain", env.getElementFromObject("config", "federation.client_trust_chain").getAsJsonObject());
+		env.putObject("client", "jwks", env.getElementFromObject("config", "federation.rp_client_jwks").getAsJsonObject());
+		JsonElement clientTrustChain = env.getElementFromObject("config", "federation.client_trust_chain");
+		if (clientTrustChain != null) {
+			env.putObject("client", "trust_chain", clientTrustChain.getAsJsonObject());
+		}
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
@@ -212,7 +215,10 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		if (nonBlocking) {
 			env.mapKey("entity_configuration_claims", "server");
 			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
-			return NonBlocking.entityConfigurationResponse(env, getId());
+			Object response =  NonBlocking.entityConfigurationResponse(env, getId());
+			env.unmapKey("entity_configuration_claims");
+			env.unmapKey("entity_configuration_claims_jwks");
+			return response;
 		}
 
 		setStatus(Status.RUNNING);
