@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -8,6 +9,8 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.http.WwwAuthenticateHeaderValueParser;
+import org.springframework.http.MediaType;
+import org.springframework.http.InvalidMediaTypeException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +34,32 @@ public class CallProtectedResourceAllowingDpopNonceError extends CallProtectedRe
 	public Environment evaluate(Environment env) {
 		env.removeNativeValue("resource_endpoint_dpop_nonce_error");
 		return super.evaluate(env);
+	}
+
+	@Override
+	protected MediaType getContentType(Environment env) {
+		String configuredContentType = env.getString("resource", "resourceMediaType");
+
+		if (!Strings.isNullOrEmpty(configuredContentType)) {
+			try {
+				return MediaType.parseMediaType(configuredContentType);
+			}
+			catch (InvalidMediaTypeException e) {
+			}
+		}
+
+		return super.getContentType(env);
+	}
+
+	@Override
+	protected Object getBody(Environment env) {
+		JsonElement requestBody = env.getElementFromObject("resource", "resourceRequestBody");
+
+		if (requestBody != null) {
+			return requestBody.toString();
+		}
+
+		return super.getBody(env);
 	}
 
 	@Override

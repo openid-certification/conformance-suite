@@ -1,12 +1,15 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.hc.core5.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -39,6 +42,32 @@ public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 		builder.queryParam("access_token", accessToken);
 
 		return builder.toUriString();
+	}
+
+	@Override
+	protected MediaType getContentType(Environment env) {
+		String configuredContentType = env.getString("resource", "resourceMediaType");
+
+		if (!Strings.isNullOrEmpty(configuredContentType)) {
+			try {
+				return MediaType.parseMediaType(configuredContentType);
+			}
+			catch (InvalidMediaTypeException e) {
+			}
+		}
+
+		return super.getContentType(env);
+	}
+
+	@Override
+	protected Object getBody(Environment env) {
+		JsonElement requestBody = env.getElementFromObject("resource", "resourceRequestBody");
+
+		if (requestBody != null) {
+			return requestBody.toString();
+		}
+
+		return super.getBody(env);
 	}
 
 	@Override

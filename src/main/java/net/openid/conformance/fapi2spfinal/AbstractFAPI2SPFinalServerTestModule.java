@@ -14,7 +14,6 @@ import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
-import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -1065,6 +1064,15 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		if (isDpop() ) {
 			requestProtectedResourceUsingDpop();
+
+/*
+			callAndStopOnFailure(FAPIBrazilOpenBankingCreateConsentRequest.class);
+
+			//callAndStopOnFailure(FAPIBrazilAddExpirationToConsentRequest.class);
+			call(CreateDpopProofSteps.createResourceEndpointDpopSteps()
+				.replace(SetDpopHtmHtuForResourceEndpoint.class, condition(SetDpopHtmHtuForConsentEndpoint.class)));
+			callAndStopOnFailure(CallConsentEndpointWithBearerToken.class);
+*/
 		} else  {
 			callAndStopOnFailure(CallProtectedResource.class, "FAPI2-SP-FINAL-5.3.4-2");
 		}
