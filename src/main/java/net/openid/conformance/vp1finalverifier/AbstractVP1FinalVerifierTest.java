@@ -46,24 +46,6 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
-import net.openid.conformance.condition.as.dynregistration.EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientGrantTypes;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientLogoUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientPolicyUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientSubjectType;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientTosUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateClientUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateDefaultAcrValues;
-import net.openid.conformance.condition.as.dynregistration.ValidateDefaultMaxAge;
-import net.openid.conformance.condition.as.dynregistration.ValidateIdTokenSignedResponseAlg;
-import net.openid.conformance.condition.as.dynregistration.ValidateInitiateLoginUri;
-import net.openid.conformance.condition.as.dynregistration.ValidateRequestObjectSigningAlg;
-import net.openid.conformance.condition.as.dynregistration.ValidateRequestUris;
-import net.openid.conformance.condition.as.dynregistration.ValidateRequireAuthTime;
-import net.openid.conformance.condition.as.dynregistration.ValidateTokenEndpointAuthSigningAlg;
-import net.openid.conformance.condition.as.dynregistration.ValidateUserinfoSignedResponseAlg;
 import net.openid.conformance.condition.client.BuildUnsignedRequestToDirectPostEndpoint;
 import net.openid.conformance.condition.client.CallDirectPostEndpoint;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
@@ -199,7 +181,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected void configureClientConfiguration() {
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.10.1");
-		validateClientMetadata();
 	}
 
 	@Override
@@ -208,15 +189,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// nothing to do here
 		setStatus(Status.WAITING);
 	}
-
-	/**
-	 * Override to randomize jwks path
-	 * @return
-	 */
-	protected String getJwksPath() {
-		return "jwks";
-	}
-
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse servletResponse, HttpSession session, JsonObject requestParts) {
@@ -251,50 +223,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	 */
 	protected boolean finishTestIfAllRequestsAreReceived() {
 		return testFinished;
-	}
-
-	protected void validateClientMetadata() {
-		callAndContinueOnFailure(ValidateClientGrantTypes.class, ConditionResult.FAILURE, "OIDCR-2");
-
-		callAndContinueOnFailure(ValidateClientLogoUris.class, ConditionResult.FAILURE,"OIDCR-2");
-		callAndContinueOnFailure(ValidateClientUris.class, ConditionResult.FAILURE,"OIDCR-2");
-		callAndContinueOnFailure(ValidateClientPolicyUris.class, ConditionResult.FAILURE,"OIDCR-2");
-		callAndContinueOnFailure(ValidateClientTosUris.class, ConditionResult.FAILURE,"OIDCR-2");
-
-		callAndContinueOnFailure(ValidateClientSubjectType.class, ConditionResult.FAILURE,"OIDCR-2");
-		skipIfElementMissing("client", "id_token_signed_response_alg", ConditionResult.INFO,
-			ValidateIdTokenSignedResponseAlg.class, ConditionResult.FAILURE, "OIDCR-2");
-
-		callAndContinueOnFailure(EnsureIdTokenEncryptedResponseAlgIsSetIfEncIsSet.class, ConditionResult.FAILURE,"OIDCR-2");
-
-		//userinfo
-		skipIfElementMissing("client", "userinfo_signed_response_alg", ConditionResult.INFO,
-			ValidateUserinfoSignedResponseAlg.class, ConditionResult.FAILURE, "OIDCR-2");
-		callAndContinueOnFailure(EnsureUserinfoEncryptedResponseAlgIsSetIfEncIsSet.class, ConditionResult.FAILURE,"OIDCR-2");
-
-		//request object
-		skipIfElementMissing("client", "request_object_signing_alg", ConditionResult.INFO,
-			ValidateRequestObjectSigningAlg.class, ConditionResult.FAILURE, "OIDCR-2");
-		callAndContinueOnFailure(EnsureRequestObjectEncryptionAlgIsSetIfEncIsSet.class, ConditionResult.FAILURE,"OIDCR-2");
-
-		//not validating token_endpoint_auth_method as we will override it anyway
-
-		skipIfElementMissing("client", "token_endpoint_auth_signing_alg", ConditionResult.INFO,
-			ValidateTokenEndpointAuthSigningAlg.class, ConditionResult.FAILURE, "OIDCR-2");
-
-		callAndContinueOnFailure(ValidateDefaultMaxAge.class, ConditionResult.WARNING,"OIDCR-2");
-
-		skipIfElementMissing("client", "require_auth_time", ConditionResult.INFO,
-			ValidateRequireAuthTime.class, ConditionResult.FAILURE, "OIDCR-2");
-
-		skipIfElementMissing("client", "default_acr_values", ConditionResult.INFO,
-			ValidateDefaultAcrValues.class, ConditionResult.FAILURE, "OIDCR-2");
-
-		skipIfElementMissing("client", "initiate_login_uri", ConditionResult.INFO,
-			ValidateInitiateLoginUri.class, ConditionResult.FAILURE, "OIDCR-2");
-
-		skipIfElementMissing("client", "request_uris", ConditionResult.INFO,
-			ValidateRequestUris.class, ConditionResult.FAILURE, "OIDCR-2");
 	}
 
 	protected void fetchAndProcessRequestUri() {
