@@ -142,10 +142,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
-		JsonElement configuredAuthorityHints = env.getElementFromObject("config", "federation.rp_authority_hints");
-		if (configuredAuthorityHints!= null) {
-			env.putArray("config", "federation.authority_hints", configuredAuthorityHints.getAsJsonArray());
-		}
+		JsonArray authorityHints = new JsonArray();
+		authorityHints.add(env.getString("base_url"));
+		env.putArray("config", "federation.authority_hints", authorityHints);
 
 		env.mapKey("server_public_jwks", "client_public_jwks");
 		callAndStopOnFailure(GenerateEntityConfiguration.class);
