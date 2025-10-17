@@ -85,19 +85,12 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		disclosures.add(builder.putSDClaim("birthdate", "1980-05-23"));
 		disclosures.add(builder.putSDClaim("age_in_years", "44"));
 
-		SDObjectBuilder ageBuilder = new SDObjectBuilder();
-		disclosures.add(ageBuilder.putSDClaim("21", true));
-		disclosures.add(ageBuilder.putSDClaim("65", false));
-		ageBuilder.putDecoyDigests(3);
-		Map<String, Object> ageEqualOrOver = ageBuilder.build();
-
 		Map<String, Object> cnf = new HashMap<>();
 		cnf.put("jwk", publicJWK);
 
 		builder.putClaim("cnf", cnf);
 		builder.putClaim("iat", Instant.now().getEpochSecond());
 		builder.putClaim("exp", Instant.now().plus(14, ChronoUnit.DAYS).getEpochSecond());
-		builder.putClaim("age_equal_or_over", ageEqualOrOver);
 		String baseUrl = env.getString("base_url");
 		builder.putClaim("iss", baseUrl);
 
