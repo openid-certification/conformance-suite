@@ -86,8 +86,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putObject("config", config);
 
 		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-		skipIfElementMissing("config", "federation.trust_anchor", Condition.ConditionResult.INFO,
-			ValidateTrustAnchor.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+
+		env.putString("config", "federation.trust_anchor", baseUrl + "/trust-anchor");
 
 		String entityIdentifier = env.getString("config", "federation.entity_identifier");
 		eventLog.startBlock("Retrieve Entity Configuration for %s".formatted(entityIdentifier));
@@ -168,13 +168,11 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
 		exposeEnvString("trust_anchor_entity_configuration_url");
 
-		if (isSelfHostedTrustAnchorConfigured()) {
-			callAndStopOnFailure(LoadTrustAnchorJWKs.class);
-			callAndStopOnFailure(ValidateTrustAnchorJWKs.class, "RFC7517-1.1");
-			callAndStopOnFailure(GenerateTrustAnchorEntityConfiguration.class);
-			callAndStopOnFailure(AddFederationEntityMetadataToTrustAnchorEntityConfiguration.class);
-			callAndStopOnFailure(AddSelfHostedTrustAnchorToEntityConfiguration.class);
-		}
+		callAndStopOnFailure(LoadTrustAnchorJWKs.class);
+		callAndStopOnFailure(ValidateTrustAnchorJWKs.class, "RFC7517-1.1");
+		callAndStopOnFailure(GenerateTrustAnchorEntityConfiguration.class);
+		callAndStopOnFailure(AddFederationEntityMetadataToTrustAnchorEntityConfiguration.class);
+		callAndStopOnFailure(AddSelfHostedTrustAnchorToEntityConfiguration.class);
 
 		call(sequence(profileStaticClientConfiguration));
 
