@@ -1690,7 +1690,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </h3>
 
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">client_jwks</div>
+                                    <div class="col-md-2 key">
+                                        client_jwks | <a id="generate-rp-client-jwks" href="#">Generate >></a>
+                                    </div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
@@ -1775,7 +1777,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
 
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">trust_anchor_jwks</div>
+                                    <div class="col-md-2 key">
+                                        trust_anchor_jwks | <a id="generate-trust-anchor-jwks" href="#">Generate >></a>
+                                    </div>
+
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
@@ -1940,12 +1945,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return applyConfigPreset();
             }).then(function() {
                 return registerAlphaTestToggle();
+            }).then(function() {
+                return registerGenerateJwksListeners();
             }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
         });
 
-function applyConfigPreset() {
+        function applyConfigPreset() {
             let searchParams = new URLSearchParams(window.location.search);
             let testPlanName = searchParams.get("test_plan");
             if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
@@ -1969,7 +1976,7 @@ function applyConfigPreset() {
             }
         }
 
-function registerAlphaTestToggle() {
+        function registerAlphaTestToggle() {
             const checkbox = document.getElementById("show-alpha-tests");
             const planSelect = document.getElementById("planSelect");
 
@@ -2911,6 +2918,55 @@ function registerAlphaTestToggle() {
             } catch (e) {
                 return null;
             }
+        }
+
+        function registerGenerateJwksListeners() {
+            addGenerateJwks("#generate-rp-client-jwks", "textarea[data-json-target='federation.rp_client_jwks']");
+            addGenerateJwks("#generate-trust-anchor-jwks", "textarea[data-json-target='federation_trust_anchor.trust_anchor_jwks']");
+        }
+        async function generateJwkSet() {
+            const keyPair = await window.crypto.subtle.generateKey(
+            {
+                name: "RSASSA-PKCS1-v1_5",
+                modulusLength: 2048,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: "SHA-256",
+            },
+            true,
+            ["sign", "verify"]
+            );
+
+            const privateJwk = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+
+            // Add required metadata
+            privateJwk.kid = crypto.randomUUID();
+            privateJwk.use = "sig";
+            privateJwk.alg = "RS256";
+
+            // Clean up
+            delete privateJwk.ext;
+            delete privateJwk.key_ops;
+
+            return {
+            keys: [privateJwk],
+            };
+        }
+        
+        function addGenerateJwks(generateSelector, textAreaSelector) {
+            document.querySelector(generateSelector).addEventListener("click", async (e) => {
+                e.preventDefault();
+
+                const textarea = document.querySelector(textAreaSelector);
+                textarea.value = "Generating...";
+
+                try {
+                    const jwks = await generateJwkSet();
+                    textarea.value = JSON.stringify(jwks, null, 4); // pretty-print JSON
+                } catch (err) {
+                    textarea.value = `Error: ${err.message}`;
+                    console.error(err);
+                }
+            });
         }
     </script>
 

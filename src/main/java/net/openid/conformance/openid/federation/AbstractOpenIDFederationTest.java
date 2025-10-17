@@ -49,10 +49,6 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		return "true".equals(env.getString("config", "internal.op_to_rp_mode"));
 	}
 
-	protected boolean isSelfHostedTrustAnchorConfigured() {
-		return env.getElementFromObject("config", "federation_trust_anchor.trust_anchor_jwks") != null;
-	}
-
 	@Override
 	protected void processCallback() { }
 
@@ -62,12 +58,6 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		env.putObject(requestId, requestParts);
 
 		if (path.startsWith("trust-anchor/")) {
-			if (!isSelfHostedTrustAnchorConfigured()) {
-				return new ResponseEntity<>("Self-hosted trust anchor not configured. " +
-					"For the test suite to be able to act as a trust anchor, at least the 'trust_anchor_jwks' " +
-					"field in the section 'Federation trust anchor' must be configured.",
-					HttpStatus.BAD_REQUEST);
-			}
 			return switch(path) {
 				case "trust-anchor/.well-known/openid-federation" -> trustAnchorEntityConfigurationResponse();
 				case "trust-anchor/jwks" -> trustAnchorJwksResponse();
