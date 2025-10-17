@@ -20,7 +20,6 @@ import net.openid.conformance.condition.as.CreateMdocCredential;
 import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
-import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
@@ -72,10 +71,7 @@ import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedi
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
-import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
-import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
-import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -203,7 +199,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected void configureClientConfiguration() {
 		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.10.1");
-		processAndValidateClientJwks();
 		validateClientMetadata();
 	}
 
@@ -258,9 +253,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		return testFinished;
 	}
 
-	/**
-	 * jwks and jwks_uri will be validated in validateClientJwks
-	 */
 	protected void validateClientMetadata() {
 		callAndContinueOnFailure(ValidateClientGrantTypes.class, ConditionResult.FAILURE, "OIDCR-2");
 
@@ -303,20 +295,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		skipIfElementMissing("client", "request_uris", ConditionResult.INFO,
 			ValidateRequestUris.class, ConditionResult.FAILURE, "OIDCR-2");
-	}
-
-	protected void processAndValidateClientJwks() {
-		JsonObject client = env.getObject("client");
-		if(client.has("jwks")) {
-			callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
-			validateClientJwks();
-		}
-	}
-
-	protected void validateClientJwks() {
-		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, ConditionResult.FAILURE, "RFC7517-9.2");
 	}
 
 	protected void fetchAndProcessRequestUri() {
