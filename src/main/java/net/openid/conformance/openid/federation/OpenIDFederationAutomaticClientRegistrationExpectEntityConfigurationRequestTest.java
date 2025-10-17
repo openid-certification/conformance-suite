@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 		"federation.entity_identifier",
 		"federation.rp_client_jwks",
 		"federation.rp_entity_identifier_host_override",
-		"federation.rp_authority_hints",
 		"federation_trust_anchor.immediate_subordinates",
 		"federation_trust_anchor.trust_anchor_jwks",
 		"internal.op_to_rp_mode",
