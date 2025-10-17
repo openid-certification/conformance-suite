@@ -37,6 +37,7 @@ import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseI
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -55,6 +56,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantParameters({
+	AuthorizationRequestType.class,
 	FAPI2FinalOPProfile.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
