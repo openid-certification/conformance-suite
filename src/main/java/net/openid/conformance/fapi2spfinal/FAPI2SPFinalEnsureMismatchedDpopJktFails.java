@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidD
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -33,6 +34,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = { "mtls" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalEnsureMismatchedDpopJktFails extends AbstractFAPI2SPFinalServerTestModule {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

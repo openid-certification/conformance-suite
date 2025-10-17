@@ -39,6 +39,7 @@ import org.springframework.http.HttpStatus;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
 })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted extends AbstractFAPI2SPFinalServerTestModule {
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {

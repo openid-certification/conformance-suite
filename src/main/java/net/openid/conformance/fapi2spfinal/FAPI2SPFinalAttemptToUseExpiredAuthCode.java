@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointRes
 import net.openid.conformance.condition.client.ValidateErrorUriFromTokenEndpointResponseError;
 import net.openid.conformance.condition.client.WaitFor62Seconds;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 import org.apache.hc.core5.http.HttpStatus;
 
@@ -36,6 +38,8 @@ import org.apache.hc.core5.http.HttpStatus;
 		"resource.resourceUrl"
 	}
 )
+
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 
 public class FAPI2SPFinalAttemptToUseExpiredAuthCode extends AbstractFAPI2SPFinalPerformTokenEndpoint {
 
