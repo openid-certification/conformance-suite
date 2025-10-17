@@ -140,6 +140,23 @@
         "comment": "Authlete doesn't support jti uniqueness"
     },
     {
+        "test-name": "fapi2-security-profile-final-dpop-negative-tests",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "dpop",
+            "authorization_request_type": "simple",
+            "openid": "plain_oauth",
+            "fapi_request_method": "unsigned",
+            "fapi_profile": "fapi_client_credentials_grant",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-client-credentials-privatekey-dpop.json",
+        "current-block": "DPoP reuse, Second use of the same jti, this 'should' fail",
+        "condition": "EnsureHttpStatusCodeIs400or401",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support jti uniqueness"
+    },
+    {
         "test-name": "oid4vp-id2-verifier-happy-flow",
         "variant": "*",
         "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/vp-verifier-test-config-with-redirect*.json",
