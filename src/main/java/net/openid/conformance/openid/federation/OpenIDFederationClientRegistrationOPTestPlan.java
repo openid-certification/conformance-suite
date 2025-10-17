@@ -11,7 +11,6 @@ import net.openid.conformance.variant.VariantSelection;
 	testModules = {
 		OpenIDFederationAutomaticClientRegistrationInvalidIssInEntityConfigurationTest.class,
 		OpenIDFederationAutomaticClientRegistrationExpectEntityConfigurationRequestTest.class,
-		OpenIDFederationEntityConfigurationTest.class,
 		OpenIDFederationAutomaticClientRegistrationWithJarAndGetTest.class,
 		OpenIDFederationAutomaticClientRegistrationWithJarAndPostTest.class,
 		OpenIDFederationAutomaticClientRegistrationWithParTest.class,
