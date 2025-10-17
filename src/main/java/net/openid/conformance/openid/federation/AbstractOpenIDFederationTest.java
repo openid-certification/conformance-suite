@@ -493,12 +493,21 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 	protected JsonArray buildTrustChain(List<String> path) {
 		eventLog.startBlock("Building trust chain from %s to %s".formatted(path.get(0), path.get(path.size() - 1)));
+
 		JsonArray trustChain = new JsonArray();
-		trustChain.add(env.getString("primary_entity_statement_jwt", "value"));
 
 		if (path.size() == 1) {
+			trustChain.add(env.getString("primary_entity_statement_jwt", "value"));
 			return trustChain;
 		}
+
+		String primaryEntityIdentifier = path.get(0);
+		env.putString("federation_endpoint_url", appendWellKnown(primaryEntityIdentifier));
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		validateEntityStatementResponse();
+		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+		trustChain.add(OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value")));
 
 		for (int i = 1; i < path.size(); i++) {
 			String entityIdentifier = path.get(i);

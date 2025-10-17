@@ -32,10 +32,6 @@ public class OpenIDFederationAutomaticClientRegistrationWithParAndTrustChainTest
 			fireTestSkipped("The server does not support the 'pushed authorization request' endpoint");
 		}
 
-		JsonElement trustChain = env.getElementFromObject("config", "client.trust_chain");
-		if (trustChain == null) {
-			fireTestSkipped("The client trust_chain is not provided in the test configuration");
-		}
 		includeTrustChainInAuthorizationRequest = true;
 	}
 }

@@ -18,9 +18,8 @@ import org.springframework.http.ResponseEntity;
 		"the test is skipped.",
 	profile = "OIDFED",
 	configurationFields = {
-		"federation.rp_client_jwks",
-		"federation.client_trust_chain",
 		"federation.entity_identifier",
+		"federation.rp_client_jwks",
 		"federation.rp_entity_identifier_host_override",
 		"federation.rp_authority_hints",
 		"federation_trust_anchor.immediate_subordinates",

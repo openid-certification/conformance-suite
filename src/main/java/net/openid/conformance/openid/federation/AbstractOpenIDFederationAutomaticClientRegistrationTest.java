@@ -55,6 +55,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URISyntaxException;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest extends AbstractOpenIDFederationTest {
@@ -138,10 +139,6 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		env.putObject("client", "jwks", env.getElementFromObject("config", "federation.rp_client_jwks").getAsJsonObject());
-		JsonElement clientTrustChain = env.getElementFromObject("config", "federation.client_trust_chain");
-		if (clientTrustChain != null) {
-			env.putObject("client", "trust_chain", clientTrustChain.getAsJsonObject());
-		}
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
@@ -297,7 +294,16 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	protected void buildRequestObject() {
 		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
+
 		if (includeTrustChainInAuthorizationRequest) {
+			String entityIdentifier = env.getString("entity_identifier");
+			String trustAnchorEntityIdentifier = env.getString("trust_anchor_entity_identifier");
+			JsonArray trustChain = buildTrustChain(List.of(entityIdentifier, trustAnchorEntityIdentifier));
+
+			JsonObject trustChainObject = new JsonObject();
+			trustChainObject.add("trust_chain", trustChain);
+			env.putObject("config", "client.trust_chain", trustChainObject);
+
 			callAndContinueOnFailure(AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
 		}
 	}
