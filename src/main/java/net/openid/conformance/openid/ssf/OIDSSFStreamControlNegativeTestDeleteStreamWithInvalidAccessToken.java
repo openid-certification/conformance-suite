@@ -20,6 +20,7 @@ public class OIDSSFStreamControlNegativeTestDeleteStreamWithInvalidAccessToken e
 
 	@Override
 	protected void testTransmitter() {
+
 		// Expect 401	if authorization failed or it is missing
 		eventLog.runBlock("Delete Stream Configuration with invalid access token", () -> {
 			callAndStopOnFailure(OIDSSFInjectInvalidAccessTokenOverride.class);
