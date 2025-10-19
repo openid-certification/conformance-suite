@@ -20,6 +20,9 @@ public class CheckForUnexpectedParametersInVpAuthorizationRequest extends Abstra
 		"state",
 		"response_type",
 		"response_mode",
+		// these are legal, and we have separate conditions that deal with them:
+		"scope", // not valid when using dcql_query
+		"request_uri_method", // not supported by suite (but it is legal to ignore it)
 		// not really authorization parameters but these appear when we unpack the request object
 		"aud",
 		"iss",

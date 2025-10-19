@@ -11,8 +11,10 @@ import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParam
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
+import net.openid.conformance.condition.as.CheckNoScopeParameter;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
+import net.openid.conformance.condition.as.CheckRequestUriMethodParameter;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
@@ -309,6 +311,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureResponseTypeIsVpToken.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMode.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckNoClientIdSchemeParameter.class, ConditionResult.FAILURE);
+		callAndContinueOnFailure(CheckNoScopeParameter.class, ConditionResult.FAILURE, "OID4VPOID4VP-1FINAL-5.1");
+		callAndContinueOnFailure(CheckRequestUriMethodParameter.class, ConditionResult.WARNING, "OID4VPOID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 
 		callAndContinueOnFailure(EnsureMatchingClientId.class, ConditionResult.FAILURE,"OIDCC-3.1.2.1");
