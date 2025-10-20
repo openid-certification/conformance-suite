@@ -32,7 +32,7 @@ import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorization
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.openid.AbstractOIDCCServerTest;
 import net.openid.conformance.openid.federation.client.AddFederationEntityMetadataToTrustAnchorEntityConfiguration;
-import net.openid.conformance.openid.federation.client.AddSelfHostedTrustAnchorToEntityConfiguration;
+import net.openid.conformance.openid.federation.client.AddSelfHostedTrustAnchorToConfiguration;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
 import net.openid.conformance.openid.federation.client.GenerateTrustAnchorEntityConfiguration;
@@ -125,6 +125,18 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		String baseUrl = env.getString("base_url");
 
+		env.putString("entity_identifier", baseUrl);
+		exposeEnvString("entity_identifier");
+
+		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
+		exposeEnvString("entity_configuration_url");
+
+		env.putString("trust_anchor_entity_identifier", baseUrl + "/trust-anchor");
+		exposeEnvString("trust_anchor_entity_identifier");
+
+		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
+		exposeEnvString("trust_anchor_entity_configuration_url");
+
 		JsonElement clientConfigElm = env.getElementFromObject("config", "client");
 		if (clientConfigElm == null) {
 			clientConfigElm = new JsonObject();
@@ -142,9 +154,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
-		JsonArray authorityHints = new JsonArray();
-		authorityHints.add(env.getString("base_url"));
-		env.putArray("config", "federation.authority_hints", authorityHints);
+		callAndStopOnFailure(AddSelfHostedTrustAnchorToConfiguration.class);
 
 		env.mapKey("server_public_jwks", "client_public_jwks");
 		callAndStopOnFailure(GenerateEntityConfiguration.class);
@@ -152,23 +162,10 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndStopOnFailure(AddOpenIDRelyingPartyMetadataToEntityConfiguration.class);
 		env.unmapKey("client_public_jwks");
 
-		env.putString("entity_identifier", baseUrl);
-		exposeEnvString("entity_identifier");
-
-		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
-		exposeEnvString("entity_configuration_url");
-
-		env.putString("trust_anchor_entity_identifier", baseUrl + "/trust-anchor");
-		exposeEnvString("trust_anchor_entity_identifier");
-
-		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
-		exposeEnvString("trust_anchor_entity_configuration_url");
-
 		callAndStopOnFailure(LoadTrustAnchorJWKs.class);
 		callAndStopOnFailure(ValidateTrustAnchorJWKs.class, "RFC7517-1.1");
 		callAndStopOnFailure(GenerateTrustAnchorEntityConfiguration.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToTrustAnchorEntityConfiguration.class);
-		callAndStopOnFailure(AddSelfHostedTrustAnchorToEntityConfiguration.class);
 
 		call(sequence(profileStaticClientConfiguration));
 
