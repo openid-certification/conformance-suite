@@ -48,6 +48,8 @@ import net.openid.conformance.openid.federation.AddExplicitClientRegistrationTyp
 import net.openid.conformance.openid.federation.AddFederationEntityMetadataToEntityConfiguration;
 import net.openid.conformance.openid.federation.AddOpenIDProviderMetadataToEntityConfiguration;
 import net.openid.conformance.openid.federation.CallEntityStatementEndpointAndReturnFullResponse;
+import net.openid.conformance.openid.federation.CallJwksUriEndpointWithGetAndReturnFullResponse;
+import net.openid.conformance.openid.federation.EnsureResponseIsJsonObject;
 import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpointResponse;
 import net.openid.conformance.openid.federation.NonBlocking;
@@ -308,10 +310,9 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		String rpEntity = env.getString("config", "federation.entity_identifier");
 		String opEntity = env.getString("entity_identifier");
 		String rpTrustAnchor = env.getString("config", "federation.trust_anchor");
+
 		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(rpEntity));
-		fetchAndVerifyEntityStatement();
-		callAndContinueOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
-		env.putObject("client_public_jwks", env.getElementFromObject("primary_entity_statement_jwt", "claims.jwks").getAsJsonObject());
+		loadClientPublicJwksFromRPMetadata();
 
 		env.putString("server", "issuer", env.getString("entity_identifier"));
 		String requestUri = env.getString("authorization_endpoint_http_request", "query_string_params.request_uri");
@@ -379,6 +380,8 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 
 		callAndContinueOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, Condition.ConditionResult.FAILURE, "PAR-2.1");
 
+		loadClientPublicJwksFromRPMetadata();
+
 		extractAndVerifyRequestObject(FAPIAuthRequestMethod.PUSHED);
 		extractClientIdFromRequestObject();
 		callAndStopOnFailure(ValidateClientIdInRequestObjectMatchesEntityIdentifier.class, Condition.ConditionResult.FAILURE);
@@ -426,6 +429,30 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		fireTestFinished();
 
 		return new ResponseEntity<Object>(response, HttpStatus.OK);
+	}
+
+	protected void loadClientPublicJwksFromRPMetadata() {
+		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(env.getString("config", "federation.entity_identifier")));
+		fetchAndVerifyEntityStatement();
+		callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
+
+		JsonElement jwksElement = env.getElementFromObject("federation_response_jwt", "claims.metadata.openid_relying_party.jwks");
+		if (jwksElement == null) {
+			JsonElement jwksUriElement = env.getElementFromObject("federation_response_jwt", "claims.metadata.openid_relying_party.jwks_uri");
+			if (jwksUriElement == null) {
+				throw new TestFailureException(getId(), "Could not find jwks or jwks_uri in the openid_relying_party metadata");
+			}
+			String jwksUri = jwksUriElement.getAsString();
+			env.putString("jwks_uri", jwksUri);
+			callAndStopOnFailure(CallJwksUriEndpointWithGetAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
+			env.mapKey("endpoint_response", "jwks_uri_response");
+			callAndContinueOnFailure(EnsureResponseIsJsonObject.class, Condition.ConditionResult.FAILURE);
+			env.unmapKey("endpoint_response");
+			env.putObject("client_public_jwks", env.getElementFromObject("jwks_uri_response", "body_json").getAsJsonObject());
+		} else {
+			env.putObject("client_public_jwks", jwksElement.getAsJsonObject());
+		}
+		env.putObject("client", "jwks", env.getObject("client_public_jwks"));
 	}
 
 	protected Object registerResponse(String requestId) {

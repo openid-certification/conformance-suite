@@ -232,12 +232,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected Object clientJwksResponse() {
-		setStatus(Status.RUNNING);
-
 		JsonObject jwks = env.getObject("client_public_jwks");
-
-		setStatus(Status.WAITING);
-
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.contentType(MediaType.APPLICATION_JSON)
