@@ -105,7 +105,7 @@ import org.springframework.http.ResponseEntity;
 	VP1FinalWalletResponseMode.class,
 	VP1FinalWalletRequestMethod.class
 })
-@VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "did", configurationFields = {
+@VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "decentralized_identifier", configurationFields = {
 	"client.client_id"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "pre_registered", configurationFields = {
@@ -176,7 +176,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		}
 
 		switch (clientIdScheme) {
-			case DID:
+			case DECENTRALIZED_IDENTIFIER:
 			case PRE_REGISTERED:
 				// client id has been set already in config
 				break;
@@ -605,7 +605,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			case REQUEST_URI_SIGNED:
 				seq = createAuthorizationRedirectStepsSignedRequestUri();
 				switch (clientIdScheme) {
-					case DID:
+					case DECENTRALIZED_IDENTIFIER:
 						//Remove x5c header, only the kid header is mandatory for DIDs, which is set in the jwks parameter
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeTypHeader.class));
 						break;

@@ -9,7 +9,7 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum VP1FinalWalletClientIdPrefix {
 
-	DID("did"),
+	DECENTRALIZED_IDENTIFIER("decentralized_identifier"),
 	PRE_REGISTERED("pre_registered"),
 	REDIRECT_URI("redirect_uri"),
 	WEB_ORIGIN("web-origin"),
