@@ -137,6 +137,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
 		exposeEnvString("trust_anchor_entity_configuration_url");
 
+		callAndStopOnFailure(ExtractJWKsFromRPConfig.class, Condition.ConditionResult.FAILURE);
+
 		JsonElement clientConfigElm = env.getElementFromObject("config", "client");
 		if (clientConfigElm == null) {
 			clientConfigElm = new JsonObject();
@@ -205,7 +207,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		// and we don't want tests to fail because of it
 		if (nonBlocking) {
 			env.mapKey("entity_configuration_claims", "server");
-			env.mapKey("entity_configuration_claims_jwks", "client_jwks");
+			env.mapKey("entity_configuration_claims_jwks", "rp_ec_jwks");
 			Object response =  NonBlocking.entityConfigurationResponse(env, getId());
 			env.unmapKey("entity_configuration_claims");
 			env.unmapKey("entity_configuration_claims_jwks");
