@@ -48,7 +48,7 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidIssInEntityConfig
 		env.putString("server", "iss", iss + "/1");
 
 		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "client_jwks");
+		env.mapKey("entity_configuration_claims_jwks", "rp_ec_jwks");
 		startWaitingForTimeout();
 		Object entityConfigurationResponse = NonBlocking.entityConfigurationResponse(env, getId());
 		env.unmapKey("entity_configuration_claims");

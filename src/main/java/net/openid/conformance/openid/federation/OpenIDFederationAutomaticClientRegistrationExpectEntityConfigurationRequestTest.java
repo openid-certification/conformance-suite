@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
+		"federation.rp_ec_jwks",
 		"federation.rp_client_jwks",
 		"federation.rp_entity_identifier_host_override",
 		"federation_trust_anchor.immediate_subordinates",
@@ -82,7 +83,7 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 		}
 
 		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "client_jwks");
+		env.mapKey("entity_configuration_claims_jwks", "rp_ec_jwks");
 		startWaitingForTimeout();
 		Object entityConfigurationResponse = NonBlocking.entityConfigurationResponse(env, getId());
 		env.unmapKey("entity_configuration_claims");
