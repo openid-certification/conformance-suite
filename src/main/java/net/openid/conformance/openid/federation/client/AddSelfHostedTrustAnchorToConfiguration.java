@@ -14,7 +14,7 @@ public class AddSelfHostedTrustAnchorToConfiguration extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonArray authorityHints;
-		JsonElement authorityHintsElement = env.getElementFromObject("config", "federation.authority_hints");
+		JsonElement authorityHintsElement = env.getElementFromObject("config", "federation.op_authority_hints");
 		if (authorityHintsElement != null) {
 			if (!authorityHintsElement.isJsonArray()) {
 				throw error("authority_hints must be an array of strings");
@@ -22,7 +22,7 @@ public class AddSelfHostedTrustAnchorToConfiguration extends AbstractCondition {
 			authorityHints = authorityHintsElement.getAsJsonArray();
 		} else {
 			authorityHints = new JsonArray();
-			env.putArray("config", "federation.authority_hints", authorityHints);
+			env.putArray("config", "federation.op_authority_hints", authorityHints);
 		}
 
 		String trustAnchorEntityIdentifier = env.getString("trust_anchor_entity_identifier");

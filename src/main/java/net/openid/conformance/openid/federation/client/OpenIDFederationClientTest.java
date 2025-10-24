@@ -79,9 +79,8 @@ import java.util.List;
 		"federation.trust_anchor",
 		"federation.op_ec_jwks",
 		"federation.op_server_jwks",
-		"federation.op_authority_hints",
 		"federation.op_entity_identifier_host_override",
-		"federation.immediate_subordinates",
+		"federation.op_immediate_subordinates",
 		"federation_trust_anchor.trust_anchor_jwks",
 		"internal.op_to_rp_mode",
 		"internal.ignore_exp_iat"
@@ -126,10 +125,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndStopOnFailure(ExtractECJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(ExtractServerJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
 
-		JsonElement configuredAuthorityHints = env.getElementFromObject("config", "federation.op_authority_hints");
-		if (configuredAuthorityHints!= null) {
-			env.putArray("config", "federation.authority_hints", configuredAuthorityHints.getAsJsonArray());
-		}
+		callAndStopOnFailure(AddSelfHostedTrustAnchorToConfiguration.class);
 
 		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 		// TODO: Only add self-hosted if no explicit authority hints are provided?
@@ -284,7 +280,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		call(exec().startBlock("List endpoint").mapKey("incoming_request", requestId));
 
 		JsonArray immediateSubordinates = new JsonArray();
-		JsonElement immediateSubordinatesElement = env.getElementFromObject("config", "federation.immediate_subordinates");
+		JsonElement immediateSubordinatesElement = env.getElementFromObject("config", "federation.op_immediate_subordinates");
 		if (immediateSubordinatesElement != null) {
 			immediateSubordinates = immediateSubordinatesElement.getAsJsonArray();
 		}
