@@ -182,4 +182,14 @@ public class JWKUtil {
 		jwks.add("keys", jwksKeys);
 		return jwks;
 	}
-}
+
+	public static JsonObject toPublicJWKSet(JsonObject input) {
+		try {
+			String json = input.toString();
+			JWKSet fullSet = JWKSet.parse(json);
+			JWKSet publicSet = fullSet.toPublicJWKSet();
+			return JsonParser.parseString(publicSet.toString(true)).getAsJsonObject();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to convert JWKS to public version", e);
+		}
+	}}

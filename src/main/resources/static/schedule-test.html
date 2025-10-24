@@ -1617,14 +1617,31 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </h3>
 
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">server_jwks</div>
+                                    <div class="col-md-2 key">
+                                        op_ec_jwks | <a id="generate-op-ec-jwks" href="#">Generate >></a>
+                                    </div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JWKSet containing the private key for signing the
+                                                entity configuration published by the test suite entity"></span>
+                                            </div>
+                                            <textarea placeholder="REQUIRED" required class="form-control config-form-element" data-json-target="federation.op_ec_jwks" data-json-type="jsonobject"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">
+                                        op_server_jwks | <a id="generate-server-jwks" href="#">Generate >></a>
+                                    </div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JWKSet containing the private keys for signing and encryption,
-                                                used by the tests suite to sign id_tokens and decrypt request objects (if applicable)."></span>
+                                                used by the tests suite to sign id_tokens and decrypt request objects (if applicable) when acting as an OP."></span>
                                             </div>
-                                            <textarea placeholder="REQUIRED" required class="form-control config-form-element" data-json-target="federation.server_jwks" data-json-type="jsonobject"></textarea>
+                                            <textarea placeholder="REQUIRED" required class="form-control config-form-element" data-json-target="federation.op_server_jwks" data-json-type="jsonobject"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -2912,6 +2929,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             addGenerateJwks("#generate-rp-ec-jwks", "textarea[data-json-target='federation.rp_ec_jwks']");
             addGenerateJwks("#generate-rp-client-jwks", "textarea[data-json-target='federation.rp_client_jwks']");
             addGenerateJwks("#generate-trust-anchor-jwks", "textarea[data-json-target='federation_trust_anchor.trust_anchor_jwks']");
+            addGenerateJwks("#generate-op-ec-jwks", "textarea[data-json-target='federation.op_ec_jwks']");
+            addGenerateJwks("#generate-server-jwks", "textarea[data-json-target='federation.server_jwks']");
         }
 
         // Base64url encoder

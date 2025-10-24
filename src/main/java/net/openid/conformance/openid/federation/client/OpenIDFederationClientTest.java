@@ -25,7 +25,6 @@ import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
-import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
@@ -41,7 +40,6 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.ValidateRequestObjectSubNotPresent;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.openid.federation.AddAutomaticClientRegistrationTypeSupported;
 import net.openid.conformance.openid.federation.AddExplicitClientRegistrationTypeSupported;
@@ -51,7 +49,9 @@ import net.openid.conformance.openid.federation.CallEntityStatementEndpointAndRe
 import net.openid.conformance.openid.federation.CallJwksUriEndpointWithGetAndReturnFullResponse;
 import net.openid.conformance.openid.federation.EnsureResponseIsJsonObject;
 import net.openid.conformance.openid.federation.EntityUtils;
+import net.openid.conformance.openid.federation.ExtractECJWKsFromOPConfig;
 import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpointResponse;
+import net.openid.conformance.openid.federation.ExtractServerJWKsFromOPConfig;
 import net.openid.conformance.openid.federation.NonBlocking;
 import net.openid.conformance.openid.federation.SetPrimaryEntityStatement;
 import net.openid.conformance.openid.federation.ValidateEntityIdentifier;
@@ -77,12 +77,12 @@ import java.util.List;
 	configurationFields = {
 		"federation.entity_identifier",
 		"federation.trust_anchor",
-		"federation.client_jwks",
+		"federation.op_ec_jwks",
+		"federation.op_server_jwks",
 		"federation.op_authority_hints",
+		"federation.op_entity_identifier_host_override",
 		"federation.immediate_subordinates",
 		"federation_trust_anchor.trust_anchor_jwks",
-		"federation.op_entity_identifier_host_override",
-		"federation.server_jwks",
 		"internal.op_to_rp_mode",
 		"internal.ignore_exp_iat"
 	}
@@ -105,18 +105,6 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		JsonElement serverJwks = env.getElementFromObject("config", "federation.server_jwks");
-		if (serverJwks == null) {
-			throw new TestFailureException(getId(), "Missing 'federation.server_jwks' configuration field");
-		}
-		env.putObject("config", "server.jwks", serverJwks.getAsJsonObject());
-
-		JsonElement clientJwks = env.getElementFromObject("config", "federation.client_jwks");
-		if (clientJwks == null) {
-			throw new TestFailureException(getId(), "Missing 'federation.client_jwks' configuration field");
-		}
-		env.putObject("config", "client.jwks", clientJwks.getAsJsonObject());
-
 		env.putString("entity_identifier", baseUrl);
 		exposeEnvString("entity_identifier");
 
@@ -135,6 +123,9 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
 		exposeEnvString("trust_anchor_entity_configuration_url");
 
+		callAndStopOnFailure(ExtractECJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ExtractServerJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
+
 		JsonElement configuredAuthorityHints = env.getElementFromObject("config", "federation.op_authority_hints");
 		if (configuredAuthorityHints!= null) {
 			env.putArray("config", "federation.authority_hints", configuredAuthorityHints.getAsJsonArray());
@@ -146,9 +137,12 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndStopOnFailure(AddFederationEntityToTrustAnchorImmediateSubordinates.class);
 		callAndStopOnFailure(AddSelfToTrustAnchorImmediateSubordinates.class);
 
+		// TODO: Probably I want to validate both EC and Server jwks here
+		/*
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		callAndStopOnFailure(GenerateEntityConfiguration.class);
+		*/
+		callAndStopOnFailure(GenerateEntityConfigurationForRPTest.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
 		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
 
@@ -218,7 +212,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		// and we don't want tests to fail because of it
 		if (nonBlocking) {
 			env.mapKey("entity_configuration_claims", "server");
-			env.mapKey("entity_configuration_claims_jwks", "server_jwks");
+			env.mapKey("entity_configuration_claims_jwks", "op_ec_jwks");
 			return NonBlocking.entityConfigurationResponse(env, getId());
 		}
 		return super.entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);
@@ -230,7 +224,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 	}
 
 	protected Object jwksResponse() {
-		return jwksResponse("server_public_jwks");
+		return jwksResponse("op_server_jwks");
 	}
 
 	protected Object fetchResponse(String requestId) {
@@ -419,7 +413,9 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndContinueOnFailure(OIDCCLoadUserInfo.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(GenerateIdTokenClaims.class, Condition.ConditionResult.FAILURE);
 		beforeSigningIdToken();
+		env.mapKey("server_jwks", "op_server_jwks");
 		callAndContinueOnFailure(SignIdToken.class, Condition.ConditionResult.FAILURE);
+		env.unmapKey("server_jwks");
 		JsonObject response = new JsonObject();
 		response.addProperty("id_token", env.getString("id_token"));
 
@@ -442,7 +438,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 			if (jwksUriElement == null) {
 				throw new TestFailureException(getId(), "Could not find jwks or jwks_uri in the openid_relying_party metadata");
 			}
-			String jwksUri = jwksUriElement.getAsString();
+			String jwksUri = OIDFJSON.getString(jwksUriElement);
 			env.putString("jwks_uri", jwksUri);
 			callAndStopOnFailure(CallJwksUriEndpointWithGetAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
 			env.mapKey("endpoint_response", "jwks_uri_response");
@@ -495,6 +491,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 	}
 
 	protected void extractAuthorizationEndpointRequestParameters(FAPIAuthRequestMethod requestMethod) {
+		env.mapKey("server_jwks", "op_server_jwks");
 		callAndStopOnFailure(ExtractRequestObject.class, "OIDCC-6.1");
 		validateRequestObject();
 		skipIfElementMissing("authorization_request_object", "jwe_header", Condition.ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, Condition.ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
@@ -509,6 +506,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 		extractNonceFromAuthorizationEndpointRequestParameters();
 		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.CODE_CHALLENGE, Condition.ConditionResult.INFO, EnsureAuthorizationRequestContainsPkceCodeChallenge.class, Condition.ConditionResult.FAILURE, "RFC7636-4.3");
+		env.unmapKey("server_jwks");
 	}
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {

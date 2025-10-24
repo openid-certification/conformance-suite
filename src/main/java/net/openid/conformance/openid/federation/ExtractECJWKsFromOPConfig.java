@@ -7,22 +7,22 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class ExtractJWKsFromRPConfig extends AbstractCondition {
+public class ExtractECJWKsFromOPConfig extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "config")
-	@PostEnvironment(required = { "rp_ec_jwks" })
+	@PostEnvironment(required = { "op_ec_jwks" })
 	public Environment evaluate(Environment env) {
 
-		JsonElement jwksElement = env.getElementFromObject("config", "federation.rp_ec_jwks");
+		JsonElement jwksElement = env.getElementFromObject("config", "federation.op_ec_jwks");
 		if (jwksElement == null) {
-			throw error("The configuration does not contain the required rp_ec_jwks");
+			throw error("The configuration does not contain the required op_ec_jwks");
 		}
 
 		JsonObject jwks = jwksElement.getAsJsonObject();
-		env.putObject("rp_ec_jwks", jwks);
+		env.putObject("op_ec_jwks", jwks);
 
-		logSuccess("Extracted JWKs from config", args("rp_ec_jwks", jwks));
+		logSuccess("Extracted JWKs from config", args("op_ec_jwks", jwks));
 
 		return env;
 	}

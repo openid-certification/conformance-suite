@@ -11,7 +11,7 @@ public class ExtractJWKsFromEntityStatement extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "federation_response_jwt")
-	@PostEnvironment(required = { "server_jwks" })
+	@PostEnvironment(required = { "ec_jwks" })
 	public Environment evaluate(Environment env) {
 
 		JsonElement jwksElement = env.getElementFromObject("federation_response_jwt", "claims.jwks");
@@ -21,9 +21,9 @@ public class ExtractJWKsFromEntityStatement extends AbstractCondition {
 		}
 
 		JsonObject jwks = jwksElement.getAsJsonObject();
-		env.putObject("server_jwks", jwks);
+		env.putObject("ec_jwks", jwks);
 
-		logSuccess("Extracted JWKs from entity statement", args("server_jwks", jwks));
+		logSuccess("Extracted JWKs from entity statement", args("ec_jwks", jwks));
 
 		return env;
 	}
