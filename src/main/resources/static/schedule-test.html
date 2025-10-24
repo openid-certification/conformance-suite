@@ -1691,7 +1691,22 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">
-                                        client_jwks | <a id="generate-rp-client-jwks" href="#">Generate >></a>
+                                        rp_ec_jwks | <a id="generate-rp-ec-jwks" href="#">Generate >></a>
+                                    </div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JWKSet containing the private key for signing the
+                                                entity configuration published by the test suite entity"></span>
+                                            </div>
+                                            <textarea placeholder="REQUIRED" required class="form-control config-form-element" data-json-target="federation.rp_ec_jwks" data-json-type="jsonobject"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">
+                                        rp_client_jwks | <a id="generate-rp-client-jwks" href="#">Generate >></a>
                                     </div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -2894,25 +2909,48 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         }
 
         function registerGenerateJwksListeners() {
+            addGenerateJwks("#generate-rp-ec-jwks", "textarea[data-json-target='federation.rp_ec_jwks']");
             addGenerateJwks("#generate-rp-client-jwks", "textarea[data-json-target='federation.rp_client_jwks']");
             addGenerateJwks("#generate-trust-anchor-jwks", "textarea[data-json-target='federation_trust_anchor.trust_anchor_jwks']");
         }
+
+        // Base64url encoder
+        function base64urlEncode(buffer) {
+          return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+        }
+
+        // Compute RFC7638 JWK thumbprint (SHA-256 of ordered canonical JSON)
+        async function computeJwkThumbprint(jwk) {
+          // For RSA keys, RFC 7638 requires only "e", "kty", and "n", in that order
+          const ordered = {
+            e: jwk.e,
+            kty: jwk.kty,
+            n: jwk.n,
+          };
+
+          const encoder = new TextEncoder();
+          const json = JSON.stringify(ordered);
+          const data = encoder.encode(json);
+          const hash = await crypto.subtle.digest("SHA-256", data);
+          return base64urlEncode(hash);
+        }
+
         async function generateJwkSet() {
-            const keyPair = await window.crypto.subtle.generateKey(
-            {
-                name: "RSASSA-PKCS1-v1_5",
-                modulusLength: 2048,
-                publicExponent: new Uint8Array([1, 0, 1]),
-                hash: "SHA-256",
-            },
-            true,
-            ["sign", "verify"]
-            );
+            const keyPair = await window.crypto.subtle.generateKey({
+              name: "RSASSA-PKCS1-v1_5",
+              modulusLength: 2048,
+              publicExponent: new Uint8Array([1, 0, 1]),
+              hash: "SHA-256",
+            }, true, ["sign", "verify"]);
 
             const privateJwk = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+            const kid = await computeJwkThumbprint(privateJwk);
 
             // Add required metadata
-            privateJwk.kid = crypto.randomUUID();
+            privateJwk.kid = kid;
             privateJwk.use = "sig";
             privateJwk.alg = "RS256";
 
@@ -2920,9 +2958,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             delete privateJwk.ext;
             delete privateJwk.key_ops;
 
-            return {
-            keys: [privateJwk],
-            };
+            return { keys: [privateJwk], };
         }
 
         function addGenerateJwks(generateSelector, textAreaSelector) {
@@ -2934,7 +2970,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                 try {
                     const jwks = await generateJwkSet();
-                    textarea.value = JSON.stringify(jwks, null, 4); // pretty-print JSON
+                    textarea.value = JSON.stringify(jwks, null, 4);
                 } catch (err) {
                     textarea.value = `Error: ${err.message}`;
                     console.error(err);
