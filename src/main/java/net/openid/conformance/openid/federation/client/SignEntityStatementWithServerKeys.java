@@ -19,11 +19,11 @@ public class SignEntityStatementWithServerKeys extends AbstractSignJWT {
 	}
 
 	@Override
-	@PreEnvironment(required = { "entity_configuration_claims", "server_jwks" })
+	@PreEnvironment(required = { "entity_configuration_claims", "op_server_jwks" })
 	@PostEnvironment(strings = "signed_entity_statement")
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.getObject("entity_configuration_claims");
-		JsonObject jwks = env.getObject("server_jwks");
+		JsonObject jwks = env.getObject("op_server_jwks");
 		return signJWT(env, claims, jwks, true);
 	}
 

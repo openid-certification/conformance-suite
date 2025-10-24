@@ -14,17 +14,17 @@ import java.text.ParseException;
 public class VerifyEntityStatementSignature extends AbstractVerifyJwsSignature {
 
 	@Override
-	@PreEnvironment(required = { "server_jwks", "federation_response_jwt"} )
+	@PreEnvironment(required = { "ec_jwks", "federation_response_jwt"} )
 	public Environment evaluate(Environment env) {
 
-		JsonObject entityStatementJwks = env.getObject("server_jwks");
+		JsonObject entityStatementJwks = env.getObject("ec_jwks");
 		JsonObject entityStatementHeader = env.getElementFromObject("federation_response_jwt", "header").getAsJsonObject();
 		try {
 			String entityStatementB64 = OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value"));
 			SignedJWT entityStatement = SignedJWT.parse(entityStatementB64);
 			JWKSet serverJwks = JWKSet.parse(entityStatementJwks.toString());
 			if(!verifySignature(entityStatement, serverJwks)){
-				throw error("The provided entity statement is not signed with the currently configured server sig key.",
+				throw error("The provided entity statement is not signed with the currently configured entity configuration sig key.",
 					args("jwks", entityStatementJwks, "header", entityStatementHeader));
 			}
 		} catch (ParseException e) {
@@ -33,7 +33,7 @@ public class VerifyEntityStatementSignature extends AbstractVerifyJwsSignature {
 			throw error("An error occurred while verifying the signature", e);
 		}
 
-		logSuccess("The entity statement is signed with the currently configured server key",
+		logSuccess("The entity statement is signed with the currently configured entity configuration sig key",
 			args("jwks", entityStatementJwks, "header", entityStatementHeader));
 
 		return env;

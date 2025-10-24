@@ -9,7 +9,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.testmodule.Environment;
 
-public class GenerateEntityConfiguration extends AbstractCondition {
+public class GenerateEntityConfigurationForRPTest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "base_url")
@@ -24,7 +24,7 @@ public class GenerateEntityConfiguration extends AbstractCondition {
 
 		JsonObject server = EntityUtils.createBasicClaimsObject(baseUrl, baseUrl);
 
-		server.add("jwks", env.getObject("server_public_jwks"));
+		server.add("jwks", env.getObject("op_ec_jwks"));
 
 		JsonElement authorityHintsElement = env.getElementFromObject("config", "federation.authority_hints");
 		if (authorityHintsElement != null) {

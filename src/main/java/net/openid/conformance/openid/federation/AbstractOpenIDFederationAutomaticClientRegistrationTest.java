@@ -34,7 +34,6 @@ import net.openid.conformance.openid.AbstractOIDCCServerTest;
 import net.openid.conformance.openid.federation.client.AddFederationEntityMetadataToTrustAnchorEntityConfiguration;
 import net.openid.conformance.openid.federation.client.AddSelfHostedTrustAnchorToConfiguration;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
-import net.openid.conformance.openid.federation.client.GenerateEntityConfiguration;
 import net.openid.conformance.openid.federation.client.GenerateTrustAnchorEntityConfiguration;
 import net.openid.conformance.openid.federation.client.LoadTrustAnchorJWKs;
 import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
@@ -137,7 +136,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
 		exposeEnvString("trust_anchor_entity_configuration_url");
 
-		callAndStopOnFailure(ExtractJWKsFromRPConfig.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ExtractECJWKsFromRPConfig.class, Condition.ConditionResult.FAILURE);
 
 		JsonElement clientConfigElm = env.getElementFromObject("config", "client");
 		if (clientConfigElm == null) {
@@ -159,7 +158,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndStopOnFailure(AddSelfHostedTrustAnchorToConfiguration.class);
 
 		env.mapKey("server_public_jwks", "client_public_jwks");
-		callAndStopOnFailure(GenerateEntityConfiguration.class);
+		callAndStopOnFailure(GenerateEntityConfigurationForOPTest.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
 		callAndStopOnFailure(AddOpenIDRelyingPartyMetadataToEntityConfiguration.class);
 		env.unmapKey("client_public_jwks");

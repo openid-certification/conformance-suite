@@ -17,6 +17,7 @@ import net.openid.conformance.openid.federation.client.ValidateTrustAnchorParame
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.variant.FederationEntityMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -85,10 +86,11 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 	protected Object jwksResponse(String mapKey) {
 		JsonObject jwks = env.getObject(mapKey);
+		JsonObject publicJwks = JWKUtil.toPublicJWKSet(jwks);
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(jwks);
+			.body(publicJwks);
 	}
 
 	protected Object trustAnchorFetchResponse(String requestId) {
