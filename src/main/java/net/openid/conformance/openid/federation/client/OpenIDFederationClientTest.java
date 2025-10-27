@@ -76,11 +76,9 @@ import java.util.List;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
-		"federation.trust_anchor",
 		"federation.op_ec_jwks",
 		"federation.op_server_jwks",
 		"federation.op_entity_identifier_host_override",
-		"federation.op_immediate_subordinates",
 		"federation_trust_anchor.trust_anchor_jwks",
 		"internal.op_to_rp_mode",
 		"internal.ignore_exp_iat"
@@ -134,10 +132,9 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndStopOnFailure(AddSelfToTrustAnchorImmediateSubordinates.class);
 
 		// TODO: Probably I want to validate both EC and Server jwks here
-		/*
-		callAndStopOnFailure(LoadServerJWKs.class);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
-		*/
+		// callAndStopOnFailure(LoadServerJWKs.class);
+		//callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+
 		callAndStopOnFailure(GenerateEntityConfigurationForRPTest.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
 		callAndStopOnFailure(AddOpenIDProviderMetadataToEntityConfiguration.class);
