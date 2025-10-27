@@ -17,8 +17,7 @@ public class AddInvalidSubValueToIdToken extends AbstractCondition {
 
 		String sub = env.getString("id_token_claims", "sub");
 
-		//Add "invalid" onto end of sub string
-		String concat = (sub + "invalid");
+		String concat = (sub + "1");
 
 		claims.addProperty("sub", concat);
 

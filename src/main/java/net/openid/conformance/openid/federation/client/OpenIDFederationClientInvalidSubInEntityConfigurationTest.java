@@ -22,6 +22,7 @@ public class OpenIDFederationClientInvalidSubInEntityConfigurationTest extends O
 	protected Object entityConfigurationResponse() {
 		setStatus(Status.RUNNING);
 		JsonObject server = env.getObject("server");
+		String originalSub = env.getString("server", "sub");
 
 		env.mapKey("id_token_claims", "server");
 		callAndContinueOnFailure(Add30SecondExpValueToIdToken.class, Condition.ConditionResult.FAILURE);
@@ -30,6 +31,7 @@ public class OpenIDFederationClientInvalidSubInEntityConfigurationTest extends O
 		setStatus(Status.WAITING);
 
 		Object response = super.entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);
+		env.putString("server", "sub", originalSub);
 		startWaitingForTimeout();
 
 		return response;
