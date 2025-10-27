@@ -22,6 +22,7 @@ public class OpenIDFederationClientInvalidIssInEntityConfigurationTest extends O
 	protected Object entityConfigurationResponse() {
 		setStatus(Status.RUNNING);
 		JsonObject server = env.getObject("server");
+		String originalIss = env.getString("server", "iss");
 
 		env.mapKey("id_token_claims", "server");
 		callAndContinueOnFailure(Add30SecondExpValueToIdToken.class, Condition.ConditionResult.FAILURE);
@@ -30,6 +31,8 @@ public class OpenIDFederationClientInvalidIssInEntityConfigurationTest extends O
 		setStatus(Status.WAITING);
 
 		Object response = super.entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);
+		env.putString("server", "iss", originalIss);
+
 		startWaitingForTimeout();
 
 		return response;
