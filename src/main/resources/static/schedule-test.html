@@ -1620,7 +1620,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                                 <div class="row config-form-element-container">
                                     <div class="col-md-2 key">
-                                        op_server_jwks | <a id="generate-server-jwks" href="#">Generate >></a>
+                                        op_server_jwks | <a id="generate-op-server-jwks" href="#">Generate >></a>
                                     </div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -2838,7 +2838,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             addGenerateJwks("#generate-rp-client-jwks", "textarea[data-json-target='federation.rp_client_jwks']");
             addGenerateJwks("#generate-trust-anchor-jwks", "textarea[data-json-target='federation_trust_anchor.trust_anchor_jwks']");
             addGenerateJwks("#generate-op-ec-jwks", "textarea[data-json-target='federation.op_ec_jwks']");
-            addGenerateJwks("#generate-server-jwks", "textarea[data-json-target='federation.server_jwks']");
+            addGenerateJwks("#generate-op-server-jwks", "textarea[data-json-target='federation.op_server_jwks']", true);
         }
 
         function watchInputValue(input, callback) {
@@ -2893,7 +2893,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
           return base64urlEncode(hash);
         }
 
-        async function generateJwkSet() {
+        async function generateJwkSet(includeEncKey) {
             const keyPair = await window.crypto.subtle.generateKey({
               name: "RSASSA-PKCS1-v1_5",
               modulusLength: 2048,
@@ -2901,22 +2901,53 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
               hash: "SHA-256",
             }, true, ["sign", "verify"]);
 
-            const privateJwk = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
-            const kid = await computeJwkThumbprint(privateJwk);
+            const sigPrivateJwk = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+            const kid = await computeJwkThumbprint(sigPrivateJwk);
 
             // Add required metadata
-            privateJwk.kid = kid;
-            privateJwk.use = "sig";
-            privateJwk.alg = "RS256";
+            sigPrivateJwk.kid = kid;
+            sigPrivateJwk.use = "sig";
+            sigPrivateJwk.alg = "RS256";
 
             // Clean up
-            delete privateJwk.ext;
-            delete privateJwk.key_ops;
+            delete sigPrivateJwk.ext;
+            delete sigPrivateJwk.key_ops;
 
-            return { keys: [privateJwk], };
+            if (includeEncKey) {
+                const encKeyPair = await window.crypto.subtle.generateKey(
+                    {
+                      name: "RSA-OAEP",
+                      modulusLength: 2048,
+                      publicExponent: new Uint8Array([1, 0, 1]),
+                      hash: "SHA-256",
+                    },
+                    true,
+                    ["decrypt", "encrypt"]
+                );
+
+                const encPrivateJwk = await window.crypto.subtle.exportKey("jwk", encKeyPair.privateKey);
+                const encKid = await computeJwkThumbprint(encPrivateJwk);
+
+                Object.assign(encPrivateJwk, {
+                    kid: encKid,
+                    use: "enc",
+                    alg: "RSA-OAEP-256",
+                });
+
+                delete encPrivateJwk.ext;
+                delete encPrivateJwk.key_ops;
+
+                return {
+                    keys: [sigPrivateJwk, encPrivateJwk],
+                };
+            } else {
+                return {
+                    keys: [sigPrivateJwk],
+                };
+            }
         }
 
-        function addGenerateJwks(generateSelector, textAreaSelector) {
+        function addGenerateJwks(generateSelector, textAreaSelector, includeEncKey) {
             document.querySelector(generateSelector).addEventListener("click", async (e) => {
                 e.preventDefault();
 
@@ -2924,7 +2955,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 textarea.value = "Generating...";
 
                 try {
-                    const jwks = await generateJwkSet();
+                    const jwks = await generateJwkSet(includeEncKey);
                     textarea.value = JSON.stringify(jwks, null, 4);
                 } catch (err) {
                     textarea.value = `Error: ${err.message}`;
