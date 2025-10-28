@@ -10,7 +10,7 @@ import org.springframework.http.HttpMethod;
 		testName = "openid-federation-automatic-client-registration-with-jar-and-encrypted-request-object",
 		displayName = "openid-federation-automatic-client-registration-with-jar-and-encrypted-request-object",
 		summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-			"with JAR and HTTP GET to the authorization endpoint. The request object is encrypted using the OP's" +
+			"with JAR and HTTP GET to the authorization endpoint. The request object is encrypted using the OP's " +
 			"published, public encryption key.",
 		profile = "OIDFED"
 )
