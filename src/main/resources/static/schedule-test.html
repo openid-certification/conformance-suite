@@ -149,7 +149,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name. Do not include any spaces or non-URL safe characters. If using dynamic client registration, this can be left blank and a random one will be generated. For some ecosystems (e.g. KSA) regulated entities should use the alias value assigned to them."></span>
                                             </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="alias"></input>
+                                            <input type="text" class="alias form-control config-form-element" data-json-target="alias"></input>
                                         </div>
                                     </div>
                                 </div>
@@ -1562,27 +1562,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
 
                                 <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">client_jwks</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="JWKSet containing the public key that the
-                                                federation entity under test uses to sign assertions."></span>
-                                            </div>
-                                            <textarea placeholder="REQUIRED" required class="form-control config-form-element" data-json-target="federation.client_jwks" data-json-type="jsonobject"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">trust_anchor</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The entity identifier of the trust anchor
-                                                (i.e. the trust anchor of the entity configured above)."></span>
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Your federation entity must trust
+                                                the following trust anchor, i.e. it must have this entity in its authority_hints"></span>
                                             </div>
-                                            <input placeholder="REQUIRED" required type="text" class="form-control config-form-element" data-json-target="federation.trust_anchor" />
+                                            <input id="federation-trust-anchor" disabled="disabled" type="text" class="form-control config-form-element" data-json-target="federation.trust_anchor" />
                                         </div>
                                     </div>
                                 </div>
@@ -1642,21 +1629,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 used by the tests suite to sign id_tokens and decrypt request objects (if applicable) when acting as an OP."></span>
                                             </div>
                                             <textarea placeholder="REQUIRED" required class="form-control config-form-element" data-json-target="federation.op_server_jwks" data-json-type="jsonobject"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">authority_hints</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The
-                                                authority_hints of the test suite OP.
-                                                Each row in the text area corresponds to an element in the authority_hints array.
-                                                Each row needs to contain a valid entity identifier."></span>
-                                            </div>
-                                            <textarea placeholder="OPTIONAL" rows="3" class="form-control config-form-element config-form-element-array" data-json-target="federation.op_authority_hints" data-json-type="jsonarray"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1782,57 +1754,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
                             </div>
 
-                            <!-- Leaving this "internal" section out in order to not display it,
-                                 even though the settings are used in some of the CI/CD tests -->
-                            <!--div class="config-form-container mt-3">
-
-                                <h3 class="config-form-container-header pb-0">
-                                    <div class="row">
-                                        <div class="col-2">Internal </div>
-                                        <div class="col-10">
-                                            <span class="badge bg-info-subtle border border-info-subtle text-info-emphasis rounded-pill"><i class="bi bi-info-circle-fill"></i>
-                                            This section relates to additional settings for the test suite behavior.
-                                            </span>
-                                        </div>
-                                    </div>
-                                </h3>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">op_to_rp_mode</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="When true, does not log the steps
-                                                involved in returning the (1) entity configuration and (2) jwks, in order to avoid grabbing the test lock in OP-to-RP integration tests."></span>
-                                            </div>
-                                            <select class="form-control config-form-element" data-json-target="internal.op_to_rp_mode">
-                                                <option value="" selected></option>
-                                                <option value="true">true</option>
-                                                <option value="false">false</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">ignore_exp_iat</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="When true, does not validate the exp and iat claims
-                                                in the trust chains to allow expired, pre-configured jwts to be used"></span>
-                                            </div>
-                                            <select class="form-control config-form-element" data-json-target="internal.ignore_exp_iat">
-                                                <option value="" selected></option>
-                                                <option value="true">true</option>
-                                                <option value="false">false</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div!-->
-
                             <div class="config-form-container mt-3">
                                 <h3 class="config-form-container-header">Client Attestation</h3>
 
@@ -1937,6 +1858,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return registerAlphaTestToggle();
             }).then(function() {
                 return registerGenerateJwksListeners();
+            }).then(function() {
+                return registerAliasListener();
             }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
@@ -2916,6 +2839,34 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             addGenerateJwks("#generate-trust-anchor-jwks", "textarea[data-json-target='federation_trust_anchor.trust_anchor_jwks']");
             addGenerateJwks("#generate-op-ec-jwks", "textarea[data-json-target='federation.op_ec_jwks']");
             addGenerateJwks("#generate-server-jwks", "textarea[data-json-target='federation.server_jwks']");
+        }
+
+        function watchInputValue(input, callback) {
+          const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input), 'value');
+          Object.defineProperty(input, 'value', {
+            get() {
+              return descriptor.get.call(this);
+            },
+            set(newValue) {
+              const oldValue = descriptor.get.call(this);
+              descriptor.set.call(this, newValue);
+              if (newValue !== oldValue) callback(newValue, oldValue);
+            }
+          });
+          input.addEventListener('input', () => callback(input.value));
+        }
+
+        function setFederationTrustAnchor() {
+            var alias = document.querySelector(".alias").value;
+            if (!alias) {
+                alias = "<INSERT TEST ALIAS>";
+            }
+            document.querySelector("#federation-trust-anchor").value = `${window.location.origin}/test/a/${alias}/trust-anchor`;
+        }
+
+        function registerAliasListener() {
+            setFederationTrustAnchor();
+            watchInputValue(document.querySelector(".alias"), setFederationTrustAnchor);
         }
 
         // Base64url encoder

@@ -26,7 +26,7 @@ public class GenerateEntityConfigurationForRPTest extends AbstractCondition {
 
 		server.add("jwks", env.getObject("op_ec_jwks"));
 
-		JsonElement authorityHintsElement = env.getElementFromObject("config", "federation.op_authority_hints");
+		JsonElement authorityHintsElement = env.getElementFromObject("config", "federation.authority_hints");
 		if (authorityHintsElement != null) {
 			if (!authorityHintsElement.isJsonArray()) {
 				throw error("authority_hints must be an array of strings");

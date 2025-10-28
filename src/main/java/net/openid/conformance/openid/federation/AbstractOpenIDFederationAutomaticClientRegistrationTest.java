@@ -31,8 +31,11 @@ import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAutho
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.openid.AbstractOIDCCServerTest;
+import net.openid.conformance.openid.federation.client.AddAuthorityHintsForRP;
 import net.openid.conformance.openid.federation.client.AddFederationEntityMetadataToTrustAnchorEntityConfiguration;
-import net.openid.conformance.openid.federation.client.AddSelfHostedTrustAnchorToConfiguration;
+import net.openid.conformance.openid.federation.client.AddFederationEntityToTrustAnchorImmediateSubordinates;
+import net.openid.conformance.openid.federation.client.AddSelfHostedTrustAnchorToAuthorityHints;
+import net.openid.conformance.openid.federation.client.AddSelfToTrustAnchorImmediateSubordinates;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.openid.federation.client.GenerateTrustAnchorEntityConfiguration;
 import net.openid.conformance.openid.federation.client.LoadTrustAnchorJWKs;
@@ -136,7 +139,13 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
 		exposeEnvString("trust_anchor_entity_configuration_url");
 
+		String clientRegistrationType = getVariant(ClientRegistration.class).toString();
+		env.putString("client_registration_type", clientRegistrationType);
+
 		callAndStopOnFailure(ExtractECJWKsFromRPConfig.class, Condition.ConditionResult.FAILURE);
+		env.mapKey("federation_jwks", "rp_ec_jwks");
+		callAndStopOnFailure(ValidateFederationJWKsPrivatePart.class, Condition.ConditionResult.FAILURE);
+		env.unmapKey("federation_jwks");
 
 		JsonElement clientConfigElm = env.getElementFromObject("config", "client");
 		if (clientConfigElm == null) {
@@ -147,15 +156,15 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		clientConfig.addProperty("client_id", baseUrl);
 
-		String clientRegistrationType = getVariant(ClientRegistration.class).toString();
-		env.putString("client_registration_type", clientRegistrationType);
-
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 		env.putObject("client", "jwks", env.getElementFromObject("config", "federation.rp_client_jwks").getAsJsonObject());
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
-		callAndStopOnFailure(AddSelfHostedTrustAnchorToConfiguration.class);
+		callAndStopOnFailure(AddAuthorityHintsForRP.class);
+		callAndStopOnFailure(AddSelfHostedTrustAnchorToAuthorityHints.class);
+		callAndStopOnFailure(AddSelfToTrustAnchorImmediateSubordinates.class);
+		callAndStopOnFailure(AddFederationEntityToTrustAnchorImmediateSubordinates.class);
 
 		env.mapKey("server_public_jwks", "client_public_jwks");
 		callAndStopOnFailure(GenerateEntityConfigurationForOPTest.class);
@@ -290,6 +299,10 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		if (includeTrustChainInAuthorizationRequest) {
 			String entityIdentifier = env.getString("entity_identifier");
 			String trustAnchorEntityIdentifier = env.getString("trust_anchor_entity_identifier");
+			String trustAnchorOverride = env.getString("config", "federation.rp_authority_hint");
+			if (trustAnchorOverride != null) {
+				trustAnchorEntityIdentifier = trustAnchorOverride;
+			}
 			JsonArray trustChain = buildTrustChain(List.of(entityIdentifier, trustAnchorEntityIdentifier));
 
 			JsonObject trustChainObject = new JsonObject();
