@@ -25,6 +25,7 @@ import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractRequestObject;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
+import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
@@ -40,6 +41,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.ValidateRequestObjectSubNotPresent;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.openid.federation.AddAutomaticClientRegistrationTypeSupported;
 import net.openid.conformance.openid.federation.AddExplicitClientRegistrationTypeSupported;
@@ -55,6 +57,7 @@ import net.openid.conformance.openid.federation.ExtractServerJWKsFromOPConfig;
 import net.openid.conformance.openid.federation.NonBlocking;
 import net.openid.conformance.openid.federation.SetPrimaryEntityStatement;
 import net.openid.conformance.openid.federation.ValidateEntityIdentifier;
+import net.openid.conformance.openid.federation.ValidateFederationJWKsPrivatePart;
 import net.openid.conformance.openid.federation.ValidateFederationUrl;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -76,6 +79,7 @@ import java.util.List;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
+		"federation.trust_anchor",
 		"federation.op_ec_jwks",
 		"federation.op_server_jwks",
 		"federation.op_entity_identifier_host_override",
@@ -120,20 +124,20 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
 		exposeEnvString("trust_anchor_entity_configuration_url");
 
-		callAndStopOnFailure(ExtractECJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractServerJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
-
-		callAndStopOnFailure(AddSelfHostedTrustAnchorToConfiguration.class);
-
 		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-		// TODO: Only add self-hosted if no explicit authority hints are provided?
-		// callAndStopOnFailure(AddSelfHostedTrustAnchorToEntityConfiguration.class);
+
+		callAndStopOnFailure(ExtractECJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
+		env.mapKey("federation_jwks", "op_ec_jwks");
+		callAndStopOnFailure(ValidateFederationJWKsPrivatePart.class, "RFC7517-1.1");
+
+		callAndStopOnFailure(ExtractServerJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
+		env.mapKey("federation_jwks", "op_server_jwks");
+		callAndStopOnFailure(ValidateFederationJWKsPrivatePart.class, "RFC7517-1.1");
+		env.unmapKey("federation_jwks");
+
+		callAndStopOnFailure(AddSelfHostedTrustAnchorToAuthorityHints.class);
 		callAndStopOnFailure(AddFederationEntityToTrustAnchorImmediateSubordinates.class);
 		callAndStopOnFailure(AddSelfToTrustAnchorImmediateSubordinates.class);
-
-		// TODO: Probably I want to validate both EC and Server jwks here
-		// callAndStopOnFailure(LoadServerJWKs.class);
-		//callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(GenerateEntityConfigurationForRPTest.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToEntityConfiguration.class);
@@ -296,7 +300,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 
 		String rpEntity = env.getString("config", "federation.entity_identifier");
 		String opEntity = env.getString("entity_identifier");
-		String rpTrustAnchor = env.getString("config", "federation.trust_anchor");
+		String rpTrustAnchor = env.getString("trust_anchor_entity_identifier");
 
 		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(rpEntity));
 		loadClientPublicJwksFromRPMetadata();

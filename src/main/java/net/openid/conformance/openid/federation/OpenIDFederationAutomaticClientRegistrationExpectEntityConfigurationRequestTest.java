@@ -19,10 +19,10 @@ import org.springframework.http.ResponseEntity;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
+		"federation.trust_anchor",
 		"federation.rp_ec_jwks",
 		"federation.rp_client_jwks",
 		"federation.rp_entity_identifier_host_override",
-		"federation_trust_anchor.immediate_subordinates",
 		"federation_trust_anchor.trust_anchor_jwks",
 		"internal.op_to_rp_mode",
 	}
