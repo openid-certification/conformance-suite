@@ -41,7 +41,6 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.ValidateRequestObjectSubNotPresent;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
 import net.openid.conformance.openid.federation.AddAutomaticClientRegistrationTypeSupported;
 import net.openid.conformance.openid.federation.AddExplicitClientRegistrationTypeSupported;
@@ -131,6 +130,8 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		callAndStopOnFailure(ValidateFederationJWKsPrivatePart.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(ExtractServerJWKsFromOPConfig.class, Condition.ConditionResult.FAILURE);
+		env.putObject("config", "server.jwks", env.getObject("op_server_jwks"));
+		callAndStopOnFailure(LoadServerJWKs.class, Condition.ConditionResult.FAILURE);
 		env.mapKey("federation_jwks", "op_server_jwks");
 		callAndStopOnFailure(ValidateFederationJWKsPrivatePart.class, "RFC7517-1.1");
 		env.unmapKey("federation_jwks");
