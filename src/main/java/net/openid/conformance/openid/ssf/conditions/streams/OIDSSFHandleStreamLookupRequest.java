@@ -14,19 +14,28 @@ public class OIDSSFHandleStreamLookupRequest extends AbstractOIDSSFHandleReceive
 	@Override
 	public Environment evaluate(Environment env) {
 
-		JsonObject queryParams = env.getElementFromObject("incoming_request", "query_string_params").getAsJsonObject();
-
-		String streamId = OIDFJSON.tryGetString(queryParams.get("stream_id"));
-
 		JsonObject resultObj = new JsonObject();
 		env.putObject("ssf", "stream_op_result", resultObj);
 
-		// if stream_id parameter is present use lookup stream directly
-		if (streamId != null) {
-			// explicit stream lookup
+		/*
+		 * 8.1.1.2. Reading a Stream's Configuration
+		 * The GET request MAY include the "stream_id" as a query parameter in order to identify the correct Event Stream.
+		 */
+		JsonObject queryParams = env.getElementFromObject("incoming_request", "query_string_params").getAsJsonObject();
+		if (queryParams.has("stream_id")) {
+
+			JsonElement streamIdEl = queryParams.get("stream_id");
+			if (streamIdEl.isJsonNull()) {
+				resultObj.add("error", createErrorObj("not_found", "Stream not found"));
+				resultObj.addProperty("status_code", 404);
+				throw error("Failed to handle stream lookup request: Could not find stream by stream_id", args("stream_id", streamIdEl));
+			}
+
+			String streamId = OIDFJSON.tryGetString(streamIdEl);
 
 			JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 			if (streamConfigEl == null) {
+				resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 				resultObj.addProperty("status_code", 404);
 				throw error("Failed to handle stream lookup request: Could not find stream by stream_id", args("stream_id", streamId));
 			}
@@ -41,6 +50,10 @@ public class OIDSSFHandleStreamLookupRequest extends AbstractOIDSSFHandleReceive
 			return env;
 		}
 
+		/*
+		 * If the "stream_id" parameter is missing, then the Transmitter MUST return a list of the stream configurations available
+		 * to this Receiver. In the event that there are no Event Streams configured, the Transmitter MUST return an empty list.
+		 */
 		// Find all configured streams
 		JsonElement streamConfigEl = env.getElementFromObject("ssf", "streams");
 		if (streamConfigEl == null) {

@@ -22,13 +22,20 @@ public class OIDSSFHandleStreamStatusUpdateRequest extends AbstractOIDSSFHandleR
 		}
 		JsonObject streamStatusInput = streamStatusInputEl.getAsJsonObject();
 
-		String streamId = OIDFJSON.tryGetString(streamStatusInput.get("stream_id"));
-		if (streamId == null) {
+		if (!streamStatusInput.has("stream_id")) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
 			throw error("Failed to handle stream status update request: Missing stream_id in stream status update request body", args("error", resultObj.get("error")));
 		}
 
+		JsonElement streamIdEl = streamStatusInput.get("stream_id");
+		if (streamIdEl.isJsonNull()) {
+			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
+			resultObj.addProperty("status_code", 404);
+			throw error("Failed to handle stream status update request: Stream not found", args("stream_id", streamIdEl, "error", resultObj.get("error")));
+		}
+
+		String streamId = OIDFJSON.tryGetString(streamIdEl);
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));

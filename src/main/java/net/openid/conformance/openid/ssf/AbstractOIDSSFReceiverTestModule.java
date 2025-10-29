@@ -17,7 +17,6 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeli
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreateRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamCreateRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDeleteRequest;
-import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamDeleteRequestValidation;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamLookupRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamReplaceRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleStreamRequestBodyParsing;
@@ -343,7 +342,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "DELETE": {
-				callAndContinueOnFailure(OIDSSFHandleStreamDeleteRequestValidation.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 				callAndContinueOnFailure(new OIDSSFHandleStreamDeleteRequest(eventStore), Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.5");
 
 				JsonObject deleteResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();

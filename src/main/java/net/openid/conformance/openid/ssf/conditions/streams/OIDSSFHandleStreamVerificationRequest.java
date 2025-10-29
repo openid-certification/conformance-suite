@@ -22,13 +22,20 @@ public class OIDSSFHandleStreamVerificationRequest extends AbstractOIDSSFHandleR
 			throw error("Failed to handle stream update request: Failed to parse stream input", args("error", resultObj.get("error")));
 		}
 
-		String streamId = OIDFJSON.tryGetString(verificationInput.get("stream_id"));
-		if (streamId == null) {
+		if (!verificationInput.has("stream_id")) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
 			throw error("Failed to handle stream update request: Missing stream_id in request body", args("error", resultObj.get("error")));
 		}
 
+		JsonElement streamIdEl = verificationInput.get("stream_id");
+		if (streamIdEl.isJsonNull()) {
+			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream update request: Missing stream_id in request body", args("error", resultObj.get("error")));
+		}
+
+		String streamId = OIDFJSON.tryGetString(streamIdEl);
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Streams not found"));
