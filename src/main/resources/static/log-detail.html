@@ -168,6 +168,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
     </div>
 
     <script type="text/javascript">
+
+        let urlSearchParams = new URLSearchParams(window.location.search);
+
         function getLogs(testId, public) {
 
             return fetch('/api/log/' + encodeURIComponent(testId) + '?public=' + public + ( FAPI_UI.latestTestEntry > 0 ? '&since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''))
@@ -400,7 +403,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
         function getHeader(testId, public) {
             // this is the page header, fill it in with log details
-            return fetch('/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''))
+            let infoUrl = '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : '');
+            return fetch(infoUrl)
             .then((response) => {
                 if (!response.ok) {
                     return Promise.reject(response);
@@ -441,6 +445,35 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             window.open('/upload.html?log=' + encodeURIComponent(testId));
                         };
                     }
+
+                    if (document.getElementById('btnShareLink') !== null) {
+                        document.getElementById('btnShareLink').onclick = function(evt) {
+                            evt.preventDefault();
+                            let uri = '/api/info/' + encodeURIComponent(testId) + '/share';
+                            fetch(uri, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                }}).then((response) => {
+                                if (!response.ok) {
+                                    return Promise.reject(response);
+                                }
+
+                                response.json().then(shareLink => {
+                                    // console.log("Got share link: " + shareLink.link);
+                                    navigator.clipboard.writeText(decodeURIComponent(shareLink.link)).then(
+                                        () => {
+                                            alert("Private link to clipboard");
+                                        },
+                                        () => {
+                                            /* clipboard write failed */
+                                        },
+                                    );
+                                })
+                            });
+                        };
+                    }
+
 
                     if (document.getElementById('reloadBtn') !== null) {
                         document.getElementById('reloadBtn').onclick = function(evt) {
@@ -636,6 +669,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     }
 
                     if (!public && data.planId) {
+
                         fetch('/api/plan/' + encodeURIComponent(data.planId))
                         .then((response) => {
                             if (!response.ok) {

@@ -2,6 +2,15 @@ package net.openid.conformance.security;
 
 import com.google.common.base.Strings;
 import jakarta.servlet.Filter;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import net.openid.conformance.sharing.AssetSharing;
+import net.openid.conformance.sharing.SharedAsset;
+import net.openid.conformance.sharing.magiclink.CustomOneTimeTokenService;
+import net.openid.conformance.sharing.magiclink.MagicLinkOneTimeToken;
+import net.openid.conformance.sharing.magiclink.MagicLinkOneTimeTokenAuthenticationProvider;
+import net.openid.conformance.sharing.magiclink.MagicLinkUserDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +23,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
+import org.springframework.security.authentication.ott.OneTimeTokenService;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -30,8 +42,11 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
@@ -44,6 +59,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -85,6 +102,8 @@ class WebSecurityOidcLoginConfig {
 
 	@Autowired(required = false)
 	private CorsConfigurable additionalCorsConfiguration;
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
 
 	@Bean
 	public InMemoryClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
@@ -108,7 +127,7 @@ class WebSecurityOidcLoginConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
+	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository, OneTimeTokenService oneTimeTokenService, MagicLinkUserDetailsService magicLinkUserDetailsService) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle NON-API requests with this filter chain
@@ -136,9 +155,37 @@ class WebSecurityOidcLoginConfig {
 					"/jwks**",  //
 					"/logout.html", //
 					"/robots.txt",  //
-					"/.well-known/**" //
+					"/.well-known/**", //
+					"/login/ott" // magic link login
 				) //
 				.permitAll();
+
+			// Magic Link access restriction - only allow access to resources explicitly shared via the Magic Link
+			httpRequests.requestMatchers(new RequestMatcher() {
+
+				@SuppressWarnings("unused")
+				@Override
+				public boolean matches(HttpServletRequest request) {
+
+					// if we are authenticated via a magic link
+					// only allow access to the shared resource
+					if (!authenticationFacade.isMagicLinkUser()) {
+						return false;
+					}
+
+					var requestURI = URI.create(baseURL + request.getRequestURI() + "?" + request.getQueryString());
+					MagicLinkOneTimeToken magicOneTimeToken = authenticationFacade.getMagicOneTimeToken();
+					SharedAsset sharedAsset = magicOneTimeToken.getSharedAsset();
+					var redirectUri = URI.create(sharedAsset.getRedirectUri());
+
+					if (requestURI.equals(redirectUri)) {
+						// allow access
+						return false;
+					}
+
+					return true;
+				}
+			}).denyAll();
 
 			httpRequests.requestMatchers( //
 					publicRequestMatcher( //
@@ -153,6 +200,19 @@ class WebSecurityOidcLoginConfig {
 			httpRequests.anyRequest() //
 				.authenticated();
 		}); //
+
+		http.oneTimeTokenLogin(ott -> {
+			ott.authenticationProvider(new MagicLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, magicLinkUserDetailsService));
+			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
+			ott.authenticationSuccessHandler(new AuthenticationSuccessHandler() {
+				@Override
+				public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+					OneTimeTokenAuthenticationToken token = (OneTimeTokenAuthenticationToken) authentication;
+					MagicLinkOneTimeToken magicLink = (MagicLinkOneTimeToken)token.getDetails();
+					new DefaultRedirectStrategy().sendRedirect(request, response, magicLink.getSharedAsset().getRedirectUri());
+				}
+			});
+		});
 
 		// we use oauth2 client login support instead of openIdConnectAuthenticationFilter
 		http.oauth2Client(oauth2Client -> {
@@ -246,6 +306,11 @@ class WebSecurityOidcLoginConfig {
 		}
 
 		return http.build();
+	}
+
+	@Bean
+	public OneTimeTokenService oneTimeTokenService(AssetSharing assetSharing) {
+		return new CustomOneTimeTokenService(assetSharing);
 	}
 
 	@Bean
