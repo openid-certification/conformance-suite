@@ -6,6 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWKUtil;
 
 public class AddOpenIDProviderMetadataToEntityConfiguration extends AbstractCondition {
 
@@ -48,8 +49,8 @@ public class AddOpenIDProviderMetadataToEntityConfiguration extends AbstractCond
 		requestObjectSigningAlgValuesSupported.add("ES256");
 		openIdProvider.add("request_object_signing_alg_values_supported", requestObjectSigningAlgValuesSupported);
 
-		JsonArray requestObjectEncryptionAlgValuesSupported = new JsonArray();
-		requestObjectEncryptionAlgValuesSupported.add("RSA-OAEP");
+		JsonObject encKeys = env.getObject("server_encryption_keys");
+		JsonArray requestObjectEncryptionAlgValuesSupported = JWKUtil.getAlgsFromJwks(encKeys);
 		openIdProvider.add("request_object_encryption_alg_values_supported", requestObjectEncryptionAlgValuesSupported);
 
 		JsonArray requestObjectEncryptionEncValuesSupported = new JsonArray();
