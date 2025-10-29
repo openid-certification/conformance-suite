@@ -28,13 +28,23 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 		}
 
 		JsonObject streamConfigInput = streamConfigInputEl.getAsJsonObject();
-
-		String streamId = OIDFJSON.tryGetString(streamConfigInput.get("stream_id"));
-		if (streamId == null) {
+		/*
+		 * The stream_id and the full set of Receiver-Supplied properties MUST be present in the PUT body, not only those specifically intended to be changed.
+		 */
+		if (!streamConfigInput.has("stream_id")) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
 			throw error("Failed to handle stream replacement request: Missing stream_id in request body", args("error", resultObj.get("error")));
 		}
+
+		JsonElement streamIdEl = streamConfigInput.get("stream_id");
+		if (streamIdEl.isJsonNull()) {
+			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
+			resultObj.addProperty("status_code", 404);
+			throw error("Failed to handle stream replacement request: Stream not found", args("stream_id", streamIdEl));
+		}
+
+		String streamId = OIDFJSON.tryGetString(streamIdEl);
 
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
@@ -45,8 +55,9 @@ public class OIDSSFHandleStreamReplaceRequest extends AbstractOIDSSFHandleReceiv
 
 		JsonElement streamConfigEl = OIDSSFStreamUtils.getStreamConfig(env, streamId);
 		if (streamConfigEl == null) {
+			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
 			resultObj.addProperty("status_code", 404);
-			throw error("Failed to handle stream replacement request: Could not find stream by stream_id", args("stream_id", streamId));
+			throw error("Failed to handle stream replacement request: Stream not found", args("stream_id", streamId));
 		}
 
 		Set<String> keysNotAllowedInUpdate = checkForInvalidKeysInStreamConfigInput(streamConfigInput);

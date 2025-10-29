@@ -20,16 +20,36 @@ public abstract class AbstractOIDSSFHandleStreamSubjectChange extends AbstractOI
 		} catch (Exception e) {
 			resultObj.add("error", createErrorObj("parsing_error", e.getMessage()));
 			resultObj.addProperty("status_code", 400);
-			throw error("Failed to handle stream subject " + getChangeType() + " request: Failed to parse stream status input", args("error", resultObj.get("error")));
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Failed to parse input", args("error", resultObj.get("error")));
 		}
 
-		String streamId = OIDFJSON.tryGetString(streamSubjectInput.get("stream_id"));
-		if (streamId == null) {
+		if (!streamSubjectInput.has("stream_id")) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
-			throw error("Failed to handle stream subject " + getChangeType() + " request: Missing stream_id in stream status update request body", args("error", resultObj.get("error")));
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Missing stream_id in request body", args("error", resultObj.get("error")));
 		}
 
+		JsonElement streamIdEl = streamSubjectInput.get("stream_id");
+		if (streamIdEl.isJsonNull()) {
+			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
+			resultObj.addProperty("status_code", 404);
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Stream not found", args("stream_id", streamIdEl, "error", resultObj.get("error")));
+		}
+
+		if (!streamSubjectInput.has("subject")) {
+			resultObj.add("error", createErrorObj("bad_request", "Missing subject in request body"));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Missing subject in request body", args("error", resultObj.get("error")));
+		}
+
+		JsonElement subjectEl = streamSubjectInput.get("subject");
+		if (!subjectEl.isJsonObject()) {
+			resultObj.add("error", createErrorObj("bad_request", "subject must be an object"));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream subject " + getChangeType() + " request: Invalid subject in request body", args("error", resultObj.get("error"), "subject", subjectEl));
+		}
+
+		String streamId = OIDFJSON.tryGetString(streamIdEl);
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));

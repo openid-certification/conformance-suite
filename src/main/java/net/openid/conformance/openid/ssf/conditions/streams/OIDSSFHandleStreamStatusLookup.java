@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -14,15 +15,22 @@ public class OIDSSFHandleStreamStatusLookup extends AbstractOIDSSFHandleReceiver
 		JsonObject resultObj = new JsonObject();
 		env.putObject("ssf", "stream_op_result", resultObj);
 
-		String streamId = OIDFJSON.tryGetString(queryParams.get("stream_id"));
-
-		if (streamId == null) {
+		if (!queryParams.has("stream_id")) {
 			resultObj.add("error", createErrorObj("bad_request", "missing stream_id parameter"));
 			resultObj.addProperty("status_code", 400);
 			throw error("Failed to handle stream status request: missing stream_id parameter",
 				args("error", resultObj.get("error")));
 		}
 
+		JsonElement streamIdEl = queryParams.get("stream_id");
+		if (streamIdEl.isJsonNull()) {
+			resultObj.add("error", createErrorObj("bad_request", "missing stream_id parameter"));
+			resultObj.addProperty("status_code", 400);
+			throw error("Failed to handle stream status request: missing stream_id parameter",
+				args("error", resultObj.get("error")));
+		}
+
+		String streamId = OIDFJSON.tryGetString(streamIdEl);
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
