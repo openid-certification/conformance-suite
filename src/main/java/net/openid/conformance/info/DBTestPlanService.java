@@ -11,6 +11,7 @@ import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.sharing.SharedAsset;
 import net.openid.conformance.variant.VariantSelection;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +105,17 @@ public class DBTestPlanService implements TestPlanService {
 	public Plan getTestPlan(String id) {
 
 		if (!authenticationFacade.isAdmin()) {
-			return plans.findByIdAndOwner(id, authenticationFacade.getPrincipal()).orElse(null);
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			Plan plan = plans.findByIdAndOwner(id, owner).orElse(null);
+
+			if (plan == null && authenticationFacade.isMagicLinkUser()) {
+				SharedAsset sharedAsset = authenticationFacade.getMagicOneTimeToken().getSharedAsset();
+				if (sharedAsset != null && sharedAsset.getPlanId().equals(id)) {
+					plan = plans.findByIdAndOwner(id, sharedAsset.getOwner()).orElse(null);
+				}
+			}
+
+			return plan;
 		} else {
 			return plans.findById(id).orElse(null);
 		}

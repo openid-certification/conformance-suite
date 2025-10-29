@@ -25,6 +25,8 @@ import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.security.KeyManager;
+import net.openid.conformance.sharing.SharedAsset;
+import net.openid.conformance.sharing.magiclink.MagicLinkOneTimeToken;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -371,7 +373,19 @@ public class LogApi {
 		criteria.and("testId").is(id);
 
 		if (!isPublic && !authenticationFacade.isAdmin()) {
-			criteria.and("testOwner").is(authenticationFacade.getPrincipal());
+			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
+
+			if (authenticationFacade.isMagicLinkUser()) {
+				MagicLinkOneTimeToken magicToken = authenticationFacade.getMagicOneTimeToken();
+				SharedAsset sharedAsset = magicToken.getSharedAsset();
+				if (sharedAsset.getTestId().equals(id)) {
+					criteria.and("testOwner").in(sharedAsset.getOwner());
+				} else {
+					criteria.and("testOwner").is(currentUser);
+				}
+			} else {
+				criteria.and("testOwner").is(currentUser);
+			}
 		}
 
 		if (since != null) {

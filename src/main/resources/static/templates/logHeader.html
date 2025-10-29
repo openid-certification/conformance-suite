@@ -85,6 +85,7 @@
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="planBtn"><span class="bi bi-bookmarks"></span> Return to Plan</button>
                             <% if (!public) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="nextPlanBtn" title="Run the next test in this test plan"><span class="bi bi-skip-forward-fill"></span> Continue Plan</button>
+                            <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="btnShareLink"><span class="bi bi-bookmarks"></span> Private link</button>
                             <% if (!test.publish && (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin)) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" data-publish="summary"><span class="bi bi-bookmarks"></span> Publish summary</button>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="publishBtn"><span class="bi bi-bookmarks"></span> Publish everything</button>

@@ -60,9 +60,11 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 			return runningTests.get(testId); 				// just send the results
 		} else {
 			TestModule test = runningTests.get(testId);		// otherwise make sure only the current user can get the test information
-			if (test != null &&
-				test.getOwner().equals(authenticationFacade.getPrincipal())) {
-				return test;
+			if (test != null) {
+				ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+				if (test.getOwner().equals(owner)) {
+					return test;
+				}
 			}
 			return null;
 		}
@@ -146,7 +148,7 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 
 	/**
 	 * @param closedTestTimeout
-	 *            the closedTestTimeout to set
+	 *	    the closedTestTimeout to set
 	 */
 	public void setClosedTestTimeout(Duration closedTestTimeout) {
 		this.closedTestTimeout = closedTestTimeout;

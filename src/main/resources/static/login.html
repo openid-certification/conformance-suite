@@ -14,9 +14,6 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Sans">
     <link rel="stylesheet" type="text/css" href="/css/layout.css">
-
-
-
 </head>
 <body>
     <div class="pageHeader container-fluid">
@@ -38,6 +35,7 @@
                 <p class="text-center">
                     <a class="btn btn-lg btn-danger bg-gradient border border-secondary" href="/oauth2/authorization/google">Proceed with Google</a>
                     <a class="btn btn-lg btn-primary bg-gradient border border-secondary" href="/oauth2/authorization/gitlab">Proceed with GitLab</a>
+                    <a class="btn btn-lg btn-info bg-gradient border border-secondary" href="/oauth2/authorization/keycloak">Proceed with Keycloak</a>
                 </p>
             </div>
         </div>
@@ -72,6 +70,38 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             if (logout) {
                    document.getElementById('logout').classList.add('show');
+            }
+
+            let token = urlParams.get("token");
+            if (token) {
+                const iframe = document.createElement("iframe");
+                iframe.style.display = "none";
+                iframe.src = "/login/ott?token=" + encodeURIComponent(token);
+                document.body.appendChild(iframe);
+
+                let submitted = false;
+
+                iframe.addEventListener("load", () => {
+                    const win = iframe.contentWindow;
+                    const doc = win.document;
+
+                    if (!submitted) {
+                        const form = doc.querySelector("form");
+                        if (!form) {
+                            // no form, already at redirect target
+                            window.location = win.location.href;
+                            return;
+                        }
+
+                        submitted = true;
+                        form.submit(); // trigger auto login action
+                        return;
+                    }
+
+                    // second load, after submit finished navigation
+                    window.location = win.location.href;
+                });
+
             }
         });
     </script>
