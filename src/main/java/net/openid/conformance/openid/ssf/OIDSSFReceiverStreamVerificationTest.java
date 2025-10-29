@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = SsfDeliveryMode.class,
 	value = "push",
 	configurationFields = {
-		"ssf.transmitter.push_endpoint_authorization_header"
 	})
 public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiverTestModule {
 

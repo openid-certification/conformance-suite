@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 	parameter = SsfDeliveryMode.class,
 	value = "push",
 	configurationFields = {
-		"ssf.transmitter.push_endpoint_authorization_header"
 	})
 public class OIDSSFReceiverStreamCreateDeleteTest extends AbstractOIDSSFReceiverTestModule {
 
