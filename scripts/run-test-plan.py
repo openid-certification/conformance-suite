@@ -121,7 +121,7 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     if selected_modules == None or len(selected_modules) == 0:
         plan_modules = [module for module in test_plan_info['modules'] if module['testModule'] not in ignored_modules]
     else:
-        plan_modules = [module for module in test_plan_info['modules'] if get_string_name_for_module_with_variant(module) in selected_modules]
+        plan_modules = [module for module in test_plan_info['modules'] if  module['testModule'] in selected_modules]
     if len(plan_modules) == 0:
         raise Exception("No modules to test in " + test_plan_name)
 
