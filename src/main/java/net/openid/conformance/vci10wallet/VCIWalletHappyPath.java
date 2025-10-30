@@ -8,6 +8,7 @@ import net.openid.conformance.condition.as.CheckStateLength;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vci10wallet.condition.VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-wallet-happy-path",
@@ -32,6 +33,13 @@ public class VCIWalletHappyPath extends AbstractVCIWalletTest {
 	protected void onConfigurationCompleted() {
 		super.onConfigurationCompleted();
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-ID2-5.6.3-3");
+	}
+
+	@Override
+	protected void configureOauthAuthorizationServerMetadata() {
+		super.configureOauthAuthorizationServerMetadata();
+
+		callAndContinueOnFailure(VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
 	}
 
 	@Override

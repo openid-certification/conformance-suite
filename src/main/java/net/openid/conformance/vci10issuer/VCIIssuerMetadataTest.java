@@ -10,12 +10,13 @@ import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
-import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
 import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataValidation;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
+import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-metadata-test",
@@ -78,6 +79,8 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-13.4");
 				env.removeObject("server");
 			}
+
+			callAndContinueOnFailure(VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
 		});
 	}
 }
