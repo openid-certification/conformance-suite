@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
@@ -87,14 +88,31 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		SDObjectBuilder builder = new SDObjectBuilder();
 		ArrayList<Disclosure> disclosures = new ArrayList<>();
 
-		// contents as per https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#52-encoding-of-pid-attributes
-		// There are more claims, possibly we should include more of them
+		// as per https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#42-note-on-vct
 		builder.putClaim("vct", "urn:eudi:pid:1");
+
+		/*
+		 * contents as per https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#41-encoding-of-pid-attributes-and-metadata
+		 * mandatory elements are defined here:
+		 * https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#22-mandatory-attributes-specified-in-cir-20242977
+		 *
+		 * We aim to include all mandatory elements
+		 */
 
 		disclosures.add(builder.putSDClaim("given_name", "Jean"));
 		disclosures.add(builder.putSDClaim("family_name", "Dupont"));
 		disclosures.add(builder.putSDClaim("birthdate", "1980-05-23"));
-		disclosures.add(builder.putSDClaim("age_in_years", "44"));
+
+		Disclosure disclosure0 = new Disclosure("FR");
+		disclosures.add(disclosure0);
+		Map<String, Object> element = disclosure0.toArrayElement();
+		disclosures.add(builder.putSDClaim("nationalities", List.of(element)));
+
+		SDObjectBuilder pobBuilder = new SDObjectBuilder();
+		disclosures.add(pobBuilder.putSDClaim("country", "DD"));
+		Map<String, Object> placeOfBirth = pobBuilder.build();
+
+		disclosures.add(builder.putSDClaim("place_of_birth", placeOfBirth));
 
 		Map<String, Object> cnf = new HashMap<>();
 		cnf.put("jwk", publicJWK);
