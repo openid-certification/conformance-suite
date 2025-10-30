@@ -3,9 +3,11 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -40,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 	parameter = SsfDeliveryMode.class,
 	value = "push",
 	configurationFields = {
-		"ssf.transmitter.push_endpoint_authorization_header"
 	})
 public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverTestModule {
 
@@ -72,12 +73,19 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 	@Override
 	protected boolean isFinished() {
-		return createdStreamId != null
-			&& createdStreamId.equals(readStreamId)
-			&& createdStreamId.equals(readStreamStatusStreamId)
-			&& createdStreamId.equals(verificationStreamId)
-			&& eventsAcked.get(createdStreamId) != null
+
+		boolean detectedCreateStream = createdStreamId != null;
+		boolean detectedReadStream = createdStreamId.equals(readStreamId);
+		boolean detectedReadStreamStatus = createdStreamId.equals(readStreamStatusStreamId);
+		boolean detectedStreamVerification = createdStreamId.equals(verificationStreamId);
+		boolean detectedAllExpectedAcknowledgedEvents = eventsAcked.get(createdStreamId) != null
 			&& eventsAcked.get(createdStreamId).containsAll(eventsEnqueued.get(createdStreamId));
+
+		return detectedCreateStream
+			&& detectedReadStream
+			&& detectedReadStreamStatus
+			&& detectedStreamVerification
+			&& detectedAllExpectedAcknowledgedEvents;
 	}
 
 	@Override
@@ -106,22 +114,22 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	@Override
 	protected void afterPushDeliverySuccess(String streamId, OIDSSFSecurityEvent event) {
 		// needed if SSF Receiver uses push delivery
-		if (SsfEvents.isVerificationEvent(event.type())) {
+		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 
-			afterStreamVerification(streamId, event);
+			afterInitialStreamVerification(streamId, event);
 		}
 	}
 
 	@Override
 	protected void onStreamEventAcknowledged(String streamId, String jti, OIDSSFSecurityEvent event) {
-		// needed if SSF Receiver uses push delivery
-		if (SsfEvents.isVerificationEvent(event.type())) {
+		// needed if SSF Receiver uses poll delivery
+		if (SsfEvents.isVerificationEvent(event.type()) && verificationStreamId == null) {
 			verificationStreamId = streamId;
-			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery"), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via POLL delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 
-			afterStreamVerification(streamId, event);
+			afterInitialStreamVerification(streamId, event);
 			return;
 		}
 
@@ -133,9 +141,10 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		eventsEnqueued.computeIfAbsent(streamId, k -> new ConcurrentSkipListSet<>()).add(jti);
 	}
 
-	protected void afterStreamVerification(String streamId, OIDSSFSecurityEvent verificationEvent) {
+	protected void afterInitialStreamVerification(String streamId, OIDSSFSecurityEvent verificationEvent) {
 
 		// generate CAEP Interop events
+		callAndStopOnFailure(WaitForOneSecond.class);
 
 		long now = System.currentTimeMillis();
 		JsonObject validSubject = env.getElementFromObject("config", "ssf.subjects.valid").getAsJsonObject();
@@ -147,5 +156,10 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		SsfEvent credentialChange = generateSsfEventExample(SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE, now);
 		generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, validSubject, credentialChange, this::onStreamEventEnqueued);
 		callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, "CAEPIOP-3.2");
+
+		// if push delivery is used - send out the events immediately
+		if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
+			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, java.util.concurrent.TimeUnit.SECONDS);
+		}
 	}
 }

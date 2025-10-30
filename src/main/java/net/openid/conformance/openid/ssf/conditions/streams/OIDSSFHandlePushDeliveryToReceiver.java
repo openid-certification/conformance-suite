@@ -43,7 +43,8 @@ public class OIDSSFHandlePushDeliveryToReceiver extends AbstractCallEndpoint {
 		this.endpointName = "receiver push endpoint";
 		this.responseEnvironmentKey = "endpoint_response";
 
-		log("Call " + endpointName + " for stream_id=" + streamId, args("stream_id", streamId, "push_endpoint", endpointUri));
+		log("Call " + endpointName + " for stream_id=" + streamId + " for event " + event.type() + " jti=" + event.jti(),
+			args("stream_id", streamId, "push_endpoint", endpointUri, "jti", event.jti(), "event_type", event.type()));
 
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);

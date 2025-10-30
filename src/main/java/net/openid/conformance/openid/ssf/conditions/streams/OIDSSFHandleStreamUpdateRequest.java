@@ -27,13 +27,27 @@ public class OIDSSFHandleStreamUpdateRequest extends AbstractOIDSSFHandleReceive
 
 		JsonObject streamConfigInput = streamConfigInputEl.getAsJsonObject();
 
-		String streamId = OIDFJSON.tryGetString(streamConfigInput.get("stream_id"));
-		if (streamId == null) {
+		/*
+		 * 8.1.1.3. Updating a Stream's Configuration
+		 * The stream_id property MUST be present in the request.
+		 */
+		if (!streamConfigInput.has("stream_id")) {
 			resultObj.add("error", createErrorObj("bad_request", "Missing stream_id in request body"));
 			resultObj.addProperty("status_code", 400);
 			throw error("Failed to handle stream update request: Missing stream_id in request body", args("error", resultObj.get("error")));
 		}
 
+		JsonElement streamIdEl = streamConfigInput.get("stream_id");
+		/*
+		 * 404	if there is no Event Stream with the given "stream_id" for this Event Receiver
+		 */
+		if (streamIdEl.isJsonNull()) {
+			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
+			resultObj.addProperty("status_code", 404);
+			throw error("Failed to handle stream update request: Stream not found", args("error", resultObj.get("error")));
+		}
+
+		String streamId = OIDFJSON.tryGetString(streamIdEl);
 		JsonObject streamsObj = getOrCreateStreamsObject(env);
 		if (streamsObj.isEmpty()) {
 			resultObj.add("error", createErrorObj("not_found", "Stream not found"));
