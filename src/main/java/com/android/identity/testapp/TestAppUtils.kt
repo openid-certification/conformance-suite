@@ -48,8 +48,6 @@ import org.multipaz.storage.base.BaseStorageTable
 import org.multipaz.storage.ephemeral.EphemeralStorage
 import org.multipaz.util.Constants
 import org.multipaz.util.Logger
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
@@ -269,6 +267,13 @@ issuerAltName = email:certification@oidf.org
 crlDistributionPoints = URI:http://example.com/myca.crl
 EOF
 )
+
+There is also a tool to generate the certs in the multipaz identity-credential library which could be used instead.
+
+Any new cert should be checked with the mattr checker tool:
+
+https://tools.mattrlabs.com/pem
+
 */
 		val documentSignerCert = X509Cert.fromPem(
 			"""-----BEGIN CERTIFICATE-----
