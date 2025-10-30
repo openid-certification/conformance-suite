@@ -6,15 +6,17 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VCIServerMetadata;
-import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
 import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataValidation;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
+import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-metadata-test",
@@ -25,8 +27,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerU
 		"vci.credential_issuer_url"
 	}
 )
-@VariantParameters({VCIServerMetadata.class, VCIClientAuthType.class})
-@VariantConfigurationFields(parameter = VCIServerMetadata.class, value = "static", configurationFields = {"vci.credential_issuer_metadata_url",})
+@VariantParameters({VCIClientAuthType.class, VCIProfile.class})
 public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 	@Override
@@ -36,14 +37,18 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
 		eventLog.runBlock("Verify Credential Issuer Metadata", () -> {
-			callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
-			callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
-			callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.1");
-			callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3");
+			callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+			callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+			callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
+			callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+
+			if (vciProfile == VCIProfile.HAIP) {
+				callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
+			}
 		});
 
 		eventLog.runBlock("Fetch OAuth Authorization Server Metadata", () -> {
-			callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "RFC8414-3.1");
+			callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "RFC8414-3.1");
 		});
 
 		eventLog.runBlock("Verify OAuth Authorization Server Metadata", () -> {
@@ -67,13 +72,15 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 	protected void checkAuthServerMetadata(String authServerMetadataPath) {
 		env.runWithMapKey("current_auth_server_metadata_path", authServerMetadataPath, () -> {
-			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-ID2-11.2.3", "OID4VCI-ID2-11.3");
+			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
 
 			if (clientAuthType == VCIClientAuthType.CLIENT_ATTESTATION) {
 				env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
-				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA05-12.2");
+				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-13.4");
 				env.removeObject("server");
 			}
+
+			callAndContinueOnFailure(VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
 		});
 	}
 }

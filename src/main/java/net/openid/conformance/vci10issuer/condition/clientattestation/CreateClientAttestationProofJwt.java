@@ -20,7 +20,9 @@ public class CreateClientAttestationProofJwt extends AbstractSignJWT {
 	@PreEnvironment(required = {"vci", "config", "client"})
 	public Environment evaluate(Environment env) {
 
-		String issuer = env.getString("vci","credential_issuer");
+		// this must be the authorization server issuer
+		// see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-07#section-5.2-5.2.1
+		String issuer = env.getString("server", "issuer");
 		if (issuer == null || issuer.isBlank()) {
 			throw error("Client attestation issuer must not be null or empty");
 		}

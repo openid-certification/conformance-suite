@@ -2,12 +2,16 @@ package net.openid.conformance.vci10issuer;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 
 public abstract class AbstractVciTest extends AbstractTestModule {
 
 	protected VCIClientAuthType clientAuthType;
+
+	protected VCIProfile vciProfile;
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -20,6 +24,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 		env.putObject("vci", vciConfig);
 
 		clientAuthType = getVariant(VCIClientAuthType.class);
+		vciProfile = getVariant(VCIProfile.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -30,7 +35,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 	}
 
 	protected VCIFetchCredentialIssuerMetadataSequence createFetchCredentialIssuerMetadataSequence() {
-		return new VCIFetchCredentialIssuerMetadataSequence(getVariant(VCIServerMetadata.class));
+		return new VCIFetchCredentialIssuerMetadataSequence(VCIServerMetadata.DISCOVERY);
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {

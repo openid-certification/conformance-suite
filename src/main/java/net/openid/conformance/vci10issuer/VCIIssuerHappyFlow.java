@@ -10,7 +10,6 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
@@ -28,17 +27,10 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 			"vci.credential_issuer_url",
 			"client.client_id",
 			"client.jwks",
-			"mtls.key",
-			"mtls.cert",
-			"mtls.ca",
 			"client2.client_id",
 			"client2.jwks",
-			"mtls2.key",
-			"mtls2.cert",
-			"mtls2.ca",
 			"vci.credential_configuration_id",
 			"vci.authorization_server",
-			"vci.client_attestation_issuer"
 		}
 	)
 public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
@@ -116,12 +108,7 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
 	protected void requestProtectedResource() {
 
 		if (!isSecondClient()) {
-			if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_UK ||
-				getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.OPENBANKING_BRAZIL) {
-				callAndStopOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class);
-			} else {
-				callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-			}
+			callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		}
 
 		super.requestProtectedResource();

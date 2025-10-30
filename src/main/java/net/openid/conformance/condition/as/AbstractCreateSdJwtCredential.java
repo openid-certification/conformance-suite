@@ -27,6 +27,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
+
+	protected final Map<String, Object> additionalClaims;
+
+	protected AbstractCreateSdJwtCredential() {
+		this(null);
+	}
+
+	protected AbstractCreateSdJwtCredential(Map<String, Object> additionalClaims) {
+		this.additionalClaims = additionalClaims;
+	}
+
 	public String keyBindingJwt(ECKey privateKey, String aud, String nonce, String sdHash) {
 		// as per https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-4.3
 		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256).type(new JOSEObjectType("kb+jwt")).build();
@@ -93,6 +104,13 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		builder.putClaim("exp", Instant.now().plus(14, ChronoUnit.DAYS).getEpochSecond());
 		String baseUrl = env.getString("base_url");
 		builder.putClaim("iss", baseUrl);
+
+		// add support for adding additional claims from env if present
+		if (additionalClaims != null) {
+			for(var additionalClaim : additionalClaims.entrySet()) {
+				builder.putClaim(additionalClaim.getKey(), additionalClaim.getValue());
+			}
+		}
 
 		builder.putDecoyDigests(3);
 
