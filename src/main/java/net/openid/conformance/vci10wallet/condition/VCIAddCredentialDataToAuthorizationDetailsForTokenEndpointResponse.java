@@ -58,12 +58,21 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 
 			String scope = env.getString("effective_authorization_endpoint_request", "scope");
 			if (scope == null || scope.isBlank()) {
-				throw error("Scope must not be empty if authorization_details are not present");
+				// throw error("Scope must not be empty if authorization_details are not present");
+				// default a non-present scope to our credential
+				scope = "eudi.pid.1";
+				log("No scope was present in effective_authorization_endpoint_request, assuming default scope " + scope, args("scope", scope));
 			}
 
 			JsonObject credentialConfigurationIdScopeMap = env.getObject("credential_configuration_id_scope_map");
 			if (credentialConfigurationIdScopeMap == null) {
 				throw error("credential_configuration_id_scope_map object must not be null");
+			}
+
+			if (credentialConfigurationIdScopeMap.isEmpty()) {
+				// assume default scope mappings for example credential
+				// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-6.2-4.1.1
+				credentialConfigurationIdScopeMap.addProperty("eudi.pid.1", "eu.europa.ec.eudi.pid.1");
 			}
 
 			for (String credentialConfigurationScopeCandidate : Set.of(scope.split(" "))) {
