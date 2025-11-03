@@ -27,6 +27,7 @@ import net.openid.conformance.variant.VariantSelection;
 		OIDSSFStreamControlNegativeTestDeleteUnknownStream.class,
 		OIDSSFStreamSubjectControlHappyPathTest.class,
 		OIDSSFTransmitterEventsTest.class,
+		OIDSSFTransmitterPushNoAuthTest.class,
 	}
 )
 public class OIDSSFTransmitterTestPlan implements TestPlan {

@@ -19,7 +19,7 @@ public class OIDSSFCheckVerificationAuthorizationHeader extends AbstractConditio
 			return env;
 		}
 
-		JsonElement expectedAuthorizationHeaderEl = env.getElementFromObject("config", "ssf.transmitter.push_endpoint_authorization_header");
+		JsonElement expectedAuthorizationHeaderEl = env.getElementFromObject("ssf", "transmitter.push_endpoint_authorization_header");
 		if (expectedAuthorizationHeaderEl == null) {
 			log("No authorization header expected, skipping check");
 			return env;
