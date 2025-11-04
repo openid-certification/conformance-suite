@@ -56,6 +56,7 @@ import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.ExtractDCQLQueryFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractVP1FinalVpTokenDCQL;
@@ -79,10 +80,12 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
+import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
+import net.openid.conformance.condition.client.WarnUnknownDCQLProperties;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
 import net.openid.conformance.condition.common.CreateRandomRequestUriWithoutFragment;
@@ -390,6 +393,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINAL-A.2");
 			}
 
+			callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
+			callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6");
+			callAndContinueOnFailure(WarnUnknownDCQLProperties.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
 			callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(CreateRandomNonceValue.class);

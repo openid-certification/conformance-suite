@@ -56,6 +56,7 @@ import net.openid.conformance.condition.client.ExtractAuthorizationEndpointRespo
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractBrowserApiResponse;
+import net.openid.conformance.condition.client.ExtractDCQLQueryFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractMDocGeneratedNonceFromJWEHeaderApu;
 import net.openid.conformance.condition.client.ExtractVpTokenDCQL;
@@ -390,6 +391,7 @@ public abstract class AbstractVPID3WalletTest extends AbstractRedirectServerTest
 					callAndStopOnFailure(AddPresentationDefinitionToAuthorizationEndpointRequest.class);
 				}
 				case DCQL -> {
+					callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
 					callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
 				}
 			}

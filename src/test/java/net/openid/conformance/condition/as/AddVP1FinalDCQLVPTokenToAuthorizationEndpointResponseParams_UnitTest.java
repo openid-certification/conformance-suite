@@ -51,7 +51,7 @@ public class AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams_UnitTes
 			  ]
 			}
 			""";
-		env.putObjectFromJsonString("authorization_request_object", "claims.dcql_query", dcql);
+		env.putObjectFromJsonString(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY, dcql);
 		env.putString("credential", "test_credential");
 		env.putObject(CreateAuthorizationEndpointResponseParams.ENV_KEY, new JsonObject());
 
