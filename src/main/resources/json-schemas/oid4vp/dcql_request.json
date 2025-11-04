@@ -200,8 +200,5 @@
             "required": ["options"]
         }
     },
-    "type": "object",
-    "properties": {
-        "DCQLQuery": { "$ref": "#/definitions/DCQLQuery" }
-    }
+    "$ref": "#/definitions/DCQLQuery"
 }

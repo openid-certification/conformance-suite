@@ -377,6 +377,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINAL-A.2");
 			}
 
+			//callAndStopOnFailure(ValidateDCQLQuery.class); FIXME not fully tested/complete yet
 			callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(CreateRandomNonceValue.class);
