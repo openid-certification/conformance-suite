@@ -75,14 +75,17 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 	protected boolean isFinished() {
 
 		boolean detectedCreateStream = createdStreamId != null;
+		if (!detectedCreateStream) {
+			return false;
+		}
+
 		boolean detectedReadStream = createdStreamId.equals(readStreamId);
 		boolean detectedReadStreamStatus = createdStreamId.equals(readStreamStatusStreamId);
 		boolean detectedStreamVerification = createdStreamId.equals(verificationStreamId);
 		boolean detectedAllExpectedAcknowledgedEvents = eventsAcked.get(createdStreamId) != null
 			&& eventsAcked.get(createdStreamId).containsAll(eventsEnqueued.get(createdStreamId));
 
-		return detectedCreateStream
-			&& detectedReadStream
+		return detectedReadStream
 			&& detectedReadStreamStatus
 			&& detectedStreamVerification
 			&& detectedAllExpectedAcknowledgedEvents;
