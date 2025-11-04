@@ -24,7 +24,9 @@ import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.produce.JWSSignerFactory;
+import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.extensions.MultiJWSSignerFactory;
@@ -32,6 +34,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +84,13 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 				builder.type(getMediaType());
 			}
 			if (includeX5tS256) {
-				builder.x509CertSHA256Thumbprint(signingJwk.computeThumbprint());
+				List<Base64> x5c = signingJwk.getX509CertChain();
+				if (x5c == null || x5c.isEmpty()) {
+					throw error("A x5t#S256 claim is required but the signing key in the configuration doesn't have an x5c entry", args("clientjwks", jwks));
+				}
+				Base64 certBase64 = x5c.get(0);
+				X509Certificate cert = X509CertUtils.parse(certBase64.decode());
+				builder.x509CertSHA256Thumbprint(X509CertUtils.computeSHA256Thumbprint(cert));
 			}
 			if (includeX5c) {
 				if (signingJwk.getX509CertChain() == null) {
