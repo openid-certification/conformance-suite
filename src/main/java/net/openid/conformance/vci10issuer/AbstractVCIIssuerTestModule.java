@@ -166,6 +166,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialValidityInfoIsPresent;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
 import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
@@ -1108,6 +1109,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
 			callAndContinueOnFailure(VCICheckExpClaimInCredential.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
 			callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");
+			callAndContinueOnFailure(VCIEnsureX5cHeaderPresentForSdJwtCredential.class, ConditionResult.FAILURE, "HAIP-6.1.1");
 		}
 
 		call(exec().unmapKey("endpoint_response"));
