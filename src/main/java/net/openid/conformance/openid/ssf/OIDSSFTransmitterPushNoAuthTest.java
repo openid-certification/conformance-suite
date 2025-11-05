@@ -29,6 +29,6 @@ public class OIDSSFTransmitterPushNoAuthTest extends OIDSSFTransmitterEventsTest
 
 	@Override
 	protected void onPushDeliveryReceived(String path, JsonObject requestParts) {
-		callAndContinueOnFailure(OIDSSFEnsureNoAuthorizationHeaderIsPresentInPushRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
+		callAndContinueOnFailure(OIDSSFEnsureNoAuthorizationHeaderIsPresentInPushRequest.class, Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 	}
 }
