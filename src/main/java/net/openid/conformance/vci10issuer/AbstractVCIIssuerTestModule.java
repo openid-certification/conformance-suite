@@ -154,6 +154,7 @@ import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
@@ -1078,6 +1079,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// use HTTP POST to call credentials endpoint
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		// TODO generate a key attestation here?
+		callAndContinueOnFailure(VCIGenerateKeyAttestationJwt.class, ConditionResult.FAILURE, "HAIPA-D.1");
 
 		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-1FINALA-F.1");
 
