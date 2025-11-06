@@ -54,10 +54,19 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			JWSSigner signer = new ECDSASigner(ecKey);
 
-			JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
-				.type(new JOSEObjectType("openid4vci-proof+jwt"))
-				.jwk(jwk.toPublicJWK())
-				.build();
+			JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
+				.type(new JOSEObjectType("openid4vci-proof+jwt"));
+
+			// TODO how to select the proof type? Do we need to introduce a new proofType variant for this?
+			String proofType = "jwt"; // dummy defaults to jwt for now
+			if ("jwt".equals(proofType)) {
+				headerBuilder.jwk(jwk.toPublicJWK());
+			} else if ("attestation".equals(proofType)) {
+				// TODO add support to generate a key attestation
+				String keyAttestation = "dummyKeyAttestation";
+				headerBuilder.customParam("key_attestation", keyAttestation);
+			}
+			JWSHeader header = headerBuilder.build();
 
 			Instant now = Instant.now();
 			Date issueTime = Date.from(now);
