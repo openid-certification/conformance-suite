@@ -59,6 +59,30 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 				} catch (ParseException e) {
 					throw error("Parsing SD-JWT credential jwt failed", e, args("proof_jwt_string", jwtString));
 				}
+			} else if ("attestation".equals(proofType)) {
+
+				// TODO this would allow to pass attestaton proof types through
+
+				// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#appendix-F-3.3
+				JsonArray attestationArray = proofObject.getAsJsonArray("attestation");
+				if (attestationArray == null) {
+					throw error("Expected attestation array in proof object, but found " + attestationArray.size(), args("proof_type", proofType, "attestation", attestationArray));
+				}
+				if (attestationArray.size() != 1) {
+					throw error("Expected attestation array with a single JWT in proof object, but found " + attestationArray.size(), args("proof_type", proofType, "attestation", attestationArray));
+				}
+				String jwtString = OIDFJSON.getString(attestationArray.get(0));
+				try {
+					// D.1. Key Attestation in JWT format
+					// See: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#appendix-D.1
+					JsonObject proofJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtString);
+					// TODO is this really a proof_jwt, or rather a key_attestation_jwt ?
+					env.putObject("proof_jwt", proofJwt);
+
+					// TODO verify this in a separate condition, e.g. VCIVerifyKeyAttestationProof (after this condition)
+				} catch (ParseException e) {
+					throw error("Parsing SD-JWT credential attestation jwt failed", e, args("proof_jwt_string", jwtString));
+				}
 			} else {
 				throw error("Unsupported proof type found in proof element", args("proof_type", proofType));
 			}
