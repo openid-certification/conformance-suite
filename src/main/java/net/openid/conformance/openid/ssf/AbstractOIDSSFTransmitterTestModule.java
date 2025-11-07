@@ -26,9 +26,11 @@ import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectPushAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
@@ -43,8 +45,10 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @VariantParameters({
 	ServerMetadata.class,
@@ -104,6 +108,18 @@ import java.util.Objects;
 })
 public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
+	protected String pushAuthorizationHeader;
+
+	@Override
+	public void start() {
+		super.start();
+		pushAuthorizationHeader = generatePushAuthorizationHeader();
+	}
+
+	protected String generatePushAuthorizationHeader() {
+		return "push_token_" + UUID.randomUUID();
+	}
+
 	@Override
 	protected void configureServerEndpoints() {
 		super.configureServerEndpoints();
@@ -112,6 +128,12 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		if (Objects.requireNonNull(getVariant(SsfDeliveryMode.class)) == SsfDeliveryMode.PUSH) {
 			callAndStopOnFailure(OIDSSFConfigurePushDeliveryMethod.class);
 			exposeEnvString("pushDeliveryEndpointUrl", "ssf", "push_delivery_endpoint_url");
+		}
+	}
+
+	protected void configurePushAuthorizationHeader(JsonObject deliveryObject, String pushAuthorizationHeader) {
+		if (StringUtils.hasText(pushAuthorizationHeader)) {
+			callAndContinueOnFailure(new OIDSSFInjectPushAuthorizationHeader(pushAuthorizationHeader), Condition.ConditionResult.INFO, "OIDSSF-6.1.1");
 		}
 	}
 
@@ -238,10 +260,17 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 			env.putObject("ssf", "push_request", requestParts);
 			// see: RFC 8935 Push-Based Security Event Token (SET) Delivery Using HTTP
 			// https://www.rfc-editor.org/rfc/rfc8935.html#section-2.2
+			setStatus(Status.RUNNING);
+			onPushDeliveryReceived(path, requestParts);
+			setStatus(Status.WAITING);
 			return ResponseEntity.accepted().build();
 		}
 
 		return super.handleHttp(path, req, res, session, requestParts);
+	}
+
+	protected void onPushDeliveryReceived(String path, JsonObject requestParts) {
+		callAndContinueOnFailure(OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
 	}
 
 	protected void validateTlsConnection() {

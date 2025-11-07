@@ -1,12 +1,9 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
-import org.springframework.util.StringUtils;
 
 public class OIDSSFPrepareStreamConfigObjectSetDeliveryMethod extends AbstractOIDSSFPrepareStreamConfigObject {
 
@@ -59,15 +56,7 @@ public class OIDSSFPrepareStreamConfigObjectSetDeliveryMethod extends AbstractOI
 		return delivery;
 	}
 
-	private String getPushDeliveryAuthorizationHeader(Environment env) {
-		String authHeader = null;
-		JsonElement authorizationHeaderEl = env.getElementFromObject("config", "ssf.transmitter.push_endpoint_authorization_header");
-		if (authorizationHeaderEl != null) {
-			String pushAuthorizationHeader = OIDFJSON.getString(authorizationHeaderEl);
-			if (StringUtils.hasText(pushAuthorizationHeader)) {
-				authHeader = pushAuthorizationHeader;
-			}
-		}
-		return authHeader;
+	protected String getPushDeliveryAuthorizationHeader(Environment env) {
+		return env.getString("ssf", "transmitter.push_endpoint_authorization_header");
 	}
 }

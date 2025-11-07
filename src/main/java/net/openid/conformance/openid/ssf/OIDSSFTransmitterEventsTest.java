@@ -1,6 +1,5 @@
 package net.openid.conformance.openid.ssf;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
@@ -15,8 +14,8 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventCont
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainExpClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenDoesNotContainSubClaim;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
@@ -33,28 +32,31 @@ import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
-import org.springframework.util.StringUtils;
 
 @PublishTestModule(
 	testName = "openid-ssf-transmitter-events",
 	displayName = "OpenID Shared Signals Framework: Validate Transmitter Events",
-	summary = "This test verifies the structure and handling of transmitter events. The test triggers multiple verification event and tries to obtain the verification events via the configured delivery mechanism.",
+	summary = """
+		This test verifies the structure and handling of transmitter events via the configured SET delivery mechanism.
+		If PUSH delivery is configured, the test triggers a single verification event and awaits a SET delivered to the exposed push endpoint.
+		If POLL delivery is configured, the test attempt to trigger three verification events and sends consecutive POLL requests to obtain the verification events via POLL_ONLY, ACKNOWLEDGE_ONLY, POLL_AND_ACKNOWLEDGE.
+		The test succeeds of the verification event(s) can be successfully received/retrieved.""",
 	profile = "OIDSSF"
 )
 @VariantParameters({SsfServerMetadata.class, SsfAuthMode.class, SsfDeliveryMode.class,})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
-@VariantConfigurationFields(parameter = SsfDeliveryMode.class, value = "push", configurationFields = {"ssf.transmitter.push_endpoint", "ssf.transmitter.push_endpoint_authorization_header"})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {"ssf.transmitter.access_token"})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {})
 public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
 	public void start() {
+
+		super.start();
 
 		setStatus(Status.RUNNING);
 
@@ -86,12 +88,8 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 			JsonObject deliveryObject = new JsonObject();
 			deliveryObject.addProperty("delivery_method", deliveryMode.getAlias());
 
-			JsonElement authorizationHeaderEl = env.getElementFromObject("config", "ssf.transmitter.push_endpoint_authorization_header");
-			if (authorizationHeaderEl != null) {
-				String pushAuthorizationHeader = OIDFJSON.getString(authorizationHeaderEl);
-				if (StringUtils.hasText(pushAuthorizationHeader)) {
-					deliveryObject.addProperty("authorization_header", pushAuthorizationHeader);
-				}
+			if (deliveryMode == SsfDeliveryMode.PUSH) {
+				configurePushAuthorizationHeader(deliveryObject, pushAuthorizationHeader);
 			}
 
 			env.putObject("ssf", "delivery", deliveryObject);
