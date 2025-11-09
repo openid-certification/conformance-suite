@@ -41,6 +41,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractTestModule.class);
 
+	public static final boolean LOG_FINAL_ENV = Boolean.parseBoolean(System.getProperty("net.openid.conformance.testModules.logFinalEnv", "true"));
+
 	static {
 		ensureBCSecurityProviderIsPresent();
 	}
@@ -568,7 +570,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	protected void logFinalEnv() {
-		logger.info(getId() + ": Final environment: " + env);
+		if (LOG_FINAL_ENV) {
+			logger.info(getId() + ": Final environment: " + env);
+		}
 	}
 
 	@Override

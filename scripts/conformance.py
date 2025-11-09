@@ -197,21 +197,27 @@ class Conformance(object):
 
     async def wait_for_state(self, module_id, required_states, timeout=240):
         timeout_at = time.time() + timeout
+        last_status = None
+
         while True:
             if time.time() > timeout_at:
-                raise Exception("Timed out waiting for test module {} to be in one of states: {}".
-                                format(module_id, required_states))
+                raise Exception(
+                    f"Timed out waiting for test module {module_id} to be in one of states: {required_states}"
+                )
 
             info = await self.get_module_info(module_id)
+            status = info["status"]
 
-            status = info['status']
-            print("module id {} status is {}".format(module_id, status))
+            if status != last_status:
+                print(f"module id {module_id} status changed to {status}")
+                last_status = status
+
             if status in required_states:
                 return status
-            if status == 'INTERRUPTED':
-                raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
+            if status == "INTERRUPTED":
+                raise Exception(f"Test module {module_id} has moved to INTERRUPTED")
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(float(os.getenv("CONFORMANCE_STATE_POLL_INTERVAL", 1)))
 
     async def close_client(self):
         self.httpclient.close()
