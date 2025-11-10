@@ -148,13 +148,14 @@ import net.openid.conformance.vci10issuer.condition.VCICheckExpClaimInCredential
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationJwt;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationJwtIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
@@ -167,13 +168,15 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialValidityInfoIsPresent;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
-import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
 import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.statuslist.VCIValidateCredentialValidityByStatusListIfPresent;
+import net.openid.conformance.vci10wallet.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
+import net.openid.conformance.vci10wallet.condition.VCIResolveCredentialProofTypeToUse;
+import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -372,7 +375,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
 
+		callAndStopOnFailure(VCIResolveRequestedCredentialConfiguration.class, ConditionResult.FAILURE);
 		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
+		callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
+		callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
 	}
 
 	protected void setupResourceEndpoint() {
@@ -1080,8 +1086,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
-		// TODO generate a key attestation here?
-		callAndContinueOnFailure(VCIGenerateKeyAttestationJwt.class, ConditionResult.FAILURE, "HAIPA-D.1");
+		// determine if requested credential requires key attestation
+		callAndContinueOnFailure(VCIGenerateKeyAttestationJwtIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1");
 
 		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-1FINALA-F.1");
 
