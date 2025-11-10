@@ -17,7 +17,7 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
-		String credentialConfigId = env.getString("config", "vci.credential_configuration_id");
+		String credentialConfigId = env.getString("vci_credential_configuration_id");
 
 		JsonObject credentialRequest = new JsonObject();
 
