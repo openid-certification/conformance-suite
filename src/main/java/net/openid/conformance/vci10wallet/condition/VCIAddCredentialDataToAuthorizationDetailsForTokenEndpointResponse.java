@@ -34,11 +34,15 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 				JsonObject authDetail = authDetails.get(i).getAsJsonObject();
 
 				// use first openid_credential with configuration_id eu.europa.ec.eudi.pid.1
-				if ("openid_credential".equals(OIDFJSON.getString(authDetail.get("type")))
-						&& "eu.europa.ec.eudi.pid.1".equals(OIDFJSON.getString(authDetail.get("credential_configuration_id")))) {
+				boolean isOpenIdCredential = "openid_credential".equals(OIDFJSON.getString(authDetail.get("type")));
+				if (!isOpenIdCredential) {
+					continue;
+				}
+				String credentialConfigurationId = OIDFJSON.getString(authDetail.get("credential_configuration_id"));
+				if (credentialConfigurationId.startsWith("eu.europa.ec.eudi.pid.1")) {
 
 					JsonArray credentialIdentifiers = new JsonArray();
-					String credentialIdentifier = "eu.europa.ec.eudi.pid.1:" + UUID.randomUUID();
+					String credentialIdentifier =credentialConfigurationId + ":" + UUID.randomUUID();
 					credentialIdentifiers.add(credentialIdentifier);
 					authDetail.add("credential_identifiers", credentialIdentifiers);
 
@@ -73,7 +77,7 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 				authDetail.addProperty("credential_configuration_id", credentialConfigurationId);
 
 				JsonArray credentialIdentifiers = new JsonArray();
-				String credentialIdentifier = "eu.europa.ec.eudi.pid.1:" + UUID.randomUUID();
+				String credentialIdentifier = credentialConfigurationId + ":" + UUID.randomUUID();
 				credentialIdentifiers.add(credentialIdentifier);
 				authDetail.add("credential_identifiers", credentialIdentifiers);
 
