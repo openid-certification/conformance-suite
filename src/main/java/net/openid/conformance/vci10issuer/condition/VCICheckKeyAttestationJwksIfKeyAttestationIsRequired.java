@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10wallet.condition;
+package net.openid.conformance.vci10issuer.condition;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
