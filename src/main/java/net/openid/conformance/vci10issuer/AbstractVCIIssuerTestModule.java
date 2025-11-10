@@ -159,6 +159,7 @@ import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationJwt
 import net.openid.conformance.vci10issuer.condition.VCIGenerateProofJwt;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
@@ -174,9 +175,8 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.statuslist.VCIValidateCredentialValidityByStatusListIfPresent;
-import net.openid.conformance.vci10wallet.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
-import net.openid.conformance.vci10wallet.condition.VCIResolveCredentialProofTypeToUse;
-import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfiguration;
+import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
+import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
