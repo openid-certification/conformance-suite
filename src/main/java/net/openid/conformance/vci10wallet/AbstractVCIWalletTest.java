@@ -555,11 +555,81 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 						}
 						]
 					}
+				},
+				"eu.europa.ec.eudi.pid.1.jwt.keyattest": {
+					"format": "dc+sd-jwt",
+					"vct": "urn:eudi:pid:1",
+					"cryptographic_binding_methods_supported": [ "jwk" ],
+					"credential_signing_alg_values_supported": [ "ES256" ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							 "key_attestations_required": {}
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID: JWT Proof with Key Attestation",
+							"description": "OpenID Conformance Test Fake PID description"
+						}
+						]
+					}
+				},
+				"eu.europa.ec.eudi.pid.1.attestation.keyattest": {
+					"format": "dc+sd-jwt",
+					"vct": "urn:eudi:pid:1",
+					"cryptographic_binding_methods_supported": [ "jwk" ],
+					"credential_signing_alg_values_supported": [ "ES256" ],
+					"proof_types_supported": {
+						"attestation": {
+							 "proof_signing_alg_values_supported": [ "ES256" ],
+							 "key_attestations_required": {}
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID: Attestation Proof with Key Attestation",
+							"description": "OpenID Conformance Test Fake PID description"
+						}
+						]
+					}
+				},
+				"eu.europa.ec.eudi.pid.1.jwt_and_attestation.keyattest": {
+					"format": "dc+sd-jwt",
+					"vct": "urn:eudi:pid:1",
+					"cryptographic_binding_methods_supported": [ "jwk" ],
+					"credential_signing_alg_values_supported": [ "ES256" ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							 "key_attestations_required": {}
+						},
+						"attestation": {
+							 "proof_signing_alg_values_supported": [ "ES256" ],
+							 "key_attestations_required": {}
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID: JWT and Attestation Proof with Key Attestation",
+							"description": "OpenID Conformance Test Fake PID description"
+						}
+						]
+					}
 				}
 			}
 			""";
 
-		return JsonParser.parseString(json).getAsJsonObject();
+		JsonObject supportedCredentials = JsonParser.parseString(json).getAsJsonObject();
+
+		return customizeSupportedCredentials(supportedCredentials);
+	}
+
+	protected JsonObject customizeSupportedCredentials(JsonObject supportedCredentials) {
+		return supportedCredentials;
 	}
 
 	/**
