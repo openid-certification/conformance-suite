@@ -326,6 +326,18 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
 
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Credential Proof Type Hint</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The credential proof type hint to use. If empty we'll use the first proof type that's listed in the referenced credential configuration."></span>
+                                            </div>
+                                            <input class="form-control config-form-element" data-json-target="vci.credential_proof_type_hint"></input>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">Credential Issuer Metadata URL</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
@@ -1710,6 +1722,22 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="URI used as the client attestation issuer"></span>
                                             </div>
                                             <input placeholder="REQUIRED" type="text" class="form-control config-form-element" data-json-target="vci.client_attestation_issuer"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="config-form-container">
+                                <h3 class="config-form-container-header">Key Attestation</h3>
+
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">Key Attestation JWKS</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys of the key attestation JWKS format. Leave empty if Key attestation is not used. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate."></span>
+                                            </div>
+                                            <textarea placeholder="REQUIRED if Key Attestation is used" type="text" class="form-control config-form-element" data-json-target="vci.key_attestation_jwks"></textarea>
                                         </div>
                                     </div>
                                 </div>

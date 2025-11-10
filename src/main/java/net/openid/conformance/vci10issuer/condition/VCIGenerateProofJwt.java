@@ -18,7 +18,6 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
-import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
 import java.time.Instant;
@@ -54,18 +53,27 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			JWSSigner signer = new ECDSASigner(ecKey);
 
+			String publicKeySetString = (jwk.toPublicJWK() != null ? jwk.toPublicJWK().toString() : null);
+
 			JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
 				.type(new JOSEObjectType("openid4vci-proof+jwt"));
 
+			String proofTypeKey = env.getString("vci_proof_type_key");
+			JsonObject proofType = env.getObject("vci_proof_type");
+
 			// TODO how to select the proof type? Do we need to introduce a new proofType variant for this?
-			String proofType = "jwt"; // dummy defaults to jwt for now
-			if ("jwt".equals(proofType)) {
+			if ("jwt".equals(proofTypeKey)) {
 				headerBuilder.jwk(jwk.toPublicJWK());
-			} else if ("attestation".equals(proofType)) {
-				// TODO add support to generate a key attestation
-				String keyAttestation = "dummyKeyAttestation";
-				headerBuilder.customParam("key_attestation", keyAttestation);
+			} else if ("attestation".equals(proofTypeKey)) {
+				// TODO handle attestation proof type key
 			}
+
+			// add key attestation if necessary
+			if (proofType.has("key_attestations_required")) {
+				String keyAttestationJwt = env.getString("key_attestation_jwt");
+				headerBuilder.customParam("key_attestation", keyAttestationJwt);
+			}
+
 			JWSHeader header = headerBuilder.build();
 
 			Instant now = Instant.now();
@@ -89,8 +97,11 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			env.putString("vci", "proof.jwt", jwtProof);
 
-			JsonObject jwtProofObject = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtProof);
-			logSuccess("Create Proof JWT", args("jwt", jwtProof, "decoded_jwt_json", jwtProofObject.toString()));
+			JsonObject verifiableObj = new JsonObject();
+			verifiableObj.addProperty("verifiable_jws", jwtProof);
+			verifiableObj.addProperty("public_jwk", publicKeySetString);
+
+			logSuccess("Generated Proof JWT", args("proof_jwt", verifiableObj));
 
 		} catch (ParseException | JOSEException e) {
 			throw error("Couldn't create Proof JWT", e);
