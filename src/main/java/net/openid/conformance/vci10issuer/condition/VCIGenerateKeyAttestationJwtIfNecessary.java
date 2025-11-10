@@ -61,7 +61,7 @@ public class VCIGenerateKeyAttestationJwtIfNecessary extends AbstractSignJWT {
 			throw error("Required Key Attestation JWKS could not be found");
 		}
 
-		signJWT(env, claims, keyAttestationJwks, true, true, true, false);
+		signJWT(env, claims, keyAttestationJwks, true, false, false, false);
 
 		return env;
 	}
