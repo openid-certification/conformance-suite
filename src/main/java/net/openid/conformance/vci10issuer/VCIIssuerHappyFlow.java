@@ -30,6 +30,8 @@ import net.openid.conformance.variant.FAPI2ID2OPProfile;
 			"client2.client_id",
 			"client2.jwks",
 			"vci.credential_configuration_id",
+			"vci.credential_proof_type_hint",
+			"vci.key_attestation_jwks",
 			"vci.authorization_server",
 		}
 	)
