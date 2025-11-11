@@ -56,6 +56,9 @@ public class VCIGenerateKeyAttestationJwtIfNecessary extends AbstractSignJWT {
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-attack-potential-resistance
 		claims.add("user_authentication", OIDFJSON.convertListToJsonArray(List.of("iso_18045_moderate")));
 
+		// TODO add nonce claim if necessary
+		// TODO add status claim if necessary
+
 		JsonObject keyAttestationJwks = env.getObject("vci_key_attestation_jwks");
 		if (keyAttestationJwks == null) {
 			throw error("Required Key Attestation JWKS could not be found");
