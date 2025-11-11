@@ -36,6 +36,9 @@ public class VCIWalletHappyPathUsingScopes extends VCIWalletHappyPath {
 		JsonObject euidPid = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.1");
 		euidPid.addProperty("scope", "eudi.pid.1");
 
+		JsonObject euidPidAttestation = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.1.attestation");
+		euidPidAttestation.addProperty("scope", "eudi.pid.1.attestation");
+
 		JsonObject euidPidJwtKeyAttest = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.1.jwt.keyattest");
 		euidPidJwtKeyAttest.addProperty("scope", "eudi.pid.1.jwt.keyattest");
 
