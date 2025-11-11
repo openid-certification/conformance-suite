@@ -8,8 +8,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.List;
-
 public class VCICreateCredentialRequest extends AbstractCondition {
 
 	@Override
@@ -72,11 +70,6 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 	}
 
 	protected JsonObject createProofsObject(Environment env) {
-
-		JsonObject proofsObject = new JsonObject();
-		String credentialProofJwt = env.getString("vci", "proof.jwt");
-
-		proofsObject.add("jwt", OIDFJSON.convertListToJsonArray(List.of(credentialProofJwt)));
-		return proofsObject;
+		return env.getObject("credential_request_proofs");
 	}
 }

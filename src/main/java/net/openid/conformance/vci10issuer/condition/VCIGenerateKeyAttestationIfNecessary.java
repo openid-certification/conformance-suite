@@ -16,7 +16,7 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.util.List;
 
-public class VCIGenerateKeyAttestationJwtIfNecessary extends AbstractSignJWT {
+public class VCIGenerateKeyAttestationIfNecessary extends AbstractSignJWT {
 
 	@Override
 	@PreEnvironment(strings = "vci_proof_type_key", required = {"vci_credential_configuration", "vci_proof_type"})
@@ -25,8 +25,9 @@ public class VCIGenerateKeyAttestationJwtIfNecessary extends AbstractSignJWT {
 		// determine if requested credential requires key attestation
 		String proofTypeKey = env.getString("vci_proof_type_key");
 		JsonObject proofType = env.getObject("vci_proof_type");
-		if (!proofType.has("key_attestations_required")) {
-			log("Skipping Key attestation generation because proof type " + proofTypeKey + " does not contain 'key_attestations_required'",
+
+		if (!(proofType.has("key_attestations_required") || "attestation".equals(proofTypeKey))) {
+			log("Skipping Key attestation generation because proof type " + proofTypeKey + " does not contain 'key_attestations_required' or proof key type is not 'attestation'",
 				args("proof_type", proofType, "proof_type_key", proofTypeKey));
 			return env;
 		}
