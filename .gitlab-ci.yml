@@ -49,7 +49,7 @@ upload:
   stage: upload
   interruptible: true
   needs: ["build"]
-  image: docker:24.0.7-git
+  image: docker:25.0.5-git
   services:
     - docker:dind
   variables:
