@@ -21,13 +21,9 @@ import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.UUID;
 
 public class VCIGenerateProofJwt extends AbstractCondition {
-
-	public static final int DEFAULT_PROOF_LIFETIME_SECONDS = 60;
 
 	@Override
 	@PreEnvironment(required = "client_jwks")
@@ -44,7 +40,6 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 			String walletIssuerId = env.getString("client", "client_id");
 
 			String cNonce = getCNonce(env);
-			int proofLifetimeSeconds = getProofLifetimeSeconds(); //
 
 			// Ensure the key uses the correct curve
 			if (!Curve.P_256.equals(ecKey.getCurve())) {
@@ -78,16 +73,12 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			Instant now = Instant.now();
 			Date issueTime = Date.from(now);
-			Date expirationTime = Date.from(now.plus(proofLifetimeSeconds, ChronoUnit.SECONDS));
-			String jwtId = UUID.randomUUID().toString();  // Optional: Add a unique ID
 
 			JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
 				.issuer(walletIssuerId)
 				.audience(serverIssuer)
 				.issueTime(issueTime)
-				.expirationTime(expirationTime)
 				.claim("nonce", cNonce)
-				.jwtID(jwtId)
 				.build();
 
 			SignedJWT signedJWT = new SignedJWT(header, claimsSet);
@@ -115,12 +106,6 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 	}
 
 	protected String getCNonce(Environment env) {
-		String cnonce = env.getString("vci", "c_nonce");
-		return cnonce;
+		return env.getString("vci", "c_nonce");
 	}
-
-	protected int getProofLifetimeSeconds() {
-		return DEFAULT_PROOF_LIFETIME_SECONDS;
-	}
-
 }
