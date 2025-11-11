@@ -199,7 +199,9 @@ import net.openid.conformance.vci10wallet.condition.VCIInjectOpenIdCredentialAsS
 import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
-import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestProof;
+import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
+import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
+import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
@@ -1022,14 +1024,22 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(VCIValidateCredentialRequestStructure.class, "OID4VCI-1FINAL-8.2");
 		callAndStopOnFailure(VCIResolveRequestedCredentialConfigurationFromRequest.class, "OID4VCI-1FINAL-8.2");
 		callAndStopOnFailure(VCIExtractCredentialRequestProof.class, "OID4VCI-1FINALA-F.4");
-		callAndContinueOnFailure(VCIValidateCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.4");
+
+		String proofType = env.getString("proof_type");
+		if ("jwt".equals(proofType)) {
+			callAndContinueOnFailure(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
+		} else if ("attestation".equals(proofType)) {
+			callAndContinueOnFailure(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4");
+		} else if ("di_vp".equals(proofType)) {
+			callAndStopOnFailure(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
+		}
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
 		if (vciProfile == VCIProfile.HAIP) {
 			Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
-			callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims));
+			callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
 		} else {
-			callAndStopOnFailure(CreateSdJwtCredential.class);
+			callAndStopOnFailure(CreateSdJwtCredential.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
 		}
 
 		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class);
