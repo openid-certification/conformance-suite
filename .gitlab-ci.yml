@@ -49,7 +49,7 @@ upload:
   stage: upload
   interruptible: true
   needs: ["build"]
-  image: docker:24.0.7-git
+  image: docker:25.0.5-git
   services:
     - docker:dind
   variables:
@@ -582,11 +582,11 @@ local_test:
     update-ca-certificates
     OS=`uname -s | tr '[:upper:]' '[:lower:]'`
     ARCH=`uname -m | tr '[:upper:]' '[:lower:]'`
-    curl -L https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-$OS-$ARCH -o /usr/local/bin/docker-compose
+    curl -L https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-$OS-$ARCH -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     docker-compose --version
 
-    curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-416.0.0-linux-x86_64.tar.gz | tar zx
+    curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-546.0.0-linux-x86_64.tar.gz | tar zx
     ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
   }
 
