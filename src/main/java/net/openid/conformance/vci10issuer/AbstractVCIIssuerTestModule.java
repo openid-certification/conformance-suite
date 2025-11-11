@@ -145,6 +145,7 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vci10issuer.condition.VCICheckCacheControlHeaderInResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckExpClaimInCredential;
+import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
@@ -155,11 +156,13 @@ import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationJwtIfNecessary;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateProofJwt;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
@@ -175,8 +178,6 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.statuslist.VCIValidateCredentialValidityByStatusListIfPresent;
-import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
-import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -1087,9 +1088,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
 		// determine if requested credential requires key attestation
-		callAndContinueOnFailure(VCIGenerateKeyAttestationJwtIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1");
+		callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
 
-		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-1FINALA-F.1");
+		String proofTypeKey = env.getString("vci_proof_type_key");
+		if ("jwt".equals(proofTypeKey)) {
+			callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
+		} else if ("attestation".equals(proofTypeKey)) {
+			callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+		}
 
 		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
 

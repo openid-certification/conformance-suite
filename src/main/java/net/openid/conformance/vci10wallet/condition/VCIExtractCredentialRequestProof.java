@@ -41,7 +41,7 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 				throw error("Expected non-empty array in 'jwt' proof object, but found:" + jwtArray, args("proof_type", proofType, "jwt", jwtEl));
 			}
 
-			log("Found " + jwtArray.size() + " jwts(s) for 'jwt' proof.", args("jwts", jwtArray));
+			log("Found " + jwtArray.size() + " JWT(s) for 'jwt' proof.", args("jwts", jwtArray));
 			// TODO handle multiple jwt proof values
 			// for now we select the first item in the array
 			String jwtString = OIDFJSON.getString(jwtArray.get(0));

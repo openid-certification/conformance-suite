@@ -17,18 +17,26 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
-public class VCIGenerateProofJwt extends AbstractCondition {
+public class VCIGenerateJwtProof extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "client_jwks")
 	@PostEnvironment(required = "vci")
 	public Environment evaluate(Environment env) {
+
+		String proofTypeKey = env.getString("vci_proof_type_key");
+		if (!"jwt".equals(proofTypeKey)) {
+			log("Skip generating JWT for proof type " + proofTypeKey, args(proofTypeKey));
+			return env;
+		}
 
 		String serverIssuer = getIssuer(env);
 
@@ -53,15 +61,8 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 			JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
 				.type(new JOSEObjectType("openid4vci-proof+jwt"));
 
-			String proofTypeKey = env.getString("vci_proof_type_key");
 			JsonObject proofType = env.getObject("vci_proof_type");
-
-			// TODO how to select the proof type? Do we need to introduce a new proofType variant for this?
-			if ("jwt".equals(proofTypeKey)) {
-				headerBuilder.jwk(jwk.toPublicJWK());
-			} else if ("attestation".equals(proofTypeKey)) {
-				// TODO handle attestation proof type key
-			}
+			headerBuilder.jwk(jwk.toPublicJWK());
 
 			// add key attestation if necessary
 			if (proofType.has("key_attestations_required")) {
@@ -92,13 +93,22 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 			verifiableObj.addProperty("verifiable_jws", jwtProof);
 			verifiableObj.addProperty("public_jwk", publicKeySetString);
 
-			logSuccess("Generated Proof JWT", args("proof_jwt", verifiableObj));
+			JsonObject proofsObject = createProofsObject(jwtProof);
+			env.putObject("credential_request_proofs", proofsObject);
+
+			logSuccess("Generated jwt proof object", args("proof_jwt", verifiableObj, "proofs", proofsObject));
 
 		} catch (ParseException | JOSEException e) {
 			throw error("Couldn't create Proof JWT", e);
 		}
 
 		return env;
+	}
+
+	protected JsonObject createProofsObject(String proofJwt) {
+		JsonObject proofsObject = new JsonObject();
+		proofsObject.add("jwt", OIDFJSON.convertListToJsonArray(List.of(proofJwt)));
+		return proofsObject;
 	}
 
 	protected String getIssuer(Environment env) {
