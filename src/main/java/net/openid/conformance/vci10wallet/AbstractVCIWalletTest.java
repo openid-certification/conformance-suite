@@ -198,6 +198,7 @@ import net.openid.conformance.vci10wallet.condition.VCIInjectAuthorizationDetail
 import net.openid.conformance.vci10wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
 import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
+import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
@@ -544,6 +545,25 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 					"credential_signing_alg_values_supported": [ "ES256" ],
 					"proof_types_supported": {
 						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID",
+							"description": "OpenID Conformance Test Fake PID description"
+						}
+						]
+					}
+				},
+				"eu.europa.ec.eudi.pid.1.attestation": {
+					"format": "dc+sd-jwt",
+					"vct": "urn:eudi:pid:1",
+					"cryptographic_binding_methods_supported": [ "jwk" ],
+					"credential_signing_alg_values_supported": [ "ES256" ],
+					"proof_types_supported": {
+						"attestation": {
 							"proof_signing_alg_values_supported": [ "ES256" ]
 						}
 					},
@@ -1000,6 +1020,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(VCIValidateCredentialRequestStructure.class, "OID4VCI-1FINAL-8.2");
+		callAndStopOnFailure(VCIResolveRequestedCredentialConfigurationFromRequest.class, "OID4VCI-1FINAL-8.2");
 		callAndStopOnFailure(VCIExtractCredentialRequestProof.class, "OID4VCI-1FINALA-F.4");
 		callAndContinueOnFailure(VCIValidateCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.4");
 
@@ -1010,7 +1031,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(CreateSdJwtCredential.class);
 		}
-
 
 		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class);
 
