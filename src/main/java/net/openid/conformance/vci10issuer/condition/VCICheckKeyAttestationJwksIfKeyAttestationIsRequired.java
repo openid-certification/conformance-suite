@@ -13,7 +13,7 @@ public class VCICheckKeyAttestationJwksIfKeyAttestationIsRequired extends Abstra
 
 		String proofTypeKey = env.getString("vci_proof_type_key");
 		JsonObject proofType = env.getObject("vci_proof_type");
-		if (!proofType.has("key_attestations_required")) {
+		if (!(proofType.has("key_attestations_required") || "attestation".equals(proofTypeKey))) {
 			log("Skip checking Key Attestation JWKS: Key attestation not required for selected proof type " + proofTypeKey,
 				args("proof_type", proofType));
 			return env;

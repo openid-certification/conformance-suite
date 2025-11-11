@@ -24,7 +24,8 @@ import net.openid.conformance.vci10wallet.condition.VCIAddOpenIdCredentialToAuth
 		"client.jwks",
 		"credential.signing_jwk",
 		"waitTimeoutSeconds",
-		"vci.credential_offer_endpoint"
+		"vci.credential_offer_endpoint",
+		"vci.key_attestation_jwks",
 	}
 )
 public class VCIWalletHappyPath extends AbstractVCIWalletTest {
