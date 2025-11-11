@@ -1784,7 +1784,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             }).then(function() {
                 return loadScheduleTestPage();
             }).then(function() {
-                return loadServerInfo();
+                return FAPI_UI.loadServerInfo();
             }).then(function() {
                 return applyConfigPreset();
             }).then(function() {
@@ -2742,19 +2742,6 @@ function registerAlphaTestToggle() {
             }
 
             //console.log("FAPI_UI.testJSON=" + JSON.stringify(FAPI_UI.testJSON));
-        }
-
-        function loadServerInfo() {
-            return fetch('/api/server')
-                .then((response) => response.json())
-                .then((data) => {
-                    const textStr =
-                        [(data.hasOwnProperty("external_ip") ? "External IP: " + data.external_ip:""),
-                         (data.hasOwnProperty("version") ? "Version: " +data.version:"")].filter(Boolean).join(" - ");
-
-                    const element = document.querySelector('.serverInfo');
-                    element.textContent = textStr;
-                });
         }
 
         function tryGetStorage(type) {

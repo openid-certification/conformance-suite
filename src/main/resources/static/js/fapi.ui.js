@@ -2,6 +2,30 @@ var FAPI_UI = {
 
 		logTemplates : {},
 
+		loadServerInfo: function() {
+			return fetch('/api/server')
+				.then((response) => response.json())
+				.then((data) => {
+
+					let serverInfos = {
+						"external_ip": "External IP",
+						"version": "Version",
+						"revision": "Revision",
+						"tag": "Tag"
+					};
+
+					const serverInfoHtml =
+						`<div>` +
+						Object.entries(serverInfos)
+							.filter(([k]) => k in data)
+							.map(([k, label]) => `${label}:<span id="serverinfo-${k}">${data[k]}</span>`)
+							.join(" | ")
+						+ `</div>`;
+					const element = document.querySelector('.serverInfo');
+					element.innerHTML = serverInfoHtml;
+				});
+		},
+
 		loadHomepageTemplates : function() {
 			return fetch('templates/userinfo.html')
 				.then((response) => response.text())

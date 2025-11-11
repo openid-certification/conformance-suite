@@ -305,6 +305,16 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<!-- generates a git.properties file with the information about the current commit, tags etc. -->
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
+				<configuration>
+					<gitDescribe>
+						<tags>true</tags> <!-- include tags -->
+					</gitDescribe>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
@@ -313,6 +323,13 @@
 					</profiles>
 					<jvmArguments>-Djdk.tls.maxHandshakeMessageSize=65536</jvmArguments>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
