@@ -586,7 +586,7 @@ local_test:
     chmod +x /usr/local/bin/docker-compose
     docker-compose --version
 
-    curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-416.0.0-linux-x86_64.tar.gz | tar zx
+    curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-546.0.0-linux-x86_64.tar.gz | tar zx
     ./google-cloud-sdk/install.sh --usage-reporting=false --path-update=true
   }
 
