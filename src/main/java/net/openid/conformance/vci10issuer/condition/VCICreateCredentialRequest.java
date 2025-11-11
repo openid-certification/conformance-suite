@@ -55,7 +55,7 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 			credentialRequest.addProperty("credential_configuration_id", credentialConfigId);
 		}
 
-		addProofInformation(env, credentialRequest);
+		addProofsInformation(env, credentialRequest);
 
 		String credentialRequestJson = credentialRequest.toString();
 		env.putString("resource_request_entity", credentialRequestJson);
@@ -65,11 +65,7 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 		return env;
 	}
 
-	protected void addProofInformation(Environment env, JsonObject credentialRequest) {
-		// Note that proof is no longer part of draft 16
-//		JsonObject proofObject = createProofObject(env);
-//		credentialRequest.add("proof", proofObject);
-
+	protected void addProofsInformation(Environment env, JsonObject credentialRequest) {
 		// see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2-2.4
 		JsonObject proofsObject = createProofsObject(env);
 		credentialRequest.add("proofs", proofsObject);
@@ -82,15 +78,5 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 
 		proofsObject.add("jwt", OIDFJSON.convertListToJsonArray(List.of(credentialProofJwt)));
 		return proofsObject;
-	}
-
-	protected JsonObject createProofObject(Environment env) {
-
-		String credentialProofJwt = env.getString("vci", "proof.jwt");
-
-		JsonObject proofObject = new JsonObject();
-		proofObject.addProperty("proof_type", "jwt");
-		proofObject.addProperty("jwt", credentialProofJwt);
-		return proofObject;
 	}
 }

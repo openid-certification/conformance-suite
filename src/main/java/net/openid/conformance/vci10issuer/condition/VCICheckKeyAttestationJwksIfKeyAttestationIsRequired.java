@@ -2,7 +2,6 @@ package net.openid.conformance.vci10issuer.condition;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
@@ -10,13 +9,13 @@ public class VCICheckKeyAttestationJwksIfKeyAttestationIsRequired extends Abstra
 
 	@Override
 	@PreEnvironment(required = {"config", "vci_proof_type"}, strings = "vci_proof_type_key")
-	@PostEnvironment(required = "vci_key_attestation_jwks")
 	public Environment evaluate(Environment env) {
 
 		String proofTypeKey = env.getString("vci_proof_type_key");
 		JsonObject proofType = env.getObject("vci_proof_type");
 		if (!proofType.has("key_attestations_required")) {
-			log("Skip checking Key Attestation JWKS: Key attestation not required for selected proof type " + proofTypeKey, args("proof_type", proofType));
+			log("Skip checking Key Attestation JWKS: Key attestation not required for selected proof type " + proofTypeKey,
+				args("proof_type", proofType));
 			return env;
 		}
 
