@@ -77,22 +77,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             .then(function() {
                 return FAPI_UI.getUserInfo();
             }).then(function() {
-                return loadServerInfo();
+                return FAPI_UI.loadServerInfo();
             })
         });
-
-        function loadServerInfo() {
-            return fetch('/api/server')
-                .then((response) => response.json())
-                .then((data) => {
-                    const textStr =
-                        [(data.hasOwnProperty('external_ip') ? "External IP: " + data.external_ip:""),
-                         (data.hasOwnProperty('version') ? "Version: " +data.version:"")].filter(Boolean).join(" - ");
-
-                    const element = document.querySelector('.serverInfo');
-                    element.textContent = textStr;
-                })
-        }
     </script>
 
     <footer class="pageFooter">

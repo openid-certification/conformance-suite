@@ -7,7 +7,6 @@ import net.openid.conformance.logging.GsonPrimitiveToBsonValueConverter;
 import net.openid.conformance.runner.InMemoryTestRunnerSupport;
 import net.openid.conformance.runner.TestRunnerSupport;
 import net.openid.conformance.security.KeyManager;
-import net.openid.conformance.ui.ServerInfoTemplate;
 import net.openid.conformance.variant.VariantConverters;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
@@ -53,10 +52,5 @@ public class ApplicationConfig {
 	@Bean
 	public KeyManager keyManager() {
 		return new KeyManager();
-	}
-
-	@Bean
-	public ServerInfoTemplate serverInfoTemplate() {
-		return new ServerInfoTemplate();
 	}
 }
