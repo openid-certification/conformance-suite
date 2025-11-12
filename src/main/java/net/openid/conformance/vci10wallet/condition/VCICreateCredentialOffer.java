@@ -3,6 +3,7 @@ package net.openid.conformance.vci10wallet.condition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.VCIGrantType;
@@ -18,6 +19,7 @@ public class VCICreateCredentialOffer extends AbstractCondition {
 	}
 
 	@Override
+	@PreEnvironment(required = {"config", "credential_issuer_metadata"}, strings = "credential_configuration_id_hint")
 	public Environment evaluate(Environment env) {
 
 		String credentialIssuer = env.getString("credential_issuer_metadata", "credential_issuer");
@@ -26,7 +28,10 @@ public class VCICreateCredentialOffer extends AbstractCondition {
 		}
 		String issuerState = env.getString("vci", "issuer_state");
 
-		JsonArray credentialConfigurationIds = OIDFJSON.convertListToJsonArray(List.of("eu.europa.ec.eudi.pid.1"));
+		String credentialConfigurationIdHint = env.getString("credential_configuration_id_hint");
+		log("Using credential_configuration_id " + credentialConfigurationIdHint, args("credential_configuration_id", credentialConfigurationIdHint));
+
+		JsonArray credentialConfigurationIds = OIDFJSON.convertListToJsonArray(List.of(credentialConfigurationIdHint));
 
 		JsonObject grantsObject = new JsonObject();
 
