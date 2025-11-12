@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckVerifiedClaimsSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdEnsureMtlsAliasesContainsRequiredEndpoints;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptAlgValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptEncValuesIsJsonArray;
@@ -185,6 +186,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	public static class ConnectIdAuDiscoveryEndpointChecks extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
+			callAndContinueOnFailure(AustraliaConnectIdEnsureMtlsAliasesContainsRequiredEndpoints.class, Condition.ConditionResult.FAILURE, "CID-SP-4.2-7");
 			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, Condition.ConditionResult.FAILURE);
 
 			callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CID-SP-5.3");
