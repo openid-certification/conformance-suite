@@ -69,6 +69,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
 import net.openid.conformance.condition.client.SetClientIdToWebOrigin;
+import net.openid.conformance.condition.client.SetClientIdToX509Hash;
 import net.openid.conformance.condition.client.SetWebOrigin;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeTypHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
@@ -191,6 +192,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case X509_SAN_DNS:
 				callAndStopOnFailure(SetClientIdToResponseUriHostnameIfUnset.class);
+				break;
+			case X509_HASH:
+				callAndStopOnFailure(SetClientIdToX509Hash.class);
 				break;
 		}
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -614,6 +618,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeTypHeader.class));
 						break;
 					case X509_SAN_DNS:
+					case X509_HASH:
 						// x5c header is mandatory for x509 san dns (and/or mdl profile)
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeX5cHeader.class));
 						break;
