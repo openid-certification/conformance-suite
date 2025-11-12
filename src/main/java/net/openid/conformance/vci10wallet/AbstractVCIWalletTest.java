@@ -195,6 +195,7 @@ import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestP
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow;
+import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
 import net.openid.conformance.vci10wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
 import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
@@ -391,6 +392,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		exposeEnvString("credential_issuer_metadata_url");
 		exposeEnvString("oauth_authorization_server_metadata_url");
 
+		callAndStopOnFailure(new VCIInjectCredentialConfigurationIdHint(getDefaultCredentialConfigurationId()), ConditionResult.FAILURE);
+		exposeEnvString("credential_configuration_id_hint");
+
 		if (authorizationRequestType == AuthorizationRequestType.RAR){
 			callAndStopOnFailure(VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes.class);
 			callAndStopOnFailure(AddSupportedAuthorizationTypesToServerConfiguration.class);
@@ -409,6 +413,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
 		fireSetupDone();
+	}
+
+	protected String getDefaultCredentialConfigurationId() {
+		return "eu.europa.ec.eudi.pid.1";
 	}
 
 	protected void configureOauthTokenStatusLists() {
