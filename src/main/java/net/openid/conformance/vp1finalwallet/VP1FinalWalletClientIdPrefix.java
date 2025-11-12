@@ -13,7 +13,8 @@ public enum VP1FinalWalletClientIdPrefix {
 	PRE_REGISTERED("pre_registered"),
 	REDIRECT_URI("redirect_uri"),
 	WEB_ORIGIN("web-origin"),
-	X509_SAN_DNS("x509_san_dns");
+	X509_SAN_DNS("x509_san_dns"),
+	X509_HASH("x509_hash");
 
 	private final String value;
 
