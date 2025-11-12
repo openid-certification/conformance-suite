@@ -31,6 +31,7 @@ import net.openid.conformance.condition.as.EnsureRequestUriHasNoFragment;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
+import net.openid.conformance.condition.as.ExtractAndValidateX509HashClientId;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
 import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
@@ -61,6 +62,7 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
@@ -73,6 +75,10 @@ import org.springframework.web.servlet.view.RedirectView;
 	VP1FinalVerifierResponseMode.class,
 	VP1FinalVerifierRequestMethod.class
 })
+@VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
+	"client.client_id"
+})
+
 public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected VP1FinalVerifierClientIdPrefix clientIdScheme;
 	protected VP1FinalVerifierResponseMode responseMode;
@@ -181,8 +187,15 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	}
 
 	protected void configureClientConfiguration() {
-		callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
-		callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.10.1");
+		switch (clientIdScheme) {
+			case X509_HASH -> {
+				// there's only one possible client id for any given x5c certificate so create it later
+			}
+			case X509_SAN_DNS -> {
+				callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
+				callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.10.1");
+			}
+		}
 	}
 
 	@Override
@@ -244,6 +257,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		}
 
 		if(clientRequestType == VP1FinalVerifierRequestMethod.REQUEST_URI_SIGNED) {
+			switch (clientIdScheme) {
+				case X509_HASH -> {
+					callAndContinueOnFailure(ExtractAndValidateX509HashClientId.class, ConditionResult.FAILURE);
+				}
+				case X509_SAN_DNS -> {}
+			}
 			validateRequestObject();
 			callAndStopOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class);
 			skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
@@ -315,7 +334,14 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(CheckRequestUriMethodParameter.class, ConditionResult.WARNING, "OID4VPOID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 
-		callAndContinueOnFailure(EnsureMatchingClientId.class, ConditionResult.FAILURE,"OIDCC-3.1.2.1");
+		switch (clientIdScheme) {
+			case X509_SAN_DNS -> {
+				callAndContinueOnFailure(EnsureMatchingClientId.class, ConditionResult.FAILURE,"OIDCC-3.1.2.1");
+			}
+			case X509_HASH -> {
+				// client id was checked earlier in ExtractAndValidateX509HashClientId
+			}
+		}
 
 		// check redirect uri not present
 
