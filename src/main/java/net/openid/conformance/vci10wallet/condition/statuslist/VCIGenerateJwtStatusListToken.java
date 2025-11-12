@@ -58,7 +58,7 @@ public class VCIGenerateJwtStatusListToken extends AbstractSignJWT {
 		// see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-11.3
 		JsonObject jwks = env.getObject("server_jwks");
 
-		signJWT(env, claims, jwks, true, false, false, false);
+		signJWT(env, claims, jwks, true, false, true, true);
 
 		return env;
 	}
