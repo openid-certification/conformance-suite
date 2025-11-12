@@ -9,7 +9,8 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum VP1FinalVerifierClientIdPrefix {
 
-	X509_SAN_DNS;
+	X509_SAN_DNS,
+	X509_HASH;
 
 	@Override
 	public String toString() {

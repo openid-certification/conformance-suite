@@ -48,6 +48,7 @@ import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
 import net.openid.conformance.condition.as.ValidateResponseMode;
+import net.openid.conformance.condition.as.ValidateX509HashClientId;
 import net.openid.conformance.condition.client.BuildUnsignedRequestToDirectPostEndpoint;
 import net.openid.conformance.condition.client.CallDirectPostEndpoint;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
@@ -61,6 +62,7 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
@@ -73,6 +75,10 @@ import org.springframework.web.servlet.view.RedirectView;
 	VP1FinalVerifierResponseMode.class,
 	VP1FinalVerifierRequestMethod.class
 })
+@VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
+	"client.client_id"
+})
+
 public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected VP1FinalVerifierClientIdPrefix clientIdScheme;
 	protected VP1FinalVerifierResponseMode responseMode;
@@ -315,7 +321,14 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(CheckRequestUriMethodParameter.class, ConditionResult.WARNING, "OID4VPOID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 
-		callAndContinueOnFailure(EnsureMatchingClientId.class, ConditionResult.FAILURE,"OIDCC-3.1.2.1");
+		switch (clientIdScheme) {
+			case X509_SAN_DNS -> {
+				callAndContinueOnFailure(EnsureMatchingClientId.class, ConditionResult.FAILURE,"OIDCC-3.1.2.1");
+			}
+			case X509_HASH -> {
+				callAndContinueOnFailure(ValidateX509HashClientId.class, ConditionResult.FAILURE);
+			}
+		}
 
 		// check redirect uri not present
 
