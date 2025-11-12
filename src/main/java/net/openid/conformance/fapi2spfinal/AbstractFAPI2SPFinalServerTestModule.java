@@ -29,6 +29,7 @@ import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AustraliaConnectIdValidateAccessTokenExpiresIn;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
@@ -784,6 +785,10 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 				FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-12");
+		}
+		else if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU) {
+			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+				AustraliaConnectIdValidateAccessTokenExpiresIn.class, Condition.ConditionResult.FAILURE, "CID-SP-4.2-2");
 		}
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
