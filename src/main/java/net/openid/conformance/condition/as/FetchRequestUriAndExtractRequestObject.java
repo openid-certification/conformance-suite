@@ -45,7 +45,7 @@ public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 
 				env.putObject("authorization_request_object", jsonObjectForJwt);
 
-				logSuccess("Parsed request object", args("request_object", jsonObjectForJwt));
+				logSuccess("Parsed request object", jsonObjectForJwt);
 
 				return env;
 
