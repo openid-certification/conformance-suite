@@ -25,7 +25,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		""",
 	profile = "OID4VP-1FINAL",
 	configurationFields = {
-		"client.client_id",
 		"credential.signing_jwk"
 	}
 )
