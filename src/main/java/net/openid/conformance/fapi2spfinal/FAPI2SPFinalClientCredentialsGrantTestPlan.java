@@ -94,6 +94,7 @@ public class FAPI2SPFinalClientCredentialsGrantTestPlan implements TestPlan {
 		modules.remove(FAPI2SPFinalTestEssentialAcrScaClaim.class);
 		modules.remove(FAPI2SPFinalUserRejectsAuthentication.class);
 		modules.remove(FAPI2SPFinalAustraliaConnectIdRequestObjectWithExpOver10Fails.class);
+		modules.remove(FAPI2SPFinalAustraliaConnectIdEnsureRequestObjectWithNbfOver15Fails.class);
 
 		List<TestPlan.Variant> baselineVariants = List.of(
 			new TestPlan.Variant(FAPI2AuthRequestMethod.class, "unsigned"),

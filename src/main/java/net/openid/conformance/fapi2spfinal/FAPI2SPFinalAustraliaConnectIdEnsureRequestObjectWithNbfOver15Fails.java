@@ -2,7 +2,7 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
-import net.openid.conformance.condition.client.AddNbfValueIs70MinutesInPastToRequestObject;
+import net.openid.conformance.condition.client.AddNbfValueIs15MinutesInPastToRequestObject;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
@@ -17,8 +17,8 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-final-ensure-request-object-with-nbf-over-60-fails",
-	displayName = "FAPI2-Security-Profile-Final: ensure request object with nbf value over 60 minutes in the past fails",
+	testName = "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-nbf-over-15-fails",
+	displayName = "FAPI2-Security-Profile-Final: ensure request object with nbf value over 15 minutes in the past fails",
 	summary = "This test should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
@@ -39,8 +39,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })
-public class FAPI2SPFinalEnsureRequestObjectWithNbfOver60Fails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "cbuae", "fapi_client_credentials_grant" })
+public class FAPI2SPFinalAustraliaConnectIdEnsureRequestObjectWithNbfOver15Fails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
@@ -53,7 +53,7 @@ public class FAPI2SPFinalEnsureRequestObjectWithNbfOver60Fails extends AbstractF
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps()
 				.replace(AddNbfToRequestObject.class,
-						condition(AddNbfValueIs70MinutesInPastToRequestObject.class).requirements("FAPI2-MS-ID1-5.3.1-3"));
+						condition(AddNbfValueIs15MinutesInPastToRequestObject.class).requirements("CID-SP-4.2-11", "FAPI2-MS-ID1-5.3.1-3"));
 	}
 
 	@Override
