@@ -311,7 +311,8 @@ public class BrowserControl implements DataUtils {
 				"headers", webRequest.getAdditionalHeaders(),
 				"params", webRequest.getRequestParameters(),
 				"body", webRequest.getRequestBody(),
-				"result", Condition.ConditionResult.INFO));
+				"result", Condition.ConditionResult.INFO
+			));
 
 			WebResponse response = super.getResponse(webRequest);
 
@@ -323,7 +324,8 @@ public class BrowserControl implements DataUtils {
 							+ " " + webRequest.getUrl(),
 					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
 					"body", response.getContentAsString(),
-					"result", Condition.ConditionResult.INFO));
+					"result", Condition.ConditionResult.INFO
+				));
 			} else {
 				eventLog.log("WebRunner", args(
 					"msg",
@@ -331,7 +333,8 @@ public class BrowserControl implements DataUtils {
 							+ webRequest.getHttpMethod() + " " + webRequest.getUrl(),
 					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
 					"body", response.getContentAsString(),
-					"result", Condition.ConditionResult.INFO));
+					"result", Condition.ConditionResult.INFO
+				));
 			}
 
 			return response;
