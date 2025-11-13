@@ -12,7 +12,10 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
+
+import java.text.ParseException;
 
 public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIValidateCredentialRequestProof {
 
@@ -75,6 +78,8 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			keyAttestationVerifiableObject.addProperty("verifiable_jws", attestationJwt);
 			keyAttestationVerifiableObject.addProperty("public_jwk", walletPublicKey.toString());
 
+			checkNonceIfNecessary(env, claimsSet);
+
 			log("Detected key attestation in 'jwt' proof header",
 				args("key_attestation_jwt", keyAttestationVerifiableObject));
 
@@ -86,5 +91,35 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 		} catch (Exception e) {
 			throw error("Attestation validation failed: Unexpected error during validation of proof type: " + proofType, e);
 		}
+	}
+
+	protected void checkNonceIfNecessary(Environment env, JWTClaimsSet claimsSet) throws ParseException {
+
+		// do we see a nonce in the key attestation?
+		String nonce = claimsSet.getStringClaim("nonce");
+
+		// Did we generate a c_nonce?
+		JsonObject credentialNonceResponse = env.getObject("credential_nonce_response");
+		if (!credentialNonceResponse.has("c_nonce")) {
+			if (nonce != null) {
+				log("Found unexpected nonce in key attestation, but the nonce endpoint was not called prior.");
+			}
+			return;
+		}
+		// We did generate a c_nonce
+		String expectedNonce = OIDFJSON.getString(credentialNonceResponse.get("c_nonce"));
+
+		if (nonce == null) {
+			throw error("Key attestation did not contain a nonce value, but the nonce endpoint was called prior.",
+				args("c_nonce", expectedNonce));
+		}
+
+		if (!expectedNonce.equals(nonce)) {
+			throw error("Key attestation did not contain the expected nonce value",
+				args("nonce", nonce, "c_nonce", expectedNonce));
+		}
+
+		log("Found expected nonce value in Key attestation",
+			args("nonce", nonce, "c_nonce", expectedNonce));
 	}
 }
