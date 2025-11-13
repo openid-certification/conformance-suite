@@ -137,7 +137,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected VP1FinalWalletResponseMode responseMode;
 	protected VP1FinalWalletRequestMethod requestMethod;
 	protected VP1FinalWalletCredentialFormat credentialFormat;
-	protected VP1FinalWalletClientIdPrefix clientIdScheme;
+	protected VP1FinalWalletClientIdPrefix clientIdPrefix;
 	protected TestState testState = TestState.INITIAL;
 
 	@Override
@@ -162,8 +162,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		env.putString("response_mode", responseMode.toString());
 		credentialFormat = getVariant(VP1FinalWalletCredentialFormat.class);
 		requestMethod = getVariant(VP1FinalWalletRequestMethod.class);
-		clientIdScheme = getVariant(VP1FinalWalletClientIdPrefix.class);
-		env.putString("client_id_scheme", clientIdScheme.toString());
+		clientIdPrefix = getVariant(VP1FinalWalletClientIdPrefix.class);
+		env.putString("client_id_scheme", clientIdPrefix.toString());
 
 		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
 		env.putInteger("requested_nonce_length", 16);
@@ -179,7 +179,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 		}
 
-		switch (clientIdScheme) {
+		switch (clientIdPrefix) {
 			case DECENTRALIZED_IDENTIFIER:
 			case PRE_REGISTERED:
 				// client id has been set already in config
@@ -277,7 +277,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	protected void completeClientConfiguration() {
-		if (clientIdScheme == VP1FinalWalletClientIdPrefix.X509_SAN_DNS) {
+		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_SAN_DNS) {
 			callAndContinueOnFailure(CheckIfClientIdInX509CertSanDns.class, ConditionResult.FAILURE);
 		}
 	}
@@ -611,7 +611,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case REQUEST_URI_SIGNED:
 				seq = createAuthorizationRedirectStepsSignedRequestUri();
-				switch (clientIdScheme) {
+				switch (clientIdPrefix) {
 					case DECENTRALIZED_IDENTIFIER:
 						//Remove x5c header, only the kid header is mandatory for DIDs, which is set in the jwks parameter
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeTypHeader.class));

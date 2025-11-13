@@ -80,7 +80,7 @@ import org.springframework.web.servlet.view.RedirectView;
 })
 
 public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
-	protected VP1FinalVerifierClientIdPrefix clientIdScheme;
+	protected VP1FinalVerifierClientIdPrefix clientIdPrefix;
 	protected VP1FinalVerifierResponseMode responseMode;
 	protected VP1FinalVerifierRequestMethod clientRequestType;
 
@@ -115,8 +115,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		responseMode = getVariant(VP1FinalVerifierResponseMode.class);
 		env.putString("response_mode", responseMode.toString());
 
-		clientIdScheme = getVariant(VP1FinalVerifierClientIdPrefix.class);
-		env.putString("client_id_scheme", clientIdScheme.toString());
+		clientIdPrefix = getVariant(VP1FinalVerifierClientIdPrefix.class);
+		env.putString("client_id_scheme", clientIdPrefix.toString());
 
 		clientRequestType = getVariant(VP1FinalVerifierRequestMethod.class);
 
@@ -187,7 +187,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	}
 
 	protected void configureClientConfiguration() {
-		switch (clientIdScheme) {
+		switch (clientIdPrefix) {
 			case X509_HASH -> {
 				// there's only one possible client id for any given x5c certificate so create it later
 			}
@@ -257,7 +257,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		}
 
 		if(clientRequestType == VP1FinalVerifierRequestMethod.REQUEST_URI_SIGNED) {
-			switch (clientIdScheme) {
+			switch (clientIdPrefix) {
 				case X509_HASH -> {
 					callAndContinueOnFailure(ExtractAndValidateX509HashClientId.class, ConditionResult.FAILURE);
 				}
@@ -334,7 +334,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(CheckRequestUriMethodParameter.class, ConditionResult.WARNING, "OID4VPOID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 
-		switch (clientIdScheme) {
+		switch (clientIdPrefix) {
 			case X509_SAN_DNS -> {
 				callAndContinueOnFailure(EnsureMatchingClientId.class, ConditionResult.FAILURE,"OIDCC-3.1.2.1");
 			}
