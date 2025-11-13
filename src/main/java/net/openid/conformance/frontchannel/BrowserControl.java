@@ -180,7 +180,7 @@ public class BrowserControl implements DataUtils {
 	 * @param url         the url to be visited
 	 * @param placeholder the placeholder in the log that is expecting the results of
 	 *                    the transaction, usually as a screenshot, can be null
-	 * @param method      the HTTP method to be used
+	 * @param method	  the HTTP method to be used
 	 */
 	public void goToUrl(String url, String placeholder, String method) {
 		goToUrl(url, placeholder, method, 0);
@@ -188,7 +188,7 @@ public class BrowserControl implements DataUtils {
 
 	public void goToUrl(String url, String placeholder, String method, int delaySeconds){
 
-		// find the first matching command set based on the url pattern in 'match'
+			// find the first matching command set based on the url pattern in 'match'
 		logger.debug(testId + ": goToUrl called for " + url);
 		for (JsonElement commandsEl : browserCommands) {
 			JsonObject commands = commandsEl.getAsJsonObject();
@@ -204,8 +204,7 @@ public class BrowserControl implements DataUtils {
 					limit--;
 					commands.addProperty("match-limit", limit);
 				}
-				IBrowserRunner wr = createBrowserRunner(url, commands.getAsJsonArray("tasks"), placeholder, method,
-						delaySeconds);
+				IBrowserRunner wr = createBrowserRunner(url, commands.getAsJsonArray("tasks"), placeholder, method, delaySeconds);
 				executionManager.runInBackground(wr);
 				logger.debug(testId + ": " + browserEngine + " BrowserRunner submitted to task executor for: " + url);
 
@@ -243,8 +242,7 @@ public class BrowserControl implements DataUtils {
 		urls.remove(url);
 		visited.add(url);
 
-		Optional<UrlWithMethod> urlWithMethod = urlsWithMethod.stream().filter(u -> Objects.equals(url, u.getUrl()))
-				.findFirst();
+		Optional<UrlWithMethod> urlWithMethod = urlsWithMethod.stream().filter(u -> Objects.equals(url, u.getUrl())).findFirst();
 		if (urlWithMethod.isPresent()) {
 			urlsWithMethod.remove(urlWithMethod.get());
 			visitedUrlsWithMethod.add(urlWithMethod.get());
@@ -428,7 +426,7 @@ public class BrowserControl implements DataUtils {
 
 		public String getStatus() {
 			String responseCodeString = this.getCurrentWindow().lastPage().getWebResponse().getStatusCode() + "-" +
-					this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
+				this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
 			return responseCodeString;
 		}
 
@@ -455,37 +453,34 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void scriptException(HtmlPage page, ScriptException scriptException) {
-					eventLog.log("BROWSER",
-							args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
+					eventLog.log("BROWSER", args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
 				}
 
 				@Override
 				public void timeoutError(HtmlPage page, long allowedTime, long executionTime) {
 					eventLog.log("BROWSER", args("msg", "Timeout during JavaScript execution after "
-							+ executionTime + "ms; allowed only " + allowedTime + "ms"));
+						+ executionTime + "ms; allowed only " + allowedTime + "ms"));
 
 				}
 
 				@Override
 				public void malformedScriptURL(HtmlPage page, String url, MalformedURLException malformedURLException) {
-					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]",
-							"exception", malformedURLException.toString()));
+					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]", "exception", malformedURLException.toString()));
 				}
 
 				@Override
 				public void loadScriptError(HtmlPage page, URL scriptUrl, Exception exception) {
-					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].",
-							"exception", exception.toString()));
+					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].", "exception", exception.toString()));
 				}
 
 				@Override
 				public void warn(String message, String sourceName, int line, String lineSource, int lineOffset) {
 					String msg = "warning: message=[" + message +
-							"] sourceName=[" + sourceName +
-							"] line=[" + line +
-							"] lineSource=[" + lineSource +
-							"] lineOffset=[" + lineOffset +
-							"]";
+						"] sourceName=[" + sourceName +
+						"] line=[" + line +
+						"] lineSource=[" + lineSource +
+						"] lineOffset=[" + lineOffset +
+						"]";
 
 					eventLog.log("BROWSER", args("msg", msg));
 				}
@@ -535,8 +530,7 @@ public class BrowserControl implements DataUtils {
 	 * @param pageSource          the source of the page as rendered
 	 * @param responseContentType the content type last received from the server
 	 */
-	void updatePlaceholder(String placeholder, String pageSource, String responseContentType, String regexp,
-			boolean optional) {
+	void updatePlaceholder(String placeholder, String pageSource, String responseContentType, String regexp, boolean optional) {
 		Map<String, Object> update = new HashMap<>();
 		update.put("page_source", pageSource);
 		update.put("content_type", responseContentType);
@@ -545,8 +539,7 @@ public class BrowserControl implements DataUtils {
 		Document document = imageService.fillPlaceholder(testId, placeholder, update, true);
 		if (document == null) {
 			if (optional) {
-				eventLog.log("BROWSER", args("msg", "Skipping optional placeholder update as placeholder not found.",
-						"placeholder", placeholder));
+				eventLog.log("BROWSER", args("msg", "Skipping optional placeholder update as placeholder not found.", "placeholder", placeholder));
 				return;
 			}
 			throw new TestFailureException(testId, "Couldn't find matched placeholder for uploading error screenshot.");
