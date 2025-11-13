@@ -12,7 +12,7 @@ public class ValidateRequestObjectIat extends AbstractCondition {
 	private int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
-	@PreEnvironment(required = {"authorization_request_object", "client"})
+	@PreEnvironment(required = {"authorization_request_object"})
 	public Environment evaluate(Environment env) {
 		Instant now = Instant.now();
 		Long iat = env.getLong("authorization_request_object", "claims.iat");
