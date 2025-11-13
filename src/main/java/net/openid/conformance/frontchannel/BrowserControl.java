@@ -307,31 +307,31 @@ public class BrowserControl implements DataUtils {
 		@Override
 		public WebResponse getResponse(WebRequest webRequest) throws IOException {
 			eventLog.log("WebRunner", args(
-					"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-					"headers", webRequest.getAdditionalHeaders(),
-					"params", webRequest.getRequestParameters(),
-					"body", webRequest.getRequestBody(),
-					"result", Condition.ConditionResult.INFO));
+				"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+				"headers", webRequest.getAdditionalHeaders(),
+				"params", webRequest.getRequestParameters(),
+				"body", webRequest.getRequestBody(),
+				"result", Condition.ConditionResult.INFO));
 
 			WebResponse response = super.getResponse(webRequest);
 
 			if (response.getStatusCode() == 302) {
 				eventLog.log("WebRunner", args(
-						"msg",
-						"Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to "
-								+ response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod()
-								+ " " + webRequest.getUrl(),
-						"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
-						"body", response.getContentAsString(),
-						"result", Condition.ConditionResult.INFO));
+					"msg",
+					"Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to "
+							+ response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod()
+							+ " " + webRequest.getUrl(),
+					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+					"body", response.getContentAsString(),
+					"result", Condition.ConditionResult.INFO));
 			} else {
 				eventLog.log("WebRunner", args(
-						"msg",
-						"Response " + response.getStatusCode() + " " + response.getStatusMessage() + " "
-								+ webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-						"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
-						"body", response.getContentAsString(),
-						"result", Condition.ConditionResult.INFO));
+					"msg",
+					"Response " + response.getStatusCode() + " " + response.getStatusMessage() + " "
+							+ webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+					"body", response.getContentAsString(),
+					"result", Condition.ConditionResult.INFO));
 			}
 
 			return response;
@@ -438,7 +438,8 @@ public class BrowserControl implements DataUtils {
 		@Override
 		protected WebClient modifyWebClient(WebClient client) {
 			client.setPageCreator(new BrowserControlPageCreator());
-			// use same cookie manager for all instances within this testmodule instance (cookie manager seems to be thread safe)
+			// use same cookie manager for all instances within this testmodule instance
+			// (cookie manager seems to be thread safe)
 			// This is necessary for OIDC prompt=login tests. It might make the results unpredictable if we are running
 			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
 			// are set/read might differ between test runs.
