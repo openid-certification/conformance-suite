@@ -197,6 +197,14 @@
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>htmlunit3-driver</artifactId>
 		</dependency>
+
+		<!-- Playwright for real browser automation -->
+		<dependency>
+			<groupId>com.microsoft.playwright</groupId>
+			<artifactId>playwright</artifactId>
+			<version>1.49.0</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.vdurmont</groupId>
 			<artifactId>semver4j</artifactId>
@@ -321,7 +329,7 @@
 					<profiles>
 						<profile>dev</profile>
 					</profiles>
-					<jvmArguments>-Djdk.tls.maxHandshakeMessageSize=65536</jvmArguments>
+					<jvmArguments>-Djdk.tls.maxHandshakeMessageSize=65536 -Dfintechlabs.browser.engine=playwright</jvmArguments>
 				</configuration>
 				<executions>
 					<execution>

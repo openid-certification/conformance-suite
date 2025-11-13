@@ -58,43 +58,48 @@ import java.util.regex.Pattern;
 
 public class BrowserControl implements DataUtils {
 
-	/*  EXAMPLE OF WHAT TO ADD TO CONFIG:
-	 "browser": [
-		{
-			"match":"https://mitreid.org/authorize*",
-			"tasks": [
-				{
-					"task": "Initial Login",
-					"match": "https://mitreid.org/login*",
-					"commands": [
-						["text","id","j_username","user"],
-						["text","id","j_password","password"],
-						["click","name","submit"]
-					]
-				},
-				{
-					"task": "Authorize Client",
-					"match": "https://mitreid.org/authorize*",
-					"optional": true,
-					"commands": [
-						["click","id","remember-not"],
-						["click","name","authorize"],
-						["wait", "contains", "localhost", 10] // wait for up to 10 seconds for the URL to contain 'localhost' via a javascript location change, etc.
-					]
-				},
-				{
-					"task": "Verify Complete",
-					"match": "https://localhost*"
-				}
-			]
-		}
-	 ]
-
-	 Each "Task" should be things that happen on a single page. In the above example, the first task logs in and ends
-	 with clicking the submit button on the login page, resulting in a new page to get loaded. (The result of logging in).
-
-	 The second task clicks the "Do not remember this choice" radio button, and then clicks the authorize button which
-	 then should trigger the redirect from the server.
+	/*
+	 * EXAMPLE OF WHAT TO ADD TO CONFIG:
+	 * "browser": [
+	 * {
+	 * "match":"https://mitreid.org/authorize*",
+	 * "tasks": [
+	 * {
+	 * "task": "Initial Login",
+	 * "match": "https://mitreid.org/login*",
+	 * "commands": [
+	 * ["text","id","j_username","user"],
+	 * ["text","id","j_password","password"],
+	 * ["click","name","submit"]
+	 * ]
+	 * },
+	 * {
+	 * "task": "Authorize Client",
+	 * "match": "https://mitreid.org/authorize*",
+	 * "optional": true,
+	 * "commands": [
+	 * ["click","id","remember-not"],
+	 * ["click","name","authorize"],
+	 * ["wait", "contains", "localhost", 10] // wait for up to 10 seconds for the
+	 * URL to contain 'localhost' via a javascript location change, etc.
+	 * ]
+	 * },
+	 * {
+	 * "task": "Verify Complete",
+	 * "match": "https://localhost*"
+	 * }
+	 * ]
+	 * }
+	 * ]
+	 * 
+	 * Each "Task" should be things that happen on a single page. In the above
+	 * example, the first task logs in and ends
+	 * with clicking the submit button on the login page, resulting in a new page to
+	 * get loaded. (The result of logging in).
+	 * 
+	 * The second task clicks the "Do not remember this choice" radio button, and
+	 * then clicks the authorize button which
+	 * then should trigger the redirect from the server.
 	 */
 
 	private static final Logger logger = LoggerFactory.getLogger(BrowserControl.class);
@@ -111,15 +116,23 @@ public class BrowserControl implements DataUtils {
 	private List<String> visited = new ArrayList<>();
 	private List<UrlWithMethod> visitedUrlsWithMethod = new ArrayList<>();
 	private List<BrowserApiRequest> browserApiRequests = new ArrayList<>();
-	private Queue<WebRunner> runners = new ConcurrentLinkedQueue<>();
+	private Queue<IBrowserRunner> runners = new ConcurrentLinkedQueue<>();
 
 	private ImageService imageService;
 
 	private TestInstanceEventLog eventLog;
 
-	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this testmodule instance
+	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this
+																// testmodule instance
 
-	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager, ImageService imageService) {
+	// Browser engine configuration
+	private String browserEngine;
+	private String playwrightBrowserType;
+	private boolean playwrightHeadless;
+	private int playwrightSlowMo;
+
+	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog,
+			TestExecutionManager executionManager, ImageService imageService) {
 		this.testId = testId;
 		this.eventLog = eventLog;
 		this.executionManager = executionManager;
@@ -134,11 +147,42 @@ public class BrowserControl implements DataUtils {
 		if (browserVerbose != null) {
 			this.verboseLogging = OIDFJSON.getBoolean(browserVerbose);
 		}
+
+		// Read browser engine configuration from system properties
+		this.browserEngine = System.getProperty("fintechlabs.browser.engine", "selenium");
+		this.playwrightBrowserType = System.getProperty("fintechlabs.browser.playwright.type", "chromium");
+		this.playwrightHeadless = Boolean
+				.parseBoolean(System.getProperty("fintechlabs.browser.playwright.headless", "true"));
+		this.playwrightSlowMo = Integer.parseInt(System.getProperty("fintechlabs.browser.playwright.slowMo", "0"));
+
+		logger.info("Browser automation engine: " + this.browserEngine);
+		if ("playwright".equals(this.browserEngine)) {
+			logger.info("Playwright browser type: " + this.playwrightBrowserType + ", headless: "
+					+ this.playwrightHeadless + ", slowMo: " + this.playwrightSlowMo + "ms");
+		}
 	}
 
 	/**
-	 * Tell the front-end control that a url needs to be visited. If there is a matching
-	 * browser configuration element, this will execute automatically. If there is no
+	 * Factory method to create appropriate browser runner based on configuration
+	 */
+	private IBrowserRunner createBrowserRunner(String url, JsonArray tasks, String placeholder,
+			String method, int delaySeconds) {
+		if ("playwright".equals(browserEngine)) {
+			return new PlaywrightBrowserRunner(url, tasks, placeholder, method, delaySeconds,
+					testId, eventLog, this, cookieManager,
+					playwrightHeadless, playwrightBrowserType, playwrightSlowMo);
+		} else {
+			// Default to Selenium
+			return new SeleniumBrowserRunner(url, tasks, placeholder, method, delaySeconds,
+					testId, eventLog, this, cookieManager);
+		}
+	}
+
+	/**
+	 * Tell the front-end control that a url needs to be visited. If there is a
+	 * matching
+	 * browser configuration element, this will execute automatically. If there is
+	 * no
 	 * matching element, the url is made available for user interaction.
 	 *
 	 * @param url the url to be visited
@@ -152,22 +196,25 @@ public class BrowserControl implements DataUtils {
 	}
 
 	/**
-	 * Tell the front-end control that a url needs to be visited. If there is a matching
-	 * browser configuration element, this will execute automatically. If there is no
+	 * Tell the front-end control that a url needs to be visited. If there is a
+	 * matching
+	 * browser configuration element, this will execute automatically. If there is
+	 * no
 	 * matching element, the url is made available for user interaction.
 	 *
 	 * @param url         the url to be visited
-	 * @param placeholder the placeholder in the log that is expecting the results of
+	 * @param placeholder the placeholder in the log that is expecting the results
+	 *                    of
 	 *                    the transaction, usually as a screenshot, can be null
-	 * @param method	  the HTTP method to be used
+	 * @param method      the HTTP method to be used
 	 */
 	public void goToUrl(String url, String placeholder, String method) {
 		goToUrl(url, placeholder, method, 0);
 	}
 
-	public void goToUrl(String url, String placeholder, String method, int delaySeconds){
+	public void goToUrl(String url, String placeholder, String method, int delaySeconds) {
 
-			// find the first matching command set based on the url pattern in 'match'
+		// find the first matching command set based on the url pattern in 'match'
 		logger.debug(testId + ": goToUrl called for " + url);
 		for (JsonElement commandsEl : browserCommands) {
 			JsonObject commands = commandsEl.getAsJsonObject();
@@ -183,9 +230,10 @@ public class BrowserControl implements DataUtils {
 					limit--;
 					commands.addProperty("match-limit", limit);
 				}
-				WebRunner wr = new WebRunner(url, commands.getAsJsonArray("tasks"), placeholder, method, delaySeconds);
+				IBrowserRunner wr = createBrowserRunner(url, commands.getAsJsonArray("tasks"), placeholder, method,
+						delaySeconds);
 				executionManager.runInBackground(wr);
-				logger.debug(testId + ": WebRunner submitted to task executor for: " + url);
+				logger.debug(testId + ": " + browserEngine + " BrowserRunner submitted to task executor for: " + url);
 
 				runners.add(wr);
 
@@ -196,22 +244,26 @@ public class BrowserControl implements DataUtils {
 		if (verboseLogging) {
 			eventLog.log("BROWSER", "asking user to visit url, no automation for found: " + url);
 		}
-		// if we couldn't find a command for this URL, leave it up to the user to do something with it
+		// if we couldn't find a command for this URL, leave it up to the user to do
+		// something with it
 		urls.add(url);
 		urlsWithMethod.add(new UrlWithMethod(url, method));
 	}
 
 	/**
 	 * Request a credential using the Browser API
-	 * @param request JSON object that will be passed to the browser API
-	 * @param submitUrl URL that log-detail.html should send the results of the browser API call back to
+	 *
+	 * @param request   JSON object that will be passed to the browser API
+	 * @param submitUrl URL that log-detail.html should send the results of the
+	 *                  browser API call back to
 	 */
 	public void requestCredential(JsonObject request, String submitUrl) {
 		browserApiRequests.add(new BrowserApiRequest(request, submitUrl));
 	}
 
 	/**
-	 * Tell the front end control that a url has been visited by the user externally.
+	 * Tell the front end control that a url has been visited by the user
+	 * externally.
 	 *
 	 * @param url the url that has been visited
 	 */
@@ -221,7 +273,8 @@ public class BrowserControl implements DataUtils {
 		urls.remove(url);
 		visited.add(url);
 
-		Optional<UrlWithMethod> urlWithMethod = urlsWithMethod.stream().filter(u -> Objects.equals(url, u.getUrl())).findFirst();
+		Optional<UrlWithMethod> urlWithMethod = urlsWithMethod.stream().filter(u -> Objects.equals(url, u.getUrl()))
+				.findFirst();
 		if (urlWithMethod.isPresent()) {
 			urlsWithMethod.remove(urlWithMethod.get());
 			visitedUrlsWithMethod.add(urlWithMethod.get());
@@ -229,8 +282,20 @@ public class BrowserControl implements DataUtils {
 	}
 
 	/**
-	 * Private Runnable class that acts as the browser and allows goToUrl to return before the page gets hit.
-	 * This gets handed to a {@link TaskExecutor} which manages the thread it gets run on
+	 * Remove a runner from the active runners queue.
+	 * Called by runners when they complete execution.
+	 *
+	 * @param runner The runner to remove
+	 */
+	void removeRunner(IBrowserRunner runner) {
+		runners.remove(runner);
+	}
+
+	/**
+	 * Private Runnable class that acts as the browser and allows goToUrl to return
+	 * before the page gets hit.
+	 * This gets handed to a {@link TaskExecutor} which manages the thread it gets
+	 * run on
 	 */
 	private class WebRunner implements Callable<String> {
 		private String url;
@@ -254,7 +319,8 @@ public class BrowserControl implements DataUtils {
 			this.method = method;
 			this.delaySeconds = delaySeconds;
 
-			// each WebRunner gets it's own driver... that way two could run at the same time for the same test.
+			// each WebRunner gets it's own driver... that way two could run at the same
+			// time for the same test.
 			this.driver = new ResponseCodeHtmlUnitDriver();
 		}
 
@@ -272,7 +338,8 @@ public class BrowserControl implements DataUtils {
 				if (Objects.equals(method, "POST")) {
 
 					URL urlWithQueryString = new URL(url);
-					URL urlWithoutQuery = new URL(urlWithQueryString.getProtocol(), urlWithQueryString.getHost(), urlWithQueryString.getPort(), urlWithQueryString.getPath());
+					URL urlWithoutQuery = new URL(urlWithQueryString.getProtocol(), urlWithQueryString.getHost(),
+							urlWithQueryString.getPort(), urlWithQueryString.getPath());
 					String params = urlWithQueryString.getQuery();
 					WebClient client = driver.getWebClient();
 					WebRequest request = new WebRequest(urlWithoutQuery, HttpMethod.POST);
@@ -280,13 +347,12 @@ public class BrowserControl implements DataUtils {
 					request.setRequestBody(params);
 
 					eventLog.log("WebRunner", args(
-						"msg", "Scripted browser HTTP request",
-						"http", "request",
-						"request_uri", urlWithoutQuery.toString(),
-						"parameters", params,
-						"request_method", method,
-						"browser", "goToUrl"
-					));
+							"msg", "Scripted browser HTTP request",
+							"http", "request",
+							"request_uri", urlWithoutQuery.toString(),
+							"parameters", params,
+							"request_method", method,
+							"browser", "goToUrl"));
 
 					// do the actual HTTP POST
 					client.getPage(request);
@@ -294,12 +360,11 @@ public class BrowserControl implements DataUtils {
 				} else {
 
 					eventLog.log("WebRunner", args(
-						"msg", "Scripted browser HTTP request",
-						"http", "request",
-						"request_uri", url,
-						"request_method", method,
-						"browser", "goToUrl"
-					));
+							"msg", "Scripted browser HTTP request",
+							"http", "request",
+							"request_uri", url,
+							"request_method", method,
+							"browser", "goToUrl"));
 
 					// do the actual HTTP GET
 					driver.get(url);
@@ -307,13 +372,12 @@ public class BrowserControl implements DataUtils {
 				}
 
 				eventLog.log("WebRunner", args(
-					"msg", "Scripted browser HTTP response",
-					"http", "response",
-					"response_status_code", driver.getResponseCode(),
-					"response_status_text", driver.getStatus(),
-					"response_content_type", driver.getResponseContentType(),
-					"response_content", driver.getResponseContent()
-				));
+						"msg", "Scripted browser HTTP response",
+						"http", "response",
+						"response_status_code", driver.getResponseCode(),
+						"response_status_text", driver.getStatus(),
+						"response_content_type", driver.getResponseContentType(),
+						"response_content", driver.getResponseContent()));
 
 				// Consider this URL visited
 				urlVisited(url);
@@ -347,26 +411,25 @@ public class BrowserControl implements DataUtils {
 						if (!PatternMatchUtils.simpleMatch(expectedUrlMatcher, driver.getCurrentUrl())) {
 							if (currentTask.has("optional") && OIDFJSON.getBoolean(currentTask.get("optional"))) {
 								eventLog.log("WebRunner", args(
-									"msg", "Skipping optional task due to URL mismatch",
-									"match", expectedUrlMatcher,
-									"url", driver.getCurrentUrl(),
-									"browser", "skip",
-									"task", taskName,
-									"commands", currentTask.get("commands")
-								));
+										"msg", "Skipping optional task due to URL mismatch",
+										"match", expectedUrlMatcher,
+										"url", driver.getCurrentUrl(),
+										"browser", "skip",
+										"task", taskName,
+										"commands", currentTask.get("commands")));
 
 								skip = true; // we're going to skip this command
 							} else {
 								eventLog.log("WebRunner", args(
-									"msg", "Unexpected URL for non-optional task",
-									"match", expectedUrlMatcher,
-									"url", driver.getCurrentUrl(),
-									"result", Condition.ConditionResult.FAILURE,
-									"task", taskName,
-									"commands", currentTask.get("commands")
-								));
+										"msg", "Unexpected URL for non-optional task",
+										"match", expectedUrlMatcher,
+										"url", driver.getCurrentUrl(),
+										"result", Condition.ConditionResult.FAILURE,
+										"task", taskName,
+										"commands", currentTask.get("commands")));
 
-								throw new TestFailureException(testId, "WebRunner unexpected url for task: " + OIDFJSON.getString(currentTask.get("task")));
+								throw new TestFailureException(testId, "WebRunner unexpected url for task: "
+										+ OIDFJSON.getString(currentTask.get("task")));
 							}
 						}
 
@@ -375,15 +438,19 @@ public class BrowserControl implements DataUtils {
 					// if it does run the commands
 					if (!skip) {
 						JsonArray commands = currentTask.getAsJsonArray("commands");
-						if (commands != null) { // we can have zero commands to just do a check that currentUrl is what we expect
+						if (commands != null) { // we can have zero commands to just do a check that currentUrl is what
+												// we expect
 
 							// wait for webpage to finish loading
-							WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(100));
+							WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(10),
+									Duration.ofMillis(100));
 							try {
-								waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
+								waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver)
+										.executeScript("return document.readyState").equals("complete"));
 							} catch (TimeoutException timeoutException) {
 								logger.error(testId + ": WebRunner caught exception: ", timeoutException);
-								eventLog.log("BROWSER", ex(timeoutException, Map.of("msg", "Timeout waiting for page to load")));
+								eventLog.log("BROWSER",
+										ex(timeoutException, Map.of("msg", "Timeout waiting for page to load")));
 							}
 
 							// execute all of the commands in this task
@@ -394,21 +461,21 @@ public class BrowserControl implements DataUtils {
 							}
 						}
 
-						// Check the server response (Completing all browser command tasks should result in a submit/new page.)
+						// Check the server response (Completing all browser command tasks should result
+						// in a submit/new page.)
 
 						responseCode = driver.getResponseCode();
 						logger.debug(testId + ":     Response Code: " + responseCode);
 
 						eventLog.log("WebRunner", args(
-							"msg", "Completed processing of webpage",
-							"match", expectedUrlMatcher,
-							"url", driver.getCurrentUrl(),
-							"browser", "complete",
-							"task", taskName,
-							"result", Condition.ConditionResult.INFO,
-							"response_status_code", driver.getResponseCode(),
-							"response_status_text", driver.getStatus()
-						));
+								"msg", "Completed processing of webpage",
+								"match", expectedUrlMatcher,
+								"url", driver.getCurrentUrl(),
+								"browser", "complete",
+								"task", taskName,
+								"result", Condition.ConditionResult.INFO,
+								"response_status_code", driver.getResponseCode(),
+								"response_status_text", driver.getStatus()));
 					} // if we don't run the commands, just go straight to the next one
 				}
 				logger.debug(testId + ": Completed Browser Commands");
@@ -417,13 +484,13 @@ public class BrowserControl implements DataUtils {
 			} catch (Exception | Error e) {
 				logger.error(testId + ": WebRunner caught exception", e);
 				eventLog.log("WebRunner",
-					ex(e,
-						args("msg", e.getMessage(),
-							"page_source", driver.getPageSource(),
-							"url", driver.getCurrentUrl(),
-							"content_type", driver.getResponseContentType(),
-							"result", Condition.ConditionResult.FAILURE,
-							"current_dom", driver.getCurrentDomAsXml())));
+						ex(e,
+								args("msg", e.getMessage(),
+										"page_source", driver.getPageSource(),
+										"url", driver.getCurrentUrl(),
+										"content_type", driver.getResponseContentType(),
+										"result", Condition.ConditionResult.FAILURE,
+										"current_dom", driver.getCurrentDomAsXml())));
 				this.lastException = e.getMessage();
 				if (e instanceof TestFailureException) {
 					// avoid wrapping a TestFailureException around a TestFailureException
@@ -437,15 +504,18 @@ public class BrowserControl implements DataUtils {
 		}
 
 		/**
-		 * Given a command like '["click","id","btnId"], this will perform the WebDriver calls to execute it.
-		 * Only two action types are supported this way: "click" to click on a WebElement, and "text" which enters
+		 * Given a command like '["click","id","btnId"], this will perform the WebDriver
+		 * calls to execute it.
+		 * Only two action types are supported this way: "click" to click on a
+		 * WebElement, and "text" which enters
 		 * text into a field like an input box.
 		 *
 		 * @param command
 		 * @throws TestFailureException if an invalid command is specified
 		 */
 		private void doCommand(JsonArray command, String taskName) {
-			// general format for command is [command_string, element_id_type, element_id, other_args]
+			// general format for command is [command_string, element_id_type, element_id,
+			// other_args]
 			String commandString = OIDFJSON.getString(command.get(0));
 			if (!Strings.isNullOrEmpty(commandString)) {
 
@@ -459,14 +529,13 @@ public class BrowserControl implements DataUtils {
 					// ["click", "id" or "name", "id_or_name"]
 
 					eventLog.log("WebRunner", args(
-						"msg", "Clicking an element",
-						"url", driver.getCurrentUrl(),
-						"browser", commandString,
-						"task", taskName,
-						"element_type", elementType,
-						"target", target,
-						"result", Condition.ConditionResult.INFO
-					));
+							"msg", "Clicking an element",
+							"url", driver.getCurrentUrl(),
+							"browser", commandString,
+							"task", taskName,
+							"element_type", elementType,
+							"target", target,
+							"result", Condition.ConditionResult.INFO));
 
 					try {
 						driver.findElement(getSelector(elementType, target)).click();
@@ -474,14 +543,13 @@ public class BrowserControl implements DataUtils {
 						String optional = command.size() >= 4 ? OIDFJSON.getString(command.get(3)) : null;
 						if (optional != null && optional.equals("optional")) {
 							eventLog.log("WebRunner", args(
-								"msg", "Element not found, skipping as 'click' command is marked 'optional'",
-								"url", driver.getCurrentUrl(),
-								"browser", commandString,
-								"task", taskName,
-								"element_type", elementType,
-								"target", target,
-								"result", Condition.ConditionResult.INFO
-							));
+									"msg", "Element not found, skipping as 'click' command is marked 'optional'",
+									"url", driver.getCurrentUrl(),
+									"browser", commandString,
+									"task", taskName,
+									"element_type", elementType,
+									"target", target,
+									"result", Condition.ConditionResult.INFO));
 						} else {
 							throw e;
 						}
@@ -494,46 +562,49 @@ public class BrowserControl implements DataUtils {
 					String value = OIDFJSON.getString(command.get(3));
 
 					eventLog.log("WebRunner", args(
-						"msg", "Entering text",
-						"url", driver.getCurrentUrl(),
-						"browser", commandString,
-						"task", taskName,
-						"element_type", elementType,
-						"target", target,
-						"value", value,
-						"result", Condition.ConditionResult.INFO
-					));
+							"msg", "Entering text",
+							"url", driver.getCurrentUrl(),
+							"browser", commandString,
+							"task", taskName,
+							"element_type", elementType,
+							"target", target,
+							"value", value,
+							"result", Condition.ConditionResult.INFO));
 
 					try {
 						WebElement entryBox = driver.findElement(getSelector(elementType, target));
 
 						entryBox.clear();
 						entryBox.sendKeys(value);
-						logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")");
+						logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType
+								+ ")");
 					} catch (NoSuchElementException e) {
 						String optional = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
 						if (optional != null && optional.equals("optional")) {
 							eventLog.log("WebRunner", args(
-								"msg", "Element not found, skipping as 'text' command is marked 'optional'",
-								"url", driver.getCurrentUrl(),
-								"browser", commandString,
-								"task", taskName,
-								"element_type", elementType,
-								"target", target,
-								"value", value,
-								"result", Condition.ConditionResult.INFO
-							));
+									"msg", "Element not found, skipping as 'text' command is marked 'optional'",
+									"url", driver.getCurrentUrl(),
+									"browser", commandString,
+									"task", taskName,
+									"element_type", elementType,
+									"target", target,
+									"value", value,
+									"result", Condition.ConditionResult.INFO));
 						} else {
 							throw e;
 						}
 					}
 
 				} else if (commandString.equalsIgnoreCase("wait")) {
-					// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
-					// 	 'wait' will wait for the URL to match a regex, or for it to contain a string, OR
-					//	 'wait' can wait for the presence of an element (like a button) using the same selectors (id, name) as click and text above.
+					// ["wait","match" or "contains",
+					// "urlmatch_or_contains_string",timeout_in_seconds]
+					// 'wait' will wait for the URL to match a regex, or for it to contain a string,
+					// OR
+					// 'wait' can wait for the presence of an element (like a button) using the same
+					// selectors (id, name) as click and text above.
 					// if waiting for an element, the next parameter can be a regexp to be matched
-					// and the final parameter can be 'update-image-placeholder' to mark an image placeholder as satisfied
+					// and the final parameter can be 'update-image-placeholder' to mark an image
+					// placeholder as satisfied
 
 					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 					String regexp = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
@@ -552,19 +623,20 @@ public class BrowserControl implements DataUtils {
 					}
 
 					eventLog.log("WebRunner", args(
-						"msg", "Waiting",
-						"url", driver.getCurrentUrl(),
-						"browser", commandString,
-						"task", taskName,
-						"element_type", elementType,
-						"target", target,
-						"seconds", timeoutSeconds,
-						"result", Condition.ConditionResult.INFO,
-						"regexp", regexp,
-						"action", action
-					));
-					// hook to wait for this condition, check every 100 milliseconds until the max seconds
-					WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
+							"msg", "Waiting",
+							"url", driver.getCurrentUrl(),
+							"browser", commandString,
+							"task", taskName,
+							"element_type", elementType,
+							"target", target,
+							"seconds", timeoutSeconds,
+							"result", Condition.ConditionResult.INFO,
+							"regexp", regexp,
+							"action", action));
+					// hook to wait for this condition, check every 100 milliseconds until the max
+					// seconds
+					WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds),
+							Duration.ofMillis(100));
 					try {
 						if (elementType.equalsIgnoreCase("contains")) {
 							waiting.until(ExpectedConditions.urlContains(target));
@@ -575,10 +647,12 @@ public class BrowserControl implements DataUtils {
 							waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
 							if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
 								// make a snapshot of the page available to the test log
-								updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType(), regexp, updateImagePlaceHolderOptional);
+								updatePlaceholder(this.placeholder, driver.getPageSource(),
+										driver.getResponseContentType(), regexp, updateImagePlaceHolderOptional);
 							}
 						} else {
-							waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
+							waiting.until(
+									ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
 						}
 
 						logger.debug(testId + ":\t\tDone waiting: " + commandString);
@@ -590,22 +664,28 @@ public class BrowserControl implements DataUtils {
 				} else if (commandString.equalsIgnoreCase("wait-element-invisible")) {
 					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 					try {
-						WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
-						waiting.until(ExpectedConditions.invisibilityOfElementLocated(getSelector(elementType, target)));
-						logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
+						WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds),
+								Duration.ofMillis(100));
+						waiting.until(
+								ExpectedConditions.invisibilityOfElementLocated(getSelector(elementType, target)));
+						logger.debug(
+								testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
 					} catch (TimeoutException timeoutException) {
 						this.lastException = timeoutException.getMessage();
-						throw new TestFailureException(testId, "Timed out waiting for element to become invisible: " + command.toString());
+						throw new TestFailureException(testId,
+								"Timed out waiting for element to become invisible: " + command.toString());
 					}
 				} else if (commandString.equalsIgnoreCase("wait-element-visible")) {
 					int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 					try {
-						WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
+						WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds),
+								Duration.ofMillis(100));
 						waiting.until(ExpectedConditions.visibilityOfElementLocated(getSelector(elementType, target)));
 						logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now visible");
 					} catch (TimeoutException timeoutException) {
 						this.lastException = timeoutException.getMessage();
-						throw new TestFailureException(testId, "Timed out waiting for element visibility: " + command.toString());
+						throw new TestFailureException(testId,
+								"Timed out waiting for element visibility: " + command.toString());
 					}
 				} else {
 					this.lastException = "Invalid Command " + commandString;
@@ -620,7 +700,8 @@ public class BrowserControl implements DataUtils {
 
 		/**
 		 * Returns the appropriate {@link By} statement based on type and value.
-		 * Currently, supports id, name, xpath, css (css selector), and class (html class)
+		 * Currently, supports id, name, xpath, css (css selector), and class (html
+		 * class)
 		 *
 		 * @param type
 		 * @param value
@@ -645,15 +726,18 @@ public class BrowserControl implements DataUtils {
 
 	}
 
-	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
+	// Allow access to the response code via the HtmlUnit instance. The driver
+	// doesn't normally have this functionality.
 
 	@SuppressWarnings("serial")
 	private static class BrowserControlPageCreator extends DefaultPageCreator {
 		// this is necessary because:
-		// curl -v 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
+		// curl -v
+		// 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
 		// returns:
 		// Content-Type: */*;charset=utf-8
-		// so we need to override this so it's treated as html, which is how browsers treat it
+		// so we need to override this so it's treated as html, which is how browsers
+		// treat it
 		@Override
 		public Page createPage(final WebResponse webResponse, final WebWindow webWindow) throws IOException {
 			return createHtmlPage(webResponse, webWindow);
@@ -693,29 +777,31 @@ public class BrowserControl implements DataUtils {
 		@Override
 		public WebResponse getResponse(WebRequest webRequest) throws IOException {
 			eventLog.log("WebRunner", args(
-				"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-				"headers", webRequest.getAdditionalHeaders(),
-				"params", webRequest.getRequestParameters(),
-				"body", webRequest.getRequestBody(),
-				"result", Condition.ConditionResult.INFO
-			));
+					"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"headers", webRequest.getAdditionalHeaders(),
+					"params", webRequest.getRequestParameters(),
+					"body", webRequest.getRequestBody(),
+					"result", Condition.ConditionResult.INFO));
 
 			WebResponse response = super.getResponse(webRequest);
 
 			if (response.getStatusCode() == 302) {
 				eventLog.log("WebRunner", args(
-					"msg", "Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to " + response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
-					"body", response.getContentAsString(),
-					"result", Condition.ConditionResult.INFO
-				));
+						"msg",
+						"Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to "
+								+ response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod()
+								+ " " + webRequest.getUrl(),
+						"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+						"body", response.getContentAsString(),
+						"result", Condition.ConditionResult.INFO));
 			} else {
 				eventLog.log("WebRunner", args(
-					"msg", "Response " + response.getStatusCode() + " " + response.getStatusMessage() + " " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
-					"body", response.getContentAsString(),
-					"result", Condition.ConditionResult.INFO
-				));
+						"msg",
+						"Response " + response.getStatusCode() + " " + response.getStatusMessage() + " "
+								+ webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+						"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+						"body", response.getContentAsString(),
+						"result", Condition.ConditionResult.INFO));
 			}
 
 			return response;
@@ -723,9 +809,10 @@ public class BrowserControl implements DataUtils {
 	}
 
 	/**
-	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited
+	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of
+	 * the last page we visited
 	 */
-	private class ResponseCodeHtmlUnitDriver extends HtmlUnitDriver {
+	class ResponseCodeHtmlUnitDriver extends HtmlUnitDriver {
 
 		public ResponseCodeHtmlUnitDriver() {
 			super(true);
@@ -810,7 +897,7 @@ public class BrowserControl implements DataUtils {
 
 		public String getStatus() {
 			String responseCodeString = this.getCurrentWindow().lastPage().getWebResponse().getStatusCode() + "-" +
-				this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
+					this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
 			return responseCodeString;
 		}
 
@@ -824,8 +911,10 @@ public class BrowserControl implements DataUtils {
 			client.setPageCreator(new BrowserControlPageCreator());
 			// use same cookie manager for all instances within this testmodule instance
 			// (cookie manager seems to be thread safe)
-			// This is necessary for OIDC prompt=login tests. It might make the results unpredictable if we are running
-			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
+			// This is necessary for OIDC prompt=login tests. It might make the results
+			// unpredictable if we are running
+			// multiple WebRunners within one test module instance at the same time, as the
+			// ordering of when cookies
 			// are set/read might differ between test runs.
 			client.setCookieManager(cookieManager);
 
@@ -838,34 +927,37 @@ public class BrowserControl implements DataUtils {
 
 				@Override
 				public void scriptException(HtmlPage page, ScriptException scriptException) {
-					eventLog.log("BROWSER", args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
+					eventLog.log("BROWSER",
+							args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
 				}
 
 				@Override
 				public void timeoutError(HtmlPage page, long allowedTime, long executionTime) {
 					eventLog.log("BROWSER", args("msg", "Timeout during JavaScript execution after "
-						+ executionTime + "ms; allowed only " + allowedTime + "ms"));
+							+ executionTime + "ms; allowed only " + allowedTime + "ms"));
 
 				}
 
 				@Override
 				public void malformedScriptURL(HtmlPage page, String url, MalformedURLException malformedURLException) {
-					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]", "exception", malformedURLException.toString()));
+					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]",
+							"exception", malformedURLException.toString()));
 				}
 
 				@Override
 				public void loadScriptError(HtmlPage page, URL scriptUrl, Exception exception) {
-					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].", "exception", exception.toString()));
+					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].",
+							"exception", exception.toString()));
 				}
 
 				@Override
 				public void warn(String message, String sourceName, int line, String lineSource, int lineOffset) {
 					String msg = "warning: message=[" + message +
-						"] sourceName=[" + sourceName +
-						"] line=[" + line +
-						"] lineSource=[" + lineSource +
-						"] lineOffset=[" + lineOffset +
-						"]";
+							"] sourceName=[" + sourceName +
+							"] line=[" + line +
+							"] lineSource=[" + lineSource +
+							"] lineOffset=[" + lineOffset +
+							"]";
 
 					eventLog.log("BROWSER", args("msg", msg));
 				}
@@ -915,7 +1007,8 @@ public class BrowserControl implements DataUtils {
 	 * @param pageSource          the source of the page as rendered
 	 * @param responseContentType the content type last received from the server
 	 */
-	private void updatePlaceholder(String placeholder, String pageSource, String responseContentType, String regexp, boolean optional) {
+	void updatePlaceholder(String placeholder, String pageSource, String responseContentType, String regexp,
+			boolean optional) {
 		Map<String, Object> update = new HashMap<>();
 		update.put("page_source", pageSource);
 		update.put("content_type", responseContentType);
@@ -924,7 +1017,8 @@ public class BrowserControl implements DataUtils {
 		Document document = imageService.fillPlaceholder(testId, placeholder, update, true);
 		if (document == null) {
 			if (optional) {
-				eventLog.log("BROWSER", args("msg", "Skipping optional placeholder update as placeholder not found.", "placeholder", placeholder));
+				eventLog.log("BROWSER", args("msg", "Skipping optional placeholder update as placeholder not found.",
+						"placeholder", placeholder));
 				return;
 			}
 			throw new TestFailureException(testId, "Couldn't find matched placeholder for uploading error screenshot.");
@@ -955,16 +1049,34 @@ public class BrowserControl implements DataUtils {
 	public List<JsonObject> getWebRunners() {
 		List<JsonObject> out = new ArrayList<>();
 
-		for (WebRunner wr : runners) {
+		for (IBrowserRunner runner : runners) {
 			JsonObject o = new JsonObject();
-			o.addProperty("url", wr.url);
-			o.addProperty("currentUrl", wr.driver.getCurrentUrl());
-			o.addProperty("currentTask", wr.currentTask);
-			o.addProperty("currentCommand", wr.currentCommand);
-			o.addProperty("lastResponseCode", wr.driver.getResponseCode());
-			o.addProperty("lastResponseContentType", wr.driver.getResponseContentType());
-			o.addProperty("lastResponseContent", wr.driver.getResponseContent());
-			o.addProperty("lastException", wr.lastException);
+
+			// Support for SeleniumBrowserRunner
+			if (runner instanceof SeleniumBrowserRunner) {
+				SeleniumBrowserRunner wr = (SeleniumBrowserRunner) runner;
+				o.addProperty("url", wr.getUrl());
+				o.addProperty("currentUrl", wr.getCurrentUrl());
+				o.addProperty("currentTask", wr.getCurrentTask());
+				o.addProperty("currentCommand", wr.getCurrentCommand());
+				o.addProperty("lastResponseCode", wr.getResponseCode());
+				o.addProperty("lastResponseContentType", wr.getResponseContentType());
+				o.addProperty("lastResponseContent", wr.getResponseContent());
+				o.addProperty("lastException", wr.getLastException());
+			} else if (runner instanceof PlaywrightBrowserRunner) {
+				// Support for PlaywrightBrowserRunner
+				PlaywrightBrowserRunner pr = (PlaywrightBrowserRunner) runner;
+				o.addProperty("url", pr.getUrl());
+				o.addProperty("currentUrl", pr.getCurrentUrl());
+				o.addProperty("currentTask", pr.getCurrentTask());
+				o.addProperty("currentCommand", pr.getCurrentCommand());
+				o.addProperty("lastException", pr.getLastException());
+			} else {
+				// Generic fallback for other implementations
+				o.addProperty("currentTask", runner.getCurrentTask());
+				o.addProperty("currentCommand", runner.getCurrentCommand());
+				o.addProperty("lastException", runner.getLastException());
+			}
 
 			out.add(o);
 		}
