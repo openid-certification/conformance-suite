@@ -6,6 +6,7 @@ import org.springframework.boot.info.GitProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ public class ServerInfoTemplate {
 	private static final String URI = "https://api.ipify.org/";
 	private static final Map<String, String> SERVER_INFO = new HashMap<>();
 
-	public Map<String, String> getServerInfo(){
+	public Map<String, String> getServerInfo() {
 		return SERVER_INFO;
 	}
 
@@ -36,6 +37,8 @@ public class ServerInfoTemplate {
 		SERVER_INFO.put("external_ip", callServiceToGetExternalIpAddress());
 		SERVER_INFO.put("revision", gitProperties.getShortCommitId());
 		SERVER_INFO.put("tag", gitProperties.get("closest.tag.name"));
+		Instant buildTime = Instant.ofEpochMilli(Long.parseLong(gitProperties.get("build.time")));
+		SERVER_INFO.put("build_time", buildTime.toString());
 	}
 
 	/***
