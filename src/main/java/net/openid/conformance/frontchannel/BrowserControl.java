@@ -81,7 +81,7 @@ public class BrowserControl implements DataUtils {
 
 	 The second task clicks the "Do not remember this choice" radio button, and then clicks the authorize button which
 	 then should trigger the redirect from the server.
-	*/
+	 */
 
 	private static final Logger logger = LoggerFactory.getLogger(BrowserControl.class);
 
@@ -103,8 +103,7 @@ public class BrowserControl implements DataUtils {
 
 	private TestInstanceEventLog eventLog;
 
-	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this
-																// testmodule instance
+	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this testmodule instance
 
 	// Browser engine configuration
 	private String browserEngine;
@@ -112,8 +111,7 @@ public class BrowserControl implements DataUtils {
 	private boolean playwrightHeadless;
 	private int playwrightSlowMo;
 
-	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog,
-			TestExecutionManager executionManager, ImageService imageService) {
+	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager, ImageService imageService) {
 		this.testId = testId;
 		this.eventLog = eventLog;
 		this.executionManager = executionManager;
@@ -160,10 +158,8 @@ public class BrowserControl implements DataUtils {
 	}
 
 	/**
-	 * Tell the front-end control that a url needs to be visited. If there is a
-	 * matching
-	 * browser configuration element, this will execute automatically. If there is
-	 * no
+	 * Tell the front-end control that a url needs to be visited. If there is a matching
+	 * browser configuration element, this will execute automatically. If there is no
 	 * matching element, the url is made available for user interaction.
 	 *
 	 * @param url the url to be visited
@@ -177,15 +173,12 @@ public class BrowserControl implements DataUtils {
 	}
 
 	/**
-	 * Tell the front-end control that a url needs to be visited. If there is a
-	 * matching
-	 * browser configuration element, this will execute automatically. If there is
-	 * no
+	 * Tell the front-end control that a url needs to be visited. If there is a matching
+	 * browser configuration element, this will execute automatically. If there is no
 	 * matching element, the url is made available for user interaction.
 	 *
 	 * @param url         the url to be visited
-	 * @param placeholder the placeholder in the log that is expecting the results
-	 *                    of
+	 * @param placeholder the placeholder in the log that is expecting the results of
 	 *                    the transaction, usually as a screenshot, can be null
 	 * @param method      the HTTP method to be used
 	 */
@@ -193,7 +186,7 @@ public class BrowserControl implements DataUtils {
 		goToUrl(url, placeholder, method, 0);
 	}
 
-	public void goToUrl(String url, String placeholder, String method, int delaySeconds) {
+	public void goToUrl(String url, String placeholder, String method, int delaySeconds){
 
 		// find the first matching command set based on the url pattern in 'match'
 		logger.debug(testId + ": goToUrl called for " + url);
@@ -225,26 +218,22 @@ public class BrowserControl implements DataUtils {
 		if (verboseLogging) {
 			eventLog.log("BROWSER", "asking user to visit url, no automation for found: " + url);
 		}
-		// if we couldn't find a command for this URL, leave it up to the user to do
-		// something with it
+		// if we couldn't find a command for this URL, leave it up to the user to do something with it
 		urls.add(url);
 		urlsWithMethod.add(new UrlWithMethod(url, method));
 	}
 
 	/**
 	 * Request a credential using the Browser API
-	 *
-	 * @param request   JSON object that will be passed to the browser API
-	 * @param submitUrl URL that log-detail.html should send the results of the
-	 *                  browser API call back to
+	 * @param request JSON object that will be passed to the browser API
+	 * @param submitUrl URL that log-detail.html should send the results of the browser API call back to
 	 */
 	public void requestCredential(JsonObject request, String submitUrl) {
 		browserApiRequests.add(new BrowserApiRequest(request, submitUrl));
 	}
 
 	/**
-	 * Tell the front end control that a url has been visited by the user
-	 * externally.
+	 * Tell the front end control that a url has been visited by the user externally.
 	 *
 	 * @param url the url that has been visited
 	 */
@@ -272,15 +261,15 @@ public class BrowserControl implements DataUtils {
 		runners.remove(runner);
 	}
 
+	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
+
 	@SuppressWarnings("serial")
 	private static class BrowserControlPageCreator extends DefaultPageCreator {
 		// this is necessary because:
-		// curl -v
-		// 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
+		// curl -v 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
 		// returns:
 		// Content-Type: */*;charset=utf-8
-		// so we need to override this so it's treated as html, which is how browsers
-		// treat it
+		// so we need to override this so it's treated as html, which is how browsers treat it
 		@Override
 		public Page createPage(final WebResponse webResponse, final WebWindow webWindow) throws IOException {
 			return createHtmlPage(webResponse, webWindow);
@@ -352,8 +341,7 @@ public class BrowserControl implements DataUtils {
 	}
 
 	/**
-	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of
-	 * the last page we visited
+	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited
 	 */
 	class ResponseCodeHtmlUnitDriver extends HtmlUnitDriver {
 
@@ -452,12 +440,9 @@ public class BrowserControl implements DataUtils {
 		@Override
 		protected WebClient modifyWebClient(WebClient client) {
 			client.setPageCreator(new BrowserControlPageCreator());
-			// use same cookie manager for all instances within this testmodule instance
-			// (cookie manager seems to be thread safe)
-			// This is necessary for OIDC prompt=login tests. It might make the results
-			// unpredictable if we are running
-			// multiple WebRunners within one test module instance at the same time, as the
-			// ordering of when cookies
+			// use same cookie manager for all instances within this testmodule instance (cookie manager seems to be thread safe)
+			// This is necessary for OIDC prompt=login tests. It might make the results unpredictable if we are running
+			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
 			// are set/read might differ between test runs.
 			client.setCookieManager(cookieManager);
 
