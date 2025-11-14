@@ -38,6 +38,7 @@ public class CallPAREndpoint extends AbstractCondition {
 
 	public static final String HTTP_METHOD_KEY = "par_endpoint_http_method";
 	public static final String RESPONSE_KEY = "pushed_authorization_endpoint_response";
+	public static final String RESPONSE_HEADERS_KEY = "pushed_authorization_endpoint_response_headers";
 
 	@Override
 	@PreEnvironment(required = {"server", "pushed_authorization_request_form_parameters"})
@@ -138,6 +139,8 @@ public class CallPAREndpoint extends AbstractCondition {
 	protected void addFullResponse(Environment env, ResponseEntity<String> response) {
 		JsonObject fullResponse = convertJsonResponseForEnvironment("pushed authorization request", response, true);
 		env.putObject(RESPONSE_KEY, fullResponse);
+
+		env.putObject(RESPONSE_HEADERS_KEY, fullResponse.getAsJsonObject("headers"));
 	}
 
 	protected Environment handleRestClientResponseException(Environment env, RestClientResponseException e) {
