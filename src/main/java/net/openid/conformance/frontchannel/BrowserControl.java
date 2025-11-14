@@ -318,19 +318,14 @@ public class BrowserControl implements DataUtils {
 
 			if (response.getStatusCode() == 302) {
 				eventLog.log("WebRunner", args(
-					"msg",
-					"Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to "
-							+ response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod()
-							+ " " + webRequest.getUrl(),
+					"msg", "Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to " + response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
 					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
 					"body", response.getContentAsString(),
 					"result", Condition.ConditionResult.INFO
 				));
 			} else {
 				eventLog.log("WebRunner", args(
-					"msg",
-					"Response " + response.getStatusCode() + " " + response.getStatusMessage() + " "
-							+ webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"msg", "Response " + response.getStatusCode() + " " + response.getStatusMessage() + " " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
 					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
 					"body", response.getContentAsString(),
 					"result", Condition.ConditionResult.INFO
