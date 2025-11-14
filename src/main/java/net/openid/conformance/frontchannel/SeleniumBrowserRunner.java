@@ -32,7 +32,8 @@ import java.util.regex.Pattern;
 
 /**
  * Selenium/HtmlUnit-based browser automation runner.
- * This is the original implementation using HtmlUnitDriver for browser automation.
+ * This is the original implementation using HtmlUnitDriver for browser
+ * automation.
  *
  * Executes browser commands from JSON configuration including:
  * - Navigation (GET/POST)
@@ -62,21 +63,21 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 	/**
 	 * Create a new Selenium browser runner.
 	 *
-	 * @param url             URL to navigate to
-	 * @param tasks           JSON array of browser automation tasks
-	 * @param placeholder     Optional placeholder for image/screenshot logging
-	 * @param method          HTTP method (GET or POST)
-	 * @param delaySeconds    Delay in seconds before starting navigation
-	 * @param testId          Test instance ID
-	 * @param eventLog        Event log for recording actions
-	 * @param browserControl  Reference to parent BrowserControl for callbacks
-	 * @param cookieManager   Shared cookie manager for maintaining session state
-	 * @param verboseLogging  Enable verbose logging of browser actions
+	 * @param url            URL to navigate to
+	 * @param tasks          JSON array of browser automation tasks
+	 * @param placeholder    Optional placeholder for image/screenshot logging
+	 * @param method         HTTP method (GET or POST)
+	 * @param delaySeconds   Delay in seconds before starting navigation
+	 * @param testId         Test instance ID
+	 * @param eventLog       Event log for recording actions
+	 * @param browserControl Reference to parent BrowserControl for callbacks
+	 * @param cookieManager  Shared cookie manager for maintaining session state
+	 * @param verboseLogging Enable verbose logging of browser actions
 	 */
 	public SeleniumBrowserRunner(String url, JsonArray tasks, String placeholder, String method,
-	                             int delaySeconds, String testId, TestInstanceEventLog eventLog,
-	                             BrowserControl browserControl, CookieManager cookieManager,
-	                             boolean verboseLogging) {
+			int delaySeconds, String testId, TestInstanceEventLog eventLog,
+			BrowserControl browserControl, CookieManager cookieManager,
+			boolean verboseLogging) {
 		this.url = url;
 		this.tasks = tasks;
 		this.placeholder = placeholder;
@@ -106,7 +107,8 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 			if (Objects.equals(method, "POST")) {
 
 				URL urlWithQueryString = new URL(url);
-				URL urlWithoutQuery = new URL(urlWithQueryString.getProtocol(), urlWithQueryString.getHost(), urlWithQueryString.getPort(), urlWithQueryString.getPath());
+				URL urlWithoutQuery = new URL(urlWithQueryString.getProtocol(), urlWithQueryString.getHost(),
+						urlWithQueryString.getPort(), urlWithQueryString.getPath());
 				String params = urlWithQueryString.getQuery();
 				WebClient client = driver.getWebClient();
 				WebRequest request = new WebRequest(urlWithoutQuery, HttpMethod.POST);
@@ -114,13 +116,12 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 				request.setRequestBody(params);
 
 				eventLog.log("WebRunner", args(
-					"msg", "Scripted browser HTTP request",
-					"http", "request",
-					"request_uri", urlWithoutQuery.toString(),
-					"parameters", params,
-					"request_method", method,
-					"browser", "goToUrl"
-				));
+						"msg", "Scripted browser HTTP request",
+						"http", "request",
+						"request_uri", urlWithoutQuery.toString(),
+						"parameters", params,
+						"request_method", method,
+						"browser", "goToUrl"));
 
 				// do the actual HTTP POST
 				client.getPage(request);
@@ -128,12 +129,11 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 			} else {
 
 				eventLog.log("WebRunner", args(
-					"msg", "Scripted browser HTTP request",
-					"http", "request",
-					"request_uri", url,
-					"request_method", method,
-					"browser", "goToUrl"
-				));
+						"msg", "Scripted browser HTTP request",
+						"http", "request",
+						"request_uri", url,
+						"request_method", method,
+						"browser", "goToUrl"));
 
 				// do the actual HTTP GET
 				driver.get(url);
@@ -141,13 +141,12 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 			}
 
 			eventLog.log("WebRunner", args(
-				"msg", "Scripted browser HTTP response",
-				"http", "response",
-				"response_status_code", driver.getResponseCode(),
-				"response_status_text", driver.getStatus(),
-				"response_content_type", driver.getResponseContentType(),
-				"response_content", driver.getResponseContent()
-			));
+					"msg", "Scripted browser HTTP response",
+					"http", "response",
+					"response_status_code", driver.getResponseCode(),
+					"response_status_text", driver.getStatus(),
+					"response_content_type", driver.getResponseContentType(),
+					"response_content", driver.getResponseContent()));
 
 			// Consider this URL visited
 			browserControl.urlVisited(url);
@@ -181,26 +180,25 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 					if (!PatternMatchUtils.simpleMatch(expectedUrlMatcher, driver.getCurrentUrl())) {
 						if (currentTask.has("optional") && OIDFJSON.getBoolean(currentTask.get("optional"))) {
 							eventLog.log("WebRunner", args(
-								"msg", "Skipping optional task due to URL mismatch",
-								"match", expectedUrlMatcher,
-								"url", driver.getCurrentUrl(),
-								"browser", "skip",
-								"task", taskName,
-								"commands", currentTask.get("commands")
-							));
+									"msg", "Skipping optional task due to URL mismatch",
+									"match", expectedUrlMatcher,
+									"url", driver.getCurrentUrl(),
+									"browser", "skip",
+									"task", taskName,
+									"commands", currentTask.get("commands")));
 
 							skip = true; // we're going to skip this command
 						} else {
 							eventLog.log("WebRunner", args(
-								"msg", "Unexpected URL for non-optional task",
-								"match", expectedUrlMatcher,
-								"url", driver.getCurrentUrl(),
-								"result", Condition.ConditionResult.FAILURE,
-								"task", taskName,
-								"commands", currentTask.get("commands")
-							));
+									"msg", "Unexpected URL for non-optional task",
+									"match", expectedUrlMatcher,
+									"url", driver.getCurrentUrl(),
+									"result", Condition.ConditionResult.FAILURE,
+									"task", taskName,
+									"commands", currentTask.get("commands")));
 
-							throw new TestFailureException(testId, "WebRunner unexpected url for task: " + OIDFJSON.getString(currentTask.get("task")));
+							throw new TestFailureException(testId, "WebRunner unexpected url for task: "
+									+ OIDFJSON.getString(currentTask.get("task")));
 						}
 					}
 
@@ -209,15 +207,19 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 				// if it does run the commands
 				if (!skip) {
 					JsonArray commands = currentTask.getAsJsonArray("commands");
-					if (commands != null) { // we can have zero commands to just do a check that currentUrl is what we expect
+					if (commands != null) { // we can have zero commands to just do a check that currentUrl is what we
+											// expect
 
 						// wait for webpage to finish loading
-						WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(100));
+						WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(10),
+								Duration.ofMillis(100));
 						try {
-							waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
+							waiting.until((ExpectedCondition<Boolean>) webDriver -> ((JavascriptExecutor) webDriver)
+									.executeScript("return document.readyState").equals("complete"));
 						} catch (TimeoutException timeoutException) {
 							logger.error(testId + ": WebRunner caught exception: ", timeoutException);
-							eventLog.log("BROWSER", ex(timeoutException, Map.of("msg", "Timeout waiting for page to load")));
+							eventLog.log("BROWSER",
+									ex(timeoutException, Map.of("msg", "Timeout waiting for page to load")));
 						}
 
 						// execute all of the commands in this task
@@ -228,21 +230,21 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 						}
 					}
 
-					// Check the server response (Completing all browser command tasks should result in a submit/new page.)
+					// Check the server response (Completing all browser command tasks should result
+					// in a submit/new page.)
 
 					responseCode = driver.getResponseCode();
 					logger.debug(testId + ":     Response Code: " + responseCode);
 
 					eventLog.log("WebRunner", args(
-						"msg", "Completed processing of webpage",
-						"match", expectedUrlMatcher,
-						"url", driver.getCurrentUrl(),
-						"browser", "complete",
-						"task", taskName,
-						"result", Condition.ConditionResult.INFO,
-						"response_status_code", driver.getResponseCode(),
-						"response_status_text", driver.getStatus()
-					));
+							"msg", "Completed processing of webpage",
+							"match", expectedUrlMatcher,
+							"url", driver.getCurrentUrl(),
+							"browser", "complete",
+							"task", taskName,
+							"result", Condition.ConditionResult.INFO,
+							"response_status_code", driver.getResponseCode(),
+							"response_status_text", driver.getStatus()));
 				} // if we don't run the commands, just go straight to the next one
 			}
 			logger.debug(testId + ": Completed Browser Commands");
@@ -251,13 +253,13 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 		} catch (Exception | Error e) {
 			logger.error(testId + ": WebRunner caught exception", e);
 			eventLog.log("WebRunner",
-				ex(e,
-					args("msg", e.getMessage(),
-						"page_source", driver.getPageSource(),
-						"url", driver.getCurrentUrl(),
-						"content_type", driver.getResponseContentType(),
-						"result", Condition.ConditionResult.FAILURE,
-						"current_dom", driver.getCurrentDomAsXml())));
+					ex(e,
+							args("msg", e.getMessage(),
+									"page_source", driver.getPageSource(),
+									"url", driver.getCurrentUrl(),
+									"content_type", driver.getResponseContentType(),
+									"result", Condition.ConditionResult.FAILURE,
+									"current_dom", driver.getCurrentDomAsXml())));
 			this.lastException = e.getMessage();
 			if (e instanceof TestFailureException) {
 				// avoid wrapping a TestFailureException around a TestFailureException
@@ -279,16 +281,20 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 	 * - click: ["click", selector_type, target, "optional"]
 	 * - text: ["text", selector_type, target, value, "optional"]
 	 * - wait: ["wait", "contains"|"match", pattern, timeout_seconds]
-	 *       or ["wait", selector_type, target, timeout_seconds, regexp, "update-image-placeholder"]
-	 * - wait-element-visible: ["wait-element-visible", selector_type, target, timeout_seconds]
-	 * - wait-element-invisible: ["wait-element-invisible", selector_type, target, timeout_seconds]
+	 * or ["wait", selector_type, target, timeout_seconds, regexp,
+	 * "update-image-placeholder"]
+	 * - wait-element-visible: ["wait-element-visible", selector_type, target,
+	 * timeout_seconds]
+	 * - wait-element-invisible: ["wait-element-invisible", selector_type, target,
+	 * timeout_seconds]
 	 *
 	 * @param command  JSON array representing the command
 	 * @param taskName Name of current task for logging
 	 * @throws TestFailureException if command fails or is invalid
 	 */
 	private void doCommand(JsonArray command, String taskName) {
-		// general format for command is [command_string, element_id_type, element_id, other_args]
+		// general format for command is [command_string, element_id_type, element_id,
+		// other_args]
 		String commandString = OIDFJSON.getString(command.get(0));
 		if (!Strings.isNullOrEmpty(commandString)) {
 
@@ -302,14 +308,13 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 				// ["click", "id" or "name", "id_or_name"]
 
 				eventLog.log("WebRunner", args(
-					"msg", "Clicking an element",
-					"url", driver.getCurrentUrl(),
-					"browser", commandString,
-					"task", taskName,
-					"element_type", elementType,
-					"target", target,
-					"result", Condition.ConditionResult.INFO
-				));
+						"msg", "Clicking an element",
+						"url", driver.getCurrentUrl(),
+						"browser", commandString,
+						"task", taskName,
+						"element_type", elementType,
+						"target", target,
+						"result", Condition.ConditionResult.INFO));
 
 				try {
 					driver.findElement(getSelector(elementType, target)).click();
@@ -317,14 +322,13 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 					String optional = command.size() >= 4 ? OIDFJSON.getString(command.get(3)) : null;
 					if (optional != null && optional.equals("optional")) {
 						eventLog.log("WebRunner", args(
-							"msg", "Element not found, skipping as 'click' command is marked 'optional'",
-							"url", driver.getCurrentUrl(),
-							"browser", commandString,
-							"task", taskName,
-							"element_type", elementType,
-							"target", target,
-							"result", Condition.ConditionResult.INFO
-						));
+								"msg", "Element not found, skipping as 'click' command is marked 'optional'",
+								"url", driver.getCurrentUrl(),
+								"browser", commandString,
+								"task", taskName,
+								"element_type", elementType,
+								"target", target,
+								"result", Condition.ConditionResult.INFO));
 					} else {
 						throw e;
 					}
@@ -337,46 +341,49 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 				String value = OIDFJSON.getString(command.get(3));
 
 				eventLog.log("WebRunner", args(
-					"msg", "Entering text",
-					"url", driver.getCurrentUrl(),
-					"browser", commandString,
-					"task", taskName,
-					"element_type", elementType,
-					"target", target,
-					"value", value,
-					"result", Condition.ConditionResult.INFO
-				));
+						"msg", "Entering text",
+						"url", driver.getCurrentUrl(),
+						"browser", commandString,
+						"task", taskName,
+						"element_type", elementType,
+						"target", target,
+						"value", value,
+						"result", Condition.ConditionResult.INFO));
 
 				try {
 					WebElement entryBox = driver.findElement(getSelector(elementType, target));
 
 					entryBox.clear();
 					entryBox.sendKeys(value);
-					logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")");
+					logger.debug(
+							testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")");
 				} catch (NoSuchElementException e) {
 					String optional = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
 					if (optional != null && optional.equals("optional")) {
 						eventLog.log("WebRunner", args(
-							"msg", "Element not found, skipping as 'text' command is marked 'optional'",
-							"url", driver.getCurrentUrl(),
-							"browser", commandString,
-							"task", taskName,
-							"element_type", elementType,
-							"target", target,
-							"value", value,
-							"result", Condition.ConditionResult.INFO
-						));
+								"msg", "Element not found, skipping as 'text' command is marked 'optional'",
+								"url", driver.getCurrentUrl(),
+								"browser", commandString,
+								"task", taskName,
+								"element_type", elementType,
+								"target", target,
+								"value", value,
+								"result", Condition.ConditionResult.INFO));
 					} else {
 						throw e;
 					}
 				}
 
 			} else if (commandString.equalsIgnoreCase("wait")) {
-				// ["wait","match" or "contains", "urlmatch_or_contains_string",timeout_in_seconds]
-				// 	 'wait' will wait for the URL to match a regex, or for it to contain a string, OR
-				//	 'wait' can wait for the presence of an element (like a button) using the same selectors (id, name) as click and text above.
+				// ["wait","match" or "contains",
+				// "urlmatch_or_contains_string",timeout_in_seconds]
+				// 'wait' will wait for the URL to match a regex, or for it to contain a string,
+				// OR
+				// 'wait' can wait for the presence of an element (like a button) using the same
+				// selectors (id, name) as click and text above.
 				// if waiting for an element, the next parameter can be a regexp to be matched
-				// and the final parameter can be 'update-image-placeholder' to mark an image placeholder as satisfied
+				// and the final parameter can be 'update-image-placeholder' to mark an image
+				// placeholder as satisfied
 
 				int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 				String regexp = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
@@ -395,19 +402,20 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 				}
 
 				eventLog.log("WebRunner", args(
-					"msg", "Waiting",
-					"url", driver.getCurrentUrl(),
-					"browser", commandString,
-					"task", taskName,
-					"element_type", elementType,
-					"target", target,
-					"seconds", timeoutSeconds,
-					"result", Condition.ConditionResult.INFO,
-					"regexp", regexp,
-					"action", action
-				));
-				// hook to wait for this condition, check every 100 milliseconds until the max seconds
-				WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
+						"msg", "Waiting",
+						"url", driver.getCurrentUrl(),
+						"browser", commandString,
+						"task", taskName,
+						"element_type", elementType,
+						"target", target,
+						"seconds", timeoutSeconds,
+						"result", Condition.ConditionResult.INFO,
+						"regexp", regexp,
+						"action", action));
+				// hook to wait for this condition, check every 100 milliseconds until the max
+				// seconds
+				WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds),
+						Duration.ofMillis(100));
 				try {
 					if (elementType.equalsIgnoreCase("contains")) {
 						waiting.until(ExpectedConditions.urlContains(target));
@@ -418,7 +426,8 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 						waiting.until(ExpectedConditions.textMatches(getSelector(elementType, target), pattern));
 						if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
 							// make a snapshot of the page available to the test log
-							browserControl.updatePlaceholder(this.placeholder, driver.getPageSource(), driver.getResponseContentType(), regexp, updateImagePlaceHolderOptional);
+							browserControl.updatePlaceholder(this.placeholder, driver.getPageSource(),
+									driver.getResponseContentType(), regexp, updateImagePlaceHolderOptional);
 						}
 					} else {
 						waiting.until(ExpectedConditions.presenceOfElementLocated(getSelector(elementType, target)));
@@ -433,22 +442,26 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 			} else if (commandString.equalsIgnoreCase("wait-element-invisible")) {
 				int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 				try {
-					WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
+					WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds),
+							Duration.ofMillis(100));
 					waiting.until(ExpectedConditions.invisibilityOfElementLocated(getSelector(elementType, target)));
 					logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
 				} catch (TimeoutException timeoutException) {
 					this.lastException = timeoutException.getMessage();
-					throw new TestFailureException(testId, "Timed out waiting for element to become invisible: " + command.toString());
+					throw new TestFailureException(testId,
+							"Timed out waiting for element to become invisible: " + command.toString());
 				}
 			} else if (commandString.equalsIgnoreCase("wait-element-visible")) {
 				int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 				try {
-					WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds), Duration.ofMillis(100));
+					WebDriverWait waiting = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds),
+							Duration.ofMillis(100));
 					waiting.until(ExpectedConditions.visibilityOfElementLocated(getSelector(elementType, target)));
 					logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now visible");
 				} catch (TimeoutException timeoutException) {
 					this.lastException = timeoutException.getMessage();
-					throw new TestFailureException(testId, "Timed out waiting for element visibility: " + command.toString());
+					throw new TestFailureException(testId,
+							"Timed out waiting for element visibility: " + command.toString());
 				}
 			} else {
 				this.lastException = "Invalid Command " + commandString;
@@ -540,17 +553,21 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 
 	/**
 	 * Custom page creator that treats all responses as HTML.
-	 * This is necessary because some authorization servers return incorrect content-type headers.
+	 * This is necessary because some authorization servers return incorrect
+	 * content-type headers.
 	 */
 	@SuppressWarnings("serial")
 	private static class BrowserControlPageCreator extends org.htmlunit.DefaultPageCreator {
 		// this is necessary because:
-		// curl -v 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
+		// curl -v
+		// 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
 		// returns:
 		// Content-Type: */*;charset=utf-8
-		// so we need to override this so it's treated as html, which is how browsers treat it
+		// so we need to override this so it's treated as html, which is how browsers
+		// treat it
 		@Override
-		public org.htmlunit.Page createPage(final org.htmlunit.WebResponse webResponse, final org.htmlunit.WebWindow webWindow) throws java.io.IOException {
+		public org.htmlunit.Page createPage(final org.htmlunit.WebResponse webResponse,
+				final org.htmlunit.WebWindow webWindow) throws java.io.IOException {
 			return createHtmlPage(webResponse, webWindow);
 		}
 	}
@@ -591,29 +608,31 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 		@Override
 		public org.htmlunit.WebResponse getResponse(org.htmlunit.WebRequest webRequest) throws java.io.IOException {
 			eventLog.log("WebRunner", args(
-				"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-				"headers", webRequest.getAdditionalHeaders(),
-				"params", webRequest.getRequestParameters(),
-				"body", webRequest.getRequestBody(),
-				"result", Condition.ConditionResult.INFO
-			));
+					"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"headers", webRequest.getAdditionalHeaders(),
+					"params", webRequest.getRequestParameters(),
+					"body", webRequest.getRequestBody(),
+					"result", Condition.ConditionResult.INFO));
 
 			org.htmlunit.WebResponse response = super.getResponse(webRequest);
 
 			if (response.getStatusCode() == 302) {
 				eventLog.log("WebRunner", args(
-					"msg", "Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to " + response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
-					"body", response.getContentAsString(),
-					"result", Condition.ConditionResult.INFO
-				));
+						"msg",
+						"Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to "
+								+ response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod()
+								+ " " + webRequest.getUrl(),
+						"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+						"body", response.getContentAsString(),
+						"result", Condition.ConditionResult.INFO));
 			} else {
 				eventLog.log("WebRunner", args(
-					"msg", "Response " + response.getStatusCode() + " " + response.getStatusMessage() + " " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
-					"body", response.getContentAsString(),
-					"result", Condition.ConditionResult.INFO
-				));
+						"msg",
+						"Response " + response.getStatusCode() + " " + response.getStatusMessage() + " "
+								+ webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+						"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+						"body", response.getContentAsString(),
+						"result", Condition.ConditionResult.INFO));
 			}
 
 			return response;
@@ -621,7 +640,8 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 	}
 
 	/**
-	 * SubClass of {@link org.openqa.selenium.htmlunit.HtmlUnitDriver} to provide access to the response code of the last page we visited
+	 * SubClass of {@link org.openqa.selenium.htmlunit.HtmlUnitDriver} to provide
+	 * access to the response code of the last page we visited
 	 */
 	class ResponseCodeHtmlUnitDriver extends org.openqa.selenium.htmlunit.HtmlUnitDriver {
 
@@ -708,7 +728,7 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 
 		public String getStatus() {
 			String responseCodeString = this.getCurrentWindow().lastPage().getWebResponse().getStatusCode() + "-" +
-				this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
+					this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
 			return responseCodeString;
 		}
 
@@ -722,8 +742,10 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 			client.setPageCreator(new BrowserControlPageCreator());
 			// use same cookie manager for all instances within this testmodule instance
 			// (cookie manager seems to be thread safe)
-			// This is necessary for OIDC prompt=login tests. It might make the results unpredictable if we are running
-			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
+			// This is necessary for OIDC prompt=login tests. It might make the results
+			// unpredictable if we are running
+			// multiple WebRunners within one test module instance at the same time, as the
+			// ordering of when cookies
 			// are set/read might differ between test runs.
 			client.setCookieManager(cookieManager);
 
@@ -735,35 +757,41 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 			client.setJavaScriptErrorListener(new org.htmlunit.javascript.JavaScriptErrorListener() {
 
 				@Override
-				public void scriptException(org.htmlunit.html.HtmlPage page, org.htmlunit.ScriptException scriptException) {
-					eventLog.log("BROWSER", args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
+				public void scriptException(org.htmlunit.html.HtmlPage page,
+						org.htmlunit.ScriptException scriptException) {
+					eventLog.log("BROWSER",
+							args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
 				}
 
 				@Override
 				public void timeoutError(org.htmlunit.html.HtmlPage page, long allowedTime, long executionTime) {
 					eventLog.log("BROWSER", args("msg", "Timeout during JavaScript execution after "
-						+ executionTime + "ms; allowed only " + allowedTime + "ms"));
+							+ executionTime + "ms; allowed only " + allowedTime + "ms"));
 
 				}
 
 				@Override
-				public void malformedScriptURL(org.htmlunit.html.HtmlPage page, String url, java.net.MalformedURLException malformedURLException) {
-					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]", "exception", malformedURLException.toString()));
+				public void malformedScriptURL(org.htmlunit.html.HtmlPage page, String url,
+						java.net.MalformedURLException malformedURLException) {
+					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]",
+							"exception", malformedURLException.toString()));
 				}
 
 				@Override
-				public void loadScriptError(org.htmlunit.html.HtmlPage page, java.net.URL scriptUrl, Exception exception) {
-					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].", "exception", exception.toString()));
+				public void loadScriptError(org.htmlunit.html.HtmlPage page, java.net.URL scriptUrl,
+						Exception exception) {
+					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].",
+							"exception", exception.toString()));
 				}
 
 				@Override
 				public void warn(String message, String sourceName, int line, String lineSource, int lineOffset) {
 					String msg = "warning: message=[" + message +
-						"] sourceName=[" + sourceName +
-						"] line=[" + line +
-						"] lineSource=[" + lineSource +
-						"] lineOffset=[" + lineOffset +
-						"]";
+							"] sourceName=[" + sourceName +
+							"] line=[" + line +
+							"] lineSource=[" + lineSource +
+							"] lineOffset=[" + lineOffset +
+							"]";
 
 					eventLog.log("BROWSER", args("msg", msg));
 				}
