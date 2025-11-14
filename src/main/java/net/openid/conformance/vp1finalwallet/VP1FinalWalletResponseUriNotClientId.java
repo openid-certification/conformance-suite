@@ -18,8 +18,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 // For x509 dns the client_id we try would need to be on a different hostname; but even this is permitted by the specs in some cases:
 // "If the Wallet can establish trust in the Client Identifier authenticated through the certificate, e.g. because the Client Identifier is contained in a list of trusted Client Identifiers, it may allow the client to freely choose the redirect_uri value."
-// So we just don't do this test for x509_san_dns for now
-@VariantNotApplicable(parameter = VP1FinalWalletClientIdPrefix.class, values={"x509_san_dns", "decentralized_identifier", "pre_registered"})
+// So we just don't do this test for x509_san_dns for now. x509_hash doesn't add any restrictions.
+@VariantNotApplicable(parameter = VP1FinalWalletClientIdPrefix.class, values={"x509_san_dns", "x509_hash", "decentralized_identifier", "pre_registered"})
 
 // For BrowserAPI Response URI isn't used
 @VariantNotApplicable(parameter = VP1FinalWalletResponseMode.class, values={"dc_api", "dc_api.jwt"})
