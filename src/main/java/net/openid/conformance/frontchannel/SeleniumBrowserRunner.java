@@ -46,9 +46,11 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 	private final String testId;
 	private final TestInstanceEventLog eventLog;
 	private final BrowserControl browserControl;
+	private final CookieManager cookieManager;
+	private final boolean verboseLogging;
 
 	private String url;
-	private BrowserControl.ResponseCodeHtmlUnitDriver driver;
+	private ResponseCodeHtmlUnitDriver driver;
 	private JsonArray tasks;
 	private String currentTask;
 	private String currentCommand;
@@ -68,11 +70,13 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 	 * @param testId          Test instance ID
 	 * @param eventLog        Event log for recording actions
 	 * @param browserControl  Reference to parent BrowserControl for callbacks
-	 * @param cookieManager   Shared cookie manager (not used, kept for future compatibility)
+	 * @param cookieManager   Shared cookie manager for maintaining session state
+	 * @param verboseLogging  Enable verbose logging of browser actions
 	 */
 	public SeleniumBrowserRunner(String url, JsonArray tasks, String placeholder, String method,
 	                             int delaySeconds, String testId, TestInstanceEventLog eventLog,
-	                             BrowserControl browserControl, CookieManager cookieManager) {
+	                             BrowserControl browserControl, CookieManager cookieManager,
+	                             boolean verboseLogging) {
 		this.url = url;
 		this.tasks = tasks;
 		this.placeholder = placeholder;
@@ -81,10 +85,11 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 		this.testId = testId;
 		this.eventLog = eventLog;
 		this.browserControl = browserControl;
+		this.cookieManager = cookieManager;
+		this.verboseLogging = verboseLogging;
 
 		// Each runner gets its own driver for thread safety
-		// ResponseCodeHtmlUnitDriver is an inner class of BrowserControl
-		this.driver = browserControl.new ResponseCodeHtmlUnitDriver();
+		this.driver = new ResponseCodeHtmlUnitDriver();
 	}
 
 	@Override
@@ -529,5 +534,246 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 
 	String getLastResponseCode() {
 		return String.valueOf(driver.getResponseCode());
+	}
+
+	// Inner classes for HtmlUnit driver customization
+
+	/**
+	 * Custom page creator that treats all responses as HTML.
+	 * This is necessary because some authorization servers return incorrect content-type headers.
+	 */
+	@SuppressWarnings("serial")
+	private static class BrowserControlPageCreator extends org.htmlunit.DefaultPageCreator {
+		// this is necessary because:
+		// curl -v 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
+		// returns:
+		// Content-Type: */*;charset=utf-8
+		// so we need to override this so it's treated as html, which is how browsers treat it
+		@Override
+		public org.htmlunit.Page createPage(final org.htmlunit.WebResponse webResponse, final org.htmlunit.WebWindow webWindow) throws java.io.IOException {
+			return createHtmlPage(webResponse, webWindow);
+		}
+	}
+
+	/**
+	 * Custom HTTP connection that logs all requests and responses to the event log.
+	 */
+	private class LoggingHttpWebConnection extends org.htmlunit.HttpWebConnection {
+
+		public LoggingHttpWebConnection(WebClient webClient) {
+			super(webClient);
+		}
+
+		/**
+		 * Convert headers returned by HTMLUnit into a JsonObject
+		 */
+		public JsonObject mapHeadersToJsonObject(java.util.List<org.htmlunit.util.NameValuePair> headers) {
+			JsonObject o = new JsonObject();
+			for (org.htmlunit.util.NameValuePair pair : headers) {
+				String name = pair.getName();
+				if (o.has(name)) {
+					// If header occurs multiple times, put each value as an array element
+					JsonArray array;
+					com.google.gson.JsonElement existing = o.get(name);
+					if (existing.isJsonPrimitive()) {
+						array = new JsonArray();
+					} else {
+						array = (JsonArray) existing;
+					}
+					array.add(pair.getValue());
+				} else {
+					o.addProperty(name, pair.getValue());
+				}
+			}
+			return o;
+		}
+
+		@Override
+		public org.htmlunit.WebResponse getResponse(org.htmlunit.WebRequest webRequest) throws java.io.IOException {
+			eventLog.log("WebRunner", args(
+				"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+				"headers", webRequest.getAdditionalHeaders(),
+				"params", webRequest.getRequestParameters(),
+				"body", webRequest.getRequestBody(),
+				"result", Condition.ConditionResult.INFO
+			));
+
+			org.htmlunit.WebResponse response = super.getResponse(webRequest);
+
+			if (response.getStatusCode() == 302) {
+				eventLog.log("WebRunner", args(
+					"msg", "Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to " + response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+					"body", response.getContentAsString(),
+					"result", Condition.ConditionResult.INFO
+				));
+			} else {
+				eventLog.log("WebRunner", args(
+					"msg", "Response " + response.getStatusCode() + " " + response.getStatusMessage() + " " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
+					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
+					"body", response.getContentAsString(),
+					"result", Condition.ConditionResult.INFO
+				));
+			}
+
+			return response;
+		}
+	}
+
+	/**
+	 * SubClass of {@link org.openqa.selenium.htmlunit.HtmlUnitDriver} to provide access to the response code of the last page we visited
+	 */
+	class ResponseCodeHtmlUnitDriver extends org.openqa.selenium.htmlunit.HtmlUnitDriver {
+
+		public ResponseCodeHtmlUnitDriver() {
+			super(true);
+			final org.htmlunit.WebConsole console = getWebClient().getWebConsole();
+			console.setLogger(new org.htmlunit.WebConsole.Logger() {
+				private void internalLog(final Object message) {
+					if (verboseLogging) {
+						eventLog.log("BROWSER", String.valueOf(message));
+					}
+					logger.info(String.valueOf(message));
+				}
+
+				@Override
+				public void warn(final Object message) {
+					internalLog(message);
+				}
+
+				@Override
+				public boolean isErrorEnabled() {
+					return true;
+				}
+
+				@Override
+				public boolean isTraceEnabled() {
+					return true;
+				}
+
+				@Override
+				public void trace(final Object message) {
+					internalLog(message);
+				}
+
+				@Override
+				public boolean isDebugEnabled() {
+					return true;
+				}
+
+				@Override
+				public void info(final Object message) {
+					internalLog(message);
+				}
+
+				@Override
+				public boolean isWarnEnabled() {
+					return true;
+				}
+
+				@Override
+				public void error(final Object message) {
+					internalLog(message);
+				}
+
+				@Override
+				public void debug(final Object message) {
+					internalLog(message);
+				}
+
+				@Override
+				public boolean isInfoEnabled() {
+					return true;
+				}
+			});
+
+		}
+
+		public int getResponseCode() {
+			return this.getCurrentWindow().lastPage().getWebResponse().getStatusCode();
+		}
+
+		public String getResponseContent() {
+			return this.getCurrentWindow().lastPage().getWebResponse().getContentAsString();
+		}
+
+		public String getResponseContentType() {
+			return this.getCurrentWindow().lastPage().getWebResponse().getContentType();
+		}
+
+		public String getCurrentDomAsXml() {
+			org.htmlunit.html.HtmlPage page = (org.htmlunit.html.HtmlPage) this.getCurrentWindow().lastPage();
+			return page.getDocumentElement().asXml();
+		}
+
+		public String getStatus() {
+			String responseCodeString = this.getCurrentWindow().lastPage().getWebResponse().getStatusCode() + "-" +
+				this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
+			return responseCodeString;
+		}
+
+		@Override
+		protected WebClient newWebClient(org.htmlunit.BrowserVersion version) {
+			return new WebClient(version);
+		}
+
+		@Override
+		protected WebClient modifyWebClient(WebClient client) {
+			client.setPageCreator(new BrowserControlPageCreator());
+			// use same cookie manager for all instances within this testmodule instance
+			// (cookie manager seems to be thread safe)
+			// This is necessary for OIDC prompt=login tests. It might make the results unpredictable if we are running
+			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
+			// are set/read might differ between test runs.
+			client.setCookieManager(cookieManager);
+
+			// Selenium / HtmlUnit's javascript engine barfs at a lot of modern
+			// javascript. However asking it to ignore the errors and carry on seems
+			// to result in a surprising amount of eventual success.
+			client.getOptions().setThrowExceptionOnScriptError(false);
+
+			client.setJavaScriptErrorListener(new org.htmlunit.javascript.JavaScriptErrorListener() {
+
+				@Override
+				public void scriptException(org.htmlunit.html.HtmlPage page, org.htmlunit.ScriptException scriptException) {
+					eventLog.log("BROWSER", args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
+				}
+
+				@Override
+				public void timeoutError(org.htmlunit.html.HtmlPage page, long allowedTime, long executionTime) {
+					eventLog.log("BROWSER", args("msg", "Timeout during JavaScript execution after "
+						+ executionTime + "ms; allowed only " + allowedTime + "ms"));
+
+				}
+
+				@Override
+				public void malformedScriptURL(org.htmlunit.html.HtmlPage page, String url, java.net.MalformedURLException malformedURLException) {
+					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]", "exception", malformedURLException.toString()));
+				}
+
+				@Override
+				public void loadScriptError(org.htmlunit.html.HtmlPage page, java.net.URL scriptUrl, Exception exception) {
+					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].", "exception", exception.toString()));
+				}
+
+				@Override
+				public void warn(String message, String sourceName, int line, String lineSource, int lineOffset) {
+					String msg = "warning: message=[" + message +
+						"] sourceName=[" + sourceName +
+						"] line=[" + line +
+						"] lineSource=[" + lineSource +
+						"] lineOffset=[" + lineOffset +
+						"]";
+
+					eventLog.log("BROWSER", args("msg", msg));
+				}
+			});
+
+			if (verboseLogging) {
+				client.setWebConnection(new LoggingHttpWebConnection(client));
+			}
+
+			return client;
+		}
 	}
 }

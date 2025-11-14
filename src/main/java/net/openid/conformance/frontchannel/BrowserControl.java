@@ -3,7 +3,6 @@ package net.openid.conformance.frontchannel;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.runner.TestExecutionManager;
@@ -11,28 +10,11 @@ import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.bson.Document;
-import org.htmlunit.BrowserVersion;
 import org.htmlunit.CookieManager;
-import org.htmlunit.DefaultPageCreator;
-import org.htmlunit.HttpWebConnection;
-import org.htmlunit.Page;
-import org.htmlunit.ScriptException;
-import org.htmlunit.WebClient;
-import org.htmlunit.WebConsole;
-import org.htmlunit.WebRequest;
-import org.htmlunit.WebResponse;
-import org.htmlunit.WebWindow;
-import org.htmlunit.html.HtmlPage;
-import org.htmlunit.javascript.JavaScriptErrorListener;
-import org.htmlunit.util.NameValuePair;
-import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.PatternMatchUtils;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -153,7 +135,7 @@ public class BrowserControl implements DataUtils {
 		} else {
 			// Default to Selenium
 			return new SeleniumBrowserRunner(url, tasks, placeholder, method, delaySeconds,
-					testId, eventLog, this, cookieManager);
+					testId, eventLog, this, cookieManager, verboseLogging);
 		}
 	}
 
@@ -257,240 +239,6 @@ public class BrowserControl implements DataUtils {
 	 */
 	void removeRunner(IBrowserRunner runner) {
 		runners.remove(runner);
-	}
-
-	// Allow access to the response code via the HtmlUnit instance. The driver doesn't normally have this functionality.
-
-	@SuppressWarnings("serial")
-	private static class BrowserControlPageCreator extends DefaultPageCreator {
-		// this is necessary because:
-		// curl -v 'https://fapidev-as.authlete.net/api/authorization?client_id=21541757519&redirect_uri=https://localhost:8443/test/a/authlete-fapi/callback&scope=openid%20accounts&state=ND4WAuQ8lt&nonce=lOgNDes2YE&response_type=code%20id_token'
-		// returns:
-		// Content-Type: */*;charset=utf-8
-		// so we need to override this so it's treated as html, which is how browsers treat it
-		@Override
-		public Page createPage(final WebResponse webResponse, final WebWindow webWindow) throws IOException {
-			return createHtmlPage(webResponse, webWindow);
-		}
-	}
-
-	private class LoggingHttpWebConnection extends HttpWebConnection {
-
-		public LoggingHttpWebConnection(WebClient webClient) {
-			super(webClient);
-		}
-
-		/**
-		 * Convert headers returned by HTMLUnit into a JsonObject
-		 */
-		public JsonObject mapHeadersToJsonObject(List<NameValuePair> headers) {
-			JsonObject o = new JsonObject();
-			for (NameValuePair pair : headers) {
-				String name = pair.getName();
-				if (o.has(name)) {
-					// If header occurs multiple times, put each value as an array element
-					JsonArray array;
-					JsonElement existing = o.get(name);
-					if (existing.isJsonPrimitive()) {
-						array = new JsonArray();
-					} else {
-						array = (JsonArray) existing;
-					}
-					array.add(pair.getValue());
-				} else {
-					o.addProperty(name, pair.getValue());
-				}
-			}
-			return o;
-		}
-
-		@Override
-		public WebResponse getResponse(WebRequest webRequest) throws IOException {
-			eventLog.log("WebRunner", args(
-				"msg", "Request " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-				"headers", webRequest.getAdditionalHeaders(),
-				"params", webRequest.getRequestParameters(),
-				"body", webRequest.getRequestBody(),
-				"result", Condition.ConditionResult.INFO
-			));
-
-			WebResponse response = super.getResponse(webRequest);
-
-			if (response.getStatusCode() == 302) {
-				eventLog.log("WebRunner", args(
-					"msg", "Redirect " + response.getStatusCode() + " " + response.getStatusMessage() + " to " + response.getResponseHeaderValue("location") + " from " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
-					"body", response.getContentAsString(),
-					"result", Condition.ConditionResult.INFO
-				));
-			} else {
-				eventLog.log("WebRunner", args(
-					"msg", "Response " + response.getStatusCode() + " " + response.getStatusMessage() + " " + webRequest.getHttpMethod() + " " + webRequest.getUrl(),
-					"headers", mapHeadersToJsonObject(response.getResponseHeaders()),
-					"body", response.getContentAsString(),
-					"result", Condition.ConditionResult.INFO
-				));
-			}
-
-			return response;
-		}
-	}
-
-	/**
-	 * SubClass of {@link HtmlUnitDriver} to provide access to the response code of the last page we visited
-	 */
-	class ResponseCodeHtmlUnitDriver extends HtmlUnitDriver {
-
-		public ResponseCodeHtmlUnitDriver() {
-			super(true);
-			final WebConsole console = getWebClient().getWebConsole();
-			console.setLogger(new WebConsole.Logger() {
-				private void internalLog(final Object message) {
-					if (verboseLogging) {
-						eventLog.log("BROWSER", String.valueOf(message));
-					}
-					logger.info(String.valueOf(message));
-				}
-
-				@Override
-				public void warn(final Object message) {
-					internalLog(message);
-				}
-
-				@Override
-				public boolean isErrorEnabled() {
-					return true;
-				}
-
-				@Override
-				public boolean isTraceEnabled() {
-					return true;
-				}
-
-				@Override
-				public void trace(final Object message) {
-					internalLog(message);
-				}
-
-				@Override
-				public boolean isDebugEnabled() {
-					return true;
-				}
-
-				@Override
-				public void info(final Object message) {
-					internalLog(message);
-				}
-
-				@Override
-				public boolean isWarnEnabled() {
-					return true;
-				}
-
-				@Override
-				public void error(final Object message) {
-					internalLog(message);
-				}
-
-				@Override
-				public void debug(final Object message) {
-					internalLog(message);
-				}
-
-				@Override
-				public boolean isInfoEnabled() {
-					return true;
-				}
-			});
-
-		}
-
-		public int getResponseCode() {
-			return this.getCurrentWindow().lastPage().getWebResponse().getStatusCode();
-		}
-
-		public String getResponseContent() {
-			return this.getCurrentWindow().lastPage().getWebResponse().getContentAsString();
-		}
-
-		public String getResponseContentType() {
-			return this.getCurrentWindow().lastPage().getWebResponse().getContentType();
-		}
-
-		public String getCurrentDomAsXml() {
-			HtmlPage page = (HtmlPage) this.getCurrentWindow().lastPage();
-			return page.getDocumentElement().asXml();
-		}
-
-		public String getStatus() {
-			String responseCodeString = this.getCurrentWindow().lastPage().getWebResponse().getStatusCode() + "-" +
-				this.getCurrentWindow().lastPage().getWebResponse().getStatusMessage();
-			return responseCodeString;
-		}
-
-		@Override
-		protected WebClient newWebClient(BrowserVersion version) {
-			return new WebClient(version);
-		}
-
-		@Override
-		protected WebClient modifyWebClient(WebClient client) {
-			client.setPageCreator(new BrowserControlPageCreator());
-			// use same cookie manager for all instances within this testmodule instance
-			// (cookie manager seems to be thread safe)
-			// This is necessary for OIDC prompt=login tests. It might make the results unpredictable if we are running
-			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
-			// are set/read might differ between test runs.
-			client.setCookieManager(cookieManager);
-
-			// Selenium / HtmlUnit's javascript engine barfs at a lot of modern
-			// javascript. However asking it to ignore the errors and carry on seems
-			// to result in a surprising amount of eventual success.
-			client.getOptions().setThrowExceptionOnScriptError(false);
-
-			client.setJavaScriptErrorListener(new JavaScriptErrorListener() {
-
-				@Override
-				public void scriptException(HtmlPage page, ScriptException scriptException) {
-					eventLog.log("BROWSER", args("msg", "Error during JavaScript execution", "detail", scriptException.toString()));
-				}
-
-				@Override
-				public void timeoutError(HtmlPage page, long allowedTime, long executionTime) {
-					eventLog.log("BROWSER", args("msg", "Timeout during JavaScript execution after "
-						+ executionTime + "ms; allowed only " + allowedTime + "ms"));
-
-				}
-
-				@Override
-				public void malformedScriptURL(HtmlPage page, String url, MalformedURLException malformedURLException) {
-					eventLog.log("BROWSER", args("msg", "Unable to build URL for script src tag [" + url + "]", "exception", malformedURLException.toString()));
-				}
-
-				@Override
-				public void loadScriptError(HtmlPage page, URL scriptUrl, Exception exception) {
-					eventLog.log("BROWSER", args("msg", "Error loading JavaScript from [" + scriptUrl + "].", "exception", exception.toString()));
-				}
-
-				@Override
-				public void warn(String message, String sourceName, int line, String lineSource, int lineOffset) {
-					String msg = "warning: message=[" + message +
-						"] sourceName=[" + sourceName +
-						"] line=[" + line +
-						"] lineSource=[" + lineSource +
-						"] lineOffset=[" + lineOffset +
-						"]";
-
-					eventLog.log("BROWSER", args("msg", msg));
-				}
-			});
-
-			if (verboseLogging) {
-				client.setWebConnection(new LoggingHttpWebConnection(client));
-			}
-
-			return client;
-		}
 	}
 
 	/**
