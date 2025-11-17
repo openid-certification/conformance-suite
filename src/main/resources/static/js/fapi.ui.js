@@ -11,14 +11,15 @@ var FAPI_UI = {
 						"external_ip": "External IP",
 						"version": "Version",
 						"revision": "Revision",
-						"tag": "Tag"
+						"tag": "Tag",
+						"build_time": "Build Time"
 					};
 
 					const serverInfoHtml =
 						`<div>` +
 						Object.entries(serverInfos)
 							.filter(([k]) => k in data)
-							.map(([k, label]) => `${label}:<span id="serverinfo-${k}">${data[k]}</span>`)
+							.map(([k, label]) => `${label}: <span id="serverinfo-${k}">${data[k]}</span>`)
 							.join(" | ")
 						+ `</div>`;
 					const element = document.querySelector('.serverInfo');
