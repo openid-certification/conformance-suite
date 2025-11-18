@@ -28,6 +28,7 @@ import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject;
+import net.openid.conformance.condition.as.AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidatePurpose;
 import net.openid.conformance.condition.as.CalculateAtHash;
@@ -966,6 +967,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected void extractParEndpointRequest() {
 		skipIfElementMissing("par_endpoint_http_request", "body_form_params.request", ConditionResult.INFO, ExtractRequestObjectFromPAREndpointRequest.class, ConditionResult.FAILURE, "PAR-3");
 		callAndStopOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, "PAR-2.1");
+		if(profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest.class, "CID-SP-4.3-5", "PAR-3");
+		}
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 	}
 
