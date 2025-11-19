@@ -20,39 +20,40 @@ services:
   mongodb:
     image: mongo:6.0.13
     volumes:
-     - ./mongo/data:/data/db
+      - ./mongo/data:/data/db
   httpd:
     build:
       context: ./httpd
     ports:
-     - "8443:8443"
-     - "8444:8444"
+      - "8443:8443"
+      - "8444:8444"
     depends_on:
-     - server
+      - server
   server:
     build:
       context: ./server-dev
     ports:
-     - "9999:9999"
+      - "9999:9999"
     volumes:
-     - ./target/:/server/
+      - ./target/:/server/
     command: >
       java
       -Xdebug -Xrunjdwp:transport=dt_socket,address=*:9999,server=y,suspend=n
-      -jar /server/fapi-test-suite.jar
       -Djdk.tls.maxHandshakeMessageSize=65536
+      -Dfintechlabs.browser.engine=playwright
+      -Dfintechlabs.browser.playwright.type=chromium
+      -Dfintechlabs.browser.playwright.headless=true
+      -jar /server/fapi-test-suite.jar
       --fintechlabs.base_url=https://httpd:8443
       --fintechlabs.base_mtls_url=https://httpd:8444
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
-      --fintechlabs.browser.engine=playwright
-      --fintechlabs.browser.playwright.type=chromium
-      --fintechlabs.browser.playwright.headless=true
+
     links:
-     - mongodb:mongodb
+      - mongodb:mongodb
     depends_on:
-     - mongodb
-     - oidcc-provider
+      - mongodb
+      - oidcc-provider
     logging:
       # make sure we keep a reasonable amount of logs, as there's no other way to see results on the CI
       driver: "json-file"
