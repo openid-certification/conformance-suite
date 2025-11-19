@@ -3,8 +3,15 @@ package net.openid.conformance.frontchannel;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.microsoft.playwright.*;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.TimeoutError;
 import com.microsoft.playwright.options.WaitForSelectorState;
+
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
@@ -190,7 +197,8 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 								String cmdType = OIDFJSON.getString(cmd.get(0));
 								String elementType = OIDFJSON.getString(cmd.get(1));
 								if (cmdType != null && cmdType.equalsIgnoreCase("wait") &&
-									elementType != null && (elementType.equalsIgnoreCase("contains") || elementType.equalsIgnoreCase("match"))) {
+										elementType != null && (elementType.equalsIgnoreCase("contains")
+												|| elementType.equalsIgnoreCase("match"))) {
 									hasUrlWaitCommand = true;
 									break;
 								}
@@ -221,7 +229,8 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 			logger.debug(testId + ": Completed Browser Commands");
 
-			// Keep browser open for a few seconds to allow test framework to send additional JavaScript
+			// Keep browser open for a few seconds to allow test framework to send
+			// additional JavaScript
 			// (e.g., implicit submission for OAuth redirects)
 			try {
 				Thread.sleep(10000); // 10 seconds
@@ -456,7 +465,8 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 									}
 								} catch (Exception checkEx) {
 									// If we can't check, continue polling
-									logger.debug(testId + ": Could not check URL after navigation: " + checkEx.getMessage());
+									logger.debug(
+											testId + ": Could not check URL after navigation: " + checkEx.getMessage());
 								}
 							} else {
 								// Some other Playwright exception - rethrow
@@ -467,16 +477,19 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 							Thread.sleep(100); // Poll every 100ms like Selenium
 						} catch (InterruptedException e) {
 							Thread.currentThread().interrupt();
-							throw new TestFailureException(testId, "Interrupted while waiting for URL to contain: '" + target + "'");
+							throw new TestFailureException(testId,
+									"Interrupted while waiting for URL to contain: '" + target + "'");
 						}
 					}
 					if (!found) {
 						String finalUrl = page.url();
-						throw new TestFailureException(testId, "Timeout waiting for URL to contain: '" + target + "', final URL: " + finalUrl);
+						throw new TestFailureException(testId,
+								"Timeout waiting for URL to contain: '" + target + "', final URL: " + finalUrl);
 					}
 				} else if (elementType.equalsIgnoreCase("match")) {
 					// Poll URL using JavaScript evaluation like Selenium does
-					// Note: Use Pattern.matcher().find() for partial matching like Selenium's urlMatches()
+					// Note: Use Pattern.matcher().find() for partial matching like Selenium's
+					// urlMatches()
 					logger.debug(testId + ": Waiting for URL to match pattern: '" + target + "'");
 					java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(target);
 					long endTime = System.currentTimeMillis() + (timeoutSeconds * 1000L);
@@ -486,7 +499,8 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 							// Use evaluate() to get URL directly from JavaScript to avoid stale data
 							String currentUrl = (String) page.evaluate("() => window.location.href");
 							logger.debug(testId + ": Polling URL (match check): " + currentUrl);
-							// Use find() for partial matching, not matches() which requires full string match
+							// Use find() for partial matching, not matches() which requires full string
+							// match
 							if (pattern.matcher(currentUrl).find()) {
 								logger.debug(testId + ": URL now matches pattern: " + currentUrl);
 								found = true;
@@ -508,12 +522,14 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 							Thread.sleep(100); // Poll every 100ms like Selenium
 						} catch (InterruptedException e) {
 							Thread.currentThread().interrupt();
-							throw new TestFailureException(testId, "Interrupted while waiting for URL to match pattern: '" + target + "'");
+							throw new TestFailureException(testId,
+									"Interrupted while waiting for URL to match pattern: '" + target + "'");
 						}
 					}
 					if (!found) {
 						String finalUrl = page.url();
-						throw new TestFailureException(testId, "Timeout waiting for URL to match pattern: '" + target + "', final URL: " + finalUrl);
+						throw new TestFailureException(testId,
+								"Timeout waiting for URL to match pattern: '" + target + "', final URL: " + finalUrl);
 					}
 				} else if (!Strings.isNullOrEmpty(regexp)) {
 					// Wait for element with text matching regexp
