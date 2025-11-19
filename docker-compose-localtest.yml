@@ -45,6 +45,9 @@ services:
       --fintechlabs.base_mtls_url=https://httpd:8444
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
+      --fintechlabs.browser.engine=playwright
+      --fintechlabs.browser.playwright.type=chromium
+      --fintechlabs.browser.playwright.headless=true
     links:
      - mongodb:mongodb
     depends_on:
