@@ -386,7 +386,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		// Set up the resource endpoint configuration
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU ) {
 			// always use the MTLS version if available, as ConnectID always uses mtls sender constraining
-			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-5");
+			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-4");
 		} else {
 			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 			call(sequence(resourceConfiguration));
