@@ -34,6 +34,7 @@ import net.openid.conformance.condition.as.AustraliaConnectIdCheckForUnexpectedP
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureVerifiedClaimsInRequestObject;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidatePurpose;
+import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectExp;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
@@ -1392,7 +1393,13 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 					"OIDCC-5.5.1.1");
 			}
 		}
-		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI2-MS-ID1-5.3.1-4");
+
+		if(profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(AustraliaConnectIdValidateRequestObjectExp.class, "RFC7519-4.1.4", "CID-SP-4.3-7");
+		}
+		else {
+			callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI2-MS-ID1-5.3.1-4");
+		}
 		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI2-MS-ID1-5.3.1-3");
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
