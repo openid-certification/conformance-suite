@@ -48,10 +48,10 @@ public class FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityCla
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
 		callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
-		callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CID-SP-5");
+		callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CID-SP-4");
 
 		return super.makeCreateAuthorizationRequestSteps()
-			.then(condition(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class).requirements("OIDCC-5.1", "OIDCC-5.5", "CID-SP-5"))
+			.then(condition(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class).requirements("OIDCC-5.1", "OIDCC-5.5", "CID-SP-4"))
 			.then(condition(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class).requirements("CID-IDA-5.2-2.7"));
 	}
 
