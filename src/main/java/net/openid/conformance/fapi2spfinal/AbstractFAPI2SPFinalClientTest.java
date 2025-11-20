@@ -14,6 +14,7 @@ import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServ
 import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddFAPIInteractionIdToUserInfoEndpointResponse;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
@@ -708,9 +709,15 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address", ConditionResult.INFO,
 			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
 
-		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			// Mandatory for connectid_au profile.
+			callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+		}
+		else {
+			skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+				ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		}
+		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
 
 	}
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
@@ -1009,13 +1016,18 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			callAndContinueOnFailure(ExtractParAuthorizationCodeDpopBindingKey.class, ConditionResult.FAILURE, "DPOP-10");
 		}
 
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+			callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+		}
+
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("par_endpoint_response"), headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status").intValue()));
 		}  else {
 			JsonObject parResponse = createPAREndpointResponse();
-			responseEntity = new ResponseEntity<>(parResponse, HttpStatus.CREATED);
+			responseEntity = new ResponseEntity<>(parResponse, headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.CREATED);
 		}
 
 		setStatus(Status.WAITING);
@@ -1049,6 +1061,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(AddFAPIInteractionIdToUserInfoEndpointResponse.class, "CID-SP-4.3-9");
+		}
 		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10");
 		}
@@ -1074,7 +1089,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			} else {
 				setStatus(Status.WAITING);
 			}
-			responseEntity = new ResponseEntity<>(user, HttpStatus.OK);
+			responseEntity = new ResponseEntity<>(user, headersFromJson(env.getObject("user_info_endpoint_response_headers")), HttpStatus.OK);
 		}
 		return responseEntity;
 	}
@@ -1100,7 +1115,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
-		if(isDpopConstrain()) {
+		if(isDpopConstrain() || profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			call(exec().mapKey("incoming_request", requestId));
 		}
 
@@ -1117,8 +1132,13 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			call(sequence(validateClientAuthenticationSteps));
 		}
 
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+			callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+		}
+
 		Object tokenResponseOb =  handleTokenEndpointGrantType(requestId);
-		if(isDpopConstrain()) {
+		if(isDpopConstrain() || profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			call(exec().unmapKey("incoming_request"));
 		}
 		return tokenResponseOb;
@@ -1168,7 +1188,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			issueRefreshToken(); // rotate refresh token
 			env.removeNativeValue("id_token");
 			callAndStopOnFailure(CreateTokenEndpointResponse.class);
-			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.OK);
 
 			// Create a new DPoP nonce
 			if(requireAuthorizationServerEndpointDpopNonce()) {
@@ -1207,7 +1227,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			} else  {
 				callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
 			}
-			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.OK);
 			// Create a new DPoP nonce
 			if(requireAuthorizationServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
@@ -1249,7 +1269,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 
 			createTokenEndpointResponse();
-			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.OK);
 
 			// Create a new DPoP nonce
 			if(requireAuthorizationServerEndpointDpopNonce()) {
