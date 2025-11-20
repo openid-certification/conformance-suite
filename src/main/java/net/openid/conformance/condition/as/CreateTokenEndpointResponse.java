@@ -25,6 +25,13 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 			throw error("Missing required access_token or token_type");
 		}
 
+		String fapiInteractionId = env.getString("fapi_interaction_id");
+		JsonObject headers = new JsonObject();
+		if (! Strings.isNullOrEmpty(fapiInteractionId)) {
+			headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
+			env.putObject("token_endpoint_response_headers", headers);
+		}
+
 		JsonObject tokenEndpointResponse = new JsonObject();
 
 		tokenEndpointResponse.addProperty("access_token", accessToken);
@@ -48,7 +55,7 @@ public class CreateTokenEndpointResponse extends AbstractCondition {
 
 		env.putObject("token_endpoint_response", tokenEndpointResponse);
 
-		logSuccess("Created token endpoint response", tokenEndpointResponse);
+		logSuccess(args("Created token endpoint response", tokenEndpointResponse, "token_endpoint_response_headers", headers));
 
 		return env;
 
