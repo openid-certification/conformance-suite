@@ -34,6 +34,7 @@ import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2Claims
 import net.openid.conformance.condition.as.AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureVerifiedClaimsInRequestObject;
+import net.openid.conformance.condition.as.AustraliaConnectIdGenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidatePurpose;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectExp;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectNBFClaim;
@@ -1481,7 +1482,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	protected void issueAccessToken() {
 		callAndStopOnFailure(generateSenderConstrainedAccessToken);
-		callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
+		if(profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndContinueOnFailure(AustraliaConnectIdGenerateAccessTokenExpiration.class, ConditionResult.INFO);
+		} else {
+			callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
+		}
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 
