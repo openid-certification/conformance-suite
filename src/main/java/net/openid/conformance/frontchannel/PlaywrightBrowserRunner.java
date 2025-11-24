@@ -3,14 +3,12 @@ package net.openid.conformance.frontchannel;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
-import com.microsoft.playwright.Request;
 import com.microsoft.playwright.TimeoutError;
 import com.microsoft.playwright.Page.WaitForSelectorOptions;
 import com.microsoft.playwright.options.RequestOptions;
@@ -28,7 +26,6 @@ import org.springframework.util.PatternMatchUtils;
 
 import java.net.URL;
 import java.util.Objects;
-import java.util.function.BooleanSupplier;
 
 /**
  * Playwright-based browser automation runner.
