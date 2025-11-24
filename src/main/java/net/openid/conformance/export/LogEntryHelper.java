@@ -114,6 +114,7 @@ public class LogEntryHelper {
 		specLinks.put("CID-PURPOSE-", "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section-");
 		specLinks.put("OIDFED-", "https://openid.net/specs/openid-federation-1_0-45.html#section-");
 		specLinks.put("CBUAE", "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI");
+		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0-01.html#section");
 	}
 
 	private Document logEntry;
