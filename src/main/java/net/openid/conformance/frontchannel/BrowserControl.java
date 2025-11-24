@@ -89,9 +89,6 @@ public class BrowserControl implements DataUtils {
 
 	// Browser engine configuration
 	private String browserEngine;
-	private String playwrightBrowserType;
-	private boolean playwrightHeadless;
-	private int playwrightSlowMo;
 
 	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager, ImageService imageService) {
 		this.testId = testId;
@@ -111,16 +108,7 @@ public class BrowserControl implements DataUtils {
 
 		// Read browser engine configuration from system properties
 		this.browserEngine = System.getProperty("fintechlabs.browser.engine", "selenium");
-		this.playwrightBrowserType = System.getProperty("fintechlabs.browser.playwright.type", "chromium");
-		this.playwrightHeadless = Boolean
-				.parseBoolean(System.getProperty("fintechlabs.browser.playwright.headless", "true"));
-		this.playwrightSlowMo = Integer.parseInt(System.getProperty("fintechlabs.browser.playwright.slowMo", "0"));
-
 		logger.info("Browser automation engine: " + this.browserEngine);
-		if ("playwright".equals(this.browserEngine)) {
-			logger.info("Playwright browser type: " + this.playwrightBrowserType + ", headless: "
-					+ this.playwrightHeadless + ", slowMo: " + this.playwrightSlowMo + "ms");
-		}
 	}
 
 	/**
@@ -128,12 +116,12 @@ public class BrowserControl implements DataUtils {
 	 */
 	private IBrowserRunner createBrowserRunner(String url, JsonArray tasks, String placeholder,
 			String method, int delaySeconds) {
-		if ("playwright".equals(browserEngine)) {
+
+		switch (browserEngine) {
+			case "playwright":
 			return new PlaywrightBrowserRunner(url, tasks, placeholder, method, delaySeconds,
-					testId, eventLog, this, cookieManager,
-					playwrightHeadless, playwrightBrowserType, playwrightSlowMo);
-		} else {
-			// Default to Selenium
+						testId, eventLog, this, cookieManager);
+			default:
 			return new SeleniumBrowserRunner(url, tasks, placeholder, method, delaySeconds,
 					testId, eventLog, this, cookieManager, verboseLogging);
 		}

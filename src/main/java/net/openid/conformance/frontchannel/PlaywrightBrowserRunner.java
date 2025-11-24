@@ -3,13 +3,17 @@ package net.openid.conformance.frontchannel;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.Request;
 import com.microsoft.playwright.TimeoutError;
+import com.microsoft.playwright.Page.WaitForSelectorOptions;
+import com.microsoft.playwright.options.RequestOptions;
 import com.microsoft.playwright.options.WaitForSelectorState;
 
 import net.openid.conformance.condition.Condition;
@@ -22,7 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.PatternMatchUtils;
 
+import java.net.URL;
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 
 /**
  * Playwright-based browser automation runner.
@@ -71,15 +77,10 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	 * @param browserControl Reference to parent BrowserControl for callbacks
 	 * @param cookieManager  Shared cookie manager (not used, kept for API
 	 *                       compatibility)
-	 * @param headless       Whether to run browser in headless mode
-	 * @param browserType    Browser type (chromium, firefox, or webkit)
-	 * @param slowMo         Slow down operations by specified milliseconds (0 for
-	 *                       no delay)
 	 */
 	public PlaywrightBrowserRunner(String url, JsonArray tasks, String placeholder, String method,
 			int delaySeconds, String testId, TestInstanceEventLog eventLog,
-			BrowserControl browserControl, CookieManager cookieManager,
-			boolean headless, String browserType, int slowMo) {
+			BrowserControl browserControl, CookieManager cookieManager) {
 		this.url = url;
 		this.tasks = tasks;
 		this.placeholder = placeholder;
@@ -88,9 +89,12 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 		this.testId = testId;
 		this.eventLog = eventLog;
 		this.browserControl = browserControl;
-		this.headless = headless;
-		this.browserType = browserType;
-		this.slowMo = slowMo;
+		this.headless = Boolean.parseBoolean(System.getProperty("fintechlabs.browser.playwright.headless", "true"));
+		this.browserType = System.getProperty("fintechlabs.browser.playwright.type", "chromium").toLowerCase();
+		this.slowMo = Integer.parseInt(System.getProperty("fintechlabs.browser.playwright.slowMo", "0"));
+
+		logger.info("Playwright browser type: " + this.browserType + ", headless: "
+				+ this.headless + ", slowMo: " + this.slowMo + "ms");
 	}
 
 	@Override
@@ -109,10 +113,24 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 			// Navigate to URL
 			if (Objects.equals(method, "POST")) {
-				// POST not directly supported by Playwright navigate
-				// We'll use a workaround by setting request interception
-				logger.warn(testId + ": POST method for navigation not fully supported in Playwright, using GET");
-				page.navigate(url);
+				URL urlWithQueryString = new URL(url);
+				URL urlWithoutQuery = new URL(urlWithQueryString.getProtocol(), urlWithQueryString.getHost(),
+						urlWithQueryString.getPort(), urlWithQueryString.getPath());
+				String params = urlWithQueryString.getQuery();
+				page.request().fetch(urlWithoutQuery.toString(),
+						RequestOptions.create()
+								.setMethod("POST")
+								.setHeader("Content-Type", "application/x-www-form-urlencoded")
+								.setData(params));
+
+				eventLog.log("PlaywrightRunner", args(
+						"msg", "Scripted browser HTTP request",
+						"http", "request",
+						"request_uri", urlWithoutQuery.toString(),
+						"parameters", params,
+						"request_method", method,
+						"browser", "goToUrl"));
+
 			} else {
 				eventLog.log("PlaywrightRunner", args(
 						"msg", "Scripted browser HTTP request",
@@ -123,7 +141,6 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 				page.navigate(url);
 			}
-
 			page.waitForLoadState();
 
 			eventLog.log("PlaywrightRunner", args(
@@ -178,8 +195,8 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 									"task", taskName,
 									"commands", currentTask.get("commands")));
 
-							throw new TestFailureException(testId,
-									"PlaywrightRunner unexpected url for task: " + taskName);
+							throw new TestFailureException(testId, "PlaywrightRunner unexpected url for task: "
+									+ OIDFJSON.getString(currentTask.get("task")));
 						}
 					}
 				}
@@ -278,7 +295,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 				.setSlowMo(slowMo);
 
 		// Launch appropriate browser type
-		switch (browserType.toLowerCase()) {
+		switch (browserType) {
 			case "firefox":
 				browser = playwright.firefox().launch(launchOptions);
 				break;
@@ -335,7 +352,6 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 		if (commandString.equalsIgnoreCase("click")) {
 			String selector = getSelector(elementType, target);
-			logger.debug(testId + ": About to click with selector: " + selector);
 
 			eventLog.log("PlaywrightRunner", args(
 					"msg", "Clicking an element",
@@ -369,6 +385,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 				}
 			}
 
+			logger.debug(testId + ": Clicked: " + target + " (" + elementType + ")");
 		} else if (commandString.equalsIgnoreCase("text")) {
 			String value = OIDFJSON.getString(command.get(3));
 
@@ -437,100 +454,9 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 			try {
 				if (elementType.equalsIgnoreCase("contains")) {
-					// Poll URL using JavaScript evaluation like Selenium does
-					logger.debug(testId + ": Waiting for URL to contain: '" + target + "'");
-					long endTime = System.currentTimeMillis() + (timeoutSeconds * 1000L);
-					boolean found = false;
-					while (System.currentTimeMillis() < endTime) {
-						try {
-							// Use evaluate() to get URL directly from JavaScript to avoid stale data
-							String currentUrl = (String) page.evaluate("() => window.location.href");
-							logger.debug(testId + ": Polling URL (contains check): " + currentUrl);
-							if (currentUrl.contains(target)) {
-								logger.debug(testId + ": URL now contains target: " + currentUrl);
-								found = true;
-								break;
-							}
-						} catch (com.microsoft.playwright.PlaywrightException e) {
-							// Navigation may have happened during evaluate() - check if we reached target
-							if (e.getMessage() != null && e.getMessage().contains("Execution context was destroyed")) {
-								logger.debug(testId + ": Navigation detected during polling, checking final URL");
-								// Page navigated - check final URL
-								try {
-									String finalUrl = page.url();
-									if (finalUrl.contains(target)) {
-										logger.debug(testId + ": Navigation completed to target URL: " + finalUrl);
-										found = true;
-										break;
-									}
-								} catch (Exception checkEx) {
-									// If we can't check, continue polling
-									logger.debug(
-											testId + ": Could not check URL after navigation: " + checkEx.getMessage());
-								}
-							} else {
-								// Some other Playwright exception - rethrow
-								throw e;
-							}
-						}
-						try {
-							Thread.sleep(100); // Poll every 100ms like Selenium
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							throw new TestFailureException(testId,
-									"Interrupted while waiting for URL to contain: '" + target + "'");
-						}
-					}
-					if (!found) {
-						String finalUrl = page.url();
-						throw new TestFailureException(testId,
-								"Timeout waiting for URL to contain: '" + target + "', final URL: " + finalUrl);
-					}
+					page.waitForCondition(() -> url.contains(target));
 				} else if (elementType.equalsIgnoreCase("match")) {
-					// Poll URL using JavaScript evaluation like Selenium does
-					// Note: Use Pattern.matcher().find() for partial matching like Selenium's
-					// urlMatches()
-					logger.debug(testId + ": Waiting for URL to match pattern: '" + target + "'");
-					java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(target);
-					long endTime = System.currentTimeMillis() + (timeoutSeconds * 1000L);
-					boolean found = false;
-					while (System.currentTimeMillis() < endTime) {
-						try {
-							// Use evaluate() to get URL directly from JavaScript to avoid stale data
-							String currentUrl = (String) page.evaluate("() => window.location.href");
-							logger.debug(testId + ": Polling URL (match check): " + currentUrl);
-							// Use find() for partial matching, not matches() which requires full string
-							// match
-							if (pattern.matcher(currentUrl).find()) {
-								logger.debug(testId + ": URL now matches pattern: " + currentUrl);
-								found = true;
-								break;
-							}
-						} catch (com.microsoft.playwright.PlaywrightException e) {
-							// Navigation may have happened during evaluate() - check if we reached target
-							if (e.getMessage() != null && e.getMessage().contains("Execution context was destroyed")) {
-								logger.debug(testId + ": Navigation detected during polling, checking final URL");
-								// Page navigated - SUCCESS! Navigation is what we're waiting for
-								found = true;
-								break;
-							} else {
-								// Some other Playwright exception - rethrow
-								throw e;
-							}
-						}
-						try {
-							Thread.sleep(100); // Poll every 100ms like Selenium
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							throw new TestFailureException(testId,
-									"Interrupted while waiting for URL to match pattern: '" + target + "'");
-						}
-					}
-					if (!found) {
-						String finalUrl = page.url();
-						throw new TestFailureException(testId,
-								"Timeout waiting for URL to match pattern: '" + target + "', final URL: " + finalUrl);
-					}
+					page.waitForURL(url);
 				} else if (!Strings.isNullOrEmpty(regexp)) {
 					// Wait for element with text matching regexp
 					String selector = getSelector(elementType, target);
@@ -549,11 +475,8 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 								"text/html", regexp, updateImagePlaceHolderOptional);
 					}
 				} else {
-					// Wait for element presence
-					String selector = getSelector(elementType, target);
-					page.locator(selector).waitFor(new Locator.WaitForOptions()
-							.setState(WaitForSelectorState.ATTACHED)
-							.setTimeout(timeoutSeconds * 1000.0));
+					page.waitForSelector(getSelector(elementType, target));
+
 				}
 
 				logger.debug(testId + ":\t\tDone waiting: " + commandString);
@@ -566,10 +489,10 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 		} else if (commandString.equalsIgnoreCase("wait-element-invisible")) {
 			int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 			try {
-				String selector = getSelector(elementType, target);
-				page.locator(selector).waitFor(new Locator.WaitForOptions()
-						.setState(WaitForSelectorState.HIDDEN)
-						.setTimeout(timeoutSeconds * 1000.0));
+				page.waitForSelector(getSelector(elementType, target),
+						new WaitForSelectorOptions()
+								.setState(WaitForSelectorState.HIDDEN)
+								.setTimeout(timeoutSeconds));
 				logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
 			} catch (TimeoutError timeoutException) {
 				this.lastException = timeoutException.getMessage();
@@ -580,17 +503,16 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 		} else if (commandString.equalsIgnoreCase("wait-element-visible")) {
 			int timeoutSeconds = OIDFJSON.getInt(command.get(3));
 			try {
-				String selector = getSelector(elementType, target);
-				page.locator(selector).waitFor(new Locator.WaitForOptions()
-						.setState(WaitForSelectorState.VISIBLE)
-						.setTimeout(timeoutSeconds * 1000.0));
-				logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now visible");
+				page.waitForSelector(getSelector(elementType, target),
+						new WaitForSelectorOptions()
+								.setState(WaitForSelectorState.VISIBLE)
+								.setTimeout(timeoutSeconds));
+				logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
 			} catch (TimeoutError timeoutException) {
 				this.lastException = timeoutException.getMessage();
 				throw new TestFailureException(testId,
-						"Timed out waiting for element visibility: " + command.toString());
+						"Timed out waiting for element to become invisible: " + command.toString());
 			}
-
 		} else {
 			this.lastException = "Invalid Command " + commandString;
 			throw new TestFailureException(testId, "Invalid Command: " + commandString);
