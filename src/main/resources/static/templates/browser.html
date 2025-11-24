@@ -42,7 +42,7 @@ Content-Type: application/x-www-form-urlencoded
                         <% } %>
                     <% }); %>
                     <% _.each(browser.runners, function(val) { %>
-                        <dt class="col-sm-3">Selenium Instance</dt>
+                        <dt class="col-sm-3"><%- browser.engine %> Instance</dt>
                         <dd class="col-sm-9">
                             <div class="card">
                                 <div class="card-body">

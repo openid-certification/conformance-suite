@@ -585,6 +585,7 @@ public class TestRunner implements DataUtils {
 				map.put("urls", browser.getUrls());
 				map.put("visited", browser.getVisited());
 				map.put("runners", browser.getWebRunners());
+				map.put("engine", browser.engine);
 
 				return new ResponseEntity<>(map, HttpStatus.OK);
 			} else {
@@ -671,6 +672,7 @@ public class TestRunner implements DataUtils {
 			bmap.put("visited", browser.getVisited());
 			bmap.put("visitedUrlsWithMethod", browser.getVisitedUrlsWithMethod());
 			bmap.put("runners", browser.getWebRunners());
+			bmap.put("engine", browser.engine);
 			map.put("browser", bmap);
 		}
 		return map;

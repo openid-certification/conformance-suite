@@ -88,7 +88,7 @@ public class BrowserControl implements DataUtils {
 	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this testmodule instance
 
 	// Browser engine configuration
-	private String browserEngine;
+	public String engine;
 
 	public BrowserControl(JsonObject config, String testId, TestInstanceEventLog eventLog, TestExecutionManager executionManager, ImageService imageService) {
 		this.testId = testId;
@@ -107,8 +107,8 @@ public class BrowserControl implements DataUtils {
 		}
 
 		// Read browser engine configuration from system properties
-		this.browserEngine = System.getProperty("fintechlabs.browser.engine", "selenium");
-		logger.info("Browser automation engine: " + this.browserEngine);
+		this.engine = System.getProperty("fintechlabs.browser.engine", "selenium");
+		logger.info("Browser automation engine: " + this.engine);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class BrowserControl implements DataUtils {
 	private IBrowserRunner createBrowserRunner(String url, JsonArray tasks, String placeholder,
 			String method, int delaySeconds) {
 
-		switch (browserEngine) {
+		switch (engine) {
 			case "playwright":
 			return new PlaywrightBrowserRunner(url, tasks, placeholder, method, delaySeconds,
 						testId, eventLog, this, cookieManager);
@@ -176,7 +176,7 @@ public class BrowserControl implements DataUtils {
 				}
 				IBrowserRunner wr = createBrowserRunner(url, commands.getAsJsonArray("tasks"), placeholder, method, delaySeconds);
 				executionManager.runInBackground(wr);
-				logger.debug(testId + ": " + browserEngine + " BrowserRunner submitted to task executor for: " + url);
+				logger.debug(testId + ": " + engine + " BrowserRunner submitted to task executor for: " + url);
 
 				runners.add(wr);
 
