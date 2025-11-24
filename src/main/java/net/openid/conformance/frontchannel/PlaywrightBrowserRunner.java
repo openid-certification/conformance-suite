@@ -246,15 +246,6 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 			logger.debug(testId + ": Completed Browser Commands");
 
-			// Keep browser open for a few seconds to allow test framework to send
-			// additional JavaScript
-			// (e.g., implicit submission for OAuth redirects)
-			try {
-				Thread.sleep(10000); // 10 seconds
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-
 			return "playwright runner exited";
 		} catch (Exception | Error e) {
 			logger.error(testId + ": PlaywrightRunner caught exception", e);
@@ -475,8 +466,10 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 								"text/html", regexp, updateImagePlaceHolderOptional);
 					}
 				} else {
-					page.waitForSelector(getSelector(elementType, target));
-
+					page.waitForSelector(getSelector(elementType, target),
+							new WaitForSelectorOptions()
+									.setState(WaitForSelectorState.ATTACHED)
+									.setTimeout(timeoutSeconds * 1000.0));
 				}
 
 				logger.debug(testId + ":\t\tDone waiting: " + commandString);
