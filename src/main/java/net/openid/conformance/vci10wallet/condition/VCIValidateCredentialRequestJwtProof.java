@@ -52,7 +52,7 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
 				throw error("JWT proof validation failed: Key found but is not an ECKey for kid: " + header.getKeyID());
 			}
-			log("Detected EC public key", args("kid", header.getKeyID()));
+			log("Detected an EC public key", args("kid", header.getKeyID()));
 
 			// ensure P_256 curve is used
 			if (!Curve.P_256.equals(ecPublicKey.getCurve())) {
