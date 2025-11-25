@@ -1,9 +1,12 @@
 package net.openid.conformance.condition.client;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 
 /**
  * This is to call a generic resource server endpoint with an access token.
@@ -11,6 +14,32 @@ import org.springframework.http.HttpHeaders;
  * The autorization token type is forced to "Bearer"
  */
 public class CallProtectedResourceForceBearer extends CallProtectedResource {
+
+	@Override
+	protected MediaType getContentType(Environment env) {
+		String configuredContentType = env.getString("resource", "resourceMediaType");
+
+		if (!Strings.isNullOrEmpty(configuredContentType)) {
+			try {
+				return MediaType.parseMediaType(configuredContentType);
+			}
+			catch (InvalidMediaTypeException e) {
+			}
+		}
+
+		return super.getContentType(env);
+	}
+
+	@Override
+	protected Object getBody(Environment env) {
+		JsonElement requestBody = env.getElementFromObject("resource", "resourceRequestBody");
+
+		if (requestBody != null) {
+			return requestBody.toString();
+		}
+
+		return super.getBody(env);
+	}
 
 	@Override
 	protected HttpHeaders getHeaders(Environment env) {

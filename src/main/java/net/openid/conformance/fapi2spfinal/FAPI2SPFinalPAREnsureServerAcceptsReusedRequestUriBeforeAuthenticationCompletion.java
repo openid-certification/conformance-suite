@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.ExpectLoginPage;
 import net.openid.conformance.condition.client.WarningAboutRequestUriError;
 
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +39,9 @@ import java.util.List;
 		"resource.resourceUrl"
 	}
 )
+
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+
 public class FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticationCompletion extends AbstractFAPI2SPFinalServerTestModule {
 
 	private static final int initialLoginVisitTimeoutSecs = 120;

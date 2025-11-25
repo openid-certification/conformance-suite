@@ -37,7 +37,7 @@ import jakarta.servlet.http.HttpSession;
 	}
 )
 // The 'redirect_uri' is required to be pre-registered. This is not the case for 'plain_fapi'.
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "fapi_client_credentials_grant" })
 
 public class FAPI2SPFinalEnsureRegisteredRedirectUri extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 

@@ -4,6 +4,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddBadRequestUriToRequestParameters;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestOrInvalidRequestObjectOrRequestUriNotSupportedError;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 //PAR-2.1 : The request_uri authorization request parameter MUST NOT be provided in this case
 @PublishTestModule(
@@ -28,6 +30,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"resource.resourceUrl"
 	}
 )
+
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+
 public class FAPI2SPFinalPARRejectRequestUriInParAuthorizationFormParams extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

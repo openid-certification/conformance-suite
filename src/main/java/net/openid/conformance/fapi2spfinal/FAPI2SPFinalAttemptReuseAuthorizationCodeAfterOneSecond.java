@@ -17,6 +17,8 @@ import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAsser
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 import org.apache.hc.core5.http.HttpStatus;
 
 @PublishTestModule(
@@ -41,6 +43,9 @@ import org.apache.hc.core5.http.HttpStatus;
 		"resource.resourceUrl"
 	}
 )
+
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+
 public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends AbstractFAPI2SPFinalServerTestModule {
 
 	private Class<? extends ConditionSequence> generateNewClientAssertionSteps;

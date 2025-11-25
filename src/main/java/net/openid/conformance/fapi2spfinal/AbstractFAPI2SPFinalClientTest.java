@@ -1656,6 +1656,13 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		accountsEndpointProfileSteps = null;
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
+	public void setupClientCredentialsOnly() {
+		authorizationCodeGrantTypeProfileSteps = null;
+		authorizationEndpointProfileSteps = null;
+		accountsEndpointProfileSteps = null;
+	}
+
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		authorizationCodeGrantTypeProfileSteps = AddOpenBankingUkClaimsToAuthorizationCodeGrant.class;
