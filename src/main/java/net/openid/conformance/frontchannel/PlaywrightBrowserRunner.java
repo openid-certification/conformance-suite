@@ -36,6 +36,12 @@ import java.util.Objects;
  * - Navigation (GET/POST)
  * - Element interaction (clicks, text input)
  * - Waiting conditions (URL, element presence, visibility)
+ *
+ * Note: To maintain compatibility with Selenium WebDriver behavior, all element
+ * locators use .first() to automatically select the first matching element when
+ * multiple elements match a selector. This replicates Selenium's findElement()
+ * which implicitly returns the first match, avoiding Playwright's strict mode
+ * violations.
  */
 public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
@@ -352,7 +358,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 					"result", Condition.ConditionResult.INFO));
 
 			try {
-				page.locator(selector).click();
+				getLocator(elementType, target).click();
 				logger.debug(testId + ": Successfully clicked: " + target + " (" + elementType + ")");
 			} catch (Exception e) {
 				String optional = command.size() >= 4 ? OIDFJSON.getString(command.get(3)) : null;
@@ -388,8 +394,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 					"result", Condition.ConditionResult.INFO));
 
 			try {
-				String selector = getSelector(elementType, target);
-				Locator locator = page.locator(selector);
+				Locator locator = getLocator(elementType, target);
 				locator.clear();
 				locator.fill(value);
 				logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")");
@@ -447,8 +452,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 					page.waitForURL(url);
 				} else if (!Strings.isNullOrEmpty(regexp)) {
 					// Wait for element with text matching regexp
-					String selector = getSelector(elementType, target);
-					Locator locator = page.locator(selector);
+					Locator locator = getLocator(elementType, target);
 					locator.waitFor(new Locator.WaitForOptions()
 							.setState(WaitForSelectorState.ATTACHED)
 							.setTimeout(timeoutSeconds * 1000.0));
@@ -540,6 +544,24 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 				this.lastException = "Invalid Command Selector: Type: " + type + " Value: " + value;
 				throw new TestFailureException(testId, "Invalid Command Selector: Type: " + type + " Value: " + value);
 		}
+	}
+
+	/**
+	 * Get a Playwright locator that matches Selenium's findElement behavior.
+	 * Always returns the first matching element to maintain compatibility with
+	 * Selenium WebDriver's findElement() which implicitly returns the first match.
+	 *
+	 * This prevents Playwright's strict mode violations when a selector matches
+	 * multiple elements (e.g., xpath=//*).
+	 *
+	 * @param type  Selector type (id, name, xpath, css, class)
+	 * @param value Selector target value
+	 * @return Playwright Locator configured to return first matching element
+	 * @throws TestFailureException if selector type is invalid
+	 */
+	private Locator getLocator(String type, String value) {
+		String selector = getSelector(type, value);
+		return page.locator(selector).first();
 	}
 
 	/**
