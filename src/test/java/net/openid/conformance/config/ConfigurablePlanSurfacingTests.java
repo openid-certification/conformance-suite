@@ -31,7 +31,8 @@ public class ConfigurablePlanSurfacingTests {
 			TestPlan.ProfileNames.ssftest,
 			TestPlan.ProfileNames.federationTest,
 			TestPlan.ProfileNames.vciissuer,
-			TestPlan.ProfileNames.vciwallet);
+			TestPlan.ProfileNames.vciwallet,
+			TestPlan.ProfileNames.authzenTest);
 		List<String> profilesSurfaced = profilesPresent(testPlans);
 
 		assertThat(profilesToSurface, containsInAnyOrder(profilesSurfaced.toArray()));
