@@ -10,7 +10,6 @@ import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import org.bson.Document;
-import org.htmlunit.CookieManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.PatternMatchUtils;
@@ -85,8 +84,6 @@ public class BrowserControl implements DataUtils {
 
 	private TestInstanceEventLog eventLog;
 
-	private CookieManager cookieManager = new CookieManager(); // cookie manager, shared between all webrunners for this testmodule instance
-
 	// Browser engine configuration
 	public String engine;
 
@@ -120,10 +117,10 @@ public class BrowserControl implements DataUtils {
 		switch (engine) {
 			case "playwright":
 			return new PlaywrightBrowserRunner(url, tasks, placeholder, method, delaySeconds,
-						testId, eventLog, this, cookieManager);
+						testId, eventLog, this);
 			default:
 			return new SeleniumBrowserRunner(url, tasks, placeholder, method, delaySeconds,
-					testId, eventLog, this, cookieManager, verboseLogging);
+					testId, eventLog, this, verboseLogging);
 		}
 	}
 

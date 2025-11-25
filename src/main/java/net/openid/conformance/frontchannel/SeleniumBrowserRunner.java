@@ -47,8 +47,8 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 	private final String testId;
 	private final TestInstanceEventLog eventLog;
 	private final BrowserControl browserControl;
-	private final CookieManager cookieManager;
 	private final boolean verboseLogging;
+	private CookieManager cookieManager;
 
 	private String url;
 	private ResponseCodeHtmlUnitDriver driver;
@@ -71,12 +71,11 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 	 * @param testId         Test instance ID
 	 * @param eventLog       Event log for recording actions
 	 * @param browserControl Reference to parent BrowserControl for callbacks
-	 * @param cookieManager  Shared cookie manager for maintaining session state
 	 * @param verboseLogging Enable verbose logging of browser actions
 	 */
 	public SeleniumBrowserRunner(String url, JsonArray tasks, String placeholder, String method,
 			int delaySeconds, String testId, TestInstanceEventLog eventLog,
-			BrowserControl browserControl, CookieManager cookieManager,
+			BrowserControl browserControl,
 			boolean verboseLogging) {
 		this.url = url;
 		this.tasks = tasks;
@@ -86,7 +85,7 @@ public class SeleniumBrowserRunner implements IBrowserRunner, DataUtils {
 		this.testId = testId;
 		this.eventLog = eventLog;
 		this.browserControl = browserControl;
-		this.cookieManager = cookieManager;
+		this.cookieManager = new CookieManager();
 		this.verboseLogging = verboseLogging;
 
 		// Each runner gets its own driver for thread safety

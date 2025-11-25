@@ -19,7 +19,6 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
-import org.htmlunit.CookieManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.PatternMatchUtils;
@@ -78,12 +77,10 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	 * @param testId         Test instance ID
 	 * @param eventLog       Event log for recording actions
 	 * @param browserControl Reference to parent BrowserControl for callbacks
-	 * @param cookieManager  Shared cookie manager (not used, kept for API
-	 *                       compatibility)
 	 */
 	public PlaywrightBrowserRunner(String url, JsonArray tasks, String placeholder, String method,
 			int delaySeconds, String testId, TestInstanceEventLog eventLog,
-			BrowserControl browserControl, CookieManager cookieManager) {
+			BrowserControl browserControl) {
 		this.url = url;
 		this.tasks = tasks;
 		this.placeholder = placeholder;
