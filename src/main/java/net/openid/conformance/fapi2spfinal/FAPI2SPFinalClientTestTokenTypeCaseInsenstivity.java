@@ -22,6 +22,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 )
 
 public class FAPI2SPFinalClientTestTokenTypeCaseInsenstivity extends AbstractFAPI2SPFinalClientTest {
+
+	@Override
+	protected void modifyAccessToken() {
+		callAndContinueOnFailure(SetTokenResponseTokenTypeToInvertedCase.class, Condition.ConditionResult.INFO);
+	}
+
 	@Override
 	protected void issueAccessToken() {
 		super.issueAccessToken();

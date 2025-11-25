@@ -95,6 +95,7 @@ import net.openid.conformance.condition.as.FAPIBrazilSetGrantTypesSupportedInSer
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
 import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
+import net.openid.conformance.condition.as.FAPISetClientCredentialsGrantTypeInServerConfiguration;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
@@ -359,9 +360,12 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		configureServerJWKS();
 
-		call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-SP-FINAL-5.3.2.2-1"));
-		call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-SP-FINAL-5.3.2.2-7"));
-		call(condition(AddCodeChallengeMethodToServerConfiguration.class).requirement("FAPI2-SP-FINAL-5.3.2.2"));
+		if (profile != FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT) {
+			call(condition(AddResponseTypeCodeToServerConfiguration.class).requirement("FAPI2-SP-FINAL-5.3.2.2-1"));
+			call(condition(AddIssSupportedToServerConfiguration.class).requirement("FAPI2-SP-FINAL-5.3.2.2-7"));
+			call(condition(AddCodeChallengeMethodToServerConfiguration.class).requirement("FAPI2-SP-FINAL-5.3.2.2"));
+		}
+
 		if (fapiClientType == FAPIClientType.OIDC) {
 			call(condition(AddScopesSupportedOpenIdToServerConfiguration.class));
 
@@ -382,11 +386,15 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CID-SP-5");
 			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CID-SP-5");
 			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CID-SP-5");
+		} else if (profile == FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT) {
+			callAndStopOnFailure(FAPISetClientCredentialsGrantTypeInServerConfiguration.class);
 		} else {
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
 
-		callAndStopOnFailure(AddIdTokenSigningAlgsToServerConfiguration.class);
+		if (profile != FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT) {
+			callAndStopOnFailure(AddIdTokenSigningAlgsToServerConfiguration.class);
+		}
 
 		if (fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
 			callAndStopOnFailure(FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class);
@@ -399,7 +407,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
-		call(sequence(AddPARToServerConfiguration.class));
+		if (profile != FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT) {
+			call(sequence(AddPARToServerConfiguration.class));
+		}
 
 		if(configureResponseModeSteps!=null) {
 			call(sequence(configureResponseModeSteps));
@@ -439,7 +449,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		callAndStopOnFailure(FAPI2FinalEnsureMinimumServerKeyLength.class, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 
-		callAndStopOnFailure(LoadUserInfo.class);
+		if (profile != FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT) {
+			callAndStopOnFailure(LoadUserInfo.class);
+		}
 
 		configureClients();
 
@@ -1121,6 +1133,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 				} else if (profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
 					return clientCredentialsGrantType(requestId);
+				} else if (profile == FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT) {
+					return clientCredentialsGrantType(requestId);
 				}
 				break;
 			case "refresh_token":
@@ -1158,6 +1172,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		return responseObject;
 	}
 
+	protected void modifyAccessToken() {
+	}
+
 	protected Object clientCredentialsGrantType(String requestId) {
 
 		senderConstrainTokenRequestHelper.checkTokenRequest();
@@ -1168,8 +1185,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		} else {
 
 			callAndStopOnFailure(generateSenderConstrainedAccessToken);
+			callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
 
-		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+			modifyAccessToken();
+			callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 			// this puts the client credentials specific token into its own box for later
 			if(isMTLSConstrain()) {
@@ -1651,6 +1670,13 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
+		authorizationCodeGrantTypeProfileSteps = null;
+		authorizationEndpointProfileSteps = null;
+		accountsEndpointProfileSteps = null;
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
+	public void setupFapiClientCredentialsGrant() {
 		authorizationCodeGrantTypeProfileSteps = null;
 		authorizationEndpointProfileSteps = null;
 		accountsEndpointProfileSteps = null;

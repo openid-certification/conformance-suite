@@ -98,18 +98,22 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.3.1-5", "RFC8705-3.3");
 		}
 
-		callAndContinueOnFailure(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
+		if (! clientCredentailsGrant) {
+			callAndContinueOnFailure(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
+		}
 
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
 		callAndContinueOnFailure(FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 
-		call(condition(FAPI2CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
-			.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
-			.onFail(Condition.ConditionResult.FAILURE)
-			.onSkip(Condition.ConditionResult.INFO)
-			.requirement("FAPI2-SP-FINAL-5.4")
-			.dontStopOnFailure()
-		);
+		if (! clientCredentailsGrant) {
+			call(condition(FAPI2CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
+				.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
+				.onFail(Condition.ConditionResult.FAILURE)
+				.onSkip(Condition.ConditionResult.INFO)
+				.requirement("FAPI2-SP-FINAL-5.4")
+				.dontStopOnFailure()
+			);
+		}
 
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpoint.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
