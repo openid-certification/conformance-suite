@@ -236,5 +236,3125 @@
         "condition": "AustraliaConnectIdEnsureIdTokenContainsVerifiedClaims",
         "expected-result": "failure",
         "comment": "Authlete doesn't support verified claims"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-access-token-type-header-case-sensitivity",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-access-token-type-header-case-sensitivity",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-access-token-type-header-case-sensitivity",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-access-token-type-header-case-sensitivity",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-access-token-type-header-case-sensitivity",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-access-token-type-header-case-sensitivity",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-access-token-type-header-case-sensitivity",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-invalid-purpose-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-invalid-purpose-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-exp-over-10-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-exp-over-10-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-exp-over-10-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "Authlete does not throw an error for request objects with an nbf 15 minutes in the past"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-exp-over-10-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "Authlete does not throw an error for request objects with an nbf 15 minutes in the past"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-exp-over-10-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureInvalidRequestUriError",
+        "expected-result": "failure",
+        "comment": "Authlete does not throw an error for request objects with an nbf 15 minutes in the past"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-nbf-over-15-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-nbf-over-15-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-nbf-over-15-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint",
+        "expected-result": "warning",
+        "comment": "Authlete does not throw an error for request objects with an nbf 15 minutes in the past"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-nbf-over-15-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureErrorFromAuthorizationEndpointResponse",
+        "expected-result": "failure",
+        "comment": "Authlete does not throw an error for request objects with an nbf 15 minutes in the past"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-nbf-over-15-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify authorization endpoint response",
+        "condition": "EnsureInvalidRequestUriError",
+        "expected-result": "failure",
+        "comment": "Authlete does not throw an error for request objects with an nbf 15 minutes in the past"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-australia-connectid-test-claims-parameter-idtoken-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-code-is-bound-to-client",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-code-is-bound-to-client",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-state-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-state-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-state-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-state-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-state-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-state-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-authorization-request-without-state-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-assertion-in-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-assertion-in-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-assertion-with-exp-is-5-minutes-in-past-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-assertion-with-exp-is-5-minutes-in-past-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-assertion-with-no-sub-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-assertion-with-no-sub-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-assertion-with-wrong-aud-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-assertion-with-wrong-aud-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-id-in-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-client-id-in-token-endpoint",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-nonce-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-nonce-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-nonce-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-nonce-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-nonce-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-nonce-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-nonce-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-state-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-state-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-state-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-state-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-state-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-state-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-different-state-inside-and-outside-request-object",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-holder-of-key-required",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-pkce-code-verifier-required",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-pkce-code-verifier-required",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-64-char-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-64-char-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-64-char-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-64-char-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-64-char-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-64-char-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-64-char-nonce-success",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-nonce",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-nonce",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-nonce",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-nonce",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-nonce",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-nonce",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-nonce",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-state",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-state",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-state",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-state",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-state",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-state",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-long-state",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-multiple-aud-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-response-type-code-idtoken-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-response-type-code-idtoken-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-signed-client-assertion-with-RS256-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-signed-client-assertion-with-RS256-fails",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-token-endpoint-fails-with-expired-auth-code",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-token-endpoint-fails-with-expired-auth-code",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-happy-flow",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-incorrect-pkce-code-verifier-rejected",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-incorrect-pkce-code-verifier-rejected",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-reuse-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-reuse-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-reuse-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-reuse-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-reuse-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-reuse-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-reuse-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-to-use-expired-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-to-use-expired-request_uri",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-to-use-request_uri-for-different-client",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-attempt-to-use-request_uri-for-different-client",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-pkce-required",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-pkce-required",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-reused-request-uri-prior-to-auth-completion-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-ensure-reused-request-uri-prior-to-auth-completion-succeeds",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-plain-pkce-rejected",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-plain-pkce-rejected",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-par-without-duplicate-parameters",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-state-only-outside-request-object-not-used",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-state-only-outside-request-object-not-used",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-state-only-outside-request-object-not-used",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "CheckForFAPIInteractionIdInResourceResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-state-only-outside-request-object-not-used",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Resource server endpoint tests",
+        "condition": "EnsureMatchingFAPIInteractionId",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the userinfo endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-state-only-outside-request-object-not-used",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-state-only-outside-request-object-not-used",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-state-only-outside-request-object-not-used",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-test-claims-parameter-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-test-claims-parameter-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-test-claims-parameter-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "AustraliaConnectIdValidateAccessTokenExpiresIn",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't issue access tokens with an expiry <= 10 minutes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-test-claims-parameter-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "CheckForFAPIInteractionIdInTokenResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-test-claims-parameter-identity-claims",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "EnsureMatchingFAPIInteractionIdTokenEndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the token endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-user-rejects-authentication",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-user-rejects-authentication",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-user-rejects-authentication",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Make request to PAR endpoint",
+        "condition": "CheckForFAPIInteractionIdInPARResponse",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-user-rejects-authentication",
+        "variant": {
+            "client_auth_type": "private_key_jwt",
+            "sender_constrain": "mtls",
+            "openid": "openid_connect",
+            "fapi_request_method": "signed_non_repudiation",
+            "fapi_profile": "connectid_au",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi2securityprofile-connectid-privatekey.json",
+        "current-block": "Second client: Make request to PAR endpoint",
+        "condition": "EnsureMatchingFAPIInteractionIdPAREndpoint",
+        "expected-result": "failure",
+        "comment": "Authlete doesn't return the FAPI interaction id from the par endpoint"
     }
 ]
