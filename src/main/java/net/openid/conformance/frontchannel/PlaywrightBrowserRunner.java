@@ -24,7 +24,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.PatternMatchUtils;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+
+import com.google.gson.JsonParser;
 
 /**
  * Playwright-based browser automation runner.
@@ -52,6 +57,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	private final boolean headless;
 	private final String browserType;
 	private final int slowMo;
+	private final Map<String, String> extraHttpHeaders;
 
 	private String url;
 	private Playwright playwright;
@@ -91,7 +97,9 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 		this.browserControl = browserControl;
 		this.headless = Boolean.parseBoolean(System.getProperty("fintechlabs.browser.playwright.headless", "true"));
 		this.browserType = System.getProperty("fintechlabs.browser.playwright.type", "chromium").toLowerCase();
-		this.slowMo = Integer.parseInt(System.getProperty("fintechlabs.browser.playwright.slowMo", "0"));
+		this.slowMo = Integer.parseInt(System.getProperty("fintechlabs.browser.playwright.slowMo", "1000"));
+		this.extraHttpHeaders = parseExtraHttpHeaders(
+				System.getProperty("fintechlabs.browser.playwright.extraHttpHeaders", ""));
 
 		logger.info("Playwright browser type: " + this.browserType + ", headless: "
 				+ this.headless + ", slowMo: " + this.slowMo + "ms");
@@ -303,11 +311,16 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 		context = browser.newContext(new Browser.NewContextOptions()
 				.setIgnoreHTTPSErrors(true));
 
-		// Set default timeout (4 minutes like Selenium)
-		context.setDefaultTimeout(240_000);
+		// Set default timeout (30 seconds)
+		context.setDefaultTimeout(30_000);
 
 		// Create page
 		page = context.newPage();
+
+		// Set extra HTTP headers if configured
+		if (!extraHttpHeaders.isEmpty()) {
+			page.setExtraHTTPHeaders(extraHttpHeaders);
+		}
 	}
 
 	/**
@@ -559,6 +572,29 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	private Locator getLocator(String type, String value) {
 		String selector = getSelector(type, value);
 		return page.locator(selector).first();
+	}
+
+	/**
+	 * Parse extra HTTP headers from a JSON string.
+	 *
+	 * @param jsonString JSON object string with header name-value pairs
+	 * @return Map of header names to values, or empty map if parsing fails
+	 */
+	private Map<String, String> parseExtraHttpHeaders(String jsonString) {
+		if (Strings.isNullOrEmpty(jsonString)) {
+			return Collections.emptyMap();
+		}
+		try {
+			Map<String, String> headers = new HashMap<>();
+			JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
+			for (String key : json.keySet()) {
+				headers.put(key, OIDFJSON.getString(json.get(key)));
+			}
+			return Collections.unmodifiableMap(headers);
+		} catch (Exception e) {
+			logger.warn("Failed to parse extraHttpHeaders JSON: " + e.getMessage());
+			return Collections.emptyMap();
+		}
 	}
 
 	/**
