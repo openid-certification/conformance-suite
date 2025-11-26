@@ -13,14 +13,15 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
-		"federation.trust_anchor",
-		"federation.trust_anchor_jwks",
+		"federation.de_trust_anchor",
+		"federation.de_trust_anchor_jwks",
 	}
 )
 public class OpenIDFederationEntityConfigurationTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {
+		env.putString("config", "federation.trust_anchor", env.getString("config", "federation.de_trust_anchor"));
 	}
 
 	@Override

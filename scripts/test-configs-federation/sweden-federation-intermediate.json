@@ -1,10 +1,10 @@
 {
-    "alias": "fed",
-    "description": "fed",
+    "alias": "fed-deployed",
+    "description": "Deployed federation entity test",
     "federation": {
         "entity_identifier": "https://sandbox.swedenconnect.se/oidfed/intermediate",
-        "trust_anchor": "https://sandbox.swedenconnect.se/oidfed/trust-anchor",
-        "trust_anchor_jwks": {
+        "de_trust_anchor": "https://sandbox.swedenconnect.se/oidfed/trust-anchor",
+        "de_trust_anchor_jwks": {
             "keys": [
                 {
                     "kty": "EC",
