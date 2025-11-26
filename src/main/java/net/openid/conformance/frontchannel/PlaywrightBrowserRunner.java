@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.PatternMatchUtils;
 
 import java.net.URL;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -151,11 +152,13 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 			}
 			page.waitForLoadState();
 
+			String screenshot = captureScreenshotAsBase64();
 			eventLog.log("PlaywrightRunner", args(
 					"msg", "Scripted browser HTTP response",
 					"http", "response",
 					"url", page.url(),
-					"title", page.title()));
+					"title", page.title(),
+					"img", screenshot));
 
 			// Consider this URL visited
 			browserControl.urlVisited(url);
@@ -265,11 +268,13 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 				logger.warn("Could not retrieve page content", contentEx);
 			}
 
+			String errorScreenshot = captureScreenshotAsBase64();
 			eventLog.log("PlaywrightRunner",
 					ex(e,
 							args("msg", e.getMessage(),
 									"page_source", pageContent,
 									"url", page != null ? page.url() : url,
+									"img", errorScreenshot,
 									"result", Condition.ConditionResult.FAILURE)));
 
 			this.lastException = e.getMessage();
@@ -595,6 +600,22 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 			logger.warn("Failed to parse extraHttpHeaders JSON: " + e.getMessage());
 			return Collections.emptyMap();
 		}
+	}
+
+	/**
+	 * Capture a screenshot of the current page and return as a base64 data URL.
+	 * Returns null if screenshot capture fails.
+	 */
+	private String captureScreenshotAsBase64() {
+		try {
+			if (page != null) {
+				byte[] screenshotBytes = page.screenshot();
+				return "data:image/png;base64," + Base64.getEncoder().encodeToString(screenshotBytes);
+			}
+		} catch (Exception e) {
+			logger.warn(testId + ": Failed to capture screenshot", e);
+		}
+		return null;
 	}
 
 	/**
