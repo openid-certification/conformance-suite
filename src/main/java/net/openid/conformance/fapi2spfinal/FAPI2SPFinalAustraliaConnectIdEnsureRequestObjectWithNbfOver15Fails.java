@@ -1,15 +1,15 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddExpValueIs70MinutesInFutureToRequestObject;
+import net.openid.conformance.condition.client.AddNbfToRequestObject;
+import net.openid.conformance.condition.client.AddNbfValueIs15MinutesInPastToRequestObject;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestObjectError;
 import net.openid.conformance.condition.client.EnsureInvalidRequestUriError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectError;
-import net.openid.conformance.condition.client.ExpectRequestObjectWithExpOver60ClaimErrorPage;
+import net.openid.conformance.condition.client.ExpectRequestObjectWithNbfOver60ClaimErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -17,8 +17,8 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-final-ensure-request-object-with-exp-over-60-fails",
-	displayName = "FAPI2-Security-Profile-Final: ensure request object with exp value of more then than 60 minutes after the nbf value fails",
+	testName = "fapi2-security-profile-final-australia-connectid-ensure-request-object-with-nbf-over-15-fails",
+	displayName = "FAPI2-Security-Profile-Final: ensure request object with nbf value over 15 minutes in the past fails",
 	summary = "This test should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
@@ -39,12 +39,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })
-public class FAPI2SPFinalEnsureRequestObjectWithExpOver60Fails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "cbuae", "fapi_client_credentials_grant" })
+public class FAPI2SPFinalAustraliaConnectIdEnsureRequestObjectWithNbfOver15Fails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectRequestObjectWithExpOver60ClaimErrorPage.class, "FAPI2-MS-ID1-5.3.1-4");
+		callAndStopOnFailure(ExpectRequestObjectWithNbfOver60ClaimErrorPage.class, "OIDCC-6.1", "RFC7519-4.1.5");
 
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
@@ -52,8 +52,8 @@ public class FAPI2SPFinalEnsureRequestObjectWithExpOver60Fails extends AbstractF
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestObjectSteps() {
 		return super.makeCreateAuthorizationRequestObjectSteps()
-				.replace(AddExpToRequestObject.class,
-						condition(AddExpValueIs70MinutesInFutureToRequestObject.class).requirements("OIDCC-6.1", "RFC7519-4.1.4"));
+				.replace(AddNbfToRequestObject.class,
+						condition(AddNbfValueIs15MinutesInPastToRequestObject.class).requirements("CID-SP-4.2-11", "FAPI2-MS-ID1-5.3.1-3"));
 	}
 
 	@Override

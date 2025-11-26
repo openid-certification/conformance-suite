@@ -13,6 +13,7 @@ import net.openid.conformance.condition.client.ExpectRequestObjectWithNbfOver60C
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -38,6 +39,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })
 public class FAPI2SPFinalEnsureRequestObjectWithNbfOver60Fails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

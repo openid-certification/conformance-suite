@@ -14,6 +14,7 @@ import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServ
 import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
+import net.openid.conformance.condition.as.AddFAPIInteractionIdToUserInfoEndpointResponse;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
@@ -30,9 +31,13 @@ import net.openid.conformance.condition.as.AustraliaConnectIdAddClaimsSupportedT
 import net.openid.conformance.condition.as.AustraliaConnectIdAddTrustFrameworksSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdAddVerifiedClaimsToServerConfiguration;
 import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject;
+import net.openid.conformance.condition.as.AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureVerifiedClaimsInRequestObject;
+import net.openid.conformance.condition.as.AustraliaConnectIdGenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidatePurpose;
+import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectExp;
+import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectNBFClaim;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
@@ -385,12 +390,12 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-4");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
 		} else if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
-			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CID-SP-5.2.2-8");
-			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CID-SP-5");
-			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CID-SP-5");
+			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CID-SP-4.2-8");
+			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CID-SP-4");
+			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CID-SP-4");
 			callAndStopOnFailure(AustraliaConnectIdAddVerifiedClaimsToServerConfiguration.class, "IA-9", "CID-IDA-5.3.3");
 			callAndStopOnFailure(AustraliaConnectIdAddTrustFrameworksSupportedToServerConfiguration.class, "IA-9", "CID-IDA-5.2-11");
-			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CID-SP-5");
+			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CID-SP-4");
 		} else if (profile == FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT) {
 			callAndStopOnFailure(FAPISetClientCredentialsGrantTypeInServerConfiguration.class);
 		} else {
@@ -522,7 +527,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	protected void validateClientConfiguration() {
 		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
-			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "CID-SP-5");
+			callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class, "CID-SP-4");
 		}
 	}
 
@@ -705,9 +710,15 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address", ConditionResult.INFO,
 			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
 
-		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			// Mandatory for connectid_au profile.
+			callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+		}
+		else {
+			skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+				ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		}
+		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
 
 	}
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
@@ -983,6 +994,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected void extractParEndpointRequest() {
 		skipIfElementMissing("par_endpoint_http_request", "body_form_params.request", ConditionResult.INFO, ExtractRequestObjectFromPAREndpointRequest.class, ConditionResult.FAILURE, "PAR-3");
 		callAndStopOnFailure(EnsurePAREndpointRequestDoesNotContainRequestUriParameter.class, "PAR-2.1");
+		if(profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(AustraliaConnectIdCheckForUnexpectedParametersInPAREndpointRequest.class, "CID-SP-4.3-5", "PAR-3");
+		}
 		skipIfElementMissing("authorization_request_object", "jwe_header", ConditionResult.INFO, ValidateEncryptedRequestObjectHasKid.class, ConditionResult.FAILURE, "OIDCC-10.2", "OIDCC-10.2.1");
 	}
 
@@ -1003,13 +1017,18 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			callAndContinueOnFailure(ExtractParAuthorizationCodeDpopBindingKey.class, ConditionResult.FAILURE, "DPOP-10");
 		}
 
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+			callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+		}
+
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("par_endpoint_response"), headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status").intValue()));
 		}  else {
 			JsonObject parResponse = createPAREndpointResponse();
-			responseEntity = new ResponseEntity<>(parResponse, HttpStatus.CREATED);
+			responseEntity = new ResponseEntity<>(parResponse, headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.CREATED);
 		}
 
 		setStatus(Status.WAITING);
@@ -1043,6 +1062,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		checkResourceEndpointRequest(false);
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(AddFAPIInteractionIdToUserInfoEndpointResponse.class, "CID-SP-4.3-9");
+		}
 		if(profile == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10");
 		}
@@ -1068,7 +1090,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			} else {
 				setStatus(Status.WAITING);
 			}
-			responseEntity = new ResponseEntity<>(user, HttpStatus.OK);
+			responseEntity = new ResponseEntity<>(user, headersFromJson(env.getObject("user_info_endpoint_response_headers")), HttpStatus.OK);
 		}
 		return responseEntity;
 	}
@@ -1094,7 +1116,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
-		if(isDpopConstrain()) {
+		if(isDpopConstrain() || profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			call(exec().mapKey("incoming_request", requestId));
 		}
 
@@ -1111,8 +1133,13 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			call(sequence(validateClientAuthenticationSteps));
 		}
 
+		if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndContinueOnFailure(ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+			callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+		}
+
 		Object tokenResponseOb =  handleTokenEndpointGrantType(requestId);
-		if(isDpopConstrain()) {
+		if(isDpopConstrain() || profile == FAPI2FinalOPProfile.CONNECTID_AU) {
 			call(exec().unmapKey("incoming_request"));
 		}
 		return tokenResponseOb;
@@ -1162,7 +1189,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			issueRefreshToken(); // rotate refresh token
 			env.removeNativeValue("id_token");
 			callAndStopOnFailure(CreateTokenEndpointResponse.class);
-			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.OK);
 
 			// Create a new DPoP nonce
 			if(requireAuthorizationServerEndpointDpopNonce()) {
@@ -1201,7 +1228,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			} else  {
 				callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
 			}
-			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.OK);
 			// Create a new DPoP nonce
 			if(requireAuthorizationServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
@@ -1243,7 +1270,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 
 			createTokenEndpointResponse();
-			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.OK);
 
 			// Create a new DPoP nonce
 			if(requireAuthorizationServerEndpointDpopNonce()) {
@@ -1388,8 +1415,15 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 					"OIDCC-5.5.1.1");
 			}
 		}
-		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI2-MS-ID1-5.3.1-4");
-		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI2-MS-ID1-5.3.1-3");
+
+		if(profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(AustraliaConnectIdValidateRequestObjectExp.class, "RFC7519-4.1.4", "CID-SP-4.3-7");
+			callAndContinueOnFailure(AustraliaConnectIdValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "CID-SP-4.3-8");
+		}
+		else {
+			callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI2-MS-ID1-5.3.1-4");
+			callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI2-MS-ID1-5.3.1-3");
+		}
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
@@ -1419,8 +1453,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			}
 		} else {
 			if (profile == FAPI2FinalOPProfile.CONNECTID_AU) {
-				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "CID-SP-5");
-				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CID-SP-5");
+				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoUserinfoIdentityClaims.class, ConditionResult.FAILURE, "CID-SP-4");
+				callAndContinueOnFailure(AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaims.class, ConditionResult.FAILURE, "CID-SP-4");
 				callAndContinueOnFailure(AustraliaConnectIdValidatePurpose.class, ConditionResult.FAILURE, "CID-PURPOSE-6", "CID-IDA-5.2-10");
 			}
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
@@ -1448,7 +1482,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	protected void issueAccessToken() {
 		callAndStopOnFailure(generateSenderConstrainedAccessToken);
-		callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
+		if(profile == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndContinueOnFailure(AustraliaConnectIdGenerateAccessTokenExpiration.class, ConditionResult.INFO);
+		} else {
+			callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
+		}
 		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 

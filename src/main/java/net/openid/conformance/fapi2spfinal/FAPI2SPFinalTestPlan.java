@@ -28,7 +28,9 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 		modules.remove(FAPI2SPFinalEnsureExpiredRequestObjectFails.class);
 		modules.remove(FAPI2SPFinalEnsureRequestObjectWithBadAudFails.class);
 		modules.remove(FAPI2SPFinalEnsureRequestObjectWithExpOver60Fails.class);
+		modules.remove(FAPI2SPFinalAustraliaConnectIdRequestObjectWithExpOver10Fails.class);
 		modules.remove(FAPI2SPFinalEnsureRequestObjectWithNbfOver60Fails.class);
+		modules.remove(FAPI2SPFinalAustraliaConnectIdEnsureRequestObjectWithNbfOver15Fails.class);
 		modules.remove(FAPI2SPFinalEnsureRequestObjectWithNbf8SecondsInTheFutureIsAccepted.class);
 		modules.remove(FAPI2SPFinalEnsureSignedRequestObjectWithRS256Fails.class);
 		modules.remove(FAPI2SPFinalEnsureRequestObjectSignatureAlgorithmIsNotNone.class);

@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as.par;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -19,13 +20,20 @@ public class CreatePAREndpointResponse extends AbstractCondition {
 		String requestUri = "urn:ietf:params:oauth:request_uri:" + UUID.randomUUID().toString();
 		env.putString("par_endpoint_generated_request_uri", requestUri);
 
+		String fapiInteractionId = env.getString("fapi_interaction_id");
+		JsonObject headers = new JsonObject();
+		if (! Strings.isNullOrEmpty(fapiInteractionId)) {
+			headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
+			env.putObject("par_endpoint_response_headers", headers);
+		}
+
 		JsonObject parEndpointResponse = new JsonObject();
 		parEndpointResponse.addProperty("request_uri", requestUri);
 		parEndpointResponse.addProperty("expires_in", EXPIRES_IN);
 
 		env.putObject("par_endpoint_response", parEndpointResponse);
 
-		logSuccess("Created PAR endpoint response", parEndpointResponse);
+		logSuccess(args("Created PAR endpoint response", parEndpointResponse, "par_endpoint_response_headers", headers));
 
 		return env;
 	}

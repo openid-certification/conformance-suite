@@ -18,7 +18,9 @@ import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointReq
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIInteractionIdToPAREndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddFAPIInteractionIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
@@ -29,6 +31,7 @@ import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AustraliaConnectIdValidateAccessTokenExpiresIn;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
@@ -42,7 +45,9 @@ import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonc
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
+import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInPARResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
+import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInTokenResponse;
 import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckForRequestUriValue;
@@ -70,6 +75,8 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
+import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionIdPAREndpoint;
+import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionIdTokenEndpoint;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
 import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
@@ -379,7 +386,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		// Set up the resource endpoint configuration
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU ) {
 			// always use the MTLS version if available, as ConnectID always uses mtls sender constraining
-			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-5");
+			callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-4");
 		} else {
 			callAndStopOnFailure(GetResourceEndpointConfiguration.class);
 			call(sequence(resourceConfiguration));
@@ -508,6 +515,17 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			}
 
 			addClientAuthenticationToPAREndpointRequest();
+
+			if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU) {
+				callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
+				if (env.getObject("pushed_authorization_request_endpoint_request_headers") == null) {
+					env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
+				}
+
+				callAndStopOnFailure(AddFAPIInteractionIdToPAREndpointRequest.class, "CID-SP-4.2-12", "CDR-http-headers");
+			}
+
 			performParAuthorizationRequestFlow();
 		} else {
 			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
@@ -710,6 +728,17 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		addClientAuthenticationToTokenEndpointRequest();
 
 		addPkceCodeVerifier();
+
+		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU) {
+			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
+			if (env.getObject("token_endpoint_request_headers") == null) {
+				env.putObject("token_endpoint_request_headers", new JsonObject());
+			}
+
+			callAndStopOnFailure(AddFAPIInteractionIdToTokenEndpointRequest.class, "CID-SP-4.2-12", "CDR-http-headers");
+		}
+
 	}
 
 	protected void addPkceCodeVerifier() {
@@ -764,7 +793,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected void exchangeAuthorizationCode() {
-		callSenderConstrainedTokenEndpoint();
+		callSenderConstrainedTokenEndpointAndStopOnFailure(true);
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();
@@ -784,6 +813,10 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 				FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-12");
+		}
+		else if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU) {
+			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
+				AustraliaConnectIdValidateAccessTokenExpiresIn.class, Condition.ConditionResult.FAILURE, "CID-SP-4.2-2");
 		}
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
@@ -848,6 +881,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		if (isRarRequest){
 			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RAR-7");
+		}
+
+		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU) {
+			skipIfElementMissing("token_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.FAILURE,
+				CheckForFAPIInteractionIdInTokenResponse.class, ConditionResult.FAILURE, "CID_SP-4.2-12", "FAPI2-IMP-2.1.1");
+
+			skipIfElementMissing("token_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.FAILURE,
+				EnsureMatchingFAPIInteractionIdTokenEndpoint.class, ConditionResult.FAILURE, "CID_SP-4.2-12", "FAPI2-IMP-2.1.1");
 		}
 	}
 
@@ -1024,10 +1065,13 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 				// CDR requires this header when the x-fapi-customer-ip-address header is present
 				callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
 			}
+		}
 
+		// Mandatory for connectid_au. Optional otherwise so only add them for the first client in that case
+		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU || ! isSecondClient()) {
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 
-			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "CDR-http-headers");
+			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "CID-SP-4.2-12", "CDR-http-headers");
 		}
 
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONSUMERDATARIGHT_AU) {
@@ -1090,12 +1134,15 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "RFC7231-7.1.1.2");
 
-		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO,
-			CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU || !isSecondClient()) {
+			// Mandatory for connectid_au. Optional otherwise.
+			ConditionResult skipResult = (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU) ? ConditionResult.FAILURE : ConditionResult.INFO;
 
-		if (!isSecondClient()) {
-			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO,
-				EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", skipResult,
+				CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE,  "CID-SP-4.2-12", "FAPI2-IMP-2.1.1");
+
+			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", skipResult,
+				EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "CID-SP-4.2-12", "FAPI2-IMP-2.1.1");
 		}
 
 		if (brazilPayments) {
@@ -1330,6 +1377,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class);
 
 		callAndContinueOnFailure(EnsureMinimumRequestUriEntropy.class, ConditionResult.FAILURE, "PAR-2.2", "PAR-7.1", "JAR-10.2");
+
+		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CONNECTID_AU) {
+			skipIfElementMissing("pushed_authorization_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.FAILURE,
+				CheckForFAPIInteractionIdInPARResponse.class, ConditionResult.FAILURE, "CID-SP-4.2-12", "FAPI2-IMP-2.1.1");
+
+			skipIfElementMissing("pushed_authorization_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.FAILURE,
+				EnsureMatchingFAPIInteractionIdPAREndpoint.class, ConditionResult.FAILURE, "CID-SP-4.2-12", "FAPI2-IMP-2.1.1");
+		}
 
 		performPARRedirectWithRequestUri();
 	}
