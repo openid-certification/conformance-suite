@@ -80,7 +80,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
-	public void setupClientCredentialsOnly() {
+	public void setupFapiClientCredentialsGrant() {
 		profileSpecificChecks = ClientCredentialsOnlyDiscoveryEndpointChecks.class;
 		clientCredentailsGrant = true;
 	}

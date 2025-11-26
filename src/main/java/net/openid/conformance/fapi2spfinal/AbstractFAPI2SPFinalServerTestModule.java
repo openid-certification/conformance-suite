@@ -1186,7 +1186,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
-	public void setupClientCredentialsOnly() {
+	public void setupFapiClientCredentialsGrant() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		preAuthorizationSteps = null;
 		profileAuthorizationEndpointSetupSteps = null;
