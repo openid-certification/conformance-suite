@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdCheckVerifiedClaimsSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptAlgValuesIsJsonArray;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthEncryptEncValuesIsJsonArray;
@@ -190,6 +191,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 			callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CID-SP-5.2.2-8");
 			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CID-SP-5");
 			callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "CID-SP-5");
+			callAndContinueOnFailure(AustraliaConnectIdCheckVerifiedClaimsSupported.class, Condition.ConditionResult.INFO, "CID-IDA-5.3.3");
 			callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsOnlyPairwise.class, Condition.ConditionResult.FAILURE, "CID-SP-5");
 			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, Condition.ConditionResult.FAILURE, "CID-SP-5");
 		}

@@ -46,33 +46,48 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 		// All claims have valid values.
 		JsonObject authRequestClaims = JsonParser.parseString("{" +
 			"    \"claims\": {" +
-			"	 \"claims\": {" +
-			"	     \"userinfo\": {" +
-			"		 \"iss\": null," +
-			"		 \"sub\": {" +
-			"		     \"essential\": true" +
-			"		 }," +
-			"		 \"aud\": {" +
-			"		     \"value\": \"12345678\"" +
-			"		 }," +
-			"		 \"exp\": {" +
-			"		     \"values\": [\"12345678\", \"87654321\"]" +
-			"		 }" +
-			"	     }," +
-			"	     \"id_token\": {" +
-			"		 \"iss\": null," +
-			"		 \"sub\": {" +
-			"		     \"essential\": false" +
-			"		 }," +
-			"		 \"aud\": {" +
-			"		     \"value\": \"12345678\"" +
-			"		 }," +
-			"		 \"exp\": {" +
-			"		     \"essential\": true," +
-			"		     \"values\": [\"12345678\", \"87654321\"]" +
-			"		 }" +
-			"	     }" +
-			"	 }" +
+			"        \"claims\": {" +
+			"            \"userinfo\": {" +
+			"                \"iss\": null," +
+			"                \"sub\": {" +
+			"                    \"essential\": true" +
+			"                }," +
+			"                \"aud\": {" +
+			"                    \"value\": \"12345678\"" +
+			"                }," +
+			"                \"exp\": {" +
+			"                    \"values\": [\"12345678\", \"87654321\"]" +
+			"                }" +
+			"            }," +
+			"            \"id_token\": {" +
+			"                \"iss\": null," +
+			"                \"sub\": {" +
+			"                    \"essential\": false" +
+			"                }," +
+			"                \"aud\": {" +
+			"                    \"value\": \"12345678\"" +
+			"                }," +
+			"                \"exp\": {" +
+			"                    \"essential\": true," +
+			"                    \"values\": [\"12345678\", \"87654321\"]" +
+			"                }," +
+			"                \"verified_claims\": {" +
+			"                    \"verification\": {" +
+			"                        \"trust_framework\": {" +
+			"                            \"value\": \"trusted\"" +
+			"                        }" +
+			"                    }," +
+			"                    \"claims\": {" +
+			"                        \"over16\": {" +
+			"                            \"essential\": true" +
+			"                        }," +
+			"                        \"over18\": {" +
+			"                            \"essential\": true" +
+			"                        }" +
+			"                    }" +
+			"                }" +
+			"            }" +
+			"        }" +
 			"    }" +
 			"}")
 		.getAsJsonObject();
@@ -91,36 +106,51 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 			// The 'userinfo->iss' claim value is neither null or an object.
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
 				"    \"claims\": {" +
-				"	 \"claims\": {" +
-				"	     \"userinfo\": {" +
-				"		 \"iss\": \"12345678\"," +
-				"		 \"sub\": {" +
-				"		     \"essential\": true" +
-				"		 }," +
-				"		 \"aud\": {" +
-				"		     \"value\": \"12345678\"" +
-				"		 }," +
-				"		 \"exp\": {" +
-				"		     \"values\": [\"12345678\", \"87654321\"]" +
-				"		 }" +
-				"	     }," +
-				"	     \"id_token\": {" +
-				"		 \"iss\": null," +
-				"		 \"sub\": {" +
-				"		     \"essential\": false" +
-				"		 }," +
-				"		 \"aud\": {" +
-				"		     \"value\": \"12345678\"" +
-				"		 }," +
-				"		 \"exp\": {" +
-				"		     \"essential\": true," +
-				"		     \"values\": [\"12345678\", \"87654321\"]" +
-				"		 }" +
-				"	     }" +
-				"	 }" +
+				"        \"claims\": {" +
+				"            \"userinfo\": {" +
+				"                \"iss\": \"12345678\"," +
+				"                \"sub\": {" +
+				"                    \"essential\": true" +
+				"                }," +
+				"                \"aud\": {" +
+				"                    \"value\": \"12345678\"" +
+				"                }," +
+				"                \"exp\": {" +
+				"                    \"values\": [\"12345678\", \"87654321\"]" +
+				"                }" +
+				"            }," +
+				"            \"id_token\": {" +
+				"                \"iss\": null," +
+				"                \"sub\": {" +
+				"                    \"essential\": false" +
+				"                }," +
+				"                \"aud\": {" +
+				"                    \"value\": \"12345678\"" +
+				"                }," +
+				"                \"exp\": {" +
+				"                    \"essential\": true," +
+				"                    \"values\": [\"12345678\", \"87654321\"]" +
+				"                }," +
+				"                \"verified_claims\": {" +
+				"                    \"verification\": {" +
+				"                        \"trust_framework\": {" +
+				"                            \"value\": \"trusted\"" +
+				"                        }" +
+				"                    }," +
+				"                    \"claims\": {" +
+				"                        \"over16\": {" +
+				"                            \"essential\": true" +
+				"                        }," +
+				"                        \"over18\": {" +
+				"                            \"essential\": true" +
+				"                        }" +
+				"                    }" +
+				"                }" +
+				"            }" +
+				"        }" +
 				"    }" +
 				"}")
-				.getAsJsonObject();
+			.getAsJsonObject();
 
 			env.putObject("authorization_request_object", authRequestClaims);
 
@@ -137,37 +167,174 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 			// The 'id_token->sub' claim contains an invalid member
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
 				"    \"claims\": {" +
-				"	 \"claims\": {" +
-				"	     \"userinfo\": {" +
-				"		 \"iss\": null," +
-				"		 \"sub\": {" +
-				"		     \"essential\": true" +
-				"		 }," +
-				"		 \"aud\": {" +
-				"		     \"value\": \"12345678\"" +
-				"		 }," +
-				"		 \"exp\": {" +
-				"		     \"values\": [\"12345678\", \"87654321\"]" +
-				"		 }" +
-				"	     }," +
-				"	     \"id_token\": {" +
-				"		 \"iss\": null," +
-				"		 \"sub\": {" +
-				"		    \"invalid\": \"1224\"," +
-				"		     \"essential\": false" +
-				"		 }," +
-				"		 \"aud\": {" +
-				"		     \"value\": \"12345678\"" +
-				"		 }," +
-				"		 \"exp\": {" +
-				"		     \"essential\": true," +
-				"		     \"values\": [\"12345678\", \"87654321\"]" +
-				"		 }" +
-				"	     }" +
-				"	 }" +
+				"        \"claims\": {" +
+				"            \"userinfo\": {" +
+				"                \"iss\": null," +
+				"                \"sub\": {" +
+				"                    \"essential\": true" +
+				"                }," +
+				"                \"aud\": {" +
+				"                    \"value\": \"12345678\"" +
+				"                }," +
+				"                \"exp\": {" +
+				"                    \"values\": [\"12345678\", \"87654321\"]" +
+				"                }" +
+				"            }," +
+				"            \"id_token\": {" +
+				"                \"iss\": null," +
+				"                \"sub\": {" +
+				"                    \"invalid\": \"1224\"," +
+				"                    \"essential\": false" +
+				"                }," +
+				"                \"aud\": {" +
+				"                    \"value\": \"12345678\"" +
+				"                }," +
+				"                \"exp\": {" +
+				"                    \"essential\": true," +
+				"                    \"values\": [\"12345678\", \"87654321\"]" +
+				"                }," +
+				"                \"verified_claims\": {" +
+				"                    \"verification\": {" +
+				"                        \"trust_framework\": {" +
+				"                            \"value\": \"trusted\"" +
+				"                        }" +
+				"                    }," +
+				"                    \"claims\": {" +
+				"                        \"over16\": {" +
+				"                            \"essential\": true" +
+				"                        }," +
+				"                        \"over18\": {" +
+				"                            \"essential\": true" +
+				"                        }" +
+				"                    }" +
+				"                }" +
+				"            }" +
+				"        }" +
 				"    }" +
 				"}")
-				.getAsJsonObject();
+			.getAsJsonObject();
+
+			env.putObject("authorization_request_object", authRequestClaims);
+
+			cond.execute(env);
+		});
+	}
+
+	/**
+	 * Test method for {@link CheckRequestObjectClaimsParameterMemberValues#evaluate(Environment)}.
+	 */
+	@Test
+	public void testEvaluate_invalidClaimValue2() {
+		assertThrows(ConditionError.class, () -> {
+			// The 'id_token->verified_claims->verification->trust_framework claim value is neither null or an object.
+			JsonObject authRequestClaims = JsonParser.parseString("{" +
+				"    \"claims\": {" +
+				"        \"claims\": {" +
+				"            \"userinfo\": {" +
+				"                \"iss\": null," +
+				"                \"sub\": {" +
+				"                    \"essential\": true" +
+				"                }," +
+				"                \"aud\": {" +
+				"                    \"value\": \"12345678\"" +
+				"                }," +
+				"                \"exp\": {" +
+				"                    \"values\": [\"12345678\", \"87654321\"]" +
+				"                }" +
+				"            }," +
+				"            \"id_token\": {" +
+				"                \"iss\": null," +
+				"                \"sub\": {" +
+				"                    \"essential\": false" +
+				"                }," +
+				"                \"aud\": {" +
+				"                    \"value\": \"12345678\"" +
+				"                }," +
+				"                \"exp\": {" +
+				"                    \"essential\": true," +
+				"                    \"values\": [\"12345678\", \"87654321\"]" +
+				"                }," +
+				"                \"verified_claims\": {" +
+				"                    \"verification\": {" +
+				"                        \"trust_framework\": \"12345678\"" +
+				"                    }," +
+				"                    \"claims\": {" +
+				"                        \"over16\": {" +
+				"                            \"essential\": true" +
+				"                        }," +
+				"                        \"over18\": {" +
+				"                            \"essential\": true" +
+				"                        }" +
+				"                    }" +
+				"                }" +
+				"            }" +
+				"        }" +
+				"    }" +
+				"}")
+			.getAsJsonObject();
+
+			env.putObject("authorization_request_object", authRequestClaims);
+
+			cond.execute(env);
+		});
+	}
+	/**
+	 * Test method for {@link CheckRequestObjectClaimsParameterMemberValues#evaluate(Environment)}.
+	 */
+	@Test
+	public void testEvaluate_invalidClaimValueInEach() {
+		assertThrows(ConditionError.class, () -> {
+			// The 'userinfo->iss' claim value is neither null or an object.
+			// the 'id_token->sub' claim contains an invalid member and
+			// the 'id_token->verified_claims->claims-<over16' claim contains an invalid member.
+			JsonObject authRequestClaims = JsonParser.parseString("{" +
+				"    \"claims\": {" +
+				"        \"claims\": {" +
+				"            \"userinfo\": {" +
+				"                \"iss\": \"12345678\"," +
+				"                \"sub\": {" +
+				"                    \"essential\": true" +
+				"                }," +
+				"                \"aud\": {" +
+				"                    \"value\": \"12345678\"" +
+				"                }," +
+				"                \"exp\": {" +
+				"                    \"values\": [\"12345678\", \"87654321\"]" +
+				"                }" +
+				"            }," +
+				"            \"id_token\": {" +
+				"                \"iss\": null," +
+				"                \"sub\": {" +
+				"                    \"invalid\": \"1224\"," +
+				"                    \"essential\": false" +
+				"                }," +
+				"                \"aud\": {" +
+				"                    \"value\": \"12345678\"" +
+				"                }," +
+				"                \"exp\": {" +
+				"                    \"essential\": true," +
+				"                    \"values\": [\"12345678\", \"87654321\"]" +
+				"                }," +
+				"                \"verified_claims\": {" +
+				"                    \"verification\": {" +
+				"                        \"trust_framework\": {" +
+				"                            \"value\": \"trusted\"" +
+				"                        }" +
+				"                    }," +
+				"                    \"claims\": {" +
+				"                        \"over16\": {" +
+				"                            \"invalid\": true" +
+				"                        }," +
+				"                        \"over18\": {" +
+				"                            \"essential\": true" +
+				"                        }" +
+				"                    }" +
+				"                }" +
+				"            }" +
+				"        }" +
+				"    }" +
+				"}")
+			.getAsJsonObject();
 
 			env.putObject("authorization_request_object", authRequestClaims);
 
