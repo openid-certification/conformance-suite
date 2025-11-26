@@ -10,12 +10,12 @@ import java.text.ParseException;
 public class ValidateJwksAreEqual extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "server_jwks" } )
+	@PreEnvironment(required = { "ec_jwks" } )
 	public Environment evaluate(Environment env) {
 
 		try {
-			JWKSet preconfiguredKeys = JWKSet.parse(env.getElementFromObject("config", "federation.trust_anchor_jwks").toString());
-			JWKSet actualKeys = JWKSet.parse(env.getObject("server_jwks").toString());
+			JWKSet preconfiguredKeys = JWKSet.parse(env.getElementFromObject("config", "federation.de_trust_anchor_jwks").toString());
+			JWKSet actualKeys = JWKSet.parse(env.getObject("ec_jwks").toString());
 			if (!preconfiguredKeys.equals(actualKeys)) {
 				throw error("The keys in trust anchor's entity configuration do not match pre-configured trust anchor keys",
 					args("preconfigured", preconfiguredKeys, "actual", actualKeys));

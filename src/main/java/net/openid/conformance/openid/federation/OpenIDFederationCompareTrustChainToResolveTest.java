@@ -21,8 +21,8 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
-		"federation.trust_anchor",
-		"federation.trust_anchor_jwks",
+		"federation.de_trust_anchor",
+		"federation.de_trust_anchor_jwks",
 	}
 )
 public class OpenIDFederationCompareTrustChainToResolveTest extends OpenIDFederationAutomaticClientRegistrationTest {
@@ -36,7 +36,7 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends OpenIDFedera
 		setStatus(Status.RUNNING);
 
 		String fromEntity = stripWellKnown(env.getString("config", "federation.entity_identifier"));
-		String trustAnchor = env.getString("config", "federation.trust_anchor");
+		String trustAnchor = env.getString("config", "federation.de_trust_anchor");
 
 		List<String> path;
 		try {
@@ -94,7 +94,7 @@ public class OpenIDFederationCompareTrustChainToResolveTest extends OpenIDFedera
 		validateResolveResponse();
 		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-8.3.2");
 
-		env.putString("expected_iss", env.getString("config", "federation.trust_anchor"));
+		env.putString("expected_iss", env.getString("config", "federation.de_trust_anchor"));
 		callAndContinueOnFailure(ExtractRegisteredClaimsFromFederationResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		call(sequence(ValidateFederationResponseBasicClaimsSequence.class));
 

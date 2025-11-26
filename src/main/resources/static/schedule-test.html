@@ -1575,14 +1575,26 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
 
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">trust_anchor</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The trust anchor of the federation entity under test"></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="federation.de_trust_anchor" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">trust_anchor_jwks</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys for the entity's
-                                                trust anchor. Used to "></span>
+                                                trust anchor."></span>
                                             </div>
-                                            <textarea placeholder="OPTIONAL" class="form-control config-form-element" data-json-target="federation.trust_anchor_jwks"></textarea>
+                                            <textarea placeholder="OPTIONAL" class="form-control config-form-element" data-json-target="federation.de_trust_anchor_jwks"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -2861,7 +2873,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             if (!alias) {
                 alias = "<INSERT TEST ALIAS>";
             }
-            document.querySelector("#federation-trust-anchor").value = `${window.location.origin}/test/a/${alias}/trust-anchor`;
+            const trustAnchorElm = document.querySelector("#federation-trust-anchor");
+            const row = trustAnchorElm.closest(".row");
+            if (row.style.display !== "none") {
+                trustAnchorElm.value = `${window.location.origin}/test/a/${alias}/trust-anchor`;
+            }
         }
 
         function registerAliasListener() {

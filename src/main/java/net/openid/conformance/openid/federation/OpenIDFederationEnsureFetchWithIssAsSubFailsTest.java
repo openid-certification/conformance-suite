@@ -14,8 +14,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
-		"federation.trust_anchor",
-		"federation.trust_anchor_jwks",
+		"federation.de_trust_anchor",
+		"federation.de_trust_anchor_jwks",
 	}
 )
 public class OpenIDFederationEnsureFetchWithIssAsSubFailsTest extends OpenIDFederationAutomaticClientRegistrationTest {
