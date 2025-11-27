@@ -3,6 +3,7 @@ package net.openid.conformance.frontchannel;
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
@@ -31,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.PatternMatchUtils;
 
-import java.net.URL;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -141,23 +141,24 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 			// Navigate to URL
 			if (Objects.equals(method, "POST")) {
-				URL urlWithQueryString = new URL(url);
-				URL urlWithoutQuery = new URL(urlWithQueryString.getProtocol(), urlWithQueryString.getHost(),
-						urlWithQueryString.getPort(), urlWithQueryString.getPath());
-				String params = urlWithQueryString.getQuery();
-				page.request().fetch(urlWithoutQuery.toString(),
-						RequestOptions.create()
-								.setMethod("POST")
-								.setHeader("Content-Type", "application/x-www-form-urlencoded")
-								.setData(params));
+				int queryIndex = url.indexOf('?');
+				String baseUrl = queryIndex > 0 ? url.substring(0, queryIndex) : url;
+				String params = queryIndex > 0 ? url.substring(queryIndex + 1) : null;
 
 				eventLog.log("PlaywrightRunner", args(
 						"msg", "Scripted browser HTTP request",
 						"http", "request",
-						"request_uri", urlWithoutQuery.toString(),
+						"request_uri", baseUrl,
 						"parameters", params,
 						"request_method", method,
 						"browser", "goToUrl"));
+
+				APIResponse response = page.request().post(baseUrl,
+						RequestOptions.create()
+								.setHeader("Content-Type", "application/x-www-form-urlencoded")
+								.setData(params));
+
+				page.navigate(response.url());
 
 			} else {
 				eventLog.log("PlaywrightRunner", args(
