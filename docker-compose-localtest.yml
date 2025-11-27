@@ -33,7 +33,7 @@ services:
     build:
       context: ./server-dev
     ports:
-    - "9999:9999"
+      - "9999:9999"
     volumes:
      - ./target/:/server/
     command: >
