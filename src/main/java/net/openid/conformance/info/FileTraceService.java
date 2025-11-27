@@ -20,7 +20,7 @@ public class FileTraceService implements TraceService {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileTraceService.class);
 
-	@Value("${fintechlabs.browser.playwright.tracesDir:}")
+	@Value("${browser.playwright.tracesDir:}")
 	private String tracesDir;
 
 	@Autowired

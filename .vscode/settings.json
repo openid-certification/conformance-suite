@@ -1,0 +1,4 @@
+{
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.checkstyle.configuration": "${workspaceFolder}/.checkstyle.xml"
+}

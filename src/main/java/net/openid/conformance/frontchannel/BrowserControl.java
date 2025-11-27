@@ -104,7 +104,7 @@ public class BrowserControl implements DataUtils {
 		}
 
 		// Read browser engine configuration from system properties
-		this.engine = System.getProperty("fintechlabs.browser.engine", "selenium");
+		this.engine = System.getProperty("browser.engine", "selenium");
 		logger.info("Browser automation engine: " + this.engine);
 	}
 

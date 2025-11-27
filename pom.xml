@@ -329,7 +329,7 @@
 					<profiles>
 						<profile>dev</profile>
 					</profiles>
-					<jvmArguments>-Djdk.tls.maxHandshakeMessageSize=65536 -Dfintechlabs.browser.engine=playwright</jvmArguments>
+					<jvmArguments>-Djdk.tls.maxHandshakeMessageSize=65536 -Dbrowser.engine=playwright</jvmArguments>
 				</configuration>
 				<executions>
 					<execution>

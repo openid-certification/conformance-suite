@@ -108,13 +108,13 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 		this.testId = testId;
 		this.eventLog = eventLog;
 		this.browserControl = browserControl;
-		this.headless = Boolean.parseBoolean(System.getProperty("fintechlabs.browser.playwright.headless", "true"));
-		this.browserType = System.getProperty("fintechlabs.browser.playwright.type", "chromium").toLowerCase();
-		this.slowMo = Integer.parseInt(System.getProperty("fintechlabs.browser.playwright.slowMo", "1000"));
+		this.headless = Boolean.parseBoolean(System.getProperty("browser.playwright.headless", "true"));
+		this.browserType = System.getProperty("browser.playwright.type", "chromium").toLowerCase();
+		this.slowMo = Integer.parseInt(System.getProperty("browser.playwright.slowMo", "1000"));
 		this.extraHttpHeaders = parseExtraHttpHeaders(
-				System.getProperty("fintechlabs.browser.playwright.extraHttpHeaders", ""));
-		this.traceEnabled = System.getProperty("fintechlabs.browser.playwright.traceEnabled", "false").toLowerCase();
-		this.tracesDir = System.getProperty("fintechlabs.browser.playwright.tracesDir", "");
+				System.getProperty("browser.playwright.extraHttpHeaders", ""));
+		this.traceEnabled = System.getProperty("browser.playwright.traceEnabled", "false").toLowerCase();
+		this.tracesDir = System.getProperty("browser.playwright.tracesDir", "");
 
 		logger.info("Playwright browser type: " + this.browserType + ", headless: "
 				+ this.headless + ", slowMo: " + this.slowMo + "ms, traceEnabled: " + this.traceEnabled
@@ -735,7 +735,8 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 	/**
 	 * Save Playwright trace to file system.
-	 * Stops tracing and saves the trace ZIP file to the configured traces directory.
+	 * Stops tracing and saves the trace ZIP file to the configured traces
+	 * directory.
 	 */
 	private void saveTrace() {
 		if (Strings.isNullOrEmpty(tracesDir)) {
