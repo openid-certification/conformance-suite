@@ -57,9 +57,6 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(PlaywrightBrowserRunner.class);
 
-	// 12MB limit for trace files (MongoDB document limit is 16MB)
-	private static final int TRACE_SIZE_LIMIT = 12 * 1024 * 1024;
-
 	private final String testId;
 	private final TestInstanceEventLog eventLog;
 	private final BrowserControl browserControl;
@@ -68,6 +65,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	private final int slowMo;
 	private final Map<String, String> extraHttpHeaders;
 	private final String traceEnabled; // "true", "false", or "on-failure"
+	private final String tracesDir; // Directory for saving trace files
 
 	private String url;
 	private Playwright playwright;
@@ -116,9 +114,11 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 		this.extraHttpHeaders = parseExtraHttpHeaders(
 				System.getProperty("fintechlabs.browser.playwright.extraHttpHeaders", ""));
 		this.traceEnabled = System.getProperty("fintechlabs.browser.playwright.traceEnabled", "false").toLowerCase();
+		this.tracesDir = System.getProperty("fintechlabs.browser.playwright.tracesDir", "");
 
 		logger.info("Playwright browser type: " + this.browserType + ", headless: "
-				+ this.headless + ", slowMo: " + this.slowMo + "ms, traceEnabled: " + this.traceEnabled);
+				+ this.headless + ", slowMo: " + this.slowMo + "ms, traceEnabled: " + this.traceEnabled
+				+ ", tracesDir: " + this.tracesDir);
 	}
 
 	@Override
@@ -734,49 +734,41 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	}
 
 	/**
-	 * Save Playwright trace to event log.
-	 * Stops tracing and saves the trace ZIP file as base64 in the event log.
+	 * Save Playwright trace to file system.
+	 * Stops tracing and saves the trace ZIP file to the configured traces directory.
 	 */
 	private void saveTrace() {
+		if (Strings.isNullOrEmpty(tracesDir)) {
+			logger.warn(testId + ": tracesDir not configured, skipping trace save");
+			eventLog.log("PlaywrightRunner", args(
+					"msg", "Playwright trace not saved - tracesDir not configured",
+					"result", Condition.ConditionResult.WARNING));
+			return;
+		}
+
 		Path tracePath = null;
 		try {
-			tracePath = Files.createTempFile("playwright-trace-" + testId + "-", ".zip");
+			// Create traces directory if it doesn't exist
+			Path tracesDirPath = Path.of(tracesDir);
+			Files.createDirectories(tracesDirPath);
+
+			// Save trace directly to the target location
+			tracePath = tracesDirPath.resolve(testId + ".zip");
 			context.tracing().stop(new Tracing.StopOptions().setPath(tracePath));
 
-			byte[] traceBytes = Files.readAllBytes(tracePath);
-			logger.info(testId + ": Playwright trace captured, size: " + traceBytes.length + " bytes");
+			long traceSize = Files.size(tracePath);
+			logger.info(testId + ": Playwright trace saved to {}, size: {} bytes", tracePath, traceSize);
 
-			if (traceBytes.length > TRACE_SIZE_LIMIT) {
-				logger.warn(testId + ": Trace size {} exceeds limit {}, skipping save",
-						traceBytes.length, TRACE_SIZE_LIMIT);
-				eventLog.log("PlaywrightRunner", args(
-						"msg", "Playwright trace too large to save",
-						"traceSize", traceBytes.length,
-						"traceSizeLimit", TRACE_SIZE_LIMIT,
-						"result", Condition.ConditionResult.WARNING));
-			} else {
-				String traceBase64 = Base64.getEncoder().encodeToString(traceBytes);
-				eventLog.log("PlaywrightRunner", args(
-						"msg", "Playwright trace captured",
-						"trace", traceBase64,
-						"traceSize", traceBytes.length,
-						"result", Condition.ConditionResult.INFO));
-				logger.debug(testId + ": Playwright trace saved to event log");
-			}
+			eventLog.log("PlaywrightRunner", args(
+					"msg", "Playwright trace captured",
+					"tracePath", tracePath.toString(),
+					"traceSize", traceSize,
+					"result", Condition.ConditionResult.INFO));
 		} catch (IOException e) {
 			logger.error(testId + ": Failed to save Playwright trace", e);
 			eventLog.log("PlaywrightRunner", args(
 					"msg", "Failed to save Playwright trace: " + e.getMessage(),
 					"result", Condition.ConditionResult.WARNING));
-		} finally {
-			// Clean up temp file
-			if (tracePath != null) {
-				try {
-					Files.deleteIfExists(tracePath);
-				} catch (IOException e) {
-					logger.warn(testId + ": Failed to delete temp trace file", e);
-				}
-			}
 		}
 	}
 
