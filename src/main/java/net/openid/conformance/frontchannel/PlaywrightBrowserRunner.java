@@ -83,6 +83,10 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	private final int delaySeconds;
 	private boolean testFailed = false; // Track if test failed for "on-failure" trace mode
 
+	// Cached values for thread-safe access from getWebRunners()
+	private volatile String cachedCurrentUrl;
+	private volatile String cachedScreenshot;
+
 	/**
 	 * Create a new Playwright browser runner.
 	 *
@@ -162,8 +166,9 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 				page.navigate(url);
 			}
 			page.waitForLoadState();
+			updateCache();
 
-			String screenshot = captureScreenshotAsBase64();
+			String screenshot = cachedScreenshot;
 			eventLog.log("PlaywrightRunner", args(
 					"msg", "Scripted browser HTTP response",
 					"http", "response",
@@ -233,7 +238,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 						for (int j = 0; j < commands.size(); j++) {
 							JsonArray cmd = commands.get(j).getAsJsonArray();
 							if (cmd.size() >= 3) {
-								String cmdType = OIDFJSON.getString(cmd.get(0));
+								String cmdType = parseCommandType(cmd).toString();
 								String elementType = OIDFJSON.getString(cmd.get(1));
 								if (cmdType != null && cmdType.equalsIgnoreCase("wait") &&
 										elementType != null && (elementType.equalsIgnoreCase("contains")
@@ -253,6 +258,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 						for (int j = 0; j < commands.size(); j++) {
 							doCommand(commands.get(j).getAsJsonArray(), taskName);
 							this.currentCommand = null;
+							updateCache();
 						}
 					}
 
@@ -273,6 +279,9 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 			logger.error(testId + ": PlaywrightRunner caught exception", e);
 			testFailed = true;
 
+			// Try to update cache one more time for error reporting
+			updateCache();
+
 			String pageContent = "";
 			try {
 				pageContent = page != null ? page.content() : "";
@@ -280,13 +289,12 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 				logger.warn("Could not retrieve page content", contentEx);
 			}
 
-			String errorScreenshot = captureScreenshotAsBase64();
 			eventLog.log("PlaywrightRunner",
 					ex(e,
 							args("msg", e.getMessage(),
 									"page_source", pageContent,
-									"url", page != null ? page.url() : url,
-									"img", errorScreenshot,
+									"url", cachedCurrentUrl != null ? cachedCurrentUrl : url,
+									"img", cachedScreenshot,
 									"result", Condition.ConditionResult.FAILURE)));
 
 			this.lastException = e.getMessage();
@@ -384,188 +392,211 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	 * - wait-element-invisible: ["wait-element-invisible", selector_type, target,
 	 * timeout_seconds]
 	 *
-	 * @param command  JSON array representing the command
-	 * @param taskName Name of current task for logging
+	 * @param rawCommand JSON array representing the command
+	 * @param taskName   Name of current task for logging
 	 * @throws TestFailureException if command fails or is invalid
 	 */
-	private void doCommand(JsonArray command, String taskName) {
-		String commandString = OIDFJSON.getString(command.get(0));
-		if (Strings.isNullOrEmpty(commandString)) {
-			this.lastException = "Invalid Command: empty command string";
-			throw new TestFailureException(testId, "Invalid Command: empty command string");
-		}
+	private void doCommand(JsonArray rawCommand, String taskName) {
+		Command command = parseCommandType(rawCommand);
+		this.currentCommand = command.toString();
+		String elementType = OIDFJSON.getString(rawCommand.get(1));
+		String target = OIDFJSON.getString(rawCommand.get(2));
 
-		this.currentCommand = commandString;
+		switch (command) {
+			case CLICK: {
+				String selector = getSelector(elementType, target);
 
-		String elementType = OIDFJSON.getString(command.get(1));
-		String target = OIDFJSON.getString(command.get(2));
+				eventLog.log("PlaywrightRunner", args(
+						"msg", "Clicking an element",
+						"url", page.url(),
+						"command", command,
+						"task", taskName,
+						"element_type", elementType,
+						"target", target,
+						"playwright_selector", selector,
+						"result", Condition.ConditionResult.INFO));
 
-		if (commandString.equalsIgnoreCase("click")) {
-			String selector = getSelector(elementType, target);
-
-			eventLog.log("PlaywrightRunner", args(
-					"msg", "Clicking an element",
-					"url", page.url(),
-					"browser", commandString,
-					"task", taskName,
-					"element_type", elementType,
-					"target", target,
-					"playwright_selector", selector,
-					"result", Condition.ConditionResult.INFO));
-
-			try {
-				getLocator(elementType, target).click();
-				logger.debug(testId + ": Successfully clicked: " + target + " (" + elementType + ")");
-			} catch (Exception e) {
-				String optional = command.size() >= 4 ? OIDFJSON.getString(command.get(3)) : null;
-				if (optional != null && optional.equals("optional")) {
+				try {
+					getLocator(elementType, target).click(new Locator.ClickOptions().setTimeout(10000.0));
+					logger.debug(testId + ": Successfully clicked: " + target + " (" + elementType + ")");
+				} catch (Exception e) {
+					String optional = rawCommand.size() >= 4 ? OIDFJSON.getString(rawCommand.get(3)) : null;
+					if (optional == null || !optional.equals("optional")) {
+						logger.error(testId + ": Failed to click element with selector: " + selector + ", error: "
+								+ e.getMessage());
+						throw e;
+					}
 					eventLog.log("PlaywrightRunner", args(
 							"msg", "Element not found, skipping as 'click' command is marked 'optional'",
 							"url", page.url(),
-							"browser", commandString,
+							"command", command,
 							"task", taskName,
 							"element_type", elementType,
 							"target", target,
 							"playwright_selector", selector,
 							"result", Condition.ConditionResult.INFO));
-				} else {
-					logger.error(testId + ": Failed to click element with selector: " + selector + ", error: "
-							+ e.getMessage());
-					throw e;
 				}
+				break;
 			}
 
-			logger.debug(testId + ": Clicked: " + target + " (" + elementType + ")");
-		} else if (commandString.equalsIgnoreCase("text")) {
-			String value = OIDFJSON.getString(command.get(3));
+			case TEXT: {
+				String value = OIDFJSON.getString(rawCommand.get(3));
 
-			eventLog.log("PlaywrightRunner", args(
-					"msg", "Entering text",
-					"url", page.url(),
-					"browser", commandString,
-					"task", taskName,
-					"element_type", elementType,
-					"target", target,
-					"value", value,
-					"result", Condition.ConditionResult.INFO));
+				eventLog.log("PlaywrightRunner", args(
+						"msg", "Entering text",
+						"url", page.url(),
+						"command", command,
+						"task", taskName,
+						"element_type", elementType,
+						"target", target,
+						"value", value,
+						"result", Condition.ConditionResult.INFO));
 
-			try {
-				Locator locator = getLocator(elementType, target);
-				locator.clear();
-				locator.fill(value);
-				logger.debug(testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")");
-			} catch (Exception e) {
-				String optional = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
-				if (optional != null && optional.equals("optional")) {
+				try {
+					Locator locator = getLocator(elementType, target);
+					locator.clear(new Locator.ClearOptions().setTimeout(10000.0));
+					locator.fill(value);
+					logger.debug(
+							testId + ":\t\tEntered text: '" + value + "' into " + target + " (" + elementType + ")");
+				} catch (Exception e) {
+					String optional = rawCommand.size() >= 5 ? OIDFJSON.getString(rawCommand.get(4)) : null;
+
+					if (optional == null || !optional.equals("optional")) {
+						logger.error(testId + ": Failed to enter text into element: " + target
+								+ " (" + elementType + "), error: " + e.getMessage());
+						throw e;
+					}
 					eventLog.log("PlaywrightRunner", args(
 							"msg", "Element not found, skipping as 'text' command is marked 'optional'",
 							"url", page.url(),
-							"browser", commandString,
+							"command", command,
 							"task", taskName,
 							"element_type", elementType,
 							"target", target,
 							"value", value,
 							"result", Condition.ConditionResult.INFO));
-				} else {
-					throw e;
 				}
+				break;
 			}
 
-		} else if (commandString.equalsIgnoreCase("wait")) {
-			int timeoutSeconds = OIDFJSON.getInt(command.get(3));
-			String regexp = command.size() >= 5 ? OIDFJSON.getString(command.get(4)) : null;
-			String action = command.size() >= 6 ? OIDFJSON.getString(command.get(5)) : null;
+			case WAIT: {
+				int timeoutSeconds = OIDFJSON.getInt(rawCommand.get(3));
+				String regexp = rawCommand.size() >= 5 ? OIDFJSON.getString(rawCommand.get(4)) : null;
+				String action = rawCommand.size() >= 6 ? OIDFJSON.getString(rawCommand.get(5)) : null;
 
-			boolean updateImagePlaceHolder = false;
-			boolean updateImagePlaceHolderOptional = false;
-			if (!Strings.isNullOrEmpty(action)) {
-				if (action.equals("update-image-placeholder-optional")) {
-					updateImagePlaceHolderOptional = true;
-				} else if (action.equals("update-image-placeholder")) {
-					updateImagePlaceHolder = true;
-				} else {
-					this.lastException = "Invalid action: " + action;
-					throw new TestFailureException(testId, "Invalid action: " + action);
+				boolean updateImagePlaceHolder = false;
+				boolean updateImagePlaceHolderOptional = false;
+				if (!Strings.isNullOrEmpty(action)) {
+					if (action.equals("update-image-placeholder-optional")) {
+						updateImagePlaceHolderOptional = true;
+					} else if (action.equals("update-image-placeholder")) {
+						updateImagePlaceHolder = true;
+					} else {
+						this.lastException = "Invalid action: " + action;
+						throw new TestFailureException(testId, "Invalid action: " + action);
+					}
 				}
+
+				eventLog.log("PlaywrightRunner", args(
+						"msg", "Waiting",
+						"url", page.url(),
+						"command", command,
+						"task", taskName,
+						"element_type", elementType,
+						"target", target,
+						"seconds", timeoutSeconds,
+						"result", Condition.ConditionResult.INFO,
+						"regexp", regexp,
+						"action", action));
+
+				try {
+					if (elementType.equalsIgnoreCase("contains")) {
+						page.waitForCondition(() -> url.contains(target));
+					} else if (elementType.equalsIgnoreCase("match")) {
+						page.waitForURL(url);
+					} else if (!Strings.isNullOrEmpty(regexp)) {
+						// Wait for element with text matching regexp
+						Locator locator = getLocator(elementType, target);
+						locator.waitFor(new Locator.WaitForOptions()
+								.setState(WaitForSelectorState.ATTACHED)
+								.setTimeout(timeoutSeconds * 1000.0));
+
+						String text = locator.textContent();
+						if (text != null && !text.matches(regexp)) {
+							throw new TestFailureException(testId, "Element text does not match pattern: " + regexp);
+						}
+
+						if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
+							browserControl.updatePlaceholder(this.placeholder, page.content(),
+									"text/html", regexp, updateImagePlaceHolderOptional);
+						}
+					} else {
+						page.waitForSelector(getSelector(elementType, target),
+								new WaitForSelectorOptions()
+										.setState(WaitForSelectorState.ATTACHED)
+										.setTimeout(timeoutSeconds * 1000.0));
+					}
+
+					logger.debug(testId + ":\t\tDone waiting: " + command);
+
+				} catch (TimeoutError timeoutException) {
+					this.lastException = timeoutException.getMessage();
+					throw new TestFailureException(testId, "Timed out waiting: " + rawCommand.toString());
+				}
+				break;
 			}
 
-			eventLog.log("PlaywrightRunner", args(
-					"msg", "Waiting",
-					"url", page.url(),
-					"browser", commandString,
-					"task", taskName,
-					"element_type", elementType,
-					"target", target,
-					"seconds", timeoutSeconds,
-					"result", Condition.ConditionResult.INFO,
-					"regexp", regexp,
-					"action", action));
-
-			try {
-				if (elementType.equalsIgnoreCase("contains")) {
-					page.waitForCondition(() -> url.contains(target));
-				} else if (elementType.equalsIgnoreCase("match")) {
-					page.waitForURL(url);
-				} else if (!Strings.isNullOrEmpty(regexp)) {
-					// Wait for element with text matching regexp
-					Locator locator = getLocator(elementType, target);
-					locator.waitFor(new Locator.WaitForOptions()
-							.setState(WaitForSelectorState.ATTACHED)
-							.setTimeout(timeoutSeconds * 1000.0));
-
-					String text = locator.textContent();
-					if (text != null && !text.matches(regexp)) {
-						throw new TestFailureException(testId, "Element text does not match pattern: " + regexp);
-					}
-
-					if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
-						browserControl.updatePlaceholder(this.placeholder, page.content(),
-								"text/html", regexp, updateImagePlaceHolderOptional);
-					}
-				} else {
+			case WAIT_ELEMENT_INVISIBLE: {
+				int timeoutSeconds = OIDFJSON.getInt(rawCommand.get(3));
+				try {
 					page.waitForSelector(getSelector(elementType, target),
 							new WaitForSelectorOptions()
-									.setState(WaitForSelectorState.ATTACHED)
-									.setTimeout(timeoutSeconds * 1000.0));
+									.setState(WaitForSelectorState.HIDDEN)
+									.setTimeout(timeoutSeconds));
+					logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
+				} catch (TimeoutError timeoutException) {
+					this.lastException = timeoutException.getMessage();
+					throw new TestFailureException(testId,
+							"Timed out waiting for element to become invisible: " + rawCommand.toString());
 				}
-
-				logger.debug(testId + ":\t\tDone waiting: " + commandString);
-
-			} catch (TimeoutError timeoutException) {
-				this.lastException = timeoutException.getMessage();
-				throw new TestFailureException(testId, "Timed out waiting: " + command.toString());
+				break;
 			}
 
-		} else if (commandString.equalsIgnoreCase("wait-element-invisible")) {
-			int timeoutSeconds = OIDFJSON.getInt(command.get(3));
-			try {
-				page.waitForSelector(getSelector(elementType, target),
-						new WaitForSelectorOptions()
-								.setState(WaitForSelectorState.HIDDEN)
-								.setTimeout(timeoutSeconds));
-				logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
-			} catch (TimeoutError timeoutException) {
-				this.lastException = timeoutException.getMessage();
-				throw new TestFailureException(testId,
-						"Timed out waiting for element to become invisible: " + command.toString());
+			case WAIT_ELEMENT_VISIBLE: {
+				int timeoutSeconds = OIDFJSON.getInt(rawCommand.get(3));
+				try {
+					page.waitForSelector(getSelector(elementType, target),
+							new WaitForSelectorOptions()
+									.setState(WaitForSelectorState.VISIBLE)
+									.setTimeout(timeoutSeconds));
+					logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
+				} catch (TimeoutError timeoutException) {
+					this.lastException = timeoutException.getMessage();
+					throw new TestFailureException(testId,
+							"Timed out waiting for element to become invisible: " + rawCommand.toString());
+				}
+				break;
 			}
 
-		} else if (commandString.equalsIgnoreCase("wait-element-visible")) {
-			int timeoutSeconds = OIDFJSON.getInt(command.get(3));
-			try {
-				page.waitForSelector(getSelector(elementType, target),
-						new WaitForSelectorOptions()
-								.setState(WaitForSelectorState.VISIBLE)
-								.setTimeout(timeoutSeconds));
-				logger.debug(testId + ":\t\tElement with " + elementType + " '" + target + "' is now invisible");
-			} catch (TimeoutError timeoutException) {
-				this.lastException = timeoutException.getMessage();
-				throw new TestFailureException(testId,
-						"Timed out waiting for element to become invisible: " + command.toString());
+			default: {
+				this.lastException = "Invalid Command " + command;
+				throw new TestFailureException(testId, "Invalid Command: " + command);
 			}
-		} else {
-			this.lastException = "Invalid Command " + commandString;
-			throw new TestFailureException(testId, "Invalid Command: " + commandString);
+
+		}
+
+	}
+
+	private Command parseCommandType(JsonArray command) {
+		String parsed = OIDFJSON.getString(command.get(0));
+		if (Strings.isNullOrEmpty(parsed)) {
+			this.lastException = "Invalid Command: empty command string";
+			throw new TestFailureException(testId, "Invalid Command: empty command string");
+		}
+		try {
+			return Command.valueOf(parsed.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			return null;
 		}
 	}
 
@@ -660,6 +691,21 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	}
 
 	/**
+	 * Update cached values for thread-safe access from other threads.
+	 * Must only be called from the runner thread that owns the page.
+	 */
+	private void updateCache() {
+		if (page != null) {
+			try {
+				cachedCurrentUrl = page.url();
+				cachedScreenshot = captureScreenshotAsBase64();
+			} catch (Exception e) {
+				logger.warn(testId + ": Failed to update cache", e);
+			}
+		}
+	}
+
+	/**
 	 * Close browser and clean up resources.
 	 * Saves trace before closing if tracing was enabled and should be saved.
 	 */
@@ -750,11 +796,24 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 	}
 
 	// Package-private accessors for BrowserControl.getWebRunners()
+	// These return cached values to avoid thread-safety issues with Playwright
 	String getUrl() {
 		return url;
 	}
 
 	String getCurrentUrl() {
-		return page != null ? page.url() : url;
+		return cachedCurrentUrl != null ? cachedCurrentUrl : url;
+	}
+
+	String getCurrentScreenshot() {
+		return cachedScreenshot;
+	}
+
+	enum Command {
+		CLICK,
+		TEXT,
+		WAIT,
+		WAIT_ELEMENT_VISIBLE,
+		WAIT_ELEMENT_INVISIBLE
 	}
 }

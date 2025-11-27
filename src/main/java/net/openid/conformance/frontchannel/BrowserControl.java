@@ -321,6 +321,7 @@ public class BrowserControl implements DataUtils {
 				PlaywrightBrowserRunner pr = (PlaywrightBrowserRunner) runner;
 				o.addProperty("url", pr.getUrl());
 				o.addProperty("currentUrl", pr.getCurrentUrl());
+				o.addProperty("currentScreenshot", pr.getCurrentScreenshot());
 				o.addProperty("currentTask", pr.getCurrentTask());
 				o.addProperty("currentCommand", pr.getCurrentCommand());
 				o.addProperty("lastException", pr.getLastException());

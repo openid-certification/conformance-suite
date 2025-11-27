@@ -51,6 +51,12 @@ Content-Type: application/x-www-form-urlencoded
                                         <dd class="col-sm-9  wrapLongStrings"><i><%- val.url %></i></dd>
                                         <dt class="col-sm-3">Current Url</dt>
                                         <dd class="col-sm-9  wrapLongStrings"><i><%- val.currentUrl %></i></dd>
+                                        <% if (val.currentScreenshot) { %>
+                                            <dt class="col-sm-3">Screenshot</dt>
+                                            <dd class="col-sm-9">
+                                                <img src="<%- val.currentScreenshot %>" style="max-width: 100%; border: 1px solid #ddd;" alt="Current page screenshot" />
+                                            </dd>
+                                        <% } %>
                                         <dt class="col-sm-3">Current Task</dt>
                                         <dd class="col-sm-9  wrapLongStrings"><i><%- val.currentTask %></i></dd>
                                         <dt class="col-sm-3">Current Command</dt>
