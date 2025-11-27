@@ -2518,7 +2518,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 // show/hide all the appropriate fields on the page
                 document.querySelectorAll(".config-form-element-container")?.forEach(function(element) {
                     const formElement = element.querySelector('.config-form-element');
-                    console.log(element);
                     if (_.includes(fieldsToShow, formElement.dataset.jsonTarget)) {
                         element.style.display = '';
                     } else {
