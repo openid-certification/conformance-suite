@@ -12,8 +12,11 @@ import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.TimeoutError;
 import com.microsoft.playwright.Tracing;
 import com.microsoft.playwright.Page.WaitForSelectorOptions;
+import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.microsoft.playwright.options.RequestOptions;
 import com.microsoft.playwright.options.WaitForSelectorState;
+
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import com.google.gson.JsonParser;
 
@@ -511,20 +515,18 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 				try {
 					if (elementType.equalsIgnoreCase("contains")) {
-						page.waitForCondition(() -> url.contains(target));
+						page.waitForCondition(() -> page.url().contains(target),
+								new Page.WaitForConditionOptions().setTimeout(timeoutSeconds * 1000.0));
 					} else if (elementType.equalsIgnoreCase("match")) {
-						page.waitForURL(url);
+						page.waitForURL(Pattern.compile(target),
+								new Page.WaitForURLOptions().setTimeout(timeoutSeconds * 1000.0));
 					} else if (!Strings.isNullOrEmpty(regexp)) {
-						// Wait for element with text matching regexp
+						// Wait for element with text matching regexp - Playwright assertions auto-retry
 						Locator locator = getLocator(elementType, target);
-						locator.waitFor(new Locator.WaitForOptions()
-								.setState(WaitForSelectorState.ATTACHED)
-								.setTimeout(timeoutSeconds * 1000.0));
+						Pattern pattern = Pattern.compile(regexp);
 
-						String text = locator.textContent();
-						if (text != null && !text.matches(regexp)) {
-							throw new TestFailureException(testId, "Element text does not match pattern: " + regexp);
-						}
+						assertThat(locator).hasText(pattern,
+								new LocatorAssertions.HasTextOptions().setTimeout(timeoutSeconds * 1000.0));
 
 						if (updateImagePlaceHolder || updateImagePlaceHolderOptional) {
 							browserControl.updatePlaceholder(this.placeholder, page.content(),
@@ -539,7 +541,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 
 					logger.debug(testId + ":\t\tDone waiting: " + command);
 
-				} catch (TimeoutError timeoutException) {
+				} catch (TimeoutError | AssertionError timeoutException) {
 					this.lastException = timeoutException.getMessage();
 					throw new TestFailureException(testId, "Timed out waiting: " + rawCommand.toString());
 				}
