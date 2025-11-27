@@ -2874,9 +2874,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             }
             const trustAnchorElm = document.querySelector("#federation-trust-anchor");
             const row = trustAnchorElm.closest(".row");
-            if (row.style.display !== "none") {
-                trustAnchorElm.value = `${window.location.origin}/test/a/${alias}/trust-anchor`;
-            }
+            trustAnchorElm.value = `${window.location.origin}/test/a/${alias}/trust-anchor`;
         }
 
         function registerAliasListener() {
