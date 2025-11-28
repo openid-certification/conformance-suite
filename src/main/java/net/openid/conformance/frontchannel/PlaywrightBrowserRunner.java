@@ -114,7 +114,7 @@ public class PlaywrightBrowserRunner implements IBrowserRunner, DataUtils {
 		this.browserControl = browserControl;
 		this.headless = Boolean.parseBoolean(System.getProperty("browser.playwright.headless", "true"));
 		this.browserType = System.getProperty("browser.playwright.type", "chromium").toLowerCase();
-		this.slowMo = Integer.parseInt(System.getProperty("browser.playwright.slowMo", "1000"));
+		this.slowMo = Integer.parseInt(System.getProperty("browser.playwright.slowMo", "0"));
 		this.extraHttpHeaders = parseExtraHttpHeaders(
 				System.getProperty("browser.playwright.extraHttpHeaders", ""));
 		this.traceEnabled = System.getProperty("browser.playwright.traceEnabled", "false").toLowerCase();
