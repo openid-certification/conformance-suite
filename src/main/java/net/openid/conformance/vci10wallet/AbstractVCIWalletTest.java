@@ -1367,12 +1367,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
+		int waitTimeSeconds = 40;
+		eventLog.log(getId(), """
+			Detected completed credential endpoint call. Waiting %d seconds for additional wallet requests before completing the test."""
+			.formatted(waitTimeSeconds));
+
 		getTestExecutionManager().scheduleInBackground(() -> {
 			setStatus(Status.RUNNING);
-
 			fireTestFinished();
 			return null;
-		}, 5, TimeUnit.SECONDS);
+		}, waitTimeSeconds, TimeUnit.SECONDS);
 
 	}
 
