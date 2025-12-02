@@ -437,7 +437,8 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	protected List<String> findPath(String fromEntity, String toTrustAnchor) throws CyclicPathException {
-		 List<String> path = findPath(fromEntity, toTrustAnchor, new ArrayList<>());
+		eventLog.log(getName(), "Finding path from %s to %s".formatted(fromEntity, toTrustAnchor));
+		List<String> path = findPath(fromEntity, toTrustAnchor, new ArrayList<>());
 		 if (path != null) {
 			 eventLog.log(getName(), "Path to trust anchor: %s".formatted(String.join(" → ", path)));
 			 return path;
