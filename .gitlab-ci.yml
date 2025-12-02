@@ -42,6 +42,7 @@ build:
     # Don't compile the tests yet
     - mvn -B -Dmaven.test.skip -Dpmd.skip clean package
   artifacts:
+    access: developer
     paths:
       - target/
 
@@ -126,6 +127,7 @@ check-trailing-whitespace:
 #    - setup_docker
 #    - codeclimate
 #  artifacts:
+#    access: developer
 #    paths: [codeclimate.json]
 
 .auto-deploy:
@@ -160,6 +162,7 @@ check-trailing-whitespace:
     #    - auto-deploy persist_environment_url
 
   artifacts:
+    access: developer
     reports:
       dotenv: deploy.env
   dependencies: []
@@ -278,6 +281,7 @@ stop_normal:
     refs:
       - branches
   artifacts:
+    access: developer
     when: always
     paths:
       - "*.zip"
@@ -351,6 +355,7 @@ local_test:
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongodump --db=test_suite --archive=/data/db/mongodb-dump.gz --gzip
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
   artifacts:
+    access: developer
     when: always
     paths:
       - oidcc-provider-log.txt
@@ -597,7 +602,7 @@ local_test:
     for i in $*; do
       echo "Fetching master branch latest passed pipeline results for '$*'"
       res=0
-      curl --silent --show-error --fail -L -o $i.zip https://gitlab.com/openid/conformance-suite/-/jobs/artifacts/master/download?job=$i || res=$?
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --silent --show-error --fail -L -o $i.zip https://gitlab.com/openid/conformance-suite/-/jobs/artifacts/master/download?job=$i || res=$?
       if [ $res -eq 0 ]; then
         unzip $i.zip
         rm $i.zip
