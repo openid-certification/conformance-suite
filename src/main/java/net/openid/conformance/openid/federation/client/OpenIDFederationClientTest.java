@@ -204,16 +204,23 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 	}
 
 	protected Object entityConfigurationResponse() {
+		env.mapKey("entity_configuration_claims", "server");
+		env.mapKey("entity_configuration_claims_jwks", "op_ec_jwks");
+
+		Object response;
 		boolean nonBlocking = true;
 		// We need to default to the non-blocking version since
 		// requests to the well-known endpoint might come in at any time,
 		// and we don't want tests to fail because of it
 		if (nonBlocking) {
-			env.mapKey("entity_configuration_claims", "server");
-			env.mapKey("entity_configuration_claims_jwks", "op_ec_jwks");
-			return NonBlocking.entityConfigurationResponse(env, getId());
+			response = NonBlocking.entityConfigurationResponse(env, getId());
+		} else {
+			response = super.entityConfigurationResponse("server", SignEntityStatement.class);
 		}
-		return super.entityConfigurationResponse("server", SignEntityStatementWithServerKeys.class);
+
+		env.unmapKey("entity_configuration_claims");
+		env.unmapKey("entity_configuration_claims_jwks");
+		return response;
 	}
 
 	protected Object openIdConfigurationResponse() {
@@ -262,7 +269,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 			claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
 			env.putObject("federation_fetch_response", claims);
 			env.mapKey("entity_configuration_claims", "federation_fetch_response");
-			callAndStopOnFailure(SignEntityStatementWithServerKeys.class);
+			callAndStopOnFailure(SignEntityStatement.class);
 			env.unmapKey("entity_configuration_claims");
 			String federationFetchResponse = env.getString("signed_entity_statement");
 			response = ResponseEntity
