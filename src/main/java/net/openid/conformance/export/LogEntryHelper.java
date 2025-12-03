@@ -112,7 +112,7 @@ public class LogEntryHelper {
 		specLinks.put("CID-SP-", "https://cdn.connectid.com.au/specifications/connectid-fapi-security-profile-03.html#section-");
 		specLinks.put("CID-IDA-", "https://cdn.connectid.com.au/specifications/digitalid-identity-assurance-profile-06.html#section");
 		specLinks.put("CID-PURPOSE-", "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section-");
-		specLinks.put("OIDFED-", "https://openid.net/specs/openid-federation-1_0-43.html#section-");
+		specLinks.put("OIDFED-", "https://openid.net/specs/openid-federation-1_0-45.html#section-");
 		specLinks.put("CBUAE", "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI");
 	}
 
