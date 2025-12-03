@@ -19,11 +19,11 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
-		"federation.trust_anchor",
-		"federation.trust_anchor_jwks",
+		"federation.de_trust_anchor",
+		"federation.de_trust_anchor_jwks",
 	}
 )
-public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {
@@ -34,11 +34,11 @@ public class OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest extends 
 		setStatus(Status.RUNNING);
 
 		String fromEntity = stripWellKnown(env.getString("config", "federation.entity_identifier"));
-		String trustAnchor = env.getString("config", "federation.trust_anchor");
+		String trustAnchor = env.getString("config", "federation.de_trust_anchor");
 		if (trustAnchor == null) {
 			throw new TestFailureException(getId(), "The test configuration does not contain a trust anchor");
 		}
-		JsonElement trustAnchorJwks = env.getElementFromObject("config", "federation.trust_anchor_jwks");
+		JsonElement trustAnchorJwks = env.getElementFromObject("config", "federation.de_trust_anchor_jwks");
 		if (trustAnchorJwks != null && trustAnchorJwks.isJsonPrimitive()) {
 			throw new TestFailureException(getId(), "The preconfigured trust anchor jwks is not a valid JSON object. " +
 				"Please verify that your configuration does not contain errors.");

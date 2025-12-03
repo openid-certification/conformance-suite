@@ -6,18 +6,18 @@ import net.openid.conformance.variant.VariantSelection;
 
 @PublishTestPlan(
 	testPlanName = "openid-federation-deployed-entity-test-plan",
-	displayName = "OpenID Federation: Deployed federation entity test plan (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
+	displayName = "OpenID Federation: Deployed federation entity test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
 	testModules = {
 		OpenIDFederationEntityConfigurationTest.class,
-		OpenIDFederationListAndFetchTest.class,
+		// OpenIDFederationListAndFetchTest.class, TODO: Figure out a way to do this test for large federations
 		OpenIDFederationEnsureFetchWithInvalidSubFailsTest.class,
 		OpenIDFederationEnsureFetchWithIssAsSubFailsTest.class,
 		OpenIDFederationPreconfiguredKeysMatchTrustAnchorsKeysTest.class,
 		OpenIDFederationCompareTrustChainToResolveTest.class,
 	}
 )
-public class OpenIDFederationTestPlan implements TestPlan {
+public class OpenIDFederationDeployedEntityTestPlan implements TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
 		return "OpenID Federation: Deployed federation entity";

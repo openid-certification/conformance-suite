@@ -20,8 +20,6 @@ public class ExtractParametersForTrustAnchorResolveEndpoint extends AbstractCond
 		String sub = env.getString("incoming_request", "query_string_params.sub");
 		String trustAnchor = env.getString("incoming_request", "query_string_params.trust_anchor");
 
-		// Error if sub isn't expected and trust anchor isn't this trust anchor
-
 		JsonElement entityTypeElement = env.getElementFromObject("incoming_request", "query_string_params.entity_type");
 		JsonArray entityTypes;
 		if (entityTypeElement != null) {

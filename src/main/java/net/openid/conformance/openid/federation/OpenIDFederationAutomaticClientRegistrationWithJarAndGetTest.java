@@ -5,11 +5,11 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
-		testName = "openid-federation-automatic-client-registration-with-jar-and-get",
-		displayName = "openid-federation-automatic-client-registration-with-jar-and-get",
-		summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-			"with JAR and HTTP GET to the authorization endpoint",
-		profile = "OIDFED"
+	testName = "openid-federation-automatic-client-registration-with-jar-and-get",
+	displayName = "OpenID Federation OP test: Automatic client registration with JAR and HTTP GET",
+	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
+		"with JAR and HTTP GET to the authorization endpoint",
+	profile = "OIDFED"
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationWithJarAndGetTest extends OpenIDFederationAutomaticClientRegistrationTest {

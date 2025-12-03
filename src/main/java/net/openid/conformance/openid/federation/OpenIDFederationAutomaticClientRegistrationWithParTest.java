@@ -7,18 +7,9 @@ import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
 	testName = "openid-federation-automatic-client-registration-with-par",
-	displayName = "openid-federation-automatic-client-registration-with-par",
+	displayName = "OpenID Federation OP test: Automatic client registration with PAR",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, with PAR",
-	profile = "OIDFED",
-	configurationFields = {
-		"client.jwks",
-		"client.trust_chain",
-		"federation.entity_identifier",
-		"federation.trust_anchor",
-		"federation.trust_anchor_jwks",
-		"federation.authority_hints",
-		"internal.op_to_rp_mode"
-	}
+	profile = "OIDFED"
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationWithParTest extends OpenIDFederationAutomaticClientRegistrationTest {

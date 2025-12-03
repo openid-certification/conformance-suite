@@ -8,15 +8,15 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
-		testName = "openid-federation-automatic-client-registration-invalid-missing-request-object-iss",
-		displayName = "openid-federation-automatic-client-registration-invalid-missing-request-object-iss",
-		summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-			"deliberately not including iss in the authorization request object." +
-			"<br/><br/>" +
-			"If the server does not return an invalid_request, invalid_request_object or a similar well-defined " +
-			"and appropriate error back to the client, it must show an error page saying the request is invalid due to " +
-			"a missing iss claim — upload a screenshot of the error page.",
-		profile = "OIDFED"
+	testName = "openid-federation-automatic-client-registration-invalid-missing-request-object-iss",
+	displayName = "OpenID Federation OP test: Invalid request object due to missing iss",
+	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
+		"deliberately not including iss in the authorization request object." +
+		"<br/><br/>" +
+		"If the server does not return an invalid_request, invalid_request_object or a similar well-defined " +
+		"and appropriate error back to the client, it must show an error page saying the request is invalid due to " +
+		"a missing iss claim — upload a screenshot of the error page.",
+	profile = "OIDFED"
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationInvalidMissingRequestObjectIssTest extends OpenIDFederationAutomaticClientRegistrationTest {

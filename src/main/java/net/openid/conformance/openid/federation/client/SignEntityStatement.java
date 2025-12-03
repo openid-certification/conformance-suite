@@ -1,23 +1,30 @@
 package net.openid.conformance.openid.federation.client;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractSignJWT;
+import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.testmodule.Environment;
 
-public class SignEntityStatementWithServerKeys extends AbstractSignJWT {
+public class SignEntityStatement extends AbstractSignJWT {
 
 	@Override
-	@PreEnvironment(required = { "entity_configuration_claims", "server_jwks" })
+	protected JOSEObjectType getMediaType() {
+		return EntityUtils.ENTITY_STATEMENT_TYPE;
+	}
+
+	@Override
+	@PreEnvironment(required = { "entity_configuration_claims", "entity_configuration_claims_jwks" })
 	@PostEnvironment(strings = "signed_entity_statement")
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.getObject("entity_configuration_claims");
-		JsonObject jwks = env.getObject("server_jwks");
-		return signJWT(env, claims, jwks);
+		JsonObject jwks = env.getObject("entity_configuration_claims_jwks");
+		return signJWT(env, claims, jwks, true);
 	}
 
 	@Override

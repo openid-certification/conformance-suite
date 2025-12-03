@@ -8,15 +8,15 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
-		testName = "openid-federation-automatic-client-registration-invalid-request-object-sub",
-		displayName = "openid-federation-automatic-client-registration-invalid-request-object-sub",
-		summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-			"deliberately including sub claim in the authorization request object, which is not permitted." +
-			"<br/><br/>" +
-			"If the server does not return an invalid_request, invalid_request_object or a similar well-defined " +
-			"and appropriate error back to the client, it must show an error page saying the request is invalid due to " +
-			"the sub claim — upload a screenshot of the error page.",
-		profile = "OIDFED"
+	testName = "openid-federation-automatic-client-registration-invalid-request-object-sub",
+	displayName = "OpenID Federation OP test: Invalid sub in request object",
+	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
+		"deliberately including sub claim in the authorization request object, which is not permitted." +
+		"<br/><br/>" +
+		"If the server does not return an invalid_request, invalid_request_object or a similar well-defined " +
+		"and appropriate error back to the client, it must show an error page saying the request is invalid due to " +
+		"the sub claim — upload a screenshot of the error page.",
+	profile = "OIDFED"
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationInvalidRequestObjectSubTest extends OpenIDFederationAutomaticClientRegistrationTest {

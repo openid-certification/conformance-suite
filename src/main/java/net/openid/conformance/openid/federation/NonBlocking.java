@@ -3,6 +3,7 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -16,6 +17,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.JWTUtil;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,7 +30,7 @@ public class NonBlocking {
 	public static Object entityConfigurationResponse(Environment env, String testId) {
 		JsonObject entityConfigurationClaims = env.getObject("entity_configuration_claims");
 		JsonObject jwks = env.getObject("entity_configuration_claims_jwks");
-		String entityConfiguration = signClaims(testId, entityConfigurationClaims, jwks);
+		String entityConfiguration = signClaims(testId, entityConfigurationClaims, jwks, EntityUtils.ENTITY_STATEMENT_TYPE);
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
@@ -43,6 +45,10 @@ public class NonBlocking {
 			sub = env.getString("incoming_request", "body_form_params.sub");
 		} else {
 			sub = env.getString("incoming_request", "query_string_params.sub");
+		}
+
+		if (sub == null || sub.isEmpty()) {
+			return errorResponse("invalid_request", "Missing required sub parameter in request", 400);
 		}
 
 		String federationEndpointUrl = EntityUtils.appendWellKnown(sub);
@@ -62,7 +68,7 @@ public class NonBlocking {
 		claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
 
 		JsonObject jwks = env.getObject("trust_anchor_jwks");
-		String federationFetchResponse = signClaims(testId, claims, jwks);
+		String federationFetchResponse = signClaims(testId, claims, jwks, EntityUtils.ENTITY_STATEMENT_TYPE);
 
 		ResponseEntity<Object> response = ResponseEntity
 			.status(200)
@@ -74,7 +80,17 @@ public class NonBlocking {
 		return response;
 	}
 
-	protected static String signClaims(String testId, JsonObject claims, JsonObject jwks) {
+	protected static ResponseEntity<Object> errorResponse(String error, String errorDescription, Integer statusCode) {
+		JsonObject errorObject = new JsonObject();
+		errorObject.addProperty("error", error);
+		errorObject.addProperty("error_description", errorDescription);
+		return ResponseEntity
+			.status(HttpStatus.valueOf(statusCode))
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(errorObject);
+	}
+
+	protected static String signClaims(String testId, JsonObject claims, JsonObject jwks, JOSEObjectType typ) {
 
 		if (claims == null) {
 			throw new TestFailureException(testId, "Couldn't find claims");
@@ -97,6 +113,7 @@ public class NonBlocking {
 
 			JWSHeader.Builder builder = new JWSHeader.Builder(alg);
 			builder.keyID(signingJwk.getKeyID());
+			builder.type(typ);
 			JWSHeader header = builder.build();
 
 			return performSigning(header, claims, signer);

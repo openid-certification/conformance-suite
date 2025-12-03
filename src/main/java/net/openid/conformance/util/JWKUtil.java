@@ -1,6 +1,7 @@
 package net.openid.conformance.util;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -39,6 +40,15 @@ public class JWKUtil {
 		JsonArray keys = jwks.get("keys").getAsJsonArray();
 		JsonObject key = keys.get(0).getAsJsonObject();
 		return OIDFJSON.getString(key.get("alg"));
+	}
+
+	public static JsonArray getAlgsFromJwks(JsonObject jwks) {
+		JsonArray keys = jwks.get("keys").getAsJsonArray();
+		JsonArray algs = new JsonArray();
+		for (JsonElement key : keys) {
+			algs.add(OIDFJSON.getString(key.getAsJsonObject().get("alg")));
+		}
+		return algs;
 	}
 
 	/**
@@ -182,4 +192,14 @@ public class JWKUtil {
 		jwks.add("keys", jwksKeys);
 		return jwks;
 	}
-}
+
+	public static JsonObject toPublicJWKSet(JsonObject input) {
+		try {
+			String json = input.toString();
+			JWKSet fullSet = JWKSet.parse(json);
+			JWKSet publicSet = fullSet.toPublicJWKSet();
+			return JsonParser.parseString(publicSet.toString(true)).getAsJsonObject();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to convert JWKS to public version", e);
+		}
+	}}

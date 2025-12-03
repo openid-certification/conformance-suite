@@ -10,7 +10,7 @@ import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
 	testName = "openid-federation-automatic-client-registration-invalid-signature-with-other-keys-on-request-object",
-	displayName = "openid-federation-automatic-client-registration-invalid-signature-with-other-keys-on-request-object",
+	displayName = "OpenID Federation OP test: Invalid signature (using other keys) on request object",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
 		"with JAR and HTTP GET to the authorization endpoint. The request object is signed with another set of keys " +
 		"than the one in the jwks, and must be rejected." +

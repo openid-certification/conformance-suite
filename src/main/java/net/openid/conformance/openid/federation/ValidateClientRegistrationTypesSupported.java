@@ -24,6 +24,11 @@ public class ValidateClientRegistrationTypesSupported extends AbstractCondition 
 				args("client_registration_types_supported", clientRegistrationTypesSupportedElement));
 		}
 
+		if (clientRegistrationTypesSupportedElement.getAsJsonArray().isEmpty()) {
+			throw error("client_registration_types_supported must contain at least one supported registration type",
+				args("client_registration_types", clientRegistrationTypesSupportedElement));
+		}
+
 		JsonArray clientRegistrationTypesSupported = clientRegistrationTypesSupportedElement.getAsJsonArray();
 		for (JsonElement element : clientRegistrationTypesSupported) {
 			if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {

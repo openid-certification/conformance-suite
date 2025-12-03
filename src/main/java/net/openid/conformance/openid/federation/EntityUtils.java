@@ -5,8 +5,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.JOSEObjectType;
 import org.springframework.http.MediaType;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +20,10 @@ import java.util.Set;
 public class EntityUtils {
 
 	public static MediaType ENTITY_STATEMENT_JWT = new MediaType("application", "entity-statement+jwt");
+	public static JOSEObjectType ENTITY_STATEMENT_TYPE = new JOSEObjectType("entity-statement+jwt");
+
 	public static MediaType RESOLVE_RESPONSE_JWT = new MediaType("application", "resolve-response+jwt");
+	public static JOSEObjectType RESOLVE_RESPONSE_TYPE = new JOSEObjectType("resolve-response+jwt");
 
 	public static List<String> STANDARD_ENTITY_STATEMENT_CLAIMS = ImmutableList.of(
 		"iss",
@@ -87,6 +93,28 @@ public class EntityUtils {
 
 	public static boolean equals(String a, String b) {
 		return Objects.equals(a, b) || Objects.equals(stripTrailingSlash(a), stripTrailingSlash(b));
+	}
+
+	public static String replaceHostnameInUrl(String originalUrl, String httpsUrlWithHostname) {
+		try {
+			URI baseUri = new URI(originalUrl);
+			URI overrideUri = new URI(httpsUrlWithHostname);
+
+			// Reconstruct baseUrl using host and scheme from override, and path/query from baseUrl
+			URI updatedUri = new URI(
+				overrideUri.getScheme(),
+				null,
+				overrideUri.getHost(),
+				overrideUri.getPort(),
+				baseUri.getPath(),
+				baseUri.getQuery(),
+				baseUri.getFragment()
+			);
+
+			return updatedUri.toString();
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("Invalid URI syntax when replacing host name", e);
+		}
 	}
 
 	public static List<String> diffEntityStatements(List<String> propertyNames, JsonElement a, JsonElement b) {

@@ -3,40 +3,47 @@ package net.openid.conformance.openid.federation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
-import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
-import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureNotFoundError;
-import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ValidateIssIfPresentInAuthorizationResponse;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
+import net.openid.conformance.openid.federation.client.ExtractParametersForTrustAnchorResolveEndpoint;
+import net.openid.conformance.openid.federation.client.SignResolveResponseWithTrustAnchorKeys;
+import net.openid.conformance.openid.federation.client.ValidateSubParameterForTrustAnchorResolveEndpoint;
+import net.openid.conformance.openid.federation.client.ValidateTrustAnchorParameterForResolveEndpoint;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.variant.ServerMetadata;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.variant.FederationEntityMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static net.openid.conformance.openid.federation.EntityUtils.appendWellKnown;
 import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnown;
 
 @VariantParameters({
-	ServerMetadata.class,
+	FederationEntityMetadata.class,
 	ClientRegistration.class
 })
-@VariantConfigurationFields(parameter = ServerMetadata.class, value = "static", configurationFields = {
-	"federation.entity_configuration"
+@VariantConfigurationFields(parameter = FederationEntityMetadata.class, value = "static", configurationFields = {
+	"federation.entity_configuration",
 })
+@VariantNotApplicable(parameter = ClientRegistration.class, values = {"explicit"})
 public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServerTestModule {
 
 	public abstract void additionalConfiguration();
@@ -46,42 +53,175 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	@Override
-	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
-		env.putString("base_url", baseUrl);
-		env.putString("base_mtls_url", baseMtlsUrl);
-		env.putObject("config", config);
+	protected void processCallback() { }
 
-		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-		skipIfElementMissing("config", "federation.trust_anchor", Condition.ConditionResult.INFO,
-			ValidateTrustAnchor.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
 
-		String entityIdentifier = env.getString("config", "federation.entity_identifier");
-		eventLog.startBlock("Retrieve Entity Configuration for %s".formatted(entityIdentifier));
+		if (path.startsWith("trust-anchor/")) {
+			return switch(path) {
+				case "trust-anchor/.well-known/openid-federation" -> trustAnchorEntityConfigurationResponse();
+				case "trust-anchor/jwks" -> trustAnchorJwksResponse();
+				case "trust-anchor/fetch" -> trustAnchorFetchResponse(requestId);
+				case "trust-anchor/list" -> trustAnchorListResponse(requestId);
+				case "trust-anchor/resolve" -> trustAnchorResolveResponse(requestId);
+				default -> new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			};
+		}
+		return super.handleHttp(path, req, res, session, requestParts);
+	}
 
-		callAndStopOnFailure(ExtractEntityIdentiferFromConfig.class, Condition.ConditionResult.FAILURE);
+	protected Object trustAnchorEntityConfigurationResponse() {
+		env.mapKey("entity_configuration_claims", "trust_anchor");
+		env.mapKey("entity_configuration_claims_jwks", "trust_anchor_jwks");
+		Object entityConfigurationResponse = NonBlocking.entityConfigurationResponse(env, getId());
+		env.unmapKey("entity_configuration_claims");
+		env.unmapKey("entity_configuration_claims_jwks");
+		return entityConfigurationResponse;
+	}
 
-		if (ServerMetadata.STATIC.equals(getVariant(ServerMetadata.class))) {
-			// This case is perhaps not applicable in the general case,
-			// but f ex the leaf entities in the Swedish sandbox federation
-			// do not publish their own entity configurations.
-			callAndStopOnFailure(GetStaticEntityStatement.class, Condition.ConditionResult.FAILURE);
+	protected Object trustAnchorJwksResponse() {
+		return jwksResponse("trust_anchor_public_jwks");
+	}
+
+	protected Object jwksResponse(String mapKey) {
+		JsonObject jwks = env.getObject(mapKey);
+		JsonObject publicJwks = JWKUtil.toPublicJWKSet(jwks);
+		return ResponseEntity
+			.status(HttpStatus.OK)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(publicJwks);
+	}
+
+	protected Object trustAnchorFetchResponse(String requestId) {
+		return NonBlocking.trustAnchorFetchResponse(env, getId(), requestId);
+	}
+
+	protected Object trustAnchorListResponse(String requestId) {
+		JsonArray immediateSubordinates = env.getElementFromObject("config", "federation_trust_anchor.immediate_subordinates").getAsJsonArray();
+		return new ResponseEntity<Object>(immediateSubordinates, HttpStatus.OK);
+	}
+
+	protected Object trustAnchorResolveResponse(String requestId) {
+		// This one is too complicated to execute in a non-blocking manner
+		String sub = env.getString(requestId, "query_string_params.sub");
+		String alias = env.getString("config", "alias");
+		if (sub.endsWith(alias)) {
+			JsonObject error = new JsonObject();
+			error.addProperty("error", "invalid_request");
+			error.addProperty("error_description", "The test suite is (technically) not able to build " +
+				"a trust chain that includes the test alias entity, i.e. " + sub);
+			return ResponseEntity
+				.status(400)
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(error);
+		}
+
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("Trust anchor resolve endpoint").mapKey("incoming_request", requestId));
+
+		callAndContinueOnFailure(ExtractParametersForTrustAnchorResolveEndpoint.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateSubParameterForTrustAnchorResolveEndpoint.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ValidateTrustAnchorParameterForResolveEndpoint.class, Condition.ConditionResult.FAILURE);
+
+		String error = env.getString("federation_resolve_endpoint_error");
+		String errorDescription = env.getString("federation_resolve_endpoint_error_description");
+		Integer statusCode = env.getInteger("federation_resolve_endpoint_status_code");
+
+		ResponseEntity<Object> response = null;
+		if (error != null) {
+			response = errorResponse(error, errorDescription, statusCode);
 		} else {
+			sub = env.getString("resolve_endpoint_parameter_sub");
+			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(sub));
 			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
-			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
-			validateEntityStatementResponse();
+			fetchAndVerifyEntityStatement();
+			callAndContinueOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
+
+			String trustAnchor = env.getString("resolve_endpoint_parameter_trust_anchor");
+			JsonArray trustChain;
+			try {
+				List<String> trustChainList = findPath(sub, trustAnchor);
+				if (trustChainList.isEmpty()) {
+					throw new TestFailureException(getId(), "Could not build a trust chain from the sub %s to trust anchor %s".formatted(sub, trustAnchor));
+				}
+				trustChain = buildTrustChain(trustChainList);
+				TrustChainVerifier.VerificationResult result = TrustChainVerifier.verifyTrustChain(sub, trustAnchor, OIDFJSON.convertJsonArrayToList(trustChain));
+				if(!result.isVerified()) {
+					throw new TestFailureException(getId(), "Could not verify the trust chain from the sub %s to trust anchor %s. Error: %s"
+						.formatted(sub, trustAnchor, result.getError()));
+				} else {
+					eventLog.log(getId(),"**** TRUST CHAIN VERIFIED ****");
+				}
+			} catch (CyclicPathException e) {
+				throw new TestFailureException(getId(), e.getMessage(), e);
+			}
+
+			JsonObject resolveResponse = EntityUtils.createBasicClaimsObject(trustAnchor, sub);
+
+			// Keep only the metadata that matches the entity type parameter(s)
+			JsonArray entityTypes = env.getElementFromObject("resolve_endpoint_parameters", "entity_types").getAsJsonArray();
+			JsonObject metadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata").getAsJsonObject();
+			List<String> entityTypesList = OIDFJSON.convertJsonArrayToList(entityTypes);
+			JsonObject filteredMetadata = filterMetadataForEntityTypes(metadata, entityTypesList);
+
+			resolveResponse.add("metadata", filteredMetadata);
+			resolveResponse.add("trust_chain", trustChain);
+			env.putObject("federation_resolve_response", resolveResponse);
+
+			env.mapKey("entity_configuration_claims", "federation_resolve_response");
+			callAndStopOnFailure(SignResolveResponseWithTrustAnchorKeys.class);
+			env.unmapKey("entity_configuration_claims");
+			String federationResolveResponse = env.getString("signed_entity_statement");
+			response = ResponseEntity
+				.status(200)
+				.contentType(EntityUtils.RESOLVE_RESPONSE_JWT)
+				.body(federationResolveResponse);
 		}
-		eventLog.endBlock();
+		call(exec().unmapKey("incoming_request").endBlock());
+		setStatus(Status.WAITING);
 
-		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
-		if (ServerMetadata.DISCOVERY.equals(getVariant(ServerMetadata.class))) {
-			validateEntityStatement();
+		return response;
+	}
+
+	protected void fetchAndVerifyEntityStatement() {
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		callAndContinueOnFailure(ExtractJWTFromFederationEndpointResponse.class, Condition.ConditionResult.FAILURE);
+		validateEntityStatementResponse();
+	}
+
+	protected ResponseEntity<Object> errorResponse(String error, String errorDescription, Integer statusCode) {
+		JsonObject errorObject = new JsonObject();
+		errorObject.addProperty("error", error);
+		errorObject.addProperty("error_description", errorDescription);
+
+		env.removeNativeValue("federation_fetch_endpoint_error");
+		env.removeNativeValue("federation_fetch_endpoint_error_description");
+		env.removeNativeValue("federation_fetch_endpoint_status_code");
+
+		env.removeNativeValue("federation_resolve_endpoint_error");
+		env.removeNativeValue("federation_resolve_endpoint_error_description");
+		env.removeNativeValue("federation_resolve_endpoint_status_code");
+
+		return ResponseEntity
+			.status(HttpStatus.valueOf(statusCode))
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(errorObject);
+	}
+
+	protected static JsonObject filterMetadataForEntityTypes(JsonObject metadata, List<String> entityTypesList) {
+		Set<String> entityTypesToRemove = new HashSet<>();
+		for(String entityType : metadata.keySet()) {
+			if (EntityUtils.STANDARD_ENTITY_TYPES.contains(entityType) &&  !entityTypesList.isEmpty() && !entityTypesList.contains(entityType)) {
+				entityTypesToRemove.add(entityType);
+			}
 		}
-		callAndStopOnFailure(SetPrimaryEntityStatement.class, Condition.ConditionResult.FAILURE);
-
-		additionalConfiguration();
-
-		setStatus(Status.CONFIGURED);
-		fireSetupDone();
+		JsonObject filteredMetadata = metadata.deepCopy();
+		entityTypesToRemove.forEach(filteredMetadata::remove);
+		return filteredMetadata;
 	}
 
 	protected Object entityConfigurationResponse(String mapKey, Class<? extends Condition> signCondition) {
@@ -99,54 +239,6 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 			.status(HttpStatus.OK)
 			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
 			.body(entityConfiguration);
-	}
-
-	@Override
-	protected void processCallback() {
-		eventLog.startBlock("Verify authorization endpoint response");
-		env.mapKey("authorization_endpoint_response", "callback_query_params");
-
-		onAuthorizationCallbackResponse();
-
-		eventLog.endBlock();
-		fireTestFinished();
-	}
-
-	protected void onAuthorizationCallbackResponse() {
-		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-		handleSuccessfulAuthorizationEndpointResponse();
-	}
-
-	protected void handleSuccessfulAuthorizationEndpointResponse() {
-		performPostAuthorizationFlow();
-	}
-
-	protected void performPostAuthorizationFlow() {
-		// call the token endpoint and complete the flow
-		createAuthorizationCodeRequest();
-		redeemAuthorizationCode();
-		onPostAuthorizationFlowComplete();
-	}
-
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-	}
-
-	//Originally called requestAuthorizationCode()
-	protected void redeemAuthorizationCode() {
-		String tokenEndpoint = env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.token_endpoint");
-		env.putString("token_endpoint", tokenEndpoint);
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-		callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "OIDCC-3.1.3.3", "OIDCC-3.3.3.3");
-		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
-	}
-
-	protected void onPostAuthorizationFlowComplete() {
-		fireTestFinished();
 	}
 
 	protected void validateEntityStatement() {
@@ -213,14 +305,14 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		env.unmapKey("endpoint_response");
 	}
 
-	protected void validateFetchErrorResponse() {
+	protected void validateFetchErrorResponse(Class<? extends AbstractCondition> condition) {
 		env.mapKey("endpoint_response", "federation_endpoint_response");
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
 		callAndContinueOnFailure(EnsureResponseIsJsonObject.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
 		env.unmapKey("endpoint_response");
 
 		env.mapKey("authorization_endpoint_response", "endpoint_response_body");
-		skipIfMissing(new String[]{"authorization_endpoint_response"}, null, Condition.ConditionResult.FAILURE, EnsureNotFoundError.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.2");
+		skipIfMissing(new String[]{"authorization_endpoint_response"}, null, Condition.ConditionResult.INFO, condition, Condition.ConditionResult.WARNING, "OIDFED-8.1.2");
 		env.unmapKey("authorization_endpoint_response");
 	}
 
@@ -251,7 +343,14 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 			call(new ValidateDiscoveryMetadataSequence(clientRegistration));
 			callAndContinueOnFailure(ValidateClientRegistrationTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,
-				ValidateClientRegistrationTypesSupportedValues.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
+				ValidateClientRegistrationTypesSupportedValues.class, Condition.ConditionResult.WARNING, "OIDFED-5.1.3");
+			ClientRegistration clientRegistrationType = getVariant(ClientRegistration.class);
+			if (ClientRegistration.AUTOMATIC.equals(clientRegistrationType)) {
+				callAndContinueOnFailure(ValidateClientRegistrationTypeAutomaticSupported.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
+			}
+			if (ClientRegistration.EXPLICIT.equals(clientRegistrationType)) {
+				callAndContinueOnFailure(ValidateClientRegistrationTypeExplicitSupported.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
+			}
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,
 				ValidateFederationRegistrationEndpoint.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 			skipIfElementMissing("openid_provider_metadata", "client_registration_types_supported", Condition.ConditionResult.INFO,
@@ -340,7 +439,8 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	protected List<String> findPath(String fromEntity, String toTrustAnchor) throws CyclicPathException {
-		 List<String> path = findPath(fromEntity, toTrustAnchor, new ArrayList<>());
+		eventLog.log(getName(), "Finding path from %s to %s".formatted(fromEntity, toTrustAnchor));
+		List<String> path = findPath(fromEntity, toTrustAnchor, new ArrayList<>());
 		 if (path != null) {
 			 eventLog.log(getName(), "Path to trust anchor: %s".formatted(String.join(" → ", path)));
 			 return path;
@@ -398,12 +498,21 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 
 	protected JsonArray buildTrustChain(List<String> path) {
 		eventLog.startBlock("Building trust chain from %s to %s".formatted(path.get(0), path.get(path.size() - 1)));
+
 		JsonArray trustChain = new JsonArray();
-		trustChain.add(env.getString("primary_entity_statement_jwt", "value"));
 
 		if (path.size() == 1) {
+			trustChain.add(env.getString("primary_entity_statement_jwt", "value"));
 			return trustChain;
 		}
+
+		String primaryEntityIdentifier = path.get(0);
+		env.putString("federation_endpoint_url", appendWellKnown(primaryEntityIdentifier));
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		validateEntityStatementResponse();
+		callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class,  "OIDFED-9");
+		trustChain.add(OIDFJSON.getString(env.getElementFromObject("federation_response_jwt", "value")));
 
 		for (int i = 1; i < path.size(); i++) {
 			String entityIdentifier = path.get(i);

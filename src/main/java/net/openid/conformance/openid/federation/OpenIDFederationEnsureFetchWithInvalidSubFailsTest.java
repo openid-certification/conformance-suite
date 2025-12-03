@@ -1,6 +1,7 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.EnsureNotFoundError;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.UUID;
@@ -12,11 +13,12 @@ import java.util.UUID;
 				"The test is isolated to the provided entity and will not proceed to its superiors nor subordinates.",
 		profile = "OIDFED",
 		configurationFields = {
-				"federation.entity_identifier",
-				"federation.trust_anchor_jwks"
+			"federation.entity_identifier",
+			"federation.de_trust_anchor",
+			"federation.de_trust_anchor_jwks",
 		}
 )
-public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {
@@ -39,7 +41,7 @@ public class OpenIDFederationEnsureFetchWithInvalidSubFailsTest extends Abstract
 
 		eventLog.startBlock(String.format("Fetching subordinate statement from %s", env.getString("federation_endpoint_url")));
 		callAndStopOnFailure(CallFetchEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1.1");
-		validateFetchErrorResponse();
+		validateFetchErrorResponse(EnsureNotFoundError.class);
 		eventLog.endBlock();
 
 		fireTestFinished();

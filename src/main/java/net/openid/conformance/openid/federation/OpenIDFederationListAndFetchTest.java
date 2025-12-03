@@ -18,10 +18,11 @@ import static net.openid.conformance.openid.federation.EntityUtils.appendWellKno
 	profile = "OIDFED",
 	configurationFields = {
 		"federation.entity_identifier",
-		"federation.trust_anchor_jwks"
+		"federation.de_trust_anchor",
+		"federation.de_trust_anchor_jwks",
 	}
 )
-public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTest {
+public class OpenIDFederationListAndFetchTest extends OpenIDFederationAutomaticClientRegistrationTest {
 
 	@Override
 	public void additionalConfiguration() {
@@ -40,6 +41,9 @@ public class OpenIDFederationListAndFetchTest extends AbstractOpenIDFederationTe
 		String listEndpoint = env.getString("federation_endpoint_url");
 		String fetchEndpoint = env.getString("federation_fetch_endpoint");
 		JsonArray listedEntities = validateListEndpoint(listEndpoint);
+		env.putInteger("number_of_subordinates_in_list_response", listedEntities.size());
+
+		callAndStopOnFailure(ValidateListAndFetchEndpointPresence.class, Condition.ConditionResult.FAILURE, "OIDFED-8.1");
 		validateFetchEndpoint(fetchEndpoint, listedEntities);
 
 		fireTestFinished();

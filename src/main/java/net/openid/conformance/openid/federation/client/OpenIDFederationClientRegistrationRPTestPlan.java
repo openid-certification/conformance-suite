@@ -9,7 +9,16 @@ import net.openid.conformance.variant.VariantSelection;
 	displayName = "OpenID Federation: Entity joined to test federation RP test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
 	testModules = {
-		OpenIDFederationClientHappyPathTest.class,
+		OpenIDFederationClientInvalidIssInEntityConfigurationTest.class,
+		OpenIDFederationClientInvalidSubInEntityConfigurationTest.class,
+		OpenIDFederationClientInvalidMissingExpInEntityConfigurationTest.class,
+		OpenIDFederationClientInvalidMissingIatInEntityConfigurationTest.class,
+		OpenIDFederationClientInvalidMissingClientRegistrationTypesSupportedTest.class,
+		OpenIDFederationClientInvalidEmptyClientRegistrationTypesSupportedTest.class,
+		OpenIDFederationClientTest.class,
+		OpenIDFederationClienValidUnknownClientRegistrationTypesSupportedTest.class,
+		OpenIDFederationClientInvalidAudInIdTokenTest.class,
+		OpenIDFederationClientInvalidIssInIdTokenTest.class,
 	}
 )
 public class OpenIDFederationClientRegistrationRPTestPlan implements TestPlan {
