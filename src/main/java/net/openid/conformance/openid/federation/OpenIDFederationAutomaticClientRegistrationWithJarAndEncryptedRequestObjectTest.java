@@ -7,12 +7,13 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
-		testName = "openid-federation-automatic-client-registration-with-jar-and-encrypted-request-object",
-		displayName = "openid-federation-automatic-client-registration-with-jar-and-encrypted-request-object",
-		summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-			"with JAR and HTTP GET to the authorization endpoint. The request object is encrypted using the OP's " +
-			"published, public encryption key.",
-		profile = "OIDFED"
+	testName = "openid-federation-automatic-client-registration-with-jar-and-encrypted-request-object",
+	displayName = "OpenID Federation OP test: Automatic client registration with JAR and HTTP GET and " +
+		"using an encrypted request object",
+	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
+		"with JAR and HTTP GET to the authorization endpoint. The request object is encrypted using the OP's " +
+		"published, public encryption key.",
+	profile = "OIDFED"
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationWithJarAndEncryptedRequestObjectTest extends OpenIDFederationAutomaticClientRegistrationTest {

@@ -7,7 +7,8 @@ import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
 	testName = "openid-federation-automatic-client-registration-with-par-and-trust-chain",
-	displayName = "openid-federation-automatic-client-registration-with-par-and-trust-chain",
+	displayName = "OpenID Federation OP test: Automatic client registration with PAR and " +
+		"including the trust_chain as a parameter",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, with PAR. " +
 		"The authorization request will contain the client trust_chain in the test configuration.",
 	profile = "OIDFED"

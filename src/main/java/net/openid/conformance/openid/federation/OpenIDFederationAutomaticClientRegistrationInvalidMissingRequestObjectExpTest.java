@@ -9,7 +9,7 @@ import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
 		testName = "openid-federation-automatic-client-registration-invalid-missing-request-object-exp",
-		displayName = "openid-federation-automatic-client-registration-invalid-missing-request-object-exp",
+	displayName = "OpenID Federation OP test: Invalid request object due to missing exp",
 		summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
 			"deliberately not including exp in the authorization request object." +
 			"<br/><br/>" +

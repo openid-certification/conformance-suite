@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "openid-federation-client-invalid-missing-iat-in-entity-configuration",
-	displayName = "OpenID Federation client test: Missing iat in entity configuration",
+	displayName = "OpenID Federation RP test: Missing iat in entity configuration",
 	summary = "The test deliberately removes the iat from its entity configuration, " +
 		"which must be detected and rejected by the RP.",
 	profile = "OIDFED"

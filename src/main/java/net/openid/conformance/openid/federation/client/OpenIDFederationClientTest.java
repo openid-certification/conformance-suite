@@ -72,7 +72,7 @@ import java.util.List;
 
 @PublishTestModule(
 	testName = "openid-federation-client-test",
-	displayName = "OpenID Federation client test: Happy path test",
+	displayName = "OpenID Federation RP test: Happy path test",
 	summary = "The RP is expected to fetch the entity configuration from the test and then proceed with the " +
 		"authorization flow using the available client registration type. The test ends after the id token has been issued.",
 	profile = "OIDFED",

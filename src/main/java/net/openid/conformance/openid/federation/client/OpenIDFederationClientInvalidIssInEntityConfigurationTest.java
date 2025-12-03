@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "openid-federation-client-invalid-iss-in-entity-configuration",
-	displayName = "OpenID Federation client test: Invalid iss in entity configuration",
+	displayName = "OpenID Federation RP test: Invalid iss in entity configuration",
 	summary = "The test deliberately inserts an invalid iss into its entity configuration, " +
 		"which must be detected and rejected by the RP.",
 	profile = "OIDFED"

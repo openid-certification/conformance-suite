@@ -7,7 +7,7 @@ import org.springframework.http.HttpMethod;
 
 @PublishTestModule(
 	testName = "openid-federation-automatic-client-registration-with-par",
-	displayName = "openid-federation-automatic-client-registration-with-par",
+	displayName = "OpenID Federation OP test: Automatic client registration with PAR",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, with PAR",
 	profile = "OIDFED"
 )

@@ -9,8 +9,9 @@ import net.openid.conformance.variant.VariantSelection;
 	displayName = "OpenID Federation: Entity joined to test federation OP test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
 	testModules = {
-		OpenIDFederationAutomaticClientRegistrationInvalidIssInEntityConfigurationTest.class,
-		OpenIDFederationAutomaticClientRegistrationExpectEntityConfigurationRequestTest.class,
+		// TODO: Negative tests on the entity configuration to be added, i.e. tests that fail if further communication happens.
+		//OpenIDFederationAutomaticClientRegistrationInvalidIssInEntityConfigurationTest.class,
+		//OpenIDFederationAutomaticClientRegistrationExpectEntityConfigurationRequestTest.class,
 		OpenIDFederationAutomaticClientRegistrationWithJarAndGetTest.class,
 		OpenIDFederationAutomaticClientRegistrationWithJarAndPostTest.class,
 		OpenIDFederationAutomaticClientRegistrationWithParTest.class,

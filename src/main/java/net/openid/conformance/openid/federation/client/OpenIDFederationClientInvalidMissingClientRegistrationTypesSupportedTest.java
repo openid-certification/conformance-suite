@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.UserFacing;
 
 @PublishTestModule(
 	testName = "openid-federation-client-invalid-missing-client-registration-types-supported",
-	displayName = "OpenID Federation client test: Invalid missing client_registration_types_supported in entity configuration",
+	displayName = "OpenID Federation RP test: Invalid missing client_registration_types_supported in entity configuration",
 	summary = "The entity configuration contains openid_provider metadata " +
 		"without the required property client_registration_types_supported, " +
 		"which the RP must detect.",
