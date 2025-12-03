@@ -8,6 +8,7 @@ import net.openid.conformance.sequence.as.OIDCCValidateClientAuthenticationWithC
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.variant.FederationEntityMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -18,6 +19,7 @@ import net.openid.conformance.variant.VariantSetup;
 @VariantConfigurationFields(parameter = FederationEntityMetadata.class, value = "static", configurationFields = {
 	"federation.entity_configuration",
 })
+@VariantNotApplicable(parameter = ClientRegistration.class, values = {"explicit"})
 public abstract class AbstractOpenIDFederationClientTest extends AbstractOpenIDFederationTest {
 
 	protected Class<? extends Condition> addTokenEndpointAuthMethodSupported;

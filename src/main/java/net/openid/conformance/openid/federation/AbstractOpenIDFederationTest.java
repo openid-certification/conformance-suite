@@ -20,6 +20,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.variant.FederationEntityMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,7 @@ import static net.openid.conformance.openid.federation.EntityUtils.stripWellKnow
 @VariantConfigurationFields(parameter = FederationEntityMetadata.class, value = "static", configurationFields = {
 	"federation.entity_configuration",
 })
+@VariantNotApplicable(parameter = ClientRegistration.class, values = {"explicit"})
 public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServerTestModule {
 
 	public abstract void additionalConfiguration();
