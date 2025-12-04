@@ -9,7 +9,16 @@ import org.springframework.http.HttpMethod;
 	displayName = "OpenID Federation OP test: Automatic client registration with JAR and HTTP GET",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
 		"with JAR and HTTP GET to the authorization endpoint",
-	profile = "OIDFED"
+	profile = "OIDFED",
+	configurationFields = {
+		"federation.entity_identifier",
+		"federation.trust_anchor",
+		"federation.rp_ec_jwks",
+		"federation.rp_client_jwks",
+		"federation.rp_entity_identifier_host_override",
+		"federation_trust_anchor.trust_anchor_jwks",
+		"internal.op_to_rp_mode",
+	}
 )
 @SuppressWarnings("unused")
 public class OpenIDFederationAutomaticClientRegistrationWithJarAndGetTest extends OpenIDFederationAutomaticClientRegistrationTest {
