@@ -1070,11 +1070,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			eventLog.endBlock();
 
 			eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
-			call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
-			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-
-			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+			afterNonceEndpointResponse();
 		} else {
 			eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
 		}
@@ -1138,6 +1134,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 
 		eventLog.endBlock();
+	}
+
+	protected void afterNonceEndpointResponse() {
+		call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
+		callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+
+		callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+		callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 	}
 
 	protected boolean isSecondClient() {
