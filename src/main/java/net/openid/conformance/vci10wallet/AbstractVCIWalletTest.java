@@ -1035,9 +1035,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		String proofType = env.getString("proof_type");
 		if ("jwt".equals(proofType)) {
-			callAndContinueOnFailure(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
+			callAndStopOnFailure(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
 		} else if ("attestation".equals(proofType)) {
-			callAndContinueOnFailure(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4");
+			callAndStopOnFailure(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4");
 		} else if ("di_vp".equals(proofType)) {
 			callAndStopOnFailure(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
 		}
