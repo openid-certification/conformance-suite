@@ -1,0 +1,13 @@
+{
+    "alias": "oidf-authzen-cerbos-test",
+    "description": "Authzen Cerbos Server",
+    "publish": "everything",
+    "pdp": {
+        "policy_decision_point": "https://authzen-proxy-demo.cerbos.dev",
+        "access_evaluation_endpoint": "https://authzen-proxy-demo.cerbos.dev/access/v1/evaluation",
+        "access_evaluations_endpoint": "https://authzen-proxy-demo.cerbos.dev/access/v1/evaluations",
+        "search_subject_endpoint": "https://authzen-proxy-demo.cerbos.dev/access/v1/search/subject",
+        "search_action_endpoint": "https://authzen-proxy-demo.cerbos.dev/access/v1/search/action",
+        "search_resource_endpoint": "https://authzen-proxy-demo.cerbos.dev/access/v1/search/resource"
+    }
+}
