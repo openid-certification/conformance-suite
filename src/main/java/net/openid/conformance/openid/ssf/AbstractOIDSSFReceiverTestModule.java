@@ -44,6 +44,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -176,7 +177,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	public List<String> getEventsSupported() {
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
-			return List.copyOf(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
+			List<String> eventsSupported = new ArrayList<>();
+			eventsSupported.addAll(SsfEvents.SSF_EVENT_TYPES);
+			eventsSupported.addAll(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
+			return eventsSupported;
 		}
 		return List.copyOf(SsfEvents.STANDARD_EVENT_TYPES);
 	}
