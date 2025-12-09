@@ -1186,6 +1186,7 @@ async def main():
         ciba_op_test = re.match(r'fapi-ciba-id1.*', m)
         rp_initiated_logout = re.match(r'oidcc-.*-logout.*', m)
         ekyc_test = re.match(r'ekyc-server-', m)
+        authzen_test = re.match(r'authzen-pdp-', m)
         federation_test = re.match(r'openid-federation-', m)
         fapi1r = all_test_modules[m]['profile'] in ['FAPI-R']
         fapi1 = all_test_modules[m]['profile'] in ['FAPI1-Advanced-Final']
@@ -1209,22 +1210,26 @@ async def main():
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or oid4vp or federation_test:
+            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or authzen_test or oid4vp or federation_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-authlete':
             # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
             # we've not yet setup fapi2 brazil dcr or uk test runs
             # vp we do run in the OP-against-RP tests but not the full set
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or federation_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':
-            if ekyc_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or federation_test:
+            if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or federation_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':
             if not ekyc_test:
+                untested_test_modules.remove(m)
+                continue
+        elif show_untested == 'authzen':
+            if not authzen_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'federation':

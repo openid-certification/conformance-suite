@@ -162,15 +162,15 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk18on</artifactId>
+			<artifactId>bcprov-debug-jdk18on</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bctls-jdk18on</artifactId>
+			<artifactId>bctls-debug-jdk18on</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk18on</artifactId>
+			<artifactId>bcpkix-debug-jdk18on</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -540,18 +540,18 @@
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcprov-jdk18on</artifactId>
-				<version>1.80</version>
+				<artifactId>bcprov-debug-jdk18on</artifactId>
+				<version>1.81</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bctls-jdk18on</artifactId>
-				<version>1.80</version>
+				<artifactId>bctls-debug-jdk18on</artifactId>
+				<version>1.81</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcpkix-jdk18on</artifactId>
-				<version>1.80</version>
+				<artifactId>bcpkix-debug-jdk18on</artifactId>
+				<version>1.81</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>

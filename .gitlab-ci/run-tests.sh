@@ -575,6 +575,10 @@ makeOid4VciTests() {
     TESTS="${TESTS}"
 }
 
+makeAuthzenTests() {
+   TESTS="${TESTS} authzen-pdp-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ../conformance-suite/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
+}
+
 makeLocalProviderTests() {
     # OIDCC certification tests - server supports discovery, using dcr
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client] ../conformance-suite/.gitlab-ci/local-provider-oidcc-conformance-config.json"
@@ -713,6 +717,15 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ekyc"
     TESTS="${TESTS} --export-dir ../conformance-suite"
+elif [ "$#" -eq 1 ] && [ "$1" = "--authzen-tests" ]; then
+    echo "Run Authzen tests"
+    makeAuthzenTests
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-authzen.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-authzen.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules authzen"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
 elif [ "$#" -eq 1 ] && [ "$1" = "--federation-tests" ]; then
     echo "Run federation tests"
     makeFederationTests
@@ -756,7 +769,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests-only" ]; then
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests|--federation-tests|--ssf-tests|--vci-tests]"
+    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vci-tests]"
     exit 1
 fi
 

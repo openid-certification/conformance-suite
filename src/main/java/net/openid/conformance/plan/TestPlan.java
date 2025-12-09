@@ -20,6 +20,7 @@ public interface TestPlan {
 		String wallettest = "Test a OpenID4VP wallet";
 		String verifierTest = "Test a OpenID4VP Verifier";
 		String federationTest = "Test an OpenID Federation entity";
+		String authzenTest = "Test an Authzen PDP server";
 	}
 
 	/**
