@@ -157,8 +157,8 @@ import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMeta
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
@@ -370,16 +370,21 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void determineCredentialConfigurationTransferMethod() {
 
+		resolveCredentialConfigurationId();
+
+		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
+		callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
+		callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
+	}
+
+	protected void resolveCredentialConfigurationId() {
 		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
 		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
 			throw new TestFailureException(getId(), "credential_configuration_id cannot be null or empty!");
 		}
 		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
-
+		env.putString("vci_credential_configuration_id", vciCredentialConfigurationId);
 		callAndStopOnFailure(VCIResolveRequestedCredentialConfiguration.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
-		callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
 	}
 
 	protected void setupResourceEndpoint() {
@@ -1093,7 +1098,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
 		}
 
-		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+		createCredentialRequest();
 
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
@@ -1109,6 +1114,23 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		eventLog.startBlock(currentClientString() + " Verify Credential Endpoint Response");
 		// TODO: allow a deferred response with a transaction_id https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.3
+		verifyCredentialIssuerCredentialResponse();
+
+		eventLog.endBlock();
+	}
+
+	protected void createCredentialRequest() {
+		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
+		String requestBodyString = serializeCredentialRequestObject(credentialRequestObject);
+		env.putString("resource_request_entity", requestBodyString);
+	}
+
+	protected String serializeCredentialRequestObject(JsonObject credentialRequestObject) {
+		return credentialRequestObject.toString();
+	}
+
+	protected void verifyCredentialIssuerCredentialResponse() {
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
@@ -1125,15 +1147,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 
 		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "RFC7231-7.1.1.2");
+		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "RFC7231-7.1.1.2");
 
 		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 		if (!isSecondClient()) {
 			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 		}
-
-		eventLog.endBlock();
 	}
 
 	protected void afterNonceEndpointResponse() {
