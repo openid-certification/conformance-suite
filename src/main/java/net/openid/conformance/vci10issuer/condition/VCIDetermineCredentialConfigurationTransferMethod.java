@@ -20,7 +20,7 @@ public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractC
 		// we ensure credential_configuration_id is present
 		// by checking the issuer metadata
 
-		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
+		String vciCredentialConfigurationId = env.getString("vci_credential_configuration_id");
 		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
 			throw error("credential_configuration_id not provided in test configuration");
 		}

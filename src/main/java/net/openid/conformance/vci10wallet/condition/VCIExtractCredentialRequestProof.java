@@ -7,6 +7,8 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
+import net.openid.conformance.vci10issuer.condition.VciErrorCode;
+import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 import java.text.ParseException;
 
@@ -20,7 +22,9 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 		boolean proofsPresent = credentialRequestBodyJson.has("proofs");
 
 		if (!proofsPresent) {
-			throw error("Required proofs element is missing in credential request");
+			String errorDescription = "Required proofs element is missing in credential request";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription);
 		}
 
 		JsonElement proofsEl = credentialRequestBodyJson.get("proofs");
@@ -33,12 +37,16 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 			String proofType = "jwt";
 			JsonElement jwtEl = proofsObject.get(proofType);
 			if (jwtEl == null || !jwtEl.isJsonArray()) {
-				throw error("Expected array in 'jwt' proof object, but found: " + jwtEl, args("proof_type", proofType, "jwt", jwtEl));
+				String errorDescription = "Expected array in 'jwt' proof object, but found: " + jwtEl;
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("proof_type", proofType, "jwt", jwtEl));
 			}
 
 			JsonArray jwtArray = jwtEl.getAsJsonArray();
 			if (jwtArray.isEmpty()) {
-				throw error("Expected non-empty array in 'jwt' proof object, but found:" + jwtArray, args("proof_type", proofType, "jwt", jwtEl));
+				String errorDescription = "Expected non-empty array in 'jwt' proof object, but found:" + jwtArray;
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("proof_type", proofType, "jwt", jwtEl));
 			}
 
 			log("Found " + jwtArray.size() + " JWT(s) for 'jwt' proof.", args("jwts", jwtArray));
@@ -55,7 +63,9 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 
 				logSuccess("Extracted first 'jwt' proof from credential request", args("proof_jwt", proofJwt));
 			} catch (ParseException e) {
-				throw error("Parsing of 'jwt' prof failed", e, args("proof_jwt_string", jwtString));
+				String errorDescription = "Parsing of 'jwt' proof failed";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, e, args("proof_jwt_string", jwtString));
 			}
 
 		} else if (proofsObject.has("attestation")) {
@@ -66,14 +76,20 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 			// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#appendix-F-3.3
 			JsonElement attestationEl = proofsObject.get(proofType);
 			if (attestationEl == null || !attestationEl.isJsonArray()) {
-				throw error("Expected array in 'attestation' proof object, but found: " + attestationEl, args("proof_type", proofType, "attestation", attestationEl));
+				String errorDescription = "Expected array in 'attestation' proof object, but found: " + attestationEl;
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("proof_type", proofType, "attestation", attestationEl));
 			}
 			JsonArray attestationArray = attestationEl.getAsJsonArray();
 			if (attestationArray.isEmpty()) {
-				throw error("Expected non-empty array in 'attestation' proof object, but found: " + attestationEl, args("proof_type", proofType, "attestation", attestationEl));
+				String errorDescription = "Expected non-empty array in 'attestation' proof object, but found: " + attestationEl;
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("proof_type", proofType, "attestation", attestationEl));
 			}
 			if (attestationArray.size() != 1) {
-				throw error("Expected attestation array with a single JWT in proof object, but found " + attestationArray.size(), args("proof_type", proofType, "attestation", attestationArray));
+				String errorDescription = "Expected attestation array with a single JWT in proof object, but found " + attestationArray.size();
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("proof_type", proofType, "attestation", attestationArray));
 			}
 
 			log("Found " + attestationArray.size() + " key attestation(s) for 'attestation' proof.", args("key_attestations", attestationArray));
@@ -93,13 +109,19 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 
 				// TODO verify this in a separate condition, e.g. VCIVerifyKeyAttestationProof (after this condition)
 			} catch (ParseException e) {
-				throw error("Parsing SD-JWT credential attestation jwt failed", e, args("proof_jwt_string", jwtString));
+				String errorDescription = "Parsing SD-JWT credential attestation jwt failed";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, e, args("proof_jwt_string", jwtString));
 			}
 		} else if (proofsObject.has("di_vp")) {
 			// A W3C Verifiable Presentation object signed using the Data Integrity Proof [VC_Data_Integrity] as defined in [VC_DATA_2.0] or [VC_DATA] is used for proof of possession.
-			throw error("The conformance tests currently does not support the proof type 'di_vp' yet");
+			String errorDescription = "The conformance tests currently does not support the proof type 'di_vp' yet";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription);
 		} else {
-			throw error("Expected to find either 'jwt', 'attestation' or 'di_vp' proof types in proofs element", args("proofs", proofsObject));
+			String errorDescription = "Expected to find either 'jwt', 'attestation' or 'di_vp' proof types in proofs element";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription, args("proofs", proofsObject));
 		}
 
 		return env;
