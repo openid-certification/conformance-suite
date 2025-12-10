@@ -22,6 +22,8 @@ public class VCIEnsureX5cHeaderPresentForSdJwtCredential extends AbstractConditi
 
 		List<String> x5c = OIDFJSON.convertJsonArrayToList(credentialHeader.getAsJsonArray("x5c"));
 
+		// TODO certificate must not be self-signed!
+
 		logSuccess("Found credential x5c claim in header", args("x5c", x5c));
 
 		return env;
