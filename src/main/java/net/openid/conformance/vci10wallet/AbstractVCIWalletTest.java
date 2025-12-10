@@ -9,6 +9,7 @@ import com.nimbusds.jose.jwk.JWK;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
@@ -233,16 +234,16 @@ import java.util.concurrent.TimeUnit;
 	VCIWalletAuthorizationCodeFlowVariant.class,
 	VCICredentialOfferParameterVariant.class,
 })
-@VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
+@VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value = "wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
 })
-@VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value="issuer_initiated_dc_api", configurationFields = {
+@VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value = "issuer_initiated_dc_api", configurationFields = {
 	"vci.credential_offer_endpoint"
 })
-@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="private_key_jwt", configurationFields = {
+@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "private_key_jwt", configurationFields = {
 	"vci.client_attestation_issuer"
 })
-@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="mtls", configurationFields = {
+@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "mtls", configurationFields = {
 	"vci.client_attestation_issuer"
 })
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
@@ -296,11 +297,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected abstract void addCustomValuesToIdToken();
 
-	protected void addCustomSignatureOfIdToken(){}
+	protected void addCustomSignatureOfIdToken() {
+	}
 
-	protected void addCustomValuesToAuthorizationResponse(){}
+	protected void addCustomValuesToAuthorizationResponse() {
+	}
 
-	protected void endTestIfRequiredParametersAreMissing(){}
+	protected void endTestIfRequiredParametersAreMissing() {
+	}
 
 	protected Boolean isDpopConstrain() {
 		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP;
@@ -372,7 +376,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 		call(sequence(AddPARToServerConfiguration.class));
 
-		if(configureResponseModeSteps!=null) {
+		if (configureResponseModeSteps != null) {
 			call(sequence(configureResponseModeSteps));
 		}
 
@@ -395,7 +399,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(new VCIInjectCredentialConfigurationIdHint(getDefaultCredentialConfigurationId()), ConditionResult.FAILURE);
 		exposeEnvString("credential_configuration_id_hint");
 
-		if (authorizationRequestType == AuthorizationRequestType.RAR){
+		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes.class);
 			callAndStopOnFailure(AddSupportedAuthorizationTypesToServerConfiguration.class);
 		}
@@ -445,7 +449,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		URI serverIssuerUri = URI.create(issuer);
 		String serverIssuerPath = serverIssuerUri.getPath();
 		String wellKnownBaseUrl = serverIssuerUri.getScheme() + "://" + serverIssuerUri.getAuthority() + "/.well-known";
-		return wellKnownBaseUrl + "/" + wellKnownTypePath  + serverIssuerPath;
+		return wellKnownBaseUrl + "/" + wellKnownTypePath + serverIssuerPath;
 	}
 
 	protected void checkCredentialSigningKey(Environment env) {
@@ -500,17 +504,17 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		String credentialIssuer = baseUrl;
-		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl: baseUrl) + "credential";
-		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl: baseUrl) + "nonce";
+		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + "credential";
+		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + "nonce";
 
 		String metadata = TemplateProcessor.process("""
-		{
-			"credential_issuer": "$(credentialIssuer)",
-			"credential_endpoint": "$(credentialEndpoint)",
-			"nonce_endpoint": "$(nonceEndpoint)",
-			"authorization_servers": [ "$(credentialIssuer)" ]
-		}
-		""", Map.of(
+			{
+				"credential_issuer": "$(credentialIssuer)",
+				"credential_endpoint": "$(credentialEndpoint)",
+				"nonce_endpoint": "$(nonceEndpoint)",
+				"authorization_servers": [ "$(credentialIssuer)" ]
+			}
+			""", Map.of(
 			"credentialIssuer", credentialIssuer,
 			"credentialEndpoint", credentialEndpointUrl,
 			"nonceEndpoint", nonceEndpointUrl
@@ -666,10 +670,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	 * will be called at the end of configure
 	 */
 	protected void onConfigurationCompleted() {
-		if(requireAuthorizationServerEndpointDpopNonce()) {
+		if (requireAuthorizationServerEndpointDpopNonce()) {
 			callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.INFO);
 		}
-		if(requireResourceServerEndpointDpopNonce()) {
+		if (requireResourceServerEndpointDpopNonce()) {
 			callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 		}
 	}
@@ -682,8 +686,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		return isDpopConstrain();
 	}
 
-	protected void configureClients()
-	{
+	protected void configureClients() {
 		eventLog.startBlock("Verify configuration of first client");
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
@@ -726,15 +729,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		env.unmapKey("client_public_jwks");
 	}
 
-	protected void validateClientJwks(boolean isSecondClient)
-	{
+	protected void validateClientJwks(boolean isSecondClient) {
 		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
 		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, ConditionResult.FAILURE);
 
-		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
+		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 	}
 
 	protected void configureServerJWKS() {
@@ -748,15 +750,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	public void start() {
 		setStatus(Status.RUNNING);
 
-		switch(vciGrantType) {
+		switch (vciGrantType) {
 			case AUTHORIZATION_CODE -> {
-				switch(getVariant(VCIWalletAuthorizationCodeFlowVariant.class)) {
-					case WALLET_INITIATED -> {}
+				switch (getVariant(VCIWalletAuthorizationCodeFlowVariant.class)) {
+					case WALLET_INITIATED -> {
+					}
 					case ISSUER_INITIATED, ISSUER_INITIATED_DC_API -> prepareCredentialOffer();
 				}
 			}
 			case PRE_AUTHORIZATION_CODE -> {
-				switch(getVariant(VCIWalletAuthorizationCodeFlowVariant.class)) {
+				switch (getVariant(VCIWalletAuthorizationCodeFlowVariant.class)) {
 					case WALLET_INITIATED -> {
 						throw new UnsupportedOperationException("Pre-Authorization_Code is not supported with Wallet_Initiated flow");
 					}
@@ -789,7 +792,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			browser.requestCredential(request, ""); // FIXME for now, no submitUrl === it's a VCI request, not VP
 		} else {
 			String credentialOfferRedirectUrl = env.getString("vci", "credential_offer_redirect_url");
-			browser.goToUrl(credentialOfferRedirectUrl, null,"GET", 5);
+			browser.goToUrl(credentialOfferRedirectUrl, null, "GET", 5);
 		}
 	}
 
@@ -815,14 +818,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 
-	protected Object handleClientRequestForPath(String requestId, String path){
+	protected Object handleClientRequestForPath(String requestId, String path) {
 		if (path.equals("authorize")) {
-			if(startingShutdown){
+			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			return authorizationEndpoint(requestId);
 		} else if (path.equals("token")) {
-			if(startingShutdown){
+			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			if (profileRequiresMtlsEverywhere) {
@@ -834,7 +837,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else if (path.equals("jwks")) {
 			return jwksEndpoint();
 		} else if (path.equals("userinfo")) {
-			if(startingShutdown){
+			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			if (isMTLSConstrain()) {
@@ -850,10 +853,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		} else if (path.equals(".well-known/openid-credential-issuer")) {
 			throw new TestFailureException(getId(), "The wallet has formed the path to .well-known/openid-credential-issuer using the 'OpenID Connect rules', but since draft 16 of OID4VCI the .well-known rules from RFC8414 must be used.");
 		} else if (path.equals("par")) {
-			if(startingShutdown){
+			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			if(profileRequiresMtlsEverywhere) {
+			if (profileRequiresMtlsEverywhere) {
 				throw new TestFailureException(getId(), "In this ecosystem, the PAR endpoint must be called over an mTLS " +
 					"secured connection using the pushed_authorization_request_endpoint found in mtls_endpoint_aliases.");
 			}
@@ -862,7 +865,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 			return parEndpoint(requestId);
 		} else if (path.equals(ACCOUNTS_PATH)) {
-			if(startingShutdown){
+			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 
@@ -964,8 +967,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		env.getString("incoming_request", "request_url");
 
 		ResponseEntity<Object> responseEntity;
-		String credentialOfferId = path.substring(path.lastIndexOf("/")+1);
-		String expectedCredentialOfferId = env.getString("vci","credential_offer_id");
+		String credentialOfferId = path.substring(path.lastIndexOf("/") + 1);
+		String expectedCredentialOfferId = env.getString("vci", "credential_offer_id");
 		if (expectedCredentialOfferId.equals(credentialOfferId)) {
 			JsonElement credentialOfferObject = env.getElementFromObject("vci", "credential_offer");
 			responseEntity = ResponseEntity.status(HttpStatus.OK)
@@ -997,7 +1000,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		call(exec().mapKey("incoming_request", requestId));
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2" );
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-ID-7");
 		callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
 		call(exec().unmapKey("incoming_request").endBlock());
@@ -1029,26 +1032,38 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(false);
 
-		callAndStopOnFailure(VCIValidateCredentialRequestStructure.class, "OID4VCI-1FINAL-8.2");
-		callAndStopOnFailure(VCIResolveRequestedCredentialConfigurationFromRequest.class, "OID4VCI-1FINAL-8.2");
-		callAndStopOnFailure(VCIExtractCredentialRequestProof.class, "OID4VCI-1FINALA-F.4");
+		ResponseEntity<?> errorResponse;
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestStructure.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIResolveRequestedCredentialConfigurationFromRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIExtractCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.4");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
 
 		String proofType = env.getString("proof_type");
 		if ("jwt".equals(proofType)) {
-			callAndStopOnFailure(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
 		} else if ("attestation".equals(proofType)) {
-			callAndStopOnFailure(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4");
 		} else if ("di_vp".equals(proofType)) {
-			callAndStopOnFailure(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
+		}
+
+		if (errorResponse != null) {
+			return errorResponse;
 		}
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-		if (vciProfile == VCIProfile.HAIP) {
-			Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
-			callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
-		} else {
-			callAndStopOnFailure(CreateSdJwtCredential.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
-		}
+
+		createCredential();
 
 		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class);
 
@@ -1058,6 +1073,21 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		JsonObject headers = env.getElementFromObject(requestId, "headers").getAsJsonObject();
 		JsonObject credentialRequestBodyJson = env.getElementFromObject(requestId, "body_json").getAsJsonObject();
 
+		JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
+		return createCredentialEndpointResponse(credentialEndpointResponse, HttpStatus.OK);
+	}
+
+	protected ResponseEntity<?> callAndContinueOnFailureOrReturnErrorResponse(Class<? extends AbstractCondition> conditionClass, ConditionResult conditionResult, String ... requirements) {
+		callAndContinueOnFailure(conditionClass, conditionResult, requirements);
+		JsonElement credentialErrorResponse = env.getElementFromObject("vci", "credential_error_response");
+		if (credentialErrorResponse != null) {
+			JsonObject credentialEndpointResponseBody = credentialErrorResponse.getAsJsonObject().getAsJsonObject("body");
+			return createCredentialEndpointResponse(credentialEndpointResponseBody, HttpStatus.BAD_REQUEST);
+		}
+		return null;
+	}
+
+	protected ResponseEntity<Object> createCredentialEndpointResponse(JsonObject credentialEndpointResponse, HttpStatus responseStatus) {
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity;
@@ -1066,7 +1096,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
-			JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
 			JsonObject headerJson = env.getObject("credential_endpoint_response_headers");
 
 			if (requireResourceServerEndpointDpopNonce()) {
@@ -1074,9 +1103,21 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 			// at this point we can assume the test is fully done
 			resourceEndpointCallComplete();
-			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), responseStatus);
 		}
 		return responseEntity;
+	}
+
+	protected void createCredential() {
+
+		// TODO infer credential format from selected credential_format variant
+
+		if (vciProfile == VCIProfile.HAIP) {
+			Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
+			callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
+		} else {
+			callAndStopOnFailure(CreateSdJwtCredential.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
+		}
 	}
 
 	protected Map<String, Object> additionalSdJwtClaimsForHaip() {
@@ -1136,7 +1177,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 			return nonceEndpoint(requestId);
 		} else if (path.equals("userinfo")) {
-			if(startingShutdown){
+			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
 			return userinfoEndpoint(requestId);
@@ -1179,9 +1220,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 	}
+
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
 		senderConstrainTokenRequestHelper.checkResourceRequest();
-		if(useClientCredentialsAccessToken) {
+		if (useClientCredentialsAccessToken) {
 			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
 		} else {
 			call(sequence(validateSenderConstrainedTokenSteps));
@@ -1202,7 +1244,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(true);
 
-		if(isPayments) {
+		if (isPayments) {
 			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, ConditionResult.FAILURE);
 			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
@@ -1211,10 +1253,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			//ensure aud equals endpoint url	"BrazilOB-6.1"
 			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, ConditionResult.FAILURE, "RFC7519-4.1.3", "BrazilOB-6.1");
 			//ensure ISS equals TLS certificate organizational unit
-			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, ConditionResult.FAILURE,"BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 			//ensure jti is uuid	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestJtiIsUUIDv4.class, ConditionResult.FAILURE,"BrazilOB-6.1");
+			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestJtiIsUUIDv4.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 			callAndContinueOnFailure(FAPIBrazilValidateConsentRequestIat.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 
 			callAndContinueOnFailure(FAPIBrazilFetchClientOrganizationJwksFromDirectory.class, ConditionResult.FAILURE, "BrazilOB-6.1");
@@ -1224,19 +1266,19 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		} else {
 			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedConsents.class, ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
+			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
 		}
 
-		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE,"FAPI2-IMP-2.1.1");
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
-			if(isPayments) {
-				callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
-				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, ConditionResult.FAILURE,"BrazilOB-6.1-2");
+			if (isPayments) {
+				callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1-2");
 				String signedConsentResponse = env.getString("signed_consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
 
@@ -1244,7 +1286,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
 				responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 			} else {
-				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, ConditionResult.FAILURE,"BrazilOB-5.2.2-8");
+				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
 				JsonObject response = env.getObject("consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
 				responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.CREATED);
@@ -1271,30 +1313,30 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		checkResourceEndpointRequest(true);
 		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
-		String requestedConsentId = path.substring(path.lastIndexOf('/')+1);
+		String requestedConsentId = path.substring(path.lastIndexOf('/') + 1);
 		env.putString("requested_consent_id", requestedConsentId);
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
-			if(isPayments) {
+			if (isPayments) {
 				callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 				String signedConsentResponse = env.getString("signed_consent_response");
 				JsonObject headerJson = env.getObject("consent_response_headers");
 
-			HttpHeaders headers = headersFromJson(headerJson);
-			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
+				HttpHeaders headers = headersFromJson(headerJson);
+				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
+				responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
 
-		} else {
-			callAndContinueOnFailure(FAPIBrazilGenerateGetConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-			JsonObject response = env.getObject("consent_response");
-			JsonObject headerJson = env.getObject("consent_response_headers");
-			responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.OK);
-		}
+			} else {
+				callAndContinueOnFailure(FAPIBrazilGenerateGetConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
+				JsonObject response = env.getObject("consent_response");
+				JsonObject headerJson = env.getObject("consent_response_headers");
+				responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.OK);
+			}
 
 			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
 		}
@@ -1340,7 +1382,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
@@ -1350,9 +1392,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			String signedConsentResponse = env.getString("signed_payment_initiation_response");
 			JsonObject headerJson = env.getObject("payment_initiation_response_headers");
 
-		HttpHeaders headers = headersFromJson(headerJson);
-		headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-		responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
+			HttpHeaders headers = headersFromJson(headerJson);
+			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
+			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
 
 			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
 			resourceEndpointCallComplete();
@@ -1422,7 +1464,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	private abstract static class SenderContrainTokenRequestHelper {
 		public abstract void checkParRequest();
+
 		public abstract void checkTokenRequest();
+
 		public abstract void checkResourceRequest();
 	}
 
@@ -1431,7 +1475,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		public void checkParRequest() {
 			env.removeObject("incoming_dpop_proof");
 			skipIfElementMissing("incoming_request", "headers.dpop", ConditionResult.INFO, ExtractDpopProofFromHeader.class, ConditionResult.FAILURE, "DPOP-5");
-			if(env.containsObject("incoming_dpop_proof")) {
+			if (env.containsObject("incoming_dpop_proof")) {
 				call(sequence(PerformDpopProofParRequestChecks.class));
 			}
 		}
@@ -1471,14 +1515,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
-		if(clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
+		if (clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
 			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
 			// required to bind the issued access token to.)
 			checkMtlsCertificate();
 		}
 
-		if(clientAuthType == VCIClientAuthType.PRIVATE_KEY_JWT) {
+		if (clientAuthType == VCIClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
 				replace(ValidateClientAssertionClaims.class, condition(ValidateClientAssertionClaimsForPAREndpoint.class).requirements("PAR-2")).then(condition(ValidateClientAssertionAudClaimIsIssuerAsString.class).onFail(ConditionResult.FAILURE).requirements("FAPI2-SP-ID2-5.3.2.1-5").dontStopOnFailure())
 			);
@@ -1503,19 +1547,19 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		setParAuthorizationEndpointRequestParamsForHttpMethod();
 		extractParEndpointRequest();
 
-		if(env.containsObject("authorization_request_object")) {
+		if (env.containsObject("authorization_request_object")) {
 			validateRequestObjectForPAREndpointRequest();
 		}
 		senderConstrainTokenRequestHelper.checkParRequest();
-		if(isDpopConstrain()) {
+		if (isDpopConstrain()) {
 			callAndContinueOnFailure(ExtractParAuthorizationCodeDpopBindingKey.class, ConditionResult.FAILURE, "DPOP-10");
 		}
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("par_endpoint_response"), headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status").intValue()));
-		}  else {
+		} else {
 			JsonObject parResponse = createPAREndpointResponse();
 			responseEntity = new ResponseEntity<>(parResponse, HttpStatus.CREATED);
 		}
@@ -1526,7 +1570,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		return responseEntity;
 	}
 
-	protected void addCustomValuesToParResponse() {}
+	protected void addCustomValuesToParResponse() {
+	}
 
 	protected JsonObject createPAREndpointResponse() {
 		callAndStopOnFailure(CreatePAREndpointResponse.class, "PAR-2.2");
@@ -1559,12 +1604,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
-			if(requireResourceServerEndpointDpopNonce()) {
+			if (requireResourceServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 			}
 
@@ -1596,17 +1641,17 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(exec().startBlock("Token endpoint")
 			.mapKey("token_endpoint_request", requestId));
 
-		if(isDpopConstrain()) {
+		if (isDpopConstrain()) {
 			call(exec().mapKey("incoming_request", requestId));
 		}
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
-		if (clientAuthType == VCIClientAuthType.MTLS || isMTLSConstrain()  || profileRequiresMtlsEverywhere) {
+		if (clientAuthType == VCIClientAuthType.MTLS || isMTLSConstrain() || profileRequiresMtlsEverywhere) {
 			checkMtlsCertificate();
 		}
 
-		if(clientAuthType == VCIClientAuthType.PRIVATE_KEY_JWT) {
+		if (clientAuthType == VCIClientAuthType.PRIVATE_KEY_JWT) {
 			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
 				then(condition(ValidateClientAssertionAudClaimIsIssuerAsString.class).onFail(ConditionResult.FAILURE).requirements("FAPI2-SP-ID2-5.3.2.1-5").dontStopOnFailure())
 			);
@@ -1618,15 +1663,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(VCIValidateTxCode.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 		}
 
-		Object tokenResponseOb =  handleTokenEndpointGrantType(requestId);
-		if(isDpopConstrain()) {
+		Object tokenResponseOb = handleTokenEndpointGrantType(requestId);
+		if (isDpopConstrain()) {
 			call(exec().unmapKey("incoming_request"));
 		}
 		return tokenResponseOb;
 
 	}
 
-	protected Object handleTokenEndpointGrantType(String requestId){
+	protected Object handleTokenEndpointGrantType(String requestId) {
 
 		// dispatch based on grant type
 		String grantType = env.getString("token_endpoint_request", "body_form_params.grant_type");
@@ -1653,7 +1698,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 
 		ResponseEntity<Object> responseObject;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
 		} else {
@@ -1669,7 +1714,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			issueRefreshToken();
 
 			String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
-			if("yes".equals(isOpenIdScopeRequested)) {
+			if ("yes".equals(isOpenIdScopeRequested)) {
 				issueIdToken(false);
 			}
 
@@ -1677,7 +1722,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
 			// Create a new DPoP nonce
-			if(requireAuthorizationServerEndpointDpopNonce()) {
+			if (requireAuthorizationServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
 			}
 		}
@@ -1698,7 +1743,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 		ResponseEntity<Object> responseObject = null;
 
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
 		} else {
@@ -1711,7 +1756,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
 			// Create a new DPoP nonce
-			if(requireAuthorizationServerEndpointDpopNonce()) {
+			if (requireAuthorizationServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
 			}
 		}
@@ -1727,24 +1772,24 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 		ResponseEntity<Object> responseObject = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
 		} else {
 
 			callAndStopOnFailure(generateSenderConstrainedAccessToken);
 
-		callAndStopOnFailure(CreateTokenEndpointResponse.class);
+			callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 			// this puts the client credentials specific token into its own box for later
-			if(isMTLSConstrain()) {
+			if (isMTLSConstrain()) {
 				callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
-			} else  {
+			} else {
 				callAndStopOnFailure(CopyAccessTokenToDpopClientCredentialsField.class);
 			}
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 			// Create a new DPoP nonce
-			if(requireAuthorizationServerEndpointDpopNonce()) {
+			if (requireAuthorizationServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
 			}
 		}
@@ -1764,7 +1809,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 
 		ResponseEntity<Object> responseObject = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
 		} else {
@@ -1779,7 +1824,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			issueRefreshToken();
 
 			String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
-			if("yes".equals(isOpenIdScopeRequested)) {
+			if ("yes".equals(isOpenIdScopeRequested)) {
 				issueIdToken(false);
 			}
 
@@ -1787,7 +1832,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), HttpStatus.OK);
 
 			// Create a new DPoP nonce
-			if(requireAuthorizationServerEndpointDpopNonce()) {
+			if (requireAuthorizationServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
 			}
 		}
@@ -1811,9 +1856,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
 		String httpMethod = env.getString("authorization_endpoint_http_request", "method");
 		JsonObject httpRequestObj = env.getObject("authorization_endpoint_http_request");
-		if("POST".equals(httpMethod)) {
+		if ("POST".equals(httpMethod)) {
 			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
-		} else if("GET".equals(httpMethod)) {
+		} else if ("GET".equals(httpMethod)) {
 			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("query_string_params"));
 		} else {
 			//this should not happen?
@@ -1827,7 +1872,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void setParAuthorizationEndpointRequestParamsForHttpMethod() {
 		String httpMethod = env.getString("par_endpoint_http_request", "method");
 		JsonObject httpRequestObj = env.getObject("par_endpoint_http_request");
-		if("POST".equals(httpMethod)) {
+		if ("POST".equals(httpMethod)) {
 			env.putObject("par_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
 		} else {
 			throw new TestFailureException(getId(), "Got unexpected HTTP method '" + httpMethod + "' to par endpoint");
@@ -1870,16 +1915,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
-		if("yes".equals(isOpenIdScopeRequested)) {
+		if ("yes".equals(isOpenIdScopeRequested)) {
 			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
 		}
-		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO, EnsureAuthorizationRequestContainsStateParameter.class, ConditionResult.FAILURE, "RFC6749-4.1.1" );
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO, EnsureAuthorizationRequestContainsStateParameter.class, ConditionResult.FAILURE, "RFC6749-4.1.1");
 
 		createAuthorizationEndpointResponse();
 
 		String redirectTo = env.getString("authorization_endpoint_response_redirect");
 
-		if(requireAuthorizationServerEndpointDpopNonce()) {
+		if (requireAuthorizationServerEndpointDpopNonce()) {
 			callAndContinueOnFailure(CreateAuthorizationServerDpopNonce.class, ConditionResult.FAILURE);
 		}
 		setStatus(Status.WAITING);
@@ -1911,7 +1956,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected void validateRequestObjectForAuthorizationEndpointRequest() {
-		if(fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
+		if (fapi2AuthRequestMethod == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION) {
 			callAndContinueOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class, ConditionResult.FAILURE,
 				"FAPI2-MS-ID1-5.3.2-1");
 		}
@@ -1957,7 +2002,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		//3.3.3.6 The at_hash and c_hash Claims MAY be omitted from the ID Token returned from the Token Endpoint even when these Claims are present in the ID Token returned from the Authorization Endpoint,
 		//TODO skip or add?
-		if(isAuthorizationEndpoint) {
+		if (isAuthorizationEndpoint) {
 			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
 			// FIXME = No obvkous FAPI2 equivalent. PKCE replaces s_hash
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
@@ -1975,12 +2020,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		//TODO skip or add?
-		if(isAuthorizationEndpoint) {
+		if (isAuthorizationEndpoint) {
 			callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
-			skipIfMissing(null, new String[] {"s_hash"}, ConditionResult.INFO,
+			skipIfMissing(null, new String[]{"s_hash"}, ConditionResult.INFO,
 				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE);
 		}
-		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
+		skipIfMissing(null, new String[]{"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		addCustomValuesToIdToken();
@@ -1998,10 +2043,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	/**
 	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
 	 * "5.2.3.1.  ID Token as detached signature" reads:
-	 *  "5. shall support both signed and signed & encrypted ID Tokens."
-	 *  So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
-	 *  encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
-	 *  Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
+	 * "5. shall support both signed and signed & encrypted ID Tokens."
+	 * So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
+	 * encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
+	 * Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
+	 *
 	 * @param isAuthorizationEndpoint
 	 */
 	protected void encryptIdToken(boolean isAuthorizationEndpoint) {
@@ -2020,10 +2066,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		exposeEnvString("authorization_endpoint_response_redirect");
 	}
 
-	protected void addCustomValuesToJarmResponse() {}
+	protected void addCustomValuesToJarmResponse() {
+	}
 
 	protected void generateJARMResponseClaims() {
-		callAndStopOnFailure(GenerateJARMResponseClaims.class,"JARM-2.1.1");
+		callAndStopOnFailure(GenerateJARMResponseClaims.class, "JARM-2.1.1");
 		addCustomValuesToJarmResponse();
 	}
 
@@ -2043,7 +2090,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		checkResourceEndpointRequest(true);
 
 		ResponseEntity<Object> responseObject = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
@@ -2051,16 +2098,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(GenerateAccountRequestId.class);
 			exposeEnvString("account_request_id");
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+			callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
 
-		callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
+			callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
 
-		JsonObject accountRequestResponse = env.getObject("account_request_response");
-		JsonObject headerJson = env.getObject("account_request_response_headers");
+			JsonObject accountRequestResponse = env.getObject("account_request_response");
+			JsonObject headerJson = env.getObject("account_request_response_headers");
 
 			callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 			responseObject = new ResponseEntity<>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
-			if(requireResourceServerEndpointDpopNonce()) {
+			if (requireResourceServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 			}
 		}
@@ -2101,7 +2148,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
@@ -2109,7 +2156,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
 			JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");
 
-			if(requireResourceServerEndpointDpopNonce()) {
+			if (requireResourceServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 			}
 			// at this point we can assume the test is fully done

@@ -13,7 +13,7 @@ public class VCIGenerateRichAuthorizationRequestForCredential extends AbstractCo
 	@PreEnvironment(required = {"config", "vci"})
 	public Environment evaluate(Environment env) {
 
-		String credentialConfigId = env.getString("config", "vci.credential_configuration_id");
+		String credentialConfigId = env.getString("vci_credential_configuration_id");
 
 		JsonObject rarObj = new JsonObject();
 		rarObj.addProperty("type", "openid_credential");
