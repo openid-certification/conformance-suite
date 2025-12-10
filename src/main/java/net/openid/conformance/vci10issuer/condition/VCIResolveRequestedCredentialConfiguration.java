@@ -11,7 +11,7 @@ public class VCIResolveRequestedCredentialConfiguration extends AbstractConditio
 
 	@Override
 	@PreEnvironment(required="config")
-	@PostEnvironment(required = "vci_credential_configuration", strings = "vci_credential_configuration_id")
+	@PostEnvironment(required = "vci_credential_configuration")
 	public Environment evaluate(Environment env) {
 
 		JsonElement credentialConfigurationsSupportedEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_configurations_supported");
@@ -19,7 +19,7 @@ public class VCIResolveRequestedCredentialConfiguration extends AbstractConditio
 			throw error("credential_issuer_metadata.credential_configurations_supported missing");
 		}
 
-		String requestedCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
+		String requestedCredentialConfigurationId = env.getString("vci_credential_configuration_id");
 		JsonObject credentialConfigurationsSupported = credentialConfigurationsSupportedEl.getAsJsonObject();
 
 		if (!credentialConfigurationsSupported.has(requestedCredentialConfigurationId)) {
@@ -29,7 +29,6 @@ public class VCIResolveRequestedCredentialConfiguration extends AbstractConditio
 
 		JsonObject credentialConfiguration = credentialConfigurationsSupported.getAsJsonObject(requestedCredentialConfigurationId);
 
-		env.putString("vci_credential_configuration_id", requestedCredentialConfigurationId);
 		env.putObject("vci_credential_configuration", credentialConfiguration);
 		log("Emitting credential_configuration for " + requestedCredentialConfigurationId, args("credential_configuration", credentialConfiguration));
 

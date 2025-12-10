@@ -55,8 +55,7 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 
 		addProofsInformation(env, credentialRequest);
 
-		String credentialRequestJson = credentialRequest.toString();
-		env.putString("resource_request_entity", credentialRequestJson);
+		env.putObject("vci_credential_request_object", credentialRequest);
 
 		log("Created credential request", args("credential_request", credentialRequest));
 
