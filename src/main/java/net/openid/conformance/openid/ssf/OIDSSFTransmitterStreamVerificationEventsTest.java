@@ -20,6 +20,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityE
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromReceivedSETs;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFGetOrWaitForPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
@@ -115,11 +116,15 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 
 				eventLog.runBlock("Verify verification event received via PUSH delivery mode", () -> {
 
+					lookupNextPushRequest();
+
+					// use current push request or wait for it
+					callAndStopOnFailure(OIDSSFGetOrWaitForPushRequest.class, "OIDSSF-7.1.4.1");
+
 					// wait for data received on dynamic endpoint (needs to be reachable externally!)
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-7.1.4.1");
 
 					verifySetInResponse();
-
 				});
 			}
 			break;
@@ -145,7 +150,6 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 					callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
 
-					// TODO find requirements for SET token signature
 					verifySetInResponse();
 				});
 
@@ -187,7 +191,6 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 					callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
 
-					// TODO find requirements for SET token signature
 					verifySetInResponse();
 				});
 
@@ -202,8 +205,8 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 		fireTestFinished();
 	}
 
-	private void verifySetInResponse() {
-		// TODO find requirements for SET token signature
+	protected void verifySetInResponse() {
+
 		callAndContinueOnFailure(OIDSSFVerifySignatureOfVerificationEventToken.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
