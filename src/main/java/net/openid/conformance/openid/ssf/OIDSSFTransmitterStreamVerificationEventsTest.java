@@ -37,8 +37,8 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
-	testName = "openid-ssf-transmitter-events",
-	displayName = "OpenID Shared Signals Framework: Validate Transmitter Events",
+	testName = "openid-ssf-transmitter-stream-verification-events",
+	displayName = "OpenID Shared Signals Framework: Stream Verification",
 	summary = """
 		This test verifies the structure and handling of transmitter events via the configured SET delivery mechanism.
 		If PUSH delivery is configured, the test triggers a single verification event and awaits a SET delivered to the exposed push endpoint.
@@ -51,7 +51,7 @@ import net.openid.conformance.variant.VariantParameters;
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {"ssf.transmitter.access_token"})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {})
-public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestModule {
+public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
 	public void start() {
@@ -223,10 +223,6 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
-			// ensure subjectFormat is one of email, iss_sub, opaque
-			// callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
-		}
 		callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
 	}
 
