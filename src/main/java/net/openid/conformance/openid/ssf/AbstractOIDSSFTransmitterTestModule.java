@@ -32,6 +32,7 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTran
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectPushAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
+import net.openid.conformance.openid.ssf.delivery.SSfPushRequest;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
@@ -47,8 +48,12 @@ import net.openid.conformance.variant.VariantParameters;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 @VariantParameters({
 	ServerMetadata.class,
@@ -108,12 +113,14 @@ import java.util.UUID;
 })
 public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
+	protected BlockingDeque<SSfPushRequest> pushRequests = new LinkedBlockingDeque<>();
+
 	protected String pushAuthorizationHeader;
 
 	@Override
 	public void start() {
-		super.start();
 		pushAuthorizationHeader = generatePushAuthorizationHeader();
+		super.start();
 	}
 
 	protected String generatePushAuthorizationHeader() {
@@ -152,7 +159,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "OIDSSF-7.2.3");
 		env.unmapKey("endpoint_response");
 
-		exposeEnvString("ssf_metadata_url", "ssf","transmitter_metadata_url");
+		exposeEnvString("ssf_metadata_url", "ssf", "transmitter_metadata_url");
 	}
 
 	protected void cleanUpStreamConfigurationIfNecessary() {
@@ -257,12 +264,10 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
 		if ("ssf-push".equals(path)) {
-			env.putObject("ssf", "push_request", requestParts);
-			// see: RFC 8935 Push-Based Security Event Token (SET) Delivery Using HTTP
-			// https://www.rfc-editor.org/rfc/rfc8935.html#section-2.2
-			setStatus(Status.RUNNING);
-			onPushDeliveryReceived(path, requestParts);
-			setStatus(Status.WAITING);
+			SSfPushRequest pushRequest = new SSfPushRequest(UUID.randomUUID().toString(), path, Instant.now(), req, res, requestParts);
+			pushRequests.push(pushRequest);
+
+			// Mark push request as accepted for now, and validate later
 			return ResponseEntity.accepted().build();
 		}
 
@@ -275,5 +280,22 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 
 	protected void validateTlsConnection() {
 		call(sequence(OIDSSFValidateTlsConnectionConditionSequence.class));
+	}
+
+	protected SSfPushRequest lookupNextPushRequest() {
+
+		try {
+			SSfPushRequest pushRequest = pushRequests.pollFirst(5, TimeUnit.SECONDS);
+			if (pushRequest == null) {
+				return pushRequest;
+			}
+
+			env.putObject("ssf", "push_request", pushRequest.requestParts());
+			onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
+
+			return pushRequest;
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
