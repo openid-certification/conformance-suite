@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "openid-ssf-transmitter-push-no-auth",
+	testName = "openid-ssf-transmitter-stream-verification-error-push-no-auth",
 	displayName = "OpenID Shared Signals Framework: Validate anonymous Push-Based SET delivery",
 	summary = """
 		This test verifies that the SET event delivery via HTTP PUSH works without an authorization header.

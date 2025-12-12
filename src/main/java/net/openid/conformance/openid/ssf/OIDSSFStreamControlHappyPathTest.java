@@ -39,6 +39,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 
 	@Override
 	public void start() {
+		super.start();
 		setStatus(Status.RUNNING);
 
 		eventLog.runBlock("Fetch Transmitter Metadata", this::fetchTransmitterMetadata);
@@ -57,6 +58,9 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 
 			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
+			if (deliveryMode == SsfDeliveryMode.PUSH) {
+				configurePushAuthorizationHeader(null, pushAuthorizationHeader);
+			}
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
@@ -76,7 +80,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
 
-			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING,"OIDSSF-8.1.4.1", "OIDCAEP-3");
+			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1", "OIDCAEP-3");
 
 			SsfProfile ssfProfile = getVariant(SsfProfile.class);
 			if (SsfProfile.CAEP_INTEROP.equals(ssfProfile)) {
@@ -156,12 +160,6 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.1.5");
 			call(exec().unmapKey("endpoint_response"));
 		});
-
-		//OID_CAEP_INTEROP-2.3.8.2 Stream control (except Status) - check for API availability
-		// - Creating a Stream
-		// - Reading Stream Configuration
-		// - Getting the Stream Status
-		// - Stream Verification
 
 		fireTestFinished();
 	}
