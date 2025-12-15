@@ -9,7 +9,7 @@
         "jwks": {
             "keys": [
                 {
-                    "kid": "cch81rlolSC_10P_vwg3HBTk9tgsfwk6AOZ01Avw2gE",
+                    "kid": "KFwB-fhdaz7L3711J_NOc1AVYm0Pq4jKx9rbvbClgSE",
                     "alg": "PS256",
                     "use": "sig",
                     "kty": "RSA",
