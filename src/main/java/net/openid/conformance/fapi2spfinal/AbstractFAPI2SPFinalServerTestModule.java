@@ -232,12 +232,78 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
+@VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "mtls", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
 @VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {
 	"client.dpop_signing_alg",
 	"client2.dpop_signing_alg",
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
+// mtls fields are only necessary for non-plain_fapi profiles, but we can't use @VariantHidesConfigurationFields
+// as that would result in them not being shown for mtls client auth
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "consumerdataright_au", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "connectid_au", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "cbuae", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
 })
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "connectid_au", configurationFields = {
 	"resource.resourceUrl", // the userinfo endpoint is always used
