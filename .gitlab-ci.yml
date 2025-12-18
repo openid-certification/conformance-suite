@@ -608,7 +608,7 @@ local_test:
     for i in $*; do
       echo "Fetching master branch latest passed pipeline results for '$*'"
       res=0
-      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --silent --show-error --fail -L -o $i.zip https://gitlab.com/openid/conformance-suite/-/jobs/artifacts/master/download?job=$i || res=$?
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --silent --show-error --fail -L -o $i.zip "$CI_API_V4_URL/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=$i" || res=$?
       if [ $res -eq 0 ]; then
         unzip $i.zip
         rm $i.zip
