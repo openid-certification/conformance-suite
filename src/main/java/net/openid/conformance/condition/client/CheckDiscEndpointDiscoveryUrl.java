@@ -19,6 +19,9 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 	private final String errorMessageNotJsonPrimitive = "Specified value is not a Json primitive";
 	private final String errorMessageInvalidURL = "Invalid URL. Unable to parse.";
 	private final String errorMessageNotRequiredProtocol = "Expected " + requiredProtocol + " protocol for " + environmentVariable;
+	protected String getConfigurationEndpoint() {
+		return "/.well-known/openid-configuration";
+	}
 
 	@Override
 	@PreEnvironment(required = "config")
@@ -35,11 +38,11 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 			try {
 				String discoveryUrl = OIDFJSON.getString(configUrl);
 
-				if (!discoveryUrl.endsWith("/.well-known/openid-configuration")) {
-					throw error("discoveryUrl is missing '/.well-known/openid-configuration'", args("actual", discoveryUrl));
+				URL extractedUrl = new URL(discoveryUrl);
+				if(!isValidDiscoveryUrl(extractedUrl)) {
+					throw error("discoveryUrl is missing '" + getConfigurationEndpoint() + "'", args("actual", discoveryUrl));
 				}
 
-				URL extractedUrl = new URL(discoveryUrl);
 				if (!extractedUrl.getProtocol().equals(requiredProtocol)) {
 					throw error(errorMessageNotRequiredProtocol, args("actual", extractedUrl.getProtocol(), "expected", requiredProtocol));
 				}
@@ -51,5 +54,9 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 			}
 		}
 		return env;
+	}
+
+	protected boolean isValidDiscoveryUrl(URL url) {
+		return url.getPath().endsWith(getConfigurationEndpoint());
 	}
 }
