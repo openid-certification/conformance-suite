@@ -21,11 +21,11 @@ public abstract class  AbstractCreateDpopErrorResponse extends AbstractCondition
 		return env;
 	}
 
-	protected Environment createResourceServerEndpointDpopErrorResponse(Environment env, String endpointResponseKey, String expectedNonce) {
+	protected Environment createResourceServerEndpointDpopErrorResponse(Environment env, String endpointResponseKey, String authScheme, String expectedNonce) {
 		env.putInteger(endpointResponseKey.concat("_http_status"), 401);
 
 		JsonObject endpointResponseHeaders = new JsonObject();
-		endpointResponseHeaders.addProperty("WWW-Authenticate", "DPoP error=\"use_dpop_nonce\", error_description=\"Resource server requires nonce in DPoP proof\"");
+		endpointResponseHeaders.addProperty("WWW-Authenticate", authScheme + " error=\"use_dpop_nonce\", error_description=\"Resource server requires nonce in DPoP proof\"");
 		endpointResponseHeaders.addProperty("DPoP-Nonce", expectedNonce);
 		env.putObject(endpointResponseKey.concat("_headers"), endpointResponseHeaders);
 

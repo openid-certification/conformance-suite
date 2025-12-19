@@ -12,7 +12,7 @@ public class CreateResourceEndpointDpopErrorResponse extends AbstractCreateDpopE
 	@PostEnvironment(required = {"resource_endpoint_response_headers"})
 	public Environment evaluate(Environment env) {
 		String expectedNonce = env.getString("resource_endpoint_dpop_nonce_error");
-		return createResourceServerEndpointDpopErrorResponse(env, "resource_endpoint_response", expectedNonce);
+		return createResourceServerEndpointDpopErrorResponse(env, "resource_endpoint_response", "DPoP", expectedNonce);
 	}
 
 }
