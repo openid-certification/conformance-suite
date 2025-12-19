@@ -25,6 +25,7 @@ import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -40,6 +41,7 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	protected Boolean isDpop;
+	protected Boolean isOpenId;
 
 	public static class MtlsChecks extends AbstractConditionSequence
 	{
@@ -65,6 +67,8 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
+
+		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 
 		callAndStopOnFailure(GetDynamicServerConfiguration.class);
 		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDCD-4");

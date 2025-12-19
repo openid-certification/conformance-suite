@@ -68,7 +68,6 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 
 	protected Boolean jarm;
 	protected Boolean signedRequest;
-	protected Boolean isOpenId;
 
 	protected boolean brazil = false;
 
@@ -113,7 +112,6 @@ public class FAPI2SPID2DiscoveryEndpointVerification extends AbstractFAPI2SPID2D
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
-		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}
 
