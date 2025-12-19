@@ -23,6 +23,9 @@ import java.security.spec.InvalidKeySpecException;
 
 public class GetDynamicServerConfiguration extends AbstractCondition {
 
+	protected String getConfigurationEndpoint() {
+		return "/.well-known/openid-configuration";
+	}
 	@Override
 	@PreEnvironment(required = "config")
 	@PostEnvironment(required = { "server", "discovery_endpoint_response" } )
@@ -43,7 +46,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 		if (Strings.isNullOrEmpty(discoveryUrl)) {
 
 			String iss = env.getString("config", "server.discoveryIssuer");
-			discoveryUrl = iss + "/.well-known/openid-configuration";
+			discoveryUrl = iss + getConfigurationEndpoint();
 
 			if (Strings.isNullOrEmpty(iss)) {
 				throw error("Couldn't find discoveryUrl or discoveryIssuer field for discovery purposes");
