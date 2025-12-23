@@ -101,6 +101,7 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateResourceRespons
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
+import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -317,7 +318,11 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		exposeEnvString("redirect_uri");
 
 		// Make sure we're calling the right server configuration
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		if(isOpenId) {
+			callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		} else {
+			callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
+		}
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));

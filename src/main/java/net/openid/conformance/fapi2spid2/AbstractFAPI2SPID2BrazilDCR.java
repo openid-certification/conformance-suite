@@ -39,6 +39,7 @@ import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirecto
 import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDirectoryDiscoveryUrl;
 import net.openid.conformance.condition.client.FapiBrazilVerifyRedirectUriContainedInSoftwareStatement;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
+import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
 import net.openid.conformance.condition.client.SetDirectorySoftwareScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetResponseTypeCodeInDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
@@ -64,7 +65,11 @@ public abstract class AbstractFAPI2SPID2BrazilDCR extends AbstractFAPI2SPID2Serv
 		env.mapKey("client", "directory_client");
 		env.mapKey("access_token", "directory_access_token");
 		env.mapKey("discovery_endpoint_response", "directory_discovery_endpoint_response");
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		if(isOpenId) {
+			callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		} else {
+			callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
+		}
 
 		// this overwrites the non-directory values; we will have to replace them below
 		callAndContinueOnFailure(AddMTLSEndpointAliasesToEnvironment.class, Condition.ConditionResult.FAILURE, "RFC8705-5");
