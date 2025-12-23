@@ -102,6 +102,7 @@ import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
+import net.openid.conformance.condition.as.GenerateOauthServerConfigurationMTLS;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadRequestedIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
@@ -351,7 +352,11 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
-		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		if(fapiClientType == FAPIClientType.OIDC) {
+			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		} else {
+			callAndStopOnFailure(GenerateOauthServerConfigurationMTLS.class);
+		}
 		call(condition(AddJwksUriToServerConfiguration.class));
 
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
@@ -565,6 +570,26 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 
 		return handleClientRequestForPath(requestId, path);
 
+	}
+
+
+	@Override
+	public Object handleWellKnown(String path,
+								  HttpServletRequest req, HttpServletResponse res,
+								  HttpSession session,
+								  JsonObject requestParts) {
+
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		env.mapKey("incoming_request", requestId);
+
+		Object response;
+		if (path.startsWith("/.well-known/oauth-authorization-server")) {
+			response = discoveryEndpoint();
+		} else {
+			response = super.handleWellKnown(path, req, res, session, requestParts);
+		}
+		return response;
 	}
 
 

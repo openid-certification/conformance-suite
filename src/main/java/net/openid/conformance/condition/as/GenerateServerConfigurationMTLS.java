@@ -56,12 +56,17 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 		env.putObject("server", server);
 
 		env.putString("issuer", baseUrl);
-		env.putString("discoveryUrl", baseUrl + ".well-known/openid-configuration");
+		String discoverUrl = getDiscoveryUrl(baseUrl);
+		env.putString("discoveryUrl", discoverUrl);
 
-		logSuccess("Created server configuration", args("server", server, "issuer", baseUrl, "discoveryUrl", baseUrl + ".well-known/openid-configuration"));
+		logSuccess("Created server configuration", args("server", server, "issuer", baseUrl, "discoveryUrl", discoverUrl));
 
 		return env;
 
+	}
+
+	protected String getDiscoveryUrl(String baseUrl) {
+		return baseUrl + ".well-known/openid-configuration";
 	}
 
 }
