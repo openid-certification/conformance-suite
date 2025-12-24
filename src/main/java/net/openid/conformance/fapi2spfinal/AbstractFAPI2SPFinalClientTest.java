@@ -111,6 +111,7 @@ import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
+import net.openid.conformance.condition.as.GenerateOauthServerConfigurationMTLS;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadRequestedIdTokenClaims;
 import net.openid.conformance.condition.as.LoadServerJWKs;
@@ -360,7 +361,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
-		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		if(fapiClientType == FAPIClientType.OIDC) {
+			callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
+		} else {
+			callAndStopOnFailure(GenerateOauthServerConfigurationMTLS.class);
+		}
 		if (fapiClientType == FAPIClientType.OIDC || responseMode == FAPIResponseMode.JARM) {
 			call(condition(AddJwksUriToServerConfiguration.class));
 		}
@@ -590,6 +595,25 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	}
 
+	@Override
+	public Object handleWellKnown(String path,
+							  HttpServletRequest req, HttpServletResponse res,
+							  HttpSession session,
+							  JsonObject requestParts) {
+
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		env.mapKey("incoming_request", requestId);
+
+		Object response;
+		if (path.startsWith("/.well-known/oauth-authorization-server")) {
+			response = discoveryEndpoint();
+		} else {
+			response = super.handleWellKnown(path, req, res, session, requestParts);
+		}
+		return response;
+	}
+
 
 	protected Object handleClientRequestForPath(String requestId, String path){
 		if (path.equals("authorize")) {
@@ -773,7 +797,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			createResourceEndpointDpopErrorResponse();
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
 			if(isPayments) {
@@ -818,7 +842,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			createResourceEndpointDpopErrorResponse();
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
 			if(isPayments) {
@@ -883,7 +907,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			createResourceEndpointDpopErrorResponse();
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
@@ -1077,7 +1101,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			createResourceEndpointDpopErrorResponse();
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
@@ -1601,6 +1625,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		addCustomValuesToJarmResponse();
 	}
 
+	protected void createResourceEndpointDpopErrorResponse() {
+		callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+	}
+
 	/**
 	 * OpenBanking account request API
 	 *
@@ -1618,7 +1646,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		ResponseEntity<Object> responseObject = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			createResourceEndpointDpopErrorResponse();
 			responseObject = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {
 			// TODO: should we clear the old headers?
@@ -1684,7 +1712,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		ResponseEntity<Object> responseEntity = null;
 		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			createResourceEndpointDpopErrorResponse();
 			setStatus(Status.WAITING);
 			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		} else {

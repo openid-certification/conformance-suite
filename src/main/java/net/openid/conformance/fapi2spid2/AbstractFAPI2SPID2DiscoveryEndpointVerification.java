@@ -9,6 +9,8 @@ import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckJwksUri;
+import net.openid.conformance.condition.client.CheckOauthDiscEndpointDiscoveryUrl;
+import net.openid.conformance.condition.client.CheckOauthDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsCodeChallengeMethodS256;
@@ -19,12 +21,14 @@ import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointTokenEndpoi
 import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPI2CheckDpopSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
+import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -40,6 +44,7 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	protected Boolean isDpop;
+	protected Boolean isOpenId;
 
 	public static class MtlsChecks extends AbstractConditionSequence
 	{
@@ -66,9 +71,17 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
-		callAndContinueOnFailure(CheckDiscoveryEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCD-4");
+		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
+		String specRequirements = "OIDCD-4";
+
+		if(isOpenId) {
+			callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		} else {
+			callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
+			specRequirements = "RFC8414-3.2";
+		}
+		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, specRequirements);
+		callAndContinueOnFailure(CheckDiscoveryEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, specRequirements);
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
@@ -81,8 +94,13 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 
 	protected void performEndpointVerification() {
 
-		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
+		if(isOpenId) {
+			callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
+		} else {
+			callAndContinueOnFailure(CheckOauthDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckOauthDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "RFC8414-3.3", "RFC8414-6.2");
+		}
 
 		if (isDpop) {
 			callAndContinueOnFailure(FAPI2CheckDpopSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-1");

@@ -36,6 +36,7 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		FAPI2SPFinalClientTestEnsureAuthorizationResponseWithInvalidMissingStateFails.class,
 		FAPI2SPFinalClientTestTokenEndpointResponseWithoutExpiresIn.class,
 		FAPI2SPFinalClientTestTokenTypeCaseInsenstivity.class,
+		FAPI2SPFinalClientTestRSDpopAuthSchemeCaseInsenstivity.class,
 
 		// Happy path for DPoP sender constrained without DPoP nonce
 		FAPI2SPFinalClientTestHappyPathNoDpopNonce.class,

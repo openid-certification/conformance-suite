@@ -91,7 +91,8 @@ public class CallProtectedResourceAllowingDpopNonceError extends CallProtectedRe
 						for(JsonElement wwwHeaderElement : wwwHeaderArray) {
 							String wwwHeader = OIDFJSON.getString(wwwHeaderElement);
 							// Pattern dPopSchemePattern = Pattern.compile("^(DPoP)((\\s*([^=]+)=\"([^\"]+)\",*)+)$");
-							if(wwwHeader.startsWith("DPoP ")) {
+							// Auth schemes are case insensitive per RFC9110-11.1
+							if(wwwHeader.toLowerCase().startsWith("dpop ")) {
 								Matcher matcher = pattern.matcher(wwwHeader.substring(5));
 								HashMap<String, String> keyPairs = new HashMap<>();
 								while(matcher.find()) {
