@@ -474,8 +474,8 @@ local_test:
     fi
 
     if [[ "$CI_COMMIT_BRANCH" == "demo" ]]; then
-      # demo currently has a larger database which persists and it's not easy to downsize them
-      mongo_settings="--set mongodb.persistence.size=25Gi"
+      # demo currently has a larger database which persists
+      mongo_settings="--set mongodb.persistence.size=30Gi"
     fi
     if [[ "$CI_COMMIT_BRANCH" == "master" ]]; then
       # we expect much bigger databases on staging as it persists; use more RAM and disk for mongo
