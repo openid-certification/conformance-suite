@@ -954,6 +954,7 @@ async def main():
     else:
         # local development settings
         api_url_base = 'https://localhost.emobix.co.uk:8443/'
+        print("CONFORMANCE_SERVER environment variable not set, defaulting to "+api_url_base)
         dev_mode = True
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
