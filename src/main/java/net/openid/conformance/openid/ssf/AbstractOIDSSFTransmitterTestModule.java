@@ -27,6 +27,7 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryM
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
+import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFEnsureDeliveryMethodIsSupported;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetDynamicTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFGetStaticTransmitterConfiguration;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
@@ -160,6 +161,14 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 		env.unmapKey("endpoint_response");
 
 		exposeEnvString("ssf_metadata_url", "ssf", "transmitter_metadata_url");
+
+		checkDeliveryMethod();
+	}
+
+	protected void checkDeliveryMethod() {
+		SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
+
+		callAndStopOnFailure(new OIDSSFEnsureDeliveryMethodIsSupported(deliveryMode));
 	}
 
 	protected void cleanUpStreamConfigurationIfNecessary() {

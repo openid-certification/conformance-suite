@@ -42,6 +42,11 @@ import net.openid.conformance.variant.VariantParameters;
 public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
+	protected void checkDeliveryMethod() {
+		// skip delivery method check for metadata validation
+	}
+
+	@Override
 	public void start() {
 
 		setStatus(Status.RUNNING);
