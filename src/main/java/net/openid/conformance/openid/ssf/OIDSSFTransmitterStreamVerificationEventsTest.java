@@ -107,9 +107,9 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 				eventLog.runBlock("Trigger verification event", () -> {
 
 					// Trigger verification event
-					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
+					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
+					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 
 					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
@@ -119,10 +119,10 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 					lookupNextPushRequest();
 
 					// use current push request or wait for it
-					callAndStopOnFailure(OIDSSFGetOrWaitForPushRequest.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFGetOrWaitForPushRequest.class, "OIDSSF-8.1.4.1");
 
 					// wait for data received on dynamic endpoint (needs to be reachable externally!)
-					callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
 
 					verifySetInResponse();
 				});
@@ -134,9 +134,9 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 				eventLog.runBlock("Trigger verification event 1", () -> {
 
 					// Trigger verification event
-					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
+					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
+					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 
 					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
@@ -145,7 +145,7 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 
 					// poll verification endpoint with POLL_ONLY
 					env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
-					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
 					env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 					callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
@@ -156,9 +156,9 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 				eventLog.runBlock("Trigger verification event 2", () -> {
 
 					// Trigger verification event
-					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
+					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
+					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 
 					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
@@ -166,7 +166,7 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 				eventLog.runBlock("Verify verification event 2 received via POLL delivery mode with ACKNOWLEDGE_ONLY", () -> {
 					// poll verification endpoint with ACKNOWLEDGE_ONLY
 					env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.ACKNOWLEDGE_ONLY.name());
-					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
 					env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 					// we don't get any new sets back with acknowledge_only mode
 //					callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
@@ -176,9 +176,9 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 				eventLog.runBlock("Trigger verification event 3", () -> {
 
 					// Trigger verification event
-					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
+					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
+					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 
 					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
@@ -186,7 +186,7 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 				eventLog.runBlock("Verify verification event 3 received via POLL delivery mode with POLL_AND_ACKNOWLEDGE", () -> {
 					// poll verification endpoint with POLL_AND_ACKNOWLEDGE
 					env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE.name());
-					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
 					env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 					callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
