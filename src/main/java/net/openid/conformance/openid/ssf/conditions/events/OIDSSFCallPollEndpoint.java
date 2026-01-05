@@ -68,10 +68,11 @@ public class OIDSSFCallPollEndpoint extends AbstractOIDSSFTransmitterEndpointCal
 			break;
 			// Combined Acknowledge and Poll
 			case POLL_AND_ACKNOWLEDGE: {
+				Set<String> sets = env.getElementFromObject("ssf","poll.sets").getAsJsonObject().keySet();
 				pollRequest = Map.of( //
 					"maxEvents", 10,  // retrieve 10 events at max
 					"returnImmediately", returnImmediately,
-					"ack", Set.of()
+					"ack", sets
 				);
 			}
 			break;
