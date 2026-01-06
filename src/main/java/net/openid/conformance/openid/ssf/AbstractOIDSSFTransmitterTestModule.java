@@ -274,6 +274,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 
 		if ("ssf-push".equals(path)) {
 			SSfPushRequest pushRequest = new SSfPushRequest(UUID.randomUUID().toString(), path, Instant.now(), req, res, requestParts);
+			eventLog.log(getName(), "Call to ssf-push endpoint with id" + pushRequest.id() + " captured and stored for later processing.");
 			pushRequests.push(pushRequest);
 
 			// Mark push request as accepted for now, and validate later
@@ -299,6 +300,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 				return pushRequest;
 			}
 
+			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id" + pushRequest.id());
 			env.putObject("ssf", "push_request", pushRequest.requestParts());
 			onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
 
