@@ -20,6 +20,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityE
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromReceivedSETs;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFGetOrWaitForPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
@@ -37,8 +38,8 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
-	testName = "openid-ssf-transmitter-events",
-	displayName = "OpenID Shared Signals Framework: Validate Transmitter Events",
+	testName = "openid-ssf-transmitter-stream-verification-events",
+	displayName = "OpenID Shared Signals Framework: Stream Verification",
 	summary = """
 		This test verifies the structure and handling of transmitter events via the configured SET delivery mechanism.
 		If PUSH delivery is configured, the test triggers a single verification event and awaits a SET delivered to the exposed push endpoint.
@@ -51,7 +52,7 @@ import net.openid.conformance.variant.VariantParameters;
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {"ssf.transmitter.access_token"})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "dynamic", configurationFields = {})
-public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestModule {
+public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSSFTransmitterTestModule {
 
 	@Override
 	public void start() {
@@ -106,20 +107,24 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 				eventLog.runBlock("Trigger verification event", () -> {
 
 					// Trigger verification event
-					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
+					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
+					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 
 					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
 
 				eventLog.runBlock("Verify verification event received via PUSH delivery mode", () -> {
 
+					lookupNextPushRequest();
+
+					// use current push request or wait for it
+					callAndStopOnFailure(OIDSSFGetOrWaitForPushRequest.class, "OIDSSF-8.1.4.1");
+
 					// wait for data received on dynamic endpoint (needs to be reachable externally!)
-					callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
 
 					verifySetInResponse();
-
 				});
 			}
 			break;
@@ -129,9 +134,9 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 				eventLog.runBlock("Trigger verification event 1", () -> {
 
 					// Trigger verification event
-					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
+					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
+					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 
 					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
@@ -140,21 +145,20 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 
 					// poll verification endpoint with POLL_ONLY
 					env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
-					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
 					env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 					callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
 
-					// TODO find requirements for SET token signature
 					verifySetInResponse();
 				});
 
 				eventLog.runBlock("Trigger verification event 2", () -> {
 
 					// Trigger verification event
-					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
+					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
+					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 
 					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
@@ -162,7 +166,7 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 				eventLog.runBlock("Verify verification event 2 received via POLL delivery mode with ACKNOWLEDGE_ONLY", () -> {
 					// poll verification endpoint with ACKNOWLEDGE_ONLY
 					env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.ACKNOWLEDGE_ONLY.name());
-					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
 					env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 					// we don't get any new sets back with acknowledge_only mode
 //					callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
@@ -172,9 +176,9 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 				eventLog.runBlock("Trigger verification event 3", () -> {
 
 					// Trigger verification event
-					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-7.1.4.2", "CAEPIOP-2.3.8.2");
+					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-7.1.4.2");
+					callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
 
 					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
@@ -182,12 +186,11 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 				eventLog.runBlock("Verify verification event 3 received via POLL delivery mode with POLL_AND_ACKNOWLEDGE", () -> {
 					// poll verification endpoint with POLL_AND_ACKNOWLEDGE
 					env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE.name());
-					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-7.1.4.1");
+					callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
 					env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 					callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
 
-					// TODO find requirements for SET token signature
 					verifySetInResponse();
 				});
 
@@ -202,8 +205,8 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 		fireTestFinished();
 	}
 
-	private void verifySetInResponse() {
-		// TODO find requirements for SET token signature
+	protected void verifySetInResponse() {
+
 		callAndContinueOnFailure(OIDSSFVerifySignatureOfVerificationEventToken.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
@@ -223,10 +226,6 @@ public class OIDSSFTransmitterEventsTest extends AbstractOIDSSFTransmitterTestMo
 
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
-			// ensure subjectFormat is one of email, iss_sub, opaque
-			// callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.5");
-		}
 		callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
 	}
 

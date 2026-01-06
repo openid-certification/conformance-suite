@@ -107,9 +107,9 @@ public class SsfEvents {
 	public static final Set<String> CAEP_INTEROP_EVENT_TYPES;
 	static {
 		Set<String> events = new LinkedHashSet<>();
-		events.addAll(SsfEvents.SSF_EVENT_TYPES);
 		events.add(CAEP_SESSION_REVOKED_EVENT_TYPE);
 		events.add(CAEP_CREDENTIAL_CHANGE_EVENT_TYPE);
+		events.add(CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE); // see: https://github.com/openid/sharedsignals/issues/311
 		CAEP_INTEROP_EVENT_TYPES = events;
 	}
 

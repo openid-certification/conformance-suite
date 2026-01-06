@@ -13,6 +13,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupported
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamStatusCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReplaceStreamConditionSequence;
@@ -21,6 +22,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamRequired
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamStatusCall;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -37,6 +39,7 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 
 	@Override
 	public void start() {
+		super.start();
 		setStatus(Status.RUNNING);
 
 		eventLog.runBlock("Fetch Transmitter Metadata", this::fetchTransmitterMetadata);
@@ -55,6 +58,9 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 
 			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
+			if (deliveryMode == SsfDeliveryMode.PUSH) {
+				configurePushAuthorizationHeader(null, pushAuthorizationHeader);
+			}
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
@@ -74,7 +80,13 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
 			callAndContinueOnFailure(OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1.2");
 
-			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING,"OIDSSF-8.1.4.1", "OIDCAEP-3");
+			callAndContinueOnFailure(OIDSSFCheckSupportedEventsForStream.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.4.1", "OIDCAEP-3");
+
+			SsfProfile ssfProfile = getVariant(SsfProfile.class);
+			if (SsfProfile.CAEP_INTEROP.equals(ssfProfile)) {
+				callAndContinueOnFailure(OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents.class, Condition.ConditionResult.FAILURE, "CAEPIOP-3");
+			}
+
 			callAndContinueOnFailure(OIDSSFCheckStreamDeliveryMethod.class, Condition.ConditionResult.WARNING, "OIDSSF-8.1.1", "CAEPIOP-2.3.8.1");
 			// TODO check: In the event that there are no Event Streams configured, the Transmitter MUST return an empty list.
 			// TODO check: stream configuration response
@@ -148,12 +160,6 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.1.5");
 			call(exec().unmapKey("endpoint_response"));
 		});
-
-		//OID_CAEP_INTEROP-2.3.8.2 Stream control (except Status) - check for API availability
-		// - Creating a Stream
-		// - Reading Stream Configuration
-		// - Getting the Stream Status
-		// - Stream Verification
 
 		fireTestFinished();
 	}

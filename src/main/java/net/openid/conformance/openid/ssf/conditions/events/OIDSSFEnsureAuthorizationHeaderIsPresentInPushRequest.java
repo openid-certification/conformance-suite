@@ -18,11 +18,12 @@ public class OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest extends Abstr
 		String authorizationHeader = env.getString("ssf", "push_request.headers.authorization");
 		String expectedAuthorizationHeader = env.getString("ssf", "transmitter.push_endpoint_authorization_header");
 		if (!authorizationHeader.equals(expectedAuthorizationHeader)) {
-			logFailure("Found unexpected authorization header found in push delivery request for delivery config push authorization header", args("expected_authorization_header", expectedAuthorizationHeader, "authorization", authorizationHeader));
+			logFailure("Found unexpected authorization header in push delivery request",
+				args("expected_authorization_header", expectedAuthorizationHeader, "authorization", authorizationHeader));
 			return env;
 		}
 
-		logSuccess("Found expected push authorization header found in push delivery request", args("authorization", authorizationHeader));
+		logSuccess("Found expected push authorization header in push delivery request", args("authorization", authorizationHeader));
 
 		return env;
 	}

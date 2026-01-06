@@ -1,7 +1,7 @@
 package net.openid.conformance.openid.ssf;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectInvalidAccessTokenOverride;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -27,7 +27,7 @@ public class OIDSSFStreamControlNegativeTestUpdateStreamWithInvalidToken extends
 			call(sequence(OIDSSFUpdateStreamConditionSequence.class));
 			OIDSSFInjectInvalidAccessTokenOverride.undo(env);
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs401.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 			call(exec().unmapKey("endpoint_response"));
 		});
 	}

@@ -6,7 +6,7 @@ import net.openid.conformance.variant.VariantSelection;
 
 @PublishTestPlan(
 	testPlanName = "openid-ssf-transmitter-test-plan",
-	displayName = "OpenID Shared Signals Framework: Transmitter test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
+	displayName = "OpenID Shared Signals Framework 1.0 Final: Transmitter",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Transmitter.",
 	profile = TestPlan.ProfileNames.ssftest,
 	testModules = {
@@ -26,8 +26,8 @@ import net.openid.conformance.variant.VariantSelection;
 		OIDSSFStreamControlNegativeTestDeleteStreamWithInvalidAccessToken.class,
 		OIDSSFStreamControlNegativeTestDeleteUnknownStream.class,
 		OIDSSFStreamSubjectControlHappyPathTest.class,
-		OIDSSFTransmitterEventsTest.class,
-		OIDSSFTransmitterPushNoAuthTest.class,
+		OIDSSFTransmitterStreamVerificationEventsTest.class,
+		OIDSSFTransmitterStreamVerificationPushNoAuthTest.class,
 	}
 )
 public class OIDSSFTransmitterTestPlan implements TestPlan {
