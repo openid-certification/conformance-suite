@@ -30,7 +30,9 @@ import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestPar
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
+import net.openid.conformance.condition.as.EnsureScopeContainsConsents;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
+import net.openid.conformance.condition.as.EnsureScopeContainsResources;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
@@ -791,7 +793,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			if(wasInitialConsentRequestToPaymentsEndpoint) {
 				callAndStopOnFailure(EnsureScopeContainsPayments.class);
 			} else {
-				callAndStopOnFailure(EnsureScopeContainsAccounts.class);
+				callAndStopOnFailure(EnsureScopeContainsConsents.class);
+				callAndStopOnFailure(EnsureScopeContainsResources.class);
 			}
 		} else {
 			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScopeDisregardingOrder.class);
