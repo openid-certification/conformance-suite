@@ -92,7 +92,7 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 		String clientAuth = v.get("client_auth_type");
 		String cibaMode = v.get("ciba_mode");
 		boolean privateKey = ClientAuthType.PRIVATE_KEY_JWT.toString().equals(clientAuth);
-		boolean poll = CIBAMode.POLL.toString().equals(cibaMode);
+		boolean ping = CIBAMode.PING.toString().equals(cibaMode);
 
 		switch (profile) {
 			case "plain_fapi":
@@ -100,16 +100,16 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				certProfile = "FAPI-CIBA";
 				break;
 			case "openbanking_brazil":
-				certProfile = "BR-OB-CIBA";
-				if (!privateKey || !poll) {
-					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil Open Finance".formatted(
+				certProfile = "BR-OF-CIBA";
+				if (!privateKey || !ping) {
+					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be ping for Brazil Open Finance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case  "openinsurance_brazil":
 				certProfile = "BR-OPIN-CIBA";
-				if (!privateKey || !poll) {
-					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil Open Insurance".formatted(
+				if (!privateKey || !ping) {
+					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be ping for Brazil Open Insurance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
