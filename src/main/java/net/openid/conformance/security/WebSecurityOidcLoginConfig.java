@@ -2,6 +2,7 @@ package net.openid.conformance.security;
 
 import com.google.common.base.Strings;
 import jakarta.servlet.Filter;
+import net.openid.conformance.security.keycloak.KeycloakLogoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +86,9 @@ class WebSecurityOidcLoginConfig {
 
 	@Autowired(required = false)
 	private CorsConfigurable additionalCorsConfiguration;
+
+	@Autowired
+	private KeycloakLogoutHandler keycloakLogoutHandler;
 
 	@Bean
 	public InMemoryClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
@@ -216,6 +220,10 @@ class WebSecurityOidcLoginConfig {
 					return extendedAuthorities;
 				});
 			});
+		});
+
+		http.logout(lc -> {
+			lc.addLogoutHandler(keycloakLogoutHandler);
 		});
 
 		http.exceptionHandling(exceptions -> {
