@@ -87,7 +87,7 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				certProfile = "BR-OB";
+				certProfile = "BR-OF";
 				if (!privateKey || !ping) {
 					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be ping for Brazil Open Finance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
