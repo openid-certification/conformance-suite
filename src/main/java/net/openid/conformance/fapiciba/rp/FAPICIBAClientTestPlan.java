@@ -103,7 +103,7 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 
 		}
 
-		certProfile += "-CIBA RP " + cibaMode;
+		certProfile += " CIBA RP " + cibaMode;
 
 		switch (clientAuth) {
 			case "private_key_jwt":

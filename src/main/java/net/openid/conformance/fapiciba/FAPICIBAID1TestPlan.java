@@ -100,14 +100,14 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				certProfile = "FAPI-CIBA";
 				break;
 			case "openbanking_brazil":
-				certProfile = "BR-OF-CIBA";
+				certProfile = "BR-OF CIBA";
 				if (!privateKey || !ping) {
 					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be ping for Brazil Open Finance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
 			case  "openinsurance_brazil":
-				certProfile = "BR-OPIN-CIBA";
+				certProfile = "BR-OPIN CIBA";
 				if (!privateKey || !ping) {
 					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be ping for Brazil Open Insurance".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
