@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckAuthReqIdInCallback;
-import net.openid.conformance.condition.as.CheckCIBAModeIsPoll;
+import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.CheckNotificationCallbackOnlyAuthReqId;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
@@ -440,7 +440,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		brazilPayments = scopeContains("payments");
 		if(isBrazil()) {
-			callAndStopOnFailure(CheckCIBAModeIsPoll.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+			callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 		}
 
 		onConfigure();
