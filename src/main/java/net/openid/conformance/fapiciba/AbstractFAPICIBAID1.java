@@ -540,14 +540,15 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	public void registerClient() {
 
-		callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
-		callAndStopOnFailure(GenerateMTLSCertificateFromJWKs.class);
-		callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
-
 		// create basic dynamic registration request
 		callAndStopOnFailure(CreateEmptyDynamicRegistrationRequest.class);
 		callAndStopOnFailure(AddClientNameToDynamicRegistrationRequest.class);
 		expose("client_name", env.getString("dynamic_registration_request", "client_name"));
+		env.putString("client_name", env.getString("dynamic_registration_request", "client_name"));
+
+		callAndStopOnFailure(GeneratePS256ClientJWKsWithKeyID.class);
+		callAndStopOnFailure(GenerateMTLSCertificateFromJWKs.class);
+		callAndStopOnFailure(AddClientX509CertificateClaimToPublicJWKs.class);
 
 		callAndStopOnFailure(AddCibaGrantTypeToDynamicRegistrationRequest.class, "CIBA-4");
 		callAndStopOnFailure(AddPublicJwksToDynamicRegistrationRequest.class, "RFC7591-2");
