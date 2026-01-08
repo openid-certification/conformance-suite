@@ -14,7 +14,7 @@ import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
-import net.openid.conformance.condition.as.CheckCIBAModeIsPoll;
+import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
@@ -153,8 +153,8 @@ import org.springframework.http.ResponseEntity;
 	"client.scope"
 })
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
-		"client.scope",
-		"directory.keystore"
+	"client.scope",
+	"directory.keystore"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"
@@ -272,7 +272,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported.class);
 		if(isBrazil()) {
-			callAndStopOnFailure(CheckCIBAModeIsPoll.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+			callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
@@ -298,9 +298,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		exposeEnvString("issuer");
 
 		if(isBrazil()) {
-			expose("obtain_id_token", baseUrl + "/token/obtain");
-			exposeMtlsPath("payments_consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH);
-			exposeMtlsPath("payment_initiation_path", FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH);
+			exposeMtlsPath("accounts_endpoint", FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH);
+			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		}
