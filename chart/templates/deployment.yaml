@@ -45,6 +45,8 @@ spec:
           value: {{ .Values.service.url | quote }}
         - name: BASE_MTLS_URL
           value: {{ .Values.service.mtls | quote }}
+        - name: OIDC_IDP_ISS
+          value: {{ .Values.idpIss | quote }}
         - name: MONGODB_HOST
           value: {{ template "appname" . }}-mongodb
         - name: JAVA_EXTRA_ARGS
@@ -61,25 +63,15 @@ spec:
               name: jwks-{{ template "appname" . }}
               key: signingKey
               optional: true
-        - name: OIDC_GOOGLE_CLIENTID
+        - name: OIDC_IDP_CLIENTID
           valueFrom:
             secretKeyRef:
-              name: oidc-google-credentials
+              name: oidc-idp-credentials
               key: clientid
-        - name: OIDC_GOOGLE_SECRET
+        - name: OIDC_IDP_SECRET
           valueFrom:
             secretKeyRef:
-              name: oidc-google-credentials
-              key: secret
-        - name: OIDC_GITLAB_CLIENTID
-          valueFrom:
-            secretKeyRef:
-              name: oidc-gitlab-credentials
-              key: clientid
-        - name: OIDC_GITLAB_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: oidc-gitlab-credentials
+              name: oidc-idp-credentials
               key: secret
         volumeMounts:
             - name: dump-volume
