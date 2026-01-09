@@ -19,6 +19,12 @@ public class VerifyThatPollingIntervalIsRespected extends AbstractCondition {
 
 		Instant now = Instant.now();
 
+		Boolean clientWasPinged = env.getBoolean("client_was_pinged");
+		if (clientWasPinged != null && clientWasPinged) {
+			logSuccess("Disregarding interval since client was pinged");
+			return env;
+		}
+
 		if(nextAllowedTokenRequest != null) {
 			Instant limit = Instant.from(DateTimeFormatter.ISO_INSTANT.parse(nextAllowedTokenRequest));
 			if(now.isBefore(limit)) {
