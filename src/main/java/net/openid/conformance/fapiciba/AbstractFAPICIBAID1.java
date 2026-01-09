@@ -137,6 +137,7 @@ import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
 import net.openid.conformance.condition.client.SetLoginHintToConsentId;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -436,6 +437,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		brazilPayments = scopeContains("payments");
 		if(isBrazil()) {
 			callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+			callAndStopOnFailure(SetHintTypeToLoginHint.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+			env.putString("client", "hint_type", "login_hint");
 		}
 
 		onConfigure();
