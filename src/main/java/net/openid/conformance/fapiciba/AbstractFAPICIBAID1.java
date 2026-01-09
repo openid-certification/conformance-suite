@@ -279,9 +279,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
 	protected CIBAMode testType;
-	private boolean brazilPayments;
 	protected boolean isBrazil() {
-		return brazilPayments;
+		return FAPI1FinalOPProfile.OPENBANKING_BRAZIL.equals(getVariant(FAPI1FinalOPProfile.class));
 	}
 
 	public void setAddBackchannelClientAuthentication(Supplier<? extends ConditionSequence> addBackchannelClientAuthentication) {
@@ -434,11 +433,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
 
-		brazilPayments = scopeContains("payments");
 		if(isBrazil()) {
 			callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 			callAndStopOnFailure(SetHintTypeToLoginHint.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
-			env.putString("client", "hint_type", "login_hint");
 		}
 
 		onConfigure();
@@ -1358,13 +1355,15 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		boolean isDpop = false;
 		boolean isBrazilOpenInsurance = false;
 		boolean stopAfterConsentEndpoint = false;
+		boolean payments = false;
 
 		if (isBrazil()) {
-			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
-			updatePaymentConsent();
+			// TODO: Rewrite this for Resources Consent?
+			//eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
+			//updatePaymentConsent();
 		}
 		return new OpenBankingBrazilPreAuthorizationSteps(
-			isSecondClient, isDpop, addTokenEndpointClientAuthentication, isBrazil(), isBrazilOpenInsurance, stopAfterConsentEndpoint, false
+			isSecondClient, isDpop, addTokenEndpointClientAuthentication, payments, isBrazilOpenInsurance, stopAfterConsentEndpoint, false
 		);
 	}
 
