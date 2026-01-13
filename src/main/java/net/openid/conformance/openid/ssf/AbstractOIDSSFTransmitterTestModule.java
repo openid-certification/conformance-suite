@@ -18,12 +18,14 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200Or404;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204Or404;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryMethod;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureShortLivedToken;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
@@ -255,6 +257,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 			callAndStopOnFailure(CheckForAccessTokenValue.class);
 			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "RFC6749-5.1");
+			callAndContinueOnFailure(OIDSSFEnsureShortLivedToken.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.1");
 		}
 
 	}
