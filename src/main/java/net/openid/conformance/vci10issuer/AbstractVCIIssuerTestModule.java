@@ -193,6 +193,7 @@ import java.util.function.Supplier;
 	VCIProfile.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
+	VCI1FinalCredentialFormat.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
@@ -234,6 +235,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected VCIGrantType vciGrantType;
 	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
+
+	protected VCI1FinalCredentialFormat vciCredentialFormat;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
@@ -298,6 +301,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		vciGrantType = getVariant(VCIGrantType.class);
 		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
+		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
 
 		// FAPI2ID2OPProfile.PLAIN_FAPI configuration
 		setupPlainFapi();

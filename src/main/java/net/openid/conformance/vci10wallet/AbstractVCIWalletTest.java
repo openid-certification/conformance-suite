@@ -185,6 +185,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vci10issuer.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
@@ -233,6 +234,7 @@ import java.util.concurrent.TimeUnit;
 	VCIGrantType.class,
 	VCIWalletAuthorizationCodeFlowVariant.class,
 	VCICredentialOfferParameterVariant.class,
+	VCI1FinalCredentialFormat.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value = "wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
@@ -295,6 +297,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected VCICredentialOfferParameterVariant vciCredentialOfferParameterVariantType;
 
+	protected VCI1FinalCredentialFormat vciCredentialFormat;
+
 	protected abstract void addCustomValuesToIdToken();
 
 	protected void addCustomSignatureOfIdToken() {
@@ -332,6 +336,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
 
 		vciProfile = getVariant(VCIProfile.class);
+		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
 
 		profileRequiresMtlsEverywhere = false;
 
