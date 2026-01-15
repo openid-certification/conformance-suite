@@ -26,6 +26,7 @@ import net.openid.conformance.vci10wallet.condition.VCIAddOpenIdCredentialToAuth
 		"waitTimeoutSeconds",
 		"vci.credential_offer_endpoint",
 		"vci.key_attestation_jwks",
+		"vci.key_attestation_trust_anchor_pem",
 		"vci.credential_configuration_id"
 	}
 )
