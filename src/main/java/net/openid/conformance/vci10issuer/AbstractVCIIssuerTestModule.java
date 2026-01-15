@@ -199,10 +199,10 @@ import java.util.function.Supplier;
 	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="private_key_jwt", configurationFields = {
-	"vci.client_attestation_issuer"
+	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
 })
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="mtls", configurationFields = {
-	"vci.client_attestation_issuer"
+	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
 })
 @VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg",})
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
