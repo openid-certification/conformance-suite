@@ -211,6 +211,8 @@ import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationC
 import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationPoPNonceRequiredToServerConfiguration;
+import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
+import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -393,7 +395,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				throw new TestFailureException(getId(), "vci.client_attestation_issuer must be configured if client_attestation is used as client authentication method.");
 			}
 			callAndStopOnFailure(AddClientAttestationPoPNonceRequiredToServerConfiguration.class, ConditionResult.FAILURE, "OAuth2-ATCA07-8-2");
+
+			if (env.getString("config", "vci.client_attestation_trust_anchor") == null) {
+				throw new TestFailureException(getId(), "vci.client_attestation_trust_anchor must be configured if client_attestation is used as client authentication method.");
+			}
+			callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class, ConditionResult.FAILURE);
 		}
+
+		callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
 
 		configureCredentialIssuerMetadata();
 		configureOauthAuthorizationServerMetadata();
@@ -1062,7 +1071,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if ("jwt".equals(proofType)) {
 			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
 		} else if ("attestation".equals(proofType)) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
 		} else if ("di_vp".equals(proofType)) {
 			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
 		}
