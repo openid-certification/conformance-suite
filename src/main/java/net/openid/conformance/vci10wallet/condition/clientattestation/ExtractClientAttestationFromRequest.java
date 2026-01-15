@@ -47,8 +47,8 @@ public class ExtractClientAttestationFromRequest extends AbstractCondition {
 		env.putObject("client_attestation_pop_object", clientAttestationPopObj);
 
 		logSuccess("Parsed client attestation with client attestation PoP", args(
-			"client_attestation", clientAttestation, "client_assertion_object", clientAttestationObj,
-			"client_attestation_pop", clientAttestationPop, "client_assertion_pop_object", clientAttestationPopObj));
+			"client_attestation", clientAttestation, "client_attestation_object", clientAttestationObj,
+			"client_attestation_pop", clientAttestationPop, "client_attestation_pop_object", clientAttestationPopObj));
 
 		return env;
 	}
