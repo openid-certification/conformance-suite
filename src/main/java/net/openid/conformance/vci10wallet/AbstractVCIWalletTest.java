@@ -193,6 +193,7 @@ import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointR
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
@@ -249,7 +250,7 @@ import java.util.concurrent.TimeUnit;
 	"vci.client_attestation_issuer"
 })
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
-	"vci.client_attestation_issuer"
+	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
 })
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "mtls", configurationFields = {
 	"client.certificate"
@@ -473,6 +474,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if (credentialSigningJwk.getX509CertChain() == null || credentialSigningJwk.getX509CertChain().isEmpty()) {
 			throw new TestFailureException(getId(), "Credential Signing JWK must contain the certificate chain in the x5c claim.");
 		}
+
+		env.putString("vci", "credential_signing_jwk", credentialSigningJwkEl.toString());
+
+		callAndStopOnFailure(VCIEnsureCredentialSigningCertificateIsNotSelfSigned.class, "HAIP-4.1");
 	}
 
 	protected void configureCredentialIssuerMetadata() {
