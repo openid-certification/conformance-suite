@@ -74,7 +74,7 @@ public class DBTokenService implements TokenService {
 	}
 
 	@Override
-	public Map findToken(String token) {
+	public Map<String,Object> findToken(String token) {
 
 		Criteria criteria = new Criteria("token").is(token);
 		Query query = new Query(criteria);

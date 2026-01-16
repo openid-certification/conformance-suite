@@ -101,6 +101,10 @@
     enable = true;
     package = pkgs.python312;
     venv.enable = true;
+    venv.requirements = ''
+      httpx
+      pyparsing
+    '';
   };
 
   languages.javascript = {

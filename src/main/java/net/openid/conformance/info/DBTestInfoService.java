@@ -229,4 +229,22 @@ public class DBTestInfoService implements TestInfoService {
 
 		return testInfoDeleteResult.wasAcknowledged() && logDeleteResult.wasAcknowledged();
 	}
+
+	@Override
+	public void migrateOwnership(String oldIss, String oldOwner) {
+
+		ImmutableMap<String, String> owner = ImmutableMap.of(
+			"sub", oldOwner,
+			"iss", oldIss
+		);
+
+		Criteria criteria = Criteria.where("owner").is(owner);
+
+		Query query = new Query(criteria);
+
+		Update udt = Update.update("owner", authenticationFacade.getPrincipal());
+
+		mongoTemplate.updateMulti(query, udt, COLLECTION);
+	}
+
 }
