@@ -4,8 +4,9 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidation;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidation.JsonSchemaValidationResult;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationException;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 
 import java.io.IOException;
 
@@ -42,7 +43,7 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 	}
 
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		throw error(String.format("Found invalid entries in %s input", input.getInputName()), args("invalid_entries", validationResult.getPropertyErrors(), "input", input.getJsonObject()));
+		throw error(String.format("Found invalid entries in %s input", input.getInputName()), new JsonSchemaValidationException("Schema Validation Failed", validationResult), args("invalid_entries", validationResult.getPropertyErrors(), "input", input.getJsonObject()));
 	}
 
 	protected JsonSchemaValidation createJsonSchemaValidation(JsonSchemaValidationInput input) {

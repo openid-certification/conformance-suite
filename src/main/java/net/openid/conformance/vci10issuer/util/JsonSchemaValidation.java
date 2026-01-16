@@ -12,8 +12,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -74,7 +72,7 @@ public class JsonSchemaValidation {
 	 * @param property
 	 * @return
 	 */
-	public String toInstancePropertyPath(JsonNodePath path, String property) {
+	public static String toInstancePropertyPath(JsonNodePath path, String property) {
 
 		String propertyPath = path.toString();
 		if (property != null) {
@@ -84,34 +82,4 @@ public class JsonSchemaValidation {
 		return propertyPath;
 	}
 
-	public class JsonSchemaValidationResult {
-
-		private final Set<ValidationMessage> validationMessages;
-
-		public JsonSchemaValidationResult(Set<ValidationMessage> validationMessages) {
-			this.validationMessages = validationMessages;
-		}
-
-		public boolean isValid() {
-			return validationMessages.isEmpty();
-		}
-
-		public Set<ValidationMessage> getValidationMessages() {
-			return validationMessages;
-		}
-
-		public List<JsonObject> getPropertyErrors() {
-			List<JsonObject> propertyErrorsWithPaths = new ArrayList<>();
-			for (ValidationMessage error : validationMessages) {
-				JsonObject propertyError = new JsonObject();
-				propertyError.addProperty("error", error.getError());
-				if (error.getProperty() != null) {
-					propertyError.addProperty("property", error.getProperty());
-				}
-				propertyError.addProperty("path", toInstancePropertyPath(error.getInstanceLocation(), error.getProperty()));
-				propertyErrorsWithPaths.add(propertyError);
-			}
-			return propertyErrorsWithPaths;
-		}
-	}
 }

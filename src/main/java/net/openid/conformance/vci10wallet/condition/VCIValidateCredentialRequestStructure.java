@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vci10issuer.condition.AbstractJsonSchemaBasedValidation;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidation;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 /**
@@ -47,7 +47,7 @@ public class VCIValidateCredentialRequestStructure extends AbstractJsonSchemaBas
 	}
 
 	@Override
-	protected void onValidationFailure(Environment env, JsonSchemaValidation.JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
+	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
 		String errorDescription = String.format("Found invalid entries in %s input", input.getInputName());
 		VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
 		super.onValidationFailure(env, validationResult, input);
