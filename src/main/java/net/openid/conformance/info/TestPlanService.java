@@ -74,4 +74,6 @@ public interface TestPlanService {
 	 * @param id Plan ID
 	 */
 	void deleteMutableTestPlan(String id);
+
+	void migrateOwnership(String oldIss, String oldOwner);
 }

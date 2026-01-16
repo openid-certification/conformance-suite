@@ -52,4 +52,6 @@ public interface TestInfoService {
 	void createIndexes();
 
 	boolean deleteTests(List<String> id);
+
+	void migrateOwnership(String oldIss, String oldOwner);
 }

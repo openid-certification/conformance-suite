@@ -1,7 +1,7 @@
 package net.openid.conformance.security;
 
-import com.google.common.base.Strings;
 import jakarta.servlet.Filter;
+import net.openid.conformance.security.keycloak.KeyCloakAuthoritiesConverter;
 import net.openid.conformance.security.keycloak.KeycloakLogoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
@@ -28,9 +27,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.header.HeaderWriter;
@@ -41,16 +37,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -65,21 +58,6 @@ class WebSecurityOidcLoginConfig {
 
 	@Value("${fintechlabs.base_url}")
 	private String baseURL;
-
-	@Value("${oidc.google.iss:https://accounts.google.com}")
-	private String googleIss;
-
-	// Config for the admin role
-	@Value("${oidc.admin.domains:}")
-	private String adminDomains;
-	@Value("${oidc.admin.group:}")
-	private String adminGroup;
-	@Value("${oidc.admin.issuer}")
-	private String adminIss;
-
-	// Allows to deduce ROLE_ADMIN by gitlab project role
-	@Value("#{${oidc.gitlab.admin-group-indicator-claims}}")
-	private Map<String, Set<String>> gitlabAdminGroupIndicatorClaims;
 
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
@@ -112,7 +90,9 @@ class WebSecurityOidcLoginConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
+	public SecurityFilterChain filterChainOidc(HttpSecurity http,
+											   ClientRegistrationRepository clientRegistrationRepository,
+											   MigrationAuthenticationHandler migrationAuthenticationHandler) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle NON-API requests with this filter chain
@@ -183,42 +163,10 @@ class WebSecurityOidcLoginConfig {
 
 				response.sendRedirect(newUrl);
 			});
+			oauth2Login.successHandler(migrationAuthenticationHandler);
+
 			oauth2Login.userInfoEndpoint(userInfoCustomization -> {
-				userInfoCustomization.userAuthoritiesMapper(authorities -> {
-
-					Set<GrantedAuthority> extendedAuthorities = new HashSet<>(authorities);
-
-					authorities.forEach(authority -> {
-						if (authority instanceof OidcUserAuthority oidcUserAuthority) {
-
-							OidcIdToken idToken = oidcUserAuthority.getIdToken();
-							OidcUserInfo userInfo = oidcUserAuthority.getUserInfo();
-
-							if (adminIss.equals(googleIss) && !Strings.isNullOrEmpty(adminDomains)) {
-								// Create an OIDCAuthoritiesMapper that uses the 'hd' field of a
-								// Google account's userInfo. hd = Hosted Domain. Use this to filter to
-								// any users of a specific domain
-								var authoritiesByGoogleClaim = new GoogleHostedDomainAdminAuthoritiesMapper(adminDomains, adminIss).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGoogleClaim)) {
-									extendedAuthorities.addAll(authoritiesByGoogleClaim);
-								}
-							} else if (!Strings.isNullOrEmpty(adminGroup)) {
-								// use "groups" array from id_token or userinfo for admin access (works with at least gitlab and azure)
-								var authoritiesByGroupsClaim = new GroupsAdminAuthoritiesMapper(adminGroup, adminIss).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGroupsClaim)) {
-									extendedAuthorities.addAll(authoritiesByGroupsClaim);
-								}
-								// use gitlab specific project role claims to determine admin role
-								var authoritiesByGitlabProject = new GitlabProjectAdminAuthoritiesMapper(adminIss, gitlabAdminGroupIndicatorClaims).mapAuthorities(idToken, userInfo);
-								if (!CollectionUtils.isEmpty(authoritiesByGitlabProject)) {
-									extendedAuthorities.addAll(authoritiesByGitlabProject);
-								}
-							}
-						}
-					});
-
-					return extendedAuthorities;
-				});
+				userInfoCustomization.userAuthoritiesMapper(new KeyCloakAuthoritiesConverter());
 			});
 		});
 
