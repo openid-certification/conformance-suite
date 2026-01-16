@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,7 +64,11 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 		// credential issuer metadata from https://issuer.eudiw.dev/.well-known/openid-credential-issuer
 		String metadataString = readFile("metadata/openid4vci-1_0/valid-openid-credential-issuer-metadata-eudiw.json");
 		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
-		validation.evaluate(env);
+		try {
+			validation.evaluate(env);
+		} catch (Exception e) {
+			Assertions.fail("Failed to validate issuer.eudiw.dev credential_issuer_metadata", e);
+		}
 	}
 
 	@Test
