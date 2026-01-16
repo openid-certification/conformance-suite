@@ -1118,11 +1118,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 		}
 
-		if (isBrazil()) {
-			validateBrazilPaymentInitiationSignedResponse();
-		} else {
-			callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
-		}
+		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
 
 		eventLog.endBlock();
 	}

@@ -17,6 +17,7 @@ import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
+import net.openid.conformance.condition.as.CheckForFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
@@ -29,7 +30,6 @@ import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
-import net.openid.conformance.condition.as.EnsureScopeContainsAccounts;
 import net.openid.conformance.condition.as.EnsureScopeContainsConsents;
 import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
 import net.openid.conformance.condition.as.EnsureScopeContainsResources;
@@ -84,6 +84,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
+import net.openid.conformance.condition.rs.CreateFAPIResourcesEndpointResponse;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -93,7 +94,9 @@ import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainCustomers;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
+import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainResources;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId;
@@ -400,6 +403,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				return brazilHandleNewConsentRequest(requestId, true);
 			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH:
 				return brazilHandleNewPaymentInitiationRequest(requestId);
+			case FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH:
+				return resourcesEndpoint(requestId);
 			default:
 				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
 					return brazilHandleGetConsentRequest(requestId, path, false);
@@ -865,6 +870,29 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		resourceEndpointCallComplete();
 
 		return new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+	}
+
+	protected Object resourcesEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("Resources endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+		checkResourceEndpointRequest(false);
+		callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainResources.class);
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		callAndStopOnFailure(CreateFAPIResourcesEndpointResponse.class);
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		JsonObject endpointResponse = env.getObject("resources_endpoint_response");
+		JsonObject headerJson = env.getObject("resources_endpoint_response_headers");
+
+		resourceEndpointCallComplete();
+		return new ResponseEntity<>(endpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	protected void validateResourceEndpointHeaders() {
