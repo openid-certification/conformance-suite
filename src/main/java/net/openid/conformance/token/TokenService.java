@@ -12,7 +12,7 @@ public interface TokenService {
 
 	List<Map> getAllTokens();
 
-	Map findToken(String token);
+	Map<String, Object> findToken(String token);
 
 	void createIndexes();
 }

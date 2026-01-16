@@ -10,16 +10,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import java.io.Serial;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -48,28 +45,28 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 
 		Set<GrantedAuthority> authorities = new HashSet<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-		@SuppressWarnings("unchecked") DefaultOidcUser oidcUser = createOidcUserFromApiToken(tokenInfoMap, authorities);
-		return new ApiTokenAuthenticationToken(oidcUser, authorities);
+		Jwt fakeToken = createJwtFromApiToken(token, tokenInfoMap);
+		return new JwtAuthenticationToken(fakeToken, authorities);
 	}
 
-	private DefaultOidcUser createOidcUserFromApiToken(Map<String, Object> tokenInfoMap, Set<GrantedAuthority> authorities) {
+	private Jwt createJwtFromApiToken(String token, Map<String, Object> tokenInfoMap) {
 
 		JsonObject tokenInfo = (JsonObject) new Gson().toJsonTree(tokenInfoMap);
+
+		Map<String, Object> tokenClaims = new HashMap<>();
+		tokenClaims.putAll(tokenInfoMap);
 
 		JsonObject ownerClaims = tokenInfo.getAsJsonObject("owner");
 		String iss = OIDFJSON.getString(ownerClaims.get("iss"));
 		String sub = OIDFJSON.getString(ownerClaims.get("sub"));
-		Map<String, Object> idTokenClaims = Map.of("iss", iss, "sub", sub);
+		tokenClaims.put("iss", iss);
+		tokenClaims.put("sub", sub);
+
 		Instant instantAt = Instant.now();
 		JsonPrimitive expires = tokenInfo.getAsJsonPrimitive("expires");
 		Instant expiresAt = expires != null ? Instant.ofEpochMilli(OIDFJSON.getLong(tokenInfo.getAsJsonPrimitive("expires"))) : null;
-		OidcIdToken idToken = new OidcIdToken("dummy", instantAt, expiresAt, idTokenClaims);
 
-		OidcUserInfo oidcUserInfo = new OidcUserInfo(idTokenClaims);
-
-		DefaultOidcUser oidcUser = new DefaultOidcUser(authorities, idToken, oidcUserInfo);
-		authorities.add(new OidcUserAuthority(idToken, oidcUserInfo));
-		return oidcUser;
+		return new Jwt(token,instantAt,expiresAt, Map.of("typ", "jwt"),tokenClaims);
 	}
 
 	@Override
@@ -77,26 +74,5 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider {
 		return BearerTokenAuthenticationToken.class.isAssignableFrom(authentication);
 	}
 
-	public static class ApiTokenAuthenticationToken extends OAuth2AuthenticationToken {
 
-		@Serial
-		private static final long serialVersionUID = 1L;
-
-		private final DefaultOidcUser oidcUser;
-
-		public ApiTokenAuthenticationToken(DefaultOidcUser oidcUser, Set<GrantedAuthority> authorities) {
-			super(oidcUser,authorities, "dummy");
-			this.oidcUser = oidcUser;
-		}
-
-		@Override
-		public boolean isAuthenticated() {
-
-			if (oidcUser.getIdToken().getExpiresAt() == null) {
-				return true;
-			}
-
-			return oidcUser.getIdToken().getExpiresAt().isAfter(Instant.now());
-		}
-	}
 }

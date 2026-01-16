@@ -7,6 +7,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -46,14 +48,6 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 		}
 	}
 
-	private OAuth2AuthenticationToken getOAuth() {
-		Authentication a = getAuthentication();
-		if (a instanceof OAuth2AuthenticationToken token) {
-			return token;
-		}
-		return null;
-	}
-
 	private boolean hasAuthority(GrantedAuthority authority) {
 		Authentication a = getAuthentication();
 		if (a != null) {
@@ -77,35 +71,46 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	@Override
 	public ImmutableMap<String, String> getPrincipal() {
-		OAuth2AuthenticationToken auth = getOAuth();
-		if (auth == null) {
+		Authentication a = getAuthentication();
+		if (a == null) {
+			return null;
+		}
+		String issuer = "";
+		String subject = "";
+		if (a instanceof OAuth2AuthenticationToken oidcToken) {
+			var oidcUser = (OidcUser) oidcToken.getPrincipal();
+			issuer = oidcUser.getIssuer().toString();
+			subject = oidcUser.getSubject();
+		} else if(a instanceof JwtAuthenticationToken jwtToken) {
+			var jwt = (Jwt) jwtToken.getPrincipal();
+			issuer = jwt.getIssuer().toString();
+			subject = jwt.getSubject();
+		} else {
 			return null;
 		}
 
-		OidcUser principal = (OidcUser) auth.getPrincipal();
-		String issuer = principal.getIssuer().toString();
-		String subject = principal.getSubject();
-
-		ImmutableMap<String, String> data = ImmutableMap.of(
+		return ImmutableMap.of(
 			"sub", subject,
 			"iss", issuer
 		);
-
-		return data;
 	}
 
 	@Override
 	public String getDisplayName() {
-		OAuth2AuthenticationToken auth = getOAuth();
-		if (auth != null && auth.getPrincipal() instanceof OidcUser oidcUser) {
-
-			if (oidcUser.getEmail() != null) {
-				return oidcUser.getEmail();
+		Authentication a = getAuthentication();
+		if (a instanceof OAuth2AuthenticationToken oidcToken) {
+			var oidcUser = (OidcUser) oidcToken.getPrincipal();
+			if (oidcUser.getIdToken().getEmail() != null) {
+				return oidcUser.getIdToken().getEmail();
 			}
 
-			return oidcUser.getName();
-		} else if (auth != null) {
-			return auth.getName();
+			return oidcUser.getIdToken().getFullName();
+		} else if(a instanceof Jwt jwt) {
+			if (jwt.getClaimAsString("mail") != null) {
+				return jwt.getClaimAsString("mail");
+			}
+
+			return jwt.getClaimAsString("name");
 		}
 		return "";
 	}

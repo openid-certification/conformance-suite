@@ -3,6 +3,7 @@ package net.openid.conformance.security;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.servlet.Filter;
 import jakarta.ws.rs.HttpMethod;
+import net.openid.conformance.security.keycloak.KeyCloakAuthoritiesConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,10 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
@@ -36,6 +40,10 @@ public class WebSecurityResourceServerConfig {
 
 	@Value("${fintechlabs.devmode:false}")
 	private boolean devmode;
+
+
+	@Value("${spring.security.oauth2.client.provider.keycloak.issuerUri}")
+	private String issuerUri;
 
 	@Autowired
 	private DummyUserFilter dummyUserFilter;
@@ -59,14 +67,25 @@ public class WebSecurityResourceServerConfig {
 
 		http.authorizeHttpRequests(requests -> {
 			requests.requestMatchers(getPublicMatcher()).permitAll();
-			requests.requestMatchers(getApiMatcher()).authenticated();
+			requests.requestMatchers(getApiMatcher()).hasAnyAuthority("ROLE_USER",	"ROLE_ADMIN");
 			// deny access for any unmatched API routes
 			requests.anyRequest().denyAll();
 		});
-
+		var jwtAuthProvider = new JwtAuthenticationProvider(
+			JwtDecoders.fromIssuerLocation(issuerUri));
+		var jwtAuthConverter = new JwtAuthenticationConverter();
+		jwtAuthConverter.setJwtGrantedAuthoritiesConverter(new KeyCloakAuthoritiesConverter());
+		jwtAuthProvider.setJwtAuthenticationConverter(jwtAuthConverter);
 		http.oauth2ResourceServer(oauthResourceServer -> {
+
 			oauthResourceServer.opaqueToken(opaqueTokenConfigurer -> {
-				opaqueTokenConfigurer.authenticationManager(new ProviderManager(List.of(apiTokenAuthenticationProvider)));
+				opaqueTokenConfigurer.authenticationManager(
+					new ProviderManager(
+						List.of(
+
+							apiTokenAuthenticationProvider,
+							jwtAuthProvider
+							)));
 			});
 		});
 
