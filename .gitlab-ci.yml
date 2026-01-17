@@ -485,7 +485,7 @@ local_test:
     if [[ "$CI_COMMIT_BRANCH" == "production" ]]; then
       # we expect much bigger databases on production and we have a dedicated node; use much more RAM and disk for mongo
       mongo_settings="--set mongodb.resources.limits.memory=9Gi \
-        --set mongodb.persistence.size=500Gi"
+        --set mongodb.persistence.size=550Gi"
     fi
 
     # Create OIDC credentials secrets
