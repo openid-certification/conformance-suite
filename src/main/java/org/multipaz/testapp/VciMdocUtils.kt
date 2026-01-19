@@ -92,19 +92,8 @@ TvFLVc4ESGy3AtdC+g==
 		val validFrom = now - 1.hours
 		val validUntil = now + 365.days
 
-		// Build IssuerNamespaces with sample PID data
-		val issuerNamespaces = buildIssuerNamespaces {
-			addNamespace("eu.europa.ec.eudi.pid.1") {
-				addDataElement("family_name", Tstr("Dupont"))
-				addDataElement("given_name", Tstr("Jean"))
-				addDataElement("birth_date", Tstr("1980-05-23"))
-				addDataElement("age_in_years", org.multipaz.cbor.Uint(44u))
-				addDataElement("issuance_date", Tstr(now.toString().substring(0, 10)))
-				addDataElement("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
-				addDataElement("issuing_authority", Tstr("OpenID Foundation Conformance Suite"))
-				addDataElement("issuing_country", Tstr("UT")) // Utopia
-			}
-		}
+		// Build IssuerNamespaces based on docType
+		val issuerNamespaces = buildIssuerNamespacesForDocType(docType, now, validUntil)
 
 		// Generate MSO (Mobile Security Object)
 		val msoGenerator = MobileSecurityObjectGenerator(
@@ -151,6 +140,63 @@ TvFLVc4ESGy3AtdC+g==
 		)
 
 		return Base64URL.encode(issuerSigned).toString()
+	}
+
+	private fun buildIssuerNamespacesForDocType(
+		docType: String,
+		now: kotlinx.datetime.Instant,
+		validUntil: kotlinx.datetime.Instant
+	) = buildIssuerNamespaces {
+		when (docType) {
+			"org.iso.18013.5.1.mDL" -> {
+				// Mobile Driver's License (ISO 18013-5)
+				addNamespace("org.iso.18013.5.1") {
+					addDataElement("family_name", Tstr("Mustermann"))
+					addDataElement("given_name", Tstr("Erika"))
+					addDataElement("birth_date", Tstr("1985-03-15"))
+					addDataElement("issue_date", Tstr(now.toString().substring(0, 10)))
+					addDataElement("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+					addDataElement("issuing_country", Tstr("UT")) // Utopia
+					addDataElement("issuing_authority", Tstr("OpenID Foundation"))
+					addDataElement("document_number", Tstr("DL-123456789"))
+					addDataElement("driving_privileges", buildCborArray {
+						add(buildCborMap {
+							put("vehicle_category_code", Tstr("B"))
+							put("issue_date", Tstr("2010-01-01"))
+							put("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+						})
+						add(buildCborMap {
+							put("vehicle_category_code", Tstr("A"))
+							put("issue_date", Tstr("2015-06-01"))
+							put("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+						})
+					})
+					addDataElement("un_distinguishing_sign", Tstr("UT"))
+				}
+			}
+			"eu.europa.ec.eudi.pid.1" -> {
+				// EU Personal ID
+				addNamespace("eu.europa.ec.eudi.pid.1") {
+					addDataElement("family_name", Tstr("Dupont"))
+					addDataElement("given_name", Tstr("Jean"))
+					addDataElement("birth_date", Tstr("1980-05-23"))
+					addDataElement("age_in_years", Uint(44u))
+					addDataElement("issuance_date", Tstr(now.toString().substring(0, 10)))
+					addDataElement("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+					addDataElement("issuing_authority", Tstr("OpenID Foundation Conformance Suite"))
+					addDataElement("issuing_country", Tstr("UT")) // Utopia
+				}
+			}
+			else -> {
+				// Default: use a generic namespace based on docType
+				addNamespace(docType) {
+					addDataElement("family_name", Tstr("Doe"))
+					addDataElement("given_name", Tstr("John"))
+					addDataElement("issuance_date", Tstr(now.toString().substring(0, 10)))
+					addDataElement("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+				}
+			}
+		}
 	}
 
 	private fun convertJwkToEcPublicKey(ecKey: ECKey): EcPublicKey {
