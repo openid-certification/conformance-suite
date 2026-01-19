@@ -1,9 +1,9 @@
 package net.openid.conformance.vci10issuer;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CheckDiscEndpointClientAttestationSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
@@ -55,15 +55,14 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 			JsonObject credentialIssuerMetadata = env.getElementFromObject("vci", "credential_issuer_metadata").getAsJsonObject();
 			JsonElement authorizationServersEL = credentialIssuerMetadata.get("authorization_servers");
-			if (authorizationServersEL == null) {
-				String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", 0);
+
+			// Determine how many authorization servers we have metadata for
+			String countStr = env.getString("vci", "authorization_servers.count");
+			int serverCount = countStr != null ? Integer.parseInt(countStr) : (authorizationServersEL != null && authorizationServersEL.isJsonArray() ? authorizationServersEL.getAsJsonArray().size() : 1);
+
+			for (int i = 0; i < serverCount; i++) {
+				String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", i);
 				checkAuthServerMetadata(authServerMetadataPath);
-			} else {
-				JsonArray authServers = authorizationServersEL.getAsJsonArray();
-				for (int i = 0; i < authServers.size(); i++) {
-					String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", i);
-					checkAuthServerMetadata(authServerMetadataPath);
-				}
 			}
 		});
 
@@ -77,6 +76,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 			if (clientAuthType == VCIClientAuthType.CLIENT_ATTESTATION) {
 				env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
 				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-13.4");
+				callAndContinueOnFailure(CheckDiscEndpointClientAttestationSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-10.1");
 				env.removeObject("server");
 			}
 
