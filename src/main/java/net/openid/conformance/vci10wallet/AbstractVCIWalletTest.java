@@ -1296,7 +1296,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
 		// Encrypt the response if wallet requested encryption
-		callAndContinueOnFailure(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2.3");
+		ResponseEntity<?> encryptionErrorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-8.3.1.2");
+		if (encryptionErrorResponse != null) {
+			return encryptionErrorResponse;
+		}
 
 		// Check if the response was encrypted
 		String encryptedResponse = env.getString("encrypted_credential_response");
@@ -1398,7 +1401,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
 		// Encrypt the response if wallet requested encryption
-		callAndContinueOnFailure(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2.3");
+		ResponseEntity<?> encryptionErrorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-8.3.1.2");
+		if (encryptionErrorResponse != null) {
+			return encryptionErrorResponse;
+		}
 
 		// Check if the response was encrypted
 		String encryptedResponse = env.getString("encrypted_credential_response");
