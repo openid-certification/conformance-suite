@@ -100,7 +100,7 @@ public class LogEntryHelper {
 		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("SDJWT-", "https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-");
-		specLinks.put("SDJWTVC-", "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-11.html#section-");
+		specLinks.put("SDJWTVC-", "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-13.html#section-");
 		specLinks.put("OTSL-", "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-15#section-");
 		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#section-");
 		specLinks.put("IAVC-", "https://openid.net/specs/openid-ida-verified-claims-1_0.html#section-");
