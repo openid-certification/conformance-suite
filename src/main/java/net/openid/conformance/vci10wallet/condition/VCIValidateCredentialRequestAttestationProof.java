@@ -13,10 +13,13 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.X509CertificateUtil;
+import net.openid.conformance.vci10issuer.condition.VciErrorCode;
+import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
@@ -38,13 +41,17 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 
 			String headerType = header.getType().getType();
 			if (!"key-attestation+jwt".equals(headerType)) {
-				throw error("Key attestation validation of proof failed: Invalid JWT type (typ)",
+				String errorDescription = "Key attestation validation of proof failed: Invalid JWT type (typ)";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription,
 					args("attestation", attestationJwt, "expected", "key-attestation+jwt", "actual", headerType));
 			}
 			log("Found expected typ '" +  headerType+ "' in header of key attestation for proof type " + proofType, args("header", headerType, "proof_type", proofType));
 
 			if (!JWSAlgorithm.ES256.equals(header.getAlgorithm())) {
-				throw error("Attestation validation failed: Unsupported or invalid JWT algorithm (alg). Expected ES256.",
+				String errorDescription = "Attestation validation failed: Unsupported or invalid JWT algorithm (alg). Expected ES256.";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription,
 					args("jwt", attestationJwt, "alg", header.getAlgorithm()));
 			}
 			log("Found expected algorithm for Key attestation in proof type: " + proofType, args("algorithm", header.getAlgorithm()));
@@ -57,13 +64,17 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			JWK walletPublicKey = JWKUtil.getSigningKey(keyAttestationJwksObj);
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
-				throw error("key Attestation validation failed: Key found but is not an ECKey for kid: " + header.getKeyID());
+				String errorDescription = "key Attestation validation failed: Key found but is not an ECKey for kid: " + header.getKeyID();
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription);
 			}
 			log("Detected EC public key", args("kid", header.getKeyID()));
 
 			// ensure P_256 curve is used
 			if (!Curve.P_256.equals(ecPublicKey.getCurve())) {
-				throw error("Key Attestation validation failed: Public key for kid " + header.getKeyID() + " does not use the required P-256 curve.", args("curve", ecPublicKey.getCurve().getName()));
+				String errorDescription = "Key Attestation validation failed: Public key for kid " + header.getKeyID() + " does not use the required P-256 curve.";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("curve", ecPublicKey.getCurve().getName()));
 			}
 			log("Detected EC public key with curve P-256", args("kid", header.getKeyID()));
 
@@ -72,7 +83,9 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 
 			// 4. Verify the Signature
 			if (!signedJWT.verify(verifier)) {
-				throw error("Key Attestation validation failed: JWT signature validation failed");
+				String errorDescription = "Key Attestation validation failed: JWT signature validation failed";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription);
 			}
 			log("Detected valid Key Attestation for proof type: " + proofType);
 
@@ -93,9 +106,16 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			logSuccess("Successfully validated key attestation for proof type: " + proofType, args("attestation_jwt", keyAttestationVerifiableObject, "claims", claimsSet));
 
 		} catch (JOSEException e) {
-			throw error("Attestation validation failed: JOSE error during validation of proof type: " + proofType, e);
+			String errorDescription = "Attestation validation failed: JOSE error during validation of proof type: " + proofType;
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription, e);
+		} catch (ConditionError e) {
+			// Re-throw ConditionError without wrapping - the error response is already set
+			throw e;
 		} catch (Exception e) {
-			throw error("Attestation validation failed: Unexpected error during validation of proof type: " + proofType, e);
+			String errorDescription = "Attestation validation failed: Unexpected error during validation of proof type: " + proofType;
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription, e);
 		}
 	}
 
@@ -114,13 +134,17 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 		try {
 			keyAttestationCert.checkValidity();
 		} catch (Exception e) {
-			throw error("Certificate used in x5c claim must be valid!",
+			String errorDescription = "Certificate used in x5c claim must be valid!";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription,
 				args("x5c", encodedCert, "key_attestation_cert_pem", keyAttestationCertPem, "error", e.getMessage()));
 		}
 
 		// Per HAIP section 4.5.1: Key attestation certificate must NOT be self-signed
 		if (X509CertificateUtil.isSelfSigned(keyAttestationCert)) {
-			throw error("Key attestation cert must not be a self-signed (HAIP section 4.5.1)",
+			String errorDescription = "Key attestation cert must not be a self-signed (HAIP section 4.5.1)";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription,
 				args("cert_0_from_x5c", encodedCert));
 		}
 
@@ -140,7 +164,9 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 		for (Base64 certBase64 : x5c) {
 			X509Certificate cert = X509CertUtils.parse(java.util.Base64.getDecoder().decode(certBase64.toString()));
 			if (cert.equals(trustAnchorCert)) {
-				throw error("Trust anchor certificate MUST NOT be included in x5c chain (HAIP section 4.5.1)",
+				String errorDescription = "Trust anchor certificate MUST NOT be included in x5c chain (HAIP section 4.5.1)";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription,
 					args("x5c", x5c.stream().map(Base64::toString).toList(), "trust_anchor_pem", keyAttestationTrustAnchorPem));
 			}
 		}
@@ -149,7 +175,9 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 		try {
 			keyAttestationCert.verify(trustAnchorCert.getPublicKey());
 		} catch (Exception e) {
-			throw error("Certificate used in key attestation must be verifiable by trust anchor certificate.",
+			String errorDescription = "Certificate used in key attestation must be verifiable by trust anchor certificate.";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription,
 				args("x5c", encodedCert, "key_attestation_cert_pem", keyAttestationCertPem, "trust_anchor_pem", keyAttestationTrustAnchorPem, "error", e.getMessage()));
 		}
 		log("Successfully validated key attestation certificate with trust anchor certificate.",
@@ -173,12 +201,16 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 		String expectedNonce = OIDFJSON.getString(credentialNonceResponse.get("c_nonce"));
 
 		if (nonce == null) {
-			throw error("Key attestation did not contain a nonce value, but the nonce endpoint was called prior.",
+			String errorDescription = "Key attestation did not contain a nonce value, but the nonce endpoint was called prior.";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_NONCE, errorDescription);
+			throw error(errorDescription,
 				args("c_nonce", expectedNonce));
 		}
 
 		if (!expectedNonce.equals(nonce)) {
-			throw error("Key attestation did not contain the expected nonce value",
+			String errorDescription = "Key attestation did not contain the expected nonce value";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_NONCE, errorDescription);
+			throw error(errorDescription,
 				args("nonce", nonce, "c_nonce", expectedNonce));
 		}
 
