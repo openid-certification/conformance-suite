@@ -95,7 +95,7 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 				throw error(errorDescription, args("actual_nonce", nonce, "expected_nonce", expectedNonce));
 			} else {
 				log("Detected and invalidated expected nonce", args("nonce", nonce));
-				env.removeObject("credential_issuer_nonce");
+				env.removeNativeValue("credential_issuer_nonce");
 			}
 
 			// Check Issued At
