@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class CheckDiscEndpointClientAttestationSigningAlgValuesSupported extends
 
 		boolean hasAttestJwtClientAuth = false;
 		for (JsonElement method : tokenEndpointAuthMethodsSupported.getAsJsonArray()) {
-			if (method.isJsonPrimitive() && ATTEST_JWT_CLIENT_AUTH.equals(method.getAsString())) {
+			if (method.isJsonPrimitive() && ATTEST_JWT_CLIENT_AUTH.equals(OIDFJSON.getString(method))) {
 				hasAttestJwtClientAuth = true;
 				break;
 			}
