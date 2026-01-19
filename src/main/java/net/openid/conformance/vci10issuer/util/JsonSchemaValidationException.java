@@ -7,7 +7,7 @@ public class JsonSchemaValidationException extends RuntimeException {
 	@Serial
 	private static final long serialVersionUID = 1L;
 
-	private JsonSchemaValidationResult validationResult;
+	private transient JsonSchemaValidationResult validationResult;
 
 	public JsonSchemaValidationException(String message) {
 		super(message);
