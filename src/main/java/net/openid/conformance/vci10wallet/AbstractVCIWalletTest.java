@@ -752,6 +752,44 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 						}
 						]
 					}
+				},
+				"org.iso.18013.5.1.mDL": {
+					"format": "mso_mdoc",
+					"doctype": "org.iso.18013.5.1.mDL",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake mDL (ISO 18013-5)",
+							"description": "OpenID Conformance Test Fake Mobile Driver's License"
+						}
+						]
+					}
+				},
+				"org.iso.18013.5.1.mDL.attestation": {
+					"format": "mso_mdoc",
+					"doctype": "org.iso.18013.5.1.mDL",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"attestation": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake mDL (ISO 18013-5)",
+							"description": "OpenID Conformance Test Fake Mobile Driver's License"
+						}
+						]
+					}
 				}
 			}
 			""";
