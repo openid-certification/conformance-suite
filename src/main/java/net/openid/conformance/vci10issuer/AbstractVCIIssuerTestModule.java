@@ -137,6 +137,7 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VCIServerMetadata;
@@ -151,8 +152,10 @@ import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
+import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialRequest;
+import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
@@ -198,6 +201,7 @@ import java.util.function.Supplier;
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
 	VCI1FinalCredentialFormat.class,
+	VCICredentialEncryption.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
@@ -222,6 +226,9 @@ import java.util.function.Supplier;
 	"mtls2.cert",
 	"mtls2.ca",
 })
+@VariantConfigurationFields(parameter = VCICredentialEncryption.class, value = "encrypted", configurationFields = {
+	"vci.credential_encryption_jwks"
+})
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -241,6 +248,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
 
 	protected VCI1FinalCredentialFormat vciCredentialFormat;
+
+	protected VCICredentialEncryption vciCredentialEncryption;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
@@ -306,6 +315,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		vciGrantType = getVariant(VCIGrantType.class);
 		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
+		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
 
 		// FAPI2ID2OPProfile.PLAIN_FAPI configuration
 		setupPlainFapi();
@@ -416,6 +426,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+		}
+
+		// Load credential encryption JWKS if encryption is enabled
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			JsonElement encryptionJwks = env.getElementFromObject("config", "vci.credential_encryption_jwks");
+			if (encryptionJwks == null || !encryptionJwks.isJsonObject()) {
+				throw new TestFailureException(getId(), "vci.credential_encryption_jwks must be configured when credential_encryption=encrypted");
+			}
+			env.putObject("credential_encryption_jwks", encryptionJwks.getAsJsonObject());
 		}
 
 		validateClientConfiguration();
@@ -1129,6 +1148,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void createCredentialRequest() {
 		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+
+		// Add encryption parameters if encryption is enabled
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-11.2.3");
+		}
+
 		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
 		String requestBodyString = serializeCredentialRequestObject(credentialRequestObject);
 		env.putString("resource_request_entity", requestBodyString);
@@ -1139,6 +1164,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void verifyCredentialIssuerCredentialResponse() {
+		// Decrypt the response if encryption was requested
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-11.2.3");
+		}
+
 		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
 
 		// Check if the response is deferred (contains transaction_id instead of credentials)
@@ -1157,6 +1187,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			// Map the deferred response for validation
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+			// Decrypt the deferred response if encryption was requested
+			if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+				callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-11.2.3");
+			}
 		} else {
 			// Immediate response - credential is in the response
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
