@@ -436,6 +436,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected String getDefaultCredentialConfigurationId() {
+		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
+			return "eu.europa.ec.eudi.pid.mdoc.1";
+		}
 		return "eu.europa.ec.eudi.pid.1";
 	}
 
@@ -1247,10 +1250,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected void createCredential() {
 
-		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
-			callAndStopOnFailure(CreateMdocCredentialForVCI.class, "OID4VCI-1FINALA-A.2");
+		// Determine format from the resolved credential_configuration (set by VCIResolveRequestedCredentialConfigurationFromRequest)
+		String requestedFormat = env.getString("credential_configuration", "format");
+
+		if ("mso_mdoc".equals(requestedFormat)) {
+			// mdoc format - the doctype is in credential_configuration.doctype
+			callAndStopOnFailure(CreateMdocCredentialForVCI.class, "OID4VCI-1FINALA-G.1");
 		} else {
-			// SD-JWT VC format (default)
+			// SD-JWT VC format (dc+sd-jwt or default)
 			if (vciProfile == VCIProfile.HAIP) {
 				Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
 				callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");

@@ -27,8 +27,8 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 		// Get the device public key from the proof (same pattern as CreateSdJwtCredential)
 		String publicJwkJson = resolveJwk(env);
 
-		// Get doctype from credential configuration, or use default
-		String docType = env.getString("vci_credential_configuration", "doctype");
+		// Get doctype from credential configuration (set by VCIResolveRequestedCredentialConfigurationFromRequest), or use default
+		String docType = env.getString("credential_configuration", "doctype");
 		if (docType == null || docType.isBlank()) {
 			docType = DEFAULT_DOCTYPE;
 		}
