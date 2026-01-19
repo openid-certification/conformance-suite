@@ -5,6 +5,7 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.X509CertificateUtil;
 
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
@@ -29,14 +30,14 @@ public class VCIEnsureCredentialSigningCertificateIsNotSelfSigned extends Abstra
 		byte[] der = java.util.Base64.getDecoder().decode(encodedCert);
 		X509Certificate credentialSigningCert = X509CertUtils.parse(der);
 
-		try {
-			credentialSigningCert.verify(credentialSigningCert.getPublicKey());
-			throw error("Credential signing cert must not be a self-signed cert",
-				args("cert_0_from_x5c", encodedCert));
-		} catch (Exception e) {
-			logSuccess("Credential signing cert is not a self-signed cert",
+		// Per HAIP section 4.5.1: Credential signing certificate must NOT be self-signed
+		if (X509CertificateUtil.isSelfSigned(credentialSigningCert)) {
+			throw error("Credential signing cert must not be a self-signed cert (HAIP section 4.5.1)",
 				args("cert_0_from_x5c", encodedCert));
 		}
+
+		logSuccess("Credential signing cert is not a self-signed cert",
+			args("cert_0_from_x5c", encodedCert));
 
 		return env;
 	}
