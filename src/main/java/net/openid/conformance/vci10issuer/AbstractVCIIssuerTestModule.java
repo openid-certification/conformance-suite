@@ -1394,7 +1394,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE, "OAuth2-ATCA07-1");
 		callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA07-1", "HAIP-4.3.1-2");
 
+		afterClientAttestationGenerated();
+
 		// we generate a new CreateClientAttestationProofJwt via the AddClientAttestationClientAuthToEndpointRequest sequence
+	}
+
+	/**
+	 * Hook called after the client attestation JWT is generated.
+	 * Override this method in subclasses to modify the client attestation.
+	 */
+	protected void afterClientAttestationGenerated() {
+		// Default implementation does nothing
 	}
 
 	// @VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")

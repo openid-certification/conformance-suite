@@ -42,6 +42,8 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARReques
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
+import net.openid.conformance.condition.as.CreatePAREndpointInvalidClientErrorResponse;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
@@ -1865,7 +1867,21 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(exec().startBlock("PAR endpoint").mapKey("par_endpoint_http_request", requestId)
 			.mapKey("incoming_request", requestId));
 
-		authenticateParEndpointRequest(requestId);
+		try {
+			authenticateParEndpointRequest(requestId);
+		} catch (ConditionError | TestFailureException e) {
+			// Client authentication failed - return invalid_client error
+			String errorMessage = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+			env.putString("par_endpoint_client_auth_error_description", errorMessage);
+			callAndContinueOnFailure(CreatePAREndpointInvalidClientErrorResponse.class, ConditionResult.INFO);
+			ResponseEntity<Object> errorResponse = new ResponseEntity<>(
+				env.getObject("par_endpoint_response"),
+				HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status")));
+			setStatus(Status.WAITING);
+			call(exec().unmapKey("incoming_request").unmapKey("par_endpoint_http_request"));
+			return errorResponse;
+		}
+
 		setParAuthorizationEndpointRequestParamsForHttpMethod();
 		extractParEndpointRequest();
 
