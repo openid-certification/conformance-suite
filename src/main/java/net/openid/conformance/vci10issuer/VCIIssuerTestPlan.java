@@ -24,6 +24,8 @@ public class VCIIssuerTestPlan implements TestPlan {
 					VCIIssuerFailOnInvalidNonce.class,
 					VCIIssuerFailOnInvalidJwtProofSignature.class,
 					VCIIssuerFailOnInvalidKeyAttestationSignature.class,
+					VCIIssuerFailOnInvalidClientAttestationSignature.class,
+					VCIIssuerFailOnInvalidClientAttestationPopSignature.class,
 					VCIIssuerFailOnUnsupportedEncryptionAlgorithm.class,
 					VCIIssuerFailOnUnknownCredentialConfigurationId.class,
 					VCIIssuerFailOnUnknownCredentialIdentifier.class
