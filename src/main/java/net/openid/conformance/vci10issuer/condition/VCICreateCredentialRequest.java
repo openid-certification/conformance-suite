@@ -63,6 +63,13 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 	}
 
 	protected void addProofsInformation(Environment env, JsonObject credentialRequest) {
+		// Check if the credential configuration requires cryptographic binding
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+		if (requiresCryptographicBinding == null || !requiresCryptographicBinding) {
+			log("Credential configuration does not require cryptographic binding, skipping proofs in credential request");
+			return;
+		}
+
 		// see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2-2.4
 		JsonObject proofsObject = createProofsObject(env);
 		credentialRequest.add("proofs", proofsObject);

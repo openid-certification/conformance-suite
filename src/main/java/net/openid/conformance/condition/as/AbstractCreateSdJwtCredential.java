@@ -114,10 +114,13 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 
 		disclosures.add(builder.putSDClaim("place_of_birth", placeOfBirth));
 
-		Map<String, Object> cnf = new HashMap<>();
-		cnf.put("jwk", publicJWK);
+		// Only add cnf claim if cryptographic binding is required (publicJWK is not null)
+		if (publicJWK != null) {
+			Map<String, Object> cnf = new HashMap<>();
+			cnf.put("jwk", publicJWK);
+			builder.putClaim("cnf", cnf);
+		}
 
-		builder.putClaim("cnf", cnf);
 		builder.putClaim("iat", Instant.now().getEpochSecond());
 		builder.putClaim("exp", Instant.now().plus(14, ChronoUnit.DAYS).getEpochSecond());
 		String baseUrl = env.getString("base_url");

@@ -60,21 +60,25 @@ TvFLVc4ESGy3AtdC+g==
 	/**
 	 * Creates an mdoc credential (IssuerSigned structure) for VCI issuance.
 	 *
-	 * @param devicePublicKeyJwk The device public key from the proof, as a JWK JSON string
+	 * @param devicePublicKeyJwk The device public key from the proof, as a JWK JSON string. Can be null for credentials without holder binding.
 	 * @param docType The mdoc document type (e.g., "eu.europa.ec.eudi.pid.1")
 	 * @param issuerSigningJwk Optional custom issuer signing key (JWK JSON string). If null, uses default test key.
 	 * @return Base64URL-encoded IssuerSigned CBOR structure
 	 */
 	@JvmStatic
 	fun createMdocCredential(
-		devicePublicKeyJwk: String,
+		devicePublicKeyJwk: String?,
 		docType: String,
 		issuerSigningJwk: String?
 	): String {
-		// Parse device public key from JWK
-		val jwk = JWK.parse(devicePublicKeyJwk)
-		val ecKey = jwk.toECKey()
-		val devicePublicKey = convertJwkToEcPublicKey(ecKey)
+		// Parse device public key from JWK (if provided)
+		val devicePublicKey: EcPublicKey? = if (devicePublicKeyJwk != null) {
+			val jwk = JWK.parse(devicePublicKeyJwk)
+			val ecKey = jwk.toECKey()
+			convertJwkToEcPublicKey(ecKey)
+		} else {
+			null
+		}
 
 		// Use provided issuer key or default
 		val (dsKey, dsCert) = if (issuerSigningJwk != null) {
@@ -96,6 +100,14 @@ TvFLVc4ESGy3AtdC+g==
 		val issuerNamespaces = buildIssuerNamespacesForDocType(docType, now, validUntil)
 
 		// Generate MSO (Mobile Security Object)
+		// Note: For credentials without holder binding, devicePublicKey can be null
+		// However, the multipaz library currently requires a device key for MSO generation
+		if (devicePublicKey == null) {
+			throw IllegalArgumentException(
+				"mdoc credentials without cryptographic holder binding are not yet supported. " +
+				"The MSO generator requires a device public key."
+			)
+		}
 		val msoGenerator = MobileSecurityObjectGenerator(
 			Algorithm.SHA256,
 			docType,
