@@ -69,6 +69,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
 import net.openid.conformance.condition.client.SetClientIdToWebOrigin;
+import net.openid.conformance.condition.client.SetClientIdToX509Hash;
 import net.openid.conformance.condition.client.SetWebOrigin;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeTypHeader;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader;
@@ -114,7 +115,11 @@ import org.springframework.http.ResponseEntity;
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
 })
+@VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post", configurationFields = {
+	"server.authorization_endpoint"
+})
 @VariantConfigurationFields(parameter = VP1FinalWalletResponseMode.class, value = "direct_post.jwt", configurationFields = {
+	"server.authorization_endpoint",
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
@@ -122,7 +127,6 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
-// FIXME remove authz endpoint field for w3c dc api
 public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerTestModule {
 	protected enum TestState {
 		INITIAL,
@@ -133,7 +137,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected VP1FinalWalletResponseMode responseMode;
 	protected VP1FinalWalletRequestMethod requestMethod;
 	protected VP1FinalWalletCredentialFormat credentialFormat;
-	protected VP1FinalWalletClientIdPrefix clientIdScheme;
+	protected VP1FinalWalletClientIdPrefix clientIdPrefix;
 	protected TestState testState = TestState.INITIAL;
 
 	@Override
@@ -158,8 +162,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		env.putString("response_mode", responseMode.toString());
 		credentialFormat = getVariant(VP1FinalWalletCredentialFormat.class);
 		requestMethod = getVariant(VP1FinalWalletRequestMethod.class);
-		clientIdScheme = getVariant(VP1FinalWalletClientIdPrefix.class);
-		env.putString("client_id_scheme", clientIdScheme.toString());
+		clientIdPrefix = getVariant(VP1FinalWalletClientIdPrefix.class);
+		env.putString("client_id_scheme", clientIdPrefix.toString());
 
 		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
 		env.putInteger("requested_nonce_length", 16);
@@ -175,7 +179,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 		}
 
-		switch (clientIdScheme) {
+		switch (clientIdPrefix) {
 			case DECENTRALIZED_IDENTIFIER:
 			case PRE_REGISTERED:
 				// client id has been set already in config
@@ -188,6 +192,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case X509_SAN_DNS:
 				callAndStopOnFailure(SetClientIdToResponseUriHostnameIfUnset.class);
+				break;
+			case X509_HASH:
+				callAndStopOnFailure(SetClientIdToX509Hash.class);
 				break;
 		}
 		// this is inserted by the create call above, expose it to the test environment for publication
@@ -270,7 +277,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	protected void completeClientConfiguration() {
-		if (clientIdScheme == VP1FinalWalletClientIdPrefix.X509_SAN_DNS) {
+		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.X509_SAN_DNS) {
 			callAndContinueOnFailure(CheckIfClientIdInX509CertSanDns.class, ConditionResult.FAILURE);
 		}
 	}
@@ -604,12 +611,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case REQUEST_URI_SIGNED:
 				seq = createAuthorizationRedirectStepsSignedRequestUri();
-				switch (clientIdScheme) {
+				switch (clientIdPrefix) {
 					case DECENTRALIZED_IDENTIFIER:
 						//Remove x5c header, only the kid header is mandatory for DIDs, which is set in the jwks parameter
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeTypHeader.class));
 						break;
 					case X509_SAN_DNS:
+					case X509_HASH:
 						// x5c header is mandatory for x509 san dns (and/or mdl profile)
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeX5cHeader.class));
 						break;

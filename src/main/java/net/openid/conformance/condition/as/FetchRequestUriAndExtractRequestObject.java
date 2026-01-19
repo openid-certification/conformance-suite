@@ -24,7 +24,7 @@ import java.text.ParseException;
 public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "client", "server_encryption_keys"})
+	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "server_encryption_keys"})
 	@PostEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
 		String requestUri = env.getString("authorization_endpoint_http_request_params", "request_uri");
@@ -45,7 +45,7 @@ public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 
 				env.putObject("authorization_request_object", jsonObjectForJwt);
 
-				logSuccess("Parsed request object", args("request_object", jsonObjectForJwt));
+				logSuccess("Parsed request object", jsonObjectForJwt);
 
 				return env;
 
