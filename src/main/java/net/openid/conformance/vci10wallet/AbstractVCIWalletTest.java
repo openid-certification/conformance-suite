@@ -178,6 +178,7 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCICredentialIssuanceMode;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
@@ -191,6 +192,8 @@ import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthor
 import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointResponse;
+import net.openid.conformance.vci10wallet.condition.VCICreateDeferredCredentialResponse;
+import net.openid.conformance.vci10wallet.condition.VCIValidateDeferredCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
@@ -240,6 +243,7 @@ import java.util.concurrent.TimeUnit;
 	VCIWalletAuthorizationCodeFlowVariant.class,
 	VCICredentialOfferParameterVariant.class,
 	VCI1FinalCredentialFormat.class,
+	VCICredentialIssuanceMode.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value = "wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
@@ -268,6 +272,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	public static final String CREDENTIAL_OFFER_PATH = "credential_offer";
 
 	public static final String NONCE_PATH = "nonce";
+
+	public static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
 
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
@@ -303,6 +309,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected VCICredentialOfferParameterVariant vciCredentialOfferParameterVariantType;
 
 	protected VCI1FinalCredentialFormat vciCredentialFormat;
+
+	protected VCICredentialIssuanceMode vciCredentialIssuanceMode;
 
 	protected abstract void addCustomValuesToIdToken();
 
@@ -342,6 +350,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		vciProfile = getVariant(VCIProfile.class);
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
+		vciCredentialIssuanceMode = getVariant(VCICredentialIssuanceMode.class);
 
 		profileRequiresMtlsEverywhere = false;
 
@@ -531,20 +540,23 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		String credentialIssuer = baseUrl;
-		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + "credential";
-		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + "nonce";
+		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + CREDENTIAL_PATH;
+		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + NONCE_PATH;
+		String deferredCredentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + DEFERRED_CREDENTIAL_PATH;
 
 		String metadata = TemplateProcessor.process("""
 			{
 				"credential_issuer": "$(credentialIssuer)",
 				"credential_endpoint": "$(credentialEndpoint)",
 				"nonce_endpoint": "$(nonceEndpoint)",
+				"deferred_credential_endpoint": "$(deferredCredentialEndpoint)",
 				"authorization_servers": [ "$(credentialIssuer)" ]
 			}
 			""", Map.of(
 			"credentialIssuer", credentialIssuer,
 			"credentialEndpoint", credentialEndpointUrl,
-			"nonceEndpoint", nonceEndpointUrl
+			"nonceEndpoint", nonceEndpointUrl,
+			"deferredCredentialEndpoint", deferredCredentialEndpointUrl
 		));
 
 		String credentialIssuerMetadataUrl = generateWellKnownUrlForPath(credentialIssuer, "openid-credential-issuer");
@@ -553,6 +565,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		env.putString("credential_issuer", credentialIssuer);
 		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
 		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
+		env.putString("credential_issuer_deferred_credential_endpoint_url", deferredCredentialEndpointUrl);
 
 		return JsonParser.parseString(metadata).getAsJsonObject();
 	}
@@ -1037,6 +1050,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return credentialOfferEndpoint(requestId, path);
+		} else if (path.equals(DEFERRED_CREDENTIAL_PATH)) {
+
+			if (isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The deferred credential endpoint must be called over an mTLS secured connection.");
+			}
+
+			return deferredCredentialEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -1204,23 +1224,30 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return errorResponse;
 		}
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.2.1");
 
+		// Create the credential - this will be used for immediate or deferred response
 		createCredential();
 
-		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class,
-			/* SD JWT VC */ "OID4VCI-1FINALA-A.3.4",
-			/* modc */ "OID4VCI-1FINALA-A.2.4"
-		);
+		HttpStatus responseStatus;
+		if (vciCredentialIssuanceMode == VCICredentialIssuanceMode.DEFERRED) {
+			// Deferred issuance: return transaction_id instead of credential
+			// The credential is stored in the environment for retrieval at the deferred endpoint
+			callAndStopOnFailure(VCICreateDeferredCredentialResponse.class, "OID4VCI-1FINAL-9");
+			responseStatus = HttpStatus.ACCEPTED;
+		} else {
+			// Immediate issuance: return credential directly
+			callAndStopOnFailure(VCICreateCredentialEndpointResponse.class,
+				/* SD JWT VC */ "OID4VCI-1FINALA-A.3.4",
+				/* modc */ "OID4VCI-1FINALA-A.2.4"
+			);
+			responseStatus = HttpStatus.OK;
+		}
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
-		JsonObject credentialData = new JsonObject();
-		JsonObject headers = env.getElementFromObject(requestId, "headers").getAsJsonObject();
-		JsonObject credentialRequestBodyJson = env.getElementFromObject(requestId, "body_json").getAsJsonObject();
-
 		JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
-		return createCredentialEndpointResponse(credentialEndpointResponse, HttpStatus.OK);
+		return createCredentialEndpointResponse(credentialEndpointResponse, responseStatus);
 	}
 
 	protected ResponseEntity<?> callAndContinueOnFailureOrReturnErrorResponse(Class<? extends AbstractCondition> conditionClass, ConditionResult conditionResult, String ... requirements) {
@@ -1252,6 +1279,53 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), responseStatus);
 		}
 		return responseEntity;
+	}
+
+	/**
+	 * Handles the deferred credential endpoint per OID4VCI Section 9.
+	 *
+	 * When the wallet polls the deferred credential endpoint with a transaction_id,
+	 * this endpoint validates the transaction_id and returns the credential that was
+	 * created during the initial credential request.
+	 *
+	 * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-9">OID4VCI Section 9 - Deferred Credential Issuance</a>
+	 */
+	protected Object deferredCredentialEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Deferred credential endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+
+		checkResourceEndpointRequest(false);
+
+		// Validate the deferred credential request (transaction_id)
+		ResponseEntity<?> errorResponse;
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateDeferredCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+
+		// Create the actual credential response (the credential was already generated during the initial request)
+		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class,
+			/* SD JWT VC */ "OID4VCI-1FINALA-A.3.4",
+			/* mdoc */ "OID4VCI-1FINALA-A.2.4"
+		);
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
+		return createCredentialEndpointResponse(credentialEndpointResponse, HttpStatus.OK);
 	}
 
 	protected void createCredential() {
@@ -1329,6 +1403,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return nonceEndpoint(requestId);
+		} else if (path.equals(DEFERRED_CREDENTIAL_PATH)) {
+			if (!isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The deferred credential endpoint must not be called over an mTLS secured connection.");
+			}
+
+			return deferredCredentialEndpoint(requestId);
 		} else if (path.equals("userinfo")) {
 			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");

@@ -151,7 +151,10 @@ import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
+import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
@@ -1136,8 +1139,30 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void verifyCredentialIssuerCredentialResponse() {
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+
+		// Check if the response is deferred (contains transaction_id instead of credentials)
+		callAndStopOnFailure(VCICheckForDeferredCredentialResponse.class, "OID4VCI-1FINAL-9");
+
+		String isDeferredStr = env.getString("deferred_credential_response");
+		boolean isDeferred = "true".equals(isDeferredStr);
+
+		if (isDeferred) {
+			// Deferred response - need to call the deferred credential endpoint
+			callAndContinueOnFailure(new EnsureHttpStatusCode(202), ConditionResult.WARNING, "OID4VCI-1FINAL-9");
+			call(exec().unmapKey("endpoint_response"));
+
+			// Poll the deferred credential endpoint
+			callDeferredCredentialEndpoint();
+
+			// Map the deferred response for validation
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		} else {
+			// Immediate response - credential is in the response
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+		}
+
+		// Extract and validate the credential (same for both paths)
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
 		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
@@ -1165,6 +1190,50 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (!isSecondClient()) {
 			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 		}
+	}
+
+	/**
+	 * Calls the deferred credential endpoint to retrieve the credential.
+	 *
+	 * This is called when the initial credential response contains a transaction_id
+	 * instead of credentials, indicating deferred issuance.
+	 *
+	 * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-9">OID4VCI Section 9 - Deferred Credential Issuance</a>
+	 */
+	protected void callDeferredCredentialEndpoint() {
+		eventLog.startBlock(currentClientString() + "Call Deferred Credential Endpoint");
+
+		// Resolve the deferred credential endpoint URL from metadata
+		callAndStopOnFailure(VCIResolveDeferredCredentialEndpointToUse.class, "OID4VCI-1FINAL-12.2.4");
+		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+
+		// Set HTTP method to POST (required for deferred credential endpoint)
+		env.putString("resource", "resourceMethod", "POST");
+
+		// Create the deferred credential request (contains transaction_id)
+		callAndStopOnFailure(VCICreateDeferredCredentialRequest.class, "OID4VCI-1FINAL-9.1");
+
+		// Create fresh headers for the deferred request
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+
+		// Set Content-Type to application/json (required for deferred credential endpoint)
+		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		// Call the deferred credential endpoint
+		if (isDpop()) {
+			requestProtectedResourceUsingDpop();
+		} else {
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-9", "FAPI2-SP-ID2-5.3.3-2");
+		}
+
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+		// Check for successful response
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2");
+
+		eventLog.endBlock();
 	}
 
 	protected void afterNonceEndpointResponse() {
