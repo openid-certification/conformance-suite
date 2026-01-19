@@ -43,6 +43,7 @@ import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestPa
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateRefreshToken;
+import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
@@ -495,7 +496,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		configureSupportedCredentialConfigurations();
 
-		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2");
+		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2",
+			/* mdoc: */ "OID4VCI-1FINALA-A.2.2");
 	}
 
 	protected void generateSignedCredentialIssuerMetadata() {
@@ -669,6 +671,84 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 						{
 							"name": "Fake PID: JWT and Attestation Proof with Key Attestation",
 							"description": "OpenID Conformance Test Fake PID description"
+						}
+						]
+					}
+				},
+				"eu.europa.ec.eudi.pid.mdoc.1": {
+					"format": "mso_mdoc",
+					"doctype": "eu.europa.ec.eudi.pid.1",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID (mdoc)",
+							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
+						}
+						]
+					}
+				},
+				"eu.europa.ec.eudi.pid.mdoc.1.attestation": {
+					"format": "mso_mdoc",
+					"doctype": "eu.europa.ec.eudi.pid.1",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"attestation": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID (mdoc)",
+							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
+						}
+						]
+					}
+				},
+				"eu.europa.ec.eudi.pid.mdoc.1.jwt.keyattest": {
+					"format": "mso_mdoc",
+					"doctype": "eu.europa.ec.eudi.pid.1",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"jwt": {
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID (mdoc): JWT Proof with Key Attestation",
+							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
+						}
+						]
+					}
+				},
+				"eu.europa.ec.eudi.pid.mdoc.1.attestation.keyattest": {
+					"format": "mso_mdoc",
+					"doctype": "eu.europa.ec.eudi.pid.1",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"attestation": {
+							"proof_signing_alg_values_supported": [ "ES256" ],
+							"key_attestations_required": {}
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID (mdoc): Attestation Proof with Key Attestation",
+							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
 					}
@@ -1129,13 +1209,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected void createCredential() {
 
-		// TODO infer credential format from selected credential_format variant
-
-		if (vciProfile == VCIProfile.HAIP) {
-			Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
-			callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
+		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
+			callAndStopOnFailure(CreateMdocCredentialForVCI.class, "OID4VCI-1FINALA-A.2");
 		} else {
-			callAndStopOnFailure(CreateSdJwtCredential.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
+			// SD-JWT VC format (default)
+			if (vciProfile == VCIProfile.HAIP) {
+				Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
+				callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
+			} else {
+				callAndStopOnFailure(CreateSdJwtCredential.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
+			}
 		}
 	}
 
