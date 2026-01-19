@@ -9,6 +9,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
@@ -62,12 +63,12 @@ public class VCIAddCredentialResponseEncryptionToRequest extends AbstractConditi
 
 		JsonElement algValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption_alg_values_supported");
 		if (algValuesEl != null && algValuesEl.isJsonArray() && algValuesEl.getAsJsonArray().size() > 0) {
-			alg = algValuesEl.getAsJsonArray().get(0).getAsString();
+			alg = OIDFJSON.getString(algValuesEl.getAsJsonArray().get(0));
 		}
 
 		JsonElement encValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption_enc_values_supported");
 		if (encValuesEl != null && encValuesEl.isJsonArray() && encValuesEl.getAsJsonArray().size() > 0) {
-			enc = encValuesEl.getAsJsonArray().get(0).getAsString();
+			enc = OIDFJSON.getString(encValuesEl.getAsJsonArray().get(0));
 		}
 
 		// Build credential_response_encryption object

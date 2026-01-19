@@ -5,6 +5,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
  * Modifies the credential_response_encryption in the credential request to use an
@@ -33,7 +34,7 @@ public class VCIUseUnsupportedEncryptionAlgorithm extends AbstractCondition {
 		}
 
 		JsonObject encryptionParams = credentialRequest.getAsJsonObject("credential_response_encryption");
-		String originalAlg = encryptionParams.has("alg") ? encryptionParams.get("alg").getAsString() : "(none)";
+		String originalAlg = encryptionParams.has("alg") ? OIDFJSON.getString(encryptionParams.get("alg")) : "(none)";
 
 		// Replace the algorithm with an unsupported one
 		encryptionParams.addProperty("alg", UNSUPPORTED_ALG);
