@@ -1237,6 +1237,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(false);
 
+		// If there's a DPoP nonce error, return it immediately before validating the credential proof.
+		// This ensures the c_nonce isn't consumed, allowing the client to retry with the correct DPoP nonce.
+		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+			call(exec().unmapKey("incoming_request").endBlock());
+			setStatus(Status.WAITING);
+			return new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+		}
+
 		ResponseEntity<?> errorResponse;
 		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestStructure.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 		if (errorResponse != null) {
