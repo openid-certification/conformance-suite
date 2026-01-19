@@ -10,10 +10,22 @@ public class VCIResolveCredentialProofTypeToUse extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"config", "vci_credential_configuration"})
-	@PostEnvironment(strings = "vci_proof_type_key", required = "vci_proof_type")
 	public Environment evaluate(Environment env) {
 
 		JsonObject credentialConfiguration = env.getObject("vci_credential_configuration");
+
+		// Check if the credential configuration requires cryptographic binding
+		if (!credentialConfiguration.has("cryptographic_binding_methods_supported") ||
+			!credentialConfiguration.has("proof_types_supported")) {
+			// No cryptographic binding required, no proof needed
+			log("Credential configuration does not require cryptographic binding, skipping proof type resolution",
+				args("credential_configuration", credentialConfiguration));
+			env.putBoolean("vci_requires_cryptographic_binding", false);
+			return env;
+		}
+
+		env.putBoolean("vci_requires_cryptographic_binding", true);
+
 		JsonObject proofTypesSupported = credentialConfiguration.getAsJsonObject("proof_types_supported");
 
 		String proofTypeHint = env.getString("config", "vci.credential_proof_type_hint");

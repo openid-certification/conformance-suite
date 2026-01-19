@@ -836,6 +836,19 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 						}
 						]
 					}
+				},
+				"eu.europa.ec.eudi.pid.1.nobinding": {
+					"format": "dc+sd-jwt",
+					"vct": "urn:eudi:pid:1",
+					"credential_signing_alg_values_supported": [ "ES256" ],
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake PID (No Holder Binding)",
+							"description": "OpenID Conformance Test Fake PID without cryptographic holder binding"
+						}
+						]
+					}
 				}
 			}
 			""";
@@ -1233,22 +1246,31 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return errorResponse;
 		}
 
-		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIExtractCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.4");
-		if (errorResponse != null) {
-			return errorResponse;
-		}
+		// Check if the credential configuration requires cryptographic binding
+		JsonObject credentialConfiguration = env.getObject("credential_configuration");
+		boolean requiresCryptographicBinding = credentialConfiguration.has("cryptographic_binding_methods_supported");
 
-		String proofType = env.getString("proof_type");
-		if ("jwt".equals(proofType)) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
-		} else if ("attestation".equals(proofType)) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
-		} else if ("di_vp".equals(proofType)) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
-		}
+		if (requiresCryptographicBinding) {
+			// Only validate proofs if cryptographic binding is required
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIExtractCredentialRequestProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.4");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
 
-		if (errorResponse != null) {
-			return errorResponse;
+			String proofType = env.getString("proof_type");
+			if ("jwt".equals(proofType)) {
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
+			} else if ("attestation".equals(proofType)) {
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
+			} else if ("di_vp".equals(proofType)) {
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
+			}
+
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		} else {
+			eventLog.log(getName(), "Credential configuration does not require cryptographic binding, skipping proof validation");
 		}
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.2.1");

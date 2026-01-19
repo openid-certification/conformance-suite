@@ -392,7 +392,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
 		callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
+
+		// Only check key attestation if cryptographic binding is required
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
+		}
 	}
 
 	protected void resolveCredentialConfigurationId() {
@@ -1092,22 +1097,29 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		eventLog.endBlock();
 
-		eventLog.startBlock(currentClientString() + " Call credential issuer nonce endpoint");
-		// check for nonce endpoint
-		JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
-		if (nonceEndpointEl != null) {
+		// Check if the credential configuration requires cryptographic binding
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
 
-			callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			eventLog.startBlock(currentClientString() + " Call credential issuer nonce endpoint");
+			// check for nonce endpoint
+			JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
+			if (nonceEndpointEl != null) {
+
+				callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
+
+				eventLog.endBlock();
+
+				eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
+				afterNonceEndpointResponse();
+			} else {
+				eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
+			}
 
 			eventLog.endBlock();
-
-			eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
-			afterNonceEndpointResponse();
 		} else {
-			eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
+			eventLog.log(getName(), "Skipping nonce endpoint call - credential configuration does not require cryptographic binding");
 		}
-
-		eventLog.endBlock();
 
 		eventLog.startBlock(currentClientString() + " Call Credential Endpoint");
 
@@ -1115,14 +1127,18 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
-		// determine if requested credential requires key attestation
-		callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			// determine if requested credential requires key attestation
+			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
 
-		String proofTypeKey = env.getString("vci_proof_type_key");
-		if ("jwt".equals(proofTypeKey)) {
-			callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
-		} else if ("attestation".equals(proofTypeKey)) {
-			callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+			String proofTypeKey = env.getString("vci_proof_type_key");
+			if ("jwt".equals(proofTypeKey)) {
+				callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
+			} else if ("attestation".equals(proofTypeKey)) {
+				callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+			}
+		} else {
+			eventLog.log(getName(), "Skipping proof generation - credential configuration does not require cryptographic binding");
 		}
 
 		createCredentialRequest();
@@ -1200,6 +1216,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// Extract and validate the credential (same for both paths)
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
+		// Check if the credential configuration requires cryptographic binding
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+
 		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
 			// mdoc (mso_mdoc) format validation - uses IssuerSigned structure (not DeviceResponse)
 			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-G.1");
@@ -1208,7 +1227,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
 			callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2.1");
 			callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-3.5.1");
-			callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
+			// Only validate cnf claim if cryptographic binding is required
+			if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
+			}
 			if (vciProfile == VCIProfile.HAIP) {
 				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCICheckExpClaimInCredential.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");

@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.as;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -58,8 +59,17 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 	/**
 	 * Resolves the device public key from the proof.
 	 * Supports both 'jwt' and 'attestation' proof types.
+	 * Returns null if the credential configuration doesn't require cryptographic binding.
 	 */
 	protected String resolveJwk(Environment env) {
+		// Check if the credential configuration requires cryptographic binding
+		JsonObject credentialConfiguration = env.getObject("credential_configuration");
+		if (credentialConfiguration != null && !credentialConfiguration.has("cryptographic_binding_methods_supported")) {
+			// No cryptographic binding required, no device key needed
+			log("Credential configuration does not require cryptographic binding, skipping device key binding");
+			return null;
+		}
+
 		String proofType = env.getString("proof_type");
 
 		JsonElement publicJWK;
