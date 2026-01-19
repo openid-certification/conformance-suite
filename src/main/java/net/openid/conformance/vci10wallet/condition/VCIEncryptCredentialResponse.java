@@ -18,8 +18,11 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWEUtil;
 import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.vci10issuer.condition.VciErrorCode;
+import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 import java.text.ParseException;
+import java.util.Set;
 
 /**
  * Encrypts the credential endpoint response as a JWE per OID4VCI Section 11.2.3.
@@ -30,6 +33,16 @@ import java.text.ParseException;
  * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-11.2.3">OID4VCI Section 11.2.3 - Credential Response Encryption</a>
  */
 public class VCIEncryptCredentialResponse extends AbstractCondition {
+
+	// Supported JWE algorithms for credential response encryption
+	private static final Set<String> SUPPORTED_ALG_VALUES = Set.of(
+		"ECDH-ES", "ECDH-ES+A128KW", "ECDH-ES+A192KW", "ECDH-ES+A256KW"
+	);
+
+	// Supported JWE encryption methods
+	private static final Set<String> SUPPORTED_ENC_VALUES = Set.of(
+		"A128GCM", "A192GCM", "A256GCM", "A128CBC-HS256", "A192CBC-HS384", "A256CBC-HS512"
+	);
 
 	@Override
 	@PreEnvironment(required = {"credential_endpoint_response", "incoming_request"})
@@ -53,8 +66,26 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 		String enc = OIDFJSON.getString(encryptionParams.get("enc"));
 
 		if (alg == null || enc == null) {
-			throw error("credential_response_encryption must contain 'alg' and 'enc' parameters",
+			String errorDescription = "credential_response_encryption must contain 'alg' and 'enc' parameters";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
+			throw error(errorDescription,
 				args("credential_response_encryption", encryptionParams));
+		}
+
+		// Validate that the requested algorithm is supported
+		if (!SUPPORTED_ALG_VALUES.contains(alg)) {
+			String errorDescription = "Unsupported encryption algorithm: " + alg + ". Supported algorithms are: " + SUPPORTED_ALG_VALUES;
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
+			throw error(errorDescription,
+				args("alg", alg, "supported_alg_values", SUPPORTED_ALG_VALUES));
+		}
+
+		// Validate that the requested encryption method is supported
+		if (!SUPPORTED_ENC_VALUES.contains(enc)) {
+			String errorDescription = "Unsupported encryption method: " + enc + ". Supported methods are: " + SUPPORTED_ENC_VALUES;
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
+			throw error(errorDescription,
+				args("enc", enc, "supported_enc_values", SUPPORTED_ENC_VALUES));
 		}
 
 		// Get the JWK for encryption (either from request or from configured wallet JWKS)

@@ -1172,11 +1172,20 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// Add encryption parameters if encryption is enabled
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-11.2.3");
+			afterCredentialResponseEncryptionAdded();
 		}
 
 		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
 		String requestBodyString = serializeCredentialRequestObject(credentialRequestObject);
 		env.putString("resource_request_entity", requestBodyString);
+	}
+
+	/**
+	 * Hook called after credential_response_encryption is added to the credential request.
+	 * Override this method in subclasses to modify the encryption parameters.
+	 */
+	protected void afterCredentialResponseEncryptionAdded() {
+		// Default implementation does nothing
 	}
 
 	protected String serializeCredentialRequestObject(JsonObject credentialRequestObject) {
