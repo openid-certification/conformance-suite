@@ -16,6 +16,7 @@ import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.util.X509CertificateUtil;
 
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
@@ -117,16 +118,14 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 				args("x5c", encodedCert, "key_attestation_cert_pem", keyAttestationCertPem, "error", e.getMessage()));
 		}
 
-		try {
-			// ensure key attestation cert is not self-signed
-			// see: https://openid.github.io/OpenID4VC-HAIP/openid4vc-high-assurance-interoperability-profile-wg-draft.html#section-4.5.1
-			keyAttestationCert.verify(keyAttestationCert.getPublicKey());
-			throw error("Key attestation cert must not be a self-signed",
-				args("cert_0_from_x5c", encodedCert));
-		} catch (Exception e) {
-			log("Key attestation cert is not a self-signed cert",
+		// Per HAIP section 4.5.1: Key attestation certificate must NOT be self-signed
+		if (X509CertificateUtil.isSelfSigned(keyAttestationCert)) {
+			throw error("Key attestation cert must not be a self-signed (HAIP section 4.5.1)",
 				args("cert_0_from_x5c", encodedCert));
 		}
+
+		log("Key attestation cert is not a self-signed cert",
+			args("cert_0_from_x5c", encodedCert));
 
 		String keyAttestationTrustAnchorPem = env.getString("vci", "key_attestation_trust_anchor_pem");
 		if (keyAttestationTrustAnchorPem == null) {
@@ -136,6 +135,17 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 
 		// validate with key attestation trust anchor if available
 		X509Certificate trustAnchorCert = X509CertUtils.parse(keyAttestationTrustAnchorPem);
+
+		// Per HAIP section 4.5.1: Trust anchor MUST NOT be included in the x5c chain
+		for (Base64 certBase64 : x5c) {
+			X509Certificate cert = X509CertUtils.parse(java.util.Base64.getDecoder().decode(certBase64.toString()));
+			if (cert.equals(trustAnchorCert)) {
+				throw error("Trust anchor certificate MUST NOT be included in x5c chain (HAIP section 4.5.1)",
+					args("x5c", x5c.stream().map(Base64::toString).toList(), "trust_anchor_pem", keyAttestationTrustAnchorPem));
+			}
+		}
+		log("Trust anchor is not included in x5c chain (as required)");
+
 		try {
 			keyAttestationCert.verify(trustAnchorCert.getPublicKey());
 		} catch (Exception e) {
