@@ -9,7 +9,7 @@
 
                 %>
 
-                    <dt class="col-sm-2 text-end text-truncate" data-bs-toggle="tooltip" title="stacktrace" data-bs-placement="bottom">stacktrace</dt>
+                    <dt class="col-sm-2 text-end text-break" data-bs-toggle="tooltip" title="stacktrace" data-bs-placement="bottom">stacktrace</dt>
                     <dd class="col-sm-10 text-start wrapLongStrings row-bg-light">
                         <ul>
                             <% _.each(more['stacktrace'], function(v) { %>
@@ -39,7 +39,7 @@
                         return;
                     }
             %>
-                    <dd class="col-sm-2 text-end text-truncate" data-bs-toggle="tooltip" title="<%- key %>" data-bs-placement="bottom"><%- key %></dd>
+                    <dd class="col-sm-2 text-end text-break" data-bs-toggle="tooltip" title="<%- key %>" data-bs-placement="bottom"><%- key %></dd>
                     <dt class="col-sm-10 text-start wrapLongStrings row-bg-light">
             <% if (key == 'img') { %>
                 <img src="<%- value %>" class="img-fluid mx-auto imagePreview">
