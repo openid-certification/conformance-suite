@@ -178,6 +178,7 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCICredentialIssuanceMode;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
@@ -193,6 +194,7 @@ import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataReques
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCICreateDeferredCredentialResponse;
+import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
 import net.openid.conformance.vci10wallet.condition.VCIValidateDeferredCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
@@ -244,6 +246,7 @@ import java.util.concurrent.TimeUnit;
 	VCICredentialOfferParameterVariant.class,
 	VCI1FinalCredentialFormat.class,
 	VCICredentialIssuanceMode.class,
+	VCICredentialEncryption.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIWalletAuthorizationCodeFlowVariant.class, value = "wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
@@ -262,6 +265,9 @@ import java.util.concurrent.TimeUnit;
 })
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "mtls", configurationFields = {
 	"client.certificate"
+})
+@VariantConfigurationFields(parameter = VCICredentialEncryption.class, value = "encrypted", configurationFields = {
+	"vci.credential_encryption_jwks"
 })
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
@@ -312,6 +318,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected VCICredentialIssuanceMode vciCredentialIssuanceMode;
 
+	protected VCICredentialEncryption vciCredentialEncryption;
+
 	protected abstract void addCustomValuesToIdToken();
 
 	protected void addCustomSignatureOfIdToken() {
@@ -351,6 +359,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		vciProfile = getVariant(VCIProfile.class);
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
 		vciCredentialIssuanceMode = getVariant(VCICredentialIssuanceMode.class);
+		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
 
 		profileRequiresMtlsEverywhere = false;
 
@@ -567,7 +576,25 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
 		env.putString("credential_issuer_deferred_credential_endpoint_url", deferredCredentialEndpointUrl);
 
-		return JsonParser.parseString(metadata).getAsJsonObject();
+		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
+
+		// Add credential response encryption metadata if encryption is enabled
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			JsonArray algValues = new JsonArray();
+			algValues.add("ECDH-ES");
+			algValues.add("ECDH-ES+A256KW");
+			algValues.add("ECDH-ES+A128KW");
+			metadataJson.add("credential_response_encryption_alg_values_supported", algValues);
+
+			JsonArray encValues = new JsonArray();
+			encValues.add("A256GCM");
+			encValues.add("A128GCM");
+			encValues.add("A256CBC-HS512");
+			encValues.add("A128CBC-HS256");
+			metadataJson.add("credential_response_encryption_enc_values_supported", encValues);
+		}
+
+		return metadataJson;
 	}
 
 	protected void configureSupportedCredentialConfigurations() {
@@ -1246,8 +1273,32 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
+		// Encrypt the response if wallet requested encryption
+		callAndContinueOnFailure(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2.3");
+
+		// Check if the response was encrypted
+		String encryptedResponse = env.getString("encrypted_credential_response");
+		if (encryptedResponse != null) {
+			// Return encrypted response as application/jwt
+			return createEncryptedCredentialEndpointResponse(encryptedResponse, responseStatus);
+		}
+
 		JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
 		return createCredentialEndpointResponse(credentialEndpointResponse, responseStatus);
+	}
+
+	protected ResponseEntity<Object> createEncryptedCredentialEndpointResponse(String encryptedResponse, HttpStatus responseStatus) {
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.valueOf("application/jwt"));
+
+		if (requireResourceServerEndpointDpopNonce()) {
+			callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
+		}
+
+		resourceEndpointCallComplete();
+		return new ResponseEntity<>(encryptedResponse, headers, responseStatus);
 	}
 
 	protected ResponseEntity<?> callAndContinueOnFailureOrReturnErrorResponse(Class<? extends AbstractCondition> conditionClass, ConditionResult conditionResult, String ... requirements) {
@@ -1323,6 +1374,16 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		);
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		// Encrypt the response if wallet requested encryption
+		callAndContinueOnFailure(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2.3");
+
+		// Check if the response was encrypted
+		String encryptedResponse = env.getString("encrypted_credential_response");
+		if (encryptedResponse != null) {
+			// Return encrypted response as application/jwt
+			return createEncryptedCredentialEndpointResponse(encryptedResponse, HttpStatus.OK);
+		}
 
 		JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
 		return createCredentialEndpointResponse(credentialEndpointResponse, HttpStatus.OK);
