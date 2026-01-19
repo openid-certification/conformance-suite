@@ -1131,12 +1131,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			// determine if requested credential requires key attestation
 			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
 
+			afterKeyAttestationGeneration();
+
 			String proofTypeKey = env.getString("vci_proof_type_key");
 			if ("jwt".equals(proofTypeKey)) {
 				callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
 			} else if ("attestation".equals(proofTypeKey)) {
 				callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
 			}
+
+			afterProofGeneration();
 		} else {
 			eventLog.log(getName(), "Skipping proof generation - credential configuration does not require cryptographic binding");
 		}
@@ -1299,6 +1303,22 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 		callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+	}
+
+	/**
+	 * Hook called after key attestation generation but before proof generation.
+	 * Override this method in subclasses to modify the key attestation.
+	 */
+	protected void afterKeyAttestationGeneration() {
+		// Default implementation does nothing
+	}
+
+	/**
+	 * Hook called after proof generation but before creating the credential request.
+	 * Override this method in subclasses to modify the generated proof (jwt or attestation).
+	 */
+	protected void afterProofGeneration() {
+		// Default implementation does nothing
 	}
 
 	protected boolean isSecondClient() {

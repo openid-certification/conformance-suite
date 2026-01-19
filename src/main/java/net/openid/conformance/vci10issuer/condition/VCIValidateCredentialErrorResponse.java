@@ -40,7 +40,7 @@ public class VCIValidateCredentialErrorResponse extends AbstractCondition {
 		if (expectedErrorCode != null) {
 			if (!expectedErrorCode.getErrorCode().equals(error)) {
 				throw error("Expected error code not found in credential error response: " + expectedErrorCode.getErrorCode(),
-					args("error", error, "errorDescription", errorDescription, expectedErrorCode.getErrorCode()));
+					args("error", error, "error_description", errorDescription, "expected_error_code", expectedErrorCode.getErrorCode()));
 			}
 			logSuccess("Expected error code found in credential error response: " + expectedErrorCode.getErrorCode(),
 				args("error", error, "errorDescription", errorDescription, "expected_error_code", expectedErrorCode.getErrorCode()));
