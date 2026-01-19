@@ -500,6 +500,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		configureSupportedCredentialConfigurations();
 
 		callAndStopOnFailure(VCILogGeneratedCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2",
+			/* SD JWT VC: */ "OID4VCI-1FINALA-A.3.2",
 			/* mdoc: */ "OID4VCI-1FINALA-A.2.2");
 	}
 
@@ -1205,7 +1206,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		createCredential();
 
-		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class);
+		callAndStopOnFailure(VCICreateCredentialEndpointResponse.class,
+			/* SD JWT VC */ "OID4VCI-1FINALA-A.3.4",
+			/* modc */ "OID4VCI-1FINALA-A.2.4"
+		);
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
