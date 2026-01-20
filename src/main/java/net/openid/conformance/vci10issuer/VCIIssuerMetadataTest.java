@@ -17,6 +17,7 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-metadata-test",
@@ -44,7 +45,11 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 			if (vciProfile == VCIProfile.HAIP) {
 				callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
+				callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(true), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.2", "HAIP-6");
+			} else {
+				callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(false), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.1", "OID4VCI-1FINALA-A.2");
 			}
+
 		});
 
 		eventLog.runBlock("Fetch OAuth Authorization Server Metadata", () -> {
