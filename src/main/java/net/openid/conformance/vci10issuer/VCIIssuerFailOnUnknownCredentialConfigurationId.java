@@ -29,7 +29,7 @@ public class VCIIssuerFailOnUnknownCredentialConfigurationId extends VCIIssuerHa
 	}
 
 	@Override
-	protected void verifyCredentialIssuerCredentialResponse() {
+	protected void verifyEffectiveCredentialResponse() {
 		// 8.3.1.2. Credential Request Errors For errors related to the Credential Request's payload, such as issues with type, format, proofs
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
 

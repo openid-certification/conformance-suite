@@ -21,39 +21,46 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 	summary = "This test case checks for proper error handling when a JWT proof with an invalid signature is submitted. " +
 		"The test sends a credential request with a JWT proof where the signature has been modified to be invalid. " +
 		"The issuer must reject this request with an invalid_proof error. " +
-		"Note: This test only applies when using jwt proof type. For attestation proof type, the test behaves like the happy flow.",
+		"Note: This test only applies when using jwt proof type. For attestation proof type, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnInvalidJwtProofSignature extends VCIIssuerHappyFlow {
 
-	private boolean jwtProofWasGenerated = false;
+	@Override
+	public void start() {
+		// Skip this test if the credential configuration doesn't require cryptographic binding
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+		if (requiresCryptographicBinding == null || !requiresCryptographicBinding) {
+			fireTestSkipped("This test requires a credential configuration with cryptographic binding (proof). " +
+				"The selected credential configuration does not require proof, so JWT proof signature validation cannot be tested.");
+			return;
+		}
+
+		// Check if the proof type is jwt
+		String proofTypeKey = env.getString("vci_proof_type_key");
+		if (!"jwt".equals(proofTypeKey)) {
+			fireTestSkipped("This test requires jwt proof type. " +
+				"The selected credential configuration uses '" + proofTypeKey + "' proof type.");
+			return;
+		}
+
+		super.start();
+	}
 
 	@Override
 	protected void afterProofGeneration() {
 		super.afterProofGeneration();
 
-		// Check if a JWT proof was generated (only for jwt proof type)
-		String proofTypeKey = env.getString("vci_proof_type_key");
-		if ("jwt".equals(proofTypeKey)) {
-			String jwtProof = env.getString("vci", "proof.jwt");
-			if (jwtProof != null && !jwtProof.isEmpty()) {
-				jwtProofWasGenerated = true;
-				callAndContinueOnFailure(VCIInvalidateJwtProofSignature.class, Condition.ConditionResult.INFO, "OID4VCI-1FINAL-7.2.1");
-			}
-		}
+		// Invalidate the JWT proof signature
+		callAndContinueOnFailure(VCIInvalidateJwtProofSignature.class, Condition.ConditionResult.INFO, "OID4VCI-1FINAL-7.2.1");
 	}
 
 	@Override
-	protected void verifyCredentialIssuerCredentialResponse() {
-		if (jwtProofWasGenerated) {
-			// Expect an error response when JWT proof signature is invalid
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
+	protected void verifyEffectiveCredentialResponse() {
+		// Expect an error response when JWT proof signature is invalid
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
 
-			callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
-			callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_PROOF), "OID4VCI-1FINAL-8.3.1");
-		} else {
-			// Not using JWT proof type, run normal verification
-			super.verifyCredentialIssuerCredentialResponse();
-		}
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
+		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_PROOF), "OID4VCI-1FINAL-8.3.1");
 	}
 }

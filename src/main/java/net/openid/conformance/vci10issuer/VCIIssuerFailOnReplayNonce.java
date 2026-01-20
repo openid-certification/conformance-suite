@@ -7,6 +7,9 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VCICredentialEncryption;
+import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
+import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
@@ -29,10 +32,25 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 	displayName = "OID4VCI 1.0: Issuer with replayed nonce",
 	summary = "This test case verifies proper nonce replay protection. It first completes a successful " +
 		"credential issuance flow, then attempts a second credential request using the same nonce/proof. " +
-		"The credential issuer must reject the replayed nonce with an invalid_nonce error (HTTP 400).",
+		"The credential issuer must reject the replayed nonce with an invalid_nonce error (HTTP 400). " +
+		"Note: This test requires a credential configuration that requires cryptographic binding (proof). " +
+		"If the selected credential configuration does not require proof, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnReplayNonce extends VCIIssuerHappyFlow {
+
+	@Override
+	public void start() {
+		// Skip this test if the credential configuration doesn't require cryptographic binding
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+		if (requiresCryptographicBinding == null || !requiresCryptographicBinding) {
+			fireTestSkipped("This test requires a credential configuration with cryptographic binding (proof). " +
+				"The selected credential configuration does not require proof, so nonce replay protection cannot be tested.");
+			return;
+		}
+
+		super.start();
+	}
 
 	@Override
 	protected void verifyCredentialIssuerCredentialResponse() {
@@ -46,6 +64,11 @@ public class VCIIssuerFailOnReplayNonce extends VCIIssuerHappyFlow {
 		// The proof in credential_request_proofs was already used in the first request
 		// We create a new credential request using the same proof object
 		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+
+		// Add encryption parameters if encryption is enabled (same as the first request)
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-11.2.3");
+		}
 
 		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
 		String requestBodyString = credentialRequestObject.toString();
@@ -69,6 +92,11 @@ public class VCIIssuerFailOnReplayNonce extends VCIIssuerHappyFlow {
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+		// Decrypt the response if encryption was requested (error responses are also encrypted)
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-11.2.3");
+		}
 
 		// Verify the replayed nonce is rejected with invalid_nonce error
 		// Use callAndStopOnFailure for HTTP status check - if the server returns 200,

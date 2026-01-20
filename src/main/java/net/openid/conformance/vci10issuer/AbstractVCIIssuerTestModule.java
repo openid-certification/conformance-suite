@@ -1193,12 +1193,27 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		return credentialRequestObject.toString();
 	}
 
+	/**
+	 * Verifies the credential endpoint response. This method handles decryption if needed,
+	 * then delegates to verifyEffectiveCredentialResponse() for the actual validation.
+	 * Subclasses that need to verify error responses should override verifyEffectiveCredentialResponse()
+	 * instead of this method, so that decryption is handled automatically.
+	 */
 	protected void verifyCredentialIssuerCredentialResponse() {
 		// Decrypt the response if encryption was requested
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-11.2.3");
 		}
 
+		verifyEffectiveCredentialResponse();
+	}
+
+	/**
+	 * Verifies the effective credential response - i.e., the response after potential decryption.
+	 * Override this method in subclasses to customize verification behavior,
+	 * especially for negative tests that expect error responses.
+	 */
+	protected void verifyEffectiveCredentialResponse() {
 		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
 
 		// Check if the response is deferred (contains transaction_id instead of credentials)
