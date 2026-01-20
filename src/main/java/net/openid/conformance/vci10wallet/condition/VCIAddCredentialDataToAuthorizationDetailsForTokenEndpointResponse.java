@@ -33,21 +33,23 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 			for (var i = 0; i < authDetails.size(); i++) {
 				JsonObject authDetail = authDetails.get(i).getAsJsonObject();
 
-				// use first openid_credential with configuration_id eu.europa.ec.eudi.pid.1
+				// Process openid_credential authorization details
 				boolean isOpenIdCredential = "openid_credential".equals(OIDFJSON.getString(authDetail.get("type")));
 				if (!isOpenIdCredential) {
 					continue;
 				}
 				String credentialConfigurationId = OIDFJSON.getString(authDetail.get("credential_configuration_id"));
-				if (credentialConfigurationId.startsWith("eu.europa.ec.eudi.pid.1")) {
+				// Check for known credential configuration ID prefixes (SD-JWT PID, mdoc PID, mDL)
+				if (credentialConfigurationId.startsWith("eu.europa.ec.eudi.pid.") ||
+					credentialConfigurationId.startsWith("org.iso.18013.")) {
 
 					JsonArray credentialIdentifiers = new JsonArray();
-					String credentialIdentifier =credentialConfigurationId + ":" + UUID.randomUUID();
+					String credentialIdentifier = credentialConfigurationId + ":" + UUID.randomUUID();
 					credentialIdentifiers.add(credentialIdentifier);
 					authDetail.add("credential_identifiers", credentialIdentifiers);
 
 					log("Used credential_configuration from authorization_details",
-							args("credential_configuration_id", credentialIdentifier, "credential_identifiers", credentialIdentifiers));
+							args("credential_configuration_id", credentialConfigurationId, "credential_identifiers", credentialIdentifiers));
 
 					return env;
 				}
