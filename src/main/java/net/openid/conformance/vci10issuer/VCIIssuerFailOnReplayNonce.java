@@ -95,7 +95,7 @@ public class VCIIssuerFailOnReplayNonce extends VCIIssuerHappyFlow {
 
 		// Decrypt the response if encryption was requested (error responses are also encrypted)
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-11.2.3");
+			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
 		}
 
 		// Verify the replayed nonce is rejected with invalid_nonce error

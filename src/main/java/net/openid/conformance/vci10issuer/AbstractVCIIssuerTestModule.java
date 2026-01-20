@@ -1202,7 +1202,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void verifyCredentialIssuerCredentialResponse() {
 		// Decrypt the response if encryption was requested
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-11.2.3");
+			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
 		}
 
 		verifyEffectiveCredentialResponse();
@@ -1235,7 +1235,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			// Decrypt the deferred response if encryption was requested
 			if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-				callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-11.2.3");
+				callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
 			}
 		} else {
 			// Immediate response - credential is in the response
