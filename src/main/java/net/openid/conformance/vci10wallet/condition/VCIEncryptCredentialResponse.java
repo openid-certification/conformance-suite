@@ -74,7 +74,7 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 
 		// Validate that the requested algorithm is supported
 		if (!SUPPORTED_ALG_VALUES.contains(alg)) {
-			String errorDescription = "Unsupported encryption algorithm: " + alg + ". Supported algorithms are: " + SUPPORTED_ALG_VALUES;
+			String errorDescription = "Unsupported encryption algorithm: " + alg;
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
 			throw error(errorDescription,
 				args("alg", alg, "supported_alg_values", SUPPORTED_ALG_VALUES));
@@ -82,7 +82,7 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 
 		// Validate that the requested encryption method is supported
 		if (!SUPPORTED_ENC_VALUES.contains(enc)) {
-			String errorDescription = "Unsupported encryption method: " + enc + ". Supported methods are: " + SUPPORTED_ENC_VALUES;
+			String errorDescription = "Unsupported encryption method: " + enc;
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
 			throw error(errorDescription,
 				args("enc", enc, "supported_enc_values", SUPPORTED_ENC_VALUES));
