@@ -1470,7 +1470,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void createCredential() {
 
 		// Determine format from the resolved credential_configuration (set by VCIResolveRequestedCredentialConfigurationFromRequest)
-		String requestedFormat = env.getString("credential_configuration", "format");
+		JsonObject credentialConfiguration = env.getObject("credential_configuration");
+		String requestedFormat = credentialConfiguration != null ? OIDFJSON.getString(credentialConfiguration.get("format")) : null;
+
+		eventLog.log(getName(), "Creating credential with format: " + requestedFormat +
+			", credential_configuration: " + credentialConfiguration +
+			", variant credential_format: " + vciCredentialFormat);
 
 		if ("mso_mdoc".equals(requestedFormat)) {
 			// mdoc format - the doctype is in credential_configuration.doctype
