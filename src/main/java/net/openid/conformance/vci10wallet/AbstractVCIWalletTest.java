@@ -1354,35 +1354,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	/**
-	 * Creates an error response for the credential endpoint, encrypting it if encryption was requested.
-	 * Per OID4VCI 11.2.3, error responses must also be encrypted when the wallet requests encryption.
+	 * Creates an error response for the credential endpoint.
+	 * Per OID4VCI 8.3.1.2, error responses are never encrypted, even if a valid credential
+	 * response would have been.
 	 */
 	protected ResponseEntity<?> createCredentialEndpointErrorResponse(JsonObject errorResponseBody) {
-		// Check if encryption was requested in the incoming credential request
-		JsonElement requestBodyJsonEl = env.getElementFromObject("incoming_request", "body_json");
-		if (requestBodyJsonEl == null || !requestBodyJsonEl.isJsonObject()) {
-			// No request body or not a JSON object - return unencrypted error
-			return createCredentialEndpointResponse(errorResponseBody, HttpStatus.BAD_REQUEST);
-		}
-
-		JsonObject requestBodyJson = requestBodyJsonEl.getAsJsonObject();
-		JsonElement encryptionEl = requestBodyJson.get("credential_response_encryption");
-
-		if (encryptionEl != null && encryptionEl.isJsonObject()) {
-			// Encryption was requested - encrypt the error response as well
-			// Clear any previous encrypted response
-			env.removeNativeValue("encrypted_credential_response");
-
-			env.putObject("credential_endpoint_response", errorResponseBody);
-			callAndContinueOnFailure(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2.3");
-
-			String encryptedResponse = env.getString("encrypted_credential_response");
-			if (encryptedResponse != null) {
-				return createEncryptedCredentialEndpointResponse(encryptedResponse, HttpStatus.BAD_REQUEST);
-			}
-		}
-
-		// No encryption requested or encryption failed - return unencrypted error
 		return createCredentialEndpointResponse(errorResponseBody, HttpStatus.BAD_REQUEST);
 	}
 

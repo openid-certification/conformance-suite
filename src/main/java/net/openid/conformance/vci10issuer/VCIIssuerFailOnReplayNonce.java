@@ -9,7 +9,6 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
-import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
@@ -93,10 +92,8 @@ public class VCIIssuerFailOnReplayNonce extends VCIIssuerHappyFlow {
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
-		// Decrypt the response if encryption was requested (error responses are also encrypted)
-		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
-		}
+		// Note: Per OID4VCI 8.3.1.2, error responses are never encrypted, even if encryption
+		// was requested. So we do NOT call VCIDecryptCredentialResponse here.
 
 		// Verify the replayed nonce is rejected with invalid_nonce error
 		// Use callAndStopOnFailure for HTTP status check - if the server returns 200,
