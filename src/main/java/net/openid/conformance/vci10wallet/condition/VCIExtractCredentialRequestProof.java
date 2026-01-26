@@ -109,7 +109,7 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 
 				// TODO verify this in a separate condition, e.g. VCIVerifyKeyAttestationProof (after this condition)
 			} catch (ParseException e) {
-				String errorDescription = "Parsing SD-JWT credential attestation jwt failed";
+				String errorDescription = "Parsing key attestation JWT failed";
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription, e, args("proof_jwt_string", jwtString));
 			}
