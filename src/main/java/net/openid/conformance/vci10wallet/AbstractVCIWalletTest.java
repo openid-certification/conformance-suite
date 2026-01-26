@@ -188,6 +188,7 @@ import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vci10issuer.VCI1FinalCredentialFormat;
@@ -271,6 +272,12 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = VCICredentialEncryption.class, value = "encrypted", configurationFields = {
 	"vci.credential_encryption_jwks"
 })
+@VariantNotApplicableWhen(
+	parameter = VCICredentialOfferParameterVariant.class,
+	values = {"by_value", "by_reference"},  // all values
+	whenParameter = VCIWalletAuthorizationCodeFlowVariant.class,
+	hasValues = "wallet_initiated"
+)
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
