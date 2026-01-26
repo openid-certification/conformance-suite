@@ -48,6 +48,27 @@ public class VCIWalletHappyPathUsingScopes extends VCIWalletHappyPath {
 		JsonObject euidPidJwtAndAttestationkeyAttest = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.1.jwt_and_attestation.keyattest");
 		euidPidJwtAndAttestationkeyAttest.addProperty("scope", "eudi.pid.1.jwt_and_attestation.keyattest");
 
+		JsonObject euidPidNonBinding = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.1.nobinding");
+		euidPidNonBinding.addProperty("scope", "eudi.pid.1.nobinding");
+
+		JsonObject euidPidMdoc = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1");
+		euidPidMdoc.addProperty("scope", "eudi.pid.mdoc.1");
+
+		JsonObject euidPidMdocAttest = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.attestation");
+		euidPidMdocAttest.addProperty("scope", "eudi.pid.mdoc.1.attestation");
+
+		JsonObject euidPidMdocKeyAttest = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.jwt.keyattest");
+		euidPidMdocKeyAttest.addProperty("scope", "eudi.pid.mdoc.1.jwt.keyattest");
+
+		JsonObject euidPidMdocAttestationKeyAttest = supportedCredentialConfigurations.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.attestation.keyattest");
+		euidPidMdocAttestationKeyAttest.addProperty("scope", "eudi.pid.mdoc.1.attestation.keyattest");
+
+		JsonObject mDL = supportedCredentialConfigurations.getAsJsonObject("org.iso.18013.5.1.mDL");
+		mDL.addProperty("scope", "org.iso.18013.5.1.mDL");
+
+		JsonObject mDLAttestation = supportedCredentialConfigurations.getAsJsonObject("org.iso.18013.5.1.mDL.attestation");
+		mDLAttestation.addProperty("scope", "org.iso.18013.5.1.mDL.attestation");
+
 		return supportedCredentialConfigurations;
 	}
 
