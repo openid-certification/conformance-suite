@@ -15,7 +15,7 @@ public class AddClientAttestationClientAuthWithInvalidPopSignature extends Abstr
 	public void evaluate() {
 		callAndStopOnFailure(CreateClientAttestationProofJwt.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.1");
 		// Invalidate the pop signature after creation
-		callAndContinueOnFailure(VCIInvalidateClientAttestationPopSignature.class, Condition.ConditionResult.INFO, "OAuth2-ATCA07-5.2");
+		callAndStopOnFailure(VCIInvalidateClientAttestationPopSignature.class, Condition.ConditionResult.INFO, "OAuth2-ATCA07-5.2");
 		callAndStopOnFailure(AddClientAttestationHeaderToRequest.class, "OAuth2-ATCA07-6.1");
 		callAndStopOnFailure(AddClientAttestationProofHeaderToRequest.class, "OAuth2-ATCA07-6.1");
 	}
