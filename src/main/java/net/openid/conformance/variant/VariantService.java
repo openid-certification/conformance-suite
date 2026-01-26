@@ -528,6 +528,24 @@ public class VariantService {
 													mapping(v -> v.toString(),
 															toSet()))))));
 
+			// for each available variant, collect conditional exclusion info
+			// e.g. CredentialOfferVariant : { "auth_flow_variant": { "wallet_initiated": ["by_value", "by_reference"] } }
+			Map<ParameterHolder<?>, Map<String, Map<String, Set<String>>>> conditionalExclusions = modulesWithVariant.stream()
+					.flatMap(m -> m.module.parameters.stream())
+					.collect(groupingBy(p -> p.parameter,
+							collectingAndThen(toList(), list -> {
+								Map<String, Map<String, Set<String>>> merged = new HashMap<>();
+								for (TestModuleVariantInfo<?> p : list) {
+									p.getConditionalExclusionsForUi().forEach((condParam, byCondValue) -> {
+										Map<String, Set<String>> existing = merged.computeIfAbsent(condParam, k -> new HashMap<>());
+										byCondValue.forEach((condValue, excluded) -> {
+											existing.computeIfAbsent(condValue, k -> new HashSet<>()).addAll(excluded);
+										});
+									});
+								}
+								return merged;
+							})));
+
 			return values.entrySet().stream()
 					.collect(toMap(e -> e.getKey().variantParameter.name(),
 							e -> {
@@ -535,16 +553,21 @@ public class VariantService {
 								Set<String> allowed = e.getValue();
 								Map<String, Set<String>> pf = fields.getOrDefault(e.getKey(), Map.of());
 								Map<String, Set<String>> phf = hideFields.getOrDefault(e.getKey(), Map.of());
-								return Map.of(
-									"variantInfo", Map.of("displayName", p.variantParameter.displayName(),
-															"description", p.variantParameter.description()),
-									"variantValues", p.values().stream()
-														.map(v -> v.toString())
-														.filter(v -> allowed.contains(v))
-														.collect(toOrderedMap(identity(),
-															v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()),
-																"hidesConfigurationFields", phf.getOrDefault(v, Set.of()))))
-								);
+								Map<String, Map<String, Set<String>>> pce = conditionalExclusions.getOrDefault(e.getKey(), Map.of());
+
+								Map<String, Object> result = new HashMap<>();
+								result.put("variantInfo", Map.of("displayName", p.variantParameter.displayName(),
+																"description", p.variantParameter.description()));
+								result.put("variantValues", p.values().stream()
+															.map(v -> v.toString())
+															.filter(v -> allowed.contains(v))
+															.collect(toOrderedMap(identity(),
+																v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()),
+																	"hidesConfigurationFields", phf.getOrDefault(v, Set.of())))));
+								if (!pce.isEmpty()) {
+									result.put("notApplicableWhen", pce);
+								}
+								return result;
 							}));
 		}
 
@@ -613,18 +636,80 @@ public class VariantService {
 							groupingBy(e -> e.getKey().value(),
 									mapping(e -> e.getValue(), toList()))));
 
+			// Parse @VariantNotApplicableWhen annotations
+			// Group by target parameter, then build ConditionalExclusion objects
+			Map<ParameterHolder<?>, List<VariantNotApplicableWhen>> conditionalExclusionAnnotations =
+					inCombinedAnnotations(moduleClass, VariantNotApplicableWhen.class)
+					.collect(groupingBy(a -> moduleParameter.apply(a.parameter()), toList()));
+
 			this.parameters = declaredParameters.stream()
-					.map(p -> new TestModuleVariantInfo<>(
+					.map(p -> createTestModuleVariantInfo(
 							p,
 							allValuesNotApplicable.getOrDefault(p, Set.of()),
 							allConfigurationFields.getOrDefault(p, Map.of()),
 							allHidesConfigurationFields.getOrDefault(p, Map.of()),
-							allSetupMethods.getOrDefault(p, Map.of())))
+							allSetupMethods.getOrDefault(p, Map.of()),
+							conditionalExclusionAnnotations.getOrDefault(p, List.of()),
+							moduleParameter))
 					.collect(toSet());
 
 			this.parametersByName = parameters.stream()
 					.map(p -> p.parameter)
 					.collect(groupingBy(p -> p.variantParameter.name(), toSingleParameter()));
+		}
+
+		/**
+		 * Creates a TestModuleVariantInfo, building ConditionalExclusion objects from @VariantNotApplicableWhen annotations.
+		 */
+		@SuppressWarnings("unchecked")
+		private <T extends Enum<T>> TestModuleVariantInfo<T> createTestModuleVariantInfo(
+				ParameterHolder<T> parameter,
+				Set<String> valuesNotApplicable,
+				Map<String, List<String>> configurationFields,
+				Map<String, List<String>> hidesConfigurationFields,
+				Map<String, List<Method>> setupMethods,
+				List<VariantNotApplicableWhen> exclusionAnnotations,
+				Function<Class<?>, ParameterHolder<?>> moduleParameter) {
+
+			// Build ConditionalExclusion objects from annotations
+			// Group by condition parameter, then by condition value
+			Map<ParameterHolder<?>, Map<String, Set<T>>> exclusionsByConditionParam = new HashMap<>();
+
+			for (VariantNotApplicableWhen ann : exclusionAnnotations) {
+				ParameterHolder<?> conditionParam = moduleParameter.apply(ann.whenParameter());
+				Map<String, Set<T>> byConditionValue = exclusionsByConditionParam.computeIfAbsent(
+						conditionParam, k -> new HashMap<>());
+
+				// Determine which values to exclude
+				Set<T> valuesToExclude = new HashSet<>();
+				if (ann.values().length == 1 && ann.values()[0].equals("*")) {
+					// "*" means all values
+					valuesToExclude.addAll(parameter.values());
+				} else {
+					for (String v : ann.values()) {
+						valuesToExclude.add(parameter.valueOf(v));
+					}
+				}
+
+				// Add exclusions for each condition value
+				for (String conditionValue : ann.hasValues()) {
+					Set<T> excluded = byConditionValue.computeIfAbsent(conditionValue, k -> new HashSet<>());
+					excluded.addAll(valuesToExclude);
+				}
+			}
+
+			// Convert to list of ConditionalExclusion objects
+			List<ConditionalExclusion<T>> conditionalExclusions = exclusionsByConditionParam.entrySet().stream()
+					.map(e -> new ConditionalExclusion<>(e.getKey(), e.getValue()))
+					.collect(toList());
+
+			return new TestModuleVariantInfo<>(
+					parameter,
+					valuesNotApplicable,
+					configurationFields,
+					hidesConfigurationFields,
+					setupMethods,
+					conditionalExclusions);
 		}
 
 		public boolean isApplicableForVariant(VariantSelection variant) {
@@ -634,9 +719,17 @@ public class VariantService {
 		boolean isApplicableForVariant(Map<ParameterHolder<? extends Enum<?>>, Enum<?>> variant) {
 			return parameters.stream()
 					.allMatch(p -> {
+						// Get effective allowed values considering conditional exclusions
+						Set<?> effectiveAllowedValues = p.getAllowedValuesForVariant(variant);
+
+						// If all values are excluded, this parameter is not applicable - skip validation
+						if (effectiveAllowedValues.isEmpty()) {
+							return true;
+						}
+
 						Object v = variant.get(p.parameter);
 						if (v == null) {
-							if (p.parameter.hasDefault()){
+							if (p.parameter.hasDefault()) {
 								v = p.parameter.defaultValue();
 							} else {
 								throw new RuntimeException("TestModule '%s' requires a value for variant '%s'".formatted(
@@ -644,7 +737,7 @@ public class VariantService {
 										p.parameter.variantParameter.name()));
 							}
 						}
-						return p.allowedValues.contains(v);
+						return effectiveAllowedValues.contains(v);
 					});
 		}
 
@@ -652,14 +745,19 @@ public class VariantService {
 			return parameters.stream()
 					.collect(toMap(p -> p.parameter.variantParameter.name(),
 							p -> {
-								return Map.of(
-									"variantInfo", Map.of("displayName", p.parameter.variantParameter.displayName(),
-															"description", p.parameter.variantParameter.description()),
-									"variantValues", p.allowedValues.stream()
-															.collect(toOrderedMap(v -> v.toString(),
-																v -> Map.of("configurationFields", p.configurationFields.getOrDefault(v, List.of()),
-																	"hidesConfigurationFields", p.hidesConfigurationFields.getOrDefault(v, List.of()))))
-								);
+								Map<String, Object> result = new HashMap<>();
+								result.put("variantInfo", Map.of("displayName", p.parameter.variantParameter.displayName(),
+																"description", p.parameter.variantParameter.description()));
+								result.put("variantValues", p.allowedValues.stream()
+																.collect(toOrderedMap(v -> v.toString(),
+																	v -> Map.of("configurationFields", p.configurationFields.getOrDefault(v, List.of()),
+																		"hidesConfigurationFields", p.hidesConfigurationFields.getOrDefault(v, List.of())))));
+								// Add conditional exclusion info for UI
+								Map<String, Map<String, Set<String>>> conditionalExclusions = p.getConditionalExclusionsForUi();
+								if (!conditionalExclusions.isEmpty()) {
+									result.put("notApplicableWhen", conditionalExclusions);
+								}
+								return result;
 							}));
 		}
 
@@ -672,15 +770,29 @@ public class VariantService {
 
 			Set<ParameterHolder<?>> missingParameters = Sets.difference(declaredParameters, typedVariant.keySet());
 			if (!missingParameters.isEmpty()) {
-				//checking the missing parameters has default value
-				if(missingParameters.stream().filter(t -> !t.hasDefault()).findFirst().isPresent()) {
-					throw new IllegalArgumentException("Missing values for required variant parameters: " +
-							missingParameters.stream().map(p -> p.variantParameter.name()).collect(joining(", ")));
-				} else {
-					//every missing parameter has a default value
-					missingParameters.stream().forEach(t-> {
-						typedVariant.put(t, t.defaultValue());
-					});
+				// Check if missing parameters are conditionally excluded or have default values
+				for (ParameterHolder<?> missing : missingParameters) {
+					TestModuleVariantInfo<?> paramInfo = parameters.stream()
+							.filter(p -> p.parameter.equals(missing))
+							.findFirst()
+							.orElseThrow();
+
+					// Check if this parameter is fully excluded based on conditional exclusions
+					if (paramInfo.isFullyExcludedForVariant(typedVariant)) {
+						// Parameter is conditionally excluded, use default if available
+						if (missing.hasDefault()) {
+							typedVariant.put(missing, missing.defaultValue());
+						}
+						// Otherwise it's fine to not have a value - it won't be used
+						continue;
+					}
+
+					// Parameter is not conditionally excluded, so it must have a default
+					if (!missing.hasDefault()) {
+						throw new IllegalArgumentException("Missing value for required variant parameter: " +
+								missing.variantParameter.name());
+					}
+					typedVariant.put(missing, missing.defaultValue());
 				}
 			}
 
@@ -688,8 +800,14 @@ public class VariantService {
 			// user to pick more variants than other modules do.
 
 			parameters.forEach(p -> {
+				// Skip validation for conditionally excluded parameters
+				if (p.isFullyExcludedForVariant(typedVariant)) {
+					return;
+				}
+
 				Object v = typedVariant.get(p.parameter);
-				if (!p.allowedValues.contains(v)) {
+				Set<?> effectiveAllowed = p.getAllowedValuesForVariant(typedVariant);
+				if (!effectiveAllowed.contains(v)) {
 					throw new RuntimeException("Not an allowed value for variant parameter %s: %s".formatted(
 						p.parameter.variantParameter.name(),
 						v));
@@ -725,6 +843,39 @@ public class VariantService {
 	}
 
 	/**
+	 * Holds a conditional exclusion rule from @VariantNotApplicableWhen.
+	 * When the condition parameter has one of the specified values, certain values
+	 * of the target parameter become not applicable.
+	 */
+	static class ConditionalExclusion<T extends Enum<T>> {
+		final ParameterHolder<?> conditionParameter;
+		// Map: conditionValue -> Set of excluded values for the target parameter
+		final Map<String, Set<T>> excludedValuesByCondition;
+
+		ConditionalExclusion(ParameterHolder<?> conditionParameter, Map<String, Set<T>> excludedValuesByCondition) {
+			this.conditionParameter = conditionParameter;
+			this.excludedValuesByCondition = excludedValuesByCondition;
+		}
+
+		/**
+		 * Returns the set of values that should be excluded given the current variant selection.
+		 */
+		Set<T> getExcludedValues(Map<ParameterHolder<? extends Enum<?>>, Enum<?>> variant) {
+			Enum<?> conditionValue = variant.get(conditionParameter);
+			if (conditionValue == null && conditionParameter.hasDefault()) {
+				conditionValue = conditionParameter.defaultValue();
+			}
+			if (conditionValue != null) {
+				Set<T> excluded = excludedValuesByCondition.get(conditionValue.toString());
+				if (excluded != null) {
+					return excluded;
+				}
+			}
+			return Set.of();
+		}
+	}
+
+	/**
 	 * Holds the variant specific information for a particular test module
 	 *
 	 * @param <T> the variant
@@ -736,13 +887,15 @@ public class VariantService {
 		final Map<T, List<String>> configurationFields;
 		final Map<T, List<String>> hidesConfigurationFields;
 		final Map<T, List<Method>> setupMethods;
+		final List<ConditionalExclusion<T>> conditionalExclusions;
 
 		TestModuleVariantInfo(
 				ParameterHolder<T> parameter,
 				Set<String> valuesNotApplicable,
 				Map<String, List<String>> configurationFields,
 				Map<String, List<String>> hidesConfigurationFields,
-				Map<String, List<Method>> setupMethods) {
+				Map<String, List<Method>> setupMethods,
+				List<ConditionalExclusion<T>> conditionalExclusions) {
 
 			this.parameter = parameter;
 
@@ -758,6 +911,8 @@ public class VariantService {
 			this.setupMethods = setupMethods.entrySet().stream()
 					.collect(toMap(e -> parameter.valueOf(e.getKey()), e -> e.getValue()));
 
+			this.conditionalExclusions = conditionalExclusions;
+
 			// Sanity-check the setup methods
 			setupMethods.values().stream()
 					.flatMap(List::stream)
@@ -770,6 +925,45 @@ public class VariantService {
 								throw new RuntimeException("Variant setup methods cannot take parameters: " + m);
 							}
 					});
+		}
+
+		/**
+		 * Returns the allowed values for this parameter given the current variant selection.
+		 * Takes into account both static @VariantNotApplicable and conditional @VariantNotApplicableWhen.
+		 */
+		Set<T> getAllowedValuesForVariant(Map<ParameterHolder<? extends Enum<?>>, Enum<?>> variant) {
+			Set<T> effective = EnumSet.copyOf(allowedValues);
+
+			for (ConditionalExclusion<T> exclusion : conditionalExclusions) {
+				effective.removeAll(exclusion.getExcludedValues(variant));
+			}
+
+			return effective;
+		}
+
+		/**
+		 * Returns true if this parameter is entirely excluded for the given variant selection
+		 * (all values are conditionally excluded).
+		 */
+		boolean isFullyExcludedForVariant(Map<ParameterHolder<? extends Enum<?>>, Enum<?>> variant) {
+			return getAllowedValuesForVariant(variant).isEmpty();
+		}
+
+		/**
+		 * Returns the conditional exclusion info for UI display.
+		 * Format: { "condition_param_name": { "condition_value": ["excluded1", "excluded2"] } }
+		 */
+		Map<String, Map<String, Set<String>>> getConditionalExclusionsForUi() {
+			Map<String, Map<String, Set<String>>> result = new HashMap<>();
+			for (ConditionalExclusion<T> exclusion : conditionalExclusions) {
+				String conditionParamName = exclusion.conditionParameter.variantParameter.name();
+				Map<String, Set<String>> byConditionValue = result.computeIfAbsent(conditionParamName, k -> new HashMap<>());
+				for (Map.Entry<String, Set<T>> entry : exclusion.excludedValuesByCondition.entrySet()) {
+					Set<String> excludedStrings = byConditionValue.computeIfAbsent(entry.getKey(), k -> new HashSet<>());
+					entry.getValue().forEach(v -> excludedStrings.add(v.toString()));
+				}
+			}
+			return result;
 		}
 
 	}
