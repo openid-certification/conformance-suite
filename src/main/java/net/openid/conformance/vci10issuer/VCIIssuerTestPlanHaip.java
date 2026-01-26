@@ -2,9 +2,11 @@ package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 
 import java.util.List;
@@ -48,7 +50,9 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
-					new Variant(VCIClientAuthType.class, "client_attestation")
+					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(VCIGrantType.class, "authorization_code"),
+					new Variant(AuthorizationRequestType.class, "simple")
 				)
 			)
 		);
