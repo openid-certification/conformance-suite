@@ -31,22 +31,20 @@ public class CheckDiscEndpointClientAttestationSigningAlgValuesSupported extends
 
 		// Check if attest_jwt_client_auth is in token_endpoint_auth_methods_supported
 		if (tokenEndpointAuthMethodsSupported == null || !tokenEndpointAuthMethodsSupported.isJsonArray()) {
-			logSuccess("token_endpoint_auth_methods_supported not present or not an array, skipping client attestation signing alg checks");
-			return env;
+			throw error("token_endpoint_auth_methods_supported not present or not an array");
 		}
 
 		boolean hasAttestJwtClientAuth = false;
 		for (JsonElement method : tokenEndpointAuthMethodsSupported.getAsJsonArray()) {
-			if (method.isJsonPrimitive() && ATTEST_JWT_CLIENT_AUTH.equals(OIDFJSON.getString(method))) {
+			if (ATTEST_JWT_CLIENT_AUTH.equals(OIDFJSON.getString(method))) {
 				hasAttestJwtClientAuth = true;
 				break;
 			}
 		}
 
 		if (!hasAttestJwtClientAuth) {
-			logSuccess("token_endpoint_auth_methods_supported does not include attest_jwt_client_auth, skipping client attestation signing alg checks",
+			throw error("token_endpoint_auth_methods_supported does not include attest_jwt_client_auth",
 				args("token_endpoint_auth_methods_supported", tokenEndpointAuthMethodsSupported));
-			return env;
 		}
 
 		// attest_jwt_client_auth is supported, so we must have the signing alg values
