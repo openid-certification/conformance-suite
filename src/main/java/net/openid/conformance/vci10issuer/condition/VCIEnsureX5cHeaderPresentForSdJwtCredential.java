@@ -54,6 +54,8 @@ public class VCIEnsureX5cHeaderPresentForSdJwtCredential extends AbstractConditi
 				args("x5c", x5c, "leaf_cert_subject", leafCert.getSubjectX500Principal().getName()));
 		}
 
+		// TODO implement check for 3. The trust anchor MUST NOT be included in the x5c chain
+
 		log("Credential signing certificate is not self-signed (as required)",
 			args("leaf_cert_subject", leafCert.getSubjectX500Principal().getName()));
 
