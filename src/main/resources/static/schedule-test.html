@@ -2124,6 +2124,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         }
                     });
                 }
+                updateVariantOptionsVisibility();
                 updateConfigFieldVisibility();
             }
         }
@@ -2557,6 +2558,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 updateConfigFieldVisibility();
             });
             document.getElementById('variantSelectors').addEventListener("change", function(){
+                updateVariantOptionsVisibility();
                 updateConfigFieldVisibility();
             });
 
@@ -2572,6 +2574,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     }
                 });
             }
+            updateVariantOptionsVisibility();
             updateConfigFieldVisibility();
 
             // Config UI
@@ -2616,6 +2619,110 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         validateJSONFromFormElement(element,element.value, element.dataset.jsonType)
                     });
                 });
+        }
+
+        /**
+         * Updates the visibility of variant options based on @VariantNotApplicableWhen conditions.
+         * When a variant parameter has notApplicableWhen conditions, some of its options
+         * may need to be hidden based on the current selection of other variant parameters.
+         */
+        function updateVariantOptionsVisibility() {
+            var planName = document.getElementById('planSelect').value;
+            if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
+                return;
+            }
+
+            var selectedPlan = FAPI_UI.availablePlans[planName];
+            var planVariants = selectedPlan.variants;
+            if (!planVariants) {
+                return;
+            }
+
+            // Get current selections for all variant parameters
+            var currentSelections = getSelectedVariant();
+            console.log('updateVariantOptionsVisibility called with selections:', currentSelections);
+            console.log('planVariants:', planVariants);
+
+            // For each variant parameter, check if it has notApplicableWhen conditions
+            _.each(planVariants, function(variantInfo, parameterName) {
+                var notApplicableWhen = variantInfo.notApplicableWhen;
+                console.log('Checking variant:', parameterName, 'notApplicableWhen:', notApplicableWhen);
+                if (!notApplicableWhen) {
+                    return; // No conditions for this variant
+                }
+
+                var selectElement = document.getElementById('vp_' + parameterName);
+                if (!selectElement) {
+                    return;
+                }
+
+                // Collect all values that should be hidden based on current selections
+                var valuesToHide = new Set();
+
+                // Check each condition (each condition is keyed by the condition parameter name)
+                _.each(notApplicableWhen, function(conditionValueMap, conditionParamName) {
+                    var currentConditionValue = currentSelections[conditionParamName];
+                    if (currentConditionValue && currentConditionValue !== 'select') {
+                        // Check if the current value triggers any exclusions
+                        var excludedValues = conditionValueMap[currentConditionValue];
+                        if (excludedValues) {
+                            excludedValues.forEach(function(v) {
+                                valuesToHide.add(v);
+                            });
+                        }
+                    }
+                });
+
+                // Update visibility of each option
+                var options = selectElement.querySelectorAll('option');
+                var currentValue = selectElement.value;
+                var needToResetSelection = false;
+
+                options.forEach(function(option) {
+                    var optionValue = option.value;
+                    if (optionValue === 'select') {
+                        return; // Don't hide the placeholder option
+                    }
+
+                    if (valuesToHide.has(optionValue)) {
+                        option.style.display = 'none';
+                        option.disabled = true;
+                        // If the currently selected option is being hidden, we need to reset
+                        if (currentValue === optionValue) {
+                            needToResetSelection = true;
+                        }
+                    } else {
+                        option.style.display = '';
+                        option.disabled = false;
+                    }
+                });
+
+                // If the current selection was hidden, reset to placeholder
+                if (needToResetSelection) {
+                    selectElement.value = 'select';
+                }
+
+                // Also update visibility of the entire variant selector if ALL options are hidden
+                var visibleOptions = Array.from(options).filter(function(opt) {
+                    return opt.value !== 'select' && opt.style.display !== 'none';
+                });
+
+                var variantRow = selectElement.closest('.mb-3.row');
+                if (variantRow) {
+                    if (visibleOptions.length === 0) {
+                        variantRow.style.display = 'none';
+                        // Auto-select the first (hidden) option so validation passes
+                        var firstRealOption = Array.from(options).find(function(opt) {
+                            return opt.value !== 'select';
+                        });
+                        if (firstRealOption) {
+                            selectElement.value = firstRealOption.value;
+                        }
+                    } else {
+                        variantRow.style.display = '';
+                    }
+                }
+            });
         }
 
         function updateConfigFieldVisibility() {
@@ -2777,6 +2884,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 document.getElementById('variantSelectors').style.display = 'none';
             }
             FAPI_UI.activeTooltip();
+            // Update variant option visibility based on notApplicableWhen conditions
+            updateVariantOptionsVisibility();
         }
 
         function getSelectedVariant() {
