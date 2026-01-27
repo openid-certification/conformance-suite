@@ -1,6 +1,8 @@
 package net.openid.conformance.ekyc.test.oidccore;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToUserInfoEndpoint;
 import net.openid.conformance.ekyc.condition.client.AddUnverifiedClaimsToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull;
 import net.openid.conformance.ekyc.condition.client.CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest;
@@ -14,14 +16,37 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsReques
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
 import net.openid.conformance.openid.AbstractOIDCCServerSecurityProfileTest;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.EKYCVerifiedClaimsResponseSupport;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantParameters;
 
+
+@VariantParameters({
+	EKYCVerifiedClaimsResponseSupport.class
+})
 
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none"
 })
 
 public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSecurityProfileTest {
+
+	private EKYCVerifiedClaimsResponseSupport eKYCVerifiedClaimsResponseSupport;
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		super.onConfigure(config, baseUrl);
+		eKYCVerifiedClaimsResponseSupport = getVariant(EKYCVerifiedClaimsResponseSupport.class);
+		env.putString("config", "ekyc.verified_claims_response_support", eKYCVerifiedClaimsResponseSupport.toString());
+	}
+
+	@Override
+	protected void configureProtectedResourceUrl() {
+		// Set Userinfo endpoint only if supported
+		if(getVariant(EKYCVerifiedClaimsResponseSupport.class) != EKYCVerifiedClaimsResponseSupport.ID_TOKEN) {
+			callAndContinueOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class, Condition.ConditionResult.WARNING);
+		}
+	}
 
 	@Override
 	protected void createAuthorizationRequest() {
@@ -49,7 +74,9 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 	@Override
 	protected void performIdTokenValidation() {
 		super.performIdTokenValidation();
-		processVerifiedClaimsInIdToken();
+		if(eKYCVerifiedClaimsResponseSupport != EKYCVerifiedClaimsResponseSupport.USERINFO) {
+			processVerifiedClaimsInIdToken();
+		}
 	}
 
 	protected void processVerifiedClaimsInIdToken() {
@@ -77,8 +104,10 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 
 	@Override
 	protected void requestProtectedResource() {
-		super.requestProtectedResource();
-		processVerifiedClaimsInUserinfo();
+		if(eKYCVerifiedClaimsResponseSupport != EKYCVerifiedClaimsResponseSupport.ID_TOKEN) {
+			super.requestProtectedResource();
+			processVerifiedClaimsInUserinfo();
+		}
 	}
 
 	protected void processVerifiedClaimsInUserinfo() {
