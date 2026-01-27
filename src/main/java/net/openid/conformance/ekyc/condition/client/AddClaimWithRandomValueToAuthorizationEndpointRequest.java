@@ -33,7 +33,8 @@ public class AddClaimWithRandomValueToAuthorizationEndpointRequest extends Abstr
 		claims.add(claimNameString, claimInfoObject);
 
 		verifiedClaims.add("claims", claims);
-		addVerifiedClaims(env, verifiedClaims, true, true);
+		String eKYCVerifiedClaimsResponseSupport = env.getString("config", "ekyc.verified_claims_response_support");
+		addVerifiedClaims(env, verifiedClaims, eKYCVerifiedClaimsResponseSupport.contains("id_token"), eKYCVerifiedClaimsResponseSupport.contains("userinfo"));
 		logSuccess("Added verified claims to authorization request, with a random requested claim value",
 			args("authorization_endpoint_request", env.getObject("authorization_endpoint_request"),
 			"verified_claims", verifiedClaims));

@@ -28,7 +28,8 @@ public class AddUnknownVerifiedClaimWithSpecialCharsToAuthorizationEndpointReque
 		claims.add(randomClaimName, JsonNull.INSTANCE);
 
 		verifiedClaims.add("claims", claims);
-		addVerifiedClaims(env, verifiedClaims, true, true);
+		String eKYCVerifiedClaimsResponseSupport = env.getString("config", "ekyc.verified_claims_response_support");
+		addVerifiedClaims(env, verifiedClaims, eKYCVerifiedClaimsResponseSupport.contains("id_token"), eKYCVerifiedClaimsResponseSupport.contains("userinfo"));
 		logSuccess("Added verified claims to authorization request, including a random claim name with special characters in it",
 			args("authorization_endpoint_request", env.getObject("authorization_endpoint_request"),
 			"verified_claims", verifiedClaims));
