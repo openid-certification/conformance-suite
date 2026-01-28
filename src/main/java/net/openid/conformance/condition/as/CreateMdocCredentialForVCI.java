@@ -13,13 +13,11 @@ import java.util.Base64;
 import java.util.Set;
 
 /**
- * Creates an mdoc credential (IssuerSigned structure) for VCI issuance.
+ * Creates a mdoc credential (IssuerSigned structure) for VCI issuance.
  * This is used when the conformance suite acts as a credential issuer
- * and needs to create an mdoc credential in response to a credential request.
+ * and needs to create a mdoc credential in response to a credential request.
  */
 public class CreateMdocCredentialForVCI extends AbstractCondition {
-
-	private static final String DEFAULT_DOCTYPE = "eu.europa.ec.eudi.pid.1";
 
 	@Override
 	@PostEnvironment(strings = "credential")
@@ -28,10 +26,9 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 		// Get the device public key from the proof (same pattern as CreateSdJwtCredential)
 		String publicJwkJson = resolveJwk(env);
 
-		// Get doctype from credential configuration (set by VCIResolveRequestedCredentialConfigurationFromRequest), or use default
 		String docType = env.getString("credential_configuration", "doctype");
 		if (docType == null || docType.isBlank()) {
-			docType = DEFAULT_DOCTYPE;
+			throw error("doctype is missing for credential configuration", args("credential_configuration", env.getObject("credential_configuration")));
 		}
 
 		// Optionally get custom issuer signing key from configuration
