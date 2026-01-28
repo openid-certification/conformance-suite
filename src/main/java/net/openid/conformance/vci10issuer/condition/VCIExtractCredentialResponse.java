@@ -34,25 +34,35 @@ public class VCIExtractCredentialResponse extends AbstractCondition {
 			throw error("'credentials' array must contain at least one credential", args("credential_response", credentialResponseBodyJson));
 		}
 
-		// TODO: cope with more than 1
-		JsonElement credentialObjEl = credentials.get(0);
-		if (!credentialObjEl.isJsonObject()) {
-			throw error("'credential' object", args("credential_response", credentialResponseBodyJson));
+		JsonArray extractedCredentials = new JsonArray();
+
+		for (int i = 0; i < credentials.size(); i++) {
+			JsonElement credentialObjEl = credentials.get(i);
+			if (!credentialObjEl.isJsonObject()) {
+				throw error("'credentials' array entry at index " + i + " is not an object",
+					args("credential_response", credentialResponseBodyJson));
+			}
+
+			JsonObject credentialObj = credentialObjEl.getAsJsonObject();
+			if (!credentialObj.has("credential")) {
+				throw error("object at index " + i + " in 'credentials' array must contain a 'credential' property",
+					args("credential_response", credentialResponseBodyJson));
+			}
+			JsonElement credentialEl = credentialObj.get("credential");
+			if (!credentialEl.isJsonPrimitive() || !credentialEl.getAsJsonPrimitive().isString()) {
+				throw error("'credential' property at index " + i + " must be a string",
+					args("credential_response", credentialResponseBodyJson));
+			}
+			extractedCredentials.add(credentialEl);
 		}
 
-		JsonObject credentialObj = credentialObjEl.getAsJsonObject();
-		if (!credentialObj.has("credential")) {
-			throw error("objects in 'credentials' array must contain a 'credential' property", args("credential_response", credentialResponseBodyJson));
-		}
-		JsonElement credentialEl = credentialObj.get("credential");
-		if (!credentialEl.isJsonPrimitive() || !credentialEl.getAsJsonPrimitive().isString()) {
-			throw error("'credential' property must be a string", args("credential_response", credentialResponseBodyJson));
-		}
-		String credential = OIDFJSON.getString(credentialEl);
+		// Store all extracted credentials for iteration
+		JsonObject credentialsObject = new JsonObject();
+		credentialsObject.add("list", extractedCredentials);
+		env.putObject("extracted_credentials", credentialsObject);
 
-		env.putString("credential", credential);
-
-		logSuccess("Extracted credential", args("credential", credential));
+		logSuccess("Extracted " + extractedCredentials.size() + " credential(s)",
+			args("credentials_count", extractedCredentials.size(), "credentials", extractedCredentials));
 
 		return env;
 	}

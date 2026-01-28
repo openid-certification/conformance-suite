@@ -2,6 +2,7 @@ package net.openid.conformance.vci10issuer;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -134,6 +135,7 @@ import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -1264,9 +1266,41 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		}
 
-		// Extract and validate the credential (same for both paths)
+		// Extract and validate all credentials (same for both paths)
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
+		// Iterate over all extracted credentials and validate each one
+		JsonArray extractedCredentials = env.getObject("extracted_credentials").getAsJsonArray("list");
+		for (int i = 0; i < extractedCredentials.size(); i++) {
+			String credential = OIDFJSON.getString(extractedCredentials.get(i));
+			env.putString("credential", credential);
+
+			if (extractedCredentials.size() > 1) {
+				eventLog.startBlock(currentClientString() + "Verify credential " + (i + 1) + " of " + extractedCredentials.size());
+			}
+
+			verifyCredential();
+
+			if (extractedCredentials.size() > 1) {
+				eventLog.endBlock();
+			}
+		}
+
+		call(exec().unmapKey("endpoint_response"));
+		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "RFC7231-7.1.1.2");
+
+		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+
+		if (!isSecondClient()) {
+			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		}
+	}
+
+	/**
+	 * Verifies a single credential from the credential response.
+	 * The credential to verify must already be set in the environment as "credential".
+	 */
+	protected void verifyCredential() {
 		// Check if the credential configuration requires cryptographic binding
 		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
 
@@ -1274,7 +1308,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			// mdoc (mso_mdoc) format validation - uses IssuerSigned structure (not DeviceResponse)
 			callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-G.1");
-		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC){
+		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC) {
 			// SD-JWT VC format validation (default)
 			callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
 			callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
@@ -1290,15 +1324,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");
 				callAndContinueOnFailure(VCIEnsureX5cHeaderPresentForSdJwtCredential.class, ConditionResult.FAILURE, "HAIP-6.1.1");
 			}
-		}
-
-		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "RFC7231-7.1.1.2");
-
-		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-
-		if (!isSecondClient()) {
-			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 		}
 	}
 

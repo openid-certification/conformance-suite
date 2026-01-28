@@ -12,6 +12,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
@@ -77,17 +78,18 @@ public abstract class AbstractParseCredentialAsSdJwt extends AbstractCondition {
 		} catch (ParseException e) {
 			throw error("Parsing SD-JWT key binding jwt failed", e, args("sdjwt", sdJwtStr));
 		}
+		JsonObject decodedJsonObject = JsonParser.parseString(gson.toJson(decodedMap)).getAsJsonObject();
 
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("value", sdJwtStr);
-		jsonObject.add("decoded", JsonParser.parseString(gson.toJson(decodedMap)).getAsJsonObject());
+		jsonObject.add("decoded", decodedJsonObject);
 		jsonObject.add("disclosures", JsonParser.parseString(gson.toJson(disclosures)).getAsJsonArray());
 		jsonObject.add("binding", bindJwt);
 		jsonObject.add("credential", credJwt);
 
 		env.putObject("sdjwt", jsonObject);
 
-		logSuccess("Parsed SDJWT", jsonObject);
+		logSuccess("Parsed SDJWT " + OIDFJSON.getString(decodedJsonObject.get("vct")), jsonObject);
 
 		return env;
 	}
