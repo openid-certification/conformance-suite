@@ -2,6 +2,7 @@ package net.openid.conformance.vci10wallet;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -9,6 +10,7 @@ import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @PublishTestPlan (
@@ -20,13 +22,15 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
+
+		List<Class<? extends TestModule>> testModules = new ArrayList<>(VCIWalletTestPlan.testModules);
+
+		// HAIP requires to use of scopes
+		testModules.remove(VCIWalletHappyPath.class);
+
 		return List.of(
 			new ModuleListEntry(
-				List.of(
-//					VCIWalletHappyPath.class, // HAIP requires to use of scopes
-					VCIWalletHappyPathUsingScopes.class,
-					VCIWalletHappyPathUsingScopesWithoutAuthorizationDetailsInTokenResponse.class
-				),
+				testModules,
 				List.of(
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
