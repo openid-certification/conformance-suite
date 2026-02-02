@@ -100,12 +100,26 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 
 			// Check Issued At
 			Date issueTime = claimsSet.getIssueTime();
-			if (issueTime == null || Instant.now().plus(5, ChronoUnit.MINUTES).isBefore(issueTime.toInstant())) {
-				String errorDescription = "JWT proof validation failed: Invalid or missing issued at time (iat) claim.";
+			if (issueTime == null) {
+				String errorDescription = "JWT proof validation failed: Missing issued at time (iat) claim.";
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription);
 			}
-			log("Detected JWT proof was issued within the last 5 minutes", args("iat", issueTime.toInstant()));
+			Instant iatInstant = issueTime.toInstant();
+			Instant now = Instant.now();
+			Instant maxAcceptedIat = now.plus(5, ChronoUnit.MINUTES);
+			if (iatInstant.isAfter(maxAcceptedIat)) {
+				String errorDescription = "JWT proof validation failed: Issued at time (iat) is too far in the future.";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("iat", iatInstant, "now", now, "max_accepted_iat", maxAcceptedIat));
+			}
+			Instant minAcceptedIat = now.minus(5, ChronoUnit.MINUTES);
+			if (iatInstant.isBefore(minAcceptedIat)) {
+				String errorDescription = "JWT proof validation failed: Issued at time (iat) is too far in the past.";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("iat", iatInstant, "now", now, "min_accepted_iat", minAcceptedIat));
+			}
+			log("JWT proof iat is within acceptable time window", args("iat", iatInstant, "now", now, "min_accepted_iat", minAcceptedIat, "max_accepted_iat", maxAcceptedIat));
 
 			// Check audience
 			List<String> audience = claimsSet.getAudience();
