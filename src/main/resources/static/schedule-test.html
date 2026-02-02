@@ -2628,7 +2628,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
          */
         function updateVariantOptionsVisibility() {
             var planName = document.getElementById('planSelect').value;
-            if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
+            if (!planName || planName === 'select' || !FAPI_UI.availablePlans[planName]) {
                 return;
             }
 
@@ -2640,8 +2640,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             // Get current selections for all variant parameters
             var currentSelections = getSelectedVariant();
-            console.log('updateVariantOptionsVisibility called with selections:', currentSelections);
-            console.log('planVariants:', planVariants);
+            // console.log('updateVariantOptionsVisibility called with selections:', currentSelections);
+            // console.log('planVariants:', planVariants);
 
             // For each variant parameter, check if it has notApplicableWhen conditions
             _.each(planVariants, function(variantInfo, parameterName) {
