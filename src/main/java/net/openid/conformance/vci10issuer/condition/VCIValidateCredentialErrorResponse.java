@@ -35,7 +35,7 @@ public class VCIValidateCredentialErrorResponse extends AbstractCondition {
 			throw error("Non-standard credential error response error code found: " + error, args("error", error));
 		}
 
-		String errorDescription = OIDFJSON.getString(responseBodyJson.get("error_description"));
+		String errorDescription = OIDFJSON.getStringOrNull(responseBodyJson.get("error_description"));
 
 		if (expectedErrorCode != null) {
 			if (!expectedErrorCode.getErrorCode().equals(error)) {
