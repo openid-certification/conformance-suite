@@ -214,7 +214,9 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 				args("nonce", nonce, "c_nonce", expectedNonce));
 		}
 
-		log("Found expected nonce value in Key attestation",
+		// remove generated credential_nonce_response
+		env.removeObject("credential_nonce_response");
+		log("Detected and invalidated expected nonce value in Key attestation ",
 			args("nonce", nonce, "c_nonce", expectedNonce));
 	}
 }
