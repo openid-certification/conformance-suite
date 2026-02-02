@@ -54,7 +54,7 @@ The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTL
 Tests are organized as **Test Modules** that extend `AbstractTestModule`. Each module:
 - Is annotated with `@PublishTestModule` for discovery
 - Composes reusable **Conditions** (single validation units)
-- Uses an **Environment** object for thread-safe state management
+- Uses an **Environment** object for state management
 - Can be parameterized via **Variants** to generate multiple test configurations
 
 ```
@@ -68,7 +68,7 @@ AbstractTestModule
 - `AbstractTestModule` (`testmodule/`) - Core test lifecycle, condition calling, threading
 - `AbstractCondition` (`condition/`) - Base for validation units with environment access and logging
 - `ConditionSequence` (`sequence/`) - Composes conditions into reusable sequences
-- `Environment` (`testmodule/`) - Thread-safe JSON object storage with path navigation
+- `Environment` (`testmodule/`) - JSON object storage with path navigation
 
 ### Condition Calling Patterns
 
@@ -152,4 +152,4 @@ Unit test files follow the pattern `*_UnitTest.java` (e.g., `MyCondition_UnitTes
 1. Create a condition class extending `AbstractCondition` with `@PreEnvironment`/`@PostEnvironment` annotations
 2. Create a test module extending the appropriate abstract base class
 3. Annotate with `@PublishTestModule`
-4. Add to a test plan if part of certification suite
+4. Add to a test plan
