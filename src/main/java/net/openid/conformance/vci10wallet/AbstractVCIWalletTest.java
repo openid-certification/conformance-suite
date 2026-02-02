@@ -216,6 +216,7 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequest
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
+import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
@@ -289,6 +290,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	public static final String NONCE_PATH = "nonce";
 
 	public static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
+
+	public static final String NOTIFICATION_PATH = "notification";
 
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
@@ -561,6 +564,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + CREDENTIAL_PATH;
 		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + NONCE_PATH;
 		String deferredCredentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + DEFERRED_CREDENTIAL_PATH;
+		String notificationEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + NOTIFICATION_PATH;
 
 		String metadata = TemplateProcessor.process("""
 			{
@@ -568,13 +572,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				"credential_endpoint": "$(credentialEndpoint)",
 				"nonce_endpoint": "$(nonceEndpoint)",
 				"deferred_credential_endpoint": "$(deferredCredentialEndpoint)",
+				"notification_endpoint": "$(notificationEndpoint)",
 				"authorization_servers": [ "$(credentialIssuer)" ]
 			}
 			""", Map.of(
 			"credentialIssuer", credentialIssuer,
 			"credentialEndpoint", credentialEndpointUrl,
 			"nonceEndpoint", nonceEndpointUrl,
-			"deferredCredentialEndpoint", deferredCredentialEndpointUrl
+			"deferredCredentialEndpoint", deferredCredentialEndpointUrl,
+			"notificationEndpoint", notificationEndpointUrl
 		));
 
 		String credentialIssuerMetadataUrl = generateWellKnownUrlForPath(credentialIssuer, "openid-credential-issuer");
@@ -584,6 +590,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
 		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
 		env.putString("credential_issuer_deferred_credential_endpoint_url", deferredCredentialEndpointUrl);
+		env.putString("credential_issuer_notification_endpoint_url", notificationEndpointUrl);
 
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
 
@@ -867,6 +874,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return deferredCredentialEndpoint(requestId);
+		} else if (path.equals(NOTIFICATION_PATH)) {
+
+			if (isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The notification endpoint must be called over an mTLS secured connection.");
+			}
+
+			return notificationEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -985,6 +999,47 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 		return responseEntity;
+	}
+
+	protected Object notificationEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Notification endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+
+		// Clear any previous notification error response
+		JsonObject vci = env.getObject("vci");
+		if (vci != null) {
+			vci.remove("notification_error_response");
+		}
+
+		checkResourceEndpointRequest(false);
+
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
+		callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
+
+		// Per Section 11.3, return 400 with error JSON if validation failed
+		JsonElement notificationErrorResponse = env.getElementFromObject("vci", "notification_error_response");
+		if (notificationErrorResponse != null) {
+			JsonObject errorBody = notificationErrorResponse.getAsJsonObject().getAsJsonObject("body");
+			call(exec().unmapKey("incoming_request").endBlock());
+			setStatus(Status.WAITING);
+			return new ResponseEntity<>(errorBody, HttpStatus.BAD_REQUEST);
+		}
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@SuppressWarnings("unused")
@@ -1297,6 +1352,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return deferredCredentialEndpoint(requestId);
+		} else if (path.equals(NOTIFICATION_PATH)) {
+			if (!isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The notification endpoint must not be called over an mTLS secured connection.");
+			}
+
+			return notificationEndpoint(requestId);
 		} else if (path.equals("userinfo")) {
 			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
