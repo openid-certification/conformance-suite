@@ -6,16 +6,17 @@ import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponse
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthWithInvalidPopSignature;
 
 /**
  * Negative test that verifies the authorization server properly rejects client attestation
  * proof-of-possession JWTs with invalid signatures.
- *
+ * <p>
  * This test invalidates the signature on the client attestation pop JWT and expects the
  * authorization server to respond with an invalid_client error at the PAR endpoint.
- *
+ * <p>
  * Note: This test only runs when client_auth_type=client_attestation is selected.
  * If a different client authentication method is used, the test skips.
  *
@@ -32,19 +33,8 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 		"If a different client authentication method is used, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
+@VariantNotApplicable(parameter = VCIClientAuthType.class, values = {"mtls", "private_key_jwt"})
 public class VCIIssuerFailOnInvalidClientAttestationPopSignature extends VCIIssuerHappyFlow {
-
-	@Override
-	public void start() {
-		// Skip this test if client attestation is not used
-		if (clientAuthType != VCIClientAuthType.CLIENT_ATTESTATION) {
-			fireTestSkipped("This test requires client_auth_type=client_attestation variant. " +
-				"Skipping because a different client authentication method is used.");
-			return;
-		}
-
-		super.start();
-	}
 
 	@VariantSetup(parameter = VCIClientAuthType.class, value = "client_attestation")
 	@Override
