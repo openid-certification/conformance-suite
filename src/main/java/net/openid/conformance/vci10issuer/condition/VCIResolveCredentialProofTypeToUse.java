@@ -46,7 +46,7 @@ public class VCIResolveCredentialProofTypeToUse extends AbstractCondition {
 		} else {
 
 			if (proofTypesSupported.has(proofTypeHint)) {
-				proofTypeKey = proofTypesSupported.get(proofTypeHint).toString();
+				proofTypeKey = proofTypeHint;
 				proofType = proofTypesSupported.getAsJsonObject(proofTypeKey);
 				log("Selected explicitly requested proof type to use " + proofTypeKey, args("proof_type", proofType));
 			} else {
