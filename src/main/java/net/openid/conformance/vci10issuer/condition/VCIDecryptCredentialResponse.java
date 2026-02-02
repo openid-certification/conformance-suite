@@ -1,6 +1,7 @@
 package net.openid.conformance.vci10issuer.condition;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
@@ -38,7 +39,7 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 		String responseBody = OIDFJSON.getString(endpointResponse.get("body"));
 
 		// Check if the response is a JWE (starts with eyJ and has 5 parts separated by dots)
-		if (responseBody == null || !isJWE(responseBody)) {
+		if (!isJWE(responseBody)) {
 			logSuccess("Response does not appear to be encrypted, skipping decryption",
 				args("body_preview", responseBody != null ? responseBody.substring(0, Math.min(100, responseBody.length())) : null));
 			return env;
@@ -85,7 +86,9 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 
 			return env;
 
-		} catch (ParseException e) {
+		} catch (ParseException | JsonParseException e) {
+			// Nimbus JWE parsing uses ParseException
+			// GSON JSON parsing uses JsonParseException
 			throw error("Failed to parse encrypted credential response as JWE", e,
 				args("response_body", responseBody));
 		} catch (JOSEException e) {
