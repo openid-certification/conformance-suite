@@ -38,13 +38,6 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 		JsonObject endpointResponse = env.getObject("endpoint_response");
 		String responseBody = OIDFJSON.getString(endpointResponse.get("body"));
 
-		// Check if the response is a JWE (starts with eyJ and has 5 parts separated by dots)
-		if (!isJWE(responseBody)) {
-			logSuccess("Response does not appear to be encrypted, skipping decryption",
-				args("body_preview", responseBody != null ? responseBody.substring(0, Math.min(100, responseBody.length())) : null));
-			return env;
-		}
-
 		JsonObject encryptionJwks = env.getObject("credential_encryption_jwks");
 
 		try {
@@ -95,18 +88,5 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 			throw error("Failed to decrypt credential response", e,
 				args("response_body", responseBody));
 		}
-	}
-
-	/**
-	 * Checks if the string appears to be a JWE (compact serialization).
-	 * A JWE has 5 parts separated by dots.
-	 */
-	private boolean isJWE(String str) {
-		if (str == null || str.isEmpty()) {
-			return false;
-		}
-		// JWE compact serialization has exactly 5 parts
-		String[] parts = str.split("\\.");
-		return parts.length == 5;
 	}
 }

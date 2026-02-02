@@ -2,11 +2,9 @@ package net.openid.conformance.vci10issuer;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.vci10issuer.condition.VCIInvalidateKeyAttestationSignature;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
-import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 
 /**
@@ -63,10 +61,8 @@ public class VCIIssuerFailOnInvalidKeyAttestationSignature extends VCIIssuerHapp
 
 	@Override
 	protected void verifyEffectiveCredentialResponse() {
+		super.verifyCredentialIssuerCredentialErrorResponse();
 		// Expect an error response when key attestation signature is invalid
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
-
-		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_PROOF), "OID4VCI-1FINAL-8.3.1");
 	}
 }

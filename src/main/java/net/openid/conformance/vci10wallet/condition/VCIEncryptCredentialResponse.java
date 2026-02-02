@@ -61,16 +61,16 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 
 		JsonObject encryptionParams = encryptionEl.getAsJsonObject();
 
-		// Get required encryption parameters
-		String alg = OIDFJSON.getString(encryptionParams.get("alg"));
-		String enc = OIDFJSON.getString(encryptionParams.get("enc"));
-
-		if (alg == null || enc == null) {
+		if (!encryptionParams.has("alg") || !encryptionParams.has("enc")) {
 			String errorDescription = "credential_response_encryption must contain 'alg' and 'enc' parameters";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
 			throw error(errorDescription,
 				args("credential_response_encryption", encryptionParams));
 		}
+
+		// Get required encryption parameters
+		String alg = OIDFJSON.getString(encryptionParams.get("alg"));
+		String enc = OIDFJSON.getString(encryptionParams.get("enc"));
 
 		// Validate that the requested algorithm is supported
 		if (!SUPPORTED_ALG_VALUES.contains(alg)) {

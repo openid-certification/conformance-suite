@@ -60,6 +60,7 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -104,8 +105,8 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDifferent;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
+import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
@@ -157,6 +158,8 @@ import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialR
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsEncryptedJwe;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsNotAnEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
@@ -180,6 +183,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceRe
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialValidityInfoIsPresent;
+import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
@@ -1201,12 +1205,23 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	 * instead of this method, so that decryption is handled automatically.
 	 */
 	protected void verifyCredentialIssuerCredentialResponse() {
-		// Decrypt the response if encryption was requested
-		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+
+		int statusCode = env.getInteger("endpoint_response", "status");
+
+		// Decrypt the response if encryption was requested and the response was OK
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
+			callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
 			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
 		}
 
 		verifyEffectiveCredentialResponse();
+	}
+
+	protected void verifyCredentialIssuerCredentialErrorResponse() {
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
+		// Note that Credential Error Responses are never encrypted, even if a valid Credential Response would be.
+		callAndContinueOnFailure(VCIEnsureCredentialResponseIsNotAnEncryptedJwe.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1.2");
 	}
 
 	/**
@@ -1234,8 +1249,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			// Map the deferred response for validation
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
-			// Decrypt the deferred response if encryption was requested
-			if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			int statusCode = env.getInteger("endpoint_response", "status");
+
+			// Decrypt the deferred response if encryption was requested and OK
+			if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
+				callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
 				callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
 			}
 		} else {

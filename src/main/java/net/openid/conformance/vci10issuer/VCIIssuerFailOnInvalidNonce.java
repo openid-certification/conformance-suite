@@ -1,11 +1,9 @@
 package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.vci10issuer.condition.VCIInjectRandomCNonce;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
-import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 
 @PublishTestModule(
@@ -40,10 +38,8 @@ public class VCIIssuerFailOnInvalidNonce extends VCIIssuerHappyFlow {
 
 	@Override
 	protected void verifyEffectiveCredentialResponse() {
-		// 8.3.1.2. Credential Request Errors For errors related to the Credential Request's payload, such as issues with type, format, proofs
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
+		super.verifyCredentialIssuerCredentialErrorResponse();
 
-		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_NONCE), "OID4VCI-1FINAL-8.3.1");
 	}
 }

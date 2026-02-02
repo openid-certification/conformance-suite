@@ -1,12 +1,10 @@
 package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.VCIUseUnsupportedEncryptionAlgorithm;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
-import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 
 /**
@@ -56,12 +54,10 @@ public class VCIIssuerFailOnUnsupportedEncryptionAlgorithm extends VCIIssuerHapp
 	}
 
 	@Override
-	protected void verifyCredentialIssuerCredentialResponse() {
-		// Expect an error response when encryption algorithm is unsupported
-		// Note: We do NOT call VCIDecryptCredentialResponse because we expect an error, not an encrypted response
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
+	protected void verifyEffectiveCredentialResponse() {
+		super.verifyCredentialIssuerCredentialErrorResponse();
 
-		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
+		// Expect an error response when encryption algorithm is unsupported
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_ENCRYPTION_PARAMETERS), "OID4VCI-1FINAL-8.3.1");
 	}
 }

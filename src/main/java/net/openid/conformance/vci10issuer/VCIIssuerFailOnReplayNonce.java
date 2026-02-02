@@ -92,9 +92,6 @@ public class VCIIssuerFailOnReplayNonce extends VCIIssuerHappyFlow {
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
-		// Note: Per OID4VCI 8.3.1.2, error responses are never encrypted, even if encryption
-		// was requested. So we do NOT call VCIDecryptCredentialResponse here.
-
 		// Verify the replayed nonce is rejected with invalid_nonce error
 		// Use callAndStopOnFailure for HTTP status check - if the server returns 200,
 		// it means it accepted the replayed nonce (no replay protection), and we should
