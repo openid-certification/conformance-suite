@@ -103,6 +103,7 @@ import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDifferent;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
+import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
@@ -1250,6 +1251,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
 			// mdoc (mso_mdoc) format validation - uses IssuerSigned structure (not DeviceResponse)
+			callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
 			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-G.1");
 		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC){
 			// SD-JWT VC format validation (default)
