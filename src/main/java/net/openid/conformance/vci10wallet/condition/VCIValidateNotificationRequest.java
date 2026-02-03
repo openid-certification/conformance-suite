@@ -32,12 +32,6 @@ public class VCIValidateNotificationRequest extends AbstractCondition {
 		"credential_deleted"
 	);
 
-	private static final Set<String> KNOWN_FIELDS = Set.of(
-		"notification_id",
-		"event",
-		"event_description"
-	);
-
 	@Override
 	@PreEnvironment(required = "incoming_request", strings = "notification_id")
 	public Environment evaluate(Environment env) {
@@ -107,14 +101,6 @@ public class VCIValidateNotificationRequest extends AbstractCondition {
 						args("event_description", eventDescription, "invalid_char", String.valueOf(c),
 							"char_code", String.format("0x%02X", (int) c)));
 				}
-			}
-		}
-
-		// Warn about unknown fields
-		for (String key : body.keySet()) {
-			if (!KNOWN_FIELDS.contains(key)) {
-				log("Notification request contains unknown field",
-					args("field", key, "value", body.get(key)));
 			}
 		}
 
