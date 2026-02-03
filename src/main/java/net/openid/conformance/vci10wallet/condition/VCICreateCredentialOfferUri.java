@@ -1,5 +1,6 @@
 package net.openid.conformance.vci10wallet.condition;
 
+import jakarta.ws.rs.core.UriBuilder;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -13,7 +14,10 @@ public class VCICreateCredentialOfferUri extends AbstractCondition {
 
 		String credentialOfferId = RandomStringUtils.secure().nextAlphanumeric(64);
 
-		String credentialOfferUri = credentialIssuerUrl + "/credential_offer/" + credentialOfferId;
+		UriBuilder uriBuilder = UriBuilder.fromUri(credentialIssuerUrl);
+		uriBuilder.path("/credential_offer/" + credentialOfferId);
+
+		String credentialOfferUri = uriBuilder.toString();
 		env.putString("vci","credential_offer_id", credentialOfferId);
 		env.putString("vci","credential_offer_uri", credentialOfferUri);
 

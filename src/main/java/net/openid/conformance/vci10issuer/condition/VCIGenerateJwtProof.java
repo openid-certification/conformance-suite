@@ -17,23 +17,26 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
-import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.UUID;
+import java.util.List;
 
-public class VCIGenerateProofJwt extends AbstractCondition {
-
-	public static final int DEFAULT_PROOF_LIFETIME_SECONDS = 60;
+public class VCIGenerateJwtProof extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "client_jwks")
 	@PostEnvironment(required = "vci")
 	public Environment evaluate(Environment env) {
+
+		String proofTypeKey = env.getString("vci_proof_type_key");
+		if (!"jwt".equals(proofTypeKey)) {
+			log("Skip generating JWT for proof type " + proofTypeKey, args(proofTypeKey));
+			return env;
+		}
 
 		String serverIssuer = getIssuer(env);
 
@@ -45,7 +48,6 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 			String walletIssuerId = env.getString("client", "client_id");
 
 			String cNonce = getCNonce(env);
-			int proofLifetimeSeconds = getProofLifetimeSeconds(); //
 
 			// Ensure the key uses the correct curve
 			if (!Curve.P_256.equals(ecKey.getCurve())) {
@@ -54,23 +56,30 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			JWSSigner signer = new ECDSASigner(ecKey);
 
-			JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
-				.type(new JOSEObjectType("openid4vci-proof+jwt"))
-				.jwk(jwk.toPublicJWK())
-				.build();
+			String publicKeySetString = (jwk.toPublicJWK() != null ? jwk.toPublicJWK().toString() : null);
+
+			JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
+				.type(new JOSEObjectType("openid4vci-proof+jwt"));
+
+			JsonObject proofType = env.getObject("vci_proof_type");
+			headerBuilder.jwk(jwk.toPublicJWK());
+
+			// add key attestation if necessary
+			if (proofType.has("key_attestations_required")) {
+				String keyAttestationJwt = env.getString("key_attestation_jwt");
+				headerBuilder.customParam("key_attestation", keyAttestationJwt);
+			}
+
+			JWSHeader header = headerBuilder.build();
 
 			Instant now = Instant.now();
 			Date issueTime = Date.from(now);
-			Date expirationTime = Date.from(now.plus(proofLifetimeSeconds, ChronoUnit.SECONDS));
-			String jwtId = UUID.randomUUID().toString();  // Optional: Add a unique ID
 
 			JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
 				.issuer(walletIssuerId)
 				.audience(serverIssuer)
 				.issueTime(issueTime)
-				.expirationTime(expirationTime)
 				.claim("nonce", cNonce)
-				.jwtID(jwtId)
 				.build();
 
 			SignedJWT signedJWT = new SignedJWT(header, claimsSet);
@@ -80,8 +89,14 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 
 			env.putString("vci", "proof.jwt", jwtProof);
 
-			JsonObject jwtProofObject = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtProof);
-			logSuccess("Create Proof JWT", args("jwt", jwtProof, "decoded_jwt_json", jwtProofObject.toString()));
+			JsonObject verifiableObj = new JsonObject();
+			verifiableObj.addProperty("verifiable_jws", jwtProof);
+			verifiableObj.addProperty("public_jwk", publicKeySetString);
+
+			JsonObject proofsObject = createProofsObject(jwtProof);
+			env.putObject("credential_request_proofs", proofsObject);
+
+			logSuccess("Generated jwt proof object", args("proof_jwt", verifiableObj, "proofs", proofsObject));
 
 		} catch (ParseException | JOSEException e) {
 			throw error("Couldn't create Proof JWT", e);
@@ -90,17 +105,17 @@ public class VCIGenerateProofJwt extends AbstractCondition {
 		return env;
 	}
 
+	protected JsonObject createProofsObject(String proofJwt) {
+		JsonObject proofsObject = new JsonObject();
+		proofsObject.add("jwt", OIDFJSON.convertListToJsonArray(List.of(proofJwt)));
+		return proofsObject;
+	}
+
 	protected String getIssuer(Environment env) {
 		return env.getString("vci", "credential_issuer_metadata.credential_issuer");
 	}
 
 	protected String getCNonce(Environment env) {
-		String cnonce = env.getString("vci", "c_nonce");
-		return cnonce;
+		return env.getString("vci", "c_nonce");
 	}
-
-	protected int getProofLifetimeSeconds() {
-		return DEFAULT_PROOF_LIFETIME_SECONDS;
-	}
-
 }

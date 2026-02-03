@@ -4,8 +4,9 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidation;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidation.JsonSchemaValidationResult;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationException;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 
 import java.io.IOException;
 
@@ -27,9 +28,9 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 		try {
 			JsonSchemaValidationResult validationResult = jsonSchemaValidation.validate(inputJsonObject);
 			if (!validationResult.isValid()) {
-				onValidationFailure(validationResult, input);
+				onValidationFailure(env, validationResult, input);
 			}
-			onValidationSuccess(input);
+			onValidationSuccess(env, input);
 		} catch (IOException e) {
 			throw new RuntimeException("JSON Schema based input validation failed", e);
 		}
@@ -37,12 +38,12 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 		return env;
 	}
 
-	protected void onValidationSuccess(JsonSchemaValidationInput input) {
+	protected void onValidationSuccess(Environment env, JsonSchemaValidationInput input) {
 		logSuccess(String.format("%s input is valid", input.getInputName()), args("input", input.getJsonObject()));
 	}
 
-	protected void onValidationFailure(JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		throw error(String.format("Found invalid entries in %s input", input.getInputName()), args("invalid_entries", validationResult.getPropertyErrors(), "input", input.getJsonObject()));
+	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
+		throw error(String.format("Found invalid entries in %s input", input.getInputName()), new JsonSchemaValidationException("Schema Validation Failed", validationResult), args("invalid_entries", validationResult.getPropertyErrors(), "input", input.getJsonObject()));
 	}
 
 	protected JsonSchemaValidation createJsonSchemaValidation(JsonSchemaValidationInput input) {

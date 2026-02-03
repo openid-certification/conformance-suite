@@ -33,17 +33,23 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 			for (var i = 0; i < authDetails.size(); i++) {
 				JsonObject authDetail = authDetails.get(i).getAsJsonObject();
 
-				// use first openid_credential with configuration_id eu.europa.ec.eudi.pid.1
-				if ("openid_credential".equals(OIDFJSON.getString(authDetail.get("type")))
-						&& "eu.europa.ec.eudi.pid.1".equals(OIDFJSON.getString(authDetail.get("credential_configuration_id")))) {
+				// Process openid_credential authorization details
+				boolean isOpenIdCredential = "openid_credential".equals(OIDFJSON.getString(authDetail.get("type")));
+				if (!isOpenIdCredential) {
+					continue;
+				}
+				String credentialConfigurationId = OIDFJSON.getString(authDetail.get("credential_configuration_id"));
+				// Check for known credential configuration ID prefixes (SD-JWT PID, mdoc PID, mDL)
+				if (credentialConfigurationId.startsWith("eu.europa.ec.eudi.pid.") ||
+					credentialConfigurationId.startsWith("org.iso.18013.")) {
 
 					JsonArray credentialIdentifiers = new JsonArray();
-					String credentialIdentifier = "eu.europa.ec.eudi.pid.1:" + UUID.randomUUID();
+					String credentialIdentifier = credentialConfigurationId + ":" + UUID.randomUUID();
 					credentialIdentifiers.add(credentialIdentifier);
 					authDetail.add("credential_identifiers", credentialIdentifiers);
 
 					log("Used credential_configuration from authorization_details",
-							args("credential_configuration_id", credentialIdentifier, "credential_identifiers", credentialIdentifiers));
+							args("credential_configuration_id", credentialConfigurationId, "credential_identifiers", credentialIdentifiers));
 
 					return env;
 				}
@@ -73,7 +79,7 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 				authDetail.addProperty("credential_configuration_id", credentialConfigurationId);
 
 				JsonArray credentialIdentifiers = new JsonArray();
-				String credentialIdentifier = "eu.europa.ec.eudi.pid.1:" + UUID.randomUUID();
+				String credentialIdentifier = credentialConfigurationId + ":" + UUID.randomUUID();
 				credentialIdentifiers.add(credentialIdentifier);
 				authDetail.add("credential_identifiers", credentialIdentifiers);
 

@@ -2,6 +2,7 @@ package net.openid.conformance.vci10wallet;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
 
 import java.util.List;
 
@@ -12,15 +13,16 @@ import java.util.List;
 )
 public class VCIWalletTestPlan implements TestPlan {
 
+	public static final List<Class<? extends TestModule>> testModules = List.of(
+		VCIWalletHappyPath.class,
+		VCIWalletHappyPathUsingScopes.class,
+		VCIWalletHappyPathUsingScopesWithoutAuthorizationDetailsInTokenResponse.class
+	);
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
-				List.of(
-					VCIWalletHappyPath.class,
-					VCIWalletHappyPathUsingScopes.class,
-					VCIWalletHappyPathUsingScopesWithoutAuthorizationDetailsInTokenResponse.class
-				),
+				testModules,
 				List.of(
 				)
 			)

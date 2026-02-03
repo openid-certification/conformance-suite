@@ -88,6 +88,7 @@ public class LogEntryHelper {
 		specLinks.put("OID4VCI-1FINAL-", "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-");
 		specLinks.put("OID4VCI-1FINALA-", "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#appendix-");
 		specLinks.put("HAIP-", "https://openid.github.io/OpenID4VC-HAIP/openid4vc-high-assurance-interoperability-profile-wg-draft.html#section-");
+		specLinks.put("HAIPA-", "https://openid.github.io/OpenID4VC-HAIP/openid4vc-high-assurance-interoperability-profile-wg-draft.html#appendix-");
 		specLinks.put("OIDCD-", "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.");
 		specLinks.put("OIDCBCL-", "https://openid.net/specs/openid-connect-backchannel-1_0.html#rfc.section.");
 		specLinks.put("OIDCFCL-", "https://openid.net/specs/openid-connect-frontchannel-1_0.html#rfc.section.");
@@ -99,8 +100,8 @@ public class LogEntryHelper {
 		specLinks.put("PAR-", "https://www.rfc-editor.org/rfc/rfc9126.html#section-");
 		specLinks.put("JAR-", "https://www.rfc-editor.org/rfc/rfc9101.html#section-");
 		specLinks.put("SDJWT-", "https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-");
-		specLinks.put("SDJWTVC-", "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-11.html#section-");
-		specLinks.put("OTSL-", "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-");
+		specLinks.put("SDJWTVC-", "https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-13.html#section-");
+		specLinks.put("OTSL-", "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-15#section-");
 		specLinks.put("IA-", "https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#section-");
 		specLinks.put("IAVC-", "https://openid.net/specs/openid-ida-verified-claims-1_0.html#section-");
 		specLinks.put("DPOP-", "https://www.rfc-editor.org/rfc/rfc9449#section-");

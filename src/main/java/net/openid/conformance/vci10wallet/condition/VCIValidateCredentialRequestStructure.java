@@ -4,7 +4,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vci10issuer.condition.AbstractJsonSchemaBasedValidation;
+import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
+import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 /**
  * See: 8.2. Credential Request https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
@@ -16,7 +19,9 @@ public class VCIValidateCredentialRequestStructure extends AbstractJsonSchemaBas
 
 		JsonElement bodyJson = env.getElementFromObject("incoming_request", "body_json");
 		if (bodyJson == null) {
-			throw error("Failed to detected json payload in incoming request.", args("incoming_request", env.getObject("incoming_request")));
+			String errorDescription = "Failed to detected json payload in incoming request.";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+			throw error(errorDescription, args("incoming_request", env.getObject("incoming_request")));
 		}
 
 		JsonObject credentialRequestBodyJson = bodyJson.getAsJsonObject();
@@ -24,17 +29,28 @@ public class VCIValidateCredentialRequestStructure extends AbstractJsonSchemaBas
 		JsonElement credentialIdentifier = credentialRequestBodyJson.get("credential_identifier");
 		JsonElement credentialConfigId = credentialRequestBodyJson.get("credential_configuration_id");
 		if (credentialIdentifier != null && credentialConfigId != null) {
-			throw error("credential_identifier and credential_configuration_id are mutually exclusive", args("credential_request", credentialRequestBodyJson));
+			String errorDescription = "credential_identifier and credential_configuration_id are mutually exclusive";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+			throw error(errorDescription, args("credential_request", credentialRequestBodyJson));
 		}
 
 		JsonElement proof = credentialRequestBodyJson.get("proof");
 		JsonElement proofs = credentialRequestBodyJson.get("proofs");
 		if (proof != null && proofs != null) {
-			throw error("proof and proofs are mutually exclusive", args("credential_request", credentialRequestBodyJson));
+			String errorDescription = "proof and proofs are mutually exclusive";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+			throw error(errorDescription, args("credential_request", credentialRequestBodyJson));
 		}
 
 		// perform JSON schema based validation
 		return super.evaluate(env);
+	}
+
+	@Override
+	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
+		String errorDescription = String.format("Found invalid entries in %s input", input.getInputName());
+		VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+		super.onValidationFailure(env, validationResult, input);
 	}
 
 	@Override

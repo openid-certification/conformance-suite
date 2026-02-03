@@ -8,8 +8,6 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.util.List;
-
 public class VCICreateCredentialRequest extends AbstractCondition {
 
 	@Override
@@ -17,7 +15,7 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
-		String credentialConfigId = env.getString("config", "vci.credential_configuration_id");
+		String credentialConfigId = env.getString("vci_credential_configuration_id");
 
 		JsonObject credentialRequest = new JsonObject();
 
@@ -55,20 +53,22 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 			credentialRequest.addProperty("credential_configuration_id", credentialConfigId);
 		}
 
-		addProofInformation(env, credentialRequest);
+		addProofsInformation(env, credentialRequest);
 
-		String credentialRequestJson = credentialRequest.toString();
-		env.putString("resource_request_entity", credentialRequestJson);
+		env.putObject("vci_credential_request_object", credentialRequest);
 
 		log("Created credential request", args("credential_request", credentialRequest));
 
 		return env;
 	}
 
-	protected void addProofInformation(Environment env, JsonObject credentialRequest) {
-		// Note that proof is no longer part of draft 16
-//		JsonObject proofObject = createProofObject(env);
-//		credentialRequest.add("proof", proofObject);
+	protected void addProofsInformation(Environment env, JsonObject credentialRequest) {
+		// Check if the credential configuration requires cryptographic binding
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+		if (requiresCryptographicBinding == null || !requiresCryptographicBinding) {
+			log("Credential configuration does not require cryptographic binding, skipping proofs in credential request");
+			return;
+		}
 
 		// see https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2-2.4
 		JsonObject proofsObject = createProofsObject(env);
@@ -76,21 +76,6 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 	}
 
 	protected JsonObject createProofsObject(Environment env) {
-
-		JsonObject proofsObject = new JsonObject();
-		String credentialProofJwt = env.getString("vci", "proof.jwt");
-
-		proofsObject.add("jwt", OIDFJSON.convertListToJsonArray(List.of(credentialProofJwt)));
-		return proofsObject;
-	}
-
-	protected JsonObject createProofObject(Environment env) {
-
-		String credentialProofJwt = env.getString("vci", "proof.jwt");
-
-		JsonObject proofObject = new JsonObject();
-		proofObject.addProperty("proof_type", "jwt");
-		proofObject.addProperty("jwt", credentialProofJwt);
-		return proofObject;
+		return env.getObject("credential_request_proofs");
 	}
 }

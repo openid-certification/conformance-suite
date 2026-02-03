@@ -1,9 +1,9 @@
 package net.openid.conformance.vci10issuer;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.CheckDiscEndpointClientAttestationSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
@@ -17,6 +17,7 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-metadata-test",
@@ -44,7 +45,11 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 			if (vciProfile == VCIProfile.HAIP) {
 				callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
+				callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(true), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.2", "HAIP-6");
+			} else {
+				callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(false), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.1", "OID4VCI-1FINALA-A.2");
 			}
+
 		});
 
 		eventLog.runBlock("Fetch OAuth Authorization Server Metadata", () -> {
@@ -55,15 +60,14 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 			JsonObject credentialIssuerMetadata = env.getElementFromObject("vci", "credential_issuer_metadata").getAsJsonObject();
 			JsonElement authorizationServersEL = credentialIssuerMetadata.get("authorization_servers");
-			if (authorizationServersEL == null) {
-				String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", 0);
+
+			// Determine how many authorization servers we have metadata for
+			String countStr = env.getString("vci", "authorization_servers.count");
+			int serverCount = countStr != null ? Integer.parseInt(countStr) : (authorizationServersEL != null && authorizationServersEL.isJsonArray() ? authorizationServersEL.getAsJsonArray().size() : 1);
+
+			for (int i = 0; i < serverCount; i++) {
+				String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", i);
 				checkAuthServerMetadata(authServerMetadataPath);
-			} else {
-				JsonArray authServers = authorizationServersEL.getAsJsonArray();
-				for (int i = 0; i < authServers.size(); i++) {
-					String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", i);
-					checkAuthServerMetadata(authServerMetadataPath);
-				}
 			}
 		});
 
@@ -77,6 +81,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 			if (clientAuthType == VCIClientAuthType.CLIENT_ATTESTATION) {
 				env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
 				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-13.4");
+				callAndContinueOnFailure(CheckDiscEndpointClientAttestationSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-10.1");
 				env.removeObject("server");
 			}
 

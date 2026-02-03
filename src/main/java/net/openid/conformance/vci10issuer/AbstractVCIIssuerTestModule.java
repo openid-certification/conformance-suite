@@ -60,6 +60,7 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -88,6 +89,7 @@ import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
+import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
 import net.openid.conformance.condition.client.RejectErrorInUrlFragment;
 import net.openid.conformance.condition.client.RejectStateInUrlFragmentForCodeFlow;
@@ -102,6 +104,8 @@ import net.openid.conformance.condition.client.ValidateCHash;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDifferent;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
+import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
+import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
@@ -136,6 +140,7 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VCIServerMetadata;
@@ -143,20 +148,34 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckCacheControlHeaderInResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckExpClaimInCredential;
+import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
+import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
+import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsEncryptedJwe;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsNotAnEncryptedJwe;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateProofJwt;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
@@ -165,6 +184,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceRe
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialValidityInfoIsPresent;
+import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
@@ -187,15 +207,17 @@ import java.util.function.Supplier;
 	VCIProfile.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
+	VCI1FinalCredentialFormat.class,
+	VCICredentialEncryption.class,
 })
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="private_key_jwt", configurationFields = {
-	"vci.client_attestation_issuer"
+	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
 })
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="mtls", configurationFields = {
-	"vci.client_attestation_issuer"
+	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
 })
 @VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg",})
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
@@ -210,6 +232,9 @@ import java.util.function.Supplier;
 	"mtls2.key",
 	"mtls2.cert",
 	"mtls2.ca",
+})
+@VariantConfigurationFields(parameter = VCICredentialEncryption.class, value = "encrypted", configurationFields = {
+	"vci.credential_encryption_jwks"
 })
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
@@ -228,6 +253,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected VCIGrantType vciGrantType;
 	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
+
+	protected VCI1FinalCredentialFormat vciCredentialFormat;
+
+	protected VCICredentialEncryption vciCredentialEncryption;
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
@@ -292,6 +321,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		vciGrantType = getVariant(VCIGrantType.class);
 		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
+		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
+		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
 
 		// FAPI2ID2OPProfile.PLAIN_FAPI configuration
 		setupPlainFapi();
@@ -364,13 +395,27 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void determineCredentialConfigurationTransferMethod() {
 
+		resolveCredentialConfigurationId();
+
+		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
+		callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
+
+		// Only check key attestation if cryptographic binding is required
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
+		}
+	}
+
+	protected void resolveCredentialConfigurationId() {
 		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
 		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
 			throw new TestFailureException(getId(), "credential_configuration_id cannot be null or empty!");
 		}
 		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
-
-		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
+		env.putString("vci_credential_configuration_id", vciCredentialConfigurationId);
+		callAndStopOnFailure(VCIResolveRequestedCredentialConfiguration.class, ConditionResult.FAILURE);
+		callAndStopOnFailure(new VCIEnsureResolvedCredentialConfigurationMatchesSelection(vciCredentialFormat));
 	}
 
 	protected void setupResourceEndpoint() {
@@ -394,6 +439,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
 			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
+		}
+
+		// Load credential encryption JWKS if encryption is enabled
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			JsonElement encryptionJwks = env.getElementFromObject("config", "vci.credential_encryption_jwks");
+			if (encryptionJwks == null || !encryptionJwks.isJsonObject()) {
+				throw new TestFailureException(getId(), "vci.credential_encryption_jwks must be configured when credential_encryption=encrypted");
+			}
+			env.putObject("credential_encryption_jwks", encryptionJwks.getAsJsonObject());
 		}
 
 		validateClientConfiguration();
@@ -1051,26 +1105,29 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 		eventLog.endBlock();
 
-		eventLog.startBlock(currentClientString() + " Call credential issuer nonce endpoint");
-		// check for nonce endpoint
-		JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
-		if (nonceEndpointEl != null) {
+		// Check if the credential configuration requires cryptographic binding
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
 
-			callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			eventLog.startBlock(currentClientString() + " Call credential issuer nonce endpoint");
+			// check for nonce endpoint
+			JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
+			if (nonceEndpointEl != null) {
+
+				callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
+
+				eventLog.endBlock();
+
+				eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
+				afterNonceEndpointResponse();
+			} else {
+				eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
+			}
 
 			eventLog.endBlock();
-
-			eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
-			call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
-			callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-
-			callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-			callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 		} else {
-			eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
+			eventLog.log(getName(), "Skipping nonce endpoint call - credential configuration does not require cryptographic binding");
 		}
-
-		eventLog.endBlock();
 
 		eventLog.startBlock(currentClientString() + " Call Credential Endpoint");
 
@@ -1078,9 +1135,25 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
-		callAndStopOnFailure(VCIGenerateProofJwt.class, "OID4VCI-1FINALA-F.1");
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			// determine if requested credential requires key attestation
+			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
 
-		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+			afterKeyAttestationGeneration();
+
+			String proofTypeKey = env.getString("vci_proof_type_key");
+			if ("jwt".equals(proofTypeKey)) {
+				callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
+			} else if ("attestation".equals(proofTypeKey)) {
+				callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+			}
+
+			afterProofGeneration();
+		} else {
+			eventLog.log(getName(), "Skipping proof generation - credential configuration does not require cryptographic binding");
+		}
+
+		createCredentialRequest();
 
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
@@ -1096,30 +1169,204 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		eventLog.startBlock(currentClientString() + " Verify Credential Endpoint Response");
 		// TODO: allow a deferred response with a transaction_id https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.3
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+		verifyCredentialIssuerCredentialResponse();
+
+		eventLog.endBlock();
+	}
+
+	protected void createCredentialRequest() {
+		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+
+		// Add encryption parameters if encryption is enabled
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-11.2.3");
+			afterCredentialResponseEncryptionAdded();
+		}
+
+		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
+		String requestBodyString = serializeCredentialRequestObject(credentialRequestObject);
+		env.putString("resource_request_entity", requestBodyString);
+	}
+
+	/**
+	 * Hook called after credential_response_encryption is added to the credential request.
+	 * Override this method in subclasses to modify the encryption parameters.
+	 */
+	protected void afterCredentialResponseEncryptionAdded() {
+		// Default implementation does nothing
+	}
+
+	protected String serializeCredentialRequestObject(JsonObject credentialRequestObject) {
+		return credentialRequestObject.toString();
+	}
+
+	/**
+	 * Verifies the credential endpoint response. This method handles decryption if needed,
+	 * then delegates to verifyEffectiveCredentialResponse() for the actual validation.
+	 * Subclasses that need to verify error responses should override verifyEffectiveCredentialResponse()
+	 * instead of this method, so that decryption is handled automatically.
+	 */
+	protected void verifyCredentialIssuerCredentialResponse() {
+
+		int statusCode = env.getInteger("endpoint_response", "status");
+
+		// Decrypt the response if encryption was requested and the response was OK
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
+			callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
+			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
+		}
+
+		verifyEffectiveCredentialResponse();
+	}
+
+	protected void verifyCredentialIssuerCredentialErrorResponse() {
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
+		// Note that Credential Error Responses are never encrypted, even if a valid Credential Response would be.
+		callAndContinueOnFailure(VCIEnsureCredentialResponseIsNotAnEncryptedJwe.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1.2");
+	}
+
+	/**
+	 * Verifies the effective credential response - i.e., the response after potential decryption.
+	 * Override this method in subclasses to customize verification behavior,
+	 * especially for negative tests that expect error responses.
+	 */
+	protected void verifyEffectiveCredentialResponse() {
 		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+
+		// Check if the response is deferred (contains transaction_id instead of credentials)
+		callAndStopOnFailure(VCICheckForDeferredCredentialResponse.class, "OID4VCI-1FINAL-9");
+
+		String isDeferredStr = env.getString("deferred_credential_response");
+		boolean isDeferred = "true".equals(isDeferredStr);
+
+		if (isDeferred) {
+			// Deferred response - need to call the deferred credential endpoint
+			callAndContinueOnFailure(new EnsureHttpStatusCode(202), ConditionResult.WARNING, "OID4VCI-1FINAL-9");
+			call(exec().unmapKey("endpoint_response"));
+
+			// Poll the deferred credential endpoint
+			callDeferredCredentialEndpoint();
+
+			// Map the deferred response for validation
+			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+			int statusCode = env.getInteger("endpoint_response", "status");
+
+			// Decrypt the deferred response if encryption was requested and OK
+			if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
+				callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
+				callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
+			}
+		} else {
+			// Immediate response - credential is in the response
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+		}
+
+		// Extract and validate the credential (same for both paths)
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
-		callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
-		callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2.1");
-		callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-3.5.1");
-		callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
-		if (vciProfile == VCIProfile.HAIP) {
-			callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
-			callAndContinueOnFailure(VCICheckExpClaimInCredential.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
-			callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");
+		// Check if the credential configuration requires cryptographic binding
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+
+		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
+			// mdoc (mso_mdoc) format validation - uses IssuerSigned structure (not DeviceResponse)
+			callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
+			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-G.1");
+		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC){
+			// SD-JWT VC format validation (default)
+			callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
+			callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
+			callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-3.5");
+			callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.1");
+			// Only validate cnf claim if cryptographic binding is required
+			if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
+			}
+			if (vciProfile == VCIProfile.HAIP) {
+				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
+				callAndContinueOnFailure(VCICheckExpClaimInCredential.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
+				callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");
+				callAndContinueOnFailure(VCIEnsureX5cHeaderPresentForSdJwtCredential.class, ConditionResult.FAILURE, "HAIP-6.1.1");
+			}
 		}
 
 		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "RFC7231-7.1.1.2");
+		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "RFC7231-7.1.1.2");
 
 		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 		if (!isSecondClient()) {
 			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 		}
+	}
+
+	/**
+	 * Calls the deferred credential endpoint to retrieve the credential.
+	 *
+	 * This is called when the initial credential response contains a transaction_id
+	 * instead of credentials, indicating deferred issuance.
+	 *
+	 * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-9">OID4VCI Section 9 - Deferred Credential Issuance</a>
+	 */
+	protected void callDeferredCredentialEndpoint() {
+		eventLog.startBlock(currentClientString() + "Call Deferred Credential Endpoint");
+
+		// Resolve the deferred credential endpoint URL from metadata
+		callAndStopOnFailure(VCIResolveDeferredCredentialEndpointToUse.class, "OID4VCI-1FINAL-12.2.4");
+		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+
+		// Set HTTP method to POST (required for deferred credential endpoint)
+		env.putString("resource", "resourceMethod", "POST");
+
+		// Create the deferred credential request (contains transaction_id)
+		callAndStopOnFailure(VCICreateDeferredCredentialRequest.class, "OID4VCI-1FINAL-9.1");
+
+		// Create fresh headers for the deferred request
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+
+		// Set Content-Type to application/json (required for deferred credential endpoint)
+		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		// Call the deferred credential endpoint
+		if (isDpop()) {
+			requestProtectedResourceUsingDpop();
+		} else {
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-9", "FAPI2-SP-ID2-5.3.3-2");
+		}
+
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+
+		// Check for successful response
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2");
 
 		eventLog.endBlock();
+	}
+
+	protected void afterNonceEndpointResponse() {
+		call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
+		callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+
+		callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+		callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+	}
+
+	/**
+	 * Hook called after key attestation generation but before proof generation.
+	 * Override this method in subclasses to modify the key attestation.
+	 */
+	protected void afterKeyAttestationGeneration() {
+		// Default implementation does nothing
+	}
+
+	/**
+	 * Hook called after proof generation but before creating the credential request.
+	 * Override this method in subclasses to modify the generated proof (jwt or attestation).
+	 */
+	protected void afterProofGeneration() {
+		// Default implementation does nothing
 	}
 
 	protected boolean isSecondClient() {
@@ -1186,7 +1433,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE, "OAuth2-ATCA07-1");
 		callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE, "OAuth2-ATCA07-1", "HAIP-4.3.1-2");
 
+		afterClientAttestationGenerated();
+
 		// we generate a new CreateClientAttestationProofJwt via the AddClientAttestationClientAuthToEndpointRequest sequence
+	}
+
+	/**
+	 * Hook called after the client attestation JWT is generated.
+	 * Override this method in subclasses to modify the client attestation.
+	 */
+	protected void afterClientAttestationGenerated() {
+		// Default implementation does nothing
 	}
 
 	// @VariantSetup(parameter = FAPI2ID2OPProfile.class, value = "plain_fapi")
