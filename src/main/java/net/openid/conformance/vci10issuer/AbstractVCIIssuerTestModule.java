@@ -1271,7 +1271,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
 			// mdoc (mso_mdoc) format validation - uses IssuerSigned structure (not DeviceResponse)
-			callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE);
+			callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-G.1");
 		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC){
 			// SD-JWT VC format validation (default)
