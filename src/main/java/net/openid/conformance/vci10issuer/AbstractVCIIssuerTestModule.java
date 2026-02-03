@@ -160,6 +160,7 @@ import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsNotAnEncryptedJwe;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
@@ -414,6 +415,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
 		env.putString("vci_credential_configuration_id", vciCredentialConfigurationId);
 		callAndStopOnFailure(VCIResolveRequestedCredentialConfiguration.class, ConditionResult.FAILURE);
+		callAndStopOnFailure(new VCIEnsureResolvedCredentialConfigurationMatchesSelection(vciCredentialFormat));
 	}
 
 	protected void setupResourceEndpoint() {

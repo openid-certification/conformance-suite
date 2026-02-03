@@ -9,14 +9,21 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum VCI1FinalCredentialFormat {
 
-	SD_JWT_VC("sd_jwt_vc"),
+	SD_JWT_VC("sd_jwt_vc", "dc+sd-jwt"),
 
-	MDOC("mdoc");
+	MDOC("mdoc", "mso_mdoc");
 
 	private final String modeValue;
 
-	private VCI1FinalCredentialFormat(String responseMode) {
+	private final String credentialFormat;
+
+	VCI1FinalCredentialFormat(String responseMode, String credentialFormat) {
 		modeValue = responseMode;
+		this.credentialFormat = credentialFormat;
+	}
+
+	public String getCredentialFormat() {
+		return credentialFormat;
 	}
 
 	@Override
