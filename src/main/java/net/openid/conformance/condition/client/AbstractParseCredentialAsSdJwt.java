@@ -12,7 +12,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWTUtil;
 
 import java.text.ParseException;
@@ -89,7 +88,7 @@ public abstract class AbstractParseCredentialAsSdJwt extends AbstractCondition {
 
 		env.putObject("sdjwt", jsonObject);
 
-		logSuccess("Parsed SDJWT " + OIDFJSON.getString(decodedJsonObject.get("vct")), jsonObject);
+		logSuccess("Parsed SDJWT", jsonObject);
 
 		return env;
 	}

@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +48,7 @@ class VCIExtractCredentialResponseTest extends AbstractVciUnitTest {
 
 		JsonArray list = env.getObject("extracted_credentials").getAsJsonArray("list");
 		assertThat(list).hasSize(1);
-		assertThat(list.get(0).getAsString()).isEqualTo("LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L");
+		assertThat(OIDFJSON.getString(list.get(0))).isEqualTo("LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L");
 	}
 
 	@Test
@@ -72,9 +73,9 @@ class VCIExtractCredentialResponseTest extends AbstractVciUnitTest {
 
 		JsonArray list = env.getObject("extracted_credentials").getAsJsonArray("list");
 		assertThat(list).hasSize(3);
-		assertThat(list.get(0).getAsString()).isEqualTo("credential_one");
-		assertThat(list.get(1).getAsString()).isEqualTo("credential_two");
-		assertThat(list.get(2).getAsString()).isEqualTo("credential_three");
+		assertThat(OIDFJSON.getString(list.get(0))).isEqualTo("credential_one");
+		assertThat(OIDFJSON.getString(list.get(1))).isEqualTo("credential_two");
+		assertThat(OIDFJSON.getString(list.get(2))).isEqualTo("credential_three");
 	}
 
 	@Test
