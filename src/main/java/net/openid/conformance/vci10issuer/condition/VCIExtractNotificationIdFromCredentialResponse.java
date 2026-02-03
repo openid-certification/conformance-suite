@@ -30,9 +30,7 @@ public class VCIExtractNotificationIdFromCredentialResponse extends AbstractCond
 
 		JsonElement notificationIdEl = credentialResponseBodyJson.get("notification_id");
 		if (notificationIdEl == null || !notificationIdEl.isJsonPrimitive() || !notificationIdEl.getAsJsonPrimitive().isString()) {
-			throw error("Credential response does not contain a 'notification_id' string. " +
-				"When the credential issuer metadata includes notification_endpoint, the credential response " +
-				"should include a notification_id.",
+			throw error("Credential response does not contain a 'notification_id' string.",
 				args("credential_response", credentialResponseBodyJson));
 		}
 

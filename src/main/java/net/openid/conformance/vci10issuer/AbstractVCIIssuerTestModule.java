@@ -103,7 +103,6 @@ import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
-import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDifferent;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
@@ -158,6 +157,7 @@ import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentia
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialRequest;
+import net.openid.conformance.vci10issuer.condition.VCICreateNotificationRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
@@ -166,6 +166,7 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseI
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
@@ -177,8 +178,6 @@ import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfN
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
-import net.openid.conformance.vci10issuer.condition.VCICreateNotificationRequest;
-import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveNotificationEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
@@ -186,6 +185,7 @@ import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServe
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIUseStaticTxCodeFromConfig;
+import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
@@ -1311,12 +1311,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	 * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-11">OID4VCI Section 11 - Notification Endpoint</a>
 	 */
 	protected void sendNotificationIfSupported() {
-		String notificationEndpoint = env.getString("vci", "credential_issuer_metadata.notification_endpoint");
-		if (notificationEndpoint == null) {
-			return;
-		}
-
-		eventLog.startBlock(currentClientString() + "Send Notification to Issuer");
 
 		// Extract notification_id from the credential response
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
@@ -1325,10 +1319,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		String notificationId = env.getString("notification_id");
 		if (notificationId == null) {
-			eventLog.log(getName(), "No notification_id in credential response, skipping notification");
+			eventLog.log(getName(), "No notification_id in credential response, skipping attempt to send a notification");
 			eventLog.endBlock();
 			return;
 		}
+
+		eventLog.startBlock(currentClientString() + "Send Notification to Issuer");
 
 		// Resolve notification endpoint URL
 		callAndStopOnFailure(VCIResolveNotificationEndpointToUse.class, "OID4VCI-1FINAL-12.2.4");
