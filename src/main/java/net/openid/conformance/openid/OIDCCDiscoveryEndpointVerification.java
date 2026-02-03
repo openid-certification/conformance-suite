@@ -19,6 +19,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureServerConfigurationCodeChallengeMethodsSupportedIsAnArray;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointClaimsSupported;
@@ -161,6 +162,8 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		// I'm not convinced the standards actually says every endpoint (including ones not defined by OIDC) must be https,
 		// but equally it seems reasonable.
 		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class, Condition.ConditionResult.FAILURE);
+
+		callAndContinueOnFailure(EnsureServerConfigurationCodeChallengeMethodsSupportedIsAnArray.class, Condition.ConditionResult.FAILURE, "RFC8414-2", "RFC7636-4.3");
 	}
 
 }
