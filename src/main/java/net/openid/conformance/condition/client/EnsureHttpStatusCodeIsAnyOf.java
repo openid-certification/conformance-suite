@@ -26,13 +26,17 @@ public class EnsureHttpStatusCodeIsAnyOf extends AbstractCondition {
 				args("http_status", statusCode, "expected_status_codes", getExpectedStatusCodes()));
 		}
 
-		logSuccess(endpointName + " endpoint returned the expected http status",
+		logSuccess(createSuccessMessage(endpointName, statusCode),
 			args(
 				"http_status", statusCode,
 				"expected_status_codes", getExpectedStatusCodes()));
 
 		return env;
 
+	}
+
+	protected String createSuccessMessage(String endpointName, int statusCode) {
+		return endpointName + " endpoint returned an expected http status.";
 	}
 
 	protected boolean statusCodeMatches(int statusCode) {

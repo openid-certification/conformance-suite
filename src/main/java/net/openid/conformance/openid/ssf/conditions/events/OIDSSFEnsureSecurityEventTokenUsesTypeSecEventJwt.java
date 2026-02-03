@@ -13,7 +13,7 @@ public class OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt extends AbstractC
 		String tokenType = env.getString("set_token", "header.typ");
 
 		if (tokenType == null) {
-			throw error("Couldn't find typ");
+			throw error("Couldn't find typ claim in JWT header");
 		}
 
 		if (!"secevent+jwt".equals(tokenType)) {

@@ -2,7 +2,7 @@ package net.openid.conformance.openid.ssf;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs409;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -36,7 +36,20 @@ public class OIDSSFStreamControlNegativeTestCreateStreamWithDuplicateConfig exte
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
 
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs409.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
+			callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(201, 409) {
+				@Override
+				protected String createSuccessMessage(String endpointName, int statusCode) {
+					String successMessage = super.createSuccessMessage(endpointName, statusCode);
+					switch(statusCode) {
+						case 201:
+							successMessage +=" Transmitter supports multiple streams per Receiver.";
+							break;
+						case 409:
+							successMessage +=" Transmitter does not support multiple streams per Receiver.";
+					}
+					return successMessage;
+				}
+			}, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 			call(exec().unmapKey("endpoint_response"));
 		});
 	}

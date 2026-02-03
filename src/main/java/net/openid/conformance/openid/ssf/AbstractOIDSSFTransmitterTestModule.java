@@ -18,12 +18,14 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200Or404;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204Or404;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
+import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFConfigurePushDeliveryMethod;
+import net.openid.conformance.openid.ssf.conditions.OIDSSFEnsureShortLivedToken;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFExtractTransmitterAccessTokenFromConfig;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFValidateTlsConnectionConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAuthorizationHeaderIsPresentInPushRequest;
@@ -255,6 +257,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 			callAndStopOnFailure(CheckForAccessTokenValue.class);
 			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
+			callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "RFC6749-5.1");
+			callAndContinueOnFailure(OIDSSFEnsureShortLivedToken.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.1");
 		}
 
 	}
@@ -274,6 +278,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 
 		if ("ssf-push".equals(path)) {
 			SSfPushRequest pushRequest = new SSfPushRequest(UUID.randomUUID().toString(), path, Instant.now(), req, res, requestParts);
+			eventLog.log(getName(), "Call to ssf-push endpoint with id" + pushRequest.id() + " captured and stored for later processing.");
 			pushRequests.push(pushRequest);
 
 			// Mark push request as accepted for now, and validate later
@@ -299,6 +304,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 				return pushRequest;
 			}
 
+			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id" + pushRequest.id());
 			env.putObject("ssf", "push_request", pushRequest.requestParts());
 			onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
 

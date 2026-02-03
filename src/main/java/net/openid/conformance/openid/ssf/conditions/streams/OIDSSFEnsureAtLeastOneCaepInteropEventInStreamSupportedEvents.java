@@ -17,7 +17,7 @@ public class OIDSSFEnsureAtLeastOneCaepInteropEventInStreamSupportedEvents exten
 
 		JsonElement supportedEventTypesEl = env.getElementFromObject("ssf", "stream.events_supported");
 		if (supportedEventTypesEl == null) {
-			throw error("Could not find supported event types in stream configuration",
+			throw error("Could not find events_supported in stream configuration",
 				args("stream_configuration", env.getElementFromObject("ssf", "stream")));
 		}
 

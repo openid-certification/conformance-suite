@@ -151,10 +151,11 @@ public class OIDSSFTransmitterStreamVerificationEventsTest extends AbstractOIDSS
 					callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
 
 					verifySetInResponse();
+
+					callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 				});
 
 				eventLog.runBlock("Trigger verification event 2", () -> {
-
 					// Trigger verification event
 					callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 					call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
