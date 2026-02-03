@@ -43,8 +43,14 @@ public class AddUnverifiedClaimsToAuthorizationEndpointRequest extends AbstractA
 				value = OIDFJSON.getString(claimInfo.get("value"));
 			}
 			boolean essential = claimInfo.has("essential")? OIDFJSON.getBoolean(claimInfo.get("essential")):false;
-			addClaim(env, LocationToRequestClaim.ID_TOKEN, claimName, value, essential);
-			addClaim(env, LocationToRequestClaim.USERINFO, claimName, value, essential);
+
+			String eKYCVerifiedClaimsResponseSupport = env.getString("config", "ekyc.verified_claims_response_support");
+			if(eKYCVerifiedClaimsResponseSupport.contains("id_token")) {
+				addClaim(env, LocationToRequestClaim.ID_TOKEN, claimName, value, essential);
+			}
+			if(eKYCVerifiedClaimsResponseSupport.contains("userinfo")) {
+				addClaim(env, LocationToRequestClaim.USERINFO, claimName, value, essential);
+			}
 		}
 
 		return env;

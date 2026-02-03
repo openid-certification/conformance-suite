@@ -409,7 +409,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 		skipTestIfScopesNotSupported();
 
 		// Set up the resource endpoint configuration
-		callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class);
+		configureProtectedResourceUrl();
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -440,6 +440,11 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected void onConfigure(JsonObject config, String baseUrl) {
 
 		// No custom configuration
+	}
+
+	protected void configureProtectedResourceUrl() {
+		// Set up the resource endpoint configuration
+		callAndStopOnFailure(SetProtectedResourceUrlToUserInfoEndpoint.class);
 	}
 
 	protected void configureClient() {

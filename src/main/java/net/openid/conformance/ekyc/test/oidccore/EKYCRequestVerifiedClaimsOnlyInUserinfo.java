@@ -4,6 +4,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.ekyc.condition.client.AddOneVerifiedClaimInUserinfoOnlyToAuthorizationEndpointRequest;
 import net.openid.conformance.ekyc.condition.client.EnsureIdTokenDoesNotContainVerifiedClaims;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.EKYCVerifiedClaimsResponseSupport;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "ekyc-server-request-only-in-userinfo",
@@ -19,6 +21,10 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"ekyc.response_schemas"
 	}
 )
+
+@VariantNotApplicable(parameter = EKYCVerifiedClaimsResponseSupport.class, values = {
+	"id_token"
+})
 public class EKYCRequestVerifiedClaimsOnlyInUserinfo extends AbstractEKYCTestWithOIDCCore {
 
 	@Override

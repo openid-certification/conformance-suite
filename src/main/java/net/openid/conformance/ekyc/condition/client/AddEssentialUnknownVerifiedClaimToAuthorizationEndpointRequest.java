@@ -32,7 +32,8 @@ public class AddEssentialUnknownVerifiedClaimToAuthorizationEndpointRequest exte
 		claims.add(randomClaimName, randomClaimInfo);
 
 		verifiedClaims.add("claims", claims);
-		addVerifiedClaims(env, verifiedClaims, true, true);
+		String eKYCVerifiedClaimsResponseSupport = env.getString("config", "ekyc.verified_claims_response_support");
+		addVerifiedClaims(env, verifiedClaims, eKYCVerifiedClaimsResponseSupport.contains("id_token"), eKYCVerifiedClaimsResponseSupport.contains("userinfo"));
 		logSuccess("Added verified claims to authorization request, including an essential random claim",
 			args("authorization_endpoint_request", env.getObject("authorization_endpoint_request"),
 			"verified_claims", verifiedClaims));
