@@ -1,13 +1,11 @@
 package net.openid.conformance.vci10issuer.condition;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.util.TLSTestValueExtractor;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpEntity;
@@ -20,7 +18,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -41,45 +38,43 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 		String metadataEndpointUrl = buildMetadataEndpointUrl(env);
 		env.putString("vci", "credential_issuer_metadata_url", metadataEndpointUrl);
 
-		String credentialIssuerMetadataJson = fetchCredentialIssuerMetadata(env, metadataEndpointUrl);
+		fetchCredentialIssuerMetadata(env, metadataEndpointUrl);
 
-		if (Strings.isNullOrEmpty(credentialIssuerMetadataJson)) {
-			throw error("empty vci configuration configuration");
+		long status = env.getLong("credential_issuer_metadata_endpoint_response", "status");
+		String contentType = env.getString("credential_issuer_metadata_endpoint_response", "headers.content-type");
+
+		if ("application/jwt".equals(contentType)) {
+			log("Credential issuer metadata response indicates a signed JWT", args("contentType", contentType));
+		} else {
+			log("Credential issuer metadata response indicates plain JSON", args("contentType", contentType));
 		}
 
-		try {
-			JsonObject credentialIssuerMetadata = JsonParser.parseString(credentialIssuerMetadataJson).getAsJsonObject();
-			logSuccess("Successfully parsed credential issuer metadata", credentialIssuerMetadata);
-			env.putObject("vci","credential_issuer_metadata", credentialIssuerMetadata);
-
-			String issuerUrl = OIDFJSON.getString(credentialIssuerMetadata.get("credential_issuer"));
-			env.putString("vci", "credential_issuer", issuerUrl);
-			try {
-				env.putObject("tls", TLSTestValueExtractor.extractTlsFromUrl(issuerUrl));
-			} catch (MalformedURLException e) {
-				throw error("Failed to parse URL", e, args("url", issuerUrl));
-			}
-
-			return env;
-		} catch (JsonSyntaxException e) {
-			throw error(e, args("json", credentialIssuerMetadataJson));
+		if (status != 200) {
+			throw error("Could not fetch credential issuer metadata from " + metadataEndpointUrl, args("status", status, "contentType", contentType));
 		}
+		logSuccess("Fetched credential issuer metadata from " + metadataEndpointUrl, args("status", status, "contentType", contentType));
+		return env;
 	}
 
-	protected String fetchCredentialIssuerMetadata(Environment env, String metadataEndpointUrl) {
-		// fetch the value
-		String credentialIssuerMetadataJson;
+	protected void fetchCredentialIssuerMetadata(Environment env, String metadataEndpointUrl) {
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
 			MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+			headers.add(HttpHeaders.ACCEPT, "application/json");
 			headers.add(HttpHeaders.ACCEPT_LANGUAGE, "en, en-gb;q=0.9, de;q=0.8, fr;q=0.7, *;q=0.5");
+
+			JsonElement additionalRequestHeaders = env.getElementFromObject("credential_issuer_metadata_endpoint_request", "headers");
+			if (additionalRequestHeaders != null) {
+				additionalRequestHeaders.getAsJsonObject()
+					.entrySet()
+					.forEach(entry -> headers.set(entry.getKey(), OIDFJSON.getString(entry.getValue())));
+			}
+
 			HttpEntity<?> requestEntity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(metadataEndpointUrl, HttpMethod.GET, requestEntity, String.class);
 			JsonObject responseInfo = convertResponseForEnvironment("credential-issuer-metadata", response);
 
 			env.putObject("credential_issuer_metadata_endpoint_response", responseInfo);
-
-			credentialIssuerMetadataJson = response.getBody();
 		} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException |
 				 NoSuchAlgorithmException | KeyStoreException | IOException e) {
 			throw error("Error creating HTTP client", e);
@@ -90,7 +85,6 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 			}
 			throw error(msg, e);
 		}
-		return credentialIssuerMetadataJson;
 	}
 
 	protected String buildMetadataEndpointUrl(Environment env) {

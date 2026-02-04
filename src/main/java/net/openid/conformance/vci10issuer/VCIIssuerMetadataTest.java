@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointClientAttestationSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.EnsureContentTypeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -24,8 +23,13 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIs
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-metadata-test",
 	displayName = "OID4VCI 1.0: Issuer metadata test",
-	summary = "This test case validates the metadata exposed by the credential issuer, as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) specification.",
-	profile = "OID4VCI-ID2",
+	summary = """
+		This test case validates the metadata exposed by the credential issuer,
+		as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) specification.
+
+		This test will send a credential issuer metadata request with content-type: application/json.
+		""",
+	profile = "OID4VCI-1_0",
 	configurationFields = {
 		"vci.credential_issuer_url"
 	}
@@ -42,21 +46,9 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		eventLog.runBlock("Verify Credential Issuer Metadata Response", () -> {
 
 			call(exec().mapKey("endpoint_response", "credential_issuer_metadata_endpoint_response"));
-			callAndContinueOnFailure(new EnsureContentTypeIsAnyOf("application/json", "application/jwt"), Condition.ConditionResult.WARNING, "RFC8414-3.2");
+			checkIssuerMetadataResponse();
 			call(exec().unmapKey("endpoint_response"));
-
-			callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
-			callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
-			callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
-			callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
-
-			if (vciProfile == VCIProfile.HAIP) {
-				callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
-				callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(true), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.2", "HAIP-6");
-			} else {
-				callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(false), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.1", "OID4VCI-1FINALA-A.2");
-			}
-
+			checkIssuerMetadata();
 		});
 
 		eventLog.runBlock("Fetch OAuth Authorization Server Metadata", () -> {
@@ -82,6 +74,24 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		});
 
 		fireTestFinished();
+	}
+
+	protected void checkIssuerMetadata() {
+		callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+		callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+		callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
+		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+
+		if (vciProfile == VCIProfile.HAIP) {
+			callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
+			callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(true), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.2", "HAIP-6");
+		} else {
+			callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(false), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.1", "OID4VCI-1FINALA-A.2");
+		}
+	}
+
+	protected void checkIssuerMetadataResponse() {
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC8414-3.2");
 	}
 
 	protected void checkAuthServerMetadata(String authServerMetadataPath) {

@@ -22,6 +22,9 @@ public class VCIFetchCredentialIssuerMetadataSequence extends AbstractConditionS
 				callAndStopOnFailure(VCIGetStaticCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 				break;
 		}
+
+		callAndStopOnFailure(VCIParseCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
+		callAndStopOnFailure(VCIExtractTlsInfoFromCredentialIssuer.class);
 	}
 
 }

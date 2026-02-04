@@ -1,6 +1,7 @@
 package net.openid.conformance.vci10issuer;
 
 import com.google.gson.JsonObject;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
@@ -34,7 +35,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 		fireSetupDone();
 	}
 
-	protected VCIFetchCredentialIssuerMetadataSequence createFetchCredentialIssuerMetadataSequence() {
+	protected ConditionSequence createFetchCredentialIssuerMetadataSequence() {
 		return new VCIFetchCredentialIssuerMetadataSequence(VCIServerMetadata.DISCOVERY);
 	}
 
