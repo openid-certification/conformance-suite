@@ -175,6 +175,7 @@ import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateCredentialEncryptionJwks;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
@@ -242,9 +243,6 @@ import java.util.function.Supplier;
 	"mtls2.key",
 	"mtls2.cert",
 	"mtls2.ca",
-})
-@VariantConfigurationFields(parameter = VCICredentialEncryption.class, value = "encrypted", configurationFields = {
-	"vci.credential_encryption_jwks"
 })
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
@@ -460,11 +458,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// Load credential encryption JWKS if encryption is enabled
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			JsonElement encryptionJwks = env.getElementFromObject("config", "vci.credential_encryption_jwks");
-			if (encryptionJwks == null || !encryptionJwks.isJsonObject()) {
-				throw new TestFailureException(getId(), "vci.credential_encryption_jwks must be configured when credential_encryption=encrypted");
-			}
-			env.putObject("credential_encryption_jwks", encryptionJwks.getAsJsonObject());
+			callAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
 		}
 
 		validateClientConfiguration();
