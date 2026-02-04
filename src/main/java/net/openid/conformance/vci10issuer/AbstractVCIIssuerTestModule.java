@@ -1301,13 +1301,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			if (extractedCredentials.size() > 1) {
 				eventLog.startBlock(currentClientString() + "Verify credential " + (i + 1) + " of " + extractedCredentials.size());
+			} else {
+				eventLog.startBlock(currentClientString() + "Verify credential");
 			}
 
 			verifyCredential();
 
-			if (extractedCredentials.size() > 1) {
-				eventLog.endBlock();
-			}
+			eventLog.endBlock();
 		}
 
 		call(exec().unmapKey("endpoint_response"));
