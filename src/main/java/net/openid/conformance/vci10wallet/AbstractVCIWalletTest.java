@@ -1623,10 +1623,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected Object credentialIssuerMetadataEndpoint(String requestId) {
 
 		JsonElement acceptHeader = env.getElementFromObject(requestId, "headers.accept");
+		String acceptHeaderValue = acceptHeader != null ? OIDFJSON.getString(acceptHeader) : null;
 
 		setStatus(Status.RUNNING);
 		ResponseEntity<?> responseEntity;
-		if (acceptHeader != null && OIDFJSON.getString(acceptHeader).equalsIgnoreCase("application/jwt")) {
+		if ("application/jwt".equalsIgnoreCase(acceptHeaderValue)) {
 			generateSignedCredentialIssuerMetadata();
 			String signedCredentialIssuerMetadata = env.getString("signed_credential_issuer_metadata");
 			responseEntity = ResponseEntity.status(HttpStatus.OK).contentType(MediaType.parseMediaType("application/jwt")).body(signedCredentialIssuerMetadata);

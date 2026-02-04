@@ -3,13 +3,11 @@ package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIDecodeSignedCredentialIssuerMetadata;
-import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIRequestSignedCredentialIssuerMetadata;
 
 @PublishTestModule(
@@ -20,6 +18,7 @@ import net.openid.conformance.vci10issuer.condition.VCIRequestSignedCredentialIs
 		as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) specification.
 
 		This test will send a credential issuer metadata request with content-type: application/jwt.
+		The test execution is skipped if the credential issuer metadata response is not signed.
 		""",
 	profile = "OID4VCI-1_0",
 	configurationFields = {
@@ -27,17 +26,23 @@ import net.openid.conformance.vci10issuer.condition.VCIRequestSignedCredentialIs
 	}
 )
 @VariantParameters({VCIClientAuthType.class, VCIProfile.class})
-public class VCIIssuerMetadataSingedTest extends VCIIssuerMetadataTest{
+public class VCIIssuerMetadataSingedTest extends VCIIssuerMetadataTest {
 
 	@Override
-	protected ConditionSequence createFetchCredentialIssuerMetadataSequence() {
-		return super.createFetchCredentialIssuerMetadataSequence()
-			.butFirst(condition(VCIRequestSignedCredentialIssuerMetadata.class))
-			.replace(VCIParseCredentialIssuerMetadata.class, condition(VCIDecodeSignedCredentialIssuerMetadata.class));
+	protected void fetchCredentialIssuerMetadata() {
+		callAndStopOnFailure(VCIRequestSignedCredentialIssuerMetadata.class);
+		super.fetchCredentialIssuerMetadata();
 	}
 
 	@Override
 	protected void checkIssuerMetadataResponse() {
+
+		if ("application/json".equalsIgnoreCase(env.getString("endpoint_response", "headers.content-type"))) {
+			fireTestSkipped("Skipping test as credential issuer metadata response is not signed.");
+			return;
+		}
+
 		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "RFC8414-3.2");
+		callAndStopOnFailure(VCIDecodeSignedCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 	}
 }

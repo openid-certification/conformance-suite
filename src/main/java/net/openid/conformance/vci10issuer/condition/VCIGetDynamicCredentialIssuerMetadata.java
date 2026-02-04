@@ -44,9 +44,9 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 		String contentType = env.getString("credential_issuer_metadata_endpoint_response", "headers.content-type");
 
 		if ("application/jwt".equals(contentType)) {
-			log("Credential issuer metadata response indicates a signed JWT", args("contentType", contentType));
+			log("Credential issuer metadata response indicates signed metadata", args("contentType", contentType));
 		} else {
-			log("Credential issuer metadata response indicates plain JSON", args("contentType", contentType));
+			log("Credential issuer metadata response indicates unsigned metadata", args("contentType", contentType));
 		}
 
 		if (status != 200) {

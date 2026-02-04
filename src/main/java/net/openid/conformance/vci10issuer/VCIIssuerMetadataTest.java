@@ -15,7 +15,9 @@ import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFiel
 import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
 import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
@@ -43,10 +45,11 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
-		eventLog.runBlock("Verify Credential Issuer Metadata Response", () -> {
+		eventLog.runBlock("Process Credential Issuer Metadata Response", () -> {
 
 			call(exec().mapKey("endpoint_response", "credential_issuer_metadata_endpoint_response"));
 			checkIssuerMetadataResponse();
+			callAndStopOnFailure(VCIExtractTlsInfoFromCredentialIssuer.class);
 			call(exec().unmapKey("endpoint_response"));
 			checkIssuerMetadata();
 		});
@@ -92,6 +95,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 	protected void checkIssuerMetadataResponse() {
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE, "RFC8414-3.2");
+		callAndStopOnFailure(VCIParseCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 	}
 
 	protected void checkAuthServerMetadata(String authServerMetadataPath) {

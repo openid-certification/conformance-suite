@@ -147,7 +147,6 @@ import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
-import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -170,14 +169,16 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentFor
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
+import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
-import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
+import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
@@ -278,8 +279,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Supplier<? extends ConditionSequence> createDpopForTokenEndpointSteps;
 	protected Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps;
 
-	protected Supplier<? extends ConditionSequence> fetchCredentialIssuerMetadataSteps;
-
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
@@ -337,9 +336,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// https://gitlab.com/idmvp/specifications/-/issues/29
 		profileRequiresMtlsEverywhere = false;
-
-
-		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(VCIServerMetadata.DISCOVERY);
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
@@ -623,7 +619,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
-		call(sequence(fetchCredentialIssuerMetadataSteps));
+		callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
+
+		processCredentialIssuerMetadataResponse();
+
+		callAndStopOnFailure(VCIExtractTlsInfoFromCredentialIssuer.class);
+	}
+
+	protected void processCredentialIssuerMetadataResponse() {
+		callAndStopOnFailure(VCIParseCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 	}
 
 	protected void performPreAuthorizationSteps() {
