@@ -31,7 +31,7 @@ public class VCICreateDeferredCredentialResponse extends AbstractCondition {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
-		headers.addProperty("content-type", "application/json; charset=UTF-8");
+		headers.addProperty("content-type", "application/json");
 
 		// Generate a transaction_id for the deferred credential
 		String transactionId = RandomStringUtils.secure().nextAlphanumeric(32);

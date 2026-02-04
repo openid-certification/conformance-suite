@@ -4,6 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointClientAttestationSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.EnsureContentTypeIsAnyOf;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
@@ -16,8 +18,8 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetail
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
-import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-metadata-test",
@@ -37,7 +39,12 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
-		eventLog.runBlock("Verify Credential Issuer Metadata", () -> {
+		eventLog.runBlock("Verify Credential Issuer Metadata Response", () -> {
+
+			call(exec().mapKey("endpoint_response", "credential_issuer_metadata_endpoint_response"));
+			callAndContinueOnFailure(new EnsureContentTypeIsAnyOf("application/json", "application/jwt"), Condition.ConditionResult.WARNING, "RFC8414-3.2");
+			call(exec().unmapKey("endpoint_response"));
+
 			callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 			callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 			callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
@@ -54,9 +61,12 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 		eventLog.runBlock("Fetch OAuth Authorization Server Metadata", () -> {
 			callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "RFC8414-3.1");
+			call(exec().mapKey("endpoint_response", "oauth_authorization_server_metadata_response"));
+			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.WARNING, "RFC8414-3.2");
+			call(exec().unmapKey("endpoint_response"));
 		});
 
-		eventLog.runBlock("Verify OAuth Authorization Server Metadata", () -> {
+		eventLog.runBlock("Verify OAuth Authorization Server Metadata Response", () -> {
 
 			JsonObject credentialIssuerMetadata = env.getElementFromObject("vci", "credential_issuer_metadata").getAsJsonObject();
 			JsonElement authorizationServersEL = credentialIssuerMetadata.get("authorization_servers");

@@ -68,7 +68,11 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 			i++;
 		}
 
-		logSuccess("Fetched authorization server metadata from multiple servers", args("authorization_servers", authorizationServerArray, "authorization_server_metadata_list", authorizationServerMetadataDataList));
+		if (i == 1) {
+			logSuccess("Fetched authorization server metadata from single server", args("authorization_server", authorizationServerArray.get(0), "authorization_server_metadata_list", authorizationServerMetadataDataList));
+		} else {
+			logSuccess("Fetched authorization server metadata from multiple servers", args("authorization_servers", authorizationServerArray, "authorization_server_metadata_list", authorizationServerMetadataDataList));
+		}
 
 		return env;
 	}
@@ -77,6 +81,7 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 
 		log("Fetching metadata from authorization server: " + authServerIndex, args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
 		JsonObject authorizationServerMetadataResponse = fetchAuthorizationServerMetadata(env, authorizationServerMetadataEndpointUrl);
+		env.putObject("oauth_authorization_server_metadata_response", authorizationServerMetadataResponse);
 		log("Fetched metadata from authorization server: " + authServerIndex, args("authorization_server_issuer", authorizationServerIssuer, "authorization_server_metadata_url", authorizationServerMetadataEndpointUrl));
 		return authorizationServerMetadataResponse;
 	}

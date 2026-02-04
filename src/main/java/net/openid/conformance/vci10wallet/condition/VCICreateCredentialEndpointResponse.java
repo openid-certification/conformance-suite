@@ -25,7 +25,7 @@ public class VCICreateCredentialEndpointResponse extends AbstractCondition {
 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
-		headers.addProperty("content-type", "application/json; charset=UTF-8");
+		headers.addProperty("content-type", "application/json");
 
 		JsonObject response = new JsonObject();
 

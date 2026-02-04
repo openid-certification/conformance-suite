@@ -1615,7 +1615,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		JsonObject serverConfiguration = env.getObject("server");
 
 		setStatus(Status.WAITING);
-		return new ResponseEntity<Object>(serverConfiguration, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK)
+			.contentType(MediaType.APPLICATION_JSON)
+			.<Object>body(serverConfiguration);
 	}
 
 	protected Object credentialIssuerMetadataEndpoint(String requestId) {
