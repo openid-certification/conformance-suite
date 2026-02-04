@@ -6,6 +6,7 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 
@@ -53,7 +54,26 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(VCIClientAuthType.class, "client_attestation"),
 					new Variant(VCIGrantType.class, "authorization_code"),
-					new Variant(AuthorizationRequestType.class, "simple")
+					new Variant(AuthorizationRequestType.class, "simple"),
+					new Variant(VCICredentialEncryption.class, "plain")
+				)
+			),
+			new ModuleListEntry(
+				List.of(
+					// positive tests
+					VCIIssuerHappyFlow.class,
+					// negative tests
+					VCIIssuerFailOnUnknownCredentialConfigurationId.class,
+					VCIIssuerFailOnUnsupportedEncryptionAlgorithm.class
+				),
+				List.of(
+					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
+					new Variant(VCIProfile.class, "haip"),
+					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
+					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(VCIGrantType.class, "authorization_code"),
+					new Variant(AuthorizationRequestType.class, "simple"),
+					new Variant(VCICredentialEncryption.class, "encrypted")
 				)
 			)
 		);

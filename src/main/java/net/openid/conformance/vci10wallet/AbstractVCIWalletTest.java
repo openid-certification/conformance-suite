@@ -271,9 +271,6 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "mtls", configurationFields = {
 	"client.certificate"
 })
-@VariantConfigurationFields(parameter = VCICredentialEncryption.class, value = "encrypted", configurationFields = {
-	"vci.credential_encryption_jwks"
-})
 @VariantNotApplicableWhen(
 	parameter = VCICredentialOfferParameterVariant.class,
 	values = {"by_value", "by_reference"},  // all values
@@ -1137,17 +1134,19 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
-		// Encrypt the response if wallet requested encryption
-		ResponseEntity<?> encryptionErrorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-8.3.1.2");
-		if (encryptionErrorResponse != null) {
-			return encryptionErrorResponse;
-		}
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			// Encrypt the response if wallet requested encryption
+			ResponseEntity<?> encryptionErrorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEncryptCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-8.3.1.2");
+			if (encryptionErrorResponse != null) {
+				return encryptionErrorResponse;
+			}
 
-		// Check if the response was encrypted
-		String encryptedResponse = env.getString("encrypted_credential_response");
-		if (encryptedResponse != null) {
-			// Return encrypted response as application/jwt
-			return createEncryptedCredentialEndpointResponse(encryptedResponse, responseStatus);
+			// Check if the response was encrypted
+			String encryptedResponse = env.getString("encrypted_credential_response");
+			if (encryptedResponse != null) {
+				// Return encrypted response as application/jwt
+				return createEncryptedCredentialEndpointResponse(encryptedResponse, responseStatus);
+			}
 		}
 
 		JsonObject credentialEndpointResponse = env.getObject("credential_endpoint_response");
