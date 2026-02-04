@@ -420,8 +420,8 @@ local_test:
     CI_ENVIRONMENT_URL=`jq -r ".[] | select(.slug==\"${CI_ENVIRONMENT_SLUG}\") | .external_url" < env-list.js`
     if [ -z "$CI_ENVIRONMENT_URL" ] || [ "$CI_ENVIRONMENT_URL" == "null" ]; then
       echo "None found; trying to find a free environment"
-      x=1
-      while :; do
+      found=0
+      for x in $(seq 1 30 | awk 'BEGIN{srand()} {print rand()"\t"$0}' | sort -n | cut -f2); do
         FAKE_BRANCH_NAME=dev-branch-$x
         CI_ENVIRONMENT_URL=https://review-app-$FAKE_BRANCH_NAME.$KUBE_INGRESS_BASE_DOMAIN
         echo "Checking: $CI_ENVIRONMENT_URL"
@@ -430,15 +430,15 @@ local_test:
         echo "jq exit status: $res"
         if [ $res -eq 4 ]; then
           # no match - we found a free one
+          found=1
           break
         fi
-        x=$(( $x + 1 ))
-        if [ $x -gt 30 ]; then
-          echo "All review app environments seem to already be in use. Instructions on how to proceed can be found on the wiki:"
-          echo "https://gitlab.com/openid/conformance-suite/-/wikis/Developers/Contributing#review-app-failures"
-          exit 1
-        fi
       done
+      if [ $found -eq 0 ]; then
+        echo "All review app environments seem to already be in use. Instructions on how to proceed can be found on the wiki:"
+        echo "https://gitlab.com/openid/conformance-suite/-/wikis/Developers/Contributing#review-app-failures"
+        exit 1
+      fi
       echo "Found a free environment: $CI_ENVIRONMENT_URL"
       CI_ENVIRONMENT_MTLS_URL=`echo $CI_ENVIRONMENT_URL | sed  's/review/mtls-review/'`
     else
