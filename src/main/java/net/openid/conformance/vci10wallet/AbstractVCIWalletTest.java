@@ -318,6 +318,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected long waitTimeoutSeconds = 5;
 
+	protected long maxWaitForAdditionalRequestsSeconds = 40;
+
 	protected VCIGrantType vciGrantType;
 
 	protected VCIWalletAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
@@ -357,6 +359,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		if (config.has("waitTimeoutSeconds")) {
 			waitTimeoutSeconds = OIDFJSON.getLong(config.get("waitTimeoutSeconds"));
+		}
+
+		if (config.has("maxWaitForAdditionalRequestSeconds")) {
+			maxWaitForAdditionalRequestsSeconds = OIDFJSON.getLong(config.get("maxWaitForAdditionalRequestSeconds"));
 		}
 
 		setupPlainFapi();
@@ -1592,16 +1598,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 
-		int waitTimeSeconds = 40;
 		eventLog.log(getName(), """
 			Detected completed credential endpoint call. Waiting %d seconds for additional wallet requests before completing the test."""
-			.formatted(waitTimeSeconds));
+			.formatted(maxWaitForAdditionalRequestsSeconds));
 
 		getTestExecutionManager().scheduleInBackground(() -> {
 			setStatus(Status.RUNNING);
 			fireTestFinished();
 			return null;
-		}, waitTimeSeconds, TimeUnit.SECONDS);
+		}, maxWaitForAdditionalRequestsSeconds, TimeUnit.SECONDS);
 
 	}
 
