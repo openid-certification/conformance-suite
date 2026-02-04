@@ -37,6 +37,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					// positive tests
 					VCIIssuerHappyFlow.class,
 					VCIIssuerEnsureServerAcceptsRequestObjectWithMultipleAud.class, // may not be that useful but currently used for op-against-rp tests in our CI - maybe we should add a simple 'only one authorization' test in the test plan before the happy flow that uses two clients (as using two clients doesn't work with rp tests)
+					VCIIssuerHappyFlowWithSkipNotification.class,
 					// negative tests
 					VCIIssuerFailOnInvalidNonce.class,
 					VCIIssuerFailOnReplayNonce.class,
