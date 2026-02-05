@@ -15,7 +15,7 @@ public class VCICreateCredentialEndpointResponse extends AbstractCondition {
 	@SuppressWarnings("unused")
 	@Override
 	@PreEnvironment(strings = "fapi_interaction_id", required = "credential_issuance")
-	@PostEnvironment(required = {"credential_endpoint_response", "credential_endpoint_response_headers"}, strings = "notification_id")
+	@PostEnvironment(required = {"credential_endpoint_response", "credential_endpoint_response_headers"})
 	public Environment evaluate(Environment env) {
 
 		String fapiInteractionId = env.getString("fapi_interaction_id");
