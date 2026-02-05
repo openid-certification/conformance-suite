@@ -1026,7 +1026,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		checkResourceEndpointRequest(false);
 
 		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
-		callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-11.1");
+		callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
 		callAndContinueOnFailure(VCICheckForUnknownFieldsInNotificationRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-11.1");
 
 		// Per Section 11.3, return 400 with error JSON if validation failed
