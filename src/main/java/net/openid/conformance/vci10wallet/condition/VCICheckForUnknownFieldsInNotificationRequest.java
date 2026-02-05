@@ -22,7 +22,7 @@ public class VCICheckForUnknownFieldsInNotificationRequest extends AbstractCondi
 		JsonElement bodyJsonEl = env.getElementFromObject("incoming_request", "body_json");
 
 		if (bodyJsonEl == null || !bodyJsonEl.isJsonObject()) {
-			// there can be no unknown fields for empty input.
+			log("Notification request did not contain a request body.");
 			return env;
 		}
 
