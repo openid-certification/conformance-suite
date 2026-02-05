@@ -13,7 +13,7 @@ public class VCICreateCredentialEndpointResponse extends AbstractCondition {
 
 	@SuppressWarnings("unused")
 	@Override
-	@PreEnvironment(strings = "fapi_interaction_id")
+	@PreEnvironment(strings = "fapi_interaction_id", required = "credential_issuance")
 	@PostEnvironment(required = {"credential_endpoint_response", "credential_endpoint_response_headers"})
 	public Environment evaluate(Environment env) {
 
@@ -35,20 +35,21 @@ public class VCICreateCredentialEndpointResponse extends AbstractCondition {
 		JsonObject proof = requestBodyJson.getAsJsonObject("proof");
 		JsonObject proofs = requestBodyJson.getAsJsonObject("proofs");
 
-		// TODO generate actual credential
-
+		// Get credentials array from credential_issuance (populated by CreateSdJwtCredential or CreateMdocCredentialForVCI)
+		// Per VCI spec F.1 and F.3, the issuer SHOULD issue a Credential for each key in attested_keys
 		// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.3
-		JsonArray credentials = new JsonArray();
-		JsonObject credential = new JsonObject();
-		// using mock from the spec here for now
-		credential.addProperty("credential", env.getString("credential"));
-		credentials.add(credential);
+		JsonObject credentialIssuance = env.getObject("credential_issuance");
+		JsonArray credentials = credentialIssuance.getAsJsonArray("credentials");
+
 		response.add("credentials", credentials);
 
 		// TODO handle notification_id
 		// TODO handle transaction_id
 
-		logSuccess("Created credential response object", args("credential_endpoint_response", response, "credential_endpoint_response_headers", headers));
+		logSuccess("Created credential response object",
+			args("credential_endpoint_response", response,
+				"credential_endpoint_response_headers", headers,
+				"credential_count", credentials.size()));
 
 		env.putObject("credential_endpoint_response", response);
 		env.putObject("credential_endpoint_response_headers", headers);

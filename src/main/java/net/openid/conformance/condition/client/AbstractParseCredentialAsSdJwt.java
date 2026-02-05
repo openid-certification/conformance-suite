@@ -77,10 +77,11 @@ public abstract class AbstractParseCredentialAsSdJwt extends AbstractCondition {
 		} catch (ParseException e) {
 			throw error("Parsing SD-JWT key binding jwt failed", e, args("sdjwt", sdJwtStr));
 		}
+		JsonObject decodedJsonObject = JsonParser.parseString(gson.toJson(decodedMap)).getAsJsonObject();
 
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("value", sdJwtStr);
-		jsonObject.add("decoded", JsonParser.parseString(gson.toJson(decodedMap)).getAsJsonObject());
+		jsonObject.add("decoded", decodedJsonObject);
 		jsonObject.add("disclosures", JsonParser.parseString(gson.toJson(disclosures)).getAsJsonArray());
 		jsonObject.add("binding", bindJwt);
 		jsonObject.add("credential", credJwt);

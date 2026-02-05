@@ -50,23 +50,32 @@ public class VCIExtractCredentialRequestProof extends AbstractCondition {
 			}
 
 			log("Found " + jwtArray.size() + " JWT(s) for 'jwt' proof.", args("jwts", jwtArray));
-			// TODO handle multiple jwt proof values
-			// for now we select the first item in the array
-			String jwtString = OIDFJSON.getString(jwtArray.get(0));
-			try {
-				JsonObject proofJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtString);
-				env.putObject("proof_jwt", proofJwt);
-				env.putString("proof_type", proofType);
-				if (jwtArray.size() > 1) {
-					log("Found multiple JWTs in 'jwt' proof, this is currently not supported. We continue by using the first jwt in the list");
-				}
 
-				logSuccess("Extracted first 'jwt' proof from credential request", args("proof_jwt", proofJwt));
-			} catch (ParseException e) {
-				String errorDescription = "Parsing of 'jwt' proof failed";
-				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
-				throw error(errorDescription, e, args("proof_jwt_string", jwtString));
+			// Parse all JWT proofs and store them
+			JsonArray proofJwtsArray = new JsonArray();
+			for (int i = 0; i < jwtArray.size(); i++) {
+				String jwtString = OIDFJSON.getString(jwtArray.get(i));
+				try {
+					JsonObject proofJwt = JWTUtil.jwtStringToJsonObjectForEnvironment(jwtString);
+					proofJwtsArray.add(proofJwt);
+				} catch (ParseException e) {
+					String errorDescription = "Parsing of 'jwt' proof at index " + i + " failed";
+					VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+					throw error(errorDescription, e, args("proof_jwt_string", jwtString, "index", i));
+				}
 			}
+
+			// Store the array of all parsed proof JWTs
+			JsonObject proofJwtsWrapper = new JsonObject();
+			proofJwtsWrapper.add("items", proofJwtsArray);
+			env.putObject("proof_jwts", proofJwtsWrapper);
+
+			// Also store the first one as proof_jwt for backward compatibility
+			env.putObject("proof_jwt", proofJwtsArray.get(0).getAsJsonObject());
+			env.putString("proof_type", proofType);
+
+			logSuccess("Extracted " + proofJwtsArray.size() + " 'jwt' proof(s) from credential request",
+				args("proof_jwts", proofJwtsArray, "proof_count", proofJwtsArray.size()));
 
 		} else if (proofsObject.has("attestation")) {
 			// A JWT [RFC7519] representing a key attestation without using a proof of possession of the cryptographic key material that is being attested.

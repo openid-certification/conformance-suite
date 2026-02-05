@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -9,7 +10,9 @@ import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.testapp.VciMdocUtils;
 
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,11 +23,12 @@ import java.util.Set;
 public class CreateMdocCredentialForVCI extends AbstractCondition {
 
 	@Override
-	@PostEnvironment(strings = "credential")
+	@PostEnvironment(required = "credential_issuance")
 	public Environment evaluate(Environment env) {
 
-		// Get the device public key from the proof (same pattern as CreateSdJwtCredential)
-		String publicJwkJson = resolveJwk(env);
+		// Get all device public keys from the proof
+		// Per VCI spec F.1 and F.3, we should issue a credential for each key
+		List<String> publicJwkJsonList = resolveJwks(env);
 
 		String docType = env.getString("credential_configuration", "doctype");
 		if (docType == null || docType.isBlank()) {
@@ -35,46 +39,85 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		String issuerSigningJwk = credentialSigningJwkEl != null ? credentialSigningJwkEl.toString() : null;
 
-		// Create the mdoc credential
-		String mdocB64url = VciMdocUtils.createMdocCredential(publicJwkJson, docType, issuerSigningJwk);
+		JsonArray credentials = new JsonArray();
+		for (String publicJwkJson : publicJwkJsonList) {
+			// Create the mdoc credential for this key
+			String mdocB64url = VciMdocUtils.createMdocCredential(publicJwkJson, docType, issuerSigningJwk);
 
-		env.putString("credential", mdocB64url);
+			JsonObject credentialObj = new JsonObject();
+			credentialObj.addProperty("credential", mdocB64url);
+			credentials.add(credentialObj);
 
-		// Log the created credential with CBOR diagnostics
-		byte[] mdocBytes = Base64.getUrlDecoder().decode(mdocB64url);
-		String diagnostics = Cbor.INSTANCE.toDiagnostics(mdocBytes,
-			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
+			// Log the created credential with CBOR diagnostics
+			byte[] mdocBytes = Base64.getUrlDecoder().decode(mdocB64url);
+			String diagnostics = Cbor.INSTANCE.toDiagnostics(mdocBytes,
+				Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
 
-		log("Created mdoc credential (IssuerSigned) for VCI",
-			args("mdoc_b64url", mdocB64url,
-				"doctype", docType,
-				"cbor_diagnostic", diagnostics));
+			log("Created mdoc credential (IssuerSigned) for VCI",
+				args("mdoc_b64url", mdocB64url,
+					"doctype", docType,
+					"cbor_diagnostic", diagnostics));
+		}
+
+		JsonObject credentialIssuance = new JsonObject();
+		credentialIssuance.add("credentials", credentials);
+		env.putObject("credential_issuance", credentialIssuance);
+
+		log("Created " + credentials.size() + " mdoc credential(s) for VCI",
+			args("credentials", credentials, "credential_count", credentials.size()));
 
 		return env;
 	}
 
 	/**
-	 * Resolves the device public key from the proof.
+	 * Resolves all device public keys from the proof.
 	 * Supports both 'jwt' and 'attestation' proof types.
-	 * Returns null if the credential configuration doesn't require cryptographic binding.
+	 * Per VCI spec F.1 and F.3, the issuer SHOULD issue a Credential for each
+	 * cryptographic public key specified in the attested_keys claim or for each
+	 * key in the jwt proofs array.
+	 *
+	 * @return List of JWK JSON strings (may contain a single null if no cryptographic binding is required)
 	 */
-	protected String resolveJwk(Environment env) {
+	protected List<String> resolveJwks(Environment env) {
 		// Check if the credential configuration requires cryptographic binding
 		JsonObject credentialConfiguration = env.getObject("credential_configuration");
 		if (credentialConfiguration != null && !credentialConfiguration.has("cryptographic_binding_methods_supported")) {
 			// No cryptographic binding required, no device key needed
 			log("Credential configuration does not require cryptographic binding, skipping device key binding");
-			return null;
+			List<String> result = new ArrayList<>();
+			result.add(null);
+			return result;
 		}
 
 		String proofType = env.getString("proof_type");
 
-		JsonElement publicJWK;
+		List<String> publicJWKs = new ArrayList<>();
 		if ("jwt".equals(proofType)) {
-			publicJWK = env.getElementFromObject("proof_jwt", "header.jwk");
-			if (publicJWK == null) {
-				throw error("Couldn't find public JWK in proof_jwt header.jwk for proof type: " + proofType,
-					args("proof_type", proofType));
+			// Check if we have multiple proof JWTs (proof_jwts array)
+			JsonObject proofJwtsWrapper = env.getObject("proof_jwts");
+			if (proofJwtsWrapper != null && proofJwtsWrapper.has("items")) {
+				JsonArray proofJwtsArray = proofJwtsWrapper.getAsJsonArray("items");
+				for (JsonElement proofJwtEl : proofJwtsArray) {
+					JsonObject proofJwt = proofJwtEl.getAsJsonObject();
+					JsonElement publicJWK = proofJwt.has("header") ?
+						proofJwt.getAsJsonObject("header").get("jwk") : null;
+					if (publicJWK == null) {
+						throw error("Couldn't find public JWK in proof_jwt header.jwk",
+							args("proof_type", proofType, "proof_jwt", proofJwt));
+					}
+					publicJWKs.add(publicJWK.toString());
+				}
+				log("Found " + publicJWKs.size() + " JWK(s) from jwt proofs",
+					args("key_count", publicJWKs.size()));
+			} else {
+				// Fallback to single proof_jwt for backward compatibility
+				JsonElement publicJWK = env.getElementFromObject("proof_jwt", "header.jwk");
+				if (publicJWK == null) {
+					throw error("Couldn't find public JWK in proof_jwt header.jwk for proof type: " + proofType,
+						args("proof_type", proofType));
+				}
+				publicJWKs.add(publicJWK.toString());
+				log("Found JWK in jwt proof", args("jwk", publicJWK));
 			}
 		} else if ("attestation".equals(proofType)) {
 			JsonElement proofAttestation = env.getElementFromObject("proof_attestation", "claims.attested_keys");
@@ -86,19 +129,17 @@ public class CreateMdocCredentialForVCI extends AbstractCondition {
 			if (jwksKeys.isEmpty()) {
 				throw error("attested_keys of Attestation must not be empty");
 			}
-			if (jwksKeys.size() > 1) {
-				log("Found more than one JWK in attested keys, using the first key in the list",
-					args("attested_keys", jwksKeys, "first_jwk", jwksKeys.get(0)));
-			} else {
-				log("Found one JWK in attested keys",
-					args("attested_keys", jwksKeys, "first_jwk", jwksKeys.get(0)));
+			// Add all keys from attested_keys - per spec we should issue a credential for each
+			for (JsonElement key : jwksKeys) {
+				publicJWKs.add(key.toString());
 			}
-			publicJWK = jwksKeys.get(0);
+			log("Found " + publicJWKs.size() + " JWK(s) in attested_keys",
+				args("attested_keys", jwksKeys, "key_count", publicJWKs.size()));
 		} else {
 			throw error("Cannot determine JWK from unsupported proof type: " + proofType,
 				args("proof_type", proofType));
 		}
 
-		return publicJWK.toString();
+		return publicJWKs;
 	}
 }
