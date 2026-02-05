@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -22,7 +21,6 @@ public class VCIExtractNotificationIdFromCredentialResponse extends AbstractCond
 
 	@Override
 	@PreEnvironment(required = "endpoint_response")
-	@PostEnvironment(strings = "notification_id")
 	public Environment evaluate(Environment env) {
 
 		JsonObject endpointResponse = env.getObject("endpoint_response").getAsJsonObject();
