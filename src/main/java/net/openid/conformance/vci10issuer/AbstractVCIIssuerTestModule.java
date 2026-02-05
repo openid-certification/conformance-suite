@@ -1314,7 +1314,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// Extract notification_id from the credential response
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(VCIExtractNotificationIdFromCredentialResponse.class, ConditionResult.INFO, "OID4VCI-1FINAL-8.3");
+		callAndContinueOnFailure(VCIExtractNotificationIdFromCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		call(exec().unmapKey("endpoint_response"));
 
 		String notificationId = env.getString("notification_id");

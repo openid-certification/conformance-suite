@@ -29,8 +29,13 @@ public class VCIExtractNotificationIdFromCredentialResponse extends AbstractCond
 		JsonObject credentialResponseBodyJson = JsonParser.parseString(OIDFJSON.getString(endpointResponse.get("body"))).getAsJsonObject();
 
 		JsonElement notificationIdEl = credentialResponseBodyJson.get("notification_id");
-		if (notificationIdEl == null || !notificationIdEl.isJsonPrimitive() || !notificationIdEl.getAsJsonPrimitive().isString()) {
-			throw error("Credential response does not contain a 'notification_id' string.",
+		if (notificationIdEl == null) {
+			log("Credential response does not contain a notification_id field.");
+			return env;
+		}
+
+		if (!notificationIdEl.isJsonPrimitive() || !notificationIdEl.getAsJsonPrimitive().isString()) {
+			throw error("notification_id field in credential response is not a string.",
 				args("credential_response", credentialResponseBodyJson));
 		}
 
