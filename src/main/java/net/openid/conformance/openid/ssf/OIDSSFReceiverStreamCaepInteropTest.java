@@ -67,7 +67,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 	@Override
 	public void fireTestFinished() {
-		eventLog.log(getId(), "Detected all stream operations required by CAEP Interop Profile.");
+		eventLog.log(getName(), "Detected all stream operations required by CAEP Interop Profile.");
 		super.fireTestFinished();
 	}
 

@@ -94,7 +94,7 @@ public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiver
 
 	@Override
 	public void fireTestFinished() {
-		eventLog.log(getId(), "Detected all expected stream operations.");
+		eventLog.log(getName(), "Detected all expected stream operations.");
 		super.fireTestFinished();
 	}
 }
