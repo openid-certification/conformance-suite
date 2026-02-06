@@ -22,13 +22,12 @@ import java.util.List;
 )
 public class VCIWalletTestPlanHaip implements TestPlan {
 
-
 	public static List<ModuleListEntry> testModulesWithVariants() {
 
 		List<Class<? extends TestModule>> testModules = new ArrayList<>(VCIWalletTestPlan.testModules);
 
-		// HAIP requires to use of scopes
-		testModules.remove(VCIWalletHappyPath.class);
+		// Not needed for HAIP
+		testModules.remove(VCIWalletTestCredentialIssuanceUsingScopesWithoutAuthorizationDetailsInTokenResponse.class);
 
 		return List.of(
 			new ModuleListEntry(
@@ -45,7 +44,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 				)
 			),
 			new ModuleListEntry(
-				List.of(VCIWalletHappyPathUsingScopes.class),
+				testModules,
 				List.of(
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
@@ -58,7 +57,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 				)
 			),
 			new ModuleListEntry(
-				List.of(VCIWalletHappyPathUsingScopes.class),
+				testModules,
 				List.of(
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),

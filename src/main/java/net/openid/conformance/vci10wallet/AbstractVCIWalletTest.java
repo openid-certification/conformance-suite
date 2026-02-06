@@ -32,8 +32,12 @@ import net.openid.conformance.condition.as.CalculateCHash;
 import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
+import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
+import net.openid.conformance.condition.as.CheckForInvalidCharsInState;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
+import net.openid.conformance.condition.as.CheckNonceMaximumLength;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
+import net.openid.conformance.condition.as.CheckStateLength;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
@@ -116,6 +120,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
+import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.common.RARSupport;
@@ -193,6 +198,8 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vci10issuer.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
+import net.openid.conformance.vci10wallet.condition.VCIAddNotificationIdToCredentialEndpointResponse;
+import net.openid.conformance.vci10wallet.condition.VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing;
 import net.openid.conformance.vci10wallet.condition.VCICheckForUnknownFieldsInNotificationRequest;
 import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
@@ -209,6 +216,7 @@ import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialI
 import net.openid.conformance.vci10wallet.condition.VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow;
 import net.openid.conformance.vci10wallet.condition.VCIInjectCredentialConfigurationIdHint;
 import net.openid.conformance.vci10wallet.condition.VCIInjectOpenIdCredentialAsSupportedAuthorizationRequestTypes;
+import net.openid.conformance.vci10wallet.condition.VCIInjectRequestScopePreAuthorizedCodeFlow;
 import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
@@ -306,6 +314,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected VCIClientAuthType clientAuthType;
 
+	protected boolean notificationsSupportEnabled;
+
 	protected FAPI2SenderConstrainMethod fapi2SenderConstrainMethod;
 
 	protected FAPI2AuthRequestMethod fapi2AuthRequestMethod;
@@ -318,7 +328,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected long waitTimeoutSeconds = 5;
 
-	protected long maxWaitForAdditionalRequestsSeconds = 40;
+	protected long maxWaitForAdditionalRequestSeconds = 40;
 
 	protected VCIGrantType vciGrantType;
 
@@ -332,7 +342,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected VCICredentialEncryption vciCredentialEncryption;
 
-	protected abstract void addCustomValuesToIdToken();
+	protected void addCustomValuesToIdToken() {
+		//Do nothing
+	}
 
 	protected void addCustomSignatureOfIdToken() {
 	}
@@ -362,7 +374,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		if (config.has("maxWaitForAdditionalRequestSeconds")) {
-			maxWaitForAdditionalRequestsSeconds = OIDFJSON.getLong(config.get("maxWaitForAdditionalRequestSeconds"));
+			maxWaitForAdditionalRequestSeconds = OIDFJSON.getLong(config.get("maxWaitForAdditionalRequestSeconds"));
 		}
 
 		setupPlainFapi();
@@ -492,6 +504,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		env.putString("oauth_authorization_server_metadata_url", oauthAuthorizationServerMetadataUrl);
 
 		addTokenStatusListAggregationEndpointToOauthServerMetadata();
+
+		callAndContinueOnFailure(VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
 	}
 
 	protected void addTokenStatusListAggregationEndpointToOauthServerMetadata() {
@@ -598,6 +612,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
 
+		if (!notificationsSupportEnabled) {
+			metadataJson.remove("notification_endpoint");
+			env.removeNativeValue("credential_issuer_notification_endpoint_url");
+		}
+
 		// Add credential response encryption metadata if encryption is enabled
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			JsonArray algValues = new JsonArray();
@@ -640,6 +659,46 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected JsonObject customizeSupportedCredentials(JsonObject supportedCredentials) {
+
+		if (authorizationRequestType == AuthorizationRequestType.SIMPLE) {
+			JsonObject credential;
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1");
+			credential.addProperty("scope", "eudi.pid.1");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.attestation");
+			credential.addProperty("scope", "eudi.pid.1.attestation");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.jwt.keyattest");
+			credential.addProperty("scope", "eudi.pid.1.jwt.keyattest");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.attestation.keyattest");
+			credential.addProperty("scope", "eudi.pid.1.attestation.keyattest");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.jwt_and_attestation.keyattest");
+			credential.addProperty("scope", "eudi.pid.1.jwt_and_attestation.keyattest");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.nobinding");
+			credential.addProperty("scope", "eudi.pid.1.nobinding");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1");
+			credential.addProperty("scope", "eudi.pid.mdoc.1");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.attestation");
+			credential.addProperty("scope", "eudi.pid.mdoc.1.attestation");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.jwt.keyattest");
+			credential.addProperty("scope", "eudi.pid.mdoc.1.jwt.keyattest");
+
+			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.attestation.keyattest");
+			credential.addProperty("scope", "eudi.pid.mdoc.1.attestation.keyattest");
+
+			credential = supportedCredentials.getAsJsonObject("org.iso.18013.5.1.mDL");
+			credential.addProperty("scope", "org.iso.18013.5.1.mDL");
+
+			credential = supportedCredentials.getAsJsonObject("org.iso.18013.5.1.mDL.attestation");
+			credential.addProperty("scope", "org.iso.18013.5.1.mDL.attestation");
+		}
+
 		return supportedCredentials;
 	}
 
@@ -653,6 +712,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if (requireResourceServerEndpointDpopNonce()) {
 			callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 		}
+
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-ID2-5.6.3-3");
 	}
 
 	protected boolean requireAuthorizationServerEndpointDpopNonce() {
@@ -1136,6 +1197,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				/* modc */ "OID4VCI-1FINALA-A.2.4"
 			);
 			responseStatus = HttpStatus.OK;
+
+			if (notificationsSupportEnabled) {
+				callAndStopOnFailure(VCIAddNotificationIdToCredentialEndpointResponse.class, "OID4VCI-1FINAL-8.3");
+			}
 		}
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
@@ -1253,6 +1318,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			/* SD JWT VC */ "OID4VCI-1FINALA-A.3.4",
 			/* mdoc */ "OID4VCI-1FINALA-A.2.4"
 		);
+
+		if (notificationsSupportEnabled) {
+			callAndStopOnFailure(VCIAddNotificationIdToCredentialEndpointResponse.class, "OID4VCI-1FINAL-8.3");
+		}
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
@@ -1600,13 +1669,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		eventLog.log(getName(), """
 			Detected completed credential endpoint call. Waiting %d seconds for additional wallet requests before completing the test."""
-			.formatted(maxWaitForAdditionalRequestsSeconds));
+			.formatted(maxWaitForAdditionalRequestSeconds));
 
 		getTestExecutionManager().scheduleInBackground(() -> {
 			setStatus(Status.RUNNING);
 			fireTestFinished();
 			return null;
-		}, maxWaitForAdditionalRequestsSeconds, TimeUnit.SECONDS);
+		}, maxWaitForAdditionalRequestSeconds, TimeUnit.SECONDS);
 
 	}
 
@@ -1939,8 +2008,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected void injectCredentialConfigurationDetailsIntoRequestContextForPreAuthorizedCodeFlow() {
-		if (authorizationRequestType == AuthorizationRequestType.RAR) {
-			callAndStopOnFailure(VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow.class, ConditionResult.FAILURE);
+		switch (authorizationRequestType) {
+			case RAR ->
+				callAndStopOnFailure(VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow.class, ConditionResult.FAILURE);
+			case SIMPLE ->
+				callAndStopOnFailure(VCIInjectRequestScopePreAuthorizedCodeFlow.class, ConditionResult.FAILURE);
 		}
 	}
 
@@ -2053,8 +2125,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		callAndStopOnFailure(VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse.class);
 
-		if (authorizationRequestType == AuthorizationRequestType.RAR) {
-			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
+		switch (authorizationRequestType) {
+			case RAR -> callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
+			case SIMPLE ->
+				// we always add authorization_details to the token endpoint response
+				callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
 		}
 	}
 
@@ -2269,6 +2344,22 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		callAndStopOnFailure(SendAuthorizationResponseWithResponseModeQuery.class, "OIDCC-3.1.2.5");
 
 		exposeEnvString("authorization_endpoint_response_redirect");
+
+		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
+
+		if("yes".equals(isOpenIdScopeRequested)) {
+			skipIfMissing(null, new String[] {"nonce"}, ConditionResult.INFO,
+				CheckForInvalidCharsInNonce.class, ConditionResult.WARNING);
+			skipIfMissing(null, new String[] {"nonce"}, ConditionResult.INFO,
+				CheckNonceMaximumLength.class, ConditionResult.WARNING);
+		} else {
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
+				CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO,
+				CheckForInvalidCharsInState.class, ConditionResult.WARNING);
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY,
+				CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO,
+				CheckStateLength.class, ConditionResult.WARNING);
+		}
 	}
 
 	protected void addCustomValuesToJarmResponse() {
