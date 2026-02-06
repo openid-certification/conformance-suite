@@ -713,7 +713,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 		}
 
-		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-ID2-5.6.3-3");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, ConditionResult.WARNING, "RFC7517-4.5", "FAPI2-SP-FINAL-5.4.2");
 	}
 
 	protected boolean requireAuthorizationServerEndpointDpopNonce() {
