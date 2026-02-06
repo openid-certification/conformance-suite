@@ -19,6 +19,6 @@ public class EnsureHttpStatusCodeIs4xx extends AbstractCondition {
 			return env;
 		}
 
-		throw error(endpointName + "endpoint returned a different http status than expected", args("actual", httpStatus, "expected", "400 to 499"));
+		throw error(endpointName + " endpoint returned a different http status than expected", args("actual", httpStatus, "expected", "400 to 499"));
 	}
 }
