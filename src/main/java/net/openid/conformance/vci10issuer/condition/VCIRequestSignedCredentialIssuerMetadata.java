@@ -12,6 +12,7 @@ public class VCIRequestSignedCredentialIssuerMetadata extends AbstractCondition 
 		JsonObject headers = new JsonObject();
 		headers.addProperty("Accept", "application/jwt");
 		env.putObject("credential_issuer_metadata_endpoint_request", "headers", headers);
+		log("Set Accept header to request signed credential issuer metadata", args("headers", headers));
 		return env;
 	}
 }
