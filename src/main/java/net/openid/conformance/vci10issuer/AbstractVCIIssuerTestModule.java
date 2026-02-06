@@ -61,6 +61,7 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs2xx;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
@@ -102,7 +103,6 @@ import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
-import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDifferent;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
@@ -157,6 +157,7 @@ import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentia
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialRequest;
+import net.openid.conformance.vci10issuer.condition.VCICreateNotificationRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
@@ -165,6 +166,7 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseI
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
@@ -177,11 +179,13 @@ import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorization
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveNotificationEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIUseStaticTxCodeFromConfig;
+import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
@@ -1294,6 +1298,74 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (!isSecondClient()) {
 			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 		}
+
+		sendNotificationIfSupported();
+	}
+
+	/**
+	 * Sends a credential_accepted notification to the issuer's notification endpoint if supported.
+	 *
+	 * Per OID4VCI Section 11, the wallet should send a notification when the credential issuer
+	 * metadata includes a notification_endpoint and the credential response contains a notification_id.
+	 *
+	 * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-11">OID4VCI Section 11 - Notification Endpoint</a>
+	 */
+	protected void sendNotificationIfSupported() {
+
+		// Extract notification_id from the credential response
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(VCIExtractNotificationIdFromCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+		call(exec().unmapKey("endpoint_response"));
+
+		String notificationId = env.getString("notification_id");
+		if (notificationId == null) {
+			eventLog.log(getName(), "No notification_id in credential response, skipping attempt to send a notification");
+			eventLog.endBlock();
+			return;
+		}
+
+		eventLog.startBlock(currentClientString() + "Send Notification to Issuer");
+
+		// Resolve notification endpoint URL
+		callAndStopOnFailure(VCIResolveNotificationEndpointToUse.class, "OID4VCI-1FINAL-12.2.4");
+		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+
+		// Set HTTP method to POST (required for notification endpoint)
+		env.putString("resource", "resourceMethod", "POST");
+
+		// Create the notification request body
+		createNotificationRequest();
+
+		// Create headers
+		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
+
+		// Set Content-Type to application/json
+		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		// Call the notification endpoint
+		if (isDpop()) {
+			requestProtectedResourceUsingDpop();
+		} else {
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-11", "FAPI2-SP-ID2-5.3.3-2");
+		}
+		eventLog.endBlock();
+
+		eventLog.startBlock(currentClientString() + " Validate Notification Response from Issuer");
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		validateNotificationEndpointResponse();
+		call(exec().unmapKey("endpoint_response"));
+		eventLog.endBlock();
+	}
+
+	protected void validateNotificationEndpointResponse() {
+		// Validate response - per spec Section 11.2, must be 2xx, 204 No Content recommended
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs2xx.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2");
+	}
+
+	protected void createNotificationRequest() {
+		callAndStopOnFailure(VCICreateNotificationRequest.class, "OID4VCI-1FINAL-11.1");
 	}
 
 	/**

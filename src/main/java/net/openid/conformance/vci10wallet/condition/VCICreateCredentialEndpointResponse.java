@@ -8,6 +8,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public class VCICreateCredentialEndpointResponse extends AbstractCondition {
 
@@ -43,7 +44,15 @@ public class VCICreateCredentialEndpointResponse extends AbstractCondition {
 
 		response.add("credentials", credentials);
 
-		// TODO handle notification_id
+		// Per OID4VCI Section 8.3, include notification_id when notification_endpoint is in metadata
+		// and credentials are present in the response
+		String notificationEndpointUrl = env.getString("credential_issuer_notification_endpoint_url");
+		if (notificationEndpointUrl != null && credentials != null && !credentials.isEmpty()) {
+			String notificationId = RandomStringUtils.secure().nextAlphanumeric(22);
+			response.addProperty("notification_id", notificationId);
+			env.putString("notification_id", notificationId);
+		}
+
 		// TODO handle transaction_id
 
 		logSuccess("Created credential response object",

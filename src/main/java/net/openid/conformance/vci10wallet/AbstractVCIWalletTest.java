@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
@@ -41,11 +42,10 @@ import net.openid.conformance.condition.as.CreateAuthorizationServerDpopNonce;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationPARRequestParameters;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
+import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreatePAREndpointInvalidClientErrorResponse;
-import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.CreateRefreshToken;
-import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
@@ -193,15 +193,15 @@ import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vci10issuer.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
+import net.openid.conformance.vci10wallet.condition.VCICheckForUnknownFieldsInNotificationRequest;
 import net.openid.conformance.vci10wallet.condition.VCICheckIssuerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICheckOAuthAuthorizationServerMetadataRequestUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialEndpointResponse;
-import net.openid.conformance.vci10wallet.condition.VCICreateDeferredCredentialResponse;
-import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
-import net.openid.conformance.vci10wallet.condition.VCIValidateDeferredCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
+import net.openid.conformance.vci10wallet.condition.VCICreateDeferredCredentialResponse;
+import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
@@ -216,6 +216,8 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequest
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
+import net.openid.conformance.vci10wallet.condition.VCIValidateDeferredCredentialRequest;
+import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
@@ -289,6 +291,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	public static final String NONCE_PATH = "nonce";
 
 	public static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
+
+	public static final String NOTIFICATION_PATH = "notification";
 
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
@@ -561,6 +565,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + CREDENTIAL_PATH;
 		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + NONCE_PATH;
 		String deferredCredentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + DEFERRED_CREDENTIAL_PATH;
+		String notificationEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + NOTIFICATION_PATH;
 
 		String metadata = TemplateProcessor.process("""
 			{
@@ -568,13 +573,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				"credential_endpoint": "$(credentialEndpoint)",
 				"nonce_endpoint": "$(nonceEndpoint)",
 				"deferred_credential_endpoint": "$(deferredCredentialEndpoint)",
+				"notification_endpoint": "$(notificationEndpoint)",
 				"authorization_servers": [ "$(credentialIssuer)" ]
 			}
 			""", Map.of(
 			"credentialIssuer", credentialIssuer,
 			"credentialEndpoint", credentialEndpointUrl,
 			"nonceEndpoint", nonceEndpointUrl,
-			"deferredCredentialEndpoint", deferredCredentialEndpointUrl
+			"deferredCredentialEndpoint", deferredCredentialEndpointUrl,
+			"notificationEndpoint", notificationEndpointUrl
 		));
 
 		String credentialIssuerMetadataUrl = generateWellKnownUrlForPath(credentialIssuer, "openid-credential-issuer");
@@ -584,6 +591,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
 		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
 		env.putString("credential_issuer_deferred_credential_endpoint_url", deferredCredentialEndpointUrl);
+		env.putString("credential_issuer_notification_endpoint_url", notificationEndpointUrl);
 
 		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
 
@@ -625,246 +633,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected JsonObject getSupportedCredentialConfigurations() {
-
-		String json = """
-			{
-				"eu.europa.ec.eudi.pid.1": {
-					"format": "dc+sd-jwt",
-					"vct": "urn:eudi:pid:1",
-					"cryptographic_binding_methods_supported": [ "jwk" ],
-					"credential_signing_alg_values_supported": [ "ES256" ],
-					"proof_types_supported": {
-						"jwt": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID",
-							"description": "OpenID Conformance Test Fake PID description"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.1.attestation": {
-					"format": "dc+sd-jwt",
-					"vct": "urn:eudi:pid:1",
-					"cryptographic_binding_methods_supported": [ "jwk" ],
-					"credential_signing_alg_values_supported": [ "ES256" ],
-					"proof_types_supported": {
-						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID",
-							"description": "OpenID Conformance Test Fake PID description"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.1.jwt.keyattest": {
-					"format": "dc+sd-jwt",
-					"vct": "urn:eudi:pid:1",
-					"cryptographic_binding_methods_supported": [ "jwk" ],
-					"credential_signing_alg_values_supported": [ "ES256" ],
-					"proof_types_supported": {
-						"jwt": {
-							"proof_signing_alg_values_supported": [ "ES256" ],
-							 "key_attestations_required": {}
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID: JWT Proof with Key Attestation",
-							"description": "OpenID Conformance Test Fake PID description"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.1.attestation.keyattest": {
-					"format": "dc+sd-jwt",
-					"vct": "urn:eudi:pid:1",
-					"cryptographic_binding_methods_supported": [ "jwk" ],
-					"credential_signing_alg_values_supported": [ "ES256" ],
-					"proof_types_supported": {
-						"attestation": {
-							 "proof_signing_alg_values_supported": [ "ES256" ],
-							 "key_attestations_required": {}
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID: Attestation Proof with Key Attestation",
-							"description": "OpenID Conformance Test Fake PID description"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.1.jwt_and_attestation.keyattest": {
-					"format": "dc+sd-jwt",
-					"vct": "urn:eudi:pid:1",
-					"cryptographic_binding_methods_supported": [ "jwk" ],
-					"credential_signing_alg_values_supported": [ "ES256" ],
-					"proof_types_supported": {
-						"jwt": {
-							"proof_signing_alg_values_supported": [ "ES256" ],
-							 "key_attestations_required": {}
-						},
-						"attestation": {
-							 "proof_signing_alg_values_supported": [ "ES256" ],
-							 "key_attestations_required": {}
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID: JWT and Attestation Proof with Key Attestation",
-							"description": "OpenID Conformance Test Fake PID description"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.mdoc.1": {
-					"format": "mso_mdoc",
-					"doctype": "eu.europa.ec.eudi.pid.1",
-					"cryptographic_binding_methods_supported": [ "cose_key" ],
-					"credential_signing_alg_values_supported": [ -7 ],
-					"proof_types_supported": {
-						"jwt": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID (mdoc)",
-							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.mdoc.1.attestation": {
-					"format": "mso_mdoc",
-					"doctype": "eu.europa.ec.eudi.pid.1",
-					"cryptographic_binding_methods_supported": [ "cose_key" ],
-					"credential_signing_alg_values_supported": [ -7 ],
-					"proof_types_supported": {
-						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID (mdoc)",
-							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.mdoc.1.jwt.keyattest": {
-					"format": "mso_mdoc",
-					"doctype": "eu.europa.ec.eudi.pid.1",
-					"cryptographic_binding_methods_supported": [ "cose_key" ],
-					"credential_signing_alg_values_supported": [ -7 ],
-					"proof_types_supported": {
-						"jwt": {
-							"proof_signing_alg_values_supported": [ "ES256" ],
-							"key_attestations_required": {}
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID (mdoc): JWT Proof with Key Attestation",
-							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.mdoc.1.attestation.keyattest": {
-					"format": "mso_mdoc",
-					"doctype": "eu.europa.ec.eudi.pid.1",
-					"cryptographic_binding_methods_supported": [ "cose_key" ],
-					"credential_signing_alg_values_supported": [ -7 ],
-					"proof_types_supported": {
-						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ],
-							"key_attestations_required": {}
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID (mdoc): Attestation Proof with Key Attestation",
-							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
-						}
-						]
-					}
-				},
-				"org.iso.18013.5.1.mDL": {
-					"format": "mso_mdoc",
-					"doctype": "org.iso.18013.5.1.mDL",
-					"cryptographic_binding_methods_supported": [ "cose_key" ],
-					"credential_signing_alg_values_supported": [ -7 ],
-					"proof_types_supported": {
-						"jwt": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake mDL (ISO 18013-5)",
-							"description": "OpenID Conformance Test Fake Mobile Driver's License"
-						}
-						]
-					}
-				},
-				"org.iso.18013.5.1.mDL.attestation": {
-					"format": "mso_mdoc",
-					"doctype": "org.iso.18013.5.1.mDL",
-					"cryptographic_binding_methods_supported": [ "cose_key" ],
-					"credential_signing_alg_values_supported": [ -7 ],
-					"proof_types_supported": {
-						"attestation": {
-							"proof_signing_alg_values_supported": [ "ES256" ]
-						}
-					},
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake mDL (ISO 18013-5)",
-							"description": "OpenID Conformance Test Fake Mobile Driver's License"
-						}
-						]
-					}
-				},
-				"eu.europa.ec.eudi.pid.1.nobinding": {
-					"format": "dc+sd-jwt",
-					"vct": "urn:eudi:pid:1",
-					"credential_signing_alg_values_supported": [ "ES256" ],
-					"credential_metadata": {
-						"display": [
-						{
-							"name": "Fake PID (No Holder Binding)",
-							"description": "OpenID Conformance Test Fake PID without cryptographic holder binding"
-						}
-						]
-					}
-				}
-			}
-			""";
-
-		JsonObject supportedCredentials = JsonParser.parseString(json).getAsJsonObject();
-
-		return customizeSupportedCredentials(supportedCredentials);
+		return customizeSupportedCredentials(VCICredentialConfigurations.getDefault());
 	}
 
 	protected JsonObject customizeSupportedCredentials(JsonObject supportedCredentials) {
@@ -1106,6 +875,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return deferredCredentialEndpoint(requestId);
+		} else if (path.equals(NOTIFICATION_PATH)) {
+
+			if (isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The notification endpoint must be called over an mTLS secured connection.");
+			}
+
+			return notificationEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -1224,6 +1000,48 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		setStatus(Status.WAITING);
 		return responseEntity;
+	}
+
+	protected Object notificationEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Notification endpoint"));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+
+		if (isMTLSConstrain() || profileRequiresMtlsEverywhere) {
+			checkMtlsCertificate();
+		}
+
+		call(exec().unmapKey("token_endpoint_request"));
+
+		call(exec().mapKey("incoming_request", requestId));
+
+		// Clear any previous notification error response
+		JsonObject vci = env.getObject("vci");
+		if (vci != null) {
+			vci.remove("notification_error_response");
+		}
+
+		checkResourceEndpointRequest(false);
+
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
+		callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
+		callAndContinueOnFailure(VCICheckForUnknownFieldsInNotificationRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-11.1");
+
+		// Per Section 11.3, return 400 with error JSON if validation failed
+		JsonElement notificationErrorResponse = env.getElementFromObject("vci", "notification_error_response");
+		if (notificationErrorResponse != null) {
+			JsonObject errorBody = notificationErrorResponse.getAsJsonObject().getAsJsonObject("body");
+			call(exec().unmapKey("incoming_request").endBlock());
+			setStatus(Status.WAITING);
+			return new ResponseEntity<>(errorBody, HttpStatus.BAD_REQUEST);
+		}
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@SuppressWarnings("unused")
@@ -1536,6 +1354,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return deferredCredentialEndpoint(requestId);
+		} else if (path.equals(NOTIFICATION_PATH)) {
+			if (!isMTLSConstrain()) {
+				throw new TestFailureException(getId(), "The notification endpoint must not be called over an mTLS secured connection.");
+			}
+
+			return notificationEndpoint(requestId);
 		} else if (path.equals("userinfo")) {
 			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
