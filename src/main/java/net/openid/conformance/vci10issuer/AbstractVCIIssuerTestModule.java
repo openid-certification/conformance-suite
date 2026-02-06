@@ -866,6 +866,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+
+		if (env.getObject("token_endpoint_request_headers") == null) {
+			env.putObject("token_endpoint_request_headers", new JsonObject());
+		}
+
 		env.mapKey("request_headers", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
 		env.unmapKey("request_headers");
