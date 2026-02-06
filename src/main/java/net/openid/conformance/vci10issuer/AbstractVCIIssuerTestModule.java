@@ -59,10 +59,12 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs2xx;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -145,7 +147,6 @@ import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
-import net.openid.conformance.variant.VCIServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -168,14 +169,16 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentFor
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
+import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
-import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
+import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
@@ -276,8 +279,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Supplier<? extends ConditionSequence> createDpopForTokenEndpointSteps;
 	protected Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps;
 
-	protected Supplier<? extends ConditionSequence> fetchCredentialIssuerMetadataSteps;
-
 	public static class FAPIResourceConfiguration extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
@@ -336,9 +337,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// https://gitlab.com/idmvp/specifications/-/issues/29
 		profileRequiresMtlsEverywhere = false;
 
-
-		fetchCredentialIssuerMetadataSteps = () -> new VCIFetchCredentialIssuerMetadataSequence(VCIServerMetadata.DISCOVERY);
-
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
 		eventLog.startBlock("Fetch Authorization Server Metadata");
@@ -381,7 +379,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		configureClient();
 		eventLog.endBlock();
 
-		eventLog.startBlock("Configure Resource Endpoint");
+		eventLog.startBlock("Configure Credential Endpoint");
 		setupResourceEndpoint();
 		eventLog.endBlock();
 
@@ -621,7 +619,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
-		call(sequence(fetchCredentialIssuerMetadataSteps));
+		callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
+
+		processCredentialIssuerMetadataResponse();
+
+		callAndStopOnFailure(VCIExtractTlsInfoFromCredentialIssuer.class);
+	}
+
+	protected void processCredentialIssuerMetadataResponse() {
+		callAndStopOnFailure(VCIParseCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 	}
 
 	protected void performPreAuthorizationSteps() {
@@ -1217,6 +1223,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		int statusCode = env.getInteger("endpoint_response", "status");
 
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+
 		// Decrypt the response if encryption was requested and the response was OK
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
 			callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
@@ -1437,15 +1445,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
-		// Check for successful response
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2");
+		// Check for a successful response
+		callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202), ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-9.2");
 
 		eventLog.endBlock();
 	}
 
 	protected void afterNonceEndpointResponse() {
 		call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
-		callAndContinueOnFailure(new EnsureHttpStatusCode(200), ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-7.2");
 
 		callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 		callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");

@@ -23,7 +23,8 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 			new ModuleListEntry(
 				List.of(
 					// positive tests
-					VCIIssuerMetadataTest.class
+					VCIIssuerMetadataTest.class,
+					VCIIssuerMetadataSignedTest.class
 				),
 				List.of(
 					new Variant(VCIProfile.class, "haip"),

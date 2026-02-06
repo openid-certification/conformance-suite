@@ -4,8 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
-import net.openid.conformance.variant.VCIServerMetadata;
-import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialIssuerMetadataSequence;
+import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
 
 public abstract class AbstractVciTest extends AbstractTestModule {
 
@@ -34,19 +33,14 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 		fireSetupDone();
 	}
 
-	protected VCIFetchCredentialIssuerMetadataSequence createFetchCredentialIssuerMetadataSequence() {
-		return new VCIFetchCredentialIssuerMetadataSequence(VCIServerMetadata.DISCOVERY);
-	}
-
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		// No custom configuration
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
 
-		call(sequence(this::createFetchCredentialIssuerMetadataSequence));
+		callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 
-		exposeEnvString("vci_issuer_url", "vci", "credential_issuer");
 		exposeEnvString("vci_metadata_url", "vci","credential_issuer_metadata_url");
 	}
 }
