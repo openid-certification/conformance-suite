@@ -26,7 +26,7 @@ import net.openid.conformance.vci10issuer.condition.VCIRequestSignedCredentialIs
 	}
 )
 @VariantParameters({VCIClientAuthType.class, VCIProfile.class})
-public class VCIIssuerMetadataSingedTest extends VCIIssuerMetadataTest {
+public class VCIIssuerMetadataSignedTest extends VCIIssuerMetadataTest {
 
 	@Override
 	protected void fetchCredentialIssuerMetadata() {

@@ -24,7 +24,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				List.of(
 					// positive tests
 					VCIIssuerMetadataTest.class,
-					VCIIssuerMetadataSingedTest.class
+					VCIIssuerMetadataSignedTest.class
 				),
 				List.of(
 					new Variant(VCIProfile.class, "haip"),
