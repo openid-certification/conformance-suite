@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		An authorization request is initiated using Pushed Authorization Requests (PAR), and an access token is obtained.
 		The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce,
 		and successfully requests a credential from the Credential Endpoint.
-		This test skips sending a notification to the issuer.
+		This test skips sending a notification to the issuer. Sending a notification is optional for the wallet, so the issuer must be able to tolerate never receiving a notification.
 		""",
 	profile = "OID4VCI-1_0",
 	configurationFields = {
