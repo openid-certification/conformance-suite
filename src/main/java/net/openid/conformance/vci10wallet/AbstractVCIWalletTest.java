@@ -1668,7 +1668,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		setStatus(Status.WAITING);
 
 		eventLog.log(getName(), """
-			Detected completed credential endpoint call. Waiting %d seconds for additional wallet requests before completing the test."""
+			Detected completed credential endpoint call. Waiting %d seconds for additional wallet requests before completing the test. \
+			The wait can be adjusted by setting maxWaitForAdditionalRequestSeconds in the configuration.
+			"""
 			.formatted(maxWaitForAdditionalRequestSeconds));
 
 		getTestExecutionManager().scheduleInBackground(() -> {
