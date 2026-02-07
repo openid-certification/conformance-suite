@@ -59,6 +59,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
+import net.openid.conformance.condition.client.EnsureContentTypeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -174,6 +175,7 @@ import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateCredentialEncryptionJwks;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
@@ -241,9 +243,6 @@ import java.util.function.Supplier;
 	"mtls2.key",
 	"mtls2.cert",
 	"mtls2.ca",
-})
-@VariantConfigurationFields(parameter = VCICredentialEncryption.class, value = "encrypted", configurationFields = {
-	"vci.credential_encryption_jwks"
 })
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
@@ -338,6 +337,18 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		profileRequiresMtlsEverywhere = false;
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
+
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+
+			// check if the issuer actually supports encryption
+			JsonElement algValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption_alg_values_supported");
+			JsonElement encValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption_enc_values_supported");
+
+			if (algValuesEl == null || encValuesEl == null || !algValuesEl.isJsonArray() || !encValuesEl.isJsonArray()) {
+				fireTestSkipped("Encryption is not supported by credential issuer.");
+				return;
+			}
+		}
 
 		eventLog.startBlock("Fetch Authorization Server Metadata");
 
@@ -447,11 +458,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// Load credential encryption JWKS if encryption is enabled
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			JsonElement encryptionJwks = env.getElementFromObject("config", "vci.credential_encryption_jwks");
-			if (encryptionJwks == null || !encryptionJwks.isJsonObject()) {
-				throw new TestFailureException(getId(), "vci.credential_encryption_jwks must be configured when credential_encryption=encrypted");
-			}
-			env.putObject("credential_encryption_jwks", encryptionJwks.getAsJsonObject());
+			callAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
 		}
 
 		validateClientConfiguration();
@@ -1228,7 +1235,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		int statusCode = env.getInteger("endpoint_response", "status");
 
-		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+		callAndContinueOnFailure(new EnsureContentTypeIsAnyOf("application/json", "application/jwt"), ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
 
 		// Decrypt the response if encryption was requested and the response was OK
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
@@ -1294,13 +1301,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			if (extractedCredentials.size() > 1) {
 				eventLog.startBlock(currentClientString() + "Verify credential " + (i + 1) + " of " + extractedCredentials.size());
+			} else {
+				eventLog.startBlock(currentClientString() + "Verify credential");
 			}
 
 			verifyCredential();
 
-			if (extractedCredentials.size() > 1) {
-				eventLog.endBlock();
-			}
+			eventLog.endBlock();
 		}
 
 		call(exec().unmapKey("endpoint_response"));

@@ -14,10 +14,9 @@ import java.util.List;
 public class VCIWalletTestPlan implements TestPlan {
 
 	public static final List<Class<? extends TestModule>> testModules = List.of(
-		VCIWalletHappyPath.class,
-		VCIWalletHappyPathUsingScopes.class,
-		VCIWalletHappyPathUsingScopesWithoutNotification.class,
-		VCIWalletHappyPathUsingScopesWithoutAuthorizationDetailsInTokenResponse.class
+		VCIWalletTestCredentialIssuance.class,
+		VCIWalletTestCredentialIssuanceWithNotification.class,
+		VCIWalletTestCredentialIssuanceUsingScopesWithoutAuthorizationDetailsInTokenResponse.class
 	);
 
 	public static List<ModuleListEntry> testModulesWithVariants() {

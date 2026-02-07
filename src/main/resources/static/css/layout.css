@@ -525,3 +525,10 @@ pre.prettyprint {
 	font-size: 0.9em;
 	margin-top: 10px;
 }
+
+/* Wider tooltips for test descriptions */
+.tooltip-inner {
+	max-width: 500px;
+	text-align: left;
+	white-space: pre-wrap;
+}

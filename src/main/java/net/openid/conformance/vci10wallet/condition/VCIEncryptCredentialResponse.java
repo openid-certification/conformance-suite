@@ -10,14 +10,12 @@ import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWEUtil;
-import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
@@ -92,27 +90,16 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 		JWK encryptionKey = null;
 		JsonElement jwkEl = encryptionParams.get("jwk");
 
-		if (jwkEl != null && jwkEl.isJsonObject()) {
-			// Use the JWK provided in the request
-			try {
-				encryptionKey = JWK.parse(jwkEl.getAsJsonObject().toString());
-			} catch (ParseException e) {
-				throw error("Failed to parse JWK from credential_response_encryption",
-					e, args("jwk", jwkEl));
-			}
-		} else {
-			// Try to use the configured wallet encryption JWKS
-			JsonObject walletEncryptionJwks = env.getObject("credential_encryption_jwks");
-			if (walletEncryptionJwks != null) {
-				try {
-					JWKSet jwkSet = JWKUtil.parseJWKSet(walletEncryptionJwks.toString());
-					JWEAlgorithm jweAlgorithm = JWEAlgorithm.parse(alg);
-					encryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, jweAlgorithm);
-				} catch (ParseException e) {
-					throw error("Failed to parse credential_encryption_jwks", e,
-						args("credential_encryption_jwks", walletEncryptionJwks));
-				}
-			}
+		if (jwkEl == null || !jwkEl.isJsonObject()) {
+			throw error("credential_response_encryption must contain 'jwk' parameter");
+		}
+
+		// Use the JWK provided in the request
+		try {
+			encryptionKey = JWK.parse(jwkEl.getAsJsonObject().toString());
+		} catch (ParseException e) {
+			throw error("Failed to parse JWK from credential_response_encryption",
+				e, args("jwk", jwkEl));
 		}
 
 		if (encryptionKey == null) {

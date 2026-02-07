@@ -7,6 +7,8 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VCICredentialEncryption;
+import net.openid.conformance.variant.VCICredentialIssuanceMode;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 
@@ -20,13 +22,12 @@ import java.util.List;
 )
 public class VCIWalletTestPlanHaip implements TestPlan {
 
-
 	public static List<ModuleListEntry> testModulesWithVariants() {
 
 		List<Class<? extends TestModule>> testModules = new ArrayList<>(VCIWalletTestPlan.testModules);
 
-		// HAIP requires to use of scopes
-		testModules.remove(VCIWalletHappyPath.class);
+		// Not needed for HAIP
+		testModules.remove(VCIWalletTestCredentialIssuanceUsingScopesWithoutAuthorizationDetailsInTokenResponse.class);
 
 		return List.of(
 			new ModuleListEntry(
@@ -37,7 +38,35 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
-					new Variant(VCIClientAuthType.class, "client_attestation")
+					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(VCICredentialIssuanceMode.class, "immediate"),
+					new Variant(VCICredentialEncryption.class, "plain")
+				)
+			),
+			new ModuleListEntry(
+				testModules,
+				List.of(
+					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
+					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
+					new Variant(VCIProfile.class, "haip"),
+					new Variant(VCIGrantType.class, "authorization_code"),
+					new Variant(AuthorizationRequestType.class, "simple"),
+					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(VCICredentialIssuanceMode.class, "deferred"),
+					new Variant(VCICredentialEncryption.class, "plain")
+				)
+			),
+			new ModuleListEntry(
+				testModules,
+				List.of(
+					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
+					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
+					new Variant(VCIProfile.class, "haip"),
+					new Variant(VCIGrantType.class, "authorization_code"),
+					new Variant(AuthorizationRequestType.class, "simple"),
+					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(VCICredentialIssuanceMode.class, "immediate"),
+					new Variant(VCICredentialEncryption.class, "encrypted")
 				)
 			)
 		);
