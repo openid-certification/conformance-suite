@@ -3,7 +3,8 @@ package org.multipaz.testapp
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlinx.datetime.Instant
 import org.multipaz.cbor.*
 import org.multipaz.cose.Cose
 import org.multipaz.cose.CoseLabel
@@ -159,8 +160,8 @@ TvFLVc4ESGy3AtdC+g==
 
 	private fun buildIssuerNamespacesForDocType(
 		docType: String,
-		now: kotlinx.datetime.Instant,
-		validUntil: kotlinx.datetime.Instant
+		now: Instant,
+		validUntil: Instant
 	) = buildIssuerNamespaces {
 		when (docType) {
 			"org.iso.18013.5.1.mDL" -> {

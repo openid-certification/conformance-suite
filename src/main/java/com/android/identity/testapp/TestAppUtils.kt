@@ -2,7 +2,7 @@ package org.multipaz.testapp
 
 import com.nimbusds.jose.jwk.JWK
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.Instant
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
