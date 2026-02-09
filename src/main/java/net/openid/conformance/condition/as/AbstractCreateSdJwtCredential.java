@@ -71,7 +71,7 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		return jwt.serialize();
 	}
 
-	protected String createSdJwt(Environment env, Object publicJWK, ECKey privateKey) {
+	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey) {
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		if (credentialSigningJwkEl == null) {
 			throw error("Credential Signing JWK missing from configuration");
@@ -117,7 +117,7 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		// Only add cnf claim if cryptographic binding is required (publicJWK is not null)
 		if (publicJWK != null) {
 			Map<String, Object> cnf = new HashMap<>();
-			cnf.put("jwk", publicJWK);
+			cnf.put("jwk", publicJWK.toJSONObject());
 			builder.putClaim("cnf", cnf);
 		}
 
