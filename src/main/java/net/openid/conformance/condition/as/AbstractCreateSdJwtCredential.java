@@ -50,22 +50,20 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		claims.put("nonce", nonce);
 		claims.put("sd_hash", sdHash);
 
-		JWTClaimsSet claimsSet = null;
+		JWTClaimsSet claimsSet;
 		try {
 			claimsSet = JWTClaimsSet.parse(claims);
 		} catch (ParseException e) {
-			throw new RuntimeException(e);
+			throw error("Failed to parse key binding JWT claims", e);
 		}
-
 
 		SignedJWT jwt = new SignedJWT(header, claimsSet);
 
-		JWSSigner signer = null;
 		try {
-			signer = new ECDSASigner(privateKey);
+			JWSSigner signer = new ECDSASigner(privateKey);
 			jwt.sign(signer);
 		} catch (JOSEException e) {
-			throw new RuntimeException(e);
+			throw error("Failed to sign key binding JWT", e);
 		}
 
 		return jwt.serialize();
@@ -148,17 +146,16 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		try {
 			claimsSet = JWTClaimsSet.parse(claims);
 		} catch (ParseException e) {
-			throw new RuntimeException(e);
+			throw error("Failed to parse SD-JWT claims", e);
 		}
 
 		SignedJWT jwt = new SignedJWT(header, claimsSet);
 
-		JWSSigner signer = null;
 		try {
-			signer = new ECDSASigner((ECKey)credentialSigningJwk); // FIXME need to cope with RSA too
+			JWSSigner signer = new ECDSASigner((ECKey) credentialSigningJwk); // FIXME need to cope with RSA too
 			jwt.sign(signer);
 		} catch (JOSEException e) {
-			throw new RuntimeException(e);
+			throw error("Failed to sign SD-JWT credential", e, args("signing_jwk", credentialSigningJwkEl));
 		}
 
 		String bindingJwt = null;
