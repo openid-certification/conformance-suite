@@ -18,15 +18,5 @@
         "test-name": "openid-federation-compare-trust-chain-to-resolve",
         "variant": "*",
         "configuration-filename": "*authlete-federation-trust-anchor.json"
-    },
-    {
-        "test-name": "openid-federation-ensure-fetch-with-invalid-sub-fails",
-        "variant": "*",
-        "configuration-filename": "*sweden-federation-bankid.json"
-    },
-    {
-        "test-name": "openid-federation-ensure-fetch-with-iss-as-sub-fails",
-        "variant": "*",
-        "configuration-filename": "*sweden-federation-bankid.json"
     }
 ]

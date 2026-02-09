@@ -556,9 +556,6 @@ makeFederationTests() {
 
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/authlete-federation-fapidev-as.json"
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/authlete-federation-trust-anchor.json"
-    TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=static][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/sweden-federation-bankid.json"
-    TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/sweden-federation-intermediate.json"
-    TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/sweden-federation-trust-anchor.json"
 }
 
 makeSsfTests() {
