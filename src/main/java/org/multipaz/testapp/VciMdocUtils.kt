@@ -5,7 +5,7 @@ import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
 import kotlin.time.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
 import org.multipaz.cbor.*
 import org.multipaz.cose.Cose

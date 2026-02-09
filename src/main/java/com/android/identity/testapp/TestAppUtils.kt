@@ -3,7 +3,7 @@ package org.multipaz.testapp
 import com.nimbusds.jose.jwk.JWK
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
 import kotlinx.serialization.json.JsonPrimitive
