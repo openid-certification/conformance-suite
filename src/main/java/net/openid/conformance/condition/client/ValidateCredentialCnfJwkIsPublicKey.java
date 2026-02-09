@@ -32,7 +32,7 @@ public class ValidateCredentialCnfJwkIsPublicKey extends AbstractCondition {
 				throw error("cnf.jwk in the SD-JWT credential is a private key", args("jwk", jwkEl));
 			}
 		} catch (ParseException e) {
-			throw error("Invalid jwk", args("jwk", jwkEl));
+			throw error("Invalid jwk", e, args("jwk", jwkEl));
 		}
 
 		logSuccess("cnf.jwk in the SD-JWT credential is a public key", args("jwk", jwkEl));
