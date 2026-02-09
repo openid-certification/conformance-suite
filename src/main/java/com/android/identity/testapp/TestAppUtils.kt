@@ -19,7 +19,7 @@ import org.multipaz.crypto.*
 import org.multipaz.document.Document
 import org.multipaz.document.DocumentStore
 import org.multipaz.document.buildDocumentStore
-import org.multipaz.document.NameSpacedData
+import org.multipaz.mdoc.devicesigned.DeviceNamespaces
 import org.multipaz.documenttype.DocumentCannedRequest
 import org.multipaz.documenttype.DocumentType
 import org.multipaz.documenttype.knowntypes.DrivingLicense
@@ -31,8 +31,8 @@ import org.multipaz.mdoc.issuersigned.IssuerNamespaces
 import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
 import org.multipaz.mdoc.mso.MobileSecurityObject
 import org.multipaz.mdoc.request.DeviceRequestGenerator
-import org.multipaz.mdoc.response.DeviceResponseGenerator
-import org.multipaz.mdoc.response.DocumentGenerator
+import org.multipaz.mdoc.response.DeviceResponse
+import org.multipaz.mdoc.response.buildDeviceResponse
 import org.multipaz.sdjwt.SdJwt
 import org.multipaz.sdjwt.credential.KeyBoundSdJwtVcCredential
 import org.multipaz.sdjwt.credential.KeylessSdJwtVcCredential
@@ -44,7 +44,6 @@ import org.multipaz.securearea.SecureAreaRepository
 import org.multipaz.securearea.software.SoftwareCreateKeySettings
 import org.multipaz.securearea.software.SoftwareSecureArea
 import org.multipaz.storage.ephemeral.EphemeralStorage
-import org.multipaz.util.Constants
 import org.multipaz.util.Logger
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -81,54 +80,33 @@ object TestAppUtils {
 
 	suspend fun generateEncodedDeviceResponse(
 		sessionTranscript: ByteArray
-	):ByteArray {
-		val deviceResponseGenerator = DeviceResponseGenerator(Constants.DEVICE_RESPONSE_STATUS_OK)
-		val document = documentStore!!.lookupDocument(mdlDocumentId!!)
-		val credential = document!!.findCredential(CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now())
-		deviceResponseGenerator.addDocument(calcDocument(
-			credential = credential as MdocCredential,
-			encodedSessionTranscript = sessionTranscript
-		))
-		return deviceResponseGenerator.generate()
-	}
-
-	private suspend fun calcDocument(
-		credential: MdocCredential,
-		encodedSessionTranscript: ByteArray
 	): ByteArray {
-		// TODO: support MAC keys from v1.1 request and use setDeviceNamespacesMac() when possible
-		//   depending on the value of PresentmentSource.preferSignatureToKeyAgreement(). See also
-		//   calcDocument in mdocPresentment.kt.
-		//
+		val document = documentStore!!.lookupDocument(mdlDocumentId!!)
+		val credential = document!!.findCredential(
+			CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now()
+		) as MdocCredential
+
 		val issuerSigned = Cbor.decode(credential.issuerProvidedData)
 		val issuerNamespaces = IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"])
 		val issuerAuthCoseSign1 = issuerSigned["issuerAuth"].asCoseSign1
-		val encodedMsoBytes = Cbor.decode(issuerAuthCoseSign1.payload!!)
-		val encodedMso = Cbor.encode(encodedMsoBytes.asTaggedEncodedCbor)
-		val mso = MobileSecurityObject.fromDataItem(Cbor.decode(encodedMso))
 
-		val documentGenerator = DocumentGenerator(
-			mso.docType,
-			Cbor.encode(issuerSigned["issuerAuth"]),
-			encodedSessionTranscript,
+		val deviceKey = AsymmetricKey.anonymous(
+			credential.secureArea, credential.alias, Reason.Unspecified
 		)
 
-		documentGenerator.setIssuerNamespaces(issuerNamespaces)
-		val keyInfo = credential.secureArea.getKeyInfo(credential.alias)
-		if (!keyInfo.algorithm.isSigning) {
-			throw IllegalStateException(
-				"Signing is required for W3C DC API but its algorithm ${keyInfo.algorithm.name} is not for signing"
-			)
-		} else {
-			documentGenerator.setDeviceNamespacesSignature(
-				dataElements = NameSpacedData.Builder().build(),
-				secureArea = credential.secureArea,
-				keyAlias = credential.alias,
-				unlockReason = Reason.Unspecified,
+		val deviceResponse = buildDeviceResponse(
+			sessionTranscript = Cbor.decode(sessionTranscript),
+			status = DeviceResponse.STATUS_OK,
+		) {
+			addDocument(
+				docType = credential.docType,
+				issuerAuth = issuerAuthCoseSign1,
+				issuerNamespaces = issuerNamespaces,
+				deviceNamespaces = DeviceNamespaces(emptyMap()),
+				deviceKey = deviceKey,
 			)
 		}
-
-		return documentGenerator.generate()
+		return Cbor.encode(deviceResponse.toDataItem())
 	}
     fun generateEncodedDeviceRequest(
         request: DocumentCannedRequest,
