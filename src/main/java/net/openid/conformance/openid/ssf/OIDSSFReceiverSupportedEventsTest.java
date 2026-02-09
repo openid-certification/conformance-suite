@@ -129,7 +129,7 @@ public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTes
 
 	@Override
 	public void fireTestFinished() {
-		eventLog.log(getId(), "Detected acknowledgements for published events.");
+		eventLog.log(getName(), "Detected acknowledgements for published events.");
 		super.fireTestFinished();
 	}
 }

@@ -18,6 +18,6 @@ public class EnsureHttpStatusCodeIs200or201 extends AbstractCondition {
 			return env;
 		}
 
-		throw error(endpointName + "endpoint returned a different http status than expected", args("actual", httpStatus, "expected", "200 or 201"));
+		throw error(endpointName + " endpoint returned a different http status than expected", args("actual", httpStatus, "expected", "200 or 201"));
 	}
 }

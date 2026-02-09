@@ -1450,12 +1450,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
-		call(exec().startBlock("Get OAuth Authorization Metadata").mapKey("incoming_request", requestId));
 		Object response;
 
 		if (path.startsWith("/.well-known/oauth-authorization-server")) {
+			call(exec().startBlock("Get OAuth Authorization Metadata").mapKey("incoming_request", requestId));
 			response = discoveryEndpoint();
 		} else if (path.startsWith("/.well-known/openid-credential-issuer")) {
+			call(exec().startBlock("Get Credential Issuer Metadata").mapKey("incoming_request", requestId));
 			response = credentialIssuerMetadataEndpoint(requestId);
 		} else {
 			response = super.handleWellKnown(path, req, res, session, requestParts);

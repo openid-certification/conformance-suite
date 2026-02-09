@@ -15,7 +15,7 @@ public class EnsureHttpStatusCodeIs400or401 extends AbstractCondition {
 		}
 
 		if (httpStatus != 400 && httpStatus != 401) {
-			throw error(endpointName + "endpoint returned a different http status than expected", args("actual", httpStatus, "expected", "400 or 401"));
+			throw error(endpointName + " endpoint returned a different http status than expected", args("actual", httpStatus, "expected", "400 or 401"));
 		}
 
 		logSuccess(endpointName + " endpoint http status code was " + httpStatus);

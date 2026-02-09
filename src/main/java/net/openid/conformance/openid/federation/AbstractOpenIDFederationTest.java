@@ -153,7 +153,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 					throw new TestFailureException(getId(), "Could not verify the trust chain from the sub %s to trust anchor %s. Error: %s"
 						.formatted(sub, trustAnchor, result.getError()));
 				} else {
-					eventLog.log(getId(),"**** TRUST CHAIN VERIFIED ****");
+					eventLog.log(getName(),"**** TRUST CHAIN VERIFIED ****");
 				}
 			} catch (CyclicPathException e) {
 				throw new TestFailureException(getId(), e.getMessage(), e);

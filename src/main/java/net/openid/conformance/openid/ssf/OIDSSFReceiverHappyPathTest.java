@@ -55,7 +55,7 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 
 	@Override
 	public void fireTestFinished() {
-		eventLog.log(getId(), "Detected stream create, read, update, replace, delete.");
+		eventLog.log(getName(), "Detected stream create, read, update, replace, delete.");
 		super.fireTestFinished();
 	}
 
