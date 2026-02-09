@@ -29,8 +29,7 @@ import org.multipaz.documenttype.knowntypes.UtopiaMovieTicket
 import org.multipaz.mdoc.credential.MdocCredential
 import org.multipaz.mdoc.issuersigned.IssuerNamespaces
 import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
-import org.multipaz.mdoc.mso.MobileSecurityObjectGenerator
-import org.multipaz.mdoc.mso.MobileSecurityObjectParser
+import org.multipaz.mdoc.mso.MobileSecurityObject
 import org.multipaz.mdoc.request.DeviceRequestGenerator
 import org.multipaz.mdoc.response.DeviceResponseGenerator
 import org.multipaz.mdoc.response.DocumentGenerator
@@ -106,7 +105,7 @@ object TestAppUtils {
 		val issuerAuthCoseSign1 = issuerSigned["issuerAuth"].asCoseSign1
 		val encodedMsoBytes = Cbor.decode(issuerAuthCoseSign1.payload!!)
 		val encodedMso = Cbor.encode(encodedMsoBytes.asTaggedEncodedCbor)
-		val mso = MobileSecurityObjectParser(encodedMso).parse()
+		val mso = MobileSecurityObject.fromDataItem(Cbor.decode(encodedMso))
 
 		val documentGenerator = DocumentGenerator(
 			mso.docType,
@@ -419,7 +418,8 @@ TvFLVc4ESGy3AtdC+g==
             cardArt = ByteString(),
         )
 
-        val now = Clock.System.now()
+        // Truncate to whole seconds; MobileSecurityObject rejects fractional seconds
+        val now = Clock.System.now().let { kotlin.time.Instant.fromEpochSeconds(it.epochSeconds) }
         val signedAt = now - 1.hours
         val validFrom =  now - 1.hours
         val validUntil = now + 365.days
@@ -541,16 +541,18 @@ TvFLVc4ESGy3AtdC+g==
                 )
 
                 // Generate an MSO and issuer-signed data for this authentication key.
-                val msoGenerator = MobileSecurityObjectGenerator(
-                    Algorithm.SHA256,
-                    documentType.mdocDocumentType!!.docType,
-                    mdocCredential.getAttestation().publicKey
+                val mso = MobileSecurityObject(
+                    version = "1.0",
+                    docType = documentType.mdocDocumentType!!.docType,
+                    signedAt = signedAt,
+                    validFrom = validFrom,
+                    validUntil = validUntil,
+                    expectedUpdate = null,
+                    digestAlgorithm = Algorithm.SHA256,
+                    valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
+                    deviceKey = mdocCredential.getAttestation().publicKey,
                 )
-                msoGenerator.setValidityInfo(signedAt, validFrom, validUntil, null)
-                msoGenerator.addValueDigests(issuerNamespaces)
-
-                val mso = msoGenerator.generate()
-                val taggedEncodedMso = Cbor.encode(Tagged(24, Bstr(mso)))
+                val taggedEncodedMso = Cbor.encode(Tagged(24, Bstr(Cbor.encode(mso.toDataItem()))))
 
                 // IssuerAuth is a COSE_Sign1 where payload is MobileSecurityObjectBytes
                 //
@@ -570,10 +572,9 @@ TvFLVc4ESGy3AtdC+g==
                 )
                 val encodedIssuerAuth = Cbor.encode(
                     Cose.coseSign1Sign(
-                        dsKey,
+                        AsymmetricKey.anonymous(dsKey),
                         taggedEncodedMso,
                         true,
-                        dsKey.publicKey.curve.defaultSigningAlgorithm,
                         protectedHeaders,
                         unprotectedHeaders
                     ).toDataItem()

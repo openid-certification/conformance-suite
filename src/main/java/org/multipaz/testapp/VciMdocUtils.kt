@@ -6,13 +6,14 @@ import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
 import kotlin.time.Clock
 import kotlinx.datetime.Instant
+import kotlinx.coroutines.runBlocking
 import org.multipaz.cbor.*
 import org.multipaz.cose.Cose
 import org.multipaz.cose.CoseLabel
 import org.multipaz.cose.CoseNumberLabel
 import org.multipaz.crypto.*
 import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
-import org.multipaz.mdoc.mso.MobileSecurityObjectGenerator
+import org.multipaz.mdoc.mso.MobileSecurityObject
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
@@ -96,7 +97,8 @@ TvFLVc4ESGy3AtdC+g==
 			Pair(documentSignerKey, documentSignerCert)
 		}
 
-		val now = Clock.System.now()
+		// Truncate to whole seconds; MobileSecurityObject rejects fractional seconds
+		val now = Clock.System.now().let { kotlin.time.Instant.fromEpochSeconds(it.epochSeconds) }
 		val signedAt = now - 1.hours
 		val validFrom = now - 1.hours
 		val validUntil = now + 365.days
@@ -113,16 +115,18 @@ TvFLVc4ESGy3AtdC+g==
 				"The MSO generator requires a device public key."
 			)
 		}
-		val msoGenerator = MobileSecurityObjectGenerator(
-			Algorithm.SHA256,
-			docType,
-			devicePublicKey
+		val mso = MobileSecurityObject(
+			version = "1.0",
+			docType = docType,
+			signedAt = signedAt,
+			validFrom = validFrom,
+			validUntil = validUntil,
+			expectedUpdate = null,
+			digestAlgorithm = Algorithm.SHA256,
+			valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
+			deviceKey = devicePublicKey,
 		)
-		msoGenerator.setValidityInfo(signedAt, validFrom, validUntil, null)
-		msoGenerator.addValueDigests(issuerNamespaces)
-
-		val mso = msoGenerator.generate()
-		val taggedEncodedMso = Cbor.encode(Tagged(24, Bstr(mso)))
+		val taggedEncodedMso = Cbor.encode(Tagged(24, Bstr(Cbor.encode(mso.toDataItem()))))
 
 		// Create COSE_Sign1 for IssuerAuth
 		val protectedHeaders = mapOf<CoseLabel, org.multipaz.cbor.DataItem>(
@@ -138,14 +142,15 @@ TvFLVc4ESGy3AtdC+g==
 			)
 		)
 		val encodedIssuerAuth = Cbor.encode(
-			Cose.coseSign1Sign(
-				dsKey,
-				taggedEncodedMso,
-				true,
-				dsKey.publicKey.curve.defaultSigningAlgorithm,
-				protectedHeaders,
-				unprotectedHeaders
-			).toDataItem()
+			runBlocking {
+				Cose.coseSign1Sign(
+					AsymmetricKey.anonymous(dsKey),
+					taggedEncodedMso,
+					true,
+					protectedHeaders,
+					unprotectedHeaders
+				)
+			}.toDataItem()
 		)
 
 		// Build IssuerSigned structure
