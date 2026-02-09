@@ -2,6 +2,7 @@ package net.openid.conformance.condition.client;
 
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.multipaz.cbor.Cbor;
@@ -9,6 +10,7 @@ import org.multipaz.cbor.CborMap;
 import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 
+import java.util.Base64;
 import java.util.Set;
 
 /**
@@ -26,6 +28,7 @@ public class ParseMdocCredentialFromVCIIssuance extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = { "credential" })
+	@PostEnvironment(strings = { "mdoc_credential_cbor" })
 	public Environment evaluate(Environment env) {
 		String mdocBase64 = env.getString("credential");
 
@@ -53,6 +56,9 @@ public class ParseMdocCredentialFromVCIIssuance extends AbstractCondition {
 			throw error("Decoded credential is empty (0 bytes)",
 				args("credential_preview", mdocBase64.substring(0, Math.min(200, mdocBase64.length()))));
 		}
+
+		// Store raw CBOR bytes for downstream signature validation
+		env.putString("mdoc_credential_cbor", Base64.getEncoder().encodeToString(bytes));
 
 		String diagnostics;
 		try {

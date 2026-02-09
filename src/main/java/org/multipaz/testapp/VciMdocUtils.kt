@@ -84,9 +84,12 @@ TvFLVc4ESGy3AtdC+g==
 		val (dsKey, dsCert) = if (issuerSigningJwk != null) {
 			val issuerJwk = JWK.parse(issuerSigningJwk).toECKey()
 			val privateKey = convertJwkToEcPrivateKey(issuerJwk)
-			// For custom keys, we'd need a certificate - for now use default cert
-			// In production, the certificate should be provided with the key
-			Pair(privateKey, documentSignerCert)
+			val cert = if (issuerJwk.x509CertChain != null && issuerJwk.x509CertChain.isNotEmpty()) {
+				X509Cert(issuerJwk.x509CertChain[0].decode())
+			} else {
+				documentSignerCert
+			}
+			Pair(privateKey, cert)
 		} else {
 			Pair(documentSignerKey, documentSignerCert)
 		}
