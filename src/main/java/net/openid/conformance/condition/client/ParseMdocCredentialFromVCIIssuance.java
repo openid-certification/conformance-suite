@@ -90,14 +90,11 @@ public class ParseMdocCredentialFromVCIIssuance extends AbstractCondition {
 
 		CborMap issuerSigned = (CborMap) dataItem;
 
-		// Validate required fields
-		DataItem nameSpaces = issuerSigned.get("nameSpaces");
-		if (nameSpaces == null) {
-			throw error("mdoc credential missing required 'nameSpaces' field",
-				args("cbor_diagnostic", diagnostics));
-		}
+		// nameSpaces is optional per ISO 18013-5 IssuerSigned structure
+		DataItem nameSpaces = issuerSigned.getOrNull("nameSpaces");
 
-		DataItem issuerAuth = issuerSigned.get("issuerAuth");
+		// issuerAuth is required per ISO 18013-5 IssuerSigned structure
+		DataItem issuerAuth = issuerSigned.getOrNull("issuerAuth");
 		if (issuerAuth == null) {
 			throw error("mdoc credential missing required 'issuerAuth' field (COSE_Sign1 signature)",
 				args("cbor_diagnostic", diagnostics));
@@ -106,8 +103,7 @@ public class ParseMdocCredentialFromVCIIssuance extends AbstractCondition {
 		// Log success with the parsed structure
 		logSuccess("Parsed mdoc credential (IssuerSigned) from VCI issuance response",
 			args("cbor_diagnostic", diagnostics,
-				"has_nameSpaces", nameSpaces != null,
-				"has_issuerAuth", issuerAuth != null));
+				"has_nameSpaces", nameSpaces != null));
 
 		return env;
 	}
