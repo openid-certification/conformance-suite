@@ -30,7 +30,7 @@ import org.multipaz.mdoc.credential.MdocCredential
 import org.multipaz.mdoc.issuersigned.IssuerNamespaces
 import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
 import org.multipaz.mdoc.mso.MobileSecurityObject
-import org.multipaz.mdoc.request.DeviceRequestGenerator
+import org.multipaz.mdoc.request.buildDeviceRequest
 import org.multipaz.mdoc.response.DeviceResponse
 import org.multipaz.mdoc.response.buildDeviceResponse
 import org.multipaz.sdjwt.SdJwt
@@ -124,16 +124,24 @@ object TestAppUtils {
             }
         }
 
-        val deviceRequestGenerator = DeviceRequestGenerator(encodedSessionTranscript)
-        deviceRequestGenerator.addDocumentRequest(
-            docType = mdocRequest.docType,
-            itemsToRequest = itemsToRequest,
-            requestInfo = null,
-            readerKey = readerKey,
-            signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
-            readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert)),
+        val readerAsymmetricKey = AsymmetricKey.X509CertifiedExplicit(
+            X509CertChain(listOf(readerCert, readerRootCert)),
+            readerKey,
         )
-        return deviceRequestGenerator.generate()
+
+        val deviceRequest = runBlocking {
+            buildDeviceRequest(
+                sessionTranscript = Cbor.decode(encodedSessionTranscript),
+            ) {
+                addDocRequest(
+                    docType = mdocRequest.docType,
+                    nameSpaces = itemsToRequest,
+                    docRequestInfo = null,
+                    readerKey = readerAsymmetricKey,
+                )
+            }
+        }
+        return Cbor.encode(deviceRequest.toDataItem())
     }
 
     fun generateEncodedSessionTranscript(
