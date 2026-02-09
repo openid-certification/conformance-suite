@@ -1,5 +1,6 @@
 package org.multipaz.testapp
 
+import kotlinx.io.bytestring.ByteString
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
@@ -86,7 +87,7 @@ TvFLVc4ESGy3AtdC+g==
 			val issuerJwk = JWK.parse(issuerSigningJwk).toECKey()
 			val privateKey = convertJwkToEcPrivateKey(issuerJwk)
 			val cert = if (issuerJwk.x509CertChain != null && issuerJwk.x509CertChain.isNotEmpty()) {
-				X509Cert(issuerJwk.x509CertChain[0].decode())
+				X509Cert(ByteString(issuerJwk.x509CertChain[0].decode()))
 			} else {
 				documentSignerCert
 			}

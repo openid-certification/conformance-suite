@@ -14,6 +14,7 @@ import org.multipaz.cose.Cose
 import org.multipaz.cose.CoseLabel
 import org.multipaz.cose.CoseNumberLabel
 import org.multipaz.credential.SecureAreaBoundCredential
+import org.multipaz.crypto.AsymmetricKey
 import org.multipaz.crypto.*
 import org.multipaz.document.Document
 import org.multipaz.document.DocumentStore
@@ -36,6 +37,7 @@ import org.multipaz.mdoc.response.DocumentGenerator
 import org.multipaz.sdjwt.SdJwt
 import org.multipaz.sdjwt.credential.KeyBoundSdJwtVcCredential
 import org.multipaz.sdjwt.credential.KeylessSdJwtVcCredential
+import org.multipaz.prompt.Reason
 import org.multipaz.securearea.CreateKeySettings
 import org.multipaz.securearea.PassphraseConstraints
 import org.multipaz.securearea.SecureArea
@@ -123,7 +125,7 @@ object TestAppUtils {
 				dataElements = NameSpacedData.Builder().build(),
 				secureArea = credential.secureArea,
 				keyAlias = credential.alias,
-				keyUnlockData = null,
+				unlockReason = Reason.Unspecified,
 			)
 		}
 
@@ -680,9 +682,7 @@ TvFLVc4ESGy3AtdC+g==
                 }
                 val kbKey = (credential as? SecureAreaBoundCredential)?.getAttestation()?.publicKey
                 val sdJwt = SdJwt.create(
-                    issuerKey = dsKey,
-                    issuerAlgorithm = dsKey.publicKey.curve.defaultSigningAlgorithmFullySpecified,
-                    issuerCertChain = null,
+                    issuerKey = AsymmetricKey.anonymous(dsKey),
                     kbKey = kbKey,
                     claims = identityAttributes,
                     nonSdClaims = nonSdClaims

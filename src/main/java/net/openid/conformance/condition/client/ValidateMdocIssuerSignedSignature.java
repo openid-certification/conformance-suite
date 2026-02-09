@@ -27,6 +27,7 @@ import java.util.Map;
  * 4. The signature is cryptographically valid against the public key from the leaf certificate
  * 5. The payload contains a valid Mobile Security Object (MSO)
  */
+@SuppressWarnings("deprecation")
 public class ValidateMdocIssuerSignedSignature extends AbstractCondition {
 
 	@Override
