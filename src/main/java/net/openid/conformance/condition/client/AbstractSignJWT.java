@@ -81,7 +81,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 				builder.type(getMediaType());
 			}
 			if (includeX5tS256) {
-				builder.x509CertSHA256Thumbprint(signingJwk.getX509CertSHA256Thumbprint());
+				builder.x509CertSHA256Thumbprint(signingJwk.computeThumbprint());
 			}
 			if (includeX5c) {
 				if (signingJwk.getX509CertChain() == null) {
