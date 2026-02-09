@@ -1,10 +1,14 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents when working with code in this repository.
 
 ## Project Overview
 
 This is the OpenID Foundation conformance suite - a Spring Boot application that validates implementations of OpenID Connect, FAPI1, FAPI2, FAPI-CIBA, OpenID for Identity Assurance (eKYC), Verifiable Credentials (VCI), and Verifiable Presentations (VP).
+
+## Workflow Rules
+
+After making code changes, always run the project build and tests before committing. If tests fail, fix them before presenting the result as complete.
 
 ## Build and Development Commands
 
@@ -20,6 +24,9 @@ mvn test -Dtest=ClassName_UnitTest
 
 # Run tests matching a pattern
 mvn test -Dtest="*FAPI*_UnitTest"
+
+# Run ArchUnit tests (quote pattern to avoid shell glob expansion)
+mvn test -Dtest='*ArchUnit*'
 
 # Skip PMD during test
 mvn test -Dpmd.skip
@@ -112,6 +119,32 @@ JsonObject obj = getJsonObjectFromEnvironment(env, "object", "path");
 - `runner/` - Test execution and HTTP routing
 - `plan/` - Test plan organization
 
+### Kotlin Sources
+
+The project is primarily Java but contains Kotlin source files for multipaz library integration:
+- `src/main/java/com/android/identity/testapp/` - VP test credential provisioning (TestAppUtils.kt)
+- `src/main/java/org/multipaz/testapp/` - VCI mdoc credential creation (VciMdocUtils.kt)
+
+These use the [multipaz](https://github.com/openwallet-foundation/multipaz) library for mdoc/SD-JWT credential operations.
+
+### JSON Schema Validation
+
+Spec compliance checks can be implemented using JSON Schema validation. Schemas live in `src/main/resources/json-schemas/` and conditions extend `AbstractJsonSchemaBasedValidation`:
+
+```java
+public class ValidateDCQLQuery extends AbstractJsonSchemaBasedValidation {
+    @Override
+    protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
+        JsonObject dcql = (JsonObject) env.getElementFromObject("client", "dcql");
+        return new JsonSchemaValidationInput("DCQL query",
+            "json-schemas/oid4vp/dcql_request.json", dcql);
+    }
+}
+```
+- Keep validation strict where the specification defines fixed fields.
+- Unknown properties should raise warnings (not errors)
+- Warning vs error severity is chosen by the caller of a condition; if unknown-property findings must be warnings while schema violations remain errors, use a separate condition path and call it with warning severity.
+
 ### Variants
 
 Tests use `@VariantParameters` to generate multiple configurations from one class:
@@ -138,18 +171,58 @@ public class FAPI2SPFinalTestPlan implements TestPlan {}
 
 When interpreting RFCs or technical specifications, present multiple defensible interpretations with trade-offs rather than committing to a single answer. Flag areas of ambiguity explicitly.
 
+Key specifications for VP/VCI work:
+- **OID4VP 1.0 Final**: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html
+- **OID4VP WG Draft**: https://openid.github.io/OpenID4VP/openid-4-verifiable-presentations-wg-draft.html
+- **OID4VP GitHub**: https://github.com/openid/OpenID4VP
+
+Identity Assurance spec locations used in this codebase:
+- https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html
+- https://openid.net/specs/openid-connect-4-ida-attachments-1_0.html
+- https://openid.net/specs/openid-connect-4-ida-claims-1_0.html
+- https://openid.net/specs/openid-ida-verified-claims-1_0.html
+
+## Test-Suite Behavior Expectations
+
+- This repository is a conformance test suite; explicit failures for invalid protocol behavior are expected.
+- Ignored catches can be acceptable if they still lead to a clear and meaningful test failure.
+- Generic `error(...)` text is acceptable when `args(...)` includes actionable detail.
+
+### Sender vs Receiver Validation
+
+When specs say "MUST ignore unknown properties", that applies to **receivers** (e.g., wallets processing DCQL queries). The conformance suite validates **senders** (e.g., verifiers constructing DCQL queries), so JSON schemas SHOULD use `additionalProperties: false` to flag unknown or misspelled fields as warnings (not errors) — senders should not include undefined properties.
+
 ## Code Quality
 
 - **Checkstyle**: Google Java Style (configured in `.checkstyle.xml`)
 - **PMD**: Rules in `.pmd.ruleset.xml`
 - **Error Prone**: Enabled at compile time with specific exclusions
 - **ArchUnit**: Architecture tests in `src/test/java/net/openid/conformance/archunit/`
+- **JSON access in Java**: Avoid `JsonElement.getAsString/getAsInt/getAsLong/...`; use `OIDFJSON` helpers instead (e.g., `OIDFJSON.getString(...)`) to satisfy ArchUnit and avoid implicit conversions.
 
 Tests compile with `-Werror` so all warnings must be resolved.
+
+## Code Review
+
+When asked to review a commit or branch, structure the review by file and call out: correctness issues (especially dead code or unreachable paths), API misuse, and behavioral changes. Don't just summarize — actively look for bugs.
+
+## Git Workflow Preference
+
+- For history edits, do not use `git -c ...` or environment-wrapped rebase commands.
+- Prefer plain `git` commands (including multi-step non-interactive flows) to avoid extra permission prompts.
+
+## Git Operations
+
+When making multi-file changes or library upgrades, create separate atomic commits per logical change. Before committing, verify the build passes for each commit independently.
 
 ## Test Naming Convention
 
 Unit test files follow the pattern `*_UnitTest.java` (e.g., `MyCondition_UnitTest.java`).
+
+## Key Dependencies
+
+- **multipaz** (CBOR/COSE/mdoc library): Source is at https://github.com/openwallet-foundation/multipaz — use this to look up API details rather than unpacking JARs.
+- **Nimbus JOSE+JWT** (JWT/JWK/JWS/JWE library): Source is at https://bitbucket.org/connect2id/nimbus-jose-jwt/src/master/ — use this to look up API details rather than unpacking JARs.
 
 ## Creating New Tests
 
