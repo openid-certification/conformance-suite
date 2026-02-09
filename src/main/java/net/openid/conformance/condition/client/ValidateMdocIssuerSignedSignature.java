@@ -54,7 +54,7 @@ public class ValidateMdocIssuerSignedSignature extends AbstractCondition {
 		}
 
 		// Extract issuerAuth field
-		DataItem issuerAuthItem = issuerSignedItem.get("issuerAuth");
+		DataItem issuerAuthItem = issuerSignedItem.getOrNull("issuerAuth");
 		if (issuerAuthItem == null) {
 			throw error("IssuerSigned structure missing 'issuerAuth' field");
 		}
@@ -137,8 +137,8 @@ public class ValidateMdocIssuerSignedSignature extends AbstractCondition {
 			msoVersion = mso.getVersion();
 			msoDocType = mso.getDocType();
 			msoDigestAlgorithm = mso.getDigestAlgorithm().name();
-			msoValidFrom = mso.getValidFrom() != null ? mso.getValidFrom().toString() : null;
-			msoValidUntil = mso.getValidUntil() != null ? mso.getValidUntil().toString() : null;
+			msoValidFrom = mso.getValidFrom().toString();
+			msoValidUntil = mso.getValidUntil().toString();
 		} catch (Exception e) {
 			// MSO parsing is informational; signature validation already passed
 			log("Could not parse MSO from COSE_Sign1 payload for logging purposes",
