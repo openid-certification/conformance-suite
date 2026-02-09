@@ -134,6 +134,10 @@ Test plans group related tests for certification via `@PublishTestPlan`:
 public class FAPI2SPFinalTestPlan implements TestPlan {}
 ```
 
+## Technical Standards & RFCs
+
+When interpreting RFCs or technical specifications, present multiple defensible interpretations with trade-offs rather than committing to a single answer. Flag areas of ambiguity explicitly.
+
 ## Code Quality
 
 - **Checkstyle**: Google Java Style (configured in `.checkstyle.xml`)
