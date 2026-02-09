@@ -13,6 +13,7 @@ import org.bson.BsonArray;
 import org.springframework.core.convert.converter.Converter;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonArray> {
@@ -29,33 +30,43 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 		}
 	}
 
-	public static Map<String, Object> convertUnloggableValuesInMap(Map<String, Object> map) {
-		Map<String, Object> convertedMap = new HashMap<>();
-		if (map != null) {
-			map.forEach((key, value) -> {
-				if (value instanceof JsonElement element && element.isJsonArray()) {
-					convertedMap.put(key, new GsonArrayToBsonArrayConverter().convert(element.getAsJsonArray()));
-				} else if (value instanceof JWK jwk) {
-					// letting this through to the default mongo converter results in stackoverflows if the jwk
-					// contains an x5c entry; explicitly convert it to it's more helpful JSON representation
-					String json = jwk.toJSONString();
-					convertedMap.put(key, JsonParser.parseString(json));
-				} else if (value instanceof JWKSet set) {
-					String json = set.toString();
-					convertedMap.put(key, JsonParser.parseString(json));
-				} else if (value instanceof JWTClaimsSet set) {
-					String json = set.toString();
-					convertedMap.put(key, JsonParser.parseString(json));
-				} else if (value instanceof JWSHeader header) {
-					String json = header.toString();
-					convertedMap.put(key, JsonParser.parseString(json));
-				} else {
-					convertedMap.put(key, value);
+	/**
+	 * Convert nimbus JOSE objects to their JSON representation so that Gson/Mongo
+	 * can serialize them without reflective access to java.security internals.
+	 */
+	private static Object convertValue(Object value) {
+		if (value instanceof JsonElement element && element.isJsonArray()) {
+			return new GsonArrayToBsonArrayConverter().convert(element.getAsJsonArray());
+		} else if (value instanceof JWK jwk) {
+			return JsonParser.parseString(jwk.toJSONString());
+		} else if (value instanceof JWKSet set) {
+			return JsonParser.parseString(set.toString());
+		} else if (value instanceof JWTClaimsSet set) {
+			return JsonParser.parseString(set.toString());
+		} else if (value instanceof JWSHeader header) {
+			return JsonParser.parseString(header.toString());
+		} else if (value instanceof List<?> list) {
+			JsonArray arr = new JsonArray();
+			for (Object item : list) {
+				Object converted = convertValue(item);
+				if (converted instanceof JsonElement el) {
+					arr.add(el);
+				} else if (converted != null) {
+					arr.add(converted.toString());
 				}
-			});
-			return convertedMap;
+			}
+			return arr;
 		}
-		return null;
+		return value;
+	}
+
+	public static Map<String, Object> convertUnloggableValuesInMap(Map<String, Object> map) {
+		if (map == null) {
+			return null;
+		}
+		Map<String, Object> convertedMap = new HashMap<>();
+		map.forEach((key, value) -> convertedMap.put(key, convertValue(value)));
+		return convertedMap;
 	}
 
 }
