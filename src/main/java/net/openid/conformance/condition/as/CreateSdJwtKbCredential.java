@@ -20,9 +20,7 @@ public class CreateSdJwtKbCredential extends AbstractCreateSdJwtCredential {
 		} catch (JOSEException e) {
 			throw new RuntimeException(e);
 		}
-		Object publicJWK = privateKey.toPublicJWK().toJSONObject();
-
-		String sdJwt = createSdJwt(env, publicJWK, privateKey);
+		String sdJwt = createSdJwt(env, privateKey.toPublicJWK(), privateKey);
 
 		env.putString("credential", sdJwt);
 
