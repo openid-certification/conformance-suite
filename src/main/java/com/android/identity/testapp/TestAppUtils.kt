@@ -613,6 +613,10 @@ TvFLVc4ESGy3AtdC+g==
 
         val identityAttributes = buildJsonObject {
             for ((claimName, attribute) in documentType.jsonDocumentType!!.claims) {
+                // Skip sub-claims (e.g. "address.street_address")
+                if (claimName.contains('.')) {
+                    continue
+                }
                 val sampleValue = attribute.sampleValueJson
                 if (sampleValue != null) {
                     val value = if (claimName.startsWith("given_name")) {
