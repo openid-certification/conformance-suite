@@ -14,6 +14,7 @@ import org.multipaz.cose.CoseNumberLabel
 import org.multipaz.crypto.*
 import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
 import org.multipaz.mdoc.mso.MobileSecurityObject
+import org.multipaz.util.truncateToWholeSeconds
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
@@ -97,8 +98,7 @@ TvFLVc4ESGy3AtdC+g==
 			Pair(documentSignerKey, documentSignerCert)
 		}
 
-		// Truncate to whole seconds; MobileSecurityObject rejects fractional seconds
-		val now = Clock.System.now().let { kotlin.time.Instant.fromEpochSeconds(it.epochSeconds) }
+		val now = Clock.System.now().truncateToWholeSeconds()
 		val signedAt = now - 1.hours
 		val validFrom = now - 1.hours
 		val validUntil = now + 365.days
