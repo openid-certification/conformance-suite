@@ -19,7 +19,7 @@ public class BackchannelRequestIsFormData extends AbstractCondition {
 		} catch (Exception ignored) { }
 
 		if (!expected.equals(mimeType)) {
-			throw error("content-type header  does not have the expected value", args("content_type", contentType, "expected", expected));
+			throw error("content-type header does not have the expected value", args("content_type", contentType, "expected", expected));
 		}
 
 		logSuccess("Backchannel authentication request has Content-Type 'application/x-www-form-urlencoded'");
