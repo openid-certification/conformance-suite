@@ -96,7 +96,7 @@ object TestAppUtils {
 		)
 
 		val deviceResponse = buildDeviceResponse(
-			sessionTranscript = Cbor.decode(sessionTranscript),
+			sessionTranscript = RawCbor(sessionTranscript),
 			status = DeviceResponse.STATUS_OK,
 		) {
 			addDocument(
@@ -132,7 +132,7 @@ object TestAppUtils {
 
         val deviceRequest = runBlocking {
             buildDeviceRequest(
-                sessionTranscript = Cbor.decode(encodedSessionTranscript),
+                sessionTranscript = RawCbor(encodedSessionTranscript),
             ) {
                 addDocRequest(
                     docType = mdocRequest.docType,
