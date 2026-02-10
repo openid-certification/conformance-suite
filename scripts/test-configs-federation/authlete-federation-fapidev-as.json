@@ -2,7 +2,7 @@
     "alias": "fed-deployed",
     "description": "Deployed federation entity test",
     "federation": {
-        "entity_identifier": "https://fapidev-as.authlete.net/",
+        "entity_identifier": "https://fapidev-30-as.authlete.net",
         "de_trust_anchor": "https://trust-anchor.authlete.net/",
         "de_trust_anchor_jwks": {
             "keys": [
