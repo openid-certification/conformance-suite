@@ -152,8 +152,8 @@ object TestAppUtils {
         val encodedEReaderKey = Cbor.encode(eReaderKey.toCoseKey().toDataItem())
         return Cbor.encode(
             buildCborArray {
-                add(Tagged(24, Bstr(encodedDeviceEngagement)))
-                add(Tagged(24, Bstr(encodedEReaderKey)))
+                add(Tagged(Tagged.ENCODED_CBOR, Bstr(encodedDeviceEngagement)))
+                add(Tagged(Tagged.ENCODED_CBOR, Bstr(encodedEReaderKey)))
                 add(handover)
             }
         )
@@ -538,7 +538,7 @@ TvFLVc4ESGy3AtdC+g==
                     valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
                     deviceKey = mdocCredential.getAttestation().publicKey,
                 )
-                val taggedEncodedMso = Cbor.encode(Tagged(24, Bstr(Cbor.encode(mso.toDataItem()))))
+                val taggedEncodedMso = Cbor.encode(Tagged(Tagged.ENCODED_CBOR, Bstr(Cbor.encode(mso.toDataItem()))))
 
                 // IssuerAuth is a COSE_Sign1 where payload is MobileSecurityObjectBytes
                 //
