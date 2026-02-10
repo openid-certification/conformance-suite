@@ -28,11 +28,11 @@ public class VerifyPrimaryEntityPresenceInSubordinateListing extends AbstractCon
 		JsonArray subordinateListing = listEndpointResponseBody.getAsJsonArray();
 		for (JsonElement element : subordinateListing) {
 			if (Objects.equals(primaryEntitySub, OIDFJSON.getString(element))) {
-				logSuccess("Found primary entity in subordinate listing response", args("federation_endpoint_response", listEndpointResponseBody));
+				logSuccess("Found primary entity in subordinate listing response", args("federation_endpoint_response", listEndpointResponseBody, "primary_entity_statement_sub", primaryEntitySub));
 				return env;
 			}
 		}
 
-		throw error("Subordinate listing response did not contain the primary entity", args("federation_endpoint_response", listEndpointResponseBody));
+		throw error("Subordinate listing response did not contain the primary entity", args("federation_endpoint_response", listEndpointResponseBody, "primary_entity_statement_sub", primaryEntitySub));
 	}
 }
