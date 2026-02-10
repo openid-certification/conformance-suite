@@ -85,7 +85,7 @@ TvFLVc4ESGy3AtdC+g==
 		}
 
 		// Use provided issuer key or default
-		val (dsKey, dsCert) = if (issuerSigningJwk != null) {
+		val dsKey: AsymmetricKey.X509Certified = if (issuerSigningJwk != null) {
 			val issuerJwk = JWK.parse(issuerSigningJwk).toECKey()
 			val privateKey = convertJwkToEcPrivateKey(issuerJwk)
 			val cert = if (issuerJwk.x509CertChain != null && issuerJwk.x509CertChain.isNotEmpty()) {
@@ -93,9 +93,9 @@ TvFLVc4ESGy3AtdC+g==
 			} else {
 				documentSignerCert
 			}
-			Pair(privateKey, cert)
+			AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(cert)), privateKey)
 		} else {
-			Pair(documentSignerKey, documentSignerCert)
+			AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(documentSignerCert)), documentSignerKey)
 		}
 
 		val now = Clock.System.now().truncateToWholeSeconds()
@@ -126,7 +126,7 @@ TvFLVc4ESGy3AtdC+g==
 			valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
 			deviceKey = devicePublicKey,
 		)
-		val taggedEncodedMso = Cbor.encode(Tagged(24, Bstr(Cbor.encode(mso.toDataItem()))))
+		val taggedEncodedMso = Cbor.encode(Tagged(Tagged.ENCODED_CBOR, Bstr(Cbor.encode(mso.toDataItem()))))
 
 		// Create COSE_Sign1 for IssuerAuth
 		val protectedHeaders = mapOf<CoseLabel, org.multipaz.cbor.DataItem>(
@@ -138,13 +138,13 @@ TvFLVc4ESGy3AtdC+g==
 		val unprotectedHeaders = mapOf<CoseLabel, org.multipaz.cbor.DataItem>(
 			Pair(
 				CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN),
-				X509CertChain(listOf(dsCert)).toDataItem()
+				dsKey.certChain.toDataItem()
 			)
 		)
 		val encodedIssuerAuth = Cbor.encode(
 			runBlocking {
 				Cose.coseSign1Sign(
-					AsymmetricKey.anonymous(dsKey),
+					dsKey,
 					taggedEncodedMso,
 					true,
 					protectedHeaders,

@@ -14,7 +14,6 @@ import org.multipaz.cose.Cose
 import org.multipaz.cose.CoseLabel
 import org.multipaz.cose.CoseNumberLabel
 import org.multipaz.credential.SecureAreaBoundCredential
-import org.multipaz.crypto.AsymmetricKey
 import org.multipaz.crypto.*
 import org.multipaz.document.Document
 import org.multipaz.document.DocumentStore
@@ -257,12 +256,15 @@ TvFLVc4ESGy3AtdC+g==
 -----END CERTIFICATE-----""""
 		)
 
+		val dsKey = AsymmetricKey.X509CertifiedExplicit(
+			X509CertChain(listOf(documentSignerCert)),
+			documentSignerKey,
+		)
 		provisionTestDocuments(
 			documentStore = documentStore!!,
 			secureArea = softwareSecureArea,
 			secureAreaCreateKeySettingsFunc = ::createKeySettings,
-			dsKey = documentSignerKey,
-			dsCert = documentSignerCert,
+			dsKey = dsKey,
 			deviceKeyAlgorithm = Algorithm.ESP256,
 			deviceKeyMacAlgorithm = Algorithm.ECDH_P256,
 			numCredentialsPerDomain = 1
@@ -304,8 +306,7 @@ TvFLVc4ESGy3AtdC+g==
             validFrom: Instant,
             validUntil: Instant
         ) -> CreateKeySettings,
-        dsKey: EcPrivateKey,
-        dsCert: X509Cert,
+        dsKey: AsymmetricKey.X509Certified,
         deviceKeyAlgorithm: Algorithm,
         deviceKeyMacAlgorithm: Algorithm,
         numCredentialsPerDomain: Int,
@@ -317,7 +318,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -330,7 +330,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -343,7 +342,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -356,7 +354,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -369,7 +366,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -390,8 +386,7 @@ TvFLVc4ESGy3AtdC+g==
             validFrom: Instant,
             validUntil: Instant
         ) -> CreateKeySettings,
-        dsKey: EcPrivateKey,
-        dsCert: X509Cert,
+        dsKey: AsymmetricKey.X509Certified,
         deviceKeyAlgorithm: Algorithm,
         deviceKeyMacAlgorithm: Algorithm,
         numCredentialsPerDomain: Int,
@@ -422,7 +417,6 @@ TvFLVc4ESGy3AtdC+g==
                 validFrom = validFrom,
                 validUntil = validUntil,
                 dsKey = dsKey,
-                dsCert = dsCert,
                 numCredentialsPerDomain = numCredentialsPerDomain,
                 givenNameOverride = givenNameOverride
             )
@@ -439,7 +433,6 @@ TvFLVc4ESGy3AtdC+g==
                 validFrom = validFrom,
                 validUntil = validUntil,
                 dsKey = dsKey,
-                dsCert = dsCert,
                 numCredentialsPerDomain = numCredentialsPerDomain,
                 givenNameOverride = givenNameOverride
             )
@@ -463,8 +456,7 @@ TvFLVc4ESGy3AtdC+g==
         signedAt: Instant,
         validFrom: Instant,
         validUntil: Instant,
-        dsKey: EcPrivateKey,
-        dsCert: X509Cert,
+        dsKey: AsymmetricKey.X509Certified,
         numCredentialsPerDomain: Int,
         givenNameOverride: String
     ) {
@@ -553,12 +545,12 @@ TvFLVc4ESGy3AtdC+g==
                 val unprotectedHeaders = mapOf<CoseLabel, DataItem>(
                     Pair(
                         CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN),
-                        X509CertChain(listOf(dsCert)).toDataItem()
+                        dsKey.certChain.toDataItem()
                     )
                 )
                 val encodedIssuerAuth = Cbor.encode(
                     Cose.coseSign1Sign(
-                        AsymmetricKey.anonymous(dsKey),
+                        dsKey,
                         taggedEncodedMso,
                         true,
                         protectedHeaders,
@@ -602,8 +594,7 @@ TvFLVc4ESGy3AtdC+g==
         signedAt: Instant,
         validFrom: Instant,
         validUntil: Instant,
-        dsKey: EcPrivateKey,
-        dsCert: X509Cert,
+        dsKey: AsymmetricKey,
         numCredentialsPerDomain: Int,
         givenNameOverride: String
     ) {
@@ -673,7 +664,7 @@ TvFLVc4ESGy3AtdC+g==
                 }
                 val kbKey = (credential as? SecureAreaBoundCredential)?.getAttestation()?.publicKey
                 val sdJwt = SdJwt.create(
-                    issuerKey = AsymmetricKey.anonymous(dsKey),
+                    issuerKey = dsKey,
                     kbKey = kbKey,
                     claims = identityAttributes,
                     nonSdClaims = nonSdClaims
