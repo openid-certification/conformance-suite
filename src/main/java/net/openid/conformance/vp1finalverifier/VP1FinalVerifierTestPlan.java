@@ -2,6 +2,7 @@ package net.openid.conformance.vp1finalverifier;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
@@ -13,13 +14,16 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.verifierTest
 )
 public class VP1FinalVerifierTestPlan implements TestPlan {
+
+	public static final List<Class<? extends TestModule>> testModules = List.of(
+		// positive tests
+		VP1FinalVerifierHappyFlow.class
+	);
+
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
-				List.of(
-					// positive tests
-					VP1FinalVerifierHappyFlow.class
-				),
+				testModules,
 				List.of(
 				)
 			)

@@ -5,6 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,12 +17,11 @@ import java.util.Map;
 public class VP1FinalVerifierTestPlanHaip implements TestPlan {
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
+		var testModules = new ArrayList<>(VP1FinalVerifierTestPlan.testModules);
+
 		return List.of(
 			new ModuleListEntry(
-				List.of(
-					// positive tests
-					VP1FinalVerifierHappyFlow.class
-				),
+				testModules,
 				List.of(
 					new Variant(VPProfile.class, "haip"),
 					new Variant(VP1FinalVerifierClientIdPrefix.class, "x509_hash"),
