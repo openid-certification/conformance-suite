@@ -12,10 +12,12 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.produce.JWSSignerFactory;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
+import net.openid.conformance.extensions.MultiJWSSignerFactory;
 import net.openid.conformance.testmodule.Environment;
 
 import java.security.NoSuchAlgorithmException;
@@ -134,7 +136,8 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		builder.putDecoyDigests(3);
 
 		Map<String, Object> claims = builder.build();
-		JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
+		JWSAlgorithm signingAlgorithm = getSigningAlgorithm(credentialSigningJwk);
+		JWSHeader.Builder headerBuilder = new JWSHeader.Builder(signingAlgorithm)
 			.type(new JOSEObjectType("dc+sd-jwt"));
 		if (credentialSigningJwk.getX509CertChain() != null) {
 			headerBuilder.x509CertChain(credentialSigningJwk.getX509CertChain());
@@ -152,7 +155,8 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		SignedJWT jwt = new SignedJWT(header, claimsSet);
 
 		try {
-			JWSSigner signer = new ECDSASigner((ECKey) credentialSigningJwk); // FIXME need to cope with RSA too
+			JWSSignerFactory signerFactory = MultiJWSSignerFactory.getInstance();
+			JWSSigner signer = signerFactory.createJWSSigner(credentialSigningJwk, signingAlgorithm);
 			jwt.sign(signer);
 		} catch (JOSEException e) {
 			throw error("Failed to sign SD-JWT credential", e, args("signing_jwk", credentialSigningJwkEl));
@@ -174,5 +178,19 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		SDJWT sdJwt = new SDJWT(jwt.serialize(), disclosures, bindingJwt);
 
 		return sdJwt.toString();
+	}
+
+	private JWSAlgorithm getSigningAlgorithm(JWK signingJwk) {
+		if (signingJwk.getAlgorithm() != null) {
+			return JWSAlgorithm.parse(signingJwk.getAlgorithm().getName());
+		}
+
+		// Keep historical behavior for EC signing keys if alg is omitted.
+		if (signingJwk instanceof ECKey) {
+			return JWSAlgorithm.ES256;
+		}
+
+		throw error("No signing algorithm specified in credential.signing_jwk",
+			args("kty", signingJwk.getKeyType().getValue(), "kid", signingJwk.getKeyID()));
 	}
 }
