@@ -2,22 +2,23 @@ package org.multipaz.testapp
 
 import com.nimbusds.jose.jwk.JWK
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.multipaz.cbor.*
 import org.multipaz.cose.Cose
 import org.multipaz.cose.CoseLabel
 import org.multipaz.cose.CoseNumberLabel
-import org.multipaz.credential.CredentialLoader
 import org.multipaz.credential.SecureAreaBoundCredential
 import org.multipaz.crypto.*
 import org.multipaz.document.Document
 import org.multipaz.document.DocumentStore
-import org.multipaz.document.NameSpacedData
+import org.multipaz.document.buildDocumentStore
+import org.multipaz.mdoc.devicesigned.DeviceNamespaces
 import org.multipaz.documenttype.DocumentCannedRequest
 import org.multipaz.documenttype.DocumentType
 import org.multipaz.documenttype.knowntypes.DrivingLicense
@@ -27,27 +28,23 @@ import org.multipaz.documenttype.knowntypes.UtopiaMovieTicket
 import org.multipaz.mdoc.credential.MdocCredential
 import org.multipaz.mdoc.issuersigned.IssuerNamespaces
 import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
-import org.multipaz.mdoc.mso.MobileSecurityObjectGenerator
-import org.multipaz.mdoc.mso.MobileSecurityObjectParser
-import org.multipaz.mdoc.request.DeviceRequestGenerator
-import org.multipaz.mdoc.response.DeviceResponseGenerator
-import org.multipaz.mdoc.response.DocumentGenerator
-import org.multipaz.sdjwt.Issuer
-import org.multipaz.sdjwt.SdJwtVcGenerator
+import org.multipaz.mdoc.mso.MobileSecurityObject
+import org.multipaz.mdoc.request.buildDeviceRequest
+import org.multipaz.mdoc.response.DeviceResponse
+import org.multipaz.mdoc.response.buildDeviceResponse
+import org.multipaz.sdjwt.SdJwt
 import org.multipaz.sdjwt.credential.KeyBoundSdJwtVcCredential
 import org.multipaz.sdjwt.credential.KeylessSdJwtVcCredential
-import org.multipaz.sdjwt.util.JsonWebKey
+import org.multipaz.prompt.Reason
 import org.multipaz.securearea.CreateKeySettings
 import org.multipaz.securearea.PassphraseConstraints
 import org.multipaz.securearea.SecureArea
 import org.multipaz.securearea.SecureAreaRepository
 import org.multipaz.securearea.software.SoftwareCreateKeySettings
 import org.multipaz.securearea.software.SoftwareSecureArea
-import org.multipaz.storage.StorageTableSpec
-import org.multipaz.storage.base.BaseStorageTable
 import org.multipaz.storage.ephemeral.EphemeralStorage
-import org.multipaz.util.Constants
 import org.multipaz.util.Logger
+import org.multipaz.util.truncateToWholeSeconds
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
@@ -83,54 +80,33 @@ object TestAppUtils {
 
 	suspend fun generateEncodedDeviceResponse(
 		sessionTranscript: ByteArray
-	):ByteArray {
-		val deviceResponseGenerator = DeviceResponseGenerator(Constants.DEVICE_RESPONSE_STATUS_OK)
-		val document = documentStore!!.lookupDocument(mdlDocumentId!!)
-		val credential = document!!.findCredential(CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now())
-		deviceResponseGenerator.addDocument(calcDocument(
-			credential = credential as MdocCredential,
-			encodedSessionTranscript = sessionTranscript
-		))
-		return deviceResponseGenerator.generate()
-	}
-
-	private suspend fun calcDocument(
-		credential: MdocCredential,
-		encodedSessionTranscript: ByteArray
 	): ByteArray {
-		// TODO: support MAC keys from v1.1 request and use setDeviceNamespacesMac() when possible
-		//   depending on the value of PresentmentSource.preferSignatureToKeyAgreement(). See also
-		//   calcDocument in mdocPresentment.kt.
-		//
+		val document = documentStore!!.lookupDocument(mdlDocumentId!!)
+		val credential = document!!.findCredential(
+			CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now()
+		) as MdocCredential
+
 		val issuerSigned = Cbor.decode(credential.issuerProvidedData)
 		val issuerNamespaces = IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"])
 		val issuerAuthCoseSign1 = issuerSigned["issuerAuth"].asCoseSign1
-		val encodedMsoBytes = Cbor.decode(issuerAuthCoseSign1.payload!!)
-		val encodedMso = Cbor.encode(encodedMsoBytes.asTaggedEncodedCbor)
-		val mso = MobileSecurityObjectParser(encodedMso).parse()
 
-		val documentGenerator = DocumentGenerator(
-			mso.docType,
-			Cbor.encode(issuerSigned["issuerAuth"]),
-			encodedSessionTranscript,
+		val deviceKey = AsymmetricKey.anonymous(
+			credential.secureArea, credential.alias, Reason.Unspecified
 		)
 
-		documentGenerator.setIssuerNamespaces(issuerNamespaces)
-		val keyInfo = credential.secureArea.getKeyInfo(credential.alias)
-		if (!keyInfo.algorithm.isSigning) {
-			throw IllegalStateException(
-				"Signing is required for W3C DC API but its algorithm ${keyInfo.algorithm.name} is not for signing"
-			)
-		} else {
-			documentGenerator.setDeviceNamespacesSignature(
-				dataElements = NameSpacedData.Builder().build(),
-				secureArea = credential.secureArea,
-				keyAlias = credential.alias,
-				keyUnlockData = null,
+		val deviceResponse = buildDeviceResponse(
+			sessionTranscript = RawCbor(sessionTranscript),
+			status = DeviceResponse.STATUS_OK,
+		) {
+			addDocument(
+				docType = credential.docType,
+				issuerAuth = issuerAuthCoseSign1,
+				issuerNamespaces = issuerNamespaces,
+				deviceNamespaces = DeviceNamespaces(emptyMap()),
+				deviceKey = deviceKey,
 			)
 		}
-
-		return documentGenerator.generate()
+		return Cbor.encode(deviceResponse.toDataItem())
 	}
     fun generateEncodedDeviceRequest(
         request: DocumentCannedRequest,
@@ -148,16 +124,24 @@ object TestAppUtils {
             }
         }
 
-        val deviceRequestGenerator = DeviceRequestGenerator(encodedSessionTranscript)
-        deviceRequestGenerator.addDocumentRequest(
-            docType = mdocRequest.docType,
-            itemsToRequest = itemsToRequest,
-            requestInfo = null,
-            readerKey = readerKey,
-            signatureAlgorithm = readerKey.curve.defaultSigningAlgorithm,
-            readerKeyCertificateChain = X509CertChain(listOf(readerCert, readerRootCert)),
+        val readerAsymmetricKey = AsymmetricKey.X509CertifiedExplicit(
+            X509CertChain(listOf(readerCert, readerRootCert)),
+            readerKey,
         )
-        return deviceRequestGenerator.generate()
+
+        val deviceRequest = runBlocking {
+            buildDeviceRequest(
+                sessionTranscript = RawCbor(encodedSessionTranscript),
+            ) {
+                addDocRequest(
+                    docType = mdocRequest.docType,
+                    nameSpaces = itemsToRequest,
+                    docRequestInfo = null,
+                    readerKey = readerAsymmetricKey,
+                )
+            }
+        }
+        return Cbor.encode(deviceRequest.toDataItem())
     }
 
     fun generateEncodedSessionTranscript(
@@ -168,8 +152,8 @@ object TestAppUtils {
         val encodedEReaderKey = Cbor.encode(eReaderKey.toCoseKey().toDataItem())
         return Cbor.encode(
             buildCborArray {
-                add(Tagged(24, Bstr(encodedDeviceEngagement)))
-                add(Tagged(24, Bstr(encodedEReaderKey)))
+                add(Tagged(Tagged.ENCODED_CBOR, Bstr(encodedDeviceEngagement)))
+                add(Tagged(Tagged.ENCODED_CBOR, Bstr(encodedEReaderKey)))
                 add(handover)
             }
         )
@@ -191,39 +175,16 @@ object TestAppUtils {
 
 	var documentStore: DocumentStore? = null
 
-	private val testDocumentTableSpec = object: StorageTableSpec(
-		name = "TestAppDocuments",
-		supportExpiration = false,
-		supportPartitions = false,
-		schemaVersion = 1L,           // Bump every time incompatible changes are made
-	) {
-		override suspend fun schemaUpgrade(oldTable: BaseStorageTable) {
-			oldTable.deleteAll()
-		}
-	}
 	private suspend fun documentStoreInit() {
 		val storage = EphemeralStorage()
 		val softwareSecureArea = SoftwareSecureArea.create(storage)
-		val secureAreaRepository: SecureAreaRepository = SecureAreaRepository.build {
-			add(softwareSecureArea)
-		}
-		val credentialLoader: CredentialLoader = CredentialLoader()
-		credentialLoader.addCredentialImplementation(MdocCredential::class) {
-				document -> MdocCredential(document)
-		}
-		credentialLoader.addCredentialImplementation(KeyBoundSdJwtVcCredential::class) {
-				document -> KeyBoundSdJwtVcCredential(document)
-		}
-		credentialLoader.addCredentialImplementation(KeylessSdJwtVcCredential::class) {
-				document -> KeylessSdJwtVcCredential(document)
-		}
-		documentStore = DocumentStore(
+		val secureAreaRepository: SecureAreaRepository = SecureAreaRepository.Builder()
+			.add(softwareSecureArea)
+			.build()
+		documentStore = buildDocumentStore(
 			storage = storage,
-			secureAreaRepository = secureAreaRepository,
-			credentialLoader = credentialLoader,
-			documentMetadataFactory = TestAppDocumentMetadata::create,
-			documentTableSpec = testDocumentTableSpec
-		)
+			secureAreaRepository = secureAreaRepository
+		) {}
 
 		val documentSignerKeyPub = EcPublicKey.fromPem(
 			"""-----BEGIN PUBLIC KEY-----
@@ -295,12 +256,15 @@ TvFLVc4ESGy3AtdC+g==
 -----END CERTIFICATE-----""""
 		)
 
+		val dsKey = AsymmetricKey.X509CertifiedExplicit(
+			X509CertChain(listOf(documentSignerCert)),
+			documentSignerKey,
+		)
 		provisionTestDocuments(
 			documentStore = documentStore!!,
 			secureArea = softwareSecureArea,
 			secureAreaCreateKeySettingsFunc = ::createKeySettings,
-			dsKey = documentSignerKey,
-			dsCert = documentSignerCert,
+			dsKey = dsKey,
 			deviceKeyAlgorithm = Algorithm.ESP256,
 			deviceKeyMacAlgorithm = Algorithm.ECDH_P256,
 			numCredentialsPerDomain = 1
@@ -342,8 +306,7 @@ TvFLVc4ESGy3AtdC+g==
             validFrom: Instant,
             validUntil: Instant
         ) -> CreateKeySettings,
-        dsKey: EcPrivateKey,
-        dsCert: X509Cert,
+        dsKey: AsymmetricKey.X509Certified,
         deviceKeyAlgorithm: Algorithm,
         deviceKeyMacAlgorithm: Algorithm,
         numCredentialsPerDomain: Int,
@@ -355,7 +318,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -368,7 +330,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -381,7 +342,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -394,7 +354,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -407,7 +366,6 @@ TvFLVc4ESGy3AtdC+g==
             secureArea,
             secureAreaCreateKeySettingsFunc,
             dsKey,
-            dsCert,
             deviceKeyAlgorithm,
             deviceKeyMacAlgorithm,
             numCredentialsPerDomain,
@@ -428,8 +386,7 @@ TvFLVc4ESGy3AtdC+g==
             validFrom: Instant,
             validUntil: Instant
         ) -> CreateKeySettings,
-        dsKey: EcPrivateKey,
-        dsCert: X509Cert,
+        dsKey: AsymmetricKey.X509Certified,
         deviceKeyAlgorithm: Algorithm,
         deviceKeyMacAlgorithm: Algorithm,
         numCredentialsPerDomain: Int,
@@ -437,16 +394,13 @@ TvFLVc4ESGy3AtdC+g==
         givenNameOverride: String,
         displayName: String
     ): String {
-        val document = documentStore.createDocument {
-            val metadata = it as TestAppDocumentMetadata
-            metadata.initialize(
-                displayName = displayName,
-                typeDisplayName = documentType.displayName,
-                cardArt = ByteString(),
-            )
-        }
+        val document = documentStore.createDocument(
+            displayName = displayName,
+            typeDisplayName = documentType.displayName,
+            cardArt = ByteString(),
+        )
 
-        val now = Clock.System.now()
+        val now = Clock.System.now().truncateToWholeSeconds()
         val signedAt = now - 1.hours
         val validFrom =  now - 1.hours
         val validUntil = now + 365.days
@@ -463,13 +417,12 @@ TvFLVc4ESGy3AtdC+g==
                 validFrom = validFrom,
                 validUntil = validUntil,
                 dsKey = dsKey,
-                dsCert = dsCert,
                 numCredentialsPerDomain = numCredentialsPerDomain,
                 givenNameOverride = givenNameOverride
             )
         }
 
-        if (documentType.vcDocumentType != null) {
+        if (documentType.jsonDocumentType != null) {
             addSdJwtVcCredentials(
                 document = document,
                 documentType = documentType,
@@ -480,7 +433,6 @@ TvFLVc4ESGy3AtdC+g==
                 validFrom = validFrom,
                 validUntil = validUntil,
                 dsKey = dsKey,
-                dsCert = dsCert,
                 numCredentialsPerDomain = numCredentialsPerDomain,
                 givenNameOverride = givenNameOverride
             )
@@ -504,8 +456,7 @@ TvFLVc4ESGy3AtdC+g==
         signedAt: Instant,
         validFrom: Instant,
         validUntil: Instant,
-        dsKey: EcPrivateKey,
-        dsCert: X509Cert,
+        dsKey: AsymmetricKey.X509Certified,
         numCredentialsPerDomain: Int,
         givenNameOverride: String
     ) {
@@ -568,16 +519,18 @@ TvFLVc4ESGy3AtdC+g==
                 )
 
                 // Generate an MSO and issuer-signed data for this authentication key.
-                val msoGenerator = MobileSecurityObjectGenerator(
-                    Algorithm.SHA256,
-                    documentType.mdocDocumentType!!.docType,
-                    mdocCredential.getAttestation().publicKey
+                val mso = MobileSecurityObject(
+                    version = "1.0",
+                    docType = documentType.mdocDocumentType!!.docType,
+                    signedAt = signedAt,
+                    validFrom = validFrom,
+                    validUntil = validUntil,
+                    expectedUpdate = null,
+                    digestAlgorithm = Algorithm.SHA256,
+                    valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
+                    deviceKey = mdocCredential.getAttestation().publicKey,
                 )
-                msoGenerator.setValidityInfo(signedAt, validFrom, validUntil, null)
-                msoGenerator.addValueDigests(issuerNamespaces)
-
-                val mso = msoGenerator.generate()
-                val taggedEncodedMso = Cbor.encode(Tagged(24, Bstr(mso)))
+                val taggedEncodedMso = Cbor.encode(Tagged(Tagged.ENCODED_CBOR, Bstr(Cbor.encode(mso.toDataItem()))))
 
                 // IssuerAuth is a COSE_Sign1 where payload is MobileSecurityObjectBytes
                 //
@@ -592,7 +545,7 @@ TvFLVc4ESGy3AtdC+g==
                 val unprotectedHeaders = mapOf<CoseLabel, DataItem>(
                     Pair(
                         CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN),
-                        X509CertChain(listOf(dsCert)).toDataItem()
+                        dsKey.certChain.toDataItem()
                     )
                 )
                 val encodedIssuerAuth = Cbor.encode(
@@ -600,7 +553,6 @@ TvFLVc4ESGy3AtdC+g==
                         dsKey,
                         taggedEncodedMso,
                         true,
-                        dsKey.publicKey.curve.defaultSigningAlgorithm,
                         protectedHeaders,
                         unprotectedHeaders
                     ).toDataItem()
@@ -642,18 +594,21 @@ TvFLVc4ESGy3AtdC+g==
         signedAt: Instant,
         validFrom: Instant,
         validUntil: Instant,
-        dsKey: EcPrivateKey,
-        dsCert: X509Cert,
+        dsKey: AsymmetricKey,
         numCredentialsPerDomain: Int,
         givenNameOverride: String
     ) {
-        if (documentType.vcDocumentType == null) {
+        if (documentType.jsonDocumentType == null) {
             return
         }
 
         val identityAttributes = buildJsonObject {
-            for ((claimName, attribute) in documentType.vcDocumentType!!.claims) {
-                val sampleValue = attribute.sampleValueVc
+            for ((claimName, attribute) in documentType.jsonDocumentType!!.claims) {
+                // Skip sub-claims (e.g. "address.street_address")
+                if (claimName.contains('.')) {
+                    continue
+                }
+                val sampleValue = attribute.sampleValueJson
                 if (sampleValue != null) {
                     val value = if (claimName.startsWith("given_name")) {
                         JsonPrimitive(givenNameOverride)
@@ -667,7 +622,7 @@ TvFLVc4ESGy3AtdC+g==
             }
         }
 
-        val (domains, numCredentialsPerDomainAdj) = if (documentType.vcDocumentType!!.keyBound) {
+        val (domains, numCredentialsPerDomainAdj) = if (documentType.jsonDocumentType!!.keyBound) {
             Pair(listOf(CREDENTIAL_DOMAIN_SDJWT_USER_AUTH, CREDENTIAL_DOMAIN_SDJWT_NO_USER_AUTH), numCredentialsPerDomain)
         } else {
             // No point in having multiple credentials for keyless credentials..
@@ -675,14 +630,14 @@ TvFLVc4ESGy3AtdC+g==
         }
         for (domain in domains) {
             for (n in 1..numCredentialsPerDomainAdj) {
-                val credential = if (documentType.vcDocumentType!!.keyBound) {
+                val credential = if (documentType.jsonDocumentType!!.keyBound) {
                     val userAuthenticationRequired = (domain == CREDENTIAL_DOMAIN_SDJWT_USER_AUTH)
                     KeyBoundSdJwtVcCredential.create(
                         document = document,
                         asReplacementForIdentifier = null,
                         domain = domain,
                         secureArea = secureArea,
-                        vct = documentType.vcDocumentType!!.type,
+                        vct = documentType.jsonDocumentType!!.vct,
                         createKeySettings = secureAreaCreateKeySettingsFunc(
                             "Challenge".encodeToByteString(),
                             deviceKeyAlgorithm,
@@ -696,27 +651,26 @@ TvFLVc4ESGy3AtdC+g==
                         document = document,
                         asReplacementForIdentifier = null,
                         domain = domain,
-                        vct = documentType.vcDocumentType!!.type,
+                        vct = documentType.jsonDocumentType!!.vct,
                     )
                 }
 
-                val sdJwtVcGenerator = SdJwtVcGenerator(
-                    vct = credential.vct,
-                    payload = identityAttributes,
-                    issuer = Issuer(
-                        "https://example-issuer.com",
-                        dsKey.publicKey.curve.defaultSigningAlgorithmFullySpecified,
-                        null
-                    ),
+                val nonSdClaims = buildJsonObject {
+                    put("iss", "https://example-issuer.com")
+                    put("vct", credential.vct)
+                    put("iat", signedAt.epochSeconds)
+                    put("nbf", validFrom.epochSeconds)
+                    put("exp", validUntil.epochSeconds)
+                }
+                val kbKey = (credential as? SecureAreaBoundCredential)?.getAttestation()?.publicKey
+                val sdJwt = SdJwt.create(
+                    issuerKey = dsKey,
+                    kbKey = kbKey,
+                    claims = identityAttributes,
+                    nonSdClaims = nonSdClaims
                 )
-                sdJwtVcGenerator.publicKey =
-                    (credential as? SecureAreaBoundCredential)?.let { JsonWebKey(it.getAttestation().publicKey) }
-                sdJwtVcGenerator.timeSigned = signedAt
-                sdJwtVcGenerator.timeValidityBegin = validFrom
-                sdJwtVcGenerator.timeValidityEnd = validUntil
-                val sdJwt = sdJwtVcGenerator.generateSdJwt(dsKey)
                 credential.certify(
-                    sdJwt.toString().encodeToByteArray(),
+                    sdJwt.compactSerialization.encodeToByteArray(),
                     validFrom,
                     validUntil
                 )

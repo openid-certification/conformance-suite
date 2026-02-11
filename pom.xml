@@ -32,7 +32,7 @@
 		<java.version>17</java.version>
 		<pmdVersion>7.12.0</pmdVersion>
 		<jackson.version>2.15.1</jackson.version>
-		<kotlin.version>2.1.10</kotlin.version>
+		<kotlin.version>2.1.20</kotlin.version>
 	</properties>
 
 	<dependencies>
@@ -206,12 +206,12 @@
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-jvm</artifactId>
-			<version>0.91.0</version>
+			<version>0.96.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-doctypes-jvm</artifactId>
-			<version>0.91.0</version>
+			<version>0.96.0</version>
 		</dependency>
 
 		<dependency>
@@ -257,12 +257,12 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-datetime-jvm</artifactId>
-			<version>0.6.1</version>
+			<version>0.7.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-io-bytestring-jvm</artifactId>
-			<version>0.4.0</version>
+			<version>0.8.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlinx</groupId>
@@ -500,6 +500,9 @@
 				</executions>
 				<configuration>
 					<jvmTarget>1.8</jvmTarget>
+					<args>
+						<arg>-opt-in=kotlin.time.ExperimentalTime</arg>
+					</args>
 				</configuration>
 			</plugin>
 		</plugins>

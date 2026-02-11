@@ -1,16 +1,20 @@
 package org.multipaz.testapp
 
+import kotlinx.io.bytestring.ByteString
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.util.Base64URL
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlinx.coroutines.runBlocking
 import org.multipaz.cbor.*
 import org.multipaz.cose.Cose
 import org.multipaz.cose.CoseLabel
 import org.multipaz.cose.CoseNumberLabel
 import org.multipaz.crypto.*
 import org.multipaz.mdoc.issuersigned.buildIssuerNamespaces
-import org.multipaz.mdoc.mso.MobileSecurityObjectGenerator
+import org.multipaz.mdoc.mso.MobileSecurityObject
+import org.multipaz.util.truncateToWholeSeconds
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
@@ -81,20 +85,20 @@ TvFLVc4ESGy3AtdC+g==
 		}
 
 		// Use provided issuer key or default
-		val (dsKey, dsCert) = if (issuerSigningJwk != null) {
+		val dsKey: AsymmetricKey.X509Certified = if (issuerSigningJwk != null) {
 			val issuerJwk = JWK.parse(issuerSigningJwk).toECKey()
 			val privateKey = convertJwkToEcPrivateKey(issuerJwk)
 			val cert = if (issuerJwk.x509CertChain != null && issuerJwk.x509CertChain.isNotEmpty()) {
-				X509Cert(issuerJwk.x509CertChain[0].decode())
+				X509Cert(ByteString(issuerJwk.x509CertChain[0].decode()))
 			} else {
 				documentSignerCert
 			}
-			Pair(privateKey, cert)
+			AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(cert)), privateKey)
 		} else {
-			Pair(documentSignerKey, documentSignerCert)
+			AsymmetricKey.X509CertifiedExplicit(X509CertChain(listOf(documentSignerCert)), documentSignerKey)
 		}
 
-		val now = Clock.System.now()
+		val now = Clock.System.now().truncateToWholeSeconds()
 		val signedAt = now - 1.hours
 		val validFrom = now - 1.hours
 		val validUntil = now + 365.days
@@ -111,16 +115,18 @@ TvFLVc4ESGy3AtdC+g==
 				"The MSO generator requires a device public key."
 			)
 		}
-		val msoGenerator = MobileSecurityObjectGenerator(
-			Algorithm.SHA256,
-			docType,
-			devicePublicKey
+		val mso = MobileSecurityObject(
+			version = "1.0",
+			docType = docType,
+			signedAt = signedAt,
+			validFrom = validFrom,
+			validUntil = validUntil,
+			expectedUpdate = null,
+			digestAlgorithm = Algorithm.SHA256,
+			valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
+			deviceKey = devicePublicKey,
 		)
-		msoGenerator.setValidityInfo(signedAt, validFrom, validUntil, null)
-		msoGenerator.addValueDigests(issuerNamespaces)
-
-		val mso = msoGenerator.generate()
-		val taggedEncodedMso = Cbor.encode(Tagged(24, Bstr(mso)))
+		val taggedEncodedMso = Cbor.encode(Tagged(Tagged.ENCODED_CBOR, Bstr(Cbor.encode(mso.toDataItem()))))
 
 		// Create COSE_Sign1 for IssuerAuth
 		val protectedHeaders = mapOf<CoseLabel, org.multipaz.cbor.DataItem>(
@@ -132,18 +138,19 @@ TvFLVc4ESGy3AtdC+g==
 		val unprotectedHeaders = mapOf<CoseLabel, org.multipaz.cbor.DataItem>(
 			Pair(
 				CoseNumberLabel(Cose.COSE_LABEL_X5CHAIN),
-				X509CertChain(listOf(dsCert)).toDataItem()
+				dsKey.certChain.toDataItem()
 			)
 		)
 		val encodedIssuerAuth = Cbor.encode(
-			Cose.coseSign1Sign(
-				dsKey,
-				taggedEncodedMso,
-				true,
-				dsKey.publicKey.curve.defaultSigningAlgorithm,
-				protectedHeaders,
-				unprotectedHeaders
-			).toDataItem()
+			runBlocking {
+				Cose.coseSign1Sign(
+					dsKey,
+					taggedEncodedMso,
+					true,
+					protectedHeaders,
+					unprotectedHeaders
+				)
+			}.toDataItem()
 		)
 
 		// Build IssuerSigned structure
@@ -159,8 +166,8 @@ TvFLVc4ESGy3AtdC+g==
 
 	private fun buildIssuerNamespacesForDocType(
 		docType: String,
-		now: kotlinx.datetime.Instant,
-		validUntil: kotlinx.datetime.Instant
+		now: Instant,
+		validUntil: Instant
 	) = buildIssuerNamespaces {
 		when (docType) {
 			"org.iso.18013.5.1.mDL" -> {

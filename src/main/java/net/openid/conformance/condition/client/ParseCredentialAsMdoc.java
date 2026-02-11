@@ -8,6 +8,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DiagnosticOption;
+import org.multipaz.crypto.AsymmetricKey;
 import org.multipaz.mdoc.response.DeviceResponseParser;
 import org.multipaz.testapp.TestAppUtils;
 
@@ -16,6 +17,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class ParseCredentialAsMdoc extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = { "credential", "session_transcript" })
@@ -43,10 +45,19 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 				throw new RuntimeException(e);
 			}
 			var key = TestAppUtils.convertToEcPrivateKey(jwk);
-			parser.setEphemeralReaderKey(key); // pass encryption key
+			parser.setEphemeralReaderKey(AsymmetricKey.Companion.anonymous(key, key.getCurve().getDefaultSigningAlgorithmFullySpecified())); // pass encryption key
 		}
 
-		DeviceResponseParser.DeviceResponse response = parser.parse();
+		DeviceResponseParser.DeviceResponse response;
+		try {
+			response = kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				(scope, continuation) -> parser.parse(continuation)
+			);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException(e);
+		}
 		List<DeviceResponseParser.Document> docs = response.getDocuments();
 		if (docs.size() != 1) {
 			throw error("Expected exactly one document in mdoc",

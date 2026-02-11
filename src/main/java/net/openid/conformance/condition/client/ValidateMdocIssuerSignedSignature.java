@@ -12,7 +12,7 @@ import org.multipaz.cose.CoseSign1;
 import org.multipaz.crypto.Algorithm;
 import org.multipaz.crypto.EcPublicKey;
 import org.multipaz.crypto.X509CertChain;
-import org.multipaz.mdoc.mso.MobileSecurityObjectParser;
+import org.multipaz.mdoc.mso.MobileSecurityObject;
 
 import java.util.Base64;
 import java.util.Map;
@@ -131,9 +131,8 @@ public class ValidateMdocIssuerSignedSignature extends AbstractCondition {
 			byte[] payload = coseSign1.getPayload();
 			DataItem payloadItem = Cbor.INSTANCE.decode(payload);
 			DataItem msoDataItem = payloadItem.getAsTaggedEncodedCbor();
-			byte[] encodedMso = Cbor.INSTANCE.encode(msoDataItem);
-			MobileSecurityObjectParser.MobileSecurityObject mso =
-				new MobileSecurityObjectParser(encodedMso).parse();
+			MobileSecurityObject mso =
+				MobileSecurityObject.Companion.fromDataItem(msoDataItem);
 			msoVersion = mso.getVersion();
 			msoDocType = mso.getDocType();
 			msoDigestAlgorithm = mso.getDigestAlgorithm().name();
