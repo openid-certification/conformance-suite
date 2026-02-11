@@ -2,7 +2,7 @@
     {
         "test-name": "openid-federation-ensure-fetch-with-iss-as-sub-fails",
         "variant": "*",
-        "configuration-filename": "*authlete-federation-trust-anchor.json",
+        "configuration-filename": "*/authlete-federation-trust-anchor.json",
         "current-block": "*",
         "condition": "EnsureInvalidRequestError",
         "expected-result": "warning",
@@ -11,7 +11,7 @@
     {
         "test-name": "*",
         "variant": "*",
-        "configuration-filename": "*",
+        "configuration-filename": "*/federation-op-test-config.json",
         "current-block": "*",
         "condition": "CheckDiscEndpointUserinfoEndpoint",
         "expected-result": "warning",
