@@ -265,4 +265,36 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 		});
 
 	}
+
+	@Test
+	public void testEvaluate_noError_vouch_can_contain_document_details_without_document_branch_validation() {
+		String request = """
+			{
+			  "claims": {
+			    "id_token": {
+			      "verified_claims": {
+			        "claims": {
+			          "given_name": null
+			        },
+			        "verification": {
+			          "trust_framework": {
+			            "value": "de_aml"
+			          },
+			          "evidence": [
+			            {
+			              "type": {
+			                "value": "vouch"
+			              },
+			              "document_details": "ignored-for-vouch"
+			            }
+			          ]
+			        }
+			      }
+			    }
+			  }
+			}
+			""";
+
+		assertDoesNotThrow(() -> runTest(request));
+	}
 }
