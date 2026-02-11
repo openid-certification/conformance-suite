@@ -418,37 +418,36 @@
                                 "assurance_details": {
                                     "type": "array",
                                     "items": {
-                                        "oneOf": [
-                                            {
-                                                "assurance_classification": {
-                                                    "$ref": "#/$defs/constrainable_element"
-                                                },
-                                                "assurance_type": {
-                                                    "$ref": "#/$defs/constrainable_element"
-                                                },
-                                                "evidence_ref": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "check_id" : {
-                                                                "$ref": "#/$defs/constrainable_element"
-                                                            },
-                                                            "evidence_metadata": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "evidence_classification": {
-                                                                        "$ref": "#/$defs/constrainable_element"
-                                                                    }
+                                        "type": "object",
+                                        "properties": {
+                                            "assurance_classification": {
+                                                "$ref": "#/$defs/constrainable_element"
+                                            },
+                                            "assurance_type": {
+                                                "$ref": "#/$defs/constrainable_element"
+                                            },
+                                            "evidence_ref": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "check_id" : {
+                                                            "$ref": "#/$defs/constrainable_element"
+                                                        },
+                                                        "evidence_metadata": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "evidence_classification": {
+                                                                    "$ref": "#/$defs/constrainable_element"
                                                                 }
                                                             }
-                                                        },
-                                                        "required": ["check_id"]
+                                                        }
                                                     },
-                                                    "minItems": 1
-                                                }
+                                                    "required": ["check_id"]
+                                                },
+                                                "minItems": 1
                                             }
-                                        ]
+                                        }
                                     },
                                     "minItems": 1
                                 },
