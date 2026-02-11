@@ -62,6 +62,7 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -70,6 +71,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 
 @VariantParameters({
+	VPProfile.class,
 	VP1FinalVerifierCredentialFormat.class,
 	VP1FinalVerifierClientIdPrefix.class,
 	VP1FinalVerifierResponseMode.class,

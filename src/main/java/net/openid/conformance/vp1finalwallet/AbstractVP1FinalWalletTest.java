@@ -92,7 +92,9 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -101,6 +103,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 @VariantParameters({
+	VPProfile.class,
 	VP1FinalWalletCredentialFormat.class,
 	VP1FinalWalletClientIdPrefix.class,
 	VP1FinalWalletResponseMode.class,
@@ -127,6 +130,12 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
+@VariantNotApplicableWhen(
+	parameter = VP1FinalWalletResponseMode.class,
+	values = {"direct_post", "dc_api"},  // all values
+	whenParameter = VPProfile.class,
+	hasValues = "haip"
+)
 public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerTestModule {
 	protected enum TestState {
 		INITIAL,
