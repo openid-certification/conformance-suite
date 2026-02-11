@@ -378,4 +378,70 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 
 		assertDoesNotThrow(() -> runTest(request));
 	}
+
+	@Test
+	public void testEvaluate_noError_electronic_signature_branch_with_valid_date_time() {
+		String request = """
+			{
+			  "claims": {
+			    "id_token": {
+			      "verified_claims": {
+			        "claims": {
+			          "given_name": null
+			        },
+			        "verification": {
+			          "trust_framework": {
+			            "value": "de_aml"
+			          },
+			          "evidence": [
+			            {
+			              "type": {
+			                "value": "electronic_signature"
+			              },
+			              "created_at": {
+			                "max_age": 0
+			              }
+			            }
+			          ]
+			        }
+			      }
+			    }
+			  }
+			}
+			""";
+
+		assertDoesNotThrow(() -> runTest(request));
+	}
+
+	@Test
+	public void testEvaluate_fail_electronic_signature_branch_enforced() {
+		String request = """
+			{
+			  "claims": {
+			    "id_token": {
+			      "verified_claims": {
+			        "claims": {
+			          "given_name": null
+			        },
+			        "verification": {
+			          "trust_framework": {
+			            "value": "de_aml"
+			          },
+			          "evidence": [
+			            {
+			              "type": {
+			                "value": "electronic_signature"
+			              },
+			              "created_at": "2024-01-01"
+			            }
+			          ]
+			        }
+			      }
+			    }
+			  }
+			}
+			""";
+
+		assertThrows(ConditionError.class, () -> runTest(request));
+	}
 }
