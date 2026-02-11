@@ -2,6 +2,7 @@ package net.openid.conformance.vp1finalwallet;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
@@ -14,25 +15,28 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.wallettest
 )
 public class VP1FinalWalletTestPlan implements TestPlan {
+
+	public static final List<Class<? extends TestModule>> testModules = List.of(
+		// positive tests
+		VP1FinalWalletHappyFlowNoState.class,
+		VP1FinalWalletHappyFlowWithStateAndRedirect.class,
+
+		// negative tests
+		VP1FinalWalletResponseUriNotClientId.class,
+		VP1FinalWalletInvalidRequestObjectSignature.class
+
+		// negative tests:
+		// try sending a redirect_uri in auth request with response_mode=direct_post
+		// sending invalid client_id_scheme should cause an error?
+		// flow without nonce
+		// different client_id in request object and passed in url query? ("The Client Identifier value in the `client_id` Authorization Request parameter and the Request Object `client_id` claim value MUST be identical, including the Client Identifier Scheme.")
+		// signed DC API request but no or wrong expected_origins
+	);
+
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
-				List.of(
-					// positive tests
-					VP1FinalWalletHappyFlowNoState.class,
-					VP1FinalWalletHappyFlowWithStateAndRedirect.class,
-
-					// negative tests
-					VP1FinalWalletResponseUriNotClientId.class,
-					VP1FinalWalletInvalidRequestObjectSignature.class
-
-					// negative tests:
-					// try sending a redirect_uri in auth request with response_mode=direct_post
-					// sending invalid client_id_scheme should cause an error?
-					// flow without nonce
-					// different client_id in request object and passed in url query? ("The Client Identifier value in the `client_id` Authorization Request parameter and the Request Object `client_id` claim value MUST be identical, including the Client Identifier Scheme.")
-					// signed DC API request but no or wrong expected_origins
-				),
+				testModules,
 				List.of(
 				)
 			)
