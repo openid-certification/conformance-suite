@@ -65,12 +65,16 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 					"actual", docs.size(),
 					"cbor_diagnostic", diagnostics));
 		}
+		if (!docs.get(0).getIssuerSignedAuthenticated()) {
+			throw error("mdoc issuer-signed data (issuerAuth COSE_Sign1) signature verification failed. The MSO signature could not be verified against the public key in the issuer certificate.",
+				args("cbor_diagnostic", diagnostics));
+		}
 		if (!docs.get(0).getDeviceSignedAuthenticated()) {
 			throw error("mdoc device-signed data was neither properly MACed nor signed by a DeviceKey in the MSO. This may mean the contents of the Session Transcript are wrong - expand the items above where the conformance suite calculates the session transcript to see what values were used.",
 				args("cbor_diagnostic", diagnostics));
 		}
 
-		logSuccess("Parsed mdoc & validated device-signed data", args("cbor_diagnostic", diagnostics));
+		logSuccess("Parsed mdoc & validated issuer-signed and device-signed data", args("cbor_diagnostic", diagnostics));
 
 		return env;
 	}
