@@ -151,7 +151,7 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "value": "electronic_signature"
+                                "const": "electronic_signature"
                             }
                         }
                     },
@@ -181,7 +181,7 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "value": "document"
+                                "const": "document"
                             }
                         }
                     },
@@ -204,7 +204,7 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "value": "electronic_record"
+                                "const": "electronic_record"
                             }
                         }
                     },
@@ -272,7 +272,7 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "value": "vouch"
+                                "const": "vouch"
                             }
                         }
                     },

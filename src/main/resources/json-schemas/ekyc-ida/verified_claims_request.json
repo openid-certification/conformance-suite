@@ -174,7 +174,13 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "value": "electronic_signature"
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "const": "electronic_signature"
+                                    }
+                                },
+                                "required": ["value"]
                             }
                         }
                     },
@@ -200,7 +206,13 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "value": "document"
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "const": "document"
+                                    }
+                                },
+                                "required": ["value"]
                             }
                         }
                     },
@@ -220,7 +232,13 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "value": "electronic_record"
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "const": "electronic_record"
+                                    }
+                                },
+                                "required": ["value"]
                             }
                         }
                     },
@@ -286,7 +304,13 @@
                     "if": {
                         "properties": {
                             "type": {
-                                "value": "vouch"
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "const": "vouch"
+                                    }
+                                },
+                                "required": ["value"]
                             }
                         }
                     },
@@ -418,37 +442,36 @@
                                 "assurance_details": {
                                     "type": "array",
                                     "items": {
-                                        "oneOf": [
-                                            {
-                                                "assurance_classification": {
-                                                    "$ref": "#/$defs/constrainable_element"
-                                                },
-                                                "assurance_type": {
-                                                    "$ref": "#/$defs/constrainable_element"
-                                                },
-                                                "evidence_ref": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "check_id" : {
-                                                                "$ref": "#/$defs/constrainable_element"
-                                                            },
-                                                            "evidence_metadata": {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "evidence_classification": {
-                                                                        "$ref": "#/$defs/constrainable_element"
-                                                                    }
+                                        "type": "object",
+                                        "properties": {
+                                            "assurance_classification": {
+                                                "$ref": "#/$defs/constrainable_element"
+                                            },
+                                            "assurance_type": {
+                                                "$ref": "#/$defs/constrainable_element"
+                                            },
+                                            "evidence_ref": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "check_id" : {
+                                                            "$ref": "#/$defs/constrainable_element"
+                                                        },
+                                                        "evidence_metadata": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "evidence_classification": {
+                                                                    "$ref": "#/$defs/constrainable_element"
                                                                 }
                                                             }
-                                                        },
-                                                        "required": ["check_id"]
+                                                        }
                                                     },
-                                                    "minItems": 1
-                                                }
+                                                    "required": ["check_id"]
+                                                },
+                                                "minItems": 1
                                             }
-                                        ]
+                                        }
                                     },
                                     "minItems": 1
                                 },

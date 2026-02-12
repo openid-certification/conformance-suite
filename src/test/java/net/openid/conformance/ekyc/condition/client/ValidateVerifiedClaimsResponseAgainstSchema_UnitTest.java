@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +51,34 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 		assertThrows(ConditionError.class, () -> {
 			JsonObject verifiedClaimsResponse = new JsonObject();
 			String claimsJson = "{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
+			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
+			verifiedClaimsResponse.add("id_token", parsedClaims);
+			env.putObject("verified_claims_response", verifiedClaimsResponse);
+			env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
+			cond.execute(env);
+			});
+	}
+
+	@Test
+	public void testEvaluate_validateVerifiedClaimsVouchCanContainDocumentDetailsWithoutDocumentBranchValidation() {
+		assertDoesNotThrow(() -> {
+			JsonObject verifiedClaimsResponse = new JsonObject();
+			String claimsJson = """
+				{
+				  "claims": {
+				    "given_name": "Paula"
+				  },
+				  "verification": {
+				    "trust_framework": "de_aml",
+				    "evidence": [
+				      {
+				        "type": "vouch",
+				        "document_details": "ignored-for-vouch"
+				      }
+				    ]
+				  }
+				}
+				""";
 			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
 			verifiedClaimsResponse.add("id_token", parsedClaims);
 			env.putObject("verified_claims_response", verifiedClaimsResponse);
