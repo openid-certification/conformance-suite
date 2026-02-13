@@ -111,18 +111,18 @@ public class LogApi {
 		PaginationResponse<?> response;
 
 		if (publicOnly) {
-			response = page.getResponse(
-					p -> testInfos.findAllPublic(p),
-					(s, p) -> testInfos.findAllPublicSearch(s, p));
+			response = page.getSliceResponse(
+					p -> testInfos.findAllPublicAsSlice(p),
+					(s, p) -> testInfos.findAllPublicSearchAsSlice(s, p));
 		} else if (authenticationFacade.isAdmin()) {
-			response = page.getResponse(
-					p -> testInfos.findAll(p),
-					(s, p) -> testInfos.findAllSearch(s, p));
+			response = page.getSliceResponse(
+					p -> testInfos.findAllAsSlice(p),
+					(s, p) -> testInfos.findAllSearchAsSlice(s, p));
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
-			response = page.getResponse(
-					p -> testInfos.findAllByOwner(owner, p),
-					(s, p) -> testInfos.findAllByOwnerSearch(owner, s, p));
+			response = page.getSliceResponse(
+					p -> testInfos.findAllByOwnerAsSlice(owner, p),
+					(s, p) -> testInfos.findAllByOwnerSearchAsSlice(owner, s, p));
 		}
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
