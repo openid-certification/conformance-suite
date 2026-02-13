@@ -2,9 +2,9 @@ package net.openid.conformance.pagination;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 
@@ -66,17 +66,23 @@ public class PaginationRequest {
 		this.order = order;
 	}
 
-	public <T> PaginationResponse<T> getResponse(
-			Function<Pageable, Page<T>> queryAll,
-			BiFunction<String, Pageable, Page<T>> querySearch) {
+	public <T> PaginationResponse<T> getSliceResponse(
+			Function<Pageable, Slice<T>> queryAll,
+			BiFunction<String, Pageable, Slice<T>> querySearch) {
 
-		Page<T> allResults = queryAll.apply(getPageable());
-		Page<T> filteredResults = Strings.isNullOrEmpty(search) ? allResults : querySearch.apply('\"' + search + '\"', getPageable());
+		Slice<T> results = Strings.isNullOrEmpty(search)
+				? queryAll.apply(getPageable())
+				: querySearch.apply('\"' + search + '\"', getPageable());
 
-		return new PaginationResponse<T>(draw,
-				allResults.getTotalElements(),
-				filteredResults.getTotalElements(),
-				Lists.newArrayList(filteredResults));
+		int pageLength = length == 0 ? 10 : length;
+		long syntheticCount = results.hasNext()
+				? (long) start + pageLength + 1
+				: (long) start + results.getNumberOfElements();
+
+		return new PaginationResponse<>(draw,
+				syntheticCount,
+				syntheticCount,
+				Lists.newArrayList(results));
 	}
 
 	private Pageable getPageable() {
