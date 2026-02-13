@@ -290,6 +290,22 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             });
                         });
                     },
+                    pagingType: "simple",
+                    language: {
+                        info: "Showing _START_ to _END_",
+                        infoEmpty: "No entries to show",
+                        infoFiltered: ""
+                    },
+                    initComplete: function() {
+                        var api = this.api();
+                        var searchInput = $('div.dataTables_filter input', api.table().container());
+                        searchInput.off();
+                        searchInput.on('keypress', function(e) {
+                            if (e.which === 13) {
+                                api.search(this.value).draw();
+                            }
+                        });
+                    },
                     order: [[5, "desc"]] // sort by the "date" column, descending, by default
                 });
 
