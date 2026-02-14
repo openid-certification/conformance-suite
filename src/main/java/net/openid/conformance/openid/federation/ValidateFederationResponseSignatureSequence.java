@@ -8,6 +8,7 @@ public class ValidateFederationResponseSignatureSequence extends AbstractConditi
 	@Override
 	public void evaluate() {
 		callAndContinueOnFailure(ValidateECJWKs.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
+		callAndContinueOnFailure(CheckDistinctKeyIdValueInEntityStatementJWKs.class, Condition.ConditionResult.FAILURE, "OIDFED-3.1.1");
 		callAndContinueOnFailure(EnsureEntityStatementJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
 		callAndContinueOnFailure(VerifyEntityStatementSignature.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 	}
