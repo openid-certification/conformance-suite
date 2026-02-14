@@ -54,6 +54,115 @@ java -jar target/fapi-test-suite.jar --spring.profiles.active=dev
 
 The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTLS).
 
+### Running integration tests
+
+When running integration tests locally, the setup that consistently works is:
+
+```bash
+# 0) Build the jar first (especially after code changes)
+mvn -DskipTests package
+
+# 1) Stop any existing suite process (ignore if not running)
+#    The first command catches jar launches; the second catches IntelliJ/classpath launches.
+#    Note: the port-based command kills any process listening on :8080.
+pkill -f "target/fapi-test-suite.jar" || true
+kill $(lsof -tiTCP:8080 -sTCP:LISTEN) 2>/dev/null || true
+
+# 2) Start suite behind local proxy target, with dev mode enabled
+#    Run this in the foreground in a dedicated terminal.
+java -jar target/fapi-test-suite.jar \
+  --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite \
+  --server.port=8080 \
+  --fintechlabs.devmode=true \
+  --fintechlabs.base_url=https://localhost.emobix.co.uk:8443 \
+  --fintechlabs.base_mtls_url=https://localhost.emobix.co.uk:8444
+
+# 3) (Recommended) confirm proxy + runner API readiness before launching plans
+# run this probe outside any sandbox/network-restricted environment
+# manual probe waits up to 20s (20 attempts x 1s); run-test-plan.py has similar startup retries
+ready=0
+for attempt in $(seq 1 20); do
+  body="/tmp/runner-available-$$.json"
+  code=$(curl -k -sS -o "$body" -w '%{http_code}' https://localhost.emobix.co.uk:8443/api/runner/available || true)
+  if [ "$code" = "200" ] && python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$body" >/dev/null 2>&1; then
+    echo "runner/available is ready (attempt $attempt/20)"
+    ready=1
+    rm -f "$body"
+    break
+  fi
+  echo "runner/available not ready yet (attempt $attempt/20, http=$code)"
+  rm -f "$body"
+  sleep 1
+done
+if [ "$ready" -ne 1 ]; then
+  echo "runner/available did not become ready after 20s; check proxy stack (devenv/docker)."
+  echo "Continuing anyway: run-test-plan.py also retries runner startup."
+fi
+
+# 4) Run federation plans (through proxy URL)
+cd ../conformance-suite-private
+../conformance-suite/.gitlab-ci/run-tests.sh --federation-tests
+```
+
+Canonical command form (use these exact commands/ordering to avoid extra permission prompts):
+
+```bash
+mvn -DskipTests package
+pkill -f "target/fapi-test-suite.jar" || true
+# Note: this kills any process listening on :8080.
+kill $(lsof -tiTCP:8080 -sTCP:LISTEN) 2>/dev/null || true
+java -jar target/fapi-test-suite.jar \
+  --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite \
+  --server.port=8080 \
+  --fintechlabs.devmode=true \
+  --fintechlabs.base_url=https://localhost.emobix.co.uk:8443 \
+  --fintechlabs.base_mtls_url=https://localhost.emobix.co.uk:8444
+cd ../conformance-suite-private
+../conformance-suite/.gitlab-ci/run-tests.sh --federation-tests
+```
+
+`--federation-tests` can be changed to run other test suites. Prefer selecting different existing `run-tests.sh` options over editing the script itself.
+
+### Running VP-only tests
+
+There is no dedicated `--vp-tests` option in `.gitlab-ci/run-tests.sh`. To run only VP plans from `--server-tests-only`, temporarily comment out the OID4VCI `TESTS=` lines inside `makeServerTest`, run tests, then restore the file.
+
+```bash
+# 1) Backup run-tests.sh
+cp .gitlab-ci/run-tests.sh /tmp/run-tests.sh.vp.bak
+
+# 2) Temporarily comment OID4VCI TESTS= lines in makeServerTest
+awk 'BEGIN{in_vci=0}
+  /# OpenID4VCI op-against-rp/{in_vci=1}
+  in_vci && /^[[:space:]]*TESTS="/{print "#" $0; next}
+  in_vci && /^}/{in_vci=0}
+  {print}
+' .gitlab-ci/run-tests.sh > /tmp/run-tests.sh.vp
+mv /tmp/run-tests.sh.vp .gitlab-ci/run-tests.sh
+chmod +x .gitlab-ci/run-tests.sh
+
+# 3) Run server tests (now VP-only)
+cd ../conformance-suite-private
+../conformance-suite/.gitlab-ci/run-tests.sh --server-tests-only
+
+# 4) Restore run-tests.sh
+cd ../conformance-suite
+cp /tmp/run-tests.sh.vp.bak .gitlab-ci/run-tests.sh
+chmod +x .gitlab-ci/run-tests.sh
+```
+
+Expected signal in output: queued plans should be only `oid4vp-*` (no `oid4vci-*`).
+
+Important details:
+- Use the HTTPS proxy endpoint (`https://localhost.emobix.co.uk:8443`), not direct HTTP calls to port `8080`. Direct HTTP gets rejected by `RejectPlainHttpTrafficChannelProcessor`.
+- Run the step-3 readiness probe outside sandbox/network-restricted execution so `curl` can actually reach the proxy endpoint.
+- `scripts/run-test-plan.py` also has built-in startup retries against `api/runner/available` (11 attempts with 10-second backoff; effective wait is typically ~100-120s including request time), so brief startup races are expected.
+- Keep `fintechlabs.devmode=true` for local scripted runs so auth does not block test execution.
+- Ensure the `python3` used to run test scripts has `pyparsing >= 3` for `scripts/run-test-plan.py`. On macOS, one way is `PATH=/opt/homebrew/bin:$PATH` before running the script. If you see `'Group' object has no attribute 'set_results_name'`, the wrong Python environment is being used.
+- The `cd ../conformance-suite-private` step assumes this checkout layout; if you are already in `conformance-suite`, run `.gitlab-ci/run-tests.sh --federation-tests` directly.
+- Run the Java server in a separate terminal, in the foreground, and stop it after tests complete (Ctrl-C).
+- If you must run Java in the background, capture logs to a file and verify readiness via `runner/available` before starting plans.
+
 ## Architecture
 
 ### Test Module System
