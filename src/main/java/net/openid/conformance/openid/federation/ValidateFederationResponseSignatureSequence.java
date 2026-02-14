@@ -10,6 +10,7 @@ public class ValidateFederationResponseSignatureSequence extends AbstractConditi
 		callAndContinueOnFailure(ValidateECJWKs.class, Condition.ConditionResult.FAILURE, "OIDFED-3");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInEntityStatementJWKs.class, Condition.ConditionResult.FAILURE, "OIDFED-3.1.1");
 		callAndContinueOnFailure(EnsureEntityStatementJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
+		callAndContinueOnFailure(EnsureEntityStatementJwksHasMinimumKeyLength.class, Condition.ConditionResult.FAILURE, "RFC7518-3.3", "RFC7518-3.4", "RFC7518-3.5");
 		callAndContinueOnFailure(VerifyEntityStatementSignature.class, Condition.ConditionResult.FAILURE, "OIDFED-3.2");
 	}
 }
