@@ -75,4 +75,3 @@ public class VP1FinalWalletTestPlanHaip  implements TestPlan {
 	}
 
 }
-
