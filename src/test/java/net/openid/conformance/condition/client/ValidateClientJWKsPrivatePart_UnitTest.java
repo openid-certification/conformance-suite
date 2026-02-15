@@ -86,6 +86,42 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_encryptionKeyFirstAndSigningKeySecondNoError() {
+		client.add("jwks", JsonParser.parseString("""
+				{
+				  "keys": [
+				    {
+				      "p": "0_PYObuWtoSKNPp4vKSbZUbVPxn0Pw5Z7r6SRfnYyE8mPaXvptdmQxGazBzt4kABfRHN1aUvnEH8aF2F3HlIP0938wyXWUN-0WvMDcdm1OZYW4bWCjom1JBS8IrvjCoaFzQsWzL-K-1xtTjIu8dSIFco4su9r3vn2YRlCqw-_A8",
+				      "kty": "RSA",
+				      "q": "qqUV6TYILpRiBmN28uqUFeUIEdbo1618EMIJyCRoRH6m2A-F1mXBchEALY8pyU8sLMYxzvfTtHM7JTA3zaR42v-sySvq2pkcwlvyVFHyGzfcc5yHhxxxFTcD48a5SCz0ah0Ua0DKUNXByRkpXCFjAxvWmIn2Oi48GQKRfBURz70",
+				      "d": "eUGjAoaBszhxfytcv7n6M-AaesYPGKplMxTLhI275rtnYgjzv1Cof2suhuZ2pmjqThI3HsAOu0VaHFEeEIQbB7KgwGyZxFU4gwo0aLwtl4arRVFb37J36FkDuAh5ehsNnZPfgPWfGDerRTjuyNBzb4yxWdf8j0N1j6rFN0dDggz31IOyDunGvgUPaSNdSWau65HJq0T4EajoRzhUGEIxMBvLjJehUtxIup0vuPqYsHuZPRXdOAURvHZHI-xNS1xVIxAvIr37OVFREWtuaJ5-cM4NlR9HuxfMU1cvrbkdr3fzzG5jJRmbt5WGe8dHfdaehwG9bLS8OaFpo7W7Hwf_eQ",
+				      "e": "AQAB",
+				      "use": "enc",
+				      "kid": "enc_key_first",
+				      "qi": "e3_GKMA5SqMC5N3QFdd_yCGj4MdwQiH7cjZKoSfHEqxzgBAfDe6tY6N7kfGwl9dRyAMPOA1RJU_IF-aI9UjbX7I5Rb7Ury-FjudQkCvORKBWaZLzv1kAbPBIYPZ3BZU3lOjlFOQaV22s_SBWwx-FnKuwlwHwBHDzvygnToQXVeU",
+				      "dp": "rbjrvUY4HZk8_nddhqEUjUoldvb67sQAimLA2YITYPseyOC9MO7T7pz7V9lOUWdM0QpKv5YJE_YxwAkHstHlmZ61Hg1v78YWp-fG9HQ_oLi8Kyi1PuSy9v7kPCxkc2n-wI4O3SFKmw6faH4GaYLRmZhW9q0v6CmSuwJ9HuZXKZk",
+				      "alg": "RSA1_5",
+				      "dq": "X3nWdJFiqo0i-2gTWX6eNFHc3f5ccLAERmwKhQy5ufkS6LhmrbppLaUNcHA1dQjzMmoB3EcVEFWYtgnwbwKjDAUZa8VCteQND0HaqArhZxEuKxFdUt869h-98Wdyq0tbxTNYBVpO2EOBFT8awQ19FHQy8U3fklXkEio5tC8ltBE",
+				      "n": "jUib5MowvBJatOuT5GBoDWjg4uos-H4Uu8xFpFBqVwcflqDqq0TwQdj3o7ikTs8r-aFmpq0KRPQRbiAnCjNKrFS2O11q2zvueCi0bdYAaIS67uKeCXM-N1btNlSUg2i63P5DAkIPACKt0fyazwBOWyoJLY-CtPiUm1kramPcO3wvUKOPhObYf4847tBerkHm5NkxmJDSxET8sdzQMMncdyEtuTlGQGz9ruxYjhiPiqDaNs7uZ2Y5Y5_8iz1ZZFJEEv1d7z75cSJvheD2rsgVETbkD7-gQAxksp1ZH124ZucfnX-G_-CTq5un8ZCsQswt2OwV-5KzgnzErWtIEE84Ew"
+				    },
+				    {
+				      "kty": "EC",
+				      "d": "fRqbe7uuYBrzCLqC1Z2rxPIskrf3PrpbKAS5RdoRh_s",
+				      "use": "sig",
+				      "crv": "P-256",
+				      "alg": "ES256",
+				      "kid": "signing_key_second",
+				      "x": "RsJ58leViXVAIvcR0jx7LfnALhm_0qcns3h4v6b8Pdk",
+				      "y": "7Y0pNoArqzvFS_Li45WK3MfUf_YJaxWVVCbfEHPtdo0"
+				    }
+				  ]
+				}""").getAsJsonObject());
+		env.putObject("client", client);
+
+		cond.execute(env);
+	}
+
+	@Test
 	public void testEvaluate_RSAPrivateKeyErrorKeysNotMatch() {
 		assertThrows(ConditionError.class, () -> {
 			client.add("jwks", JsonParser.parseString("{" +
