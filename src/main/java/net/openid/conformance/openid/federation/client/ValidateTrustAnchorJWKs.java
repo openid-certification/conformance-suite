@@ -12,9 +12,9 @@ public class ValidateTrustAnchorJWKs extends AbstractValidateJWKs {
 	public Environment evaluate(Environment env) {
 		JsonObject jwks = env.getObject("trust_anchor_jwks");
 
-		checkJWKs(jwks, false);
+		checkJWKs(jwks, true);
 
-		logSuccess("Valid trust anchor JWKs: keys are valid JSON, contain the required fields and are correctly encoded using unpadded base64url");
+		logSuccess("Valid trust anchor JWKs: keys are valid JSON, contain the required fields, the private/public exponents match and are correctly encoded using unpadded base64url");
 
 		return env;
 	}

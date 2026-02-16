@@ -16,12 +16,33 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.JWTUtil;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.text.ParseException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 
 // Contains utility methods that don't use conditions and stuff
 // that require that the test module lock is obtained
@@ -53,7 +74,7 @@ public class NonBlocking {
 
 		String federationEndpointUrl = EntityUtils.appendWellKnown(sub);
 
-		String result = new RestTemplate().getForObject(federationEndpointUrl, String.class);
+		String result = createInsecureRestTemplate(testId).getForObject(federationEndpointUrl, String.class);
 		JsonObject claims;
 		try {
 			claims = JWTUtil.jwtStringToJsonObjectForEnvironment(result).getAsJsonObject("claims");
@@ -130,5 +151,62 @@ public class NonBlocking {
 		signJWT.sign(signer);
 
 		return signJWT.serialize();
+	}
+
+	// The conformance suite connects to test deployments that commonly use self-signed
+	// certificates, so we disable certificate and hostname verification.
+	// Matches the approach in AbstractCondition.createHttpClient().
+	@SuppressWarnings("deprecation") // NoopHostnameVerifier
+	private static RestTemplate createInsecureRestTemplate(String testId) {
+		try {
+			TrustManager[] trustAllCerts = {
+				new X509TrustManager() {
+					@Override
+					public X509Certificate[] getAcceptedIssuers() {
+						return new X509Certificate[0];
+					}
+
+					@Override
+					public void checkServerTrusted(X509Certificate[] chain, String authType) {
+					}
+
+					@Override
+					public void checkClientTrusted(X509Certificate[] chain, String authType) {
+					}
+				}
+			};
+
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(null, trustAllCerts, new SecureRandom());
+
+			SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
+				.setSslContext(sslContext)
+				.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+				.build();
+
+			HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
+			builder.setDefaultRequestConfig(RequestConfig.custom().build());
+
+			Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+				.register("https", sslConnectionFactory)
+				.register("http", new PlainConnectionSocketFactory())
+				.build();
+
+			BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(registry);
+			connectionManager.setConnectionConfig(ConnectionConfig.custom()
+				.setConnectTimeout(Timeout.ofSeconds(60))
+				.setSocketTimeout(Timeout.ofSeconds(60))
+				.setTimeToLive(Timeout.ofSeconds(60))
+				.build());
+
+			builder.setConnectionManager(connectionManager);
+			builder.disableRedirectHandling();
+			builder.disableAutomaticRetries();
+
+			HttpClient httpClient = builder.build();
+			return new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+		} catch (NoSuchAlgorithmException | KeyManagementException e) {
+			throw new TestFailureException(testId, "Error creating HTTP client", e);
+		}
 	}
 }
