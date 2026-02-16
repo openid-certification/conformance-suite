@@ -95,7 +95,6 @@ import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
-import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
 import net.openid.conformance.condition.client.RejectErrorInUrlFragment;
 import net.openid.conformance.condition.client.RejectStateInUrlFragmentForCodeFlow;
@@ -118,6 +117,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseE
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
+import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
@@ -232,6 +232,7 @@ import java.util.function.Supplier;
 	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
 })
 @VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg",})
+@VariantHidesConfigurationFields(parameter = VCIProfile.class, value="haip", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
 	"vci.client_attester_keys_jwks",
 	"vci.client_attestation_issuer"
@@ -462,7 +463,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
 		}
 
+		if (vciProfile == VCIProfile.HAIP) {
+			setupHaipClients();
+		}
+
 		validateClientConfiguration();
+	}
+
+	protected void setupHaipClients() {
+		env.putString("client","dpop_signing_alg", "ES256");
+		env.putString("client2","dpop_signing_alg", "ES256");
 	}
 
 	protected void configureSecondClient() {
