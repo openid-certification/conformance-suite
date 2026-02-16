@@ -451,8 +451,15 @@ var FAPI_UI = {
 
 		activeTooltip : function() {
 
-			const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-			const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+			const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+			[...tooltipTriggerList].forEach((tooltipTriggerEl) => {
+				const title = tooltipTriggerEl.getAttribute('title');
+				if (title != null) {
+					tooltipTriggerEl.setAttribute('title', title.replace(/\s+/g, ' ').trim());
+				}
+			});
+
+			const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
 		},
 
