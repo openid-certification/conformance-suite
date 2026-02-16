@@ -128,11 +128,15 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			JWTClaimsSet claimSet = JWTClaimsSet.parse(claimObject.toString());
 			JWKSet jwkSet = JWKSet.parse(jwks.toString());
 			int count = 0;
+			JWK signingJwk = null;
 			for (JWK jwk : jwkSet.getKeys()) {
 				var use = jwk.getKeyUse();
 				if (use != null && !use.equals(KeyUse.SIGNATURE)) {
 					// skip any encryption keys
 					continue;
+				}
+				if (signingJwk == null) {
+					signingJwk = jwk;
 				}
 				count++;
 			}
@@ -141,7 +145,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 			}
 			if (count > 0) {
 				// sign jwt using private key
-				SignedJWT jwt = signJWT(jwkSet, claimSet);
+				SignedJWT jwt = signJWT(signingJwk, claimSet);
 
 				// Verify JWT after signed to check valid JWKs
 				verifyJWTAfterSigned(jwkSet, jwt);
@@ -151,9 +155,7 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 		}
 	}
 
-	private SignedJWT signJWT(JWKSet jwkSet, JWTClaimsSet claimSet) throws JOSEException {
-		JWK jwk = jwkSet.getKeys().iterator().next();
-
+	private SignedJWT signJWT(JWK jwk, JWTClaimsSet claimSet) throws JOSEException {
 		JWSSigner signer = null;
 		if (jwk.getKeyType().equals(KeyType.RSA)) {
 			signer = new RSASSASigner((RSAKey) jwk);
