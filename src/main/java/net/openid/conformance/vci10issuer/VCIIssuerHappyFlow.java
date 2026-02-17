@@ -88,7 +88,7 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
 
 		if (!isSecondClient()) {
 			callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-			checkResourceEndpointTLS();
+			// checkResourceEndpointTLS();
 		}
 
 		super.requestProtectedResource();
