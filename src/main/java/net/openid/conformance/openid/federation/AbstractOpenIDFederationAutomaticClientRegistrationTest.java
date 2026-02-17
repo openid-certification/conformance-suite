@@ -330,7 +330,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	protected void extractRequestUri() {
 		env.mapKey("pushed_authorization_endpoint_response", "authorization_endpoint_response");
-		callAndContinueOnFailure(ExtractRequestUriFromPARResponse.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class, Condition.ConditionResult.FAILURE);
 		env.unmapKey("pushed_authorization_endpoint_response");
 	}
 
