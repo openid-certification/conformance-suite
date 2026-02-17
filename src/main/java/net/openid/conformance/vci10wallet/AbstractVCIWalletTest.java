@@ -229,6 +229,7 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationReque
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationPoPNonceRequiredToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
@@ -1087,7 +1088,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			vci.remove("notification_error_response");
 		}
 
-		checkResourceEndpointRequest(false);
+		ResponseEntity<?> errorResponse = checkResourceEndpointRequest(false);
+		if (errorResponse != null) {
+			call(exec().unmapKey("incoming_request").endBlock());
+			return errorResponse;
+		}
 
 		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
 		callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
@@ -1130,7 +1135,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			vci.remove("credential_error_response");
 		}
 
-		checkResourceEndpointRequest(false);
+		ResponseEntity<?> errorResponse = checkResourceEndpointRequest(false);
+		if (errorResponse != null) {
+			call(exec().unmapKey("incoming_request").endBlock());
+			return errorResponse;
+		}
 
 		// If there's a DPoP nonce error, return it immediately before validating the credential proof.
 		// This ensures the c_nonce isn't consumed, allowing the client to retry with the correct DPoP nonce.
@@ -1141,7 +1150,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		}
 
-		ResponseEntity<?> errorResponse;
 		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestStructure.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 		if (errorResponse != null) {
 			return errorResponse;
@@ -1302,10 +1310,13 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		call(exec().mapKey("incoming_request", requestId));
 
-		checkResourceEndpointRequest(false);
+		ResponseEntity<?> errorResponse = checkResourceEndpointRequest(false);
+		if (errorResponse != null) {
+			call(exec().unmapKey("incoming_request").endBlock());
+			return errorResponse;
+		}
 
 		// Validate the deferred credential request (transaction_id)
-		ResponseEntity<?> errorResponse;
 		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateDeferredCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1");
 		if (errorResponse != null) {
 			return errorResponse;
@@ -1480,7 +1491,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	}
 
-	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
+	protected ResponseEntity<?> checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
+		ResponseEntity<?> responseEntity = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureBearerAccessTokenNotInParams.class, ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.3-2");
+		if (responseEntity != null) {
+			return responseEntity;
+		}
 		senderConstrainTokenRequestHelper.checkResourceRequest();
 		if (useClientCredentialsAccessToken) {
 			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
@@ -1488,6 +1503,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			call(sequence(validateSenderConstrainedTokenSteps));
 		}
 		validateResourceEndpointHeaders();
+		return responseEntity;
 	}
 
 	protected Object brazilHandleNewConsentRequest(String requestId, boolean isPayments) {
