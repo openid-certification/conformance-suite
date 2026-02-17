@@ -278,12 +278,26 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 },
                 initComplete: function() {
                     var api = this.api();
-                    var searchInput = $('div.dataTables_filter input', api.table().container());
+                    var container = api.table().container();
+                    var searchInput = $('div.dataTables_filter input', container);
+
+                    // Disable default live-search behaviour
                     searchInput.off();
-                    searchInput.on('keypress', function(e) {
-                        if (e.which === 13) {
-                            api.search(this.value).draw();
-                        }
+
+                    // Add a search button after the input
+                    var searchBtn = $('<button type="button" class="btn btn-sm btn-primary ms-2"><i class="bi bi-search"></i> Search</button>');
+                    searchInput.after(searchBtn);
+
+                    function doSearch() {
+                        FAPI_UI.showBusy('Searching...');
+                        api.search(searchInput.val()).draw();
+                    }
+
+                    searchBtn.on('click', doSearch);
+
+                    // Hide busy indicator when AJAX completes
+                    api.on('xhr.dt', function() {
+                        FAPI_UI.hideBusy();
                     });
                 },
                 order: [[5, "desc"]] // sort by the "date" column, descending, by default
