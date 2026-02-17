@@ -15,7 +15,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
  */
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-invalid-jwt-proof-signature",
-	displayName = "OID4VCI 1.0: Issuer with invalid JWT proof signature",
+	displayName = "OID4VCI 1.0: Issuer fail on invalid JWT proof signature",
 	summary = "This test case checks for proper error handling when a JWT proof with an invalid signature is submitted. " +
 		"The test sends a credential request with a JWT proof where the signature has been modified to be invalid. " +
 		"The issuer must reject this request with an invalid_proof error. " +

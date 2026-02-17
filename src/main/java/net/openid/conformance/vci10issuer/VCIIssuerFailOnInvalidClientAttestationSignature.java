@@ -22,7 +22,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalid
  */
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-invalid-client-attestation-signature",
-	displayName = "OID4VCI 1.0: Issuer with invalid client attestation signature",
+	displayName = "OID4VCI 1.0: Issuer fail on invalid client attestation signature",
 	summary = "This test case checks for proper error handling when a client attestation with " +
 		"an invalid signature is submitted. The test sends a PAR request with a client " +
 		"attestation JWT where the signature has been modified to be invalid. " +
