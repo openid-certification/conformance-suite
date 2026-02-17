@@ -28,7 +28,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
  */
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-replay-nonce",
-	displayName = "OID4VCI 1.0: Issuer with replayed nonce",
+	displayName = "OID4VCI 1.0: Issuer fail on replayed nonce",
 	summary = "This test case verifies proper nonce replay protection. It first completes a successful " +
 		"credential issuance flow, then attempts a second credential request using the same nonce/proof. " +
 		"The credential issuer must reject the replayed nonce with an invalid_nonce error (HTTP 400). " +
