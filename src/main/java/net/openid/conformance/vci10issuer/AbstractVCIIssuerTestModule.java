@@ -439,6 +439,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(VCIResolveCredentialEndpointToUse.class);
 		call(sequence(resourceConfiguration));
+		env.putString("credential_resource_url", env.getString("resource", "resourceUrl"));
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -1081,6 +1082,42 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		call(makeUpdateResourceRequestSteps());
 	}
 
+	/**
+	 * Refresh the credential request by re-fetching a nonce, regenerating proof/key attestation,
+	 * and recreating the credential request body. Use this instead of updateResourceRequest() when
+	 * calling the credential endpoint again after a successful response, as the wallet consumes
+	 * the nonce on first use.
+	 */
+	protected void refreshCredentialRequest() {
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
+			if (nonceEndpointEl != null) {
+				callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
+				afterNonceEndpointResponse();
+			}
+		}
+
+		env.putString("resource", "resourceMethod", "POST");
+		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
+			afterKeyAttestationGeneration();
+
+			String proofTypeKey = env.getString("vci_proof_type_key");
+			if ("jwt".equals(proofTypeKey)) {
+				callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
+			} else if ("attestation".equals(proofTypeKey)) {
+				callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+			}
+			afterProofGeneration();
+		}
+
+		createCredentialRequest();
+	}
+
 	protected void updateResourceRequestAndCallProtectedResourceUsingDpop(String... requirements) {
 		if (isDpop()) {
 			final int MAX_RETRY = 2;
@@ -1360,6 +1397,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// Resolve notification endpoint URL
 		callAndStopOnFailure(VCIResolveNotificationEndpointToUse.class, "OID4VCI-1FINAL-12.2.4");
 		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+		env.putString("notification_resource_url", env.getString("resource", "resourceUrl"));
 
 		// Set HTTP method to POST (required for notification endpoint)
 		env.putString("resource", "resourceMethod", "POST");
@@ -1445,6 +1483,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// Resolve the deferred credential endpoint URL from metadata
 		callAndStopOnFailure(VCIResolveDeferredCredentialEndpointToUse.class, "OID4VCI-1FINAL-12.2.4");
 		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
+		env.putString("deferred_credential_resource_url", env.getString("resource", "resourceUrl"));
 
 		// Set HTTP method to POST (required for deferred credential endpoint)
 		env.putString("resource", "resourceMethod", "POST");
