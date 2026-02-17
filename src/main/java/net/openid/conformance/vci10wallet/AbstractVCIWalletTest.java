@@ -830,7 +830,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			browser.requestCredential(request, ""); // FIXME for now, no submitUrl === it's a VCI request, not VP
 		} else {
 			String credentialOfferRedirectUrl = env.getString("vci", "credential_offer_redirect_url");
-			browser.goToUrl(credentialOfferRedirectUrl, null, "GET", 5);
+			browser.goToUrl(credentialOfferRedirectUrl, null, "GET", 10);
 		}
 	}
 
