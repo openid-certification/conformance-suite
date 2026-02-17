@@ -7,6 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.vci10wallet.VCIErrorResponseUtil;
 
 /**
  * Validates a deferred credential request per OID4VCI Section 9.
@@ -27,7 +28,7 @@ public class VCIValidateDeferredCredentialRequest extends AbstractCondition {
 
 		JsonElement bodyJsonEl = env.getElementFromObject("incoming_request", "body_json");
 		if (bodyJsonEl == null || !bodyJsonEl.isJsonObject()) {
-			setErrorResponse(env, "invalid_request", "Request body is missing or not valid JSON");
+			VCIErrorResponseUtil.setErrorResponse(env, "invalid_request", "Request body is missing or not valid JSON");
 			throw error("Request body is missing or not valid JSON");
 		}
 
@@ -35,14 +36,14 @@ public class VCIValidateDeferredCredentialRequest extends AbstractCondition {
 
 		// Check for transaction_id in the request
 		if (!requestBodyJson.has("transaction_id")) {
-			setErrorResponse(env, "invalid_request", "Deferred credential request must contain transaction_id");
+			VCIErrorResponseUtil.setErrorResponse(env, "invalid_request", "Deferred credential request must contain transaction_id");
 			throw error("Deferred credential request must contain transaction_id",
 				args("request_body", requestBodyJson));
 		}
 
 		String requestTransactionId = OIDFJSON.getString(requestBodyJson.get("transaction_id"));
 		if (Strings.isNullOrEmpty(requestTransactionId)) {
-			setErrorResponse(env, "invalid_request", "transaction_id in deferred credential request must not be empty");
+			VCIErrorResponseUtil.setErrorResponse(env, "invalid_request", "transaction_id in deferred credential request must not be empty");
 			throw error("transaction_id in deferred credential request must not be empty",
 				args("request_body", requestBodyJson));
 		}
@@ -50,12 +51,12 @@ public class VCIValidateDeferredCredentialRequest extends AbstractCondition {
 		// Validate that the transaction_id matches the one we issued
 		String expectedTransactionId = env.getString("deferred_transaction_id");
 		if (Strings.isNullOrEmpty(expectedTransactionId)) {
-			setErrorResponse(env, "invalid_transaction_id", "No deferred credential issuance is pending");
+			VCIErrorResponseUtil.setErrorResponse(env, "invalid_transaction_id", "No deferred credential issuance is pending");
 			throw error("No deferred transaction_id found in environment - no deferred credential issuance is pending");
 		}
 
 		if (!requestTransactionId.equals(expectedTransactionId)) {
-			setErrorResponse(env, "invalid_transaction_id", "The transaction_id is not valid or has expired");
+			VCIErrorResponseUtil.setErrorResponse(env, "invalid_transaction_id", "The transaction_id is not valid or has expired");
 			throw error("transaction_id in deferred credential request does not match the issued transaction_id",
 				args("expected_transaction_id", expectedTransactionId,
 					"received_transaction_id", requestTransactionId));
@@ -67,14 +68,4 @@ public class VCIValidateDeferredCredentialRequest extends AbstractCondition {
 		return env;
 	}
 
-	private void setErrorResponse(Environment env, String errorCode, String errorDescription) {
-		JsonObject errorBody = new JsonObject();
-		errorBody.addProperty("error", errorCode);
-		errorBody.addProperty("error_description", errorDescription);
-
-		JsonObject errorResponse = new JsonObject();
-		errorResponse.add("body", errorBody);
-
-		env.putObject("vci", "credential_error_response", errorResponse);
-	}
 }
