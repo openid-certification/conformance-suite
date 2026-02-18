@@ -21,6 +21,7 @@ public class VCIIssuerTestPlan implements TestPlan {
 					VCIIssuerMetadataSignedTest.class,
 					VCIIssuerHappyFlow.class,
 					VCIIssuerHappyFlowAdditionalRequests.class,
+					VCIIssuerHappyFlowMultipleClients.class,
 					VCIIssuerHappyFlowWithSkipNotification.class,
 					// negative tests
 					VCIIssuerFailOnInvalidNonce.class,

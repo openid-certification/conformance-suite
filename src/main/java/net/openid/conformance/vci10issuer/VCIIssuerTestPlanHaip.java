@@ -37,6 +37,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					// positive tests
 					VCIIssuerHappyFlow.class,
 					VCIIssuerHappyFlowAdditionalRequests.class,
+					VCIIssuerHappyFlowMultipleClients.class,
 					VCIIssuerHappyFlowWithSkipNotification.class,
 					// negative tests
 					VCIIssuerFailOnInvalidNonce.class,
