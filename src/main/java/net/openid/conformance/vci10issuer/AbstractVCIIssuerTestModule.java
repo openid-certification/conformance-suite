@@ -23,7 +23,6 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -88,20 +87,17 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
-import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
 import net.openid.conformance.condition.client.RejectErrorInUrlFragment;
 import net.openid.conformance.condition.client.RejectStateInUrlFragmentForCodeFlow;
 import net.openid.conformance.condition.client.RequireIssInAuthorizationResponse;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
@@ -118,6 +114,7 @@ import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseE
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
+import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
@@ -283,13 +280,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
-		}
-	}
-
-	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
 		}
 	}
 
@@ -1039,11 +1029,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	public static class UpdateResourceRequestSteps extends AbstractConditionSequence {
 
 		protected Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps;
-		protected boolean brazilPayments;
 
-		public UpdateResourceRequestSteps(Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps, boolean brazilPayments) {
+		public UpdateResourceRequestSteps(Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps) {
 			this.createDpopForResourceEndpointSteps = createDpopForResourceEndpointSteps;
-			this.brazilPayments = brazilPayments;
 		}
 
 		@Override
@@ -1051,20 +1039,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			if (createDpopForResourceEndpointSteps != null) {
 				call(sequence(createDpopForResourceEndpointSteps));
 			}
-			if (brazilPayments) {
-				// we use the idempotency header to allow us to make a request more than once; however it is required
-				// that a new jwt is sent in each retry, so update jti/iat & resign
-				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
-				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
-				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-				call(exec().unmapKey("request_object_claims"));
-				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
-			}
 		}
 	}
 
 	protected ConditionSequence makeUpdateResourceRequestSteps() {
-		return new UpdateResourceRequestSteps(createDpopForResourceEndpointSteps, false);
+		return new UpdateResourceRequestSteps(createDpopForResourceEndpointSteps);
 	}
 
 	// Make any necessary updates to a resource request before we send it again
