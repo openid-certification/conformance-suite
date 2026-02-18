@@ -10,6 +10,7 @@ services:
     ports:
      - "8443:8443"
      - "8444:8444"
+     - "8445:8445"
     volumes:
      - ./src/main/resources/:/usr/share/nginx/html/
     depends_on:

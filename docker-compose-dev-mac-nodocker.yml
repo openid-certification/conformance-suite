@@ -24,6 +24,7 @@ services:
     ports:
      - "8443:8443"
      - "8444:8444"
+     - "8445:8445"
     volumes:
       # we don't use delegated here so that updates propogate promptly
      - ./src/main/resources/:/usr/share/nginx/html/
