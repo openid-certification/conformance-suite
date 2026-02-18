@@ -1,17 +1,7 @@
 package net.openid.conformance.vci10issuer;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
-import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.common.CheckForBCP195InsecureFAPICiphers;
-import net.openid.conformance.condition.common.DisallowInsecureCipher;
-import net.openid.conformance.condition.common.DisallowTLS10;
-import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
-import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -31,74 +21,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"vci.authorization_server",
 	}
 )
-public class VCIIssuerHappyFlow extends AbstractVCIIssuerMultipleClient {
-
-	@Override
-	protected void onConfigure(JsonObject config, String baseUrl) {
-		super.onConfigure(config, baseUrl);
-	}
-
-	@Override
-	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		if (isOpenId) {
-			Command cmd = new Command();
-
-			if (isSecondClient()) {
-				cmd.putInteger("requested_nonce_length", 43);
-			} else {
-				cmd.removeNativeValue("requested_nonce_length");
-			}
-
-			ConditionSequence conditionSequence = super.makeCreateAuthorizationRequestSteps()
-				.insertBefore(CreateRandomNonceValue.class, cmd);
-
-			return conditionSequence;
-		}
-
-		return super.makeCreateAuthorizationRequestSteps();
-	}
-
-	protected void checkResourceEndpointTLS() {
-		eventLog.startBlock("Resource endpoint TLS test");
-		env.mapKey("tls", "resource_endpoint_tls");
-		checkEndpointTLS();
-		env.unmapKey("tls");
-		eventLog.endBlock();
-	}
-
-	protected void checkEndpointTLS() {
-		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.2.3-2");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.2.1-1");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.2.1-1");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.2.2.1");
-		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI1-ADV-8.5", "RFC9325A-A", "RFC9325-4.2");
-	}
-
-	@Override
-	protected void performAuthorizationFlowWithSecondClient() {
-		// NOOP
-	}
-
-	protected void performAdditionalResourceEndpointTests() {
-		// NOOP
-	}
-
-	@Override
-	protected void requestProtectedResource() {
-
-		if (!isSecondClient()) {
-			callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
-			// checkResourceEndpointTLS();
-		}
-
-		super.requestProtectedResource();
-
-		if (!isSecondClient()) {
-			performAdditionalResourceEndpointTests();
-		}
-
-		fireTestFinished();
-	}
+public class VCIIssuerHappyFlow extends AbstractVCIIssuerTestModule {
 
 	@Override
 	protected void onPostAuthorizationFlowComplete() {

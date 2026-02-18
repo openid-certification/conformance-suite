@@ -31,10 +31,11 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"vci.authorization_server",
 	}
 )
-public class VCIIssuerFailOnRequestWithAccessTokenInQuery extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnRequestWithAccessTokenInQuery extends AbstractVCIIssuerTestModule {
 
 	@Override
-	protected void performAdditionalResourceEndpointTests() {
+	protected void requestProtectedResource() {
+		super.requestProtectedResource();
 		eventLog.startBlock("Attempt to credential resource endpoint with access token in query parameter");
 		updateResourceRequest();
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.4-2");
