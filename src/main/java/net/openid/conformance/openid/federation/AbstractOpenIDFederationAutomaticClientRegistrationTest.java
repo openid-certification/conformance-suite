@@ -18,14 +18,13 @@ import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
-import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
@@ -315,7 +314,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void signRequestObject() {
-		callAndContinueOnFailure(SignRequestObject.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(SignRequestObjectWithFederationTrustChain.class, Condition.ConditionResult.FAILURE);
 	}
 
 	protected void encryptRequestObject() {
@@ -335,7 +334,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		}
 		callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
 		env.mapKey("endpoint_response", "authorization_endpoint_response");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 		env.unmapKey("endpoint_response");
 	}
