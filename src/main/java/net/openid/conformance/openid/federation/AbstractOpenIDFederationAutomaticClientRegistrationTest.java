@@ -130,14 +130,11 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.putString("entity_identifier", baseUrl);
 		exposeEnvString("entity_identifier");
 
-		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
-		exposeEnvString("entity_configuration_url");
-
 		env.putString("trust_anchor_entity_identifier", baseUrl + "/trust-anchor");
 		exposeEnvString("trust_anchor_entity_identifier");
 
+		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
 		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
-		exposeEnvString("trust_anchor_entity_configuration_url");
 
 		String clientRegistrationType = getVariant(ClientRegistration.class).toString();
 		env.putString("client_registration_type", clientRegistrationType);
