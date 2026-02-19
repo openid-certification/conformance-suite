@@ -8,8 +8,14 @@ package net.openid.conformance.variant;
 )
 public enum VCIProfile {
 
-//	PLAIN_VCI,
+	/**
+	 * Plain VCI profile
+	 */
+	PLAIN_VCI,
 
+	/**
+	 * HAIP profile
+	 */
 	HAIP,
 	;
 
