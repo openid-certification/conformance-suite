@@ -11,7 +11,7 @@ public class AddInvalidClientIdToQueryParameters extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String clientId = env.getString("query_parameters", "client_id");
-		String invalidClientId = clientId + "/1";
+		String invalidClientId = clientId + "INVALID";
 		env.putString("query_parameters", "client_id", invalidClientId);
 
 		logSuccess("Added invalid client_id to query parameters", args("client_id", invalidClientId));
