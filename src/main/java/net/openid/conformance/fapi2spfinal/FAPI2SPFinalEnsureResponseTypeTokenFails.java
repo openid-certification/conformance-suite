@@ -69,11 +69,17 @@ public class FAPI2SPFinalEnsureResponseTypeTokenFails extends AbstractFAPI2SPFin
 
 		eventLog.startBlock(currentClientString() + "Verify authorization endpoint error response");
 
+		if (jarm) {
+			processCallbackForJARM();
+		}
+
 		callAndContinueOnFailure(RejectAuthCodeInUrlQuery.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-1");
 		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-1");
 
-		// It doesn't really matter if the error in the fragment or the query, the specs aren't entirely clear on the matter
-		callAndStopOnFailure(DetectWhetherErrorResponseIsInQueryOrFragment.class);
+		if (! jarm) {
+			// It doesn't really matter if the error in the fragment or the query, the specs aren't entirely clear on the matter
+			callAndStopOnFailure(DetectWhetherErrorResponseIsInQueryOrFragment.class);
+		}
 
 		/* The error from the authorization server:
 		 * - must be a 'unsupported_response_type' or "invalid_request" error
