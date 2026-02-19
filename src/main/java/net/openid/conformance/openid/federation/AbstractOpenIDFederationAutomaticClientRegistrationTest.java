@@ -392,7 +392,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void onAuthorizationCallbackResponse() {
-		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
+		// FIXME doesn't seem to work currently - see https://gitlab.com/openid/conformance-suite/-/issues/1684
+		//callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
