@@ -59,7 +59,7 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 	}
 
 	protected void addUnverifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest.class, Condition.ConditionResult.INFO);
+		callAndStopOnFailure(CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(AddUnverifiedClaimsToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-6");
 	}
 
