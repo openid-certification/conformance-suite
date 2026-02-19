@@ -43,6 +43,7 @@ import net.openid.conformance.openid.federation.client.SignEntityStatementWithCl
 import net.openid.conformance.openid.federation.client.ValidateTrustAnchorJWKs;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -65,6 +66,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
 	//protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	protected Class<? extends ConditionSequence> addParEndpointClientAuthentication;
 
 	protected boolean includeTrustChainInAuthorizationRequest = false;
 
@@ -185,6 +187,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	public void setupPrivateKeyJwt() {
 		profileStaticClientConfiguration = AbstractOIDCCServerTest.ConfigureStaticClientForPrivateKeyJwt.class;
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
+		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest.class;
 	}
 
 	@Override
@@ -269,6 +272,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 			callParEndpoint();
 			extractRequestUri();
 			uriBuilder.addParameter("request_uri", env.getString("request_uri"));
+			uriBuilder.addParameter("client_id", env.getString("request_object_claims", "client_id"));
 		} else {
 			createQueryParameters();
 			uriBuilder.addParameter("client_id", env.getString("query_parameters", "client_id"));
@@ -318,6 +322,17 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void callParEndpoint() {
+		if (addParEndpointClientAuthentication != null) {
+			JsonObject opMetadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata.openid_provider").getAsJsonObject().deepCopy();
+			opMetadata.addProperty("issuer", env.getString("primary_entity_statement_jwt", "claims.iss"));
+			env.putObject("openid_provider_metadata", opMetadata);
+
+			env.mapKey("server", "openid_provider_metadata");
+			env.putObject("pushed_authorization_request_form_parameters", new JsonObject());
+			call(sequence(addParEndpointClientAuthentication));
+			env.unmapKey("server");
+			env.removeObject("openid_provider_metadata");
+		}
 		callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
 		env.mapKey("endpoint_response", "authorization_endpoint_response");
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
