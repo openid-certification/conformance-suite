@@ -32,8 +32,6 @@ import net.openid.conformance.variant.VariantSelection;
 		OpenIDFederationAutomaticClientRegistrationInvalidMissingRequestObjectAudTest.class,
 		OpenIDFederationAutomaticClientRegistrationInvalidDuplicateRequestObjectJtiTest.class,
 		OpenIDFederationAutomaticClientRegistrationInvalidRequestObjectSubTest.class,
-		OpenIDFederationAutomaticClientRegistrationInvalidTrustChainOrderTest.class,
-		OpenIDFederationAutomaticClientRegistrationInvalidTrustChainTooShortTest.class
 	}
 )
 public class OpenIDFederationClientRegistrationOPTestPlan implements TestPlan {
