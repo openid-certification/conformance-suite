@@ -14,6 +14,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
+
 @PublishTestModule(
 	testName = "openid-federation-automatic-client-registration-invalid-client-id-in-request-object",
 	displayName = "OpenID Federation OP test: Invalid client_id in request object",
@@ -73,4 +75,17 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInRequest
 			default -> super.handleHttp(path, req, res, session, requestParts);
 		};
 	}
+
+	@Override
+	public Object handleWellKnown(String path,
+								  HttpServletRequest req, HttpServletResponse res,
+								  HttpSession session,
+								  JsonObject requestParts) {
+		if (path.equals("/.well-known/openid-federation/test/a/oidf-authlete-fed/1")) {
+			return new ResponseEntity<>(Map.of("error", "this test doesn't support the path '" + path + "'"), HttpStatus.NOT_FOUND);
+		}
+
+		return super.handleWellKnown(path, req, res, session, requestParts);
+	}
+
 }
