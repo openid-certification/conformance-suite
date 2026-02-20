@@ -71,6 +71,7 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
@@ -84,8 +85,8 @@ import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLen
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
 import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
-import net.openid.conformance.condition.client.ExpectNoIdTokenInTokenResponse;
 import net.openid.conformance.condition.client.EnsureNoRefreshTokenInTokenResponse;
+import net.openid.conformance.condition.client.ExpectNoIdTokenInTokenResponse;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractAtHash;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
@@ -1444,6 +1445,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
 
 		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, ConditionResult.FAILURE, "PAR-2.2");
+
+		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
+
+		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+		env.unmapKey("endpoint_response");
 
 		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class);
 
