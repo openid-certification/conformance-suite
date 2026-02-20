@@ -556,6 +556,9 @@ makeFederationTests() {
 
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/authlete-federation-fapidev-as.json"
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/authlete-federation-trust-anchor.json"
+
+    # for now only runs one test
+    TESTS="${TESTS} openid-federation-entity-joined-to-test-federation-op-test-plan[server_metadata=discovery][client_registration=automatic]:openid-federation-automatic-client-registration-with-jar-and-get authlete-federation.json"
 }
 
 makeSsfTests() {
