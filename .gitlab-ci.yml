@@ -107,6 +107,18 @@ compare_client:
   script:
     - run_compare client_test
 
+compare_federation:
+  <<: *compare
+  needs: ["federation_test"]
+  script:
+    - run_compare federation_test
+
+compare_ssf:
+  <<: *compare
+  needs: ["ssf_test"]
+  script:
+    - run_compare ssf_test
+
 check-trailing-whitespace:
   interruptible: true
   stage: build

@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import datetime
 import fnmatch
+import hashlib
 import json
 import os
 import re
@@ -58,6 +59,38 @@ def get_string_name_for_module_with_variant(moduledict):
             name += "[{}={}]".format(v, variants[v])
     return name
 
+
+def maybe_add_scenario_suffix_to_description(parsed_config, test_plan_obj):
+    test = test_plan_obj.get("test", {})
+    op_test = test_plan_obj.get("op_test")
+
+    # Add a stable suffix only when module selection is used, which is where duplicate
+    # descriptions commonly occur (for example OP/RP paired federation runs).
+    has_selected_modules = bool(test.get("modules")) or bool((op_test or {}).get("modules"))
+    if not has_selected_modules:
+        return parsed_config
+
+    description = parsed_config.get("description")
+    if not description:
+        return parsed_config
+
+    scenario_descriptor = {
+        "test_name": test.get("test_name"),
+        "test_variants": test.get("variants", {}),
+        "test_modules": sorted(test.get("modules") or []),
+        "op_test_name": (op_test or {}).get("test_name"),
+        "op_test_config_file": (op_test or {}).get("config_file"),
+        "op_test_variants": (op_test or {}).get("variants", {}),
+        "op_test_modules": sorted((op_test or {}).get("modules") or [])
+    }
+    fingerprint = hashlib.sha1(
+        json.dumps(scenario_descriptor, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:10]
+
+    parsed_config["description"] = "{} [{}]".format(description, fingerprint)
+    return parsed_config
+
+
 async def queue_worker(q):
     while True:
         code = await q.get()
@@ -101,9 +134,11 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     if variant != None and 'brazil_client_scope' in variant.keys():
         brazil_client_scope = variant['brazil_client_scope']
         del variant['brazil_client_scope']
+    parsed_config = json.loads(json_config)
+    parsed_config = maybe_add_scenario_suffix_to_description(parsed_config, test_plan_obj)
+    json_config = json.dumps(parsed_config)
     test_plan_info = await conformance.create_test_plan(test_plan_name, json_config, variant)
     plan_id = test_plan_info['id']
-    parsed_config = json.loads(json_config)
     parallel_jobs = 3
     if args.no_parallel:
         parallel_jobs = 1

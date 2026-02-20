@@ -1,6 +1,6 @@
 {
     "alias": "fed-deployed",
-    "description": "Deployed federation entity test",
+    "description": "Authlete trust anchor Deployed federation entity test",
     "federation": {
         "entity_identifier": "https://trust-anchor.authlete.net/",
         "de_trust_anchor": "https://trust-anchor.authlete.net/",
