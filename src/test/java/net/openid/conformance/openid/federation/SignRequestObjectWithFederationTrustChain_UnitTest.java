@@ -94,6 +94,7 @@ public class SignRequestObjectWithFederationTrustChain_UnitTest {
 		SignedJWT jwt = SignedJWT.parse(requestObjectString);
 		Object trustChainHeader = jwt.getHeader().getCustomParam("trust_chain");
 		assertThat(trustChainHeader).isInstanceOf(List.class);
+		@SuppressWarnings("unchecked")
 		List<String> trustChainList = (List<String>) trustChainHeader;
 		assertThat(trustChainList).containsExactly("statement1", "statement2");
 
