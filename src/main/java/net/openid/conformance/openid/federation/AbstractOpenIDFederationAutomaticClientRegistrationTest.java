@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
+import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
@@ -43,6 +45,7 @@ import net.openid.conformance.openid.federation.client.SignEntityStatementWithCl
 import net.openid.conformance.openid.federation.client.ValidateTrustAnchorJWKs;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -65,6 +68,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected Class<? extends ConditionSequence> profileStaticClientConfiguration;
 	//protected Supplier<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	protected Class <? extends ConditionSequence> addParEndpointClientAuthentication;
 
 	protected boolean includeTrustChainInAuthorizationRequest = false;
 
@@ -177,6 +181,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndStopOnFailure(GenerateTrustAnchorEntityConfiguration.class);
 		callAndStopOnFailure(AddFederationEntityMetadataToTrustAnchorEntityConfiguration.class);
 
+		setupPrivateKeyJwt();
 		call(sequence(profileStaticClientConfiguration));
 
 		verifyTestConditions();
@@ -188,6 +193,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	public void setupPrivateKeyJwt() {
 		profileStaticClientConfiguration = AbstractOIDCCServerTest.ConfigureStaticClientForPrivateKeyJwt.class;
 		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class;
+		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest.class;
 	}
 
 	@Override
@@ -321,17 +327,27 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void callParEndpoint() {
-		callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
-		env.mapKey("endpoint_response", "authorization_endpoint_response");
+		callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
+		// put entity identifier for our client into the usual place we store client_id
+		env.putString("client", "client_id", env.getString("base_url"));
+		// put entity identifier for AS into the usual place we store issuer value
+		env.putString("server", "issuer", env.getString("config", "federation.entity_identifier"));
+		addClientAuthenticationToPAREndpointRequest();
+		env.putString("server", "pushed_authorization_request_endpoint", env.getString("primary_entity_statement_jwt", "claims.metadata.openid_provider.pushed_authorization_request_endpoint"));
+		setStatus(Status.WAITING);
+		callAndContinueOnFailure(CallPAREndpoint.class, Condition.ConditionResult.FAILURE);
+		setStatus(Status.RUNNING);
+		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 		env.unmapKey("endpoint_response");
 	}
 
+	protected void addClientAuthenticationToPAREndpointRequest() {
+		call(sequence(addParEndpointClientAuthentication));
+	}
 	protected void extractRequestUri() {
-		env.mapKey("pushed_authorization_endpoint_response", "authorization_endpoint_response");
 		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class, Condition.ConditionResult.FAILURE);
-		env.unmapKey("pushed_authorization_endpoint_response");
 	}
 
 	protected void createQueryParameters() {

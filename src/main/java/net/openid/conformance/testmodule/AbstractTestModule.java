@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
 import net.openid.conformance.condition.client.WaitFor5Seconds;
 import net.openid.conformance.frontchannel.BrowserControl;
@@ -293,7 +294,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		// the test being aborted until the sleep expires). It would probably be preferable to always release the
 		// lock whilst sleeping (which is probably best achieve by one of the ways outlined in the previous paragraph.)
 		if (builder.getConditionClass() != SleepUntilAuthReqExpires.class &&
-			builder.getConditionClass() != WaitFor5Seconds.class) {
+			builder.getConditionClass() != WaitFor5Seconds.class &&
+			builder.getConditionClass() != CallPAREndpoint.class) {
 			if (getStatus() != Status.CREATED) {
 				// We don't run this check for 'CREATED' as the lock is currently not held during 'configure'; see
 				// https://gitlab.com/openid/conformance-suite/issues/688
