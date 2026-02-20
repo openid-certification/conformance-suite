@@ -280,7 +280,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		if (FAPIAuthRequestMethod.PUSHED.equals(getRequestMethod())) {
 			callParEndpoint();
 			extractRequestUri();
+			// could use 		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class, "PAR-4"); here?
 			uriBuilder.addParameter("request_uri", env.getString("request_uri"));
+			uriBuilder.addParameter("client_id", env.getString("query_parameters", "client_id"));
 		} else {
 			createQueryParameters();
 			uriBuilder.addParameter("client_id", env.getString("query_parameters", "client_id"));
