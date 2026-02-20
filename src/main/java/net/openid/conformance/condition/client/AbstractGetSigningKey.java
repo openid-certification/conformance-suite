@@ -9,7 +9,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import java.text.ParseException;
 
 public abstract class AbstractGetSigningKey extends AbstractCondition {
-	JWK getSigningKey(String name, JsonObject jwks) {
+	protected JWK getSigningKey(String name, JsonObject jwks) {
 		int count = 0;
 		JWK signingJwk = null;
 

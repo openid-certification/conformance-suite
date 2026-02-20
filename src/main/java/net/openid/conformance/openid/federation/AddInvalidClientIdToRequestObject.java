@@ -11,7 +11,7 @@ public class AddInvalidClientIdToRequestObject extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String clientId = env.getString("request_object_claims", "client_id");
-		String invalidClientId = clientId + "/1";
+		String invalidClientId = clientId + "INVALID";
 		env.putString("request_object_claims", "client_id", invalidClientId);
 
 		logSuccess("Added invalid client_id to request object", args("client_id", invalidClientId));

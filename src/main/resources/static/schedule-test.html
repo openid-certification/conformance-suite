@@ -1667,19 +1667,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     <div class="col-md-10">
                                         <div class="input-group">
                                             <div class="input-group-text">
-                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Your federation entity must trust
-                                                the following trust anchor, i.e. it must have this entity in its authority_hints"></span>
-                                            </div>
-                                            <input id="federation-trust-anchor" disabled="disabled" type="text" class="form-control config-form-element" data-json-target="federation.trust_anchor" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row config-form-element-container">
-                                    <div class="col-md-2 key">trust_anchor</div>
-                                    <div class="col-md-10">
-                                        <div class="input-group">
-                                            <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The trust anchor of the federation entity under test"></span>
                                             </div>
                                             <input type="text" class="form-control config-form-element" data-json-target="federation.de_trust_anchor" />
@@ -2011,8 +1998,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return registerAlphaTestToggle();
             }).then(function() {
                 return registerGenerateJwksListeners();
-            }).then(function() {
-                return registerAliasListener();
             }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
@@ -3100,36 +3085,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             addGenerateJwks("#generate-trust-anchor-jwks", "textarea[data-json-target='federation_trust_anchor.trust_anchor_jwks']");
             addGenerateJwks("#generate-op-ec-jwks", "textarea[data-json-target='federation.op_ec_jwks']");
             addGenerateJwks("#generate-op-server-jwks", "textarea[data-json-target='federation.op_server_jwks']", true);
-        }
-
-        function watchInputValue(input, callback) {
-          const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input), 'value');
-          Object.defineProperty(input, 'value', {
-            get() {
-              return descriptor.get.call(this);
-            },
-            set(newValue) {
-              const oldValue = descriptor.get.call(this);
-              descriptor.set.call(this, newValue);
-              if (newValue !== oldValue) callback(newValue, oldValue);
-            }
-          });
-          input.addEventListener('input', () => callback(input.value));
-        }
-
-        function setFederationTrustAnchor() {
-            var alias = document.querySelector(".alias").value;
-            if (!alias) {
-                alias = "<INSERT TEST ALIAS>";
-            }
-            const trustAnchorElm = document.querySelector("#federation-trust-anchor");
-            const row = trustAnchorElm.closest(".row");
-            trustAnchorElm.value = `${window.location.origin}/test/a/${alias}/trust-anchor`;
-        }
-
-        function registerAliasListener() {
-            setFederationTrustAnchor();
-            watchInputValue(document.querySelector(".alias"), setFederationTrustAnchor);
         }
 
         // Base64url encoder

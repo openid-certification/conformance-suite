@@ -19,9 +19,18 @@ public class CallPAREndpointWithPostAndReturnFullResponse extends AbstractCallEn
 		}
 
 		final String requestObject = env.getString("request_object");
+		final String clientId = env.getString("request_object_claims", "client_id");
 
 		final JsonObject authorizationRequestForm = new JsonObject();
+		JsonObject existingParams = env.getObject("pushed_authorization_request_form_parameters");
+		if (existingParams != null) {
+			for (String key : existingParams.keySet()) {
+				authorizationRequestForm.add(key, existingParams.get(key));
+			}
+		}
+
 		authorizationRequestForm.addProperty("request", requestObject);
+		authorizationRequestForm.addProperty("client_id", clientId);
 		env.putObject("authorization_request_form", authorizationRequestForm);
 
 		final String endpointName = "authorization endpoint";

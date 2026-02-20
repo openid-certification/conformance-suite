@@ -291,6 +291,9 @@ Identity Assurance spec locations used in this codebase:
 - https://openid.net/specs/openid-connect-4-ida-claims-1_0.html
 - https://openid.net/specs/openid-ida-verified-claims-1_0.html
 
+OpenID Federation spec locations:
+- **OpenID Federation 1.0**: https://openid.net/specs/openid-federation-1_0.html
+
 ## Test-Suite Behavior Expectations
 
 - This repository is a conformance test suite; explicit failures for invalid protocol behavior are expected.

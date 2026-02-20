@@ -11,7 +11,7 @@ import org.springframework.http.HttpMethod;
 	testName = "openid-federation-automatic-client-registration-invalid-client-id-in-query-parameters",
 	displayName = "OpenID Federation OP test: Invalid client_id in query parameters",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-		"deliberately not using its entity identifier as the client id in the query parameters and request object." +
+		"deliberately using an invalid entity identifier as the client id in the query parameters." +
 		"<br/><br/>" +
 		"If the server does not return an invalid_request, invalid_request_object, invalid_client or a similar well-defined " +
 		"and appropriate error back to the client, it must show an error page saying the request is invalid due to " +

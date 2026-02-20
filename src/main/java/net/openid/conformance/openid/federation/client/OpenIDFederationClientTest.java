@@ -108,20 +108,13 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		env.putString("entity_identifier", baseUrl);
 		exposeEnvString("entity_identifier");
 
-		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
-		exposeEnvString("entity_configuration_url");
-
-		env.putString("federation_fetch_endpoint", baseUrl + "/fetch");
-		exposeEnvString("federation_fetch_endpoint");
-
-		env.putString("federation_list_endpoint", baseUrl + "/list");
-		exposeEnvString("federation_list_endpoint");
-
 		env.putString("trust_anchor_entity_identifier", baseUrl + "/trust-anchor");
 		exposeEnvString("trust_anchor_entity_identifier");
 
+		env.putString("entity_configuration_url", baseUrl + "/.well-known/openid-federation");
 		env.putString("trust_anchor_entity_configuration_url", baseUrl + "/trust-anchor/.well-known/openid-federation");
-		exposeEnvString("trust_anchor_entity_configuration_url");
+		env.putString("federation_fetch_endpoint", baseUrl + "/fetch");
+		env.putString("federation_list_endpoint", baseUrl + "/list");
 
 		callAndStopOnFailure(ValidateEntityIdentifier.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 
@@ -394,7 +387,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		setStatus(Status.WAITING);
 
 		JsonObject response = env.getObject("par_endpoint_response");
-		return new ResponseEntity<Object>(response, HttpStatus.OK);
+		return new ResponseEntity<Object>(response, HttpStatus.CREATED);
 	}
 
 	protected Object tokenResponse(String requestId) {
