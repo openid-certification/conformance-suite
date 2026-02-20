@@ -387,7 +387,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		setStatus(Status.WAITING);
 
 		JsonObject response = env.getObject("par_endpoint_response");
-		return new ResponseEntity<Object>(response, HttpStatus.OK);
+		return new ResponseEntity<Object>(response, HttpStatus.CREATED);
 	}
 
 	protected Object tokenResponse(String requestId) {
