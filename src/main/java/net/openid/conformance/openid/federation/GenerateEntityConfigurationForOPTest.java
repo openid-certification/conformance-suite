@@ -37,6 +37,11 @@ public class GenerateEntityConfigurationForOPTest extends AbstractCondition {
 
 		server.addProperty("request_uri_parameter_supported", false);
 
+		var algValues = new JsonArray();
+		algValues.add("ES256");
+		algValues.add("PS256");
+		server.add("request_object_signing_alg_values_supported", algValues);
+
 		env.putObject("server", server);
 
 		logSuccess("Created entity configuration", args("server", server, "entity_identifier", baseUrl));
