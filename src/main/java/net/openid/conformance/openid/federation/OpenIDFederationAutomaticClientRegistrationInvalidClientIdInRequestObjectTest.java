@@ -1,11 +1,18 @@
 package net.openid.conformance.openid.federation;
 
+import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckErrorFromAuthorizationEndpointErrorInvalidRequestOrInvalidRequestObjectOrInvalidClient;
 import net.openid.conformance.condition.common.ExpectInvalidRequestOrInvalidClientErrorPage;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @PublishTestModule(
 	testName = "openid-federation-automatic-client-registration-invalid-client-id-in-request-object",
@@ -57,4 +64,13 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidClientIdInRequest
 		fireTestFinished();
 	}
 
+	@Override
+	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
+		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
+		env.putObject(requestId, requestParts);
+		return switch (path) {
+			case "1/.well-known/openid-federation" -> new ResponseEntity<>(HttpStatus.NOT_FOUND); // the AS may fetch this
+			default -> super.handleHttp(path, req, res, session, requestParts);
+		};
+	}
 }
