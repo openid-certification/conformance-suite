@@ -3,6 +3,8 @@ package net.openid.conformance.logging;
 import com.google.gson.JsonObject;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoWriteException;
+import com.mongodb.bulk.BulkWriteError;
+import com.mongodb.bulk.WriteConcernError;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.bson.Document;
@@ -14,14 +16,18 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
@@ -30,10 +36,18 @@ import java.util.concurrent.atomic.AtomicLong;
 public class AsyncBatchingEventLog implements EventLog {
 	private static final Logger logger = LoggerFactory.getLogger(AsyncBatchingEventLog.class);
 	private static final int DUPLICATE_KEY_ERROR_CODE = 11000;
+	private static final Set<Integer> NON_RETRYABLE_ERROR_CODES = Set.of(
+		2,      // BadValue
+		9,      // FailedToParse
+		14,     // TypeMismatch
+		121,    // DocumentValidationFailure
+		10334   // BSONObjectTooLarge
+	);
 
 	private final DBEventLog dbEventLog;
 	private final BlockingQueue<Document> queue;
 	private final ConcurrentMap<String, ConcurrentMap<String, Document>> pendingByTestId = new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, AtomicInteger> documentRetryCount = new ConcurrentHashMap<>();
 	private final AtomicLong lastAssignedTime = new AtomicLong(0);
 	private final AtomicBoolean acceptingEvents = new AtomicBoolean(true);
 
@@ -43,6 +57,7 @@ public class AsyncBatchingEventLog implements EventLog {
 	private final int shutdownDrainTimeoutMs;
 	private final int bulkRetryCount;
 	private final int retryBackoffMs;
+	private final int maxDocumentRetries;
 
 	private Thread workerThread;
 
@@ -54,7 +69,8 @@ public class AsyncBatchingEventLog implements EventLog {
 		@Value("${net.openid.conformance.logging.async.enqueue-timeout-ms:5}") int enqueueTimeoutMs,
 		@Value("${net.openid.conformance.logging.async.shutdown-drain-timeout-ms:5000}") int shutdownDrainTimeoutMs,
 		@Value("${net.openid.conformance.logging.async.bulk-retry-count:2}") int bulkRetryCount,
-		@Value("${net.openid.conformance.logging.async.retry-backoff-ms:25}") int retryBackoffMs
+		@Value("${net.openid.conformance.logging.async.retry-backoff-ms:25}") int retryBackoffMs,
+		@Value("${net.openid.conformance.logging.async.max-document-retries:3}") int maxDocumentRetries
 	) {
 		this.dbEventLog = dbEventLog;
 		this.queue = new LinkedBlockingQueue<>(queueCapacity);
@@ -64,6 +80,7 @@ public class AsyncBatchingEventLog implements EventLog {
 		this.shutdownDrainTimeoutMs = Math.max(1, shutdownDrainTimeoutMs);
 		this.bulkRetryCount = Math.max(0, bulkRetryCount);
 		this.retryBackoffMs = Math.max(0, retryBackoffMs);
+		this.maxDocumentRetries = Math.max(0, maxDocumentRetries);
 	}
 
 	@PostConstruct
@@ -175,15 +192,24 @@ public class AsyncBatchingEventLog implements EventLog {
 				Thread.currentThread().interrupt();
 			}
 		}
+
+		// Final drain: catch any documents enqueued after acceptingEvents was set to false
+		// but before the producer saw the flag
+		List<Document> stragglers = new ArrayList<>();
+		queue.drainTo(stragglers);
+		for (int i = 0; i < stragglers.size(); i += batchSize) {
+			flushBatch(stragglers.subList(i, Math.min(i + batchSize, stragglers.size())));
+		}
 	}
 
 	private void flushBatch(List<Document> batch) {
 		for (int attempt = 0; attempt <= bulkRetryCount; attempt++) {
 			try {
-				dbEventLog.insertDocumentsOrdered(batch);
-				for (Document document : batch) {
-					removePending(document);
-				}
+				dbEventLog.insertDocuments(batch);
+				markPersisted(batch);
+				return;
+			} catch (MongoBulkWriteException bulkWriteException) {
+				handleBulkWriteException(batch, bulkWriteException);
 				return;
 			} catch (RuntimeException exception) {
 				if (attempt == bulkRetryCount) {
@@ -204,19 +230,68 @@ public class AsyncBatchingEventLog implements EventLog {
 		for (Document document : batch) {
 			try {
 				dbEventLog.insertDocument(document);
-				removePending(document);
+				markPersisted(document);
 			} catch (RuntimeException exception) {
 				if (isDuplicateKey(exception)) {
-					removePending(document);
+					markPersisted(document);
 					continue;
 				}
-				logger.error("Failed to persist event log entry id={} testId={}, re-queueing", document.getString("_id"), document.getString("testId"), exception);
-				requeueDocument(document);
+				handleDocumentFailure(document, null, exception.getMessage(), exception);
 			}
 		}
 	}
 
-	private void requeueDocument(Document document) {
+	private void handleBulkWriteException(List<Document> batch, MongoBulkWriteException exception) {
+		Map<Integer, BulkWriteError> writeErrorsByIndex = new HashMap<>();
+		for (BulkWriteError error : exception.getWriteErrors()) {
+			writeErrorsByIndex.put(error.getIndex(), error);
+		}
+
+		WriteConcernError writeConcernError = exception.getWriteConcernError();
+
+		for (int i = 0; i < batch.size(); i++) {
+			Document document = batch.get(i);
+			BulkWriteError writeError = writeErrorsByIndex.get(i);
+
+			if (writeError != null) {
+				if (isDuplicateKey(writeError.getCode())) {
+					markPersisted(document);
+					continue;
+				}
+				handleDocumentFailure(document, writeError.getCode(), writeError.getMessage(), exception);
+				continue;
+			}
+
+			if (writeConcernError != null) {
+				handleDocumentFailure(document, writeConcernError.getCode(), writeConcernError.getMessage(), exception);
+			} else {
+				// With unordered insertMany, docs without write errors were persisted.
+				markPersisted(document);
+			}
+		}
+	}
+
+	private void handleDocumentFailure(Document document, Integer errorCode, String errorMessage, RuntimeException exception) {
+		if (isNonRetryableFailure(errorCode, errorMessage, exception)) {
+			deadLetterAndMarkPersisted(document, "non_retryable", errorCode, errorMessage, currentRetryCount(document), exception);
+			return;
+		}
+
+		String id = document.getString("_id");
+		int retries = documentRetryCount.computeIfAbsent(id, ignored -> new AtomicInteger(0)).incrementAndGet();
+		if (retries > maxDocumentRetries) {
+			deadLetterAndMarkPersisted(document, "retry_exhausted", errorCode, errorMessage, retries, exception);
+			return;
+		}
+
+		logger.warn("Failed to persist event log entry id={} testId={} (attempt {}/{}), re-queueing",
+			id, document.getString("testId"), retries, maxDocumentRetries, exception);
+		if (!tryRequeue(document)) {
+			deadLetterAndMarkPersisted(document, "requeue_failed", errorCode, errorMessage, retries, exception);
+		}
+	}
+
+	private boolean tryRequeue(Document document) {
 		boolean queued = queue.offer(document);
 		if (!queued && enqueueTimeoutMs > 0) {
 			try {
@@ -225,9 +300,56 @@ public class AsyncBatchingEventLog implements EventLog {
 				Thread.currentThread().interrupt();
 			}
 		}
-		if (!queued) {
-			logger.error("Unable to re-queue event log entry id={} due to queue capacity limits", document.getString("_id"));
+		return queued;
+	}
+
+	private int currentRetryCount(Document document) {
+		AtomicInteger retries = documentRetryCount.get(document.getString("_id"));
+		return retries == null ? 0 : retries.get();
+	}
+
+	private void deadLetterAndMarkPersisted(
+		Document document,
+		String reason,
+		Integer errorCode,
+		String errorMessage,
+		int retryCount,
+		RuntimeException cause
+	) {
+		try {
+			dbEventLog.insertDeadLetter(document, reason, errorCode, errorMessage, retryCount);
+		} catch (RuntimeException deadLetterException) {
+			logger.error("Failed to write event-log dead-letter record for id={}", document.getString("_id"), deadLetterException);
 		}
+		logger.error("Moved event log entry id={} testId={} to dead-letter queue with reason={}",
+			document.getString("_id"), document.getString("testId"), reason, cause);
+		markPersisted(document);
+	}
+
+	private void markPersisted(List<Document> documents) {
+		for (Document document : documents) {
+			markPersisted(document);
+		}
+	}
+
+	private void markPersisted(Document document) {
+		removePending(document);
+		documentRetryCount.remove(document.getString("_id"));
+	}
+
+	private boolean isNonRetryableFailure(Integer errorCode, String errorMessage, RuntimeException exception) {
+		if (errorCode != null && NON_RETRYABLE_ERROR_CODES.contains(errorCode)) {
+			return true;
+		}
+
+		String combined = ((errorMessage == null ? "" : errorMessage) + " "
+			+ (exception.getMessage() == null ? "" : exception.getMessage())).toLowerCase(Locale.ROOT);
+
+		return combined.contains("document failed validation")
+			|| combined.contains("bsonobj size")
+			|| combined.contains("object to insert too large")
+			|| combined.contains("cannot encode")
+			|| combined.contains("unknown bson type");
 	}
 
 	private void addPending(Document document) {
@@ -239,14 +361,10 @@ public class AsyncBatchingEventLog implements EventLog {
 	private void removePending(Document document) {
 		String testId = document.getString("testId");
 		String id = document.getString("_id");
-		ConcurrentMap<String, Document> perTestPending = pendingByTestId.get(testId);
-		if (perTestPending == null) {
-			return;
-		}
-		perTestPending.remove(id);
-		if (perTestPending.isEmpty()) {
-			pendingByTestId.remove(testId, perTestPending);
-		}
+		pendingByTestId.computeIfPresent(testId, (key, perTestPending) -> {
+			perTestPending.remove(id);
+			return perTestPending.isEmpty() ? null : perTestPending;
+		});
 	}
 
 	private long nextMonotonicTime() {
@@ -275,5 +393,9 @@ public class AsyncBatchingEventLog implements EventLog {
 			current = current.getCause();
 		}
 		return false;
+	}
+
+	private boolean isDuplicateKey(Integer errorCode) {
+		return errorCode != null && errorCode == DUPLICATE_KEY_ERROR_CODE;
 	}
 }

@@ -18,6 +18,7 @@ import java.util.Map;
 public class DBEventLog implements EventLog {
 
 	public static final String COLLECTION = "EVENT_LOG";
+	public static final String DEAD_LETTER_COLLECTION = "EVENT_LOG_DLQ";
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -83,7 +84,7 @@ public class DBEventLog implements EventLog {
 		mongoTemplate.insert(document, COLLECTION);
 	}
 
-	void insertDocumentsOrdered(List<Document> documents) {
+	void insertDocuments(List<Document> documents) {
 		if (documents.isEmpty()) {
 			return;
 		}
@@ -91,7 +92,23 @@ public class DBEventLog implements EventLog {
 		for (Document document : documents) {
 			copies.add(new Document(document));
 		}
-		mongoTemplate.getCollection(COLLECTION).insertMany(copies, new InsertManyOptions().ordered(true));
+		mongoTemplate.getCollection(COLLECTION).insertMany(copies, new InsertManyOptions().ordered(false));
+	}
+
+	void insertDeadLetter(Document failedDocument, String reason, Integer errorCode, String errorMessage, int retryCount) {
+		Document deadLetter = new Document()
+			.append("_id", failedDocument.getString("_id") + "-DLQ-" + RandomStringUtils.secure().nextAlphanumeric(8))
+			.append("originalId", failedDocument.getString("_id"))
+			.append("testId", failedDocument.getString("testId"))
+			.append("src", failedDocument.getString("src"))
+			.append("failedAt", new Date().getTime())
+			.append("reason", reason)
+			.append("errorCode", errorCode)
+			.append("errorMessage", errorMessage)
+			.append("retryCount", retryCount)
+			.append("original", new Document(failedDocument));
+
+		mongoTemplate.insert(deadLetter, DEAD_LETTER_COLLECTION);
 	}
 
 	private String newLogId(String testId) {
@@ -101,9 +118,12 @@ public class DBEventLog implements EventLog {
 	@Override
 	public void createIndexes(){
 		MongoCollection<Document> eventLogCollection = mongoTemplate.getCollection(COLLECTION);
-		eventLogCollection.createIndex(new Document("testId", 1));
 		eventLogCollection.createIndex(new Document("testOwner", 1));
 		eventLogCollection.createIndex(new Document("testId", 1).append("time", 1));
 		eventLogCollection.createIndex(new Document("testId", 1).append("testOwner", 1).append("time", 1));
+
+		MongoCollection<Document> deadLetterCollection = mongoTemplate.getCollection(DEAD_LETTER_COLLECTION);
+		deadLetterCollection.createIndex(new Document("testId", 1));
+		deadLetterCollection.createIndex(new Document("failedAt", -1));
 	}
 }

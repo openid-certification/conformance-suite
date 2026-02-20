@@ -376,11 +376,14 @@ public class LogApi {
 			summaryOnly = false;
 		}
 
+		boolean filterByOwner = !isPublic && !authenticationFacade.isAdmin();
+		Map<String, String> ownerFilter = filterByOwner ? authenticationFacade.getPrincipal() : null;
+
 		Criteria criteria = new Criteria();
 		criteria.and("testId").is(id);
 
-		if (!isPublic && !authenticationFacade.isAdmin()) {
-			criteria.and("testOwner").is(authenticationFacade.getPrincipal());
+		if (filterByOwner) {
+			criteria.and("testOwner").is(ownerFilter);
 		}
 
 		if (since != null) {
@@ -406,11 +409,6 @@ public class LogApi {
 
 		if (!mergePendingInLogApi || asyncBatchingEventLog == null) {
 			return persistedResults;
-		}
-
-		Map<String, String> ownerFilter = null;
-		if (!isPublic && !authenticationFacade.isAdmin()) {
-			ownerFilter = authenticationFacade.getPrincipal();
 		}
 
 		List<Document> pendingResults = asyncBatchingEventLog.getPendingForTestId(id);
