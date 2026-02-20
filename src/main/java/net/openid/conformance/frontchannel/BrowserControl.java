@@ -828,6 +828,7 @@ public class BrowserControl implements DataUtils {
 			// multiple WebRunners within one test module instance at the same time, as the ordering of when cookies
 			// are set/read might differ between test runs.
 			client.setCookieManager(cookieManager);
+			client.addRequestHeader("ngrok-skip-browser-warning", "true");
 
 			// Selenium / HtmlUnit's javascript engine barfs at a lot of modern
 			// javascript. However asking it to ignore the errors and carry on seems
