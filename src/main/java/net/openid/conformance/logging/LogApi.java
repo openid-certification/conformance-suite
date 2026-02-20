@@ -59,10 +59,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -90,6 +93,12 @@ public class LogApi {
 
 	@Autowired
 	private HtmlExportRenderer htmlExportRenderer;
+
+	@Autowired(required = false)
+	private AsyncBatchingEventLog asyncBatchingEventLog;
+
+	@Value("${net.openid.conformance.logging.async.merge-pending-in-logapi:true}")
+	private boolean mergePendingInLogApi;
 
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
 
@@ -389,11 +398,98 @@ public class LogApi {
 				.include("time");
 		}
 
-		return Lists.newArrayList(mongoTemplate
+		List<Document> persistedResults = Lists.newArrayList(mongoTemplate
 			.getCollection(DBEventLog.COLLECTION)
 			.find(query.getQueryObject())
 			.projection(query.getFieldsObject())
 			.sort(new Document("time", 1)));
+
+		if (!mergePendingInLogApi || asyncBatchingEventLog == null) {
+			return persistedResults;
+		}
+
+		Map<String, String> ownerFilter = null;
+		if (!isPublic && !authenticationFacade.isAdmin()) {
+			ownerFilter = authenticationFacade.getPrincipal();
+		}
+
+		List<Document> pendingResults = asyncBatchingEventLog.getPendingForTestId(id);
+		if (pendingResults.isEmpty()) {
+			return persistedResults;
+		}
+
+		return mergePersistedAndPendingResults(persistedResults, pendingResults, since, summaryOnly, ownerFilter);
+	}
+
+	private List<Document> mergePersistedAndPendingResults(
+		List<Document> persistedResults,
+		List<Document> pendingResults,
+		Long since,
+		boolean summaryOnly,
+		Map<String, String> ownerFilter
+	) {
+		Map<String, Document> deduplicatedById = new LinkedHashMap<>();
+		for (Document persistedResult : persistedResults) {
+			deduplicatedById.put(persistedResult.getString("_id"), persistedResult);
+		}
+
+		for (Document pendingResult : pendingResults) {
+			if (!matchesPendingFilters(pendingResult, since, ownerFilter)) {
+				continue;
+			}
+			String id = pendingResult.getString("_id");
+			if (deduplicatedById.containsKey(id)) {
+				continue;
+			}
+			deduplicatedById.put(id, summaryOnly ? toSummaryDocument(pendingResult) : pendingResult);
+		}
+
+		List<Document> mergedResults = new ArrayList<>(deduplicatedById.values());
+		mergedResults.sort(Comparator.comparingLong(LogApi::extractTime));
+		return mergedResults;
+	}
+
+	private boolean matchesPendingFilters(Document pendingResult, Long since, Map<String, String> ownerFilter) {
+		if (since != null && extractTime(pendingResult) <= since) {
+			return false;
+		}
+		if (ownerFilter == null) {
+			return true;
+		}
+		return ownerMatches(pendingResult.get("testOwner"), ownerFilter);
+	}
+
+	private static boolean ownerMatches(Object actualOwner, Map<String, String> expectedOwner) {
+		if (!(actualOwner instanceof Map<?, ?> ownerMap)) {
+			return false;
+		}
+		return Objects.equals(ownerMap.get("sub"), expectedOwner.get("sub"))
+			&& Objects.equals(ownerMap.get("iss"), expectedOwner.get("iss"));
+	}
+
+	private static long extractTime(Document document) {
+		Object value = document.get("time");
+		if (value instanceof Number numberValue) {
+			return numberValue.longValue();
+		}
+		return 0;
+	}
+
+	private static Document toSummaryDocument(Document source) {
+		Document summary = new Document();
+		summary.put("_id", source.get("_id"));
+		copyIfPresent(source, summary, "result");
+		copyIfPresent(source, summary, "testName");
+		copyIfPresent(source, summary, "testId");
+		copyIfPresent(source, summary, "src");
+		copyIfPresent(source, summary, "time");
+		return summary;
+	}
+
+	private static void copyIfPresent(Document source, Document destination, String fieldName) {
+		if (source.containsKey(fieldName)) {
+			destination.put(fieldName, source.get(fieldName));
+		}
 	}
 
 	private static String variantSuffix(VariantSelection variant) {
