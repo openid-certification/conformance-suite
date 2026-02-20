@@ -17,16 +17,16 @@ public class CreateClientAuthenticationAssertionClaims extends AbstractCondition
 	@PostEnvironment(required = "client_assertion_claims")
 	public Environment evaluate(Environment env) {
 
-		String issuer = env.getString("client", "client_id");
+		String client_id = env.getString("client", "client_id");
 
-		if (Strings.isNullOrEmpty(issuer)) {
-			throw error("Couldn't find required configuration element", args("issuer", issuer));
+		if (Strings.isNullOrEmpty(client_id)) {
+			throw error("Couldn't find required configuration element", args("client_id", client_id));
 		}
 
 		JsonObject claims = new JsonObject();
 
-		claims.addProperty("iss", issuer);
-		claims.addProperty("sub", issuer);
+		claims.addProperty("iss", client_id);
+		claims.addProperty("sub", client_id);
 
 		// This code uses the mtls aliased token endpoint if there is one
 		// This is probably not correct, according to this ticket we should always use the non-MTLS one:
