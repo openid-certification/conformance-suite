@@ -73,6 +73,11 @@ in
                     proxy_set_header X-Ssl-Protocol $ssl_protocol;
                     proxy_set_header X-Ssl-Cert $ssl_client_cert;
                     proxy_set_header Forwarded 'by=127.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
+                    set $mtls_wrong_host "";
+                    if ($request_uri ~* "^/test-mtls") {
+                        set $mtls_wrong_host "true";
+                    }
+                    proxy_set_header X-Test-Mtls-Called-On-Wrong-Host $mtls_wrong_host;
                     proxy_pass_request_headers on;
                 }
             }
