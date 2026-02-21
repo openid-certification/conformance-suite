@@ -40,7 +40,7 @@
   services.nginx = {
     enable = true;
         httpConfig = ''
-            ssl_protocols       TLSv1.3;
+            ssl_protocols       TLSv1.2 TLSv1.3;
             ssl_prefer_server_ciphers on;
 
             ssl_certificate     ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk.pem;
@@ -50,10 +50,11 @@
                 listen 8443 ssl;
                 server_name localhost.emobix.co.uk;
                 ssl_verify_client   off;
+                client_header_buffer_size 32k;
+                large_client_header_buffers 4 32k;
 
                 location / {
                     proxy_pass http://127.0.0.1:8080;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                     proxy_set_header X-Forwarded-Proto $scheme;
                     proxy_set_header X-Forwarded-Host $host;
@@ -61,10 +62,8 @@
                     proxy_set_header X-Forwarded-Uri $request_uri;
                     proxy_set_header X-Ssl-Cipher $ssl_cipher;
                     proxy_set_header X-Ssl-Protocol $ssl_protocol;
-
-                    add_header 'Access-Control-Allow-Origin' '*';
-                    add_header 'Access-Control-Allow-Methods' 'GET, POST, HEAD, OPTIONS';
-
+                    proxy_set_header X-Ssl-Cert $ssl_client_cert;
+                    proxy_set_header Forwarded 'by=127.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
                     proxy_pass_request_headers on;
                 }
             }
@@ -72,6 +71,9 @@
                 listen 8444 ssl;
                 server_name localhost.emobix.co.uk;
                 ssl_verify_client   optional_no_ca;
+                client_header_buffer_size 32k;
+                large_client_header_buffers 4 32k;
+
                 location / {
                     proxy_pass http://127.0.0.1:8080;
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -82,9 +84,8 @@
                     proxy_set_header X-Ssl-Cipher $ssl_cipher;
                     proxy_set_header X-Ssl-Protocol $ssl_protocol;
                     proxy_set_header X-Ssl-Cert $ssl_client_cert;
-
-                    add_header 'Access-Control-Allow-Origin' '*';
-                    add_header 'Access-Control-Allow-Methods' 'GET, POST, HEAD, OPTIONS';
+                    proxy_set_header Forwarded 'by=127.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
+                    proxy_pass_request_headers on;
                 }
             }
 
