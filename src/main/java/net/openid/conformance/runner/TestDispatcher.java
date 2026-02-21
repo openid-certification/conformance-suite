@@ -338,8 +338,7 @@ public class TestDispatcher implements DataUtils {
 			"X-Forwarded-Port", // no need to log this as it's only acted upon by spring/tomcat
 			"x-forwarded-host", // automatically added by apache, but only acted upon by spring/tomcat
 			"x-forwarded-server", // automatically added by apache, but only acted upon by spring/tomcat
-			"X-Ssl-Cert",
-			"X-Ssl-Verify"); // although we add this in apache, we don't setup any CAs, so it's not clear it has any value and we don't use it anywhere currently
+			"X-Ssl-Cert");
 		for (String h : proxyHeaders) {
 			headers.remove(h.toLowerCase());
 		}
