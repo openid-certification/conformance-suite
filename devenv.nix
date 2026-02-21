@@ -15,7 +15,7 @@
 
     export EXTERNAL_URL=`curl -s localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"`
 
-    echo "In order to run CIBA tests, please make sure ngrok account is created"
+    echo "In order to run CIBA ping, Federation, etc tests please make sure to setup a ngrok account"
 
   '';
 

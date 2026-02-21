@@ -11,6 +11,11 @@ It will setup the following services:
 - Nginx
 - Setup 127.0.0.1 host aliases for localhost.emobix.co.uk
 - Generate and install TLS certificates into the local Keychain
+- ngrok tunnel to expose the local development server to the internet (needed for CIBA/Federation/etc tests)
+- Python with venv
+- Java with mvn
+- npm
+- git precommit hooks for fixing whitespace and running PMD/checkstyle
 
 # Setup
 
