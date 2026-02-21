@@ -4,7 +4,7 @@ NixOS / devenv based Setup for Conformance Testsuite Development
 This document describes how to setup a development environment for conformance testsuite development
 based on [NixOS](https://nixos.org/) and [devenv](https://devenv.sh/).
 
-The devenv will create a containerized environment based on the [devenv.nix](./devenv.nix) configuration file.
+The devenv will create a local development environment based on the [devenv.nix](./devenv.nix) configuration file.
 
 It will setup the following services:
 - MongoDB
