@@ -1,5 +1,9 @@
 { pkgs, lib, config, inputs, ... }:
 
+let
+  pkgs-mongo6 = import inputs.nixpkgs-mongo6 { system = pkgs.stdenv.hostPlatform.system; config = { allowUnfree = true; }; };
+  pkgs-nginx = import inputs.nixpkgs-nginx { system = pkgs.stdenv.hostPlatform.system; };
+in
 {
   env.GREET = "OIDF - Conformance - Local dev env";
 
@@ -36,9 +40,14 @@
     };
   };
 
-  services.mongodb.enable = true;
+  services.mongodb = {
+    enable = true;
+    package = pkgs-mongo6.mongodb-6_0;
+  };
+  # production uses nginx/nginx-ingress:4.0.0 which bundles nginx 1.27.3
   services.nginx = {
     enable = true;
+    package = pkgs-nginx.nginxMainline;
         httpConfig = ''
             ssl_protocols       TLSv1.2 TLSv1.3;
             ssl_prefer_server_ciphers on;

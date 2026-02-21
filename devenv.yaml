@@ -2,5 +2,11 @@
 inputs:
   nixpkgs:
     url: github:cachix/devenv-nixpkgs/rolling
+  # pinned nixpkgs revision that has mongodb 6.0.13, matching production
+  nixpkgs-mongo6:
+    url: github:NixOS/nixpkgs/3281bec7174f679eabf584591e75979a258d8c40
+  # pinned nixpkgs revision that has nginx mainline 1.27.3, matching production (nginx-ingress:4.0.0)
+  nixpkgs-nginx:
+    url: github:NixOS/nixpkgs/a716b6d484889ea78aec9289a7fcaed9cbe7727a
 
 allowUnfree: true
