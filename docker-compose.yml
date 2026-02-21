@@ -3,9 +3,9 @@ services:
     image: mongo:6.0.13
     volumes:
      - ./mongo/data:/data/db
-  httpd:
+  nginx:
     build:
-      context: ./httpd
+      context: ./nginx
     ports:
      - "8443:8443"
     depends_on:

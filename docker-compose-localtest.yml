@@ -21,9 +21,9 @@ services:
     image: mongo:6.0.13
     volumes:
      - ./mongo/data:/data/db
-  httpd:
+  nginx:
     build:
-      context: ./httpd
+      context: ./nginx
     ports:
      - "8443:8443"
      - "8444:8444"
@@ -41,8 +41,8 @@ services:
       -Xdebug -Xrunjdwp:transport=dt_socket,address=*:9999,server=y,suspend=n
       -jar /server/fapi-test-suite.jar
       -Djdk.tls.maxHandshakeMessageSize=65536
-      --fintechlabs.base_url=https://httpd:8443
-      --fintechlabs.base_mtls_url=https://httpd:8444
+      --fintechlabs.base_url=https://nginx:8443
+      --fintechlabs.base_mtls_url=https://nginx:8444
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
     links:
@@ -58,12 +58,12 @@ services:
         max-file: "1"
   test:
     depends_on:
-      - httpd
+      - nginx
     build:
       context: ./test
     environment:
-      CONFORMANCE_SERVER: https://httpd:8443/
-      CONFORMANCE_SERVER_MTLS: https://httpd:8444/
+      CONFORMANCE_SERVER: https://nginx:8443/
+      CONFORMANCE_SERVER_MTLS: https://nginx:8444/
       CONFORMANCE_DEV_MODE: 1
     volumes:
       - "./:/conformance-suite/"
