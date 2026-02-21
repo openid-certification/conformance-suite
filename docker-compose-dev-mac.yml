@@ -8,15 +8,15 @@ services:
     image: mongo:6.0.13
     volumes:
      - ./mongo/data:/data/db
-  httpd:
+  nginx:
     build:
-      context: ./httpd
+      context: ./nginx
       dockerfile: Dockerfile-static
     ports:
      - "8443:8443"
      - "8444:8444"
     volumes:
-     - ./src/main/resources/:/usr/local/apache2/htdocs/:delegated
+     - ./src/main/resources/:/usr/share/nginx/html/:delegated
     depends_on:
      - server
   server:
