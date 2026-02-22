@@ -30,6 +30,6 @@ public class VCIIssuerFailOnUnknownCredentialConfigurationId extends VCIIssuerHa
 	protected void verifyEffectiveCredentialResponse() {
 		super.verifyCredentialIssuerCredentialErrorResponse();
 
-		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_CREDENTIAL_CONFIGURATION), "OID4VCI-1FINAL-8.3.1");
+		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.UNKNOWN_CREDENTIAL_CONFIGURATION), "OID4VCI-1FINAL-8.3.1");
 	}
 }

@@ -13,12 +13,12 @@ public enum VciErrorCode {
 	/**
 	 * Requested Credential Configuration is unknown.
  	 */
-	INVALID_CREDENTIAL_CONFIGURATION("invalid_credential_configuration"),
+	UNKNOWN_CREDENTIAL_CONFIGURATION("unknown_credential_configuration"),
 
 	/**
 	 * Requested Credential identifier is unknown.
  	 */
-	INVALID_CREDENTIAL_IDENTIFIER("invalid_credential_identifier"),
+	UNKNOWN_CREDENTIAL_IDENTIFIER("unknown_credential_identifier"),
 
 	/**
 	 * The proofs parameter in the Credential Request is invalid: (1) if the field is missing, or (2) one of the provided key proofs is invalid, or (3) if at least one of the key proofs does not contain a c_nonce value (refer to Section 7.2).

@@ -30,6 +30,6 @@ public class VCIIssuerFailOnUnknownCredentialIdentifier extends VCIIssuerHappyFl
 	protected void verifyEffectiveCredentialResponse() {
 		super.verifyCredentialIssuerCredentialErrorResponse();
 
-		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_CREDENTIAL_IDENTIFIER), "OID4VCI-1FINAL-8.3.1");
+		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.UNKNOWN_CREDENTIAL_IDENTIFIER), "OID4VCI-1FINAL-8.3.1");
 	}
 }
