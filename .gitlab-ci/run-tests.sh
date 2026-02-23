@@ -556,6 +556,17 @@ makeFederationTests() {
 
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/authlete-federation-fapidev-as.json"
     TESTS="${TESTS} openid-federation-deployed-entity-test-plan[server_metadata=discovery][client_registration=automatic] ../conformance-suite/scripts/test-configs-federation/authlete-federation-trust-anchor.json"
+
+    # for now only runs a few tests, just because we don't have the full browser automations written yet
+    TESTS="${TESTS} openid-federation-entity-joined-to-test-federation-op-test-plan[server_metadata=discovery][client_registration=automatic]:"\
+"openid-federation-automatic-client-registration-with-jar-and-get,"\
+"openid-federation-automatic-client-registration-with-jar-and-post,"\
+"openid-federation-automatic-client-registration-with-par,"\
+"openid-federation-automatic-client-registration-with-jar-and-get-and-trust-chain,"\
+"openid-federation-automatic-client-registration-with-jar-and-post-and-trust-chain,"\
+"openid-federation-automatic-client-registration-with-par-and-trust-chain,"\
+"openid-federation-automatic-client-registration-with-jar-and-encrypted-request-object "\
+"authlete-federation.json"
 }
 
 makeSsfTests() {

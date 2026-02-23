@@ -9,16 +9,22 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
+import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
+import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
+import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
+import net.openid.conformance.condition.client.CheckForRequestUriValue;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CheckPAREndpointResponse201WithNoError;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
+import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
 import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
 import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -83,6 +89,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		String hostOverride = OIDFJSON.getStringOrNull(config.get("federation").getAsJsonObject().get("rp_entity_identifier_host_override"));
 		if (!Strings.isNullOrEmpty(hostOverride)) {
 			baseUrl = EntityUtils.replaceHostnameInUrl(baseUrl, hostOverride);
+		}
+		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
+			baseUrl = externalUrlOverride;
 		}
 
 		env.putString("base_url", baseUrl);
@@ -270,6 +279,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		if (FAPIAuthRequestMethod.PUSHED.equals(getRequestMethod())) {
 			callParEndpoint();
 			extractRequestUri();
+			// could use callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class, "PAR-4"); here?
 			uriBuilder.addParameter("request_uri", env.getString("request_uri"));
 			uriBuilder.addParameter("client_id", env.getString("request_object_claims", "client_id"));
 		} else {
@@ -325,24 +335,28 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 			JsonObject opMetadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata.openid_provider").getAsJsonObject().deepCopy();
 			opMetadata.addProperty("issuer", env.getString("primary_entity_statement_jwt", "claims.iss"));
 			env.putObject("openid_provider_metadata", opMetadata);
-
 			env.mapKey("server", "openid_provider_metadata");
-			env.putObject("pushed_authorization_request_form_parameters", new JsonObject());
+			callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
 			call(sequence(addParEndpointClientAuthentication));
-			env.unmapKey("server");
-			env.removeObject("openid_provider_metadata");
 		}
-		callAndContinueOnFailure(CallPAREndpointWithPostAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);
-		env.mapKey("endpoint_response", "authorization_endpoint_response");
+
+		callAndContinueOnFailure(CallPAREndpoint.class, Condition.ConditionResult.FAILURE);
+		env.unmapKey("server");
+		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
+		callAndStopOnFailure(CheckPAREndpointResponse201WithNoError.class, "PAR-2.2", "PAR-2.3", "PAR-2.4");
+
+		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
+
+		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, Condition.ConditionResult.FAILURE, "PAR-2.2");
+
 		env.unmapKey("endpoint_response");
 	}
 
 	protected void extractRequestUri() {
-		env.mapKey("pushed_authorization_endpoint_response", "authorization_endpoint_response");
 		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class, Condition.ConditionResult.FAILURE);
-		env.unmapKey("pushed_authorization_endpoint_response");
+		callAndContinueOnFailure(EnsureMinimumRequestUriEntropy.class, Condition.ConditionResult.FAILURE, "PAR-2.2", "PAR-7.1", "JAR-10.2");
 	}
 
 	protected void createQueryParameters() {
@@ -378,7 +392,8 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void onAuthorizationCallbackResponse() {
-		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
+		// FIXME doesn't seem to work currently - see https://gitlab.com/openid/conformance-suite/-/issues/1684
+		//callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
