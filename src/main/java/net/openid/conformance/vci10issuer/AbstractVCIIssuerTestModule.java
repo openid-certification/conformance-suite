@@ -372,7 +372,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 			callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 			callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
-			callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
+			callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1", "FAPI2-SP-FINAL-5.4.1-1");
 		}
 
 		whichClient = 1;
@@ -585,8 +585,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4");
-		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
+		callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1");
+		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1", "FAPI2-SP-FINAL-5.4.1-1");
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
@@ -781,7 +781,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(AddNbfToRequestObject.class, "FAPI2-MS-ID1-5.3.1-3"); // mandatory in FAPI2-Message-Signing-ID1
 			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI2-MS-ID1-5.3.1-4");
 
-			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI2-SP-ID2-5.3.1.1-6");
+			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI2-SP-FINAL-5.3.2.1-1");
 
 			// iss is a 'should' in OIDC & jwsreq,
 			callAndStopOnFailure(AddIssToRequestObject.class, "OIDCC-6.1");
@@ -822,7 +822,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
 
-		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-ID2-5.3.1.2-7");
+		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-FINAL-5.3.2.2-2.7");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
@@ -871,7 +871,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void addPkceCodeVerifier() {
-		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2-SP-ID2-5.3.2.2-3");
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2-SP-FINAL-5.3.2.2-2.5");
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
@@ -958,13 +958,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-4");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-4");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
 
 		if (isOpenId) {
 			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO, ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
-			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI2-SP-ID2-5.3.1.3", "OIDCC-3.3.2.5");
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI2-SP-FINAL-5.3.2.3-1", "OIDCC-3.3.2.5");
 
 			call(new PerformStandardIdTokenChecks());
 
@@ -972,7 +972,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			performProfileIdTokenValidation();
 
-			callAndContinueOnFailure(FAPI2ValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4");
+			callAndContinueOnFailure(FAPI2ValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1");
 
 			// code flow - all hashes are optional.
 			callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
@@ -1210,7 +1210,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-8", "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-8", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
@@ -1396,7 +1396,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-11", "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-11", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 		eventLog.endBlock();
 
@@ -1482,7 +1482,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-9", "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-9", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
