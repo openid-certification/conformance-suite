@@ -13,6 +13,7 @@ import sys
 import time
 import traceback
 import urllib.parse
+import urllib.request
 
 from conformance import Conformance
 from test_plan_parser import test_plan
@@ -984,8 +985,27 @@ async def main():
         os.environ['CONFORMANCE_SERVER_MTLS'] = mtls_url_base
     else:
         # local development settings
-        api_url_base = 'https://localhost.emobix.co.uk:8443/'
-        print("CONFORMANCE_SERVER environment variable not set, defaulting to "+api_url_base)
+        ngrok_url = None
+        try:
+            req = urllib.request.Request('http://localhost:4040/api/tunnels')
+            with urllib.request.urlopen(req, timeout=2) as resp:
+                tunnels = json.loads(resp.read())
+                public_url = tunnels.get('tunnels', [{}])[0].get('public_url')
+                if public_url:
+                    ngrok_url = public_url
+                    print("Detected ngrok tunnel: " + ngrok_url)
+        except Exception:
+            pass
+
+        if ngrok_url:
+            api_url_base = ngrok_url
+            if not api_url_base.endswith('/'):
+                api_url_base += '/'
+            print("Using ngrok URL as CONFORMANCE_SERVER: " + api_url_base)
+        else:
+            api_url_base = 'https://localhost.emobix.co.uk:8443/'
+            print("CONFORMANCE_SERVER environment variable not set, defaulting to " + api_url_base)
+
         dev_mode = True
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
