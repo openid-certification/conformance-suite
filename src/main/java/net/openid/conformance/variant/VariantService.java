@@ -546,6 +546,26 @@ public class VariantService {
 								return merged;
 							})));
 
+			// Collect fixed variant values (parameters not shown as dropdowns in the UI).
+			// When a conditioning parameter is fixed by the plan, its conditional exclusions
+			// must be pre-applied server-side since the UI has no dropdown to evaluate them.
+			Set<String> selectableParameterNames = values.keySet().stream()
+					.map(ph -> ph.variantParameter.name())
+					.collect(toSet());
+			Map<String, String> fixedVariantValues = new HashMap<>();
+			for (TestPlanModuleWithVariant m : modulesWithVariant) {
+				if (m.variant == null) {
+					continue;
+				}
+				m.variant.forEach((cls, val) -> {
+					parametersByName.forEach((name, holder) -> {
+						if (holder.parameterClass.equals(cls) && !selectableParameterNames.contains(name)) {
+							fixedVariantValues.put(name, val.toString());
+						}
+					});
+				});
+			}
+
 			return values.entrySet().stream()
 					.collect(toMap(e -> e.getKey().variantParameter.name(),
 							e -> {
@@ -555,17 +575,36 @@ public class VariantService {
 								Map<String, Set<String>> phf = hideFields.getOrDefault(e.getKey(), Map.of());
 								Map<String, Map<String, Set<String>>> pce = conditionalExclusions.getOrDefault(e.getKey(), Map.of());
 
+								// Pre-apply conditional exclusions for fixed variant parameters
+								Map<String, Map<String, Set<String>>> remainingPce = new HashMap<>();
+								Set<String> fixedExclusions = new HashSet<>();
+								pce.forEach((condParamName, byCondValue) -> {
+									String fixedValue = fixedVariantValues.get(condParamName);
+									if (fixedValue != null) {
+										// This condition parameter is fixed; apply its exclusions directly
+										Set<String> excluded = byCondValue.get(fixedValue);
+										if (excluded != null) {
+											fixedExclusions.addAll(excluded);
+										}
+									} else {
+										// Condition parameter is selectable; keep for UI evaluation
+										remainingPce.put(condParamName, byCondValue);
+									}
+								});
+								Set<String> effectiveAllowed = new HashSet<>(allowed);
+								effectiveAllowed.removeAll(fixedExclusions);
+
 								Map<String, Object> result = new HashMap<>();
 								result.put("variantInfo", Map.of("displayName", p.variantParameter.displayName(),
 																"description", p.variantParameter.description()));
 								result.put("variantValues", p.values().stream()
 															.map(v -> v.toString())
-															.filter(v -> allowed.contains(v))
+															.filter(v -> effectiveAllowed.contains(v))
 															.collect(toOrderedMap(identity(),
 																v -> Map.of("configurationFields", pf.getOrDefault(v, Set.of()),
 																	"hidesConfigurationFields", phf.getOrDefault(v, Set.of())))));
-								if (!pce.isEmpty()) {
-									result.put("notApplicableWhen", pce);
+								if (!remainingPce.isEmpty()) {
+									result.put("notApplicableWhen", remainingPce);
 								}
 								return result;
 							}));

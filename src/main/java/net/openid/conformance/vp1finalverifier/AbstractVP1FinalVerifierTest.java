@@ -62,7 +62,9 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
+import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
@@ -70,6 +72,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 
 @VariantParameters({
+	VPProfile.class,
 	VP1FinalVerifierCredentialFormat.class,
 	VP1FinalVerifierClientIdPrefix.class,
 	VP1FinalVerifierResponseMode.class,
@@ -78,7 +81,12 @@ import org.springframework.web.servlet.view.RedirectView;
 @VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
 })
-
+@VariantNotApplicableWhen(
+	parameter = VP1FinalVerifierResponseMode.class,
+	values = {"direct_post"},  // unencrypted mode not applicable for HAIP
+	whenParameter = VPProfile.class,
+	hasValues = "haip"
+)
 public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected VP1FinalVerifierClientIdPrefix clientIdPrefix;
 	protected VP1FinalVerifierResponseMode responseMode;

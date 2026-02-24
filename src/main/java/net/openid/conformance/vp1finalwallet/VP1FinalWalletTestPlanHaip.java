@@ -2,42 +2,32 @@ package net.openid.conformance.vp1finalwallet;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan(
-	testPlanName = "oid4vp-1final-wallet-test-plan",
-	displayName = "OpenID for Verifiable Presentations 1.0 Final: Test a wallet - alpha tests (not currently part of certification program)",
+	testPlanName = "oid4vp-1final-wallet-haip-test-plan",
+	displayName = "OpenID for Verifiable Presentations 1.0 Final/HAIP: Test a wallet - alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.wallettest
 )
-public class VP1FinalWalletTestPlan implements TestPlan {
-
-	public static final List<Class<? extends TestModule>> testModules = List.of(
-		// positive tests
-		VP1FinalWalletHappyFlowNoState.class,
-		VP1FinalWalletHappyFlowWithStateAndRedirect.class,
-
-		// negative tests
-		VP1FinalWalletResponseUriNotClientId.class,
-		VP1FinalWalletInvalidRequestObjectSignature.class
-
-		// negative tests:
-		// try sending a redirect_uri in auth request with response_mode=direct_post
-		// sending invalid client_id_scheme should cause an error?
-		// flow without nonce
-		// different client_id in request object and passed in url query? ("The Client Identifier value in the `client_id` Authorization Request parameter and the Request Object `client_id` claim value MUST be identical, including the Client Identifier Scheme.")
-		// signed DC API request but no or wrong expected_origins
-	);
-
+public class VP1FinalWalletTestPlanHaip implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
+
+		var testModules = new ArrayList<>(VP1FinalWalletTestPlan.testModules);
+		testModules.remove(VP1FinalWalletResponseUriNotClientId.class); // excluded due to @VariantNotApplicable with x509_hash
+
 		return List.of(
 			new ModuleListEntry(
 				testModules,
 				List.of(
+					new Variant(VPProfile.class, "haip"),
+					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash")
+					// new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed"),
 				)
 			)
 		);
@@ -45,6 +35,7 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 	public static String certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
+		String vpProfile = v.get("vp_profile");
 		String responseMode = v.get("response_mode");
 		String credentialFormat = v.get("credential_format");
 		String requestMethod = v.get("request_method");
@@ -68,7 +59,7 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 
 		}
 
-		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
+		certProfile += " " + vpProfile + " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
 
 		return certProfile;
 	}
