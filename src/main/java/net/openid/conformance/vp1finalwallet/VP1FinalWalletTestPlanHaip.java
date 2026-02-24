@@ -19,8 +19,7 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 
 		var testModules = new ArrayList<>(VP1FinalWalletTestPlan.testModules);
-		testModules.remove(VP1FinalWalletHappyFlowWithStateAndRedirect.class); // excluded due to variant not applicable with x509_hash
-		testModules.remove(VP1FinalWalletResponseUriNotClientId.class); // excluded due to variant not applicable with x509_hash
+		testModules.remove(VP1FinalWalletResponseUriNotClientId.class); // excluded due to @VariantNotApplicable with x509_hash
 
 		return List.of(
 			new ModuleListEntry(
