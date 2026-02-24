@@ -1,6 +1,5 @@
 package net.openid.conformance.info;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.mongodb.repository.Query;
@@ -11,21 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface PlanRepository extends PagingAndSortingRepository<Plan, String>, CrudRepository<Plan, String> {
-
-	@Query("{ $text: { $search: ?0 } }")
-	Page<Plan> findAllSearch(String search, Pageable pageable);
-
-	@Query("{ owner: ?0 }")
-	Page<Plan> findAllByOwner(Map<String, String> owner, Pageable pageable);
-
-	@Query("{ owner: ?0, $text: { $search: ?1 } }")
-	Page<Plan> findAllByOwnerSearch(Map<String, String> owner, String search, Pageable pageable);
-
-	@Query("{ publish: { $in: [ 'summary', 'everything' ] } }")
-	Page<PublicPlan> findAllPublic(Pageable pageable);
-
-	@Query("{ publish: { $in: [ 'summary', 'everything' ] }, $text: { $search: ?0 } }")
-	Page<PublicPlan> findAllPublicSearch(String search, Pageable pageable);
 
 	@Query("{}")
 	Slice<Plan> findAllAsSlice(Pageable pageable);
