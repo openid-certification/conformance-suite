@@ -351,6 +351,7 @@ makeServerTest() {
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi1-adv-final-privatekey-for-instructions.json"
 
     # OpenID4VP op-against-rp
+    VPPROFILE="vp_profile=plain_vp"
     SDJWT="credential_format=sd_jwt_vc"
     MDL="credential_format=iso_mdl"
     SANDNS="client_id_scheme=x509_san_dns"
@@ -381,11 +382,11 @@ makeServerTest() {
     # VP 1.0 Final
     SANDNS="client_id_prefix=x509_san_dns" # final changed scheme -> prefix
     HASH="client_id_prefix=x509_hash"
-    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config.json"
-    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
-    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$SDJWT][$HASH][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$SDJWT][$HASH][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect-no-client-id.json"
-    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config.json"
-    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect-alt.json"
+    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config.json"
+    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect.json"
+    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$HASH][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$HASH][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect-no-client-id.json"
+    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config.json"
+    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-wallet-happy-flow-with-state-and-redirect}${CONFIGS}/vp-wallet-test-config-dcql.json ${CONFIGS}/vp-verifier-test-config-with-redirect-alt.json"
 
     # OpenID4VCI op-against-rp
     SIMPLE="authorization_request_type=simple"
