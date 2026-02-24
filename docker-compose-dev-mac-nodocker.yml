@@ -28,3 +28,7 @@ services:
     volumes:
       # we don't use delegated here so that updates propogate promptly
      - ./src/main/resources/:/usr/share/nginx/html/
+    # for mac, we add a hostname mapping for server that resolves to the host gateway
+    extra_hosts:
+      # the special host-gateway value resolves to the internal IP address of the host.
+      - "server:host-gateway"
