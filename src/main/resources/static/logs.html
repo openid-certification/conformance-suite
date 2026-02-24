@@ -315,6 +315,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                         searchBtn.on('click', doSearch);
 
+                        searchInput.on('keydown', function(e) {
+                            if (e.key === 'Enter' || e.keyCode === 13) {
+                                e.preventDefault();
+                                doSearch();
+                            }
+                        });
+
                         // Hide busy indicator when AJAX completes
                         api.on('xhr.dt', function() {
                             FAPI_UI.hideBusy();
