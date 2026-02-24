@@ -132,7 +132,7 @@ import org.springframework.http.ResponseEntity;
 })
 @VariantNotApplicableWhen(
 	parameter = VP1FinalWalletResponseMode.class,
-	values = {"direct_post", "dc_api"},  // all values
+	values = {"direct_post", "dc_api"},  // unencrypted modes not applicable for HAIP
 	whenParameter = VPProfile.class,
 	hasValues = "haip"
 )
