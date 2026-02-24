@@ -1110,6 +1110,7 @@ async def main():
     print("\n\nScript complete - results:")
 
     did_not_complete = False
+    incomplete_tests = []
     failed_plan_results = []
     for result in results:
         print('\n\nResults for {} with configuration {}:'.format(result['test_plan'], result['config_file']))
@@ -1118,11 +1119,30 @@ async def main():
         plan_did_not_complete = plan_result['plan_did_not_complete']
         if plan_did_not_complete == 'NOT_COMPLETE':
             did_not_complete = True
+            test_info = result['test_info']
+            for module_name, module_info in test_info.items():
+                if module_name == 'config_file':
+                    continue
+                info = module_info['info']
+                if info['status'] != 'FINISHED' and info['status'] != 'INTERRUPTED':
+                    module_id = module_info['id']
+                    log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
+                    incomplete_tests.append({
+                        'test_name': info['testName'],
+                        'id': module_id,
+                        'status': info['status'],
+                        'log_detail_link': log_detail_link
+                    })
         elif plan_did_not_complete == 'FAILURE_OR_WARNING':
             failed_plan_results.append(plan_result['detail_plan_result'])
 
     if did_not_complete:
         print(failure("** Exiting with failure - some tests did not run to completion **"))
+        if incomplete_tests:
+            print("Incomplete test modules:")
+            for t in incomplete_tests:
+                print('  {} {} (status: {})'.format(t['test_name'], t['id'], t['status']))
+                print('    {}'.format(t['log_detail_link']))
         sys.exit(1)
 
     failed = False
