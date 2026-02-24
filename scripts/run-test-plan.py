@@ -144,12 +144,12 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     if args.no_parallel:
         parallel_jobs = 1
         print("{}: no-parallel command line argument passed - not running tests within this plan in parallel".format(plan_id))
+    elif "alias" in parsed_config:
+        parallel_jobs = 1
+        print("{}: Config '{}' contains alias '{}' - not running tests within this plan in parallel. If the test supports dynamic client registration and you have enabled it, you can remove the alias from your configuration file to speed up tests.".format(plan_id, config_file, parsed_config["alias"]))
     elif args.no_parallel_for_no_alias:
         parallel_jobs = 1
         print("{}: no-parallel-for-no-alias command line argument passed - not running tests within this plan in parallel".format(plan_id))
-    elif "alias" in parsed_config:
-        parallel_jobs = 1
-        print("{}: Config '{}' contains alias '{}' - not running tests in parallel. If the test supports dynamic client registration and you have enabled it, you can remove the alias from your configuration file to speed up tests.".format(plan_id, config_file, parsed_config["alias"]))
     if selected_modules == None or len(selected_modules) == 0:
         plan_modules = [module for module in test_plan_info['modules'] if module['testModule'] not in ignored_modules]
     else:
