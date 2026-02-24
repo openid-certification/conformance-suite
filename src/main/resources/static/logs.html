@@ -290,6 +290,43 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             });
                         });
                     },
+                    pagingType: "simple",
+                    language: {
+                        info: "Showing _START_ to _END_",
+                        infoEmpty: "No entries to show",
+                        infoFiltered: ""
+                    },
+                    initComplete: function() {
+                        var api = this.api();
+                        var container = api.table().container();
+                        var searchInput = $('div.dataTables_filter input', container);
+
+                        // Disable default live-search behaviour
+                        searchInput.off();
+
+                        // Add a search button after the input
+                        var searchBtn = $('<button type="button" class="btn btn-sm btn-primary ms-2"><i class="bi bi-search"></i> Search</button>');
+                        searchInput.after(searchBtn);
+
+                        function doSearch() {
+                            FAPI_UI.showBusy('Searching...');
+                            api.search(searchInput.val()).draw();
+                        }
+
+                        searchBtn.on('click', doSearch);
+
+                        searchInput.on('keydown', function(e) {
+                            if (e.key === 'Enter' || e.keyCode === 13) {
+                                e.preventDefault();
+                                doSearch();
+                            }
+                        });
+
+                        // Hide busy indicator when AJAX completes
+                        api.on('xhr.dt', function() {
+                            FAPI_UI.hideBusy();
+                        });
+                    },
                     order: [[5, "desc"]] // sort by the "date" column, descending, by default
                 });
 

@@ -162,22 +162,22 @@ public class DBTestPlanService implements TestPlanService {
 
 		if (!authenticationFacade.isAdmin()) {
 			Map<String, String> owner = authenticationFacade.getPrincipal();
-			return page.getResponse(
-					p -> plans.findAllByOwner(owner, p),
-					(s, p) -> plans.findAllByOwnerSearch(owner, s, p));
+			return page.getSliceResponse(
+					p -> plans.findAllByOwnerAsSlice(owner, p),
+					(s, p) -> plans.findAllByOwnerSearchAsSlice(owner, s, p));
 		} else {
-			return page.getResponse(
-					p -> plans.findAll(p),
-					(s, p) -> plans.findAllSearch(s, p));
+			return page.getSliceResponse(
+					p -> plans.findAllAsSlice(p),
+					(s, p) -> plans.findAllSearchAsSlice(s, p));
 		}
 	}
 
 	@Override
 	public PaginationResponse<PublicPlan> getPaginatedPublicPlans(PaginationRequest page) {
 
-		return page.getResponse(
-				p -> plans.findAllPublic(p),
-				(s, p) -> plans.findAllPublicSearch(s, p));
+		return page.getSliceResponse(
+				p -> plans.findAllPublicAsSlice(p),
+				(s, p) -> plans.findAllPublicSearchAsSlice(s, p));
 	}
 
 	@Override
