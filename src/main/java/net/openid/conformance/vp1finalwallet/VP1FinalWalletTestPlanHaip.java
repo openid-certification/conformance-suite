@@ -15,7 +15,7 @@ import java.util.Map;
 	displayName = "OpenID for Verifiable Presentations 1.0 Final/HAIP: Test a wallet - alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.wallettest
 )
-public class VP1FinalWalletTestPlanHaip  implements TestPlan {
+public class VP1FinalWalletTestPlanHaip implements TestPlan {
 	public static List<ModuleListEntry> testModulesWithVariants() {
 
 		var testModules = new ArrayList<>(VP1FinalWalletTestPlan.testModules);
