@@ -29,6 +29,11 @@ metadata:
       proxy_set_header X-Ssl-Protocol $ssl_protocol;
       proxy_set_header X-Ssl-Cert $ssl_client_cert;
       proxy_set_header Forwarded 'by=10.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
+      set $mtls_wrong_host "";
+      if ($request_uri ~* "^/test-mtls") {
+        set $mtls_wrong_host "true";
+      }
+      proxy_set_header X-Test-Mtls-Called-On-Wrong-Host $mtls_wrong_host;
       proxy_pass_request_headers on;
     nginx.org/server-snippets: |
       client_header_buffer_size 32k;
@@ -87,7 +92,6 @@ metadata:
         SSLVerifyClient optional_no_ca
         SSLVerifyDepth 5
         RequestHeader set X-Ssl-Cert "%{SSL_CLIENT_CERT}s"
-        RequestHeader set X-Ssl-Verify "%{SSL_CLIENT_VERIFY}s"
         RequestHeader set X-Ssl-Cert-Chain-0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
         RequestHeader set X-Ssl-Cert-Chain-1 "%{SSL_CLIENT_CERT_CHAIN_1}s"
         RequestHeader set X-Ssl-Cert-Chain-2 "%{SSL_CLIENT_CERT_CHAIN_2}s"

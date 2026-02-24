@@ -11,9 +11,9 @@ services:
      - mongodb:mongodb
     depends_on:
      - mongodb
-  httpd:
+  nginx:
     build:
-      context: ./httpd
+      context: ./nginx
     ports:
      - "8443:8443"
     depends_on:

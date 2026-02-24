@@ -16,7 +16,7 @@ mkdir -p $TMPDIR/server
 cp target/fapi-test-suite.jar $TMPDIR/server
 cp package/Dockerfile.server $TMPDIR/server/Dockerfile
 
-cp -R httpd $TMPDIR
+cp -R nginx $TMPDIR
 cp package/docker-compose.yml $TMPDIR
 
 echo Archiving...

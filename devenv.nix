@@ -1,5 +1,9 @@
 { pkgs, lib, config, inputs, ... }:
 
+let
+  pkgs-mongo6 = import inputs.nixpkgs-mongo6 { system = pkgs.stdenv.hostPlatform.system; config = { allowUnfree = true; }; };
+  pkgs-nginx = import inputs.nixpkgs-nginx { system = pkgs.stdenv.hostPlatform.system; };
+in
 {
   env.GREET = "OIDF - Conformance - Local dev env";
 
@@ -15,7 +19,7 @@
 
     export EXTERNAL_URL=`curl -s localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"`
 
-    echo "In order to run CIBA tests, please make sure ngrok account is created"
+    echo "In order to run CIBA ping, Federation, etc tests please make sure to setup a ngrok account"
 
   '';
 
@@ -36,11 +40,16 @@
     };
   };
 
-  services.mongodb.enable = true;
+  services.mongodb = {
+    enable = true;
+    package = pkgs-mongo6.mongodb-6_0;
+  };
+  # production uses nginx/nginx-ingress:4.0.0 which bundles nginx 1.27.3
   services.nginx = {
     enable = true;
+    package = pkgs-nginx.nginxMainline;
         httpConfig = ''
-            ssl_protocols       TLSv1.3;
+            ssl_protocols       TLSv1.2 TLSv1.3;
             ssl_prefer_server_ciphers on;
 
             ssl_certificate     ${config.env.DEVENV_STATE}/mkcert/localhost.emobix.co.uk.pem;
@@ -50,10 +59,11 @@
                 listen 8443 ssl;
                 server_name localhost.emobix.co.uk;
                 ssl_verify_client   off;
+                client_header_buffer_size 32k;
+                large_client_header_buffers 4 32k;
 
                 location / {
                     proxy_pass http://127.0.0.1:8080;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                     proxy_set_header X-Forwarded-Proto $scheme;
                     proxy_set_header X-Forwarded-Host $host;
@@ -61,10 +71,13 @@
                     proxy_set_header X-Forwarded-Uri $request_uri;
                     proxy_set_header X-Ssl-Cipher $ssl_cipher;
                     proxy_set_header X-Ssl-Protocol $ssl_protocol;
-
-                    add_header 'Access-Control-Allow-Origin' '*';
-                    add_header 'Access-Control-Allow-Methods' 'GET, POST, HEAD, OPTIONS';
-
+                    proxy_set_header X-Ssl-Cert $ssl_client_cert;
+                    proxy_set_header Forwarded 'by=127.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
+                    set $mtls_wrong_host "";
+                    if ($request_uri ~* "^/test-mtls") {
+                        set $mtls_wrong_host "true";
+                    }
+                    proxy_set_header X-Test-Mtls-Called-On-Wrong-Host $mtls_wrong_host;
                     proxy_pass_request_headers on;
                 }
             }
@@ -72,6 +85,9 @@
                 listen 8444 ssl;
                 server_name localhost.emobix.co.uk;
                 ssl_verify_client   optional_no_ca;
+                client_header_buffer_size 32k;
+                large_client_header_buffers 4 32k;
+
                 location / {
                     proxy_pass http://127.0.0.1:8080;
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -82,9 +98,8 @@
                     proxy_set_header X-Ssl-Cipher $ssl_cipher;
                     proxy_set_header X-Ssl-Protocol $ssl_protocol;
                     proxy_set_header X-Ssl-Cert $ssl_client_cert;
-
-                    add_header 'Access-Control-Allow-Origin' '*';
-                    add_header 'Access-Control-Allow-Methods' 'GET, POST, HEAD, OPTIONS';
+                    proxy_set_header Forwarded 'by=127.0.0.1;for=$remote_addr;host=$host;proto=$scheme';
+                    proxy_pass_request_headers on;
                 }
             }
 

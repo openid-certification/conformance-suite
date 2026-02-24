@@ -363,7 +363,7 @@ local_test:
     - apk add docker-compose
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
-    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach httpd
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx
     - sleep 5
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" oidcc-provider
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run test

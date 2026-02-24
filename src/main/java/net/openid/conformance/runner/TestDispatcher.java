@@ -330,16 +330,15 @@ public class TestDispatcher implements DataUtils {
 		JsonElement tlsVersion = originalHeaders.get("x-ssl-protocol");
 		JsonElement tlsCert = originalHeaders.get("x-ssl-cert");
 
-		// see chart/templates/ingress.yaml for the apache config that adds these
+		// see chart/templates/ingress.yaml for the nginx config that adds these
 		List<String> proxyHeaders = List.of(
 			"X-Ssl-Cipher",
 			"X-Ssl-Protocol",
 			"X-Forwarded-Proto", // no need to log this as it's only acted upon by spring/tomcat
 			"X-Forwarded-Port", // no need to log this as it's only acted upon by spring/tomcat
-			"x-forwarded-host", // automatically added by apache, but only acted upon by spring/tomcat
-			"x-forwarded-server", // automatically added by apache, but only acted upon by spring/tomcat
-			"X-Ssl-Cert",
-			"X-Ssl-Verify"); // although we add this in apache, we don't setup any CAs, so it's not clear it has any value and we don't use it anywhere currently
+			"x-forwarded-host", // automatically added by nginx, but only acted upon by spring/tomcat
+			"x-forwarded-server", // automatically added by nginx, but only acted upon by spring/tomcat
+			"X-Ssl-Cert");
 		for (String h : proxyHeaders) {
 			headers.remove(h.toLowerCase());
 		}

@@ -1,7 +1,7 @@
 # this file is used if you want to run java on the host, for example
 # directly from IntelliJ
 # mongo is exposed to be accessible from the host
-# the httpd is modified to pass through to the host
+# the nginx proxy is modified to pass through to the host
 # To start the java part, you can use "Run 'Conformance'" (or 'Debug')
 # in IntelliJ 'Spring Boot' support or start manually something like:
 # java -Xdebug \
@@ -17,13 +17,13 @@ services:
      - ./mongo/data:/data/db:delegated
     ports:
      - "27017:27017"
-  httpdlocal:
+  nginxlocal:
     build:
-      context: ./httpd
+      context: ./nginx
       dockerfile: Dockerfile-nodocker
     ports:
      - "8443:8443"
      - "8444:8444"
     volumes:
       # we don't use delegated here so that updates propogate promptly
-     - ./src/main/resources/:/usr/local/apache2/htdocs/
+     - ./src/main/resources/:/usr/share/nginx/html/

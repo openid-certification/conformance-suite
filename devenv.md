@@ -4,13 +4,18 @@ NixOS / devenv based Setup for Conformance Testsuite Development
 This document describes how to setup a development environment for conformance testsuite development
 based on [NixOS](https://nixos.org/) and [devenv](https://devenv.sh/).
 
-The devenv will create a containerized environment based on the [devenv.nix](./devenv.nix) configuration file.
+The devenv will create a local development environment based on the [devenv.nix](./devenv.nix) configuration file.
 
 It will setup the following services:
 - MongoDB
 - Nginx
 - Setup 127.0.0.1 host aliases for localhost.emobix.co.uk
 - Generate and install TLS certificates into the local Keychain
+- ngrok tunnel to expose the local development server to the internet (needed for CIBA/Federation/etc tests)
+- Python with venv
+- Java with mvn
+- npm
+- git precommit hooks for fixing whitespace and running PMD/checkstyle
 
 # Setup
 
