@@ -286,6 +286,12 @@ import java.util.concurrent.TimeUnit;
 	whenParameter = VCIWalletAuthorizationCodeFlowVariant.class,
 	hasValues = "wallet_initiated"
 )
+@VariantNotApplicableWhen(
+	parameter = VCIWalletAuthorizationCodeFlowVariant.class,
+	values = {"issuer_initiated_dc_api"},  // No DC API tests for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
