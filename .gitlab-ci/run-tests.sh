@@ -44,27 +44,31 @@ makeClientTest() {
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_auth_request_method=by_value][fapi_response_mode=jarm][fapi_client_type=plain_oauth] automated-ob-client-test-no-openid-scope.json"
 
     # client OpenID Connect Core Client Tests
+    # Coverage strategy: one plan per auth type (code), plus one each of
+    # code token, code id_token token, and id_token token (all via client_secret_basic).
+    # form_post and request_object tested once each via code.
+    # Hybrid variants for non-client_secret_basic auth types removed to reduce CI time (~52m -> ~32m).
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[id_token_encrypted_response_alg=A128KW][userinfo_encrypted_response_alg=A128GCMKW][request_object_encryption_alg=RSA-OAEP]}_ automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[userinfo_encrypted_response_alg=ECDH-ES][userinfo_signed_response_alg=ES256]}_ automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[id_token_signed_response_alg=PS256]}_ automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[id_token_signed_response_alg=ES256]}_ automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_post][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[id_token_signed_response_alg=ES256K][userinfo_signed_response_alg=EdDSA]}_ automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_post][response_type=code id_token token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[id_token_encrypted_response_alg=RSA-OAEP][id_token_encrypted_response_enc=A192CBC-HS384][userinfo_encrypted_response_alg=ECDH-ES][userinfo_encrypted_response_enc=A128CBC-HS256]}_ automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_post][response_type=code id_token token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[id_token_encrypted_response_alg=RSA-OAEP][id_token_encrypted_response_enc=A192CBC-HS384][userinfo_encrypted_response_alg=ECDH-ES][userinfo_encrypted_response_enc=A128CBC-HS256]}_ automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_jwt][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[userinfo_encrypted_response_alg=ECDH-ES][userinfo_encrypted_response_enc=A192CBC-HS384]}_ automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
 
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=private_key_jwt][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[token_endpoint_auth_signing_alg=ES256]}_ automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=private_key_jwt][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[token_endpoint_auth_signing_alg=ES256]}_ automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=private_key_jwt][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[token_endpoint_auth_signing_alg=ES256]}_ automated-oidcc-client-test.json"
 
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=code\ id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=none][response_type=id_token\ token][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
 
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=form_post][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code id_token token][response_mode=form_post][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code id_token token][response_mode=form_post][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
 
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code][response_mode=default][request_type=request_object][client_registration=dynamic_client]{sample-openid-client-nodejs}_ automated-oidcc-client-test.json"
-    TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token\ token][response_mode=default][request_type=request_object][client_registration=dynamic_client]{sample-openid-client-nodejs[request_object_encryption_alg=ECDH-ES]}_ automated-oidcc-client-test.json"
+    #TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=client_secret_basic][response_type=code\ id_token\ token][response_mode=default][request_type=request_object][client_registration=dynamic_client]{sample-openid-client-nodejs[request_object_encryption_alg=ECDH-ES]}_ automated-oidcc-client-test.json"
 
     TESTS="${TESTS}  oidcc-client-test-plan[client_auth_type=tls_client_auth][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs[tls_client_auth_subject_dn=cn=test.certification.example.com,o=oidf,l=san ramon,st=ca,c=us](CLIENT_CERT=../../conformance-suite/.gitlab-ci/rp_tests-tls_client_auth.crt)(CLIENT_CERT_KEY=../../conformance-suite/.gitlab-ci/rp_tests-tls_client_auth.key)}_ automated-oidcc-client-test.json"
     TESTS="${TESTS} oidcc-client-test-plan[client_auth_type=self_signed_tls_client_auth][response_type=code][response_mode=default][request_type=plain_http_request][client_registration=dynamic_client]{sample-openid-client-nodejs(CLIENT_CERT=../../conformance-suite/.gitlab-ci/rp_tests-tls_client_auth.crt)(CLIENT_CERT_KEY=../../conformance-suite/.gitlab-ci/rp_tests-tls_client_auth.key)}_ automated-oidcc-client-test.json"
@@ -431,15 +435,20 @@ makeServerTest() {
 }
 
 makeCIBATest() {
-    # ciba
+    # ciba poll - static client
+    # Coverage: one plan per auth type for plain_fapi (static), plus
+    # private_key_jwt/openbanking_uk (static). mtls/openbanking_uk/static
+    # dropped — mtls/openbanking_uk covered by DCR variant below.
     TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
     TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
     TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
 
     # ciba poll DCR
+    # private_key_jwt/plain_fapi/dynamic dropped — private_key_jwt/poll covered by
+    # static variants above, and private_key_jwt/dynamic covered by ping plan below.
     #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
     TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
     #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
 
@@ -673,14 +682,18 @@ makePanvaTests() {
     #TESTS="${TESTS} fapi2-message-signing-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=openid_connect][sender_constrain=mtls] panva-fapi2-message-signing-id1-test-plan-privatejwt.json"
     TESTS="${TESTS} fapi2-message-signing-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_request_method=signed_non_repudiation][fapi_response_mode=jarm][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-message-signing-id1-test-plan-privatejwt-plainoauth.json"
 
-    TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-dpop.json"
+    # fapi2-security-profile-final is a subset of fapi2-message-signing-final (which adds
+    # signed request/response on top), and the variant pairs are identical
+    # (mtls/dpop/openid_connect and private_key_jwt/mtls/plain_oauth), so these are
+    # redundant. Commented out to reduce CI time (~42m -> ~32m).
+    #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-dpop.json"
     #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-dpop-plainoauth.json"
     #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan.json"
     #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan-plainoauth.json"
     #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-privatejwt-dpop.json"
     #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=dpop] panva-fapi2-security-profile-id2-test-plan-privatejwt-dpop-plainoauth.json"
     #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=openid_connect][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan-privatejwt.json"
-    TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan-privatejwt-plainoauth.json"
+    #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan-privatejwt-plainoauth.json"
 }
 
 TESTS="${TESTS} --verbose"
