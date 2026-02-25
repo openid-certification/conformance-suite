@@ -648,17 +648,23 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		JsonObject supportedCredentialConfigurations = getSupportedCredentialConfigurations();
 		env.getObject("credential_issuer_metadata").add("credential_configurations_supported", supportedCredentialConfigurations);
 
-		JsonObject scopeToCredentialMap = new JsonObject();
+		JsonObject scopeToCredentialConfigsMap = new JsonObject();
 
 		for (var configurationId : supportedCredentialConfigurations.keySet()) {
 			JsonObject credentialConfiguration = supportedCredentialConfigurations.getAsJsonObject(configurationId);
 			if (credentialConfiguration.has("scope")) {
 				String scope = OIDFJSON.getString(credentialConfiguration.get("scope"));
-				scopeToCredentialMap.addProperty(scope, configurationId);
+
+				JsonArray configs = scopeToCredentialConfigsMap.getAsJsonArray(scope);
+				if (configs == null) {
+					configs = new JsonArray();
+				}
+				configs.add(configurationId);
+				scopeToCredentialConfigsMap.add(scope, configs);
 			}
 		}
 
-		env.putObject("credential_configuration_id_scope_map", scopeToCredentialMap);
+		env.putObject("credential_configuration_id_scope_map", scopeToCredentialConfigsMap);
 	}
 
 	protected JsonObject getSupportedCredentialConfigurations() {
@@ -704,6 +710,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 			credential = supportedCredentials.getAsJsonObject("org.iso.18013.5.1.mDL.attestation");
 			credential.addProperty("scope", "org.iso.18013.5.1.mDL.attestation");
+
+			credential = supportedCredentials.getAsJsonObject("net.openid.examples.certification.1.sdjwtvc");
+			credential.addProperty("scope", "openid.example.cert.1");
+
+			credential = supportedCredentials.getAsJsonObject("net.openid.examples.certification.1.mdoc");
+			credential.addProperty("scope", "openid.example.cert.1");
 		}
 
 		return supportedCredentials;

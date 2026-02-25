@@ -20,7 +20,7 @@ public class CreateSdJwtKbCredential extends AbstractCreateSdJwtCredential {
 		} catch (JOSEException e) {
 			throw new RuntimeException(e);
 		}
-		String sdJwt = createSdJwt(env, privateKey.toPublicJWK(), privateKey);
+		String sdJwt = createSdJwt(env, privateKey.toPublicJWK(), privateKey, "urn:eudi:pid:1");
 
 		env.putString("credential", sdJwt);
 

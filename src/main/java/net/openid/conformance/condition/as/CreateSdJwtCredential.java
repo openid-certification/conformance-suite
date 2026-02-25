@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -28,9 +29,12 @@ public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
 
 		List<JWK> publicJWKs = resolveJwks(env);
 
+		JsonObject credentialConfiguration = env.getObject("credential_configuration");
+		String credentialType = OIDFJSON.getString(credentialConfiguration.get("vct"));
+
 		JsonArray credentials = new JsonArray();
 		for (JWK publicJWK : publicJWKs) {
-			String sdJwt = createSdJwt(env, publicJWK, null);
+			String sdJwt = createSdJwt(env, publicJWK, null, credentialType);
 			JsonObject credentialObj = new JsonObject();
 			credentialObj.addProperty("credential", sdJwt);
 			credentials.add(credentialObj);
@@ -40,7 +44,7 @@ public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
 		credentialIssuance.add("credentials", credentials);
 		env.putObject("credential_issuance", credentialIssuance);
 
-		log("Created EU ARF 1.8 PID credential(s) in SD-JWT VC format",
+		log("Created %s in SD-JWT VC format".formatted(credentialType),
 			args("credentials", credentials, "credential_count", credentials.size()));
 
 		return env;

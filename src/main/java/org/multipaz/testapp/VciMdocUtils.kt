@@ -209,6 +209,13 @@ TvFLVc4ESGy3AtdC+g==
 					addDataElement("issuing_country", Tstr("UT")) // Utopia
 				}
 			}
+			"net.openid.examples.certification.1.mdoc" -> {
+				addNamespace("net.openid.examples.certification.1.mdoc") {
+					addDataElement("product", Tstr("Some Product"))
+					addDataElement("version", Tstr("1.2.3"))
+					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
+				}
+			}
 			else -> {
 				// Default: use a generic namespace based on docType
 				addNamespace(docType) {
