@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpEntity;
@@ -42,8 +43,9 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 
 		long status = env.getLong("credential_issuer_metadata_endpoint_response", "status");
 		String contentType = env.getString("credential_issuer_metadata_endpoint_response", "headers.content-type");
+		String mimeType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType);
 
-		if ("application/jwt".equals(contentType)) {
+		if ("application/jwt".equals(mimeType)) {
 			log("Credential issuer metadata response indicates signed metadata", args("contentType", contentType));
 		} else {
 			log("Credential issuer metadata response indicates unsigned metadata", args("contentType", contentType));
