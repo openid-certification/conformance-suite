@@ -1078,6 +1078,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			}
 		}
 
+		// Ensure the resource URL points to the credential endpoint, as it may have been
+		// overwritten by the notification or deferred credential endpoint
+		String credentialResourceUrl = env.getString("credential_resource_url");
+		env.putString("resource", "resourceUrl", credentialResourceUrl);
+		env.putString("protected_resource_url", credentialResourceUrl);
 		env.putString("resource", "resourceMethod", "POST");
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
@@ -1405,6 +1410,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		validateNotificationEndpointResponse();
 		call(exec().unmapKey("endpoint_response"));
 		eventLog.endBlock();
+
+		// Restore the credential endpoint URL so subsequent calls use the correct endpoint
+		String credentialResourceUrl = env.getString("credential_resource_url");
+		env.putString("resource", "resourceUrl", credentialResourceUrl);
+		env.putString("protected_resource_url", credentialResourceUrl);
 	}
 
 	protected void validateNotificationEndpointResponse() {

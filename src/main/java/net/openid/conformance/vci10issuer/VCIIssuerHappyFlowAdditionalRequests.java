@@ -65,9 +65,11 @@ public class VCIIssuerHappyFlowAdditionalRequests extends AbstractVCIIssuerTestM
 		checkResourceEndpointTLS();
 
 		super.requestProtectedResource();
+	}
 
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
 		performAdditionalResourceEndpointTests();
-
 		fireTestFinished();
 	}
 
