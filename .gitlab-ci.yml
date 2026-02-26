@@ -495,14 +495,13 @@ local_test:
     kubectl delete secret oidc-google-credentials \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true
-    kubectl create secret generic oidc-gitlab-credentials \
+    kubectl delete secret oidc-idp-credentials \
       --namespace="$KUBE_NAMESPACE" \
-      --from-literal=clientid="$OIDC_GITLAB_CLIENTID" \
-      --from-literal=secret="$OIDC_GITLAB_SECRET"
-    kubectl create secret generic oidc-google-credentials \
+      --ignore-not-found=true
+    kubectl create secret generic oidc-idp-credentials \
       --namespace="$KUBE_NAMESPACE" \
-      --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
-      --from-literal=secret="$OIDC_GOOGLE_SECRET"
+      --from-literal=clientid="$OIDC_IDP_CLIENTID" \
+      --from-literal=secret="$OIDC_IDP_SECRET"
 
     helm upgrade --install \
       --wait \
@@ -517,6 +516,7 @@ local_test:
       --set service.url="$CI_ENVIRONMENT_URL" \
       --set service.mtls="$CI_ENVIRONMENT_MTLS_URL" \
       --set replicaCount="$replicas" \
+      --set idpIss="$OIDC_IDP_ISS" \
       $mongo_settings \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \

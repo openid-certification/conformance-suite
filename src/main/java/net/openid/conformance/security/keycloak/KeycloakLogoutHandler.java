@@ -21,7 +21,7 @@ public class KeycloakLogoutHandler implements LogoutHandler {
 
 	private final String keycloakIssuerUri;
 
-	public KeycloakLogoutHandler(@Value("${spring.security.oauth2.client.provider.keycloak.issuerUri}") String keycloakIssuerUri) {
+	public KeycloakLogoutHandler(@Value("${spring.security.oauth2.client.provider.idp.issuerUri}") String keycloakIssuerUri) {
 		this.keycloakIssuerUri = keycloakIssuerUri;
 	}
 
