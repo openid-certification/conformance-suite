@@ -101,7 +101,7 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 					credentialIdentifiers.add(credentialIdentifier);
 					authDetail.add("credential_identifiers", credentialIdentifiers);
 
-					credentialConfigurationIds.add(credentialIdentifier);
+					credentialIds.add(credentialIdentifier);
 
 					authDetails.add(authDetail);
 				}
