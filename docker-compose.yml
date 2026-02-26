@@ -8,8 +8,6 @@ services:
       context: ./nginx
     ports:
      - "8443:8443"
-     - "8444:8444"
-     - "8445:8445"
     depends_on:
      - server
   server:
