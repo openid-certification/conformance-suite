@@ -91,6 +91,7 @@ public class VCIIssuerHappyFlowAdditionalRequests extends AbstractVCIIssuerTestM
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
+		eventLog.endBlock();
 
 		eventLog.startBlock("Attempt to credential resource endpoint with permissive accept header");
 		refreshCredentialRequest();
@@ -106,5 +107,6 @@ public class VCIIssuerHappyFlowAdditionalRequests extends AbstractVCIIssuerTestM
 		call(exec().unmapKey("endpoint_response"));
 
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
+		eventLog.endBlock();
 	}
 }

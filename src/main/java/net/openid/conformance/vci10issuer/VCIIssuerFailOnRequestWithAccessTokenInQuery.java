@@ -39,5 +39,6 @@ public class VCIIssuerFailOnRequestWithAccessTokenInQuery extends AbstractVCIIss
 		eventLog.startBlock("Attempt to credential resource endpoint with access token in query parameter");
 		updateResourceRequest();
 		callAndStopOnFailure(DisallowAccessTokenInQuery.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.4-2");
+		eventLog.endBlock();
 	}
 }
