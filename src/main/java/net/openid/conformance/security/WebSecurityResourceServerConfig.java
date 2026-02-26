@@ -42,7 +42,7 @@ public class WebSecurityResourceServerConfig {
 	private boolean devmode;
 
 
-	@Value("${spring.security.oauth2.client.provider.keycloak.issuerUri}")
+	@Value("${spring.security.oauth2.client.provider.idp.issuerUri}")
 	private String issuerUri;
 
 	@Autowired

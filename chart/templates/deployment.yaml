@@ -61,26 +61,17 @@ spec:
               name: jwks-{{ template "appname" . }}
               key: signingKey
               optional: true
-        - name: OIDC_GOOGLE_CLIENTID
+        - name: OIDC_IDP_CLIENTID
           valueFrom:
             secretKeyRef:
-              name: oidc-google-credentials
+              name: oidc-idp-credentials
               key: clientid
-        - name: OIDC_GOOGLE_SECRET
+        - name: OIDC_IDP_SECRET
           valueFrom:
             secretKeyRef:
-              name: oidc-google-credentials
+              name: oidc-idp-credentials
               key: secret
-        - name: OIDC_GITLAB_CLIENTID
-          valueFrom:
-            secretKeyRef:
-              name: oidc-gitlab-credentials
-              key: clientid
-        - name: OIDC_GITLAB_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: oidc-gitlab-credentials
-              key: secret
+		- OIDC_IDP_ISS = {{ .Values.idpIss | quote }}
         volumeMounts:
             - name: dump-volume
               mountPath:
