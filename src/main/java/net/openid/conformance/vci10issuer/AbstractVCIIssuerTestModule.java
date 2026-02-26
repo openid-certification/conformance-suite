@@ -1450,7 +1450,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
 			}
 			if (vciProfile == VCIProfile.HAIP) {
-				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
+				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.WARNING, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCICheckExpClaimInCredential.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");
 				callAndContinueOnFailure(VCIEnsureX5cHeaderPresentForSdJwtCredential.class, ConditionResult.FAILURE, "HAIP-6.1.1");

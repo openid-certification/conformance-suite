@@ -18,7 +18,7 @@ public class VCIValidateCredentialValidityInfoIsPresent extends AbstractConditio
 		JsonObject credentialClaims = env.getElementFromObject("sdjwt", "credential.claims").getAsJsonObject();
 
 		if (!(credentialClaims.has("exp") || credentialClaims.has("status"))) {
-			throw error("Credential MUST use an exp claim, status claim or both", args("credential_claims", credentialClaims));
+			throw error("Credential issuers are RECOMMENDED to limit the validity of a credential using an exp claim, status claim or both", args("credential_claims", credentialClaims));
 		}
 
 		Map<String, Object> limitingClaims = new LinkedHashMap<>();
