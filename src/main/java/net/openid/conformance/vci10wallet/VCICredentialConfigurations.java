@@ -237,6 +237,44 @@ public class VCICredentialConfigurations {
 						}
 						]
 					}
+				},
+				"net.openid.examples.certification.1.sdjwtvc": {
+					"format": "dc+sd-jwt",
+					"vct": "urn:openid:example:certification:1",
+					"cryptographic_binding_methods_supported": [ "jwk" ],
+					"credential_signing_alg_values_supported": [ "ES256" ],
+					"proof_types_supported": {
+						"attestation": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake OpenID Certification",
+							"description": "OpenID Conformance Test Fake Certification"
+						}
+						]
+					}
+				},
+				"net.openid.examples.certification.1.mdoc": {
+					"format": "mso_mdoc",
+					"doctype": "net.openid.examples.certification.1.mdoc",
+					"cryptographic_binding_methods_supported": [ "cose_key" ],
+					"credential_signing_alg_values_supported": [ -7 ],
+					"proof_types_supported": {
+						"attestation": {
+							"proof_signing_alg_values_supported": [ "ES256" ]
+						}
+					},
+					"credential_metadata": {
+						"display": [
+						{
+							"name": "Fake OpenID Certification",
+							"description": "OpenID Conformance Test Fake Certification"
+						}
+						]
+					}
 				}
 			}
 		""";

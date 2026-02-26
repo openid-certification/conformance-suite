@@ -9,7 +9,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-unknown-credential-identifier",
-	displayName = "OID4VCI 1.0: Issuer with unknown credential identifier",
+	displayName = "OID4VCI 1.0: Issuer fail on unknown credential identifier",
 	summary = "This test case checks for the proper error handling during the standard credential issuance flow using an emulated wallet when an unknown credential identifier is used.",
 	profile = "OID4VCI-1_0"
 )
@@ -30,6 +30,6 @@ public class VCIIssuerFailOnUnknownCredentialIdentifier extends VCIIssuerHappyFl
 	protected void verifyEffectiveCredentialResponse() {
 		super.verifyCredentialIssuerCredentialErrorResponse();
 
-		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_CREDENTIAL_IDENTIFIER), "OID4VCI-1FINAL-8.3.1");
+		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.UNKNOWN_CREDENTIAL_IDENTIFIER), "OID4VCI-1FINAL-8.3.1");
 	}
 }

@@ -18,8 +18,9 @@ services:
     ports:
      - "8443:8443"
      - "8444:8444"
+     - "8445:8445"
     volumes:
      - ./src/main/resources/:/usr/share/nginx/html/
-    # for linux, we add a hostname mapping for host.docker.internal
+    # for linux, we add a hostname mapping for server that resolves to the host gateway
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "server:host-gateway"

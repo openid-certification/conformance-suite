@@ -19,6 +19,9 @@ public class VCIVerifyIssuerStateInAuthorizationRequest extends AbstractConditio
 		}
 
 		JsonObject paramsObject = env.getObject("par_endpoint_http_request_params");
+		if (paramsObject == null) {
+			throw error("Missing par_endpoint_http_request_params in env");
+		}
 		JsonElement actualIssuerStateEl = paramsObject.get("issuer_state");
 		if (actualIssuerStateEl == null) {
 			throw error("Missing issuer_state in http_request_params", args("par_endpoint_http_request_params", paramsObject));

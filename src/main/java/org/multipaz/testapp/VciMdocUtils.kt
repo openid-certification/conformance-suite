@@ -175,22 +175,22 @@ TvFLVc4ESGy3AtdC+g==
 				addNamespace("org.iso.18013.5.1") {
 					addDataElement("family_name", Tstr("Mustermann"))
 					addDataElement("given_name", Tstr("Erika"))
-					addDataElement("birth_date", Tstr("1985-03-15"))
-					addDataElement("issue_date", Tstr(now.toString().substring(0, 10)))
-					addDataElement("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("1985-03-15")))
+					addDataElement("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
+					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 					addDataElement("issuing_country", Tstr("UT")) // Utopia
 					addDataElement("issuing_authority", Tstr("OpenID Foundation"))
 					addDataElement("document_number", Tstr("DL-123456789"))
 					addDataElement("driving_privileges", buildCborArray {
 						add(buildCborMap {
 							put("vehicle_category_code", Tstr("B"))
-							put("issue_date", Tstr("2010-01-01"))
-							put("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+							put("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("2010-01-01")))
+							put("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 						})
 						add(buildCborMap {
 							put("vehicle_category_code", Tstr("A"))
-							put("issue_date", Tstr("2015-06-01"))
-							put("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+							put("issue_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("2015-06-01")))
+							put("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 						})
 					})
 					addDataElement("un_distinguishing_sign", Tstr("UT"))
@@ -201,12 +201,19 @@ TvFLVc4ESGy3AtdC+g==
 				addNamespace("eu.europa.ec.eudi.pid.1") {
 					addDataElement("family_name", Tstr("Dupont"))
 					addDataElement("given_name", Tstr("Jean"))
-					addDataElement("birth_date", Tstr("1980-05-23"))
+					addDataElement("birth_date", Tagged(Tagged.FULL_DATE_STRING, Tstr("1980-05-23")))
 					addDataElement("age_in_years", Uint(44u))
-					addDataElement("issuance_date", Tstr(now.toString().substring(0, 10)))
-					addDataElement("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
+					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 					addDataElement("issuing_authority", Tstr("OpenID Foundation Conformance Suite"))
 					addDataElement("issuing_country", Tstr("UT")) // Utopia
+				}
+			}
+			"net.openid.examples.certification.1.mdoc" -> {
+				addNamespace("net.openid.examples.certification.1.mdoc") {
+					addDataElement("product", Tstr("Some Product"))
+					addDataElement("version", Tstr("1.2.3"))
+					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
 				}
 			}
 			else -> {
@@ -214,8 +221,8 @@ TvFLVc4ESGy3AtdC+g==
 				addNamespace(docType) {
 					addDataElement("family_name", Tstr("Doe"))
 					addDataElement("given_name", Tstr("John"))
-					addDataElement("issuance_date", Tstr(now.toString().substring(0, 10)))
-					addDataElement("expiry_date", Tstr(validUntil.toString().substring(0, 10)))
+					addDataElement("issuance_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(now.toString().substring(0, 10))))
+					addDataElement("expiry_date", Tagged(Tagged.FULL_DATE_STRING, Tstr(validUntil.toString().substring(0, 10))))
 				}
 			}
 		}

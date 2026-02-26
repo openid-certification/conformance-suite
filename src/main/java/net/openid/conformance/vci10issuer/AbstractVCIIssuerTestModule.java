@@ -23,7 +23,6 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -88,7 +87,6 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfig
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -100,7 +98,6 @@ import net.openid.conformance.condition.client.RejectErrorInUrlFragment;
 import net.openid.conformance.condition.client.RejectStateInUrlFragmentForCodeFlow;
 import net.openid.conformance.condition.client.RequireIssInAuthorizationResponse;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
-import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
@@ -287,13 +284,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 	}
 
-	public static class OpenBankingUkResourceConfiguration extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(SetProtectedResourceUrlToAccountsEndpoint.class);
-		}
-	}
-
 	protected Boolean isDpop() {
 		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 	}
@@ -382,7 +372,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 			callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 			callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
-			callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
+			callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1", "FAPI2-SP-FINAL-5.4.1-1");
 		}
 
 		whichClient = 1;
@@ -439,6 +429,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(VCIResolveCredentialEndpointToUse.class);
 		call(sequence(resourceConfiguration));
+		env.putString("credential_resource_url", env.getString("resource", "resourceUrl"));
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -594,8 +585,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4");
-		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
+		callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1");
+		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2.2.1", "FAPI2-SP-FINAL-5.4.1-2.3.1");
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
@@ -790,7 +781,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			callAndStopOnFailure(AddNbfToRequestObject.class, "FAPI2-MS-ID1-5.3.1-3"); // mandatory in FAPI2-Message-Signing-ID1
 			callAndStopOnFailure(AddExpToRequestObject.class, "FAPI2-MS-ID1-5.3.1-4");
 
-			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI2-SP-ID2-5.3.1.1-6");
+			callAndStopOnFailure(AddAudToRequestObject.class, "FAPI2-SP-FINAL-5.3.2.1-1");
 
 			// iss is a 'should' in OIDC & jwsreq,
 			callAndStopOnFailure(AddIssToRequestObject.class, "OIDCC-6.1");
@@ -831,7 +822,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
 
-		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-ID2-5.3.1.2-7");
+		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-FINAL-5.3.2.2-2.7");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
@@ -880,7 +871,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void addPkceCodeVerifier() {
-		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2-SP-ID2-5.3.2.2-3");
+		callAndStopOnFailure(AddCodeVerifierToTokenEndpointRequest.class, "RFC7636-4.5", "FAPI2-SP-FINAL-5.3.2.2-2.5");
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
@@ -967,13 +958,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-4");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-4");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
 
 		if (isOpenId) {
 			skipIfMissing(new String[]{"client_jwks"}, null, Condition.ConditionResult.INFO, ValidateIdTokenFromTokenResponseEncryption.class, Condition.ConditionResult.WARNING, "OIDCC-10.2");
-			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI2-SP-ID2-5.3.1.3", "OIDCC-3.3.2.5");
+			callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class, "FAPI2-SP-FINAL-5.3.2.3-1", "OIDCC-3.3.2.5");
 
 			call(new PerformStandardIdTokenChecks());
 
@@ -981,7 +972,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 			performProfileIdTokenValidation();
 
-			callAndContinueOnFailure(FAPI2ValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4");
+			callAndContinueOnFailure(FAPI2ValidateIdTokenSigningAlg.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1");
 
 			// code flow - all hashes are optional.
 			callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
@@ -1048,11 +1039,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	public static class UpdateResourceRequestSteps extends AbstractConditionSequence {
 
 		protected Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps;
-		protected boolean brazilPayments;
 
-		public UpdateResourceRequestSteps(Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps, boolean brazilPayments) {
+		public UpdateResourceRequestSteps(Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps) {
 			this.createDpopForResourceEndpointSteps = createDpopForResourceEndpointSteps;
-			this.brazilPayments = brazilPayments;
 		}
 
 		@Override
@@ -1060,25 +1049,57 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			if (createDpopForResourceEndpointSteps != null) {
 				call(sequence(createDpopForResourceEndpointSteps));
 			}
-			if (brazilPayments) {
-				// we use the idempotency header to allow us to make a request more than once; however it is required
-				// that a new jwt is sent in each retry, so update jti/iat & resign
-				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
-				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
-				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-				call(exec().unmapKey("request_object_claims"));
-				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
-			}
 		}
 	}
 
 	protected ConditionSequence makeUpdateResourceRequestSteps() {
-		return new UpdateResourceRequestSteps(createDpopForResourceEndpointSteps, false);
+		return new UpdateResourceRequestSteps(createDpopForResourceEndpointSteps);
 	}
 
 	// Make any necessary updates to a resource request before we send it again
 	protected void updateResourceRequest() {
 		call(makeUpdateResourceRequestSteps());
+	}
+
+	/**
+	 * Refresh the credential request by re-fetching a nonce, regenerating proof/key attestation,
+	 * and recreating the credential request body. Use this instead of updateResourceRequest() when
+	 * calling the credential endpoint again after a successful response, as the wallet consumes
+	 * the nonce on first use.
+	 */
+	protected void refreshCredentialRequest() {
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
+			if (nonceEndpointEl != null) {
+				callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
+				afterNonceEndpointResponse();
+			}
+		}
+
+		// Ensure the resource URL points to the credential endpoint, as it may have been
+		// overwritten by the notification or deferred credential endpoint
+		String credentialResourceUrl = env.getString("credential_resource_url");
+		env.putString("resource", "resourceUrl", credentialResourceUrl);
+		env.putString("protected_resource_url", credentialResourceUrl);
+		env.putString("resource", "resourceMethod", "POST");
+		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
+			afterKeyAttestationGeneration();
+
+			String proofTypeKey = env.getString("vci_proof_type_key");
+			if ("jwt".equals(proofTypeKey)) {
+				callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
+			} else if ("attestation".equals(proofTypeKey)) {
+				callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+			}
+			afterProofGeneration();
+		}
+
+		createCredentialRequest();
 	}
 
 	protected void updateResourceRequestAndCallProtectedResourceUsingDpop(String... requirements) {
@@ -1194,7 +1215,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-8", "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-8", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
@@ -1379,7 +1400,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-11", "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-11", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 		eventLog.endBlock();
 
@@ -1388,6 +1409,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		validateNotificationEndpointResponse();
 		call(exec().unmapKey("endpoint_response"));
 		eventLog.endBlock();
+
+		// Restore the credential endpoint URL so subsequent calls use the correct endpoint
+		String credentialResourceUrl = env.getString("credential_resource_url");
+		env.putString("resource", "resourceUrl", credentialResourceUrl);
+		env.putString("protected_resource_url", credentialResourceUrl);
 	}
 
 	protected void validateNotificationEndpointResponse() {
@@ -1464,7 +1490,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-9", "FAPI2-SP-ID2-5.3.3-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-9", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));

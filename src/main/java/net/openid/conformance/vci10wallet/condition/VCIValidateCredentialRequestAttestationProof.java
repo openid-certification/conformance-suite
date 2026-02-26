@@ -191,7 +191,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 
 		// Did we generate a c_nonce?
 		JsonObject credentialNonceResponse = env.getObject("credential_nonce_response");
-		if (!credentialNonceResponse.has("c_nonce")) {
+		if (credentialNonceResponse == null || !credentialNonceResponse.has("c_nonce")) {
 			if (nonce != null) {
 				log("Found unexpected nonce in key attestation, but the nonce endpoint was not called prior.");
 			}

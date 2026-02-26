@@ -7,6 +7,8 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -72,7 +74,9 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 			if (credentialConfigurationIdScopeMap.isEmpty()) {
 				// assume default scope mappings for example credential
 				// see: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-6.2-4.1.1
-				credentialConfigurationIdScopeMap.addProperty("eudi.pid.1", "eu.europa.ec.eudi.pid.1");
+				JsonArray values = new JsonArray();
+				values.add("eu.europa.ec.eudi.pid.1");
+				credentialConfigurationIdScopeMap.add("eudi.pid.1", values);
 			}
 
 			for (String credentialConfigurationScopeCandidate : Set.of(scope.split(" "))) {
@@ -81,21 +85,32 @@ public class VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse 
 					continue;
 				}
 
-				String credentialConfigurationId = OIDFJSON.getString(maybeCredentialConfigurationId);
+				List<String> credentialConfigurationIds = new ArrayList<>();
+				List<String> credentialIds = new ArrayList<>();
+				for (JsonElement credentialConfigurationIdEl : maybeCredentialConfigurationId.getAsJsonArray()) {
+					String credentialConfigurationId = OIDFJSON.getString(credentialConfigurationIdEl);
 
-				JsonObject authDetail = new JsonObject();
-				authDetail.addProperty("type", "openid_credential");
-				authDetail.addProperty("credential_configuration_id", credentialConfigurationId);
+					credentialConfigurationIds.add(credentialConfigurationId);
 
-				JsonArray credentialIdentifiers = new JsonArray();
-				String credentialIdentifier = credentialConfigurationId + ":" + UUID.randomUUID();
-				credentialIdentifiers.add(credentialIdentifier);
-				authDetail.add("credential_identifiers", credentialIdentifiers);
+					JsonObject authDetail = new JsonObject();
+					authDetail.addProperty("type", "openid_credential");
+					authDetail.addProperty("credential_configuration_id", credentialConfigurationId);
 
-				authDetails.add(authDetail);
+					JsonArray credentialIdentifiers = new JsonArray();
+					String credentialIdentifier = credentialConfigurationId + ":" + UUID.randomUUID();
+					credentialIdentifiers.add(credentialIdentifier);
+					authDetail.add("credential_identifiers", credentialIdentifiers);
+
+					credentialIds.add(credentialIdentifier);
+
+					authDetails.add(authDetail);
+				}
+
+
 
 				log("Used credential_configuration from scope",
-						args("credential_configuration_id", credentialIdentifier, "credential_identifiers", credentialIdentifiers, "credential_scope", credentialConfigurationScopeCandidate));
+						args("credential_configuration_ids", credentialConfigurationIds, "credential_identifiers", credentialIds,
+							"credential_scope", credentialConfigurationScopeCandidate));
 
 			}
 		}

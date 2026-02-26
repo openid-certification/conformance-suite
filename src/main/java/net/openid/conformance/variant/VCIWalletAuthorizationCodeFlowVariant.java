@@ -12,7 +12,9 @@ public enum VCIWalletAuthorizationCodeFlowVariant {
 
 	ISSUER_INITIATED,
 
-	ISSUER_INITIATED_DC_API;
+	// TODO check DC API support once https://github.com/openid/OpenID4VCI/pull/476 is in
+	ISSUER_INITIATED_DC_API
+	;
 
 	@Override
 	public String toString() {

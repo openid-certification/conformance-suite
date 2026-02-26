@@ -23,6 +23,8 @@ import net.openid.conformance.testmodule.Environment;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,7 +73,7 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		return jwt.serialize();
 	}
 
-	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey) {
+	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType) {
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		if (credentialSigningJwkEl == null) {
 			throw error("Credential Signing JWK missing from configuration");
@@ -88,31 +90,43 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		SDObjectBuilder builder = new SDObjectBuilder();
 		ArrayList<Disclosure> disclosures = new ArrayList<>();
 
-		// as per https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#42-note-on-vct
-		builder.putClaim("vct", "urn:eudi:pid:1");
+		builder.putClaim("vct", credentialType);
 
-		/*
-		 * contents as per https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#41-encoding-of-pid-attributes-and-metadata
-		 * mandatory elements are defined here:
-		 * https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#22-mandatory-attributes-specified-in-cir-20242977
-		 *
-		 * We aim to include all mandatory elements
-		 */
+		switch (credentialType) {
+			case "urn:openid:example:certification:1":
+				disclosures.add(builder.putSDClaim("product", "Some Product"));
+				disclosures.add(builder.putSDClaim("version", "1.2.3"));
+				disclosures.add(builder.putSDClaim("issuance_date", LocalDate.now(ZoneId.of("UTC")).toString()));
+				break;
+			// as per https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#42-note-on-vct
+			case "urn:eudi:pid:1": // fall-through
+			default:
+			{
+				/*
+				 * contents as per https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#41-encoding-of-pid-attributes-and-metadata
+				 * mandatory elements are defined here:
+				 * https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md#22-mandatory-attributes-specified-in-cir-20242977
+				 *
+				 * We aim to include all mandatory elements
+				 */
 
-		disclosures.add(builder.putSDClaim("given_name", "Jean"));
-		disclosures.add(builder.putSDClaim("family_name", "Dupont"));
-		disclosures.add(builder.putSDClaim("birthdate", "1980-05-23"));
+				disclosures.add(builder.putSDClaim("given_name", "Jean"));
+				disclosures.add(builder.putSDClaim("family_name", "Dupont"));
+				disclosures.add(builder.putSDClaim("birthdate", "1980-05-23"));
 
-		Disclosure disclosure0 = new Disclosure("FR");
-		disclosures.add(disclosure0);
-		Map<String, Object> element = disclosure0.toArrayElement();
-		disclosures.add(builder.putSDClaim("nationalities", List.of(element)));
+				Disclosure disclosure0 = new Disclosure("FR");
+				disclosures.add(disclosure0);
+				Map<String, Object> element = disclosure0.toArrayElement();
+				disclosures.add(builder.putSDClaim("nationalities", List.of(element)));
 
-		SDObjectBuilder pobBuilder = new SDObjectBuilder();
-		disclosures.add(pobBuilder.putSDClaim("country", "DD"));
-		Map<String, Object> placeOfBirth = pobBuilder.build();
+				SDObjectBuilder pobBuilder = new SDObjectBuilder();
+				disclosures.add(pobBuilder.putSDClaim("country", "DD"));
+				Map<String, Object> placeOfBirth = pobBuilder.build();
 
-		disclosures.add(builder.putSDClaim("place_of_birth", placeOfBirth));
+				disclosures.add(builder.putSDClaim("place_of_birth", placeOfBirth));
+			}
+		}
+
 
 		// Only add cnf claim if cryptographic binding is required (publicJWK is not null)
 		if (publicJWK != null) {
