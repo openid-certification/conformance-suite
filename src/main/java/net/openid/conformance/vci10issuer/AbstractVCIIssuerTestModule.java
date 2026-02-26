@@ -1381,7 +1381,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// Resolve notification endpoint URL
 		callAndStopOnFailure(VCIResolveNotificationEndpointToUse.class, "OID4VCI-1FINAL-12.2.4");
 		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
-		env.putString("notification_resource_url", env.getString("resource", "resourceUrl"));
 
 		// Set HTTP method to POST (required for notification endpoint)
 		env.putString("resource", "resourceMethod", "POST");
@@ -1472,7 +1471,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// Resolve the deferred credential endpoint URL from metadata
 		callAndStopOnFailure(VCIResolveDeferredCredentialEndpointToUse.class, "OID4VCI-1FINAL-12.2.4");
 		callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
-		env.putString("deferred_credential_resource_url", env.getString("resource", "resourceUrl"));
 
 		// Set HTTP method to POST (required for deferred credential endpoint)
 		env.putString("resource", "resourceMethod", "POST");
