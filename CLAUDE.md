@@ -294,6 +294,15 @@ Identity Assurance spec locations used in this codebase:
 OpenID Federation spec locations:
 - **OpenID Federation 1.0**: https://openid.net/specs/openid-federation-1_0.html
 
+## Error Messages for Configuration Issues
+
+When a condition fails because of missing or invalid test configuration (fields the user fills in on schedule-test.html), error messages should reference the UI labels the user sees, not internal JSON key names. Include "in the test configuration" so the user knows where to look. For example:
+
+- Good: `"'Payment consent request JSON' field is missing from the 'Resource' section in the test configuration"`
+- Bad: `"brazilPaymentConsent not found in resource configuration"`
+
+Check `src/main/resources/static/schedule-test.html` for the field labels displayed to users.
+
 ## Test-Suite Behavior Expectations
 
 - This repository is a conformance test suite; explicit failures for invalid protocol behavior are expected.
