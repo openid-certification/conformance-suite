@@ -58,7 +58,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeIsAnyOf;
+import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -1265,14 +1265,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	 */
 	protected void verifyCredentialIssuerCredentialResponse() {
 
-		int statusCode = env.getInteger("endpoint_response", "status");
-
-		callAndContinueOnFailure(new EnsureContentTypeIsAnyOf("application/json", "application/jwt"), ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+		callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, "OID4VCI-1FINAL-8.3");
 
 		// Decrypt the response if encryption was requested and the response was OK
-		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 			callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
 			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
+		} else {
+			callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		}
 
 		verifyEffectiveCredentialResponse();
