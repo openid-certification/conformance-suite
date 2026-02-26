@@ -41,7 +41,7 @@ public class VCIIssuerMetadataSignedTest extends VCIIssuerMetadataTest {
 		String mimeType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(
 			env.getString("endpoint_response", "headers.content-type"));
 		if ("application/json".equalsIgnoreCase(mimeType)) {
-			fireTestSkipped("Skipping test as credential issuer metadata response is not signed.");
+			fireTestSkipped("Skipping test as credential issuer metadata response is not signed (content-type returned is application/json).");
 			return;
 		}
 
