@@ -130,7 +130,6 @@ import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
-import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -1804,7 +1803,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		@Override
 		public void checkResourceRequest() {
-			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI2-SP-FINAL-5.3.4-2");
+			// EnsureBearerAccessTokenNotInParams is not called here as it is already
+			// called with VCI error wrapping in checkResourceEndpointRequest()
 			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI2-SP-FINAL-5.3.4-2");
 		}
 	}
