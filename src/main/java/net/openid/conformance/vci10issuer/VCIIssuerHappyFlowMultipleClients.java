@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-happy-flow-multiple-clients",
-	displayName = "OID4VCI 1.0: Issuer happy flow with multiple client",
+	displayName = "OID4VCI 1.0: Issuer happy flow with multiple clients",
 	summary = """
 	This test case validates the standard credential issuance flow using an emulated wallet, as defined in the OpenID
 	for Verifiable Credential Issuance (OpenID4VCI) specification. It uses two different clients to obtain the credentials consecutively.
