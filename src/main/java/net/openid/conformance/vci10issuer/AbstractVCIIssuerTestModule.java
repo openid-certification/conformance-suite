@@ -483,6 +483,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
+		callAndStopOnFailure(VCIGenerateClientJwksIfMissing.class);
+
+		// Copy scope from client1 config; the scope is determined by the credential configuration
+		// and is the same for both clients
+		String client1Scope = env.getString("config", "client.scope");
+		if (client1Scope != null && env.getString("client", "scope") == null) {
+			env.putString("client", "scope", client1Scope);
+		}
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 

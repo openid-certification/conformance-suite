@@ -46,7 +46,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 				throw error(errorDescription,
 					args("attestation", attestationJwt, "expected", "key-attestation+jwt", "actual", headerType));
 			}
-			log("Found expected typ '" +  headerType+ "' in header of key attestation for proof type " + proofType, args("header", headerType, "proof_type", proofType));
+			// log("Found expected typ '" +  headerType+ "' in header of key attestation for proof type " + proofType, args("header", headerType, "proof_type", proofType));
 
 			if (!JWSAlgorithm.ES256.equals(header.getAlgorithm())) {
 				String errorDescription = "Attestation validation failed: Unsupported or invalid JWT algorithm (alg). Expected ES256.";
@@ -54,7 +54,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 				throw error(errorDescription,
 					args("jwt", attestationJwt, "alg", header.getAlgorithm()));
 			}
-			log("Found expected algorithm for Key attestation in proof type: " + proofType, args("algorithm", header.getAlgorithm()));
+			// log("Found expected algorithm for Key attestation in proof type: " + proofType, args("algorithm", header.getAlgorithm()));
 
 			JsonObject keyAttestationJwksObj = env.getElementFromObject("config", "vci.key_attestation_jwks").getAsJsonObject();
 			if (keyAttestationJwksObj == null) {
@@ -68,7 +68,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription);
 			}
-			log("Detected EC public key", args("kid", header.getKeyID()));
+			// log("Detected EC public key", args("kid", header.getKeyID()));
 
 			// ensure P_256 curve is used
 			if (!Curve.P_256.equals(ecPublicKey.getCurve())) {
@@ -76,7 +76,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription, args("curve", ecPublicKey.getCurve().getName()));
 			}
-			log("Detected EC public key with curve P-256", args("kid", header.getKeyID()));
+			// log("Detected EC public key with curve P-256", args("kid", header.getKeyID()));
 
 			// 3. Create Verifier with the public EC key
 			JWSVerifier verifier = new ECDSAVerifier(ecPublicKey);
@@ -87,7 +87,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription);
 			}
-			log("Detected valid Key Attestation for proof type: " + proofType);
+			// log("Detected valid Key Attestation for proof type: " + proofType);
 
 			// 5. Validate Claims
 			JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
@@ -99,8 +99,8 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			checkNonceIfNecessary(env, claimsSet);
 			checkX5cIfNecessary(env, header);
 
-			log("Detected key attestation in 'jwt' proof header",
-				args("key_attestation_jwt", keyAttestationVerifiableObject));
+			// log("Detected key attestation in 'jwt' proof header",
+			//	args("key_attestation_jwt", keyAttestationVerifiableObject));
 
 			// 6. Validation successful :)
 			logSuccess("Successfully validated key attestation for proof type: " + proofType, args("attestation_jwt", keyAttestationVerifiableObject, "claims", claimsSet));

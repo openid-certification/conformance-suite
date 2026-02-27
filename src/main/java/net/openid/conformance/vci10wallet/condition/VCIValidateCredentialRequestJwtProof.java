@@ -9,11 +9,9 @@ import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
@@ -31,8 +29,6 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 
 		String jwt = env.getString("proof_jwt", "value");
 		try {
-			JWKSet publicKeysJwks = JWKUtil.parseJWKSet(env.getObject("client_jwks").toString());
-			// 1. Parse the JWT string
 			SignedJWT signedJWT = SignedJWT.parse(jwt);
 			JWSHeader header = signedJWT.getHeader();
 
@@ -44,23 +40,23 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 				throw error(errorDescription,
 					args("jwt", jwt, "expected", "openid4vci-proof+jwt", "actual", headerType));
 			}
-			log("Found expected proof type: " + proofType, args("header", headerType, "proof_type", proofType));
+			// log("Found expected proof type: " + proofType, args("header", headerType, "proof_type", proofType));
 
 			if (!JWSAlgorithm.ES256.equals(header.getAlgorithm())) {
 				String errorDescription = "Proof validation failed: Unsupported or invalid JWT algorithm (alg). Expected ES256 for proof type: " + proofType;
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription, args("jwt", jwt, "alg", header.getAlgorithm()));
 			}
-			log("Found expected algorithm for proof type: " + proofType, args("algorithm", header.getAlgorithm()));
+			// log("Found expected algorithm for proof type: " + proofType, args("algorithm", header.getAlgorithm()));
 
-			JWK walletPublicKey = extractPublicJwkFromProofJWTHeader(header, jwt, publicKeysJwks);
+			JWK walletPublicKey = extractPublicJwkFromProofJWTHeader(env, header, jwt);
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
 				String errorDescription = "JWT proof validation failed: Key found but is not an ECKey for kid: " + header.getKeyID();
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription);
 			}
-			log("Detected an EC public key", args("kid", header.getKeyID()));
+			// log("Detected an EC public key", args("kid", header.getKeyID()));
 
 			// ensure P_256 curve is used
 			if (!Curve.P_256.equals(ecPublicKey.getCurve())) {
@@ -68,9 +64,9 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription, args("curve", ecPublicKey.getCurve().getName()));
 			}
-			log("Detected EC public key with curve P-256", args("kid", header.getKeyID()));
+			// log("Detected EC public key with curve P-256", args("kid", header.getKeyID()));
 
-			validateNestedKeyAttestationInJwtProofIfNecessary(env, credentialConfigurationId, credentialConfiguration, keyAttestationRequired, header, publicKeysJwks);
+			validateNestedKeyAttestationInJwtProofIfNecessary(env, credentialConfigurationId, credentialConfiguration, keyAttestationRequired, header);
 
 			// 3. Create Verifier with the public EC key
 			JWSVerifier verifier = new ECDSAVerifier(ecPublicKey);
@@ -81,7 +77,7 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription);
 			}
-			log("Detected valid proof JWT for proof type: " + proofType);
+			// log("Detected valid proof JWT for proof type: " + proofType);
 
 			// 5. Validate Claims (No changes needed in claim checking logic itself)
 			JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
@@ -94,7 +90,7 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_NONCE, errorDescription);
 				throw error(errorDescription, args("actual_nonce", nonce, "expected_nonce", expectedNonce));
 			} else {
-				log("Detected and invalidated expected nonce", args("nonce", nonce));
+				// log("Detected and invalidated expected nonce", args("nonce", nonce));
 				env.removeNativeValue("credential_issuer_nonce");
 			}
 
@@ -119,7 +115,7 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 				throw error(errorDescription, args("iat", iatInstant, "now", now, "min_accepted_iat", minAcceptedIat));
 			}
-			log("JWT proof iat is within acceptable time window", args("iat", iatInstant, "now", now, "min_accepted_iat", minAcceptedIat, "max_accepted_iat", maxAcceptedIat));
+			// log("JWT proof iat is within acceptable time window", args("iat", iatInstant, "now", now, "min_accepted_iat", minAcceptedIat, "max_accepted_iat", maxAcceptedIat));
 
 			// Check audience
 			List<String> audience = claimsSet.getAudience();
@@ -135,8 +131,8 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 				throw error(errorDescription,
 					args("expected_audience", expectedAudience, "actual_audience", audience));
 			}
-			log("Found expected audience '" + expectedAudience + "' for proof type: " + proofType,
-				args("audience", expectedAudience, "proof_type", proofType));
+//			log("Found expected audience '" + expectedAudience + "' for proof type: " + proofType,
+//				args("audience", expectedAudience, "proof_type", proofType));
 
 			// 6. Validation successful :)
 			logSuccess("Successfully validated proof jwt", args("jwt", jwt, "claims", claimsSet));
@@ -153,7 +149,7 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 		}
 	}
 
-	protected void validateNestedKeyAttestationInJwtProofIfNecessary(Environment env, String credentialConfigurationId, JsonObject credentialConfiguration, JsonObject keyAttestationRequired, JWSHeader proofHeader, JWKSet proofPublicKeysJwks) {
+	protected void validateNestedKeyAttestationInJwtProofIfNecessary(Environment env, String credentialConfigurationId, JsonObject credentialConfiguration, JsonObject keyAttestationRequired, JWSHeader proofHeader) {
 
 		Object keyAttestationFromHeader = proofHeader.getCustomParam("key_attestation");
 		if (keyAttestationFromHeader != null) {
