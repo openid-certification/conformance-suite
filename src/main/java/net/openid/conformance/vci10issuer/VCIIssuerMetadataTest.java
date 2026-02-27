@@ -31,10 +31,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIs
 
 		This test will send a credential issuer metadata request with content-type: application/json.
 		""",
-	profile = "OID4VCI-1_0",
-	configurationFields = {
-		"vci.credential_issuer_url"
-	}
+	profile = "OID4VCI-1_0"
 )
 @VariantParameters({VCIClientAuthType.class, VCIProfile.class})
 public class VCIIssuerMetadataTest extends AbstractVciTest {

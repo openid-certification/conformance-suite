@@ -21,10 +21,7 @@ import net.openid.conformance.vci10issuer.condition.VCIRequestSignedCredentialIs
 		This test will send a credential issuer metadata request with content-type: application/jwt.
 		The test execution is skipped if the credential issuer metadata response is not signed.
 		""",
-	profile = "OID4VCI-1_0",
-	configurationFields = {
-		"vci.credential_issuer_url"
-	}
+	profile = "OID4VCI-1_0"
 )
 @VariantParameters({VCIClientAuthType.class, VCIProfile.class})
 public class VCIIssuerMetadataSignedTest extends VCIIssuerMetadataTest {

@@ -20,15 +20,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	""",
 	profile = "OID4VCI-1_0",
 	configurationFields = {
-		"vci.credential_issuer_url",
-		"client.client_id",
-		"client.jwks",
 		"client2.client_id",
 		"client2.jwks",
-		"vci.credential_configuration_id",
-		"vci.credential_proof_type_hint",
-		"vci.key_attestation_jwks",
-		"vci.authorization_server",
 	}
 )
 public class VCIIssuerFailOnRequestWithAccessTokenInQuery extends AbstractVCIIssuerTestModule {

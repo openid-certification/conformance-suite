@@ -4,8 +4,10 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
 
+@ConfigurationFields({"vci.credential_issuer_url"})
 public abstract class AbstractVciTest extends AbstractTestModule {
 
 	protected VCIClientAuthType clientAuthType;

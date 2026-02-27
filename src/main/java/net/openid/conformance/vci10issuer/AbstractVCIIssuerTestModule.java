@@ -138,6 +138,7 @@ import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -209,6 +210,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+@ConfigurationFields({
+	"vci.credential_issuer_url",
+	"client.client_id",
+	"client.jwks",
+	"vci.credential_configuration_id",
+	"vci.credential_proof_type_hint",
+	"vci.key_attestation_jwks",
+	"vci.authorization_server",
+})
 @VariantParameters({
 	VCIClientAuthType.class,
 	FAPI2AuthRequestMethod.class,

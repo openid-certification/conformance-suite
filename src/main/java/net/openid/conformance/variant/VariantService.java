@@ -25,6 +25,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -620,6 +621,7 @@ public class VariantService {
 	public class TestModuleHolder {
 
 		public final PublishTestModule info;
+		public final String[] combinedConfigurationFields;
 
 		final Class<? extends TestModule> moduleClass;
 		final Set<TestModuleVariantInfo<? extends Enum<?>>> parameters;
@@ -629,6 +631,13 @@ public class VariantService {
 		TestModuleHolder(Class<? extends TestModule> moduleClass) {
 			this.moduleClass = moduleClass;
 			this.info = moduleClass.getDeclaredAnnotation(PublishTestModule.class);
+
+			LinkedHashSet<String> configFields = new LinkedHashSet<>();
+			inCombinedAnnotations(moduleClass, ConfigurationFields.class)
+					.flatMap(a -> Arrays.stream(a.value()))
+					.forEach(configFields::add);
+			Arrays.stream(info.configurationFields()).forEach(configFields::add);
+			this.combinedConfigurationFields = configFields.toArray(new String[0]);
 
 			Set<ParameterHolder<?>> declaredParameters = inCombinedAnnotations(moduleClass, VariantParameters.class)
 					.flatMap(a -> Arrays.stream(a.value()))

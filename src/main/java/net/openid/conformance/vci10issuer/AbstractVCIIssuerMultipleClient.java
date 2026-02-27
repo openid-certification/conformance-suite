@@ -6,7 +6,9 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
+import net.openid.conformance.variant.ConfigurationFields;
 
+@ConfigurationFields({"client2.client_id", "client2.jwks"})
 public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerTestModule {
 
 	@Override

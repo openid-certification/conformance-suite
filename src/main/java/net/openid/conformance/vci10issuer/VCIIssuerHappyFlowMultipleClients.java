@@ -19,18 +19,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce,
 	and successfully requests a credential from the Credential Endpoint.
 	""",
-	profile = "OID4VCI-1_0",
-	configurationFields = {
-		"vci.credential_issuer_url",
-		"client.client_id",
-		"client.jwks",
-		"client2.client_id",
-		"client2.jwks",
-		"vci.credential_configuration_id",
-		"vci.credential_proof_type_hint",
-		"vci.key_attestation_jwks",
-		"vci.authorization_server",
-	}
+	profile = "OID4VCI-1_0"
 )
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation",
 	configurationFields = {"client.jwks", "client2.jwks"})
