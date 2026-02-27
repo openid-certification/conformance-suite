@@ -254,7 +254,6 @@ import java.util.concurrent.TimeUnit;
 	"server.jwks",
 	"client.client_id",
 	"client.redirect_uri",
-	"client.jwks",
 	"credential.signing_jwk",
 	"waitTimeoutSeconds",
 	"vci.credential_offer_endpoint",
