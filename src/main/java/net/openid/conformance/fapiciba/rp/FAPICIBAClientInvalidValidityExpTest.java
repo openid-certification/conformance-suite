@@ -2,7 +2,7 @@ package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.as.AddExpValueOf179DaysToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.jwks"
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "openinsurance_brazil", "openbanking_ksa"})
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "openinsurance_brazil", "openbanking_ksa"})
 public class FAPICIBAClientInvalidValidityExpTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
 
 	@Override

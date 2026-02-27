@@ -28,6 +28,7 @@ import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDy
 import net.openid.conformance.condition.client.AddClientNameToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
+import net.openid.conformance.condition.client.AddConnectIDHintToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -49,6 +50,7 @@ import net.openid.conformance.condition.client.AddTLSBoundAccessTokensTrueToDyna
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodPrivateKeyJwtToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthMethodSelfSignedTlsToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddTokenEndpointAuthSigningAlgPS256ToDynamicRegistrationRequest;
+import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
 import net.openid.conformance.condition.client.CIBANotificationEndpointCalledUnexpectedly;
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
@@ -191,7 +193,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -207,14 +209,14 @@ import java.util.function.Supplier;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPI1FinalOPProfile.class,
+	FAPICIBAProfile.class,
 	CIBAMode.class,
 	ClientRegistration.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {
 	"consumerdataright_au", "openinsurance_brazil", "openbanking_ksa"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
@@ -228,7 +230,7 @@ import java.util.function.Supplier;
 	"client.initial_access_token",
 	"client2.initial_access_token"
 })
-@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+@VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.org_jwks",
 	"client.acr_value",
 	"consent.productType",
@@ -240,7 +242,7 @@ import java.util.function.Supplier;
 	"resource.brazilPixPayment",
 	"directory.keystore"
 })
-@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
+@VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openinsurance_brazil", configurationFields = {
 		"client.org_jwks",
 		"client.acr_value",
 		"consent.productType",
@@ -278,6 +280,10 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	private boolean brazilPayments;
 	protected boolean isBrazil() {
 		return brazilPayments;
+	}
+
+	protected boolean isConnectID() {
+		return getVariant(FAPICIBAProfile.class) == FAPICIBAProfile.CONNECTID_AU;
 	}
 
 	public void setAddBackchannelClientAuthentication(Supplier<? extends ConditionSequence> addBackchannelClientAuthentication) {
@@ -408,9 +414,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
-			FAPI1FinalOPProfile profile = getVariant(FAPI1FinalOPProfile.class);
+			FAPICIBAProfile profile = getVariant(FAPICIBAProfile.class);
 			ClientAuthType authType = getVariant(ClientAuthType.class);
-			if (authType != ClientAuthType.MTLS && profile != FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			if (authType != ClientAuthType.MTLS && profile != FAPICIBAProfile.OPENBANKING_BRAZIL) {
 				// we only need to call the mtls aliased backchannel authentication endpoint when using mtls client auth
 				// (but need to use the mtls alias for the token endpoint whenever we're using certificate bound
 				// access tokens)
@@ -660,7 +666,12 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		performProfileAuthorizationEndpointSetup();
 
 		callAndStopOnFailure(AddScopeToAuthorizationEndpointRequest.class, "CIBA-7.1");
-		callAndStopOnFailure(AddHintToAuthorizationEndpointRequest.class, "CIBA-7.1");
+		if (isConnectID()) {
+			callAndStopOnFailure(AddConnectIDHintToAuthorizationEndpointRequest.class, "CIBA-7.1");
+			callAndStopOnFailure(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class);
+		} else {
+			callAndStopOnFailure(AddHintToAuthorizationEndpointRequest.class, "CIBA-7.1");
+		}
 
 
 		// The spec also defines these parameters that we don't currently set:
@@ -1053,7 +1064,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 		}
 
-		if (getVariant(FAPI1FinalOPProfile.class) == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if (getVariant(FAPICIBAProfile.class) == FAPICIBAProfile.OPENBANKING_BRAZIL) {
 			if (isBrazil()) {
 				// setup to call the payments initiation API, which requires a signed jwt request body
 				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
@@ -1319,7 +1330,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		additionalClientRegistrationSteps = null;
@@ -1328,7 +1339,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalProfileIdTokenValidationSteps = PlainFapiProfileIdTokenValidationSteps.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
@@ -1337,7 +1348,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		additionalClientRegistrationSteps = null;
@@ -1346,13 +1357,22 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalProfileIdTokenValidationSteps = OpenBankingBrazilProfileIdTokenValidationSteps.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openinsurance_brazil")
 	public void setupOpenInsuranceBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		additionalClientRegistrationSteps = null;
 		preAuthorizationSteps = () -> createBrazilPreauthSteps();
 		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingBrazilProfileAuthorizationEndpointSetupSteps.class;
 		additionalProfileIdTokenValidationSteps = OpenBankingBrazilProfileIdTokenValidationSteps.class;
+	}
+
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "connectid_au")
+	public void setupConnectId() {
+		resourceConfiguration = FAPIResourceConfiguration.class;
+		additionalClientRegistrationSteps = null;
+		preAuthorizationSteps = null;
+		additionalProfileAuthorizationEndpointSetupSteps = null;
+		additionalProfileIdTokenValidationSteps = null;
 	}
 	protected ConditionSequence createBrazilPreauthSteps() {
 		boolean isSecondClient = isSecondClient();

@@ -88,7 +88,7 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 		String certProfile = null;
 
 		Map<String, String> v = variant.getVariant();
-		String profile = v.get("fapi_profile");
+		String profile = v.get("fapi_ciba_profile");
 		String clientAuth = v.get("client_auth_type");
 		String cibaMode = v.get("ciba_mode");
 		boolean privateKey = ClientAuthType.PRIVATE_KEY_JWT.toString().equals(clientAuth);
@@ -110,6 +110,13 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				certProfile = "BR-OPIN-CIBA";
 				if (!privateKey || !poll) {
 					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for Brazil Open Insurance".formatted(
+						MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				break;
+			case "connectid_au":
+				certProfile = "ConnectID-CIBA";
+				if (!privateKey || !poll) {
+					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for ConnectID".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
