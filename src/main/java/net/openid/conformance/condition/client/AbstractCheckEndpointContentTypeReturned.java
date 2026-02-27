@@ -20,7 +20,7 @@ public abstract class AbstractCheckEndpointContentTypeReturned extends AbstractC
 		throw error("Invalid content-type header in "+headersEnvKey, args("expected", expected, "actual", contentType));
 	}
 
-	protected String getMimeTypeFromContentType(String contentType) {
+	public static String getMimeTypeFromContentType(String contentType) {
 		String mimeType = null;
 		try {
 			mimeType = contentType.split(";")[0].trim();

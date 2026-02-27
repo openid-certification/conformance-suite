@@ -2,6 +2,7 @@ package net.openid.conformance.vci10issuer;
 
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCIClientAuthType;
@@ -37,8 +38,10 @@ public class VCIIssuerMetadataSignedTest extends VCIIssuerMetadataTest {
 	@Override
 	protected void checkIssuerMetadataResponse() {
 
-		if ("application/json".equalsIgnoreCase(env.getString("endpoint_response", "headers.content-type"))) {
-			fireTestSkipped("Skipping test as credential issuer metadata response is not signed.");
+		String mimeType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(
+			env.getString("endpoint_response", "headers.content-type"));
+		if ("application/json".equalsIgnoreCase(mimeType)) {
+			fireTestSkipped("Skipping test as credential issuer metadata response is not signed (content-type returned is application/json).");
 			return;
 		}
 

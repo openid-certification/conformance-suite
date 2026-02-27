@@ -58,7 +58,7 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeIsAnyOf;
+import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -150,8 +150,8 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
-import net.openid.conformance.vci10issuer.condition.VCICheckCacheControlHeaderInResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckExpClaimInCredential;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
@@ -1265,14 +1265,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	 */
 	protected void verifyCredentialIssuerCredentialResponse() {
 
-		int statusCode = env.getInteger("endpoint_response", "status");
-
-		callAndContinueOnFailure(new EnsureContentTypeIsAnyOf("application/json", "application/jwt"), ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+		callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, "OID4VCI-1FINAL-8.3");
 
 		// Decrypt the response if encryption was requested and the response was OK
-		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 			callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
 			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
+		} else {
+			callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		}
 
 		verifyEffectiveCredentialResponse();
@@ -1449,7 +1450,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
 			}
 			if (vciProfile == VCIProfile.HAIP) {
-				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
+				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.WARNING, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCICheckExpClaimInCredential.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");
 				callAndContinueOnFailure(VCIEnsureX5cHeaderPresentForSdJwtCredential.class, ConditionResult.FAILURE, "HAIP-6.1.1");
@@ -1507,7 +1508,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-7.2");
 
-		callAndContinueOnFailure(VCICheckCacheControlHeaderInResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+		callAndContinueOnFailure(CheckCacheControlHeaderContainsNoStore.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 		callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 	}
 
