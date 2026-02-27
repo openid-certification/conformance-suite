@@ -23,8 +23,9 @@ public class VCIValidateAttestedKeysInKeyAttestationFromJwtProof extends Abstrac
 		JsonElement proofJwtKidEl = env.getElementFromObject("proof_jwt", "header.kid");
 		JsonElement proofJwtX5cEl = env.getElementFromObject("proof_jwt", "header.x5c");
 
-		if (!(proofJwtJwkEl == null ^ proofJwtKidEl == null ^ proofJwtX5cEl == null)) {
-			throw error("proof_jwt header must contain exactly one of jwk, kid, or x5c");
+		if (!(proofJwtJwkEl != null ^ proofJwtKidEl != null ^ proofJwtX5cEl != null)) {
+			throw error("proof_jwt header must contain exactly one of jwk, kid, or x5c",
+				args("proof_jwt_header", env.getElementFromObject("proof_jwt", "header")));
 		}
 
 		String proofType = env.getString("proof_type");
