@@ -12,13 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test requests one known claim, selected from the list of claims_in_verified_claims_supported, " +
 		"and one random claim name (unknown to the OP) and expects a happy path flow." +
 		" The unknown claim must be omitted from responses.",
-	profile = "OIDCC",
-	configurationFields = {
-		"ekyc.unverified_claims_names",
-		"ekyc.verified_claims_names",
-		"ekyc.request_schemas",
-		"ekyc.response_schemas"
-	}
+	profile = "OIDCC"
 )
 public class EKYCRequestClaimUnknownToTheOP extends AbstractEKYCTestWithOIDCCore {
 

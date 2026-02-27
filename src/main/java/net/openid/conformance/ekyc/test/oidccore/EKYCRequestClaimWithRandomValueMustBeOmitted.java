@@ -16,13 +16,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test requests one known claim, selected from the list of claims_in_verified_claims_supported, " +
 		" but with a random value (a UUID) that cannot be fullfilled and expects the authorization to succeed." +
 		" The claims object in verified_claims must be omitted or must not contain the requested claim from the response as the value cannot be fulfilled.",
-	profile = "OIDCC",
-	configurationFields = {
-		"ekyc.unverified_claims_names",
-		"ekyc.verified_claims_names",
-		"ekyc.request_schemas",
-		"ekyc.response_schemas"
-	}
+	profile = "OIDCC"
 )
 public class EKYCRequestClaimWithRandomValueMustBeOmitted extends AbstractEKYCTestWithOIDCCore {
 

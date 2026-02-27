@@ -16,11 +16,18 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsReques
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
 import net.openid.conformance.openid.AbstractOIDCCServerSecurityProfileTest;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.EKYCVerifiedClaimsResponseSupport;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 
 
+@ConfigurationFields({
+	"ekyc.unverified_claims_names",
+	"ekyc.verified_claims_names",
+	"ekyc.request_schemas",
+	"ekyc.response_schemas",
+})
 @VariantParameters({
 	EKYCVerifiedClaimsResponseSupport.class
 })
