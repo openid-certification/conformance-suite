@@ -10,11 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "openid-ssf-stream-control-error-delete-unknown-stream",
 	displayName = "Attempt to delete a non-existing Stream Configuration a valid access token.",
 	summary = "This test verifies the behavior of the stream control for error cases. It attempts to delete a non-existing stream configuration a valid access token.",
-	profile = "OIDSSF",
-	configurationFields = {
-		"ssf.transmitter.issuer",
-		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
-	}
+	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestDeleteUnknownStream extends AbstractStreamControlErrorTest {
 

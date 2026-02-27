@@ -4,9 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
-import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VariantConfigurationFields;
 
 import java.util.concurrent.TimeUnit;
 
@@ -22,18 +20,7 @@ import java.util.concurrent.TimeUnit;
 		 * update the stream
 		 * replace the stream
 		 * delete the stream""",
-	profile = "OIDSSF",
-	configurationFields = {
-		"ssf.transmitter.access_token",
-		"ssf.stream.audience",
-		"ssf.subjects.valid",
-		"ssf.subjects.invalid"
-	}
-)
-@VariantConfigurationFields(
-	parameter = SsfDeliveryMode.class,
-	value = "push",
-	configurationFields = {}
+	profile = "OIDSSF"
 )
 public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModule {
 

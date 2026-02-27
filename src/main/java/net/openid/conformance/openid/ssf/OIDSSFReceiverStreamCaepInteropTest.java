@@ -8,9 +8,7 @@ import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
-import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VariantConfigurationFields;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,18 +29,8 @@ import java.util.concurrent.TimeUnit;
 		 * trigger a stream verification
 		 * acknowledge the stream verification.
 		 * retrieve and acknowledge the CAEP events 'session-revoked' and 'credential-change'""",
-	profile = "OIDSSF",
-	configurationFields = {
-		"ssf.transmitter.access_token",
-		"ssf.stream.audience",
-		"ssf.subjects.valid",
-		"ssf.subjects.invalid"
-	})
-@VariantConfigurationFields(
-	parameter = SsfDeliveryMode.class,
-	value = "push",
-	configurationFields = {
-	})
+	profile = "OIDSSF"
+)
 public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverTestModule {
 
 	volatile String createdStreamId;

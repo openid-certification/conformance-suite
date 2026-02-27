@@ -10,11 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "openid-ssf-stream-control-error-read-unknown-stream",
 	displayName = "Attempt to read an non existing Stream Configuration a valid access token.",
 	summary = "This test verifies the behavior of the stream control for error cases. It attempts to read a non-existing stream configuration a valid access token.",
-	profile = "OIDSSF",
-	configurationFields = {
-		"ssf.transmitter.issuer",
-		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
-	}
+	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestReadUnknownStream extends AbstractStreamControlErrorTest {
 
