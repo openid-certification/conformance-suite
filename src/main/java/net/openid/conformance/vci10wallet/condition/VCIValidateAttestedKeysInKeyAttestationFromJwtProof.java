@@ -36,7 +36,7 @@ public class VCIValidateAttestedKeysInKeyAttestationFromJwtProof extends Abstrac
 		JsonObject credentialConfiguration = env.getObject("credential_configuration");
 
 		JsonObject keyAttestationJwt = keyAttestationJwtEl.getAsJsonObject();
-		JsonElement attestedKeysEl = env.getElementFromObject("key_attestation_jwt", "claims.attested_keys");
+		JsonElement attestedKeysEl = env.getElementFromObject("vci", "key_attestation_jwt.claims.attested_keys");
 		if (attestedKeysEl == null) {
 			String errorDescription = "Proof key_attestation validation failed: required attested_keys missing in key_attestation_jwt for proof type: jwt";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
@@ -64,15 +64,12 @@ public class VCIValidateAttestedKeysInKeyAttestationFromJwtProof extends Abstrac
 			JsonArray attestedKeysArray = attestedKeysEl.getAsJsonArray();
 			for (int i = 0; i < attestedKeysArray.size(); i++) {
 				currentAttestedKeyEl = attestedKeysArray.get(i);
-				if (currentAttestedKeyEl.isJsonObject()) {
-					JsonObject currentAttestedKey = currentAttestedKeyEl.getAsJsonObject();
-					JWK attestedKeyJwk = JWK.parse(currentAttestedKey.toString());
+				JWK attestedKeyJwk = JWK.parse(currentAttestedKeyEl.toString());
 
-					boolean jwkThumbprintsAreEqual = walletPublicKey.computeThumbprint().equals(attestedKeyJwk.computeThumbprint());
-					if (jwkThumbprintsAreEqual) {
-						foundMatchingAttestedKey = true;
-						break;
-					}
+				boolean jwkThumbprintsAreEqual = walletPublicKey.computeThumbprint().equals(attestedKeyJwk.computeThumbprint());
+				if (jwkThumbprintsAreEqual) {
+					foundMatchingAttestedKey = true;
+					break;
 				}
 			}
 
