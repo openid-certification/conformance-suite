@@ -9,11 +9,10 @@ import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
@@ -31,7 +30,6 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 
 		String jwt = env.getString("proof_jwt", "value");
 		try {
-			JWKSet publicKeysJwks = JWKUtil.parseJWKSet(env.getObject("client_jwks").toString());
 			// 1. Parse the JWT string
 			SignedJWT signedJWT = SignedJWT.parse(jwt);
 			JWSHeader header = signedJWT.getHeader();
@@ -53,7 +51,8 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 			}
 			log("Found expected algorithm for proof type: " + proofType, args("algorithm", header.getAlgorithm()));
 
-			JWK walletPublicKey = extractPublicJwkFromProofJWTHeader(header, jwt, publicKeysJwks);
+			JWK walletPublicKey = extractPublicJwkFromProofJWTHeader(env, header, jwt);
+			env.putObject("proof_jwt", "jwk", OIDFJSON.convertMapToJsonObject(walletPublicKey.toJSONObject()));
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
 				String errorDescription = "JWT proof validation failed: Key found but is not an ECKey for kid: " + header.getKeyID();
@@ -70,7 +69,7 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 			}
 			log("Detected EC public key with curve P-256", args("kid", header.getKeyID()));
 
-			validateNestedKeyAttestationInJwtProofIfNecessary(env, credentialConfigurationId, credentialConfiguration, keyAttestationRequired, header, publicKeysJwks);
+			validateNestedKeyAttestationInJwtProofIfNecessary(env, credentialConfigurationId, credentialConfiguration, keyAttestationRequired, header);
 
 			// 3. Create Verifier with the public EC key
 			JWSVerifier verifier = new ECDSAVerifier(ecPublicKey);
@@ -153,7 +152,7 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 		}
 	}
 
-	protected void validateNestedKeyAttestationInJwtProofIfNecessary(Environment env, String credentialConfigurationId, JsonObject credentialConfiguration, JsonObject keyAttestationRequired, JWSHeader proofHeader, JWKSet proofPublicKeysJwks) {
+	protected void validateNestedKeyAttestationInJwtProofIfNecessary(Environment env, String credentialConfigurationId, JsonObject credentialConfiguration, JsonObject keyAttestationRequired, JWSHeader proofHeader) {
 
 		Object keyAttestationFromHeader = proofHeader.getCustomParam("key_attestation");
 		if (keyAttestationFromHeader != null) {
@@ -161,10 +160,8 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 		}
 
 		if (keyAttestationRequired == null) {
-			if (keyAttestationFromHeader != null) {
-				log("Skipping nested key_attestation validation, as it is not required by credential_configuration_id: "+ credentialConfigurationId,
-					args("credential_configuration_id", credentialConfigurationId));
-			}
+			log("Skipping nested key_attestation validation, as it is not required by credential_configuration_id: "+ credentialConfigurationId,
+				args("credential_configuration_id", credentialConfigurationId, "key_attestation", keyAttestationFromHeader));
 			return;
 		}
 

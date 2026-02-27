@@ -17,6 +17,7 @@ import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.util.X509CertificateUtil;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
@@ -47,6 +48,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 					args("attestation", attestationJwt, "expected", "key-attestation+jwt", "actual", headerType));
 			}
 			log("Found expected typ '" +  headerType+ "' in header of key attestation for proof type " + proofType, args("header", headerType, "proof_type", proofType));
+			env.putObject("vci","key_attestation_jwt", JWTUtil.jwtStringToJsonObjectForEnvironment(attestationJwt));
 
 			if (!JWSAlgorithm.ES256.equals(header.getAlgorithm())) {
 				String errorDescription = "Attestation validation failed: Unsupported or invalid JWT algorithm (alg). Expected ES256.";

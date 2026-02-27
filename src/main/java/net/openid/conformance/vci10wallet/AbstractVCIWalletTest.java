@@ -221,6 +221,7 @@ import net.openid.conformance.vci10wallet.condition.VCIInjectRequestScopePreAuth
 import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
+import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
@@ -253,7 +254,6 @@ import java.util.concurrent.TimeUnit;
 	"server.jwks",
 	"client.client_id",
 	"client.redirect_uri",
-	"client.jwks",
 	"credential.signing_jwk",
 	"waitTimeoutSeconds",
 	"vci.credential_offer_endpoint",
@@ -281,7 +281,7 @@ import java.util.concurrent.TimeUnit;
 	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "private_key_jwt", configurationFields = {
-	"vci.client_attestation_issuer"
+	"vci.client_attestation_issuer", "client.jwks",
 })
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "mtls", configurationFields = {
 	"vci.client_attestation_issuer"
@@ -761,7 +761,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		eventLog.startBlock("Verify configuration of first client");
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
 
-		validateClientJwks(false);
+		if (clientAuthType == VCIClientAuthType.PRIVATE_KEY_JWT) {
+			validateClientJwks(false);
+		}
 		validateClientConfiguration();
 
 		eventLog.endBlock();
@@ -776,7 +778,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
-		validateClientJwks(true);
+		if (clientAuthType == VCIClientAuthType.PRIVATE_KEY_JWT) {
+			validateClientJwks(true);
+		}
 		validateClientConfiguration();
 
 		//switch back to the first client
@@ -1206,6 +1210,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			String proofType = env.getString("proof_type");
 			if ("jwt".equals(proofType)) {
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
+				if (errorResponse != null) {
+					return errorResponse;
+				}
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateAttestedKeysInKeyAttestationFromJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
 			} else if ("attestation".equals(proofType)) {
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
 			} else if ("di_vp".equals(proofType)) {
