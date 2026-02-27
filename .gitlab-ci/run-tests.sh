@@ -434,7 +434,7 @@ makeServerTest() {
     TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$RAR][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$RAR][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
 
     # only runs some modules for now; we need to fix bugs etc before we can run the whole plan
-    TESTS="${TESTS} oid4vci-1_0-issuer-haip-test-plan[$WALLETINIT][$SDJWTVC]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow authlete-vci-haip.json"
+    TESTS="${TESTS} oid4vci-1_0-issuer-haip-test-plan[$WALLETINIT][$SDJWTVC]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow,oid4vci-1_0-issuer-happy-flow-multiple-clients authlete-vci-haip.json"
 }
 
 makeCIBATest() {

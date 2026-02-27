@@ -138,8 +138,8 @@ import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.AuthorizationRequestType;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
@@ -206,8 +206,6 @@ import net.openid.conformance.vci10issuer.condition.statuslist.VCIValidateCreden
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Supplier;
 
 @ConfigurationFields({
@@ -1558,6 +1556,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+
+		if (env.getString("config", "client.scope") != null && env.getString("client", "scope") == null) {
+			env.putString("client", "scope", env.getString("config", "client.scope"));
+		}
 	}
 
 	protected void unmapClient() {
@@ -1630,15 +1632,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		createDpopForParEndpointSteps = () -> CreateDpopProofSteps.createParEndpointDpopSteps();
 		createDpopForTokenEndpointSteps = () -> CreateDpopProofSteps.createTokenEndpointDpopSteps();
 		createDpopForResourceEndpointSteps = () -> CreateDpopProofSteps.createResourceEndpointDpopSteps();
-	}
-
-	protected boolean scopeContains(String requiredScope) {
-		String scope = env.getString("config", "client.scope");
-		if (Strings.isNullOrEmpty(scope)) {
-			throw new TestFailureException(getId(), "'scope' seems to be missing from client configuration");
-		}
-		List<String> scopes = Arrays.asList(scope.split(" "));
-		return scopes.contains(requiredScope);
 	}
 
 	protected void performPARRedirectWithRequestUri() {
