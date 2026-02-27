@@ -5,9 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
-import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VariantConfigurationFields;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,17 +21,8 @@ import java.util.concurrent.TimeUnit;
 		 * acknowledge a verification event (200 OK on PUSH, or explicit ack on POLL)
 		 * delete the stream
 		""",
-	profile = "OIDSSF",
-	configurationFields = {
-		"ssf.transmitter.access_token",
-		"ssf.stream.audience",
-		"ssf.subjects.valid",
-		"ssf.subjects.invalid"
-	})
-@VariantConfigurationFields(parameter = SsfDeliveryMode.class,
-	value = "push",
-	configurationFields = {
-	})
+	profile = "OIDSSF"
+)
 public class OIDSSFReceiverStreamVerificationTest extends AbstractOIDSSFReceiverTestModule {
 
 	volatile String createdStreamId;

@@ -6,10 +6,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
-import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VariantConfigurationFields;
 
 import java.time.Instant;
 import java.util.List;
@@ -32,18 +30,8 @@ import java.util.concurrent.TimeUnit;
 		 * Acknowledge the events
 		 * delete the stream
 		""",
-	profile = "OIDSSF",
-	configurationFields = {
-		"ssf.transmitter.access_token",
-		"ssf.stream.audience",
-		"ssf.subjects.valid",
-		"ssf.subjects.invalid"
-	})
-@VariantConfigurationFields(
-	parameter = SsfDeliveryMode.class,
-	value = "push",
-	configurationFields = {
-	})
+	profile = "OIDSSF"
+)
 public class OIDSSFReceiverSupportedEventsTest extends AbstractOIDSSFReceiverTestModule {
 
 	volatile String createdStreamId;

@@ -10,11 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "openid-ssf-stream-control-error-create-stream-with-invalid-token",
 	displayName = "Attempt to create Stream Configuration with invalid access token.",
 	summary = "This test verifies the behavior of the stream control for error cases. It attempts to create a stream configuration with an invalid access token.",
-	profile = "OIDSSF",
-	configurationFields = {
-		"ssf.transmitter.issuer",
-		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
-	}
+	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestCreateStreamWithInvalidAccessToken extends AbstractStreamControlErrorTest {
 

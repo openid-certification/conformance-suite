@@ -37,6 +37,7 @@ import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.BaseUrlUtil;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
@@ -58,6 +59,12 @@ import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_POL
 import static net.openid.conformance.openid.ssf.SsfConstants.DELIVERY_METHOD_PUSH_RFC_8935_URI;
 
 @VariantParameters({SsfProfile.class, SsfDeliveryMode.class,})
+@ConfigurationFields({
+	"ssf.transmitter.access_token",
+	"ssf.stream.audience",
+	"ssf.subjects.valid",
+	"ssf.subjects.invalid",
+})
 public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTestModule {
 
 	protected OIDSSFEventStore eventStore;
