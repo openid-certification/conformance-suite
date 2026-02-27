@@ -27,16 +27,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 		Note that if the vci_grant_type=pre_authorization_code is used, you can use 123456 as the tx_code.
 		""",
-	profile = "OID4VCI-1_0",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.redirect_uri",
-		"client.jwks",
-		"credential.signing_jwk",
-		"waitTimeoutSeconds",
-		"vci.credential_offer_endpoint"
-	}
+	profile = "OID4VCI-1_0"
 )
 public class VCIWalletTestCredentialIssuanceUsingScopesWithoutAuthorizationDetailsInTokenResponse extends VCIWalletTestCredentialIssuance {
 
