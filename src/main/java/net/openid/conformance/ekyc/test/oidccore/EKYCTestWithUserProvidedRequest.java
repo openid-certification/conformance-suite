@@ -16,11 +16,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 	profile = "OIDCC",
 	configurationFields = {
 		"ekyc.verified_claims_request_list",
-		"ekyc.unverified_claims_names",
-		"ekyc.verified_claims_names",
-		"ekyc.request_schemas",
-		"ekyc.response_schemas",
-		"ekyc.expected_verified_claims"
+		"ekyc.expected_verified_claims",
 	}
 )
 public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCore {

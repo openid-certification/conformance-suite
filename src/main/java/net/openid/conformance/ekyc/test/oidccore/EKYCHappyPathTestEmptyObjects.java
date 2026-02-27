@@ -10,15 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Request only one claim, selected from the list of claims_in_verified_claims_supported, " +
 		"without requesting any other verification element and expect a happy path flow. Uses empty objects instead " +
 		"of 'null' when requesting claim.",
-	profile = "OIDCC",
-	configurationFields = {
-		"trust_framework",
-		"verified_claim_names",
-		"ekyc.unverified_claims_names",
-		"ekyc.verified_claims_names",
-		"ekyc.request_schemas",
-		"ekyc.response_schemas"
-	}
+	profile = "OIDCC"
 )
 public class EKYCHappyPathTestEmptyObjects extends AbstractEKYCTestWithOIDCCore {
 	@Override
