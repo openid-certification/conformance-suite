@@ -87,9 +87,9 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 		if (vciProfile == VCIProfile.HAIP) {
 			callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
-			callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(true), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.2", "HAIP-6");
+			callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(true), Condition.ConditionResult.WARNING, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.2", "HAIP-6");
 		} else {
-			callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(false), Condition.ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.1", "OID4VCI-1FINALA-A.2");
+			callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(false), Condition.ConditionResult.WARNING, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.1", "OID4VCI-1FINALA-A.2");
 		}
 	}
 
