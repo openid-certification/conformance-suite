@@ -6,7 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddTrustChainParameterToRequestObject extends AbstractCondition {
+public class AddTrustChainToRequestObjectClaims extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = { "config", "request_object_claims" })

@@ -1,6 +1,7 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
@@ -49,14 +50,22 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 		return signJWT(env, claims, jwks, includeTyp, false, false, false);
 	}
 
+	protected Environment signJWT(Environment env, JsonObject claims, JsonObject headerParams, JsonObject jwks, boolean includeTyp) {
+		return signJWT(env, claims, headerParams, jwks, includeTyp, false, false, false);
+	}
+
 	protected JOSEObjectType getMediaType() {
 		return JOSEObjectType.JWT;
+	}
+
+	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp, boolean includeX5tS256, boolean includeX5c, boolean errorIfX5cMissing) {
+		return signJWT(env, claims, null, jwks, includeTyp, includeX5tS256, includeX5c, errorIfX5cMissing);
 	}
 
 	/**
 	 * Expects only one non-encryption JWK in jwks
 	 */
-	protected Environment signJWT(Environment env, JsonObject claims, JsonObject jwks, boolean includeTyp, boolean includeX5tS256, boolean includeX5c, boolean errorIfX5cMissing) {
+	protected Environment signJWT(Environment env, JsonObject claims, JsonObject headerParams, JsonObject jwks, boolean includeTyp, boolean includeX5tS256, boolean includeX5c, boolean errorIfX5cMissing) {
 
 		if (claims == null) {
 			throw error("Couldn't find claims");
@@ -82,6 +91,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 			if (includeTyp) {
 				builder.type(getMediaType());
 			}
+
 			if (includeX5tS256) {
 				Base64URL x5tFromJwk = signingJwk.getX509CertSHA256Thumbprint();
 				List<X509Certificate> certs = signingJwk.getParsedX509CertChain();
@@ -104,6 +114,7 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 				}
 				builder.x509CertSHA256Thumbprint(x5tS256);
 			}
+
 			if (includeX5c) {
 				if (signingJwk.getX509CertChain() == null) {
 					if (errorIfX5cMissing) {
@@ -114,6 +125,18 @@ public abstract class AbstractSignJWT extends AbstractGetSigningKey {
 				}
 			}
 			builder.keyID(signingJwk.getKeyID());
+
+			if (headerParams != null) {
+				for (Map.Entry<String, JsonElement> entry : headerParams.entrySet()) {
+					String key = entry.getKey();
+					JsonElement value = entry.getValue();
+					if (value.isJsonArray()) {
+						builder.customParam(key, OIDFJSON.convertJsonArrayToList(value.getAsJsonArray()));
+					} else {
+						builder.customParam(key, value);
+					}
+				}
+			}
 			JWSHeader header = builder.build();
 
 			String jws = performSigning(header, claims, signer);

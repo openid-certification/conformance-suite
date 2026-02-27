@@ -327,7 +327,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 		env.putObject("trust_chain", trustChainInfo);
 
 		// Get the trust chain from the request object if it exists, otherwise build it.
-		callAndContinueOnFailure(ExtractTrustChainFromRequestObject.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(ExtractTrustChainFromRequestObject.class, Condition.ConditionResult.WARNING, "OIDFED-12.1.1.1");
 		JsonElement trustChainElement = env.getElementFromObject("trust_chain", "trust_chain");
 		if (trustChainElement == null) {
 			List<String> rpTrustChain;

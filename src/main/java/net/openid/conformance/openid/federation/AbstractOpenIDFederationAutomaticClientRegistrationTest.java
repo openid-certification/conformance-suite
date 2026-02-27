@@ -31,6 +31,7 @@ import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfig
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.SignRequestObjectIncludeTypHeader;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateErrorDescriptionFromAuthorizationEndpointResponseError;
 import net.openid.conformance.condition.client.ValidateErrorUriFromAuthorizationEndpointResponseError;
@@ -74,6 +75,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	protected Class<? extends ConditionSequence> addParEndpointClientAuthentication;
 
 	protected boolean includeTrustChainInAuthorizationRequest = false;
+	protected boolean includeTrustChainInClaims = false;
 
 	protected abstract FAPIAuthRequestMethod getRequestMethod();
 
@@ -305,6 +307,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	protected void buildRequestObject() {
 		callAndContinueOnFailure(CreateRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(CreateRequestObjectHeader.class, Condition.ConditionResult.FAILURE);
 
 		if (includeTrustChainInAuthorizationRequest) {
 			String entityIdentifier = env.getString("entity_identifier");
@@ -319,12 +322,16 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 			trustChainObject.add("trust_chain", trustChain);
 			env.putObject("config", "client.trust_chain", trustChainObject);
 
-			callAndContinueOnFailure(AddTrustChainParameterToRequestObject.class, Condition.ConditionResult.FAILURE);
+			if (includeTrustChainInClaims) {
+				callAndContinueOnFailure(AddTrustChainToRequestObjectClaims.class, Condition.ConditionResult.FAILURE);
+			} else {
+				callAndContinueOnFailure(AddTrustChainToRequestObjectHeader.class, Condition.ConditionResult.FAILURE);
+			}
 		}
 	}
 
 	protected void signRequestObject() {
-		callAndContinueOnFailure(SignRequestObjectWithFederationTrustChain.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(SignRequestObjectIncludeTypHeader.class, Condition.ConditionResult.FAILURE);
 	}
 
 	protected void encryptRequestObject() {

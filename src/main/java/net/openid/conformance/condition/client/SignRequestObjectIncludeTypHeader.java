@@ -21,8 +21,9 @@ public class SignRequestObjectIncludeTypHeader extends AbstractSignJWT {
 	@PostEnvironment(strings = "request_object")
 	public Environment evaluate(Environment env) {
 		JsonObject claims = env.getObject("request_object_claims");
+		JsonObject headerParams = env.getObject("request_object_header");
 		JsonObject jwks = env.getObject("client_jwks");
-		return signJWT(env, claims, jwks, true);
+		return signJWT(env, claims, headerParams, jwks, true);
 	}
 
 	@Override

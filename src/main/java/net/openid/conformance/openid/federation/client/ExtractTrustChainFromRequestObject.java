@@ -10,15 +10,21 @@ public class ExtractTrustChainFromRequestObject extends AbstractCondition {
 	@Override
 	@PreEnvironment(required = {"trust_chain", "authorization_request_object"})
 	public Environment evaluate(Environment env) {
-		JsonElement trustChainInRequestObject = env.getElementFromObject("authorization_request_object", "claims.trust_chain");
+		JsonElement trustChainInHeader = env.getElementFromObject("authorization_request_object", "header.trust_chain");
+		JsonElement trustChainInClaims = env.getElementFromObject("authorization_request_object", "claims.trust_chain");
 
-		if (trustChainInRequestObject != null && trustChainInRequestObject.isJsonArray()) {
-			env.putArray("trust_chain", "trust_chain", trustChainInRequestObject.getAsJsonArray());
+		if (trustChainInHeader != null && trustChainInHeader.isJsonArray()) {
+			env.putArray("trust_chain", "trust_chain", trustChainInHeader.getAsJsonArray());
 
-			logSuccess("Successfully extracted trust_chain from authorization request object and added to environment",
-				args("trust_chain", trustChainInRequestObject));
+			logSuccess("Successfully extracted trust_chain from authorization request object header and added to environment",
+				args("trust_chain", trustChainInHeader));
+		} else if (trustChainInClaims != null && trustChainInClaims.isJsonArray()) {
+			env.putArray("trust_chain", "trust_chain", trustChainInClaims.getAsJsonArray());
+
+			throw error("The trust_chain was found in the JWT claims, but it is RECOMMENDED to use the JWS header instead.",
+				args("trust_chain", trustChainInClaims));
 		} else {
-			log("No trust_chain array found in authorization request object");
+			log("No trust_chain array found in authorization request object (checked both header and claims)");
 		}
 
 		return env;
