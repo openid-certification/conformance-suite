@@ -195,7 +195,7 @@ public class TestRunner implements DataUtils {
 				"testName", e.info.testName(),
 				"displayName", e.info.displayName(),
 				"profile", e.info.profile(),
-				"configurationFields", e.info.configurationFields(),
+				"configurationFields", e.combinedConfigurationFields,
 				"variants", e.getVariantSummary(),
 				"summary", e.info.summary()))
 			.collect(Collectors.toList());

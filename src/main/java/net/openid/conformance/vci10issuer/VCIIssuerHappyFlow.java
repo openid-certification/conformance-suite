@@ -10,21 +10,10 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	testName = "oid4vci-1_0-issuer-happy-flow",
 	displayName = "OID4VCI 1.0: Issuer happy flow",
 	summary = "This test case validates the standard credential issuance flow using an emulated wallet, as defined in the OpenID for Verifiable Credential Issuance (OpenID4VCI) specification. It begins by retrieving metadata from both the Credential Issuer and the OAuth 2.0 Authorization Server. An authorization request is initiated using Pushed Authorization Requests (PAR), and an access token is obtained. The test then retrieves a nonce from the Credential Endpoint, constructs a DPoP proof JWT bound to the nonce, and successfully requests a credential from the Credential Endpoint.",
-	profile = "OID4VCI-1_0",
-	configurationFields = {
-		"vci.credential_issuer_url",
-		"client.client_id",
-		"client.jwks",
-		"client2.client_id",
-		"client2.jwks",
-		"vci.credential_configuration_id",
-		"vci.credential_proof_type_hint",
-		"vci.key_attestation_jwks",
-		"vci.authorization_server",
-	}
+	profile = "OID4VCI-1_0"
 )
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation",
-	configurationFields = {"client.jwks", "client2.jwks"})
+	configurationFields = {"client.jwks"})
 public class VCIIssuerHappyFlow extends AbstractVCIIssuerTestModule {
 
 	@Override
