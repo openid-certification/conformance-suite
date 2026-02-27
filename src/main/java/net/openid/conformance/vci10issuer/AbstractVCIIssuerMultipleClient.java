@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.VCIClientAuthType;
 
 @ConfigurationFields({"client2.client_id", "client2.jwks"})
 public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerTestModule {
@@ -34,6 +35,10 @@ public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerT
 		eventLog.startBlock(currentClientString() + "Setup");
 
 		switchToSecondClient();
+
+		if (clientAuthType == VCIClientAuthType.CLIENT_ATTESTATION) {
+			generateClientAttestationKeys();
+		}
 
 		Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
 
