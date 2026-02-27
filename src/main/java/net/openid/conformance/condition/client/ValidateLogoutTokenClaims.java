@@ -10,6 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class ValidateLogoutTokenClaims extends AbstractCondition {
@@ -68,6 +69,10 @@ public class ValidateLogoutTokenClaims extends AbstractCondition {
 		} else {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
 				throw error("Token 'iat' in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+			}
+			if (now.minus(1, ChronoUnit.DAYS).isAfter(Instant.ofEpochSecond(iat))) {
+				throw error("'iat' is more than 1 day in the past",
+					args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 		}
 

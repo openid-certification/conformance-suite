@@ -28,6 +28,10 @@ public class ValidateExpiresIn extends AbstractCondition {
 				// returning a token that is already expires seems nonsensical
 				throw error("expires_in must be positive");
 			}
+			if (n.longValue() > 31536000) {
+				throw error("expires_in is unreasonably large (more than 1 year), this may indicate the value was incorrectly specified in milliseconds instead of seconds",
+					args("expires_in", n));
+			}
 
 		} catch (IllegalStateException ex) {
 			throw error("expires_in is not a JSON primitive");

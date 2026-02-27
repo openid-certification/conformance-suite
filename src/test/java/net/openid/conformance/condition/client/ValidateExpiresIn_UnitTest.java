@@ -130,4 +130,28 @@ public class ValidateExpiresIn_UnitTest {
 		cond.execute(env);
 	}
 
+	@Test
+	public void ValidateExpiresIn_MillisAsSeconds() {
+		assertThrows(ConditionError.class, () -> {
+			// 86400000 ms = 86400s (1 day), but if used directly as seconds this is ~2.7 years
+			env.putObject("expires_in", JsonParser.parseString("{\"expires_in\":86400000}").getAsJsonObject());
+			cond.execute(env);
+		});
+	}
+
+	@Test
+	public void ValidateExpiresIn_OneYear() {
+		// exactly 1 year should pass
+		env.putObject("expires_in", JsonParser.parseString("{\"expires_in\":31536000}").getAsJsonObject());
+		cond.execute(env);
+	}
+
+	@Test
+	public void ValidateExpiresIn_OverOneYear() {
+		assertThrows(ConditionError.class, () -> {
+			env.putObject("expires_in", JsonParser.parseString("{\"expires_in\":31536001}").getAsJsonObject());
+			cond.execute(env);
+		});
+	}
+
 }

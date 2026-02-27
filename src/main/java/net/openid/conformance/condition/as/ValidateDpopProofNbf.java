@@ -21,6 +21,10 @@ public class ValidateDpopProofNbf extends AbstractCondition {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(nbf))) {
 				throw error("DPoP Proof has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
 			}
+			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(nbf))) {
+				throw error("DPoP Proof 'nbf' is more than 5 minutes in the past",
+					args("not-before", new Date(nbf * 1000L), "now", now));
+			}
 		}
 
 		logSuccess("DPoP Proof nbf value passed validation checks");
