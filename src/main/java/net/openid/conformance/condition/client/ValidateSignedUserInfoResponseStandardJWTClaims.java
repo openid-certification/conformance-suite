@@ -9,6 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class ValidateSignedUserInfoResponseStandardJWTClaims extends AbstractCondition {
@@ -64,12 +65,20 @@ public class ValidateSignedUserInfoResponseStandardJWTClaims extends AbstractCon
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 				throw error("response expired", args("expiration", new Date(exp * 1000L), "now", now));
 			}
+			if (Instant.ofEpochSecond(exp).isAfter(now.plus(50 * 365, ChronoUnit.DAYS))) {
+				throw error("'exp' is unreasonably far in the future (more than 50 years), this may indicate the value was incorrectly specified in milliseconds instead of seconds",
+					args("exp", new Date(exp * 1000L), "now", now));
+			}
 		}
 
 		Long iat = env.getLong(USERINFO_OBJECT, "claims.iat");
 		if (iat != null) {
 			if (now.plusMillis(timeSkewMillis).isBefore(Instant.ofEpochSecond(iat))) {
 				throw error("response issued in the future", args("issued-at", new Date(iat * 1000L), "now", now));
+			}
+			if (now.minus(1, ChronoUnit.DAYS).isAfter(Instant.ofEpochSecond(iat))) {
+				throw error("'iat' is more than 1 day in the past",
+					args("issued-at", new Date(iat * 1000L), "now", now));
 			}
 		}
 

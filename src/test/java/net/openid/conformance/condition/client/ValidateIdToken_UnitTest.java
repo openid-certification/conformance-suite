@@ -504,4 +504,30 @@ public class ValidateIdToken_UnitTest {
 		});
 	}
 
+	@Test
+	public void testEvaluate_expMillisAsSeconds() {
+		assertThrows(ConditionError.class, () -> {
+			claims.remove("exp");
+			claims.addProperty("exp", nowSeconds * 1000); // millis instead of seconds
+
+			env.putObject("client", client);
+			env.putObject("server", server);
+			addIdToken(env, claims);
+
+			cond.execute(env);
+		});
+	}
+
+	@Test
+	public void testEvaluate_expReasonable() {
+		claims.remove("exp");
+		claims.addProperty("exp", nowSeconds + 3600); // 1 hour from now
+
+		env.putObject("client", client);
+		env.putObject("server", server);
+		addIdToken(env, claims);
+
+		cond.execute(env);
+	}
+
 }
