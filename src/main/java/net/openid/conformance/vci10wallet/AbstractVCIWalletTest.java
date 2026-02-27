@@ -180,6 +180,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.util.TemplateProcessor;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -248,6 +249,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+@ConfigurationFields({
+	"server.jwks",
+	"client.client_id",
+	"client.redirect_uri",
+	"client.jwks",
+	"credential.signing_jwk",
+	"waitTimeoutSeconds",
+	"vci.credential_offer_endpoint",
+	"vci.key_attestation_jwks",
+	"vci.key_attestation_trust_anchor_pem",
+	"vci.credential_configuration_id",
+})
 @VariantParameters({
 	VCIClientAuthType.class,
 	FAPI2AuthRequestMethod.class,
