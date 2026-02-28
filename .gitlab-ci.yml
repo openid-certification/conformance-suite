@@ -52,7 +52,7 @@ claude-review:
       When done, post your review as a comment on the MR using the glab_mr_note_create tool."
       --permission-mode acceptEdits
       --allowedTools "Read Glob Grep mcp__gitlab"
-      --max-turns 10
+      --max-turns 25
 
 .maven: &maven
   image: maven:3-eclipse-temurin-17
