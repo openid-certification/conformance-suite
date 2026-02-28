@@ -42,17 +42,19 @@ claude-review:
     - dpkg -i /tmp/glab.deb && rm /tmp/glab.deb
     - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
   script:
-    - claude mcp add-json gitlab '{"type":"stdio","command":"glab","args":["mcp","serve"]}'
+    - git diff "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}...HEAD" > /tmp/mr-diff.txt
     - >
       claude
-      -p "You are reviewing merge request !${CI_MERGE_REQUEST_IID} in project ${CI_PROJECT_PATH}.
-      Use the glab_mr_view tool to read the MR details and diff.
-      Review the code changes for correctness, spec compliance, and conformance suite conventions.
-      Focus on bugs, dead code, API misuse, and behavioral changes.
-      When done, post your review as a comment on the MR using the glab_mr_note_create tool."
+      -p "Review the following merge request diff for the OpenID conformance suite.
+      Focus on correctness, spec compliance, dead code, API misuse, and behavioral changes.
+      Write your review in markdown to the file /tmp/review.md.
+      Do NOT write anything to stdout, only to the file.
+
+      $(cat /tmp/mr-diff.txt)"
       --permission-mode acceptEdits
-      --allowedTools "Read Glob Grep mcp__gitlab"
+      --allowedTools "Read Glob Grep Write"
       --max-turns 25
+    - glab mr note "${CI_MERGE_REQUEST_IID}" --message "$(cat /tmp/review.md)"
 
 .maven: &maven
   image: maven:3-eclipse-temurin-17
