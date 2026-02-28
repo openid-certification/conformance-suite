@@ -36,8 +36,13 @@ claude-review:
     - apt-get update && apt-get install -y --no-install-recommends git curl ca-certificates
     - curl -fsSL https://claude.ai/install.sh | bash
     - export PATH="$HOME/.local/bin:$PATH"
+    # Install glab and authenticate with CI job token
+    - curl -fsSL "https://gitlab.com/gitlab-org/cli/-/releases/permalink/latest/downloads/glab_linux_amd64.deb" -o /tmp/glab.deb
+    - dpkg -i /tmp/glab.deb && rm /tmp/glab.deb
+    - glab auth login --hostname "$CI_SERVER_HOST" --job-token "$CI_JOB_TOKEN"
   script:
     - export PATH="$HOME/.local/bin:$PATH"
+    - claude mcp add-json gitlab '{"type":"stdio","command":"glab","args":["mcp","serve"]}'
     - >
       claude
       -p "Review this merge request for correctness, spec compliance, and conformance suite conventions. Focus on bugs, dead code, API misuse, and behavioral changes."
