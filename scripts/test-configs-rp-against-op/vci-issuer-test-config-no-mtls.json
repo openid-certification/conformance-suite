@@ -1,8 +1,8 @@
 {
-    "alias": "oidf-fapi-op-test",
+    "alias": "oidf-vci-issuer-test",
     "description": "VCI Issuer test config for running against wallet tests (no mtls)",
     "vci": {
-        "credential_issuer_url": "{BASEURL}test/a/oidf-fapi-rp-test/",
+        "credential_issuer_url": "{BASEURL}test/a/oidf-vci-wallet-test/",
         "credential_configuration_id": "eu.europa.ec.eudi.pid.1"
     },
     "client": {
@@ -42,11 +42,11 @@
     "browser": [
         {
             "comment": "expect an immediate redirect back to the conformance suite",
-            "match": "https://*/test/a/oidf-fapi-rp-test/authorize*",
+            "match": "https://*/test/a/oidf-vci-wallet-test/authorize*",
             "tasks": [
                 {
                     "task": "Verify Complete",
-                    "match": "https://*/test/a/oidf-fapi-op-test/callback*",
+                    "match": "https://*/test/a/oidf-vci-issuer-test/callback*",
                     "commands": [
                         [
                             "wait",

@@ -1325,6 +1325,10 @@ async def main():
             if rp_initiated_logout:
                 untested_test_modules.remove(m)
                 continue
+        elif show_untested == 'vc':
+            if not oid4vp:
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'ciba':
             # Only run server test, therefore ignore all ciba test
             if not ciba_op_test:

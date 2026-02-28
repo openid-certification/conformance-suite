@@ -353,7 +353,9 @@ makeServerTest() {
     # We keep it here as we want to be sure code changes don't break the example in the instructions, but the downside is there
     # is a chance that users may be using the alias at the same time our tests are running
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi1-adv-final-privatekey-for-instructions.json"
+}
 
+makeVcTests() {
     # OpenID4VP op-against-rp
     VPPROFILE="vp_profile=plain_vp"
     SDJWT="credential_format=sd_jwt_vc"
@@ -597,12 +599,6 @@ makeSsfTests() {
     TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}../conformance-suite/scripts/test-configs-ssf/ssf-transmitter-test-config.json ../conformance-suite/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 }
 
-makeOid4VciTests() {
-#    TESTS="${TESTS} openid-vci-test-plan[server_metadata=discovery] ../conformance-suite/scripts/test-configs-vci/xxxx.json"
-    echo "VCI not implemented yet"
-    TESTS="${TESTS}"
-}
-
 makeAuthzenTests() {
    TESTS="${TESTS} authzen-pdp-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ../conformance-suite/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
 }
@@ -785,14 +781,14 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ssf-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # TESTS="${TESTS} --show-untested-test-modules ssf"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--vci-tests" ]; then
-    echo "Run oid4vci tests"
-    makeOid4VciTests
-    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-vci.json"
-    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-vci.json"
+elif [ "$#" -eq 1 ] && [ "$1" = "--vc-tests" ]; then
+    echo "Run VP+VCI tests"
+    makeVcTests
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-vc.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-vc.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    TESTS="${TESTS} --show-untested-test-modules vci"
+    TESTS="${TESTS} --show-untested-test-modules vc"
     TESTS="${TESTS} --export-dir ../conformance-suite"
 elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests-only" ]; then
     echo "Run panva tests"
@@ -801,7 +797,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests-only" ]; then
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vci-tests]"
+    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests]"
     exit 1
 fi
 

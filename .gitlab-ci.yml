@@ -143,6 +143,12 @@ compare_federation:
   script:
     - run_compare federation_test
 
+compare_vc:
+  <<: *compare
+  needs: ["vc_test"]
+  script:
+    - run_compare vc_test
+
 compare_ssf:
   <<: *compare
   needs: ["ssf_test"]
@@ -375,6 +381,12 @@ federation_test:
   script:
     - set_up_for_running_test_plan
     - run_federation_test_plan
+
+vc_test:
+  <<: *deployment_test
+  script:
+    - set_up_for_running_test_plan
+    - run_vc_test_plan
 
 ssf_test:
   <<: *deployment_test
@@ -737,6 +749,11 @@ local_test:
   function run_federation_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
     ../conformance-suite/.gitlab-ci/run-tests.sh --federation-tests
+  }
+
+  function run_vc_test_plan() {
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ../conformance-suite/.gitlab-ci/run-tests.sh --vc-tests
   }
 
   function run_ssf_test_plan() {

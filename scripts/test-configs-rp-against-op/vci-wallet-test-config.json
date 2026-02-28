@@ -1,5 +1,5 @@
 {
-    "alias": "oidf-fapi-rp-test",
+    "alias": "oidf-vci-wallet-test",
     "description": "VCI Wallet test config for running against issuer tests",
     "server": {
         "jwks": {
@@ -42,7 +42,7 @@
             ]
         },
         "certificate": "-----BEGIN CERTIFICATE-----\nMIIDlTCCAn2gAwIBAgIJAKRJoaX7BlZbMA0GCSqGSIb3DQEBCwUAMGAxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBU\nZXN0IENsaWVudDEdMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwIBcNMTgw\nNTI1MjA1NzU0WhgPMjEwNjAxMDQyMDU3NTRaMGAxCzAJBgNVBAYTAlVTMRMwEQYD\nVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBUZXN0IENsaWVudDEd\nMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwggEiMA0GCSqGSIb3DQEBAQUA\nA4IBDwAwggEKAoIBAQDEWwl/Q+nuL8KXbObpVzww1VkHwLF4W9QxrPI1V0Uh6V9r\nxUjrfSbtWNEQVDwQmoW8M1XjnRnGvdNRd0m6gNEQLKsqRN2xIvPdR0IO+2b+y7WJ\n9XlwdqHAFSWQJtoHzBAmkRirRMJrQSW5sB/NIBmyVqUdTV/FghNjc+IiPF4X1kxw\nwOzm7y2zlHZUpiPQknwPbWNeyunj/XQRrqWPg+RXzAKIjbVprxGaT8CexKu6oEae\nd8BCTO0rJIOkmjXZMl+SDhXQn9GHKFh60UlJddxVngxhX63MAQ1GsO8HsjrLgO3q\n4LmTDVHkprLy/wgBRDfo0IHb3gWhbOuRGMLLMKKvAgMBAAGjUDBOMB0GA1UdDgQW\nBBRuwpA4lqWaOkwmPcTQR8CH0Iv3vjAfBgNVHSMEGDAWgBRuwpA4lqWaOkwmPcTQ\nR8CH0Iv3vjAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBiCmvQmmKq\nI/8sB312HTEFlvtpbYp429eNCGXWloOOqVQkJaBnvy9YUS/wCgusyKeMBgbgpV0s\n8bp/gEW2/MnlWW9+fbFuhzRRwvuV/7je1Avv9Y06RH8GKJYwk2j6qcO7Mn9kVhln\nlKxGdFxm/i0OBuZnUe/KDxKPjVEdUJbxAFfxdq4cUjfewMuoxsYruIDnLXjTBcj2\nPbJ6vcPzq/6TYwxRmnrXIAO6Nxe8ZNXn2x2+njwrUKW4WPQ7u3dyHlD+M3iTpm3T\nwSgg0FSYiBcXhWJLQCJVEb0kbKJ/PDmcvomusQWTL/0epS62azWG8PUUs4v9Xeae\nmAbHqPGh+5Bo\n-----END CERTIFICATE-----\n",
-        "redirect_uri": "{BASEURL}test/a/oidf-fapi-op-test/callback"
+        "redirect_uri": "{BASEURL}test/a/oidf-vci-issuer-test/callback"
     },
     "client2": {
         "client_id": "61732691006",
@@ -77,7 +77,7 @@
     },
     "maxWaitForAdditionalRequestSeconds": 10,
     "vci": {
-        "credential_offer_endpoint": "{BASEURL}test/a/oidf-fapi-op-test/credential_offer",
+        "credential_offer_endpoint": "{BASEURL}test/a/oidf-vci-issuer-test/credential_offer",
         "client_attestation_issuer": "https://client-attester.example.org/",
         "client_attestation_trust_anchor": "-----BEGIN CERTIFICATE-----\nMIICKzCCAbGgAwIBAgIUCshnTMlbzyFnjG17iOdOhdZGp4owCgYIKoZIzj0EAwMw\nLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4X\nDTI2MDExNTE2NTQyNFoXDTQxMDExMTE2NTQyNFowLDEqMCgGA1UEAwwhT3BlbklE\nNFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MHYwEAYHKoZIzj0CAQYFK4EEACID\nYgAELDjIIc5bYkiQCKrBDTkDnF9wkO1lNI4og9rERzeatPdIT6g/Q6vHIOA7UPZo\nFRv5m+lN50xsaAaZzXgqeX1VxVD71FQBkT+CnpqRbcgAcpug5wC36N7Pgddu8H/v\nT8lWo4GTMIGQMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0G\nA1UdDgQWBBTgt/z+s54ZDXsVA/YQLaW4RI7WajBLBgNVHREERDBCghZsb2NhbGhv\nc3QuZW1vYml4LmNvLnVrgihzdGFuemFlZC10cmloeWRyb3h5LXNoZW5hLm5ncm9r\nLWZyZWUuZGV2MAoGCCqGSM49BAMDA2gAMGUCMQCuRHw+0d1av0FKQwqyl2UJgI4F\nXBFSQiyQj25Uii6g4mK5sUVDV3txBvPku5G7AKsCMDJYACWvj8Ll3CPfxJ+nQib6\nXWCTUoo7AOlBMecuvI86XRClZgDacEAOsYt2WyqBFg==\n-----END CERTIFICATE-----\n",
         "key_attestation_jwks": {
@@ -101,11 +101,11 @@
     "browser": [
         {
             "comment": "expect an immediate redirect back to the conformance suite",
-            "match": "https://*/test/a/oidf-fapi-op-test/credential_offer*",
+            "match": "https://*/test/a/oidf-vci-issuer-test/credential_offer*",
             "tasks": [
                 {
                     "task": "Verify Complete",
-                    "match": "https://*/test/a/oidf-fapi-op-test/credential_offer*",
+                    "match": "https://*/test/a/oidf-vci-issuer-test/credential_offer*",
                     "commands": [
                         [
                             "wait",
