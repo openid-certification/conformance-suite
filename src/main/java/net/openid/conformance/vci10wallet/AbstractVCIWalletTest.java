@@ -281,7 +281,7 @@ import java.util.concurrent.TimeUnit;
 	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "private_key_jwt", configurationFields = {
-	"vci.client_attestation_issuer", "client.jwks",
+	"vci.client_attestation_issuer"
 })
 @VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "mtls", configurationFields = {
 	"vci.client_attestation_issuer"
@@ -291,6 +291,9 @@ import java.util.concurrent.TimeUnit;
 })
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "mtls", configurationFields = {
 	"client.certificate"
+})
+@VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "private_key_jwt", configurationFields = {
+	"client.jwks"
 })
 @VariantNotApplicableWhen(
 	parameter = VCICredentialOfferParameterVariant.class,
