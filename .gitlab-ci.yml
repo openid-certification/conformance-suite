@@ -89,11 +89,17 @@ test:
     refs:
       - branches
 
-compare_server:
+compare_oidcc:
   <<: *compare
-  needs: ["server_test"]
+  needs: ["oidcc_test"]
   script:
-    - run_compare server_test
+    - run_compare oidcc_test
+
+compare_fapi:
+  <<: *compare
+  needs: ["fapi_test"]
+  script:
+    - run_compare fapi_test
 
 compare_ciba:
   <<: *compare
@@ -340,11 +346,17 @@ client_test:
     - set_up_for_running_test_plan
     - run_client_test_plan
 
-server_test:
+oidcc_test:
   <<: *deployment_test
   script:
     - set_up_for_running_test_plan
-    - run_server_test_plan
+    - run_oidcc_test_plan
+
+fapi_test:
+  <<: *deployment_test
+  script:
+    - set_up_for_running_test_plan
+    - run_fapi_test_plan
 
 ciba_test:
   <<: *deployment_test
@@ -713,17 +725,22 @@ local_test:
   function run_client_test_plan() {
     apk add nodejs npm go
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --client-tests
   }
 
-  function run_server_test_plan() {
+  function run_oidcc_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ../conformance-suite/.gitlab-ci/run-tests.sh --server-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --oidcc-tests
+  }
+
+  function run_fapi_test_plan() {
+    echo "Running automated tests against $CONFORMANCE_SERVER"
+    ../conformance-suite/.gitlab-ci/run-tests.sh --fapi-tests
   }
 
   function run_ciba_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ../conformance-suite/.gitlab-ci/run-tests.sh --ciba-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --ciba-tests
   }
 
   function run_brazil_test_plan() {
@@ -743,7 +760,7 @@ local_test:
 
   function run_panva_test_plan() {
     echo "Running automated tests against $CONFORMANCE_SERVER"
-    ../conformance-suite/.gitlab-ci/run-tests.sh --panva-tests-only
+    ../conformance-suite/.gitlab-ci/run-tests.sh --panva-tests
   }
 
   function run_federation_test_plan() {

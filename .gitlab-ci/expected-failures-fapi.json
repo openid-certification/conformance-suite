@@ -33,24 +33,6 @@
         "comment": "The second client in this configuration does not get issued a refresh token, which is now a warning"
     },
     {
-        "test-name": "oidcc-codereuse-30seconds",
-        "variant": "*",
-        "configuration-filename": "authlete-*.json",
-        "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
-        "condition": "EnsureHttpStatusCodeIs4xx",
-        "expected-result": "warning",
-        "comment": "known case where authlete doesn't implement a 'should'"
-    },
-    {
-        "test-name": "oidcc-server-rotate-keys",
-        "variant": "*",
-        "configuration-filename": "authlete-*.json",
-        "current-block": "",
-        "condition": "VerifyNewJwksHasNewSigningKey",
-        "expected-result": "failure",
-        "comment": "CI can't trigger key rotation"
-    },
-    {
         "test-name": "fapi2-security-profile-id2-client-test-happy-path",
         "variant": {
             "client_auth_type": "private_key_jwt",

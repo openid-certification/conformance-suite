@@ -1,0 +1,11 @@
+[
+    {
+        "test-name": "fapi1-advanced-final-refresh-token",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_profile": "openbanking_uk",
+                "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-fapi1-adv-final-ob-privatekey.json"
+    }
+]

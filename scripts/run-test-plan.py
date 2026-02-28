@@ -1290,11 +1290,15 @@ async def main():
             if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or authzen_test or oid4vp or federation_test:
                 untested_test_modules.remove(m)
                 continue
-        elif show_untested == 'server-authlete':
-            # ignore all client/CIBA test, plus we don't run the rp initiated logout tests against Authlete
+        elif show_untested == 'oidcc':
+            if not oidcc:
+                untested_test_modules.remove(m)
+                continue
+        elif show_untested == 'fapi-authlete':
+            # ignore client/CIBA/logout/ekyc/authzen/federation tests (separate jobs)
+            # ignore oidcc (separate oidcc_test job) and vp (separate vc_test job)
             # we've not yet setup fapi2 brazil dcr or uk test runs
-            # vp we do run in the OP-against-RP tests but not the full set
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp or oidcc:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':

@@ -23,8 +23,8 @@ echo
 # (to run against your local deployment, just don't do the 'source' command)
 
 TESTS=""
-EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
-EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
+EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-oidcc.json|../conformance-suite/.gitlab-ci/expected-failures-fapi.json|../conformance-suite/.gitlab-ci/expected-failures-ciba.json|../conformance-suite/.gitlab-ci/expected-failures-client.json"
+EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-oidcc.json|../conformance-suite/.gitlab-ci/expected-skips-fapi.json|../conformance-suite/.gitlab-ci/expected-skips-ciba.json|../conformance-suite/.gitlab-ci/expected-skips-client.json"
 
 makeClientTest() {
     . ./node-client-setup.sh
@@ -82,7 +82,7 @@ makeClientTest() {
     TESTS="${TESTS} fapi1-advanced-final-client-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_ksa][fapi_auth_request_method=pushed][fapi_response_mode=plain_response][fapi_client_type=oidc] ./ksa-rp-client/fapi-ksa-rp-test-config-mtls.json"
 }
 
-makeServerTest() {
+_makeFapiTestPart1() {
 
     # FAPI2 security profile
     # client credentials grant
@@ -119,7 +119,9 @@ makeServerTest() {
     TESTS="${TESTS} fapi2-message-signing-id1-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_client_type=oidc][sender_constrain=mtls][fapi_profile=cbuae][fapi_response_mode=plain_response][authorization_request_type=rar]:fapi2-security-profile-id2-client-test-happy-path{fapi2-message-signing-id1-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=cbuae][fapi_response_mode=plain_response][authorization_request_type=rar]:fapi2-security-profile-id2-discovery-end-point-verification,fapi2-security-profile-id2-par-without-duplicate-parameters}../conformance-suite/scripts/test-configs-rp-against-op/cbuae-op.json ../conformance-suite/scripts/test-configs-rp-against-op/cbuae-rp.json"
     #TESTS="${TESTS} fapi2-message-signing-final-client-test-plan[client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][fapi_client_type=oidc][sender_constrain=mtls][fapi_profile=cbuae][fapi_response_mode=plain_response][authorization_request_type=rar]:fapi2-security-profile-final-client-test-happy-path{fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=cbuae][fapi_response_mode=plain_response][authorization_request_type=rar]:fapi2-security-profile-final-discovery-end-point-verification,fapi2-security-profile-final-par-without-duplicate-parameters}../conformance-suite/scripts/test-configs-rp-against-op/cbuae-op.json ../conformance-suite/scripts/test-configs-rp-against-op/cbuae-rp.json"
     TESTS="${TESTS} fapi2-message-signing-final-test-plan[openid=openid_connect][client_auth_type=private_key_jwt][fapi_request_method=signed_non_repudiation][sender_constrain=mtls][fapi_profile=cbuae][fapi_response_mode=plain_response][authorization_request_type=rar] authlete-fapi2securityprofile-privatekey-jar-cbuae.json"
+}
 
+makeOidccTest() {
     # OIDCC certification tests - static server, static client configuration
     TESTS="${TESTS} oidcc-basic-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
     TESTS="${TESTS} oidcc-implicit-certification-test-plan[server_metadata=static][client_registration=static_client] authlete-oidcc-secret-basic-server-static.json"
@@ -217,7 +219,9 @@ makeServerTest() {
     # form post
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=client_secret_jwt][response_type=code\ id_token][response_mode=form_post][client_registration=dynamic_client] authlete-oidcc-dcr.json"
     #TESTS="${TESTS} oidcc-test-plan[client_auth_type=private_key_jwt][response_type=code\ id_token\ token][response_mode=form_post][client_registration=dynamic_client] authlete-oidcc-dcr.json"
+}
 
+_makeFapiTestPart2() {
     # Brazil FAPI Dynamic client registration
     TESTS="${TESTS} fapi1-advanced-final-brazil-dcr-test-plan[fapi_profile=openbanking_brazil][client_auth_type=private_key_jwt][fapi_response_mode=plain_response][fapi_auth_request_method=pushed] authlete-fapi-brazil-dcr.json"
 
@@ -353,6 +357,11 @@ makeServerTest() {
     # We keep it here as we want to be sure code changes don't break the example in the instructions, but the downside is there
     # is a chance that users may be using the alias at the same time our tests are running
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][fapi_response_mode=plain_response][fapi_auth_request_method=by_value] authlete-fapi1-adv-final-privatekey-for-instructions.json"
+}
+
+makeFapiTest() {
+    _makeFapiTestPart1
+    _makeFapiTestPart2
 }
 
 makeVcTests() {
@@ -698,7 +707,8 @@ makePanvaTests() {
 TESTS="${TESTS} --verbose"
 if [ "$#" -eq 0 ]; then
     echo "Run all tests"
-    makeServerTest
+    makeOidccTest
+    makeFapiTest
     makeCIBATest
     makeClientTest
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
@@ -706,7 +716,7 @@ if [ "$#" -eq 0 ]; then
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules all-except-logout"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests-only" ]; then
+elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests" ]; then
     echo "Run client tests"
     makeClientTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-client.json"
@@ -715,18 +725,26 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests-only" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--server-tests-only" ]; then
-    echo "Run server tests"
-    makeServerTest
-    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-server.json"
-    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-server.json"
+elif [ "$#" -eq 1 ] && [ "$1" = "--oidcc-tests" ]; then
+    echo "Run OIDCC tests"
+    makeOidccTest
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-oidcc.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-oidcc.json"
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
-    # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
-    TESTS="${TESTS} --show-untested-test-modules server-authlete"
+    TESTS="${TESTS} --show-untested-test-modules oidcc"
+    TESTS="${TESTS} --export-dir ../conformance-suite"
+elif [ "$#" -eq 1 ] && [ "$1" = "--fapi-tests" ]; then
+    echo "Run FAPI tests"
+    makeFapiTest
+    EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-fapi.json"
+    EXPECTED_SKIPS_FILE="../conformance-suite/.gitlab-ci/expected-skips-fapi.json"
+    TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
+    TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
+    TESTS="${TESTS} --show-untested-test-modules fapi-authlete"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
-elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests-only" ]; then
+elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests" ]; then
     echo "Run ciba tests"
     makeCIBATest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ciba.json"
@@ -790,14 +808,14 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--vc-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules vc"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests-only" ]; then
+elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests" ]; then
     echo "Run panva tests"
     makePanvaTests
     TESTS="${TESTS} --show-untested-test-modules server-panva"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 else
-    echo "Syntax: run-tests.sh [--client-tests-only|--server-tests-only|--ciba-tests-only|--local-provider-tests|--panva-tests-only|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests]"
+    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests]"
     exit 1
 fi
 
