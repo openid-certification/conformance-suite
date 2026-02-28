@@ -35,8 +35,9 @@ claude-review:
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends git curl ca-certificates
     - curl -fsSL https://claude.ai/install.sh | bash
+    - export PATH="$HOME/.local/bin:$PATH"
   script:
-    - /bin/gitlab-mcp-server || true
+    - export PATH="$HOME/.local/bin:$PATH"
     - >
       claude
       -p "Review this merge request for correctness, spec compliance, and conformance suite conventions. Focus on bugs, dead code, API misuse, and behavioral changes."
