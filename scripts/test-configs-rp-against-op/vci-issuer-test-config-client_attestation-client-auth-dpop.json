@@ -1,8 +1,8 @@
 {
-    "alias": "oidf-fapi-op-test",
+    "alias": "oidf-vci-issuer-test",
     "description": "VCI Issuer test config for running against wallet tests (dpop)",
     "vci": {
-        "credential_issuer_url": "{BASEURL}test/a/oidf-fapi-rp-test/",
+        "credential_issuer_url": "{BASEURL}test/a/oidf-vci-wallet-test/",
         "credential_configuration_id": "eu.europa.ec.eudi.pid.1",
         "client_attestation_issuer": "https://client-attester.example.org/",
         "client_attester_keys_jwks": {
@@ -84,16 +84,16 @@
         "key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDTMtUKIVG1KMrX\nvHGAgjtfryfxiJr1ZK2+/R1E0sy9xuOpQwtCWGRjKTL1/TZ3GnQmC0FfH5qHzqLj\nbOAFiYH9LJB+bACXGTII9xlaqi7Mdog8nt3IKrAgs03+YM4TlbaV4DaATBXJFRsS\nPnRvYdOp+9Zh/XbRqA/waFjgeBS2ntBHOKJaLeXkTnid2dCdeWlz1qEK59yeRKM9\nP3Ow+/m8m/lxoxf6/riVayqji7ZzuvUaPfX6MMFbVUADx5sS0PVbxYizjcGznxC7\nQb1+DJcRwzrspw7A8P5h8ZMzEsT1wHfUHyFNOckmfXlUd1HzVHgpPGutzUjvDGXX\nxxZ1LBDvAgMBAAECggEBAJzGiiB39VheTJzy1OqJQhvYQPVp62Wn89XnvLdfJ/7k\nShFWpF/+j56QcbTq32hwabHn/wHmyuZvPLlIE8/ocGcIksZV0+ZWHK9NBjQoSo8a\nmi0t3QJ+tbnAgHAJWlBtfVkqVCrO0AkxsqPLWtFntCDlwhGBfpdJg3N5cihG21Fn\nnqUNxj2lVp1jxCAAcBHwCMfODFi0Kke/FLS3u9vHSRybUAbNid1adNJ6g3f3jKXh\nX5HPR2KYqDIyCQrqs9IAx7mM/T2W75NpZC1rW5GAWyw7sR71YDFI/Mronrdh0ZiH\nOpllwgM4bBD7ipNH3jNRgsAUr5nyTIJAii9z8XxGubkCgYEA+e88Kt3uZbFfcqTv\nb2ZTCUd3fyC0FcZ+/iHhKp2fmwsSIWB7k6++q8Vn/YHdew7KS+i4dvap30+k8Jf0\nu8p1NY82qHb5b/8igj6z015O+q1XE+hNoPUeIlX7JBVf0y3NIiiOTxvcWoIGKpth\nEVvlVk27PfYUEsnefFnKTQ7kNI0CgYEA2FLxXKrDQQRwtmC0My4LuAwhkGqxCwk1\nV8vD0k+J1JqVI3qQPxt5H241KtWwdb6QxAjuBe0i1Yx6vW1qC60NaZpM7RLFOEKy\nfwLuk19S9BKs1q0BRqcPpIP0PIZ+GgpKs7fIWcn19IFI/1KlSVYYV7qDgDmzMG13\nOPeJuAclAmsCgYBIyIdgAGMlUCL4ktl7OnQh9qLw7Ygj8zsWLK2SqHZLQ00TVTKH\njp1bDlC7PW9PH75/npThZ/GOK3Zf7hCCA3Jgl4UWSBdZqxXUkgfyHLupOoNqM7Mv\nlVIiM6HAH01ZhTQAp4jRts5TuRusmrUIxhciK97EK34q/oiA8/D6wcRpHQKBgBWb\nY0RQQiRyXxe4XQdnqAAAJjIYlgp2Jv/X+H0/OJMlxZO/oDzNb7G1/lWC9pcsK6WJ\nBs1MvFf8Kh5VmWwFIvvTT6+2WkCeWNna3x2VPeHnI6Bls2TtNuDF1VVeUaYkNQXy\na26cf5amezYVeTD0CoZouM3L9Zv2sxvbjcP14rp1AoGADoxlSjWxXOxZAr835wFl\nD3EMU5nhUGA0BdCfGgKqMaZmCr/ssfQDARgCKG/zLfmUBBBHbjZcHMXw6SW+E3CT\nN/q7iddT3FOgVder4GWTA+wFYdAywCT5At8wm7zeM2d/4cWlBaKew/u+A0ycUsD6\nbd3gRXjBZpD8Eep8ltVGLHw=\n-----END PRIVATE KEY-----\n"
     },
     "client_attestation": {
-        "issuer": "{BASEURL}test/a/oidf-fapi-op-test"
+        "issuer": "{BASEURL}test/a/oidf-vci-issuer-test"
     },
     "browser": [
         {
             "comment": "expect an immediate redirect back to the conformance suite",
-            "match": "https://*/test/a/oidf-fapi-rp-test/authorize*",
+            "match": "https://*/test/a/oidf-vci-wallet-test/authorize*",
             "tasks": [
                 {
                     "task": "Verify Complete",
-                    "match": "https://*/test/a/oidf-fapi-op-test/callback*",
+                    "match": "https://*/test/a/oidf-vci-issuer-test/callback*",
                     "commands": [
                         [
                             "wait",
