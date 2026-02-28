@@ -37,8 +37,8 @@ public class VCIIssuerFailOnInvalidNonce extends VCIIssuerHappyFlow {
 	}
 
 	@Override
-	protected void verifyEffectiveCredentialResponse() {
-		super.verifyCredentialIssuerCredentialErrorResponse();
+	protected void verifyCredentialIssuerCredentialResponse() {
+		verifyCredentialIssuerCredentialErrorResponse();
 
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_NONCE), "OID4VCI-1FINAL-8.3.1");
 	}
