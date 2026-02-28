@@ -89,11 +89,41 @@ test:
     refs:
       - branches
 
-compare_cloud:
+compare_server:
   <<: *compare
-  needs: ["server_test", "ciba_test", "ekyc_test", "authzen_test", "brazil_test", "panva_test"]
+  needs: ["server_test"]
   script:
-    - run_compare server_test ciba_test ekyc_test authzen_test brazil_test panva_test
+    - run_compare server_test
+
+compare_ciba:
+  <<: *compare
+  needs: ["ciba_test"]
+  script:
+    - run_compare ciba_test
+
+compare_ekyc:
+  <<: *compare
+  needs: ["ekyc_test"]
+  script:
+    - run_compare ekyc_test
+
+compare_authzen:
+  <<: *compare
+  needs: ["authzen_test"]
+  script:
+    - run_compare authzen_test
+
+compare_brazil:
+  <<: *compare
+  needs: ["brazil_test"]
+  script:
+    - run_compare brazil_test
+
+compare_panva:
+  <<: *compare
+  needs: ["panva_test"]
+  script:
+    - run_compare panva_test
 
 compare_local:
   <<: *compare
