@@ -46,10 +46,13 @@ claude-review:
     - claude mcp add-json gitlab '{"type":"stdio","command":"glab","args":["mcp","serve"]}'
     - >
       claude
-      -p "Review this merge request for correctness, spec compliance, and conformance suite conventions. Focus on bugs, dead code, API misuse, and behavioral changes."
+      -p "You are reviewing merge request !${CI_MERGE_REQUEST_IID} in project ${CI_PROJECT_PATH}.
+      Use the glab_mr_view tool to read the MR details and diff.
+      Review the code changes for correctness, spec compliance, and conformance suite conventions.
+      Focus on bugs, dead code, API misuse, and behavioral changes.
+      When done, post your review as a comment on the MR using the glab_mr_note_create tool."
       --permission-mode acceptEdits
       --allowedTools "Read Glob Grep mcp__gitlab"
-      --debug
 
 .maven: &maven
   image: maven:3-eclipse-temurin-17
