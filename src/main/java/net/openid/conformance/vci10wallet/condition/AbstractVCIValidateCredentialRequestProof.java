@@ -84,7 +84,6 @@ public abstract class AbstractVCIValidateCredentialRequestProof extends Abstract
 		}
 
 		// 3. Find the Wallet's Public Key using 'kid'
-//		if (header.getKeyID() != null) { // always true
 		if (header.getKeyID().isEmpty()) {
 			throw error("JWT proof validation failed: Empty Key ID (kid) in header", args("jwt", jwt));
 		}
@@ -106,7 +105,6 @@ public abstract class AbstractVCIValidateCredentialRequestProof extends Abstract
 
 		log("Found public key by kid", args("kid", header.getKeyID()));
 		return walletPublicKey;
-//		}
 	}
 
 	protected JWK extractPublicJwkFromX5c(Environment env, String jwt, List<Base64> x5c) {

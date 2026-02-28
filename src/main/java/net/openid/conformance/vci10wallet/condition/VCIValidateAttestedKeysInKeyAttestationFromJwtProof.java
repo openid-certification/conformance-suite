@@ -16,7 +16,7 @@ import java.text.ParseException;
 public class VCIValidateAttestedKeysInKeyAttestationFromJwtProof extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"proof_jwt", "credential_configuration", "vci"})
+	@PreEnvironment(required = {"proof_jwt", "credential_configuration"})
 	public Environment evaluate(Environment env) {
 
 		JsonElement keyAttestationJwtEl = env.getElementFromObject("vci", "key_attestation_jwt");
@@ -25,8 +25,11 @@ public class VCIValidateAttestedKeysInKeyAttestationFromJwtProof extends Abstrac
 			return env;
 		}
 
+		// Wait until https://github.com/openid/OpenID4VC-HAIP/issues/360 is resolved
+		// TODO handle kid: if kid is present in proof jwt header -> check kid in key_attestation_jwt->attested_keys jwk.kid header matches kid
+
 		JsonObject jwkObj = env.getElementFromObject("proof_jwt", "jwk").getAsJsonObject();
-		JWK walletPublicKey = null;
+		JWK walletPublicKey;
 		try {
 			walletPublicKey = JWK.parse(jwkObj.toString());
 		} catch (ParseException e) {
@@ -44,18 +47,9 @@ public class VCIValidateAttestedKeysInKeyAttestationFromJwtProof extends Abstrac
 		}
 
 		if (!attestedKeysEl.isJsonArray() || attestedKeysEl.getAsJsonArray().isEmpty()) {
-			String errorDescription = "Proof key_attestation validation failed: required attested_keys is not an JsonArray or empty in key_attestation_jwt for proof type: jwt";
+			String errorDescription = "Proof key_attestation validation failed: required attested_keys is not a JsonArray or empty in key_attestation_jwt for proof type: jwt";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 			throw error(errorDescription, args("credential_configuration", credentialConfiguration, "key_attestation_jwt", keyAttestationJwt));
-		}
-
-		// attempt to validate attested keys via walletPublicKey from proof jwt
-		if (walletPublicKey == null) {
-
-			// Wait until https://github.com/openid/OpenID4VC-HAIP/issues/360 is resolved
-			// TODO kid: if kid is present in proof jwt header -> check kid in key_attestation_jwt->attested_keys jwk.kid header matches kid
-
-			throw error("Support for attested keys validation via kid is not implemented yet.");
 		}
 
 		JsonElement currentAttestedKeyEl = null;
