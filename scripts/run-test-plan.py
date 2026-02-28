@@ -454,7 +454,7 @@ def show_plan_results(plan_result, analyzed_result):
         format(len(test_info), successful_conditions, number_of_failures, number_of_warnings, overall_time))
     print('\n{}plan-detail.html?plan={}\n'.format(api_url_base, plan_id))
 
-    # one of the entries in the dict is the config_file
+    # one of the entries in the dict is the test_plan_name
     if len(test_info) - 1 != len(plan_modules):
         print(failure("** NOT ALL TESTS FROM PLAN WERE RUN **"))
         return
@@ -1126,7 +1126,7 @@ async def main():
             did_not_complete = True
             test_info = result['test_info']
             for module_name, module_info in test_info.items():
-                if module_name == 'config_file':
+                if module_name == 'test_plan_name':
                     continue
                 info = module_info['info']
                 if info['status'] != 'FINISHED' and info['status'] != 'INTERRUPTED':
