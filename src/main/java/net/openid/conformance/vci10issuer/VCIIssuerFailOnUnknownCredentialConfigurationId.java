@@ -27,8 +27,8 @@ public class VCIIssuerFailOnUnknownCredentialConfigurationId extends VCIIssuerHa
 	}
 
 	@Override
-	protected void verifyEffectiveCredentialResponse() {
-		super.verifyCredentialIssuerCredentialErrorResponse();
+	protected void verifyCredentialIssuerCredentialResponse() {
+		verifyCredentialIssuerCredentialErrorResponse();
 
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.UNKNOWN_CREDENTIAL_CONFIGURATION), "OID4VCI-1FINAL-8.3.1");
 	}

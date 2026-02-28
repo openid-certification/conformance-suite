@@ -1268,16 +1268,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	/**
-	 * Verifies the credential endpoint response. This method handles decryption if needed,
+	 * Verifies a successful credential endpoint response. Asserts HTTP 200, handles decryption if needed,
 	 * then delegates to verifyEffectiveCredentialResponse() for the actual validation.
-	 * Subclasses that need to verify error responses should override verifyEffectiveCredentialResponse()
-	 * instead of this method, so that decryption is handled automatically.
+	 * Subclasses that expect error responses should override this method to call
+	 * verifyCredentialIssuerCredentialErrorResponse() instead.
 	 */
 	protected void verifyCredentialIssuerCredentialResponse() {
-
 		callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, "OID4VCI-1FINAL-8.3");
 
-		// Decrypt the response if encryption was requested and the response was OK
+		// Decrypt the response if encryption was requested
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 			callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
@@ -1298,8 +1297,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	/**
 	 * Verifies the effective credential response - i.e., the response after potential decryption.
-	 * Override this method in subclasses to customize verification behavior,
-	 * especially for negative tests that expect error responses.
+	 * Called by verifyCredentialIssuerCredentialResponse() after asserting HTTP 200 and handling decryption.
 	 */
 	protected void verifyEffectiveCredentialResponse() {
 		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");

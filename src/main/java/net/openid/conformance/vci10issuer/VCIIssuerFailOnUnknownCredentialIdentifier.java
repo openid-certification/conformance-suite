@@ -27,8 +27,8 @@ public class VCIIssuerFailOnUnknownCredentialIdentifier extends VCIIssuerHappyFl
 	}
 
 	@Override
-	protected void verifyEffectiveCredentialResponse() {
-		super.verifyCredentialIssuerCredentialErrorResponse();
+	protected void verifyCredentialIssuerCredentialResponse() {
+		verifyCredentialIssuerCredentialErrorResponse();
 
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.UNKNOWN_CREDENTIAL_IDENTIFIER), "OID4VCI-1FINAL-8.3.1");
 	}

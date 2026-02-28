@@ -26,14 +26,20 @@ public class VCIEnsureCredentialResponseIsEncryptedJwe extends AbstractCondition
 
 	/**
 	 * Checks if the string appears to be a JWE (compact serialization).
-	 * A JWE has 5 parts separated by dots.
+	 * A JWE has 5 base64url-encoded parts separated by dots, where the first part
+	 * (the protected header) is non-empty.
 	 */
 	protected boolean isJWE(String str) {
 		if (str == null || str.isEmpty()) {
 			return false;
 		}
+		String trimmed = str.trim();
 		// JWE compact serialization has exactly 5 parts
-		String[] parts = str.split("\\.");
-		return parts.length == 5;
+		String[] parts = trimmed.split("\\.", -1);
+		if (parts.length != 5) {
+			return false;
+		}
+		// The protected header (first part) must be non-empty and look like base64url
+		return !parts[0].isEmpty() && parts[0].matches("[A-Za-z0-9_-]+");
 	}
 }
