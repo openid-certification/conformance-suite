@@ -9,6 +9,7 @@ variables:
 
 stages:
   - build
+  - ai
   - upload
   - deploy
   - test
@@ -23,6 +24,27 @@ stages:
 #include:
 #  - template: Security/Dependency-Scanning.gitlab-ci.yml
 #  - template: Security/License-Scanning.gitlab-ci.yml
+
+claude-review:
+  stage: ai
+  image: node:24-alpine3.21
+  needs: ["build"]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  variables:
+    GIT_STRATEGY: fetch
+  before_script:
+    - apk update
+    - apk add --no-cache git curl bash
+    - curl -fsSL https://claude.ai/install.sh | bash
+  script:
+    - /bin/gitlab-mcp-server || true
+    - >
+      claude
+      -p "Review this merge request for correctness, spec compliance, and conformance suite conventions. Focus on bugs, dead code, API misuse, and behavioral changes."
+      --permission-mode acceptEdits
+      --allowedTools "Read Glob Grep mcp__gitlab"
+      --debug
 
 .maven: &maven
   image: maven:3-eclipse-temurin-17
