@@ -342,11 +342,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 
 			// check if the issuer actually supports encryption
-			JsonElement algValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption_alg_values_supported");
-			JsonElement encValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption_enc_values_supported");
+			JsonElement algValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.alg_values_supported");
+			JsonElement encValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.enc_values_supported");
 
 			if (algValuesEl == null || encValuesEl == null || !algValuesEl.isJsonArray() || !encValuesEl.isJsonArray()) {
-				fireTestSkipped("Encryption is not supported by credential issuer.");
+				fireTestSkipped("Encryption is not supported by credential issuer - credential_response_encryption.alg_values_supported and/or credential_response_encryption.enc_values_supported missing or invalid in issuer metadata.");
 				return;
 			}
 		}
