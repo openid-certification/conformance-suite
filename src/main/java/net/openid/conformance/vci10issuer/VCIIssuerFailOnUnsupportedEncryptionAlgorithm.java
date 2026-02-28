@@ -54,8 +54,8 @@ public class VCIIssuerFailOnUnsupportedEncryptionAlgorithm extends VCIIssuerHapp
 	}
 
 	@Override
-	protected void verifyEffectiveCredentialResponse() {
-		super.verifyCredentialIssuerCredentialErrorResponse();
+	protected void verifyCredentialIssuerCredentialResponse() {
+		verifyCredentialIssuerCredentialErrorResponse();
 
 		// Expect an error response when encryption algorithm is unsupported
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_ENCRYPTION_PARAMETERS), "OID4VCI-1FINAL-8.3.1");

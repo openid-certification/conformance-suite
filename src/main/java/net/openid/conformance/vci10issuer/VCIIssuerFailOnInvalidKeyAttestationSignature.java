@@ -60,8 +60,8 @@ public class VCIIssuerFailOnInvalidKeyAttestationSignature extends VCIIssuerHapp
 	}
 
 	@Override
-	protected void verifyEffectiveCredentialResponse() {
-		super.verifyCredentialIssuerCredentialErrorResponse();
+	protected void verifyCredentialIssuerCredentialResponse() {
+		verifyCredentialIssuerCredentialErrorResponse();
 		// Expect an error response when key attestation signature is invalid
 		callAndStopOnFailure(new VCIValidateCredentialErrorResponse(VciErrorCode.INVALID_PROOF), "OID4VCI-1FINAL-8.3.1");
 	}
