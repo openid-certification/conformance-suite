@@ -28,9 +28,12 @@ stages:
 claude-review:
   stage: ai
   image: node:24-alpine3.21
-  needs: ["build"]
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  only:
+    - branches
+  except:
+    - master
+    - production
+    - demo
   variables:
     GIT_STRATEGY: fetch
   before_script:
