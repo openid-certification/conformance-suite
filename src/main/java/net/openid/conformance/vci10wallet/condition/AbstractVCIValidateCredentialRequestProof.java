@@ -57,10 +57,13 @@ public abstract class AbstractVCIValidateCredentialRequestProof extends Abstract
 
 		// Check mutual exclusivity of jwk, kid, and x5c
 		// See https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#appendix-F
-		if (!(header.getJWK() != null ^ header.getKeyID() != null ^ header.getX509CertChain() != null)) {
-			String errorDescription = "JWT proof header contains more than one of jwk, kid, and x5c; these are mutually exclusive";
+		int count = (header.getJWK() != null ? 1 : 0) + (header.getKeyID() != null ? 1 : 0) + (header.getX509CertChain() != null ? 1 : 0);
+		if (count != 1) {
+			String errorDescription = count == 0
+				? "JWT proof header is missing one of jwk, kid, and x5c"
+				: "JWT proof header contains more than one of jwk, kid, and x5c; these are mutually exclusive";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
-			throw error(errorDescription, args("jwt", jwt));
+			throw error(errorDescription, args("jwt", jwt, "header", header.toJSONObject()));
 		}
 
 		// We have 3 options to get the Key from a Proof JWT
