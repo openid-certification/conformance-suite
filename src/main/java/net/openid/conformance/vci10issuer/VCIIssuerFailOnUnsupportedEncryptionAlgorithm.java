@@ -1,6 +1,5 @@
 package net.openid.conformance.vci10issuer;
 
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.VCIUseUnsupportedEncryptionAlgorithm;
@@ -50,7 +49,7 @@ public class VCIIssuerFailOnUnsupportedEncryptionAlgorithm extends VCIIssuerHapp
 		super.afterCredentialResponseEncryptionAdded();
 
 		// Replace the encryption algorithm with an unsupported one
-		callAndContinueOnFailure(VCIUseUnsupportedEncryptionAlgorithm.class, Condition.ConditionResult.INFO, "OID4VCI-1FINAL-8.2");
+		callAndStopOnFailure(VCIUseUnsupportedEncryptionAlgorithm.class, "OID4VCI-1FINAL-8.2");
 	}
 
 	@Override
