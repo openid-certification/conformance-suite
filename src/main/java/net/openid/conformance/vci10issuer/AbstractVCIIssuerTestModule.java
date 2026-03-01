@@ -164,6 +164,7 @@ import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsNotAnEncryptedJwe;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureIntervalPresentInDeferredResponse;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
@@ -1311,6 +1312,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDeferred) {
 			// Deferred response - need to call the deferred credential endpoint
 			callAndContinueOnFailure(new EnsureHttpStatusCode(202), ConditionResult.WARNING, "OID4VCI-1FINAL-9");
+
+			// Per OID4VCI Section 9.3, 'interval' is REQUIRED when 'transaction_id' is present
+			callAndContinueOnFailure(VCIEnsureIntervalPresentInDeferredResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.3");
+
 			call(exec().unmapKey("endpoint_response"));
 
 			// Poll the deferred credential endpoint
