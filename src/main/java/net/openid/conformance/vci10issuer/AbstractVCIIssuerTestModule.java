@@ -320,6 +320,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
+		env.putString("external_url_override", externalUrlOverride);
 		env.putObject("config", config);
 
 		Boolean skip = env.getBoolean("config", "skip_test");
