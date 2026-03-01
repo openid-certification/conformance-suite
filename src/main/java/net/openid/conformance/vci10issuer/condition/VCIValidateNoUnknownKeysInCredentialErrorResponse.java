@@ -19,7 +19,11 @@ public class VCIValidateNoUnknownKeysInCredentialErrorResponse extends AbstractC
 
 		JsonObject endpointResponse = env.getObject("endpoint_response").getAsJsonObject();
 		JsonObject credentialResponseBodyJson = JsonParser.parseString(OIDFJSON.getString(endpointResponse.get("body"))).getAsJsonObject();
-		Set<String> expected = Set.of("error", "error_description");
+		Set<String> expected = Set.of(
+			"error",
+			"error_description",
+			"error_uri" // not part of spec, but commonly used in OAuth and not based on a misunderstanding of the spec
+		);
 
 		Set<String> unexpected = credentialResponseBodyJson.keySet();
 		unexpected.removeAll(expected);

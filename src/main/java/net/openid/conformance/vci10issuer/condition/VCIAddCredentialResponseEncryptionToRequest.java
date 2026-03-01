@@ -18,13 +18,12 @@ import java.text.ParseException;
  * Adds credential_response_encryption parameters to the credential request.
  *
  * Per OID4VCI Section 8.2, the wallet can request the credential response to be
- * encrypted by including credential_response_encryption with alg, enc, and optionally jwk.
+ * encrypted by including credential_response_encryption with enc, jwk, and optionally zip.
  *
  * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2">OID4VCI Section 8.2 - Credential Request</a>
  */
 public class VCIAddCredentialResponseEncryptionToRequest extends AbstractCondition {
 
-	private static final String DEFAULT_ALG = "ECDH-ES+A256KW";
 	private static final String DEFAULT_ENC = "A256GCM";
 
 	@Override
@@ -56,15 +55,9 @@ public class VCIAddCredentialResponseEncryptionToRequest extends AbstractConditi
 		// Use the first key for encryption
 		JWK encryptionKey = jwkSet.getKeys().get(0);
 
-		// Determine alg and enc values
+		// Determine enc values
 		// Check if the issuer metadata specifies supported values
-		String alg = DEFAULT_ALG;
 		String enc = DEFAULT_ENC;
-
-		JsonElement algValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.alg_values_supported");
-		if (algValuesEl != null && algValuesEl.isJsonArray() && algValuesEl.getAsJsonArray().size() > 0) {
-			alg = OIDFJSON.getString(algValuesEl.getAsJsonArray().get(0));
-		}
 
 		JsonElement encValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.enc_values_supported");
 		if (encValuesEl != null && encValuesEl.isJsonArray() && encValuesEl.getAsJsonArray().size() > 0) {
@@ -72,8 +65,9 @@ public class VCIAddCredentialResponseEncryptionToRequest extends AbstractConditi
 		}
 
 		// Build credential_response_encryption object
+		// https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2-2.4.1
 		JsonObject credentialResponseEncryption = new JsonObject();
-		credentialResponseEncryption.addProperty("alg", alg);
+		// alg is inside the jwk
 		credentialResponseEncryption.addProperty("enc", enc);
 
 		// Include the public key in the request

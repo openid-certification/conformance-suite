@@ -47,7 +47,6 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					VCIIssuerFailOnInvalidClientAttestationSignature.class,
 					VCIIssuerFailOnInvalidClientAttestationPopSignature.class,
 					VCIIssuerFailOnMismatchedClientAttestationPopKey.class,
-					VCIIssuerFailOnUnsupportedEncryptionAlgorithm.class,
 					VCIIssuerFailOnUnknownCredentialConfigurationId.class,
 					VCIIssuerFailOnUnknownCredentialIdentifier.class,
 					VCIIssuerFailOnRequestWithAccessTokenInQuery.class

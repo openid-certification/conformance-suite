@@ -1,6 +1,5 @@
 package net.openid.conformance.vci10issuer;
 
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.VCIUseUnsupportedEncryptionAlgorithm;
@@ -11,8 +10,8 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
  * Negative test that verifies the issuer properly rejects credential requests with
  * unsupported encryption algorithms.
  *
- * This test modifies the credential_response_encryption.alg parameter to use an
- * unsupported value and expects the issuer to respond with an
+ * This test modifies the alg parameter in the JWK within credential_response_encryption
+ * to use an unsupported value and expects the issuer to respond with an
  * invalid_encryption_parameters error.
  *
  * Note: This test only runs when vci_credential_encryption=encrypted is selected.
@@ -50,7 +49,7 @@ public class VCIIssuerFailOnUnsupportedEncryptionAlgorithm extends VCIIssuerHapp
 		super.afterCredentialResponseEncryptionAdded();
 
 		// Replace the encryption algorithm with an unsupported one
-		callAndContinueOnFailure(VCIUseUnsupportedEncryptionAlgorithm.class, Condition.ConditionResult.INFO, "OID4VCI-1FINAL-11.2.3");
+		callAndStopOnFailure(VCIUseUnsupportedEncryptionAlgorithm.class, "OID4VCI-1FINAL-8.2");
 	}
 
 	@Override

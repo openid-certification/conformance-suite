@@ -1246,7 +1246,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// Add encryption parameters if encryption is enabled
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-11.2.3");
+			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-8.2");
 			afterCredentialResponseEncryptionAdded();
 		}
 

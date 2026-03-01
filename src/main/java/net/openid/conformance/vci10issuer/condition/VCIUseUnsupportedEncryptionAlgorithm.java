@@ -34,13 +34,14 @@ public class VCIUseUnsupportedEncryptionAlgorithm extends AbstractCondition {
 		}
 
 		JsonObject encryptionParams = credentialRequest.getAsJsonObject("credential_response_encryption");
-		String originalAlg = encryptionParams.has("alg") ? OIDFJSON.getString(encryptionParams.get("alg")) : null;
+		JsonObject jwk = encryptionParams.getAsJsonObject("jwk");
+		String originalAlg = jwk.has("alg") ? OIDFJSON.getString(jwk.get("alg")) : null;
 
 		// Replace the algorithm with an unsupported one
-		encryptionParams.addProperty("alg", UNSUPPORTED_ALG);
+		jwk.addProperty("alg", UNSUPPORTED_ALG);
 
 		logSuccess("Replaced encryption algorithm with unsupported value",
-			args("original_alg", originalAlg, "new_alg", UNSUPPORTED_ALG));
+			args("original_alg", originalAlg, "new_alg", UNSUPPORTED_ALG, "credential_request", credentialRequest));
 
 		return env;
 	}
