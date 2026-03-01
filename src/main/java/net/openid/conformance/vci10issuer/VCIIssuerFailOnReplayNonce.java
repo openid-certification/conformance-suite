@@ -66,7 +66,7 @@ public class VCIIssuerFailOnReplayNonce extends VCIIssuerHappyFlow {
 
 		// Add encryption parameters if encryption is enabled (same as the first request)
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-11.2.3");
+			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-8.2");
 		}
 
 		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
