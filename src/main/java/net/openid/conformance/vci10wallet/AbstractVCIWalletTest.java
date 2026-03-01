@@ -180,8 +180,8 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.util.TemplateProcessor;
-import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.AuthorizationRequestType;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIClientAuthType;
@@ -209,6 +209,7 @@ import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedi
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCICreateDeferredCredentialResponse;
 import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
@@ -229,7 +230,6 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationReque
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
-import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationPoPNonceRequiredToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
@@ -638,18 +638,20 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		// Add credential response encryption metadata if encryption is enabled
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			JsonObject responseEnc = new JsonObject();
 			JsonArray algValues = new JsonArray();
 			algValues.add("ECDH-ES");
 			algValues.add("ECDH-ES+A256KW");
 			algValues.add("ECDH-ES+A128KW");
-			metadataJson.add("credential_response_encryption_alg_values_supported", algValues);
+			responseEnc.add("alg_values_supported", algValues);
 
 			JsonArray encValues = new JsonArray();
 			encValues.add("A256GCM");
 			encValues.add("A128GCM");
 			encValues.add("A256CBC-HS512");
 			encValues.add("A128CBC-HS256");
-			metadataJson.add("credential_response_encryption_enc_values_supported", encValues);
+			responseEnc.add("enc_values_supported", encValues);
+			metadataJson.add("credential_response_encryption", responseEnc);
 		}
 
 		return metadataJson;

@@ -61,12 +61,12 @@ public class VCIAddCredentialResponseEncryptionToRequest extends AbstractConditi
 		String alg = DEFAULT_ALG;
 		String enc = DEFAULT_ENC;
 
-		JsonElement algValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption_alg_values_supported");
+		JsonElement algValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.alg_values_supported");
 		if (algValuesEl != null && algValuesEl.isJsonArray() && algValuesEl.getAsJsonArray().size() > 0) {
 			alg = OIDFJSON.getString(algValuesEl.getAsJsonArray().get(0));
 		}
 
-		JsonElement encValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption_enc_values_supported");
+		JsonElement encValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.enc_values_supported");
 		if (encValuesEl != null && encValuesEl.isJsonArray() && encValuesEl.getAsJsonArray().size() > 0) {
 			enc = OIDFJSON.getString(encValuesEl.getAsJsonArray().get(0));
 		}
