@@ -1,1 +1,14 @@
-[]
+[
+    {
+        "test-name": "oid4vci-1_0-issuer-metadata-test-signed",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json",
+        "comment": "Authlete does not support signed metadata currently"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-fail-invalid-key-attestation-signature",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json",
+        "comment": "The credential we're testing against currently doesn't require key attestation"
+    }
+]

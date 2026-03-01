@@ -47,5 +47,14 @@
         "condition": "CheckForUnexpectedParametersInVpClientMetadata",
         "expected-result": "warning",
         "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-fail-replay-nonce",
+        "variant": "*",
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "Attempt nonce replay",
+        "condition": "EnsureHttpStatusCodeIs400",
+        "expected-result": "failure",
+        "comment": "awaiting resolution on https://gitlab.com/openid/conformance-suite/-/issues/1697"
     }
 ]
