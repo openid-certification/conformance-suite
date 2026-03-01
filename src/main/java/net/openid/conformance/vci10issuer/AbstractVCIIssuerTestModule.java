@@ -166,6 +166,7 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseI
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsNotAnEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureIntervalPresentInDeferredResponse;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureScopePresentInCredentialConfigurationForHaip;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
@@ -413,6 +414,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void determineCredentialConfigurationTransferMethod() {
 
 		resolveCredentialConfigurationId();
+
+		// HAIP requires scope to be present for every credential configuration
+		if (vciProfile == VCIProfile.HAIP) {
+			callAndContinueOnFailure(VCIEnsureScopePresentInCredentialConfigurationForHaip.class, ConditionResult.FAILURE, "HAIP-4.1", "HAIP-4.3");
+		}
 
 		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
 		callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
