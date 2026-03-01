@@ -83,7 +83,7 @@ public class VCIValidateAttestedKeysInKeyAttestationFromJwtProof extends Abstrac
 					"attested_keys", attestedKeysEl));
 		}
 
-		logSuccess("Successfully validated key attestation via jwk header for proof type: jwt",
+		logSuccess("Successfully validated attested_keys in key attestation for proof type: jwt",
 			args("key_attestation_jwt", keyAttestationJwt, "proof_jwt_jwk", walletPublicKey, "matching_attested_key", currentAttestedKeyEl));
 
 		return env;
