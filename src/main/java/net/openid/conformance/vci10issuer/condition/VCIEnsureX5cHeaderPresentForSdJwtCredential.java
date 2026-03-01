@@ -54,10 +54,26 @@ public class VCIEnsureX5cHeaderPresentForSdJwtCredential extends AbstractConditi
 				args("x5c", x5c, "leaf_cert_subject", leafCert.getSubjectX500Principal().getName()));
 		}
 
-		// TODO implement check for 3. The trust anchor MUST NOT be included in the x5c chain
+		// Per HAIP section 4.5.1: The trust anchor MUST NOT be included in the x5c chain
+		// The trust anchor is a self-signed root CA certificate. If the last certificate in the
+		// chain is self-signed, it is a trust anchor and should not be included.
+		if (x5c.size() > 1) {
+			String encodedLastCert = x5c.get(x5c.size() - 1);
+			byte[] lastCertDer = Base64.getDecoder().decode(encodedLastCert);
+			X509Certificate lastCert = X509CertUtils.parse(lastCertDer);
 
-		log("Credential signing certificate is not self-signed (as required)",
-			args("leaf_cert_subject", leafCert.getSubjectX500Principal().getName()));
+			if (lastCert != null && X509CertificateUtil.isSelfSigned(lastCert)) {
+				throw error("The trust anchor (self-signed root CA) MUST NOT be included in the x5c chain (HAIP section 4.5.1). " +
+					"The last certificate in the x5c array is self-signed, indicating it is the trust anchor.",
+					args("x5c", x5c,
+						"trust_anchor_subject", lastCert.getSubjectX500Principal().getName(),
+						"chain_length", x5c.size()));
+			}
+		}
+
+		log("Credential signing certificate is not self-signed and trust anchor is not included in chain (as required)",
+			args("leaf_cert_subject", leafCert.getSubjectX500Principal().getName(),
+				"chain_length", x5c.size()));
 
 		logSuccess("Found valid credential x5c claim in header", args("x5c", x5c));
 
