@@ -13,13 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "Request only one claim, selected from the list of claims_in_verified_claims_supported, only in userinfo, " +
 		"without requesting any other verification element and expect a happy path flow." +
 		"verified_claims must not be included in id_tokens.",
-	profile = "OIDCC",
-	configurationFields = {
-		"ekyc.unverified_claims_names",
-		"ekyc.verified_claims_names",
-		"ekyc.request_schemas",
-		"ekyc.response_schemas"
-	}
+	profile = "OIDCC"
 )
 
 @VariantNotApplicable(parameter = EKYCVerifiedClaimsResponseSupport.class, values = {

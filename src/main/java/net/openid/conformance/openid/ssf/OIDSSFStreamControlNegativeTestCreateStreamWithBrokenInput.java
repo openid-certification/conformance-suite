@@ -10,11 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "openid-ssf-stream-control-error-create-stream-with-broken-input",
 	displayName = "Attempt to create Stream Configuration with broken input.",
 	summary = "This test verifies the behavior of the stream control for error cases. It attempts to create a stream configuration with broken input.",
-	profile = "OIDSSF",
-	configurationFields = {
-		"ssf.transmitter.issuer",
-		"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
-	}
+	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestCreateStreamWithBrokenInput extends AbstractStreamControlErrorTest {
 

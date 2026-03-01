@@ -3,11 +3,16 @@ package net.openid.conformance.openid.ssf;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 
 
 @VariantParameters({SsfServerMetadata.class, SsfAuthMode.class, SsfDeliveryMode.class,})
+@ConfigurationFields({
+	"ssf.transmitter.issuer",
+	"ssf.transmitter.metadata_suffix", // see: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.2.1
+})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "static", configurationFields = {"ssf.transmitter.configuration_metadata_endpoint",})
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value = "discovery", configurationFields = {"ssf.transmitter.issuer", "ssf.transmitter.metadata_suffix",})
 @VariantConfigurationFields(parameter = SsfAuthMode.class, value = "static", configurationFields = {
