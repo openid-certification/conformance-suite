@@ -13,6 +13,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public abstract class AbstractValidateDpopProof extends AbstractCondition {
@@ -127,6 +128,10 @@ public abstract class AbstractValidateDpopProof extends AbstractCondition {
 		if (exp != null) {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 				throw error("DPoP Proof has expired", args("exp", new Date(exp * 1000L), "now", now));
+			}
+			if (Instant.ofEpochSecond(exp).isAfter(now.plus(50 * 365, ChronoUnit.DAYS))) {
+				throw error("'exp' is unreasonably far in the future (more than 50 years), this may indicate the value was incorrectly specified in milliseconds instead of seconds",
+					args("exp", new Date(exp * 1000L), "now", now));
 			}
 		}
 

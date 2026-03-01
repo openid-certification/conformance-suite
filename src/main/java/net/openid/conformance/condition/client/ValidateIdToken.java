@@ -76,6 +76,10 @@ public class ValidateIdToken extends AbstractCondition {
 			if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 				throw error("Token expired", args("expiration", new Date(exp * 1000L), "now", now));
 			}
+			if (Instant.ofEpochSecond(exp).isAfter(now.plus(50 * 365, DAYS))) {
+				throw error("'exp' is unreasonably far in the future (more than 50 years), this may indicate the value was incorrectly specified in milliseconds instead of seconds",
+					args("exp", new Date(exp * 1000L), "now", now));
+			}
 		}
 
 		Long iat = env.getLong("id_token", "claims.iat");
