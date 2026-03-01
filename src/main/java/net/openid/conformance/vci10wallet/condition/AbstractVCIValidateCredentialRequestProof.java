@@ -44,8 +44,6 @@ public abstract class AbstractVCIValidateCredentialRequestProof extends Abstract
 		JsonObject proofTypeObject = proofTypesSupported.getAsJsonObject(proofType);
 		JsonObject keyAttestationRequired = proofTypeObject.getAsJsonObject("key_attestations_required");
 
-		env.putObject("proof_type_object", proofTypeObject);
-
 		String expectedAudience = OIDFJSON.getString(env.getElementFromObject("credential_issuer_metadata","credential_issuer"));
 		validateProof(env, proofType, expectedAudience, credentialConfigurationId, credentialConfiguration, keyAttestationRequired);
 		return env;
