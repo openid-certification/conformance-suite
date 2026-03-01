@@ -10,8 +10,8 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
  * Negative test that verifies the issuer properly rejects credential requests with
  * unsupported encryption algorithms.
  *
- * This test modifies the credential_response_encryption.alg parameter to use an
- * unsupported value and expects the issuer to respond with an
+ * This test modifies the alg parameter in the JWK within credential_response_encryption
+ * to use an unsupported value and expects the issuer to respond with an
  * invalid_encryption_parameters error.
  *
  * Note: This test only runs when vci_credential_encryption=encrypted is selected.
