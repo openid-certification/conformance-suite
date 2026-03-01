@@ -2,7 +2,7 @@
     "alias": "oidf-fapi-ciba-op-test",
     "description": "FAPI-CIBA OP test config for running against RP tests",
     "server": {
-        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-ciba-rp-test/.well-known/openid-configuration"
+        "discoveryUrl": "{LOCALBASEURL}test/a/oidf-fapi-ciba-rp-test/.well-known/openid-configuration"
     },
     "client": {
         "client_id": "52480754053",
