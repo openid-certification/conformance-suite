@@ -2,7 +2,7 @@
     "alias": "oidf-opinsb",
     "description": "FAPI Brazil DCR OP test config for running against RP tests - opin",
     "server": {
-        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
+        "discoveryUrl": "{LOCALBASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
     },
     "client": {
         "scope": "openid customers",
