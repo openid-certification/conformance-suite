@@ -331,9 +331,15 @@ stop_normal:
   stage: test
   interruptible: true
   image: python:3.13-alpine3.20
-  only:
-    refs:
-      - branches
+  # Skip running most *_test jobs on demo to avoid overloading server/keep
+  # database size down/make it easier to find user test runs.
+  # See vc_test for an example of how to override.
+  rules:
+    - if: $CI_COMMIT_BRANCH == "demo"
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
   artifacts:
     access: developer
     when: always
@@ -396,6 +402,9 @@ federation_test:
 
 vc_test:
   <<: *deployment_test
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
   script:
     - set_up_for_running_test_plan
     - run_vc_test_plan
@@ -408,6 +417,12 @@ ssf_test:
 
 local_test:
   stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH == "demo"
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
   interruptible: true
   image: docker:27.3.1
   services:
