@@ -765,6 +765,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules ekyc"
     TESTS="${TESTS} --export-dir ../conformance-suite"
+    TESTS="${TESTS} --no-parallel" # both alias queues hit the same authlete instance; serialize to reduce peak concurrent plans
 elif [ "$#" -eq 1 ] && [ "$1" = "--authzen-tests" ]; then
     echo "Run Authzen tests"
     makeAuthzenTests
@@ -783,6 +784,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--federation-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules federation"
     TESTS="${TESTS} --export-dir ../conformance-suite"
+    TESTS="${TESTS} --no-parallel" # federation tests are fast (~2m); serialize to reduce peak concurrent plans
 elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     echo "Run local provider tests"
     makeLocalProviderTests
