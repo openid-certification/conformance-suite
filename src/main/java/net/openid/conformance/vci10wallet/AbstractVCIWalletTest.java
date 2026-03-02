@@ -307,6 +307,18 @@ import java.util.concurrent.TimeUnit;
 	whenParameter = VCIProfile.class,
 	hasValues = "haip"
 )
+@VariantNotApplicableWhen(
+	parameter = AuthorizationRequestType.class,
+	values = {"rar"},  // No rar for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
+@VariantNotApplicableWhen(
+	parameter = VCIGrantType.class,
+	values = {"pre_authorization_code"},  // No pre_authorization_code for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
@@ -414,7 +426,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		profileRequiresMtlsEverywhere = false;
 
 		if (vciProfile == VCIProfile.HAIP && authorizationRequestType == AuthorizationRequestType.RAR) {
-			throw new TestFailureException(getId(), "Authorization request type RAR is not supported with HAIP.");
+			throw new TestFailureException(getId(), "The usage of authorization request type RAR is not supported with HAIP.");
+		}
+
+		if (vciProfile == VCIProfile.HAIP && vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+			throw new TestFailureException(getId(), "The usage of grant type Pre-Authorized Code Flow is not supported with HAIP.");
 		}
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to

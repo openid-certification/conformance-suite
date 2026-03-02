@@ -149,6 +149,7 @@ import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
@@ -254,6 +255,18 @@ import java.util.function.Supplier;
 	"mtls2.cert",
 	"mtls2.ca",
 })
+@VariantNotApplicableWhen(
+	parameter = AuthorizationRequestType.class,
+	values = {"rar"},  // No rar for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
+@VariantNotApplicableWhen(
+	parameter = VCIGrantType.class,
+	values = {"pre_authorization_code"},  // No pre_authorization_code for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -341,6 +354,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		if (vciProfile == VCIProfile.HAIP && isRarRequest) {
 			throw new TestFailureException(getId(), "The usage of authorization request type RAR is not supported with HAIP.");
+		}
+
+		if (vciProfile == VCIProfile.HAIP && vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+			throw new TestFailureException(getId(), "The usage of grant type Pre-Authorized Code Flow is not supported with HAIP.");
 		}
 
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
