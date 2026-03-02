@@ -34,7 +34,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 	profile = "OID4VCI-1_0"
 )
 @VariantNotApplicable(parameter = VCIClientAuthType.class, values = {"mtls", "private_key_jwt"})
-public class VCIIssuerFailOnInvalidClientAttestationPopSignature extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnInvalidClientAttestationPopSignature extends AbstractVCIIssuerTestModule {
 
 	@VariantSetup(parameter = VCIClientAuthType.class, value = "client_attestation")
 	@Override

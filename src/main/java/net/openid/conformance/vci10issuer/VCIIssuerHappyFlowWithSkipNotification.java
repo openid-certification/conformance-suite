@@ -15,7 +15,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		""",
 	profile = "OID4VCI-1_0"
 )
-public class VCIIssuerHappyFlowWithSkipNotification extends VCIIssuerHappyFlow {
+public class VCIIssuerHappyFlowWithSkipNotification extends AbstractVCIIssuerTestModule {
 
 	@Override
 	protected void sendNotificationIfSupported() {
