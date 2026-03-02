@@ -255,6 +255,10 @@ import java.util.function.Supplier;
 	"client.hint_type",
 	"client.hint_value"
 })
+@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
+	"client.hint_type",
+	"client.hint_value"
+})
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.jwks",
 	"mtls.cert",
@@ -281,7 +285,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	// authenticate
 	protected CIBAMode testType;
 	protected boolean isBrazil() {
-		return FAPI1FinalOPProfile.OPENBANKING_BRAZIL.equals(getVariant(FAPI1FinalOPProfile.class));
+		FAPI1FinalOPProfile profile = getVariant(FAPI1FinalOPProfile.class);
+		return profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL || profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
 	}
 
 	public void setAddBackchannelClientAuthentication(Supplier<? extends ConditionSequence> addBackchannelClientAuthentication) {
