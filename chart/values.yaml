@@ -59,3 +59,4 @@ mongodb:
     storageClass: premium-rwo
   updateStrategy:
     type: Recreate
+idpIss: https://conformance-auth-admin-test-937764811020.us-central1.run.app/realms/openid-public
