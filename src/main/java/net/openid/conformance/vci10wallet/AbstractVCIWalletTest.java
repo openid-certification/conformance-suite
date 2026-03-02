@@ -413,6 +413,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		profileRequiresMtlsEverywhere = false;
 
+		if (vciProfile == VCIProfile.HAIP && authorizationRequestType == AuthorizationRequestType.RAR) {
+			throw new TestFailureException(getId(), "Authorization request type RAR is not supported with HAIP.");
+		}
+
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
 		callAndStopOnFailure(GenerateServerConfigurationMTLS.class);
