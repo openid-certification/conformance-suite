@@ -24,7 +24,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.1"
 				},
 				"eu.europa.ec.eudi.pid.1.attestation": {
 					"format": "dc+sd-jwt",
@@ -43,7 +44,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.1.attestation"
 				},
 				"eu.europa.ec.eudi.pid.1.jwt.keyattest": {
 					"format": "dc+sd-jwt",
@@ -63,7 +65,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.1.jwt.keyattest"
 				},
 				"eu.europa.ec.eudi.pid.1.attestation.keyattest": {
 					"format": "dc+sd-jwt",
@@ -83,7 +86,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.1.attestation.keyattest"
 				},
 				"eu.europa.ec.eudi.pid.1.jwt_and_attestation.keyattest": {
 					"format": "dc+sd-jwt",
@@ -107,7 +111,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.1.jwt_and_attestation.keyattest"
 				},
 				"eu.europa.ec.eudi.pid.mdoc.1": {
 					"format": "mso_mdoc",
@@ -126,7 +131,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.mdoc.1"
 				},
 				"eu.europa.ec.eudi.pid.mdoc.1.attestation": {
 					"format": "mso_mdoc",
@@ -145,7 +151,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.mdoc.1.attestation"
 				},
 				"eu.europa.ec.eudi.pid.mdoc.1.jwt.keyattest": {
 					"format": "mso_mdoc",
@@ -165,7 +172,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.mdoc.1.jwt.keyattest"
 				},
 				"eu.europa.ec.eudi.pid.mdoc.1.attestation.keyattest": {
 					"format": "mso_mdoc",
@@ -185,7 +193,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.mdoc.1.attestation.keyattest"
 				},
 				"org.iso.18013.5.1.mDL": {
 					"format": "mso_mdoc",
@@ -204,7 +213,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake Mobile Driver's License"
 						}
 						]
-					}
+					},
+					"scope": "org.iso.18013.5.1.mDL"
 				},
 				"org.iso.18013.5.1.mDL.attestation": {
 					"format": "mso_mdoc",
@@ -223,7 +233,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake Mobile Driver's License"
 						}
 						]
-					}
+					},
+					"scope": "org.iso.18013.5.1.mDL.attestation"
 				},
 				"eu.europa.ec.eudi.pid.1.nobinding": {
 					"format": "dc+sd-jwt",
@@ -236,7 +247,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake PID without cryptographic holder binding"
 						}
 						]
-					}
+					},
+					"scope": "eudi.pid.1.nobinding"
 				},
 				"net.openid.examples.certification.1.sdjwtvc": {
 					"format": "dc+sd-jwt",
@@ -255,7 +267,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake Certification"
 						}
 						]
-					}
+					},
+					"scope": "openid.example.cert.1"
 				},
 				"net.openid.examples.certification.1.mdoc": {
 					"format": "mso_mdoc",
@@ -274,7 +287,8 @@ public class VCICredentialConfigurations {
 							"description": "OpenID Conformance Test Fake Certification"
 						}
 						]
-					}
+					},
+					"scope": "openid.example.cert.1"
 				}
 			}
 		""";

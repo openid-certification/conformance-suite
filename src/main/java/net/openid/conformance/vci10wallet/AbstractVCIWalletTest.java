@@ -689,52 +689,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected JsonObject customizeSupportedCredentials(JsonObject supportedCredentials) {
-
-		if (authorizationRequestType == AuthorizationRequestType.SIMPLE) {
-			JsonObject credential;
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1");
-			credential.addProperty("scope", "eudi.pid.1");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.attestation");
-			credential.addProperty("scope", "eudi.pid.1.attestation");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.jwt.keyattest");
-			credential.addProperty("scope", "eudi.pid.1.jwt.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.attestation.keyattest");
-			credential.addProperty("scope", "eudi.pid.1.attestation.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.jwt_and_attestation.keyattest");
-			credential.addProperty("scope", "eudi.pid.1.jwt_and_attestation.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.nobinding");
-			credential.addProperty("scope", "eudi.pid.1.nobinding");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1");
-			credential.addProperty("scope", "eudi.pid.mdoc.1");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.attestation");
-			credential.addProperty("scope", "eudi.pid.mdoc.1.attestation");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.jwt.keyattest");
-			credential.addProperty("scope", "eudi.pid.mdoc.1.jwt.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.attestation.keyattest");
-			credential.addProperty("scope", "eudi.pid.mdoc.1.attestation.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("org.iso.18013.5.1.mDL");
-			credential.addProperty("scope", "org.iso.18013.5.1.mDL");
-
-			credential = supportedCredentials.getAsJsonObject("org.iso.18013.5.1.mDL.attestation");
-			credential.addProperty("scope", "org.iso.18013.5.1.mDL.attestation");
-
-			credential = supportedCredentials.getAsJsonObject("net.openid.examples.certification.1.sdjwtvc");
-			credential.addProperty("scope", "openid.example.cert.1");
-
-			credential = supportedCredentials.getAsJsonObject("net.openid.examples.certification.1.mdoc");
-			credential.addProperty("scope", "openid.example.cert.1");
-		}
-
 		return supportedCredentials;
 	}
 
