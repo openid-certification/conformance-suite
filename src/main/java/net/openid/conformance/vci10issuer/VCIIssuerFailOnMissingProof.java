@@ -25,7 +25,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 		"If the selected credential configuration does not require proof, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
-public class VCIIssuerFailOnMissingProof extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnMissingProof extends AbstractVCIIssuerTestModule {
 
 	@Override
 	public void start() {

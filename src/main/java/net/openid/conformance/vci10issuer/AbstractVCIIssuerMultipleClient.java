@@ -8,8 +8,11 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @ConfigurationFields({"client2.client_id", "client2.jwks"})
+@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation",
+	configurationFields = {"client2.jwks"})
 public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerTestModule {
 
 	@Override

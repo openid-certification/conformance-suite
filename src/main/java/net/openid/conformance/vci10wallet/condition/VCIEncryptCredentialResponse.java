@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.CompressionAlgorithm;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWEHeader;
@@ -119,6 +120,12 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 
 			if (encryptionKey.getKeyID() != null) {
 				headerBuilder.keyID(encryptionKey.getKeyID());
+			}
+
+			// Apply compression if requested
+			JsonElement zipEl = encryptionParams.get("zip");
+			if (zipEl != null) {
+				headerBuilder.compressionAlgorithm(new CompressionAlgorithm(OIDFJSON.getString(zipEl)));
 			}
 
 			JWEObject jweObject = new JWEObject(

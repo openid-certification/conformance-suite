@@ -22,7 +22,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 		"Note: This test only applies when using jwt proof type. For attestation proof type, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
-public class VCIIssuerFailOnInvalidJwtProofSignature extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnInvalidJwtProofSignature extends AbstractVCIIssuerTestModule {
 
 	@Override
 	public void start() {
