@@ -307,6 +307,18 @@ import java.util.concurrent.TimeUnit;
 	whenParameter = VCIProfile.class,
 	hasValues = "haip"
 )
+@VariantNotApplicableWhen(
+	parameter = AuthorizationRequestType.class,
+	values = {"rar"},  // No rar for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
+@VariantNotApplicableWhen(
+	parameter = VCIGrantType.class,
+	values = {"pre_authorization_code"},  // No pre_authorization_code for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
@@ -412,6 +424,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
 
 		profileRequiresMtlsEverywhere = false;
+
+		if (vciProfile == VCIProfile.HAIP && authorizationRequestType == AuthorizationRequestType.RAR) {
+			throw new TestFailureException(getId(), "The usage of authorization request type RAR is not supported with HAIP.");
+		}
+
+		if (vciProfile == VCIProfile.HAIP && vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+			throw new TestFailureException(getId(), "The usage of grant type Pre-Authorized Code Flow is not supported with HAIP.");
+		}
 
 		// We create a configuration that contains mtls_endpoint_aliases in all cases - it's mandatory for clients to
 		// support it as per https://datatracker.ietf.org/doc/html/rfc8705#section-5
@@ -689,52 +709,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected JsonObject customizeSupportedCredentials(JsonObject supportedCredentials) {
-
-		if (authorizationRequestType == AuthorizationRequestType.SIMPLE) {
-			JsonObject credential;
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1");
-			credential.addProperty("scope", "eudi.pid.1");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.attestation");
-			credential.addProperty("scope", "eudi.pid.1.attestation");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.jwt.keyattest");
-			credential.addProperty("scope", "eudi.pid.1.jwt.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.attestation.keyattest");
-			credential.addProperty("scope", "eudi.pid.1.attestation.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.jwt_and_attestation.keyattest");
-			credential.addProperty("scope", "eudi.pid.1.jwt_and_attestation.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.1.nobinding");
-			credential.addProperty("scope", "eudi.pid.1.nobinding");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1");
-			credential.addProperty("scope", "eudi.pid.mdoc.1");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.attestation");
-			credential.addProperty("scope", "eudi.pid.mdoc.1.attestation");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.jwt.keyattest");
-			credential.addProperty("scope", "eudi.pid.mdoc.1.jwt.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("eu.europa.ec.eudi.pid.mdoc.1.attestation.keyattest");
-			credential.addProperty("scope", "eudi.pid.mdoc.1.attestation.keyattest");
-
-			credential = supportedCredentials.getAsJsonObject("org.iso.18013.5.1.mDL");
-			credential.addProperty("scope", "org.iso.18013.5.1.mDL");
-
-			credential = supportedCredentials.getAsJsonObject("org.iso.18013.5.1.mDL.attestation");
-			credential.addProperty("scope", "org.iso.18013.5.1.mDL.attestation");
-
-			credential = supportedCredentials.getAsJsonObject("net.openid.examples.certification.1.sdjwtvc");
-			credential.addProperty("scope", "openid.example.cert.1");
-
-			credential = supportedCredentials.getAsJsonObject("net.openid.examples.certification.1.mdoc");
-			credential.addProperty("scope", "openid.example.cert.1");
-		}
-
 		return supportedCredentials;
 	}
 

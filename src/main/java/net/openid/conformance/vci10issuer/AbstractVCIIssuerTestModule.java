@@ -149,6 +149,7 @@ import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
@@ -164,7 +165,9 @@ import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsNotAnEncryptedJwe;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureIntervalPresentInDeferredResponse;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureScopePresentInCredentialConfigurationForHaip;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
@@ -252,6 +255,18 @@ import java.util.function.Supplier;
 	"mtls2.cert",
 	"mtls2.ca",
 })
+@VariantNotApplicableWhen(
+	parameter = AuthorizationRequestType.class,
+	values = {"rar"},  // No rar for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
+@VariantNotApplicableWhen(
+	parameter = VCIGrantType.class,
+	values = {"pre_authorization_code"},  // No pre_authorization_code for HAIP
+	whenParameter = VCIProfile.class,
+	hasValues = "haip"
+)
 public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
@@ -337,6 +352,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// https://gitlab.com/idmvp/specifications/-/issues/29
 		profileRequiresMtlsEverywhere = false;
 
+		if (vciProfile == VCIProfile.HAIP && isRarRequest) {
+			throw new TestFailureException(getId(), "The usage of authorization request type RAR is not supported with HAIP.");
+		}
+
+		if (vciProfile == VCIProfile.HAIP && vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+			throw new TestFailureException(getId(), "The usage of grant type Pre-Authorized Code Flow is not supported with HAIP.");
+		}
+
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
@@ -412,6 +435,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected void determineCredentialConfigurationTransferMethod() {
 
 		resolveCredentialConfigurationId();
+
+		// HAIP requires scope to be present for every credential configuration
+		if (vciProfile == VCIProfile.HAIP) {
+			callAndContinueOnFailure(VCIEnsureScopePresentInCredentialConfigurationForHaip.class, ConditionResult.FAILURE, "HAIP-4.1", "HAIP-4.3");
+		}
 
 		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class,  ConditionResult.FAILURE);
 		callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
@@ -1311,6 +1339,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		if (isDeferred) {
 			// Deferred response - need to call the deferred credential endpoint
 			callAndContinueOnFailure(new EnsureHttpStatusCode(202), ConditionResult.WARNING, "OID4VCI-1FINAL-9");
+
+			// Per OID4VCI Section 9.3, 'interval' is REQUIRED when 'transaction_id' is present
+			callAndContinueOnFailure(VCIEnsureIntervalPresentInDeferredResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.3");
+
 			call(exec().unmapKey("endpoint_response"));
 
 			// Poll the deferred credential endpoint
