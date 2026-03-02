@@ -339,6 +339,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		// https://gitlab.com/idmvp/specifications/-/issues/29
 		profileRequiresMtlsEverywhere = false;
 
+		if (vciProfile == VCIProfile.HAIP && isRarRequest) {
+			throw new TestFailureException(getId(), "The usage of authorization request type RAR is not supported with HAIP.");
+		}
+
 		eventLog.runBlock("Fetch Credential Issuer Metadata", this::fetchCredentialIssuerMetadata);
 
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
