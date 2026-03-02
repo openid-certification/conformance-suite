@@ -13,7 +13,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 	summary = "This test case checks for the proper error handling during the standard credential issuance flow using an emulated wallet when an unknown credential configuration is used.",
 	profile = "OID4VCI-1_0"
 )
-public class VCIIssuerFailOnUnknownCredentialConfigurationId extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnUnknownCredentialConfigurationId extends AbstractVCIIssuerTestModule {
 
 	@Override
 	protected String serializeCredentialRequestObject(JsonObject credentialRequestObject) {

@@ -242,6 +242,8 @@ import java.util.function.Supplier;
 })
 @VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg",})
 @VariantHidesConfigurationFields(parameter = VCIProfile.class, value="haip", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
+@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation",
+	configurationFields = {"client.jwks"})
 @VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
 	"vci.client_attester_keys_jwks",
 	"vci.client_attestation_issuer"

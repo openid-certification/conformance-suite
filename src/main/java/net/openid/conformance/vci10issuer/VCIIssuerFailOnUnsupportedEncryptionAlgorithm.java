@@ -30,7 +30,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 		"If encryption is not enabled, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
-public class VCIIssuerFailOnUnsupportedEncryptionAlgorithm extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnUnsupportedEncryptionAlgorithm extends AbstractVCIIssuerTestModule {
 
 	@Override
 	public void start() {

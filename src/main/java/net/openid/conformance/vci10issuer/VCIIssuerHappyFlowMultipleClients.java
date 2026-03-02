@@ -4,8 +4,6 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VCIClientAuthType;
-import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-happy-flow-multiple-clients",
@@ -21,8 +19,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 	""",
 	profile = "OID4VCI-1_0"
 )
-@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation",
-	configurationFields = {"client.jwks", "client2.jwks"})
 public class VCIIssuerHappyFlowMultipleClients extends AbstractVCIIssuerMultipleClient {
 
 	@Override

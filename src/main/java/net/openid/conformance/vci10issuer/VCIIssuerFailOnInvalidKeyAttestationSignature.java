@@ -24,7 +24,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 		"If key attestation is not required, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
-public class VCIIssuerFailOnInvalidKeyAttestationSignature extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnInvalidKeyAttestationSignature extends AbstractVCIIssuerTestModule {
 
 	@Override
 	public void start() {
