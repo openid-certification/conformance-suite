@@ -28,8 +28,7 @@ object VciMdocUtils {
 		"""-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnmiWAMGIeo2E3usWRLL/EPfh1Bw5
 JHgq8RYzJvraMj5QZSh94CL/nlEi3vikGxDP34HjxZcjzGEimGg03sB6Ng==
------END PUBLIC KEY-----""",
-		EcCurve.P256
+-----END PUBLIC KEY-----"""
 	)
 
 	private val documentSignerKey = EcPrivateKey.fromPem(
@@ -115,6 +114,7 @@ TvFLVc4ESGy3AtdC+g==
 				"The MSO generator requires a device public key."
 			)
 		}
+		val valueDigests = runBlocking { issuerNamespaces.getValueDigests(Algorithm.SHA256) }
 		val mso = MobileSecurityObject(
 			version = "1.0",
 			docType = docType,
@@ -123,7 +123,7 @@ TvFLVc4ESGy3AtdC+g==
 			validUntil = validUntil,
 			expectedUpdate = null,
 			digestAlgorithm = Algorithm.SHA256,
-			valueDigests = issuerNamespaces.getValueDigests(Algorithm.SHA256),
+			valueDigests = valueDigests,
 			deviceKey = devicePublicKey,
 		)
 		val taggedEncodedMso = Cbor.encode(Tagged(Tagged.ENCODED_CBOR, Bstr(Cbor.encode(mso.toDataItem()))))

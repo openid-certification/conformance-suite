@@ -51,7 +51,16 @@ public abstract class AbstractCreateVP1FinalIsoMdocRedirectSessionTranscript ext
 		builder.add(responseUri);
 		byte[] handoverInfo = Cbor.INSTANCE.encode(
 			builder.end().build());
-		byte[] handoverInfoHash = Crypto.INSTANCE.digest(Algorithm.SHA256, handoverInfo);
+		byte[] handoverInfoHash;
+		try {
+			handoverInfoHash = kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, handoverInfo, continuation)
+			);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException(e);
+		}
 
 		String handoverInfoDiagnostics = Cbor.INSTANCE.toDiagnostics(handoverInfo,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));

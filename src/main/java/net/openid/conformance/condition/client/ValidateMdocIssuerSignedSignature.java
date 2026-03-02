@@ -114,7 +114,10 @@ public class ValidateMdocIssuerSignedSignature extends AbstractCondition {
 
 		// Verify the COSE_Sign1 signature
 		try {
-			Cose.INSTANCE.coseSign1Check(publicKey, null, coseSign1, algorithm);
+			kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				(scope, continuation) -> Cose.INSTANCE.coseSign1Check(publicKey, null, coseSign1, algorithm, continuation)
+			);
 		} catch (Exception e) {
 			throw error("COSE_Sign1 signature verification failed on mdoc issuerAuth", e,
 				args("algorithm", algorithm.name(),
