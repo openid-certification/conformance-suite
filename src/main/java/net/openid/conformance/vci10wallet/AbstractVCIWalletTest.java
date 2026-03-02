@@ -661,23 +661,29 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		// Add credential response encryption metadata if encryption is enabled
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			JsonObject responseEnc = new JsonObject();
-			JsonArray algValues = new JsonArray();
-			algValues.add("ECDH-ES");
-			algValues.add("ECDH-ES+A256KW");
-			algValues.add("ECDH-ES+A128KW");
-			responseEnc.add("alg_values_supported", algValues);
-
-			JsonArray encValues = new JsonArray();
-			encValues.add("A256GCM");
-			encValues.add("A128GCM");
-			encValues.add("A256CBC-HS512");
-			encValues.add("A128CBC-HS256");
-			responseEnc.add("enc_values_supported", encValues);
+			JsonObject responseEnc = createResponseEncryptionConfig();
 			metadataJson.add("credential_response_encryption", responseEnc);
 		}
 
 		return metadataJson;
+	}
+
+	protected JsonObject createResponseEncryptionConfig() {
+		JsonObject responseEnc = new JsonObject();
+		JsonArray algValues = new JsonArray();
+		algValues.add("ECDH-ES");
+		algValues.add("ECDH-ES+A256KW");
+		algValues.add("ECDH-ES+A128KW");
+		responseEnc.add("alg_values_supported", algValues);
+
+		JsonArray encValues = new JsonArray();
+		encValues.add("A256GCM");
+		encValues.add("A128GCM");
+		encValues.add("A256CBC-HS512");
+		encValues.add("A128CBC-HS256");
+		responseEnc.add("enc_values_supported", encValues);
+		responseEnc.addProperty("encryption_required", false);
+		return responseEnc;
 	}
 
 	protected void configureSupportedCredentialConfigurations() {

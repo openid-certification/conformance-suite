@@ -7,7 +7,6 @@ import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.jwk.gen.JWKGenerator;
 import net.openid.conformance.condition.AbstractCondition;
@@ -22,7 +21,6 @@ public class VCIGenerateCredentialEncryptionJwks extends AbstractCondition {
 		JWKGenerator<? extends JWK> jwkGenerator = new ECKeyGenerator(Curve.P_256);
 		jwkGenerator.provider(BouncyCastleProviderSingleton.getInstance());
 
-		jwkGenerator.keyUse(KeyUse.ENCRYPTION);
 		jwkGenerator.algorithm(JWEAlgorithm.ECDH_ES);
 
 		JWK jwk;
