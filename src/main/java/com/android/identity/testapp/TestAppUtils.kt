@@ -86,7 +86,7 @@ object TestAppUtils {
 			CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now()
 		) as MdocCredential
 
-		val issuerSigned = Cbor.decode(credential.issuerProvidedData)
+		val issuerSigned = Cbor.decode(credential.issuerProvidedData.toByteArray())
 		val issuerNamespaces = IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"])
 		val issuerAuthCoseSign1 = issuerSigned["issuerAuth"].asCoseSign1
 
@@ -190,8 +190,7 @@ object TestAppUtils {
 			"""-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnmiWAMGIeo2E3usWRLL/EPfh1Bw5
 JHgq8RYzJvraMj5QZSh94CL/nlEi3vikGxDP34HjxZcjzGEimGg03sB6Ng==
------END PUBLIC KEY-----""",
-			EcCurve.P256
+-----END PUBLIC KEY-----"""
 		)
 		val documentSignerKey = EcPrivateKey.fromPem(
 			"""-----BEGIN PRIVATE KEY-----
@@ -566,9 +565,7 @@ TvFLVc4ESGy3AtdC+g==
 
                 // Now that we have issuer-provided authentication data we certify the authentication key.
                 mdocCredential.certify(
-                    issuerProvidedAuthenticationData,
-                    validFrom,
-                    validUntil
+                    ByteString(issuerProvidedAuthenticationData)
                 )
             }
         }
@@ -670,9 +667,7 @@ TvFLVc4ESGy3AtdC+g==
                     nonSdClaims = nonSdClaims
                 )
                 credential.certify(
-                    sdJwt.compactSerialization.encodeToByteArray(),
-                    validFrom,
-                    validUntil
+                    sdJwt.compactSerialization.encodeToByteString()
                 )
             }
         }

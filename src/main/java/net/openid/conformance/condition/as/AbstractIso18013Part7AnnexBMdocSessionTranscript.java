@@ -30,14 +30,27 @@ public abstract class AbstractIso18013Part7AnnexBMdocSessionTranscript extends A
 				.add(mdocGeneratedNonce)
 				.end()
 				.build());
-		byte[] clientIdHash = Crypto.INSTANCE.digest(Algorithm.SHA256, clientIdToHash);
-		byte[] responseUriToHash = Cbor.INSTANCE.encode(
-			CborArray.Companion.builder()
-				.add(responseUri)
-				.add(mdocGeneratedNonce)
-				.end()
-				.build());
-		byte[] responseUriHash = Crypto.INSTANCE.digest(Algorithm.SHA256, responseUriToHash);
+		byte[] clientIdHash;
+		byte[] responseUriHash;
+		try {
+			clientIdHash = kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, clientIdToHash, continuation)
+			);
+			byte[] responseUriToHash = Cbor.INSTANCE.encode(
+				CborArray.Companion.builder()
+					.add(responseUri)
+					.add(mdocGeneratedNonce)
+					.end()
+					.build());
+			responseUriHash = kotlinx.coroutines.BuildersKt.runBlocking(
+				kotlin.coroutines.EmptyCoroutineContext.INSTANCE,
+				(scope, continuation) -> Crypto.INSTANCE.digest(Algorithm.SHA256, responseUriToHash, continuation)
+			);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException(e);
+		}
 
 		DataItem oid4vpHandover = CborArray.Companion.builder()
 			.add(clientIdHash)
