@@ -68,6 +68,9 @@ class WebSecurityOidcLoginConfig {
 	@Autowired
 	private KeycloakLogoutHandler keycloakLogoutHandler;
 
+	@Autowired
+	private KeyCloakAuthoritiesConverter authorityConverter;
+
 	@Bean
 	public InMemoryClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
 		try {
@@ -166,7 +169,7 @@ class WebSecurityOidcLoginConfig {
 			oauth2Login.successHandler(migrationAuthenticationHandler);
 
 			oauth2Login.userInfoEndpoint(userInfoCustomization -> {
-				userInfoCustomization.userAuthoritiesMapper(new KeyCloakAuthoritiesConverter());
+				userInfoCustomization.userAuthoritiesMapper(authorityConverter);
 			});
 		});
 

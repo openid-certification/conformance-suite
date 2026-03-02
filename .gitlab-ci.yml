@@ -430,6 +430,9 @@ local_test:
   needs: ["build"]
   script:
     - apk add docker-compose
+    - echo "OIDC_IDP_ISS=$OIDC_IDP_ISS" > .env
+    - echo "OIDC_IDP_CLIENTID=$OIDC_IDP_CLIENTID" >> .env
+    - echo "OIDC_IDP_SECRET=$OIDC_IDP_SECRET" >> .env
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
     - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx

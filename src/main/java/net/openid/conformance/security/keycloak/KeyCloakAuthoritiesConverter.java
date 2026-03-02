@@ -7,6 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@Component
 public class KeyCloakAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>>, GrantedAuthoritiesMapper {
 
 	@Value("${spring.security.oauth2.client.registration.idp.client-id}")
@@ -44,13 +46,14 @@ public class KeyCloakAuthoritiesConverter implements Converter<Jwt, Collection<G
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Collection<? extends GrantedAuthority> mapAuthorities(Collection<? extends GrantedAuthority> authorities) {
 		Set<GrantedAuthority> extendedAuthorities = new HashSet<>(authorities);
 		extendedAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 
 		authorities.forEach(authority -> {
 			if (authority instanceof OidcUserAuthority oidcUserAuthority) {
-				if (isAdmin(oidcUserAuthority.getUserInfo().getClaimAsMap("resource_access"))) {
+				if (isAdmin((Map<String, Object>) oidcUserAuthority.getAttributes().getOrDefault("resource_access", Map.of()))) {
 					extendedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
 				}
 			}
