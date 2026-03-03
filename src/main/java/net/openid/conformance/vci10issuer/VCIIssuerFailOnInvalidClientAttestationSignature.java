@@ -31,7 +31,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalid
 		"If a different client authentication method is used, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
-public class VCIIssuerFailOnInvalidClientAttestationSignature extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnInvalidClientAttestationSignature extends AbstractVCIIssuerTestModule {
 
 	@Override
 	public void start() {

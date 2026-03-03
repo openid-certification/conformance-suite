@@ -37,7 +37,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceCli
 	profile = "OID4VCI-1_0"
 )
 @VariantNotApplicable(parameter = VCIClientAuthType.class, values = {"mtls", "private_key_jwt"})
-public class VCIIssuerFailOnMismatchedClientAttestationPopKey extends VCIIssuerHappyFlow {
+public class VCIIssuerFailOnMismatchedClientAttestationPopKey extends AbstractVCIIssuerTestModule {
 
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
