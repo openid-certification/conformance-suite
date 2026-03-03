@@ -168,6 +168,7 @@ in
       name = "PMD and Checkstyle";
       entry = "mvnd checkstyle:check pmd:check";
       pass_filenames = false;
+      types = [ "java" ];
     };
   # See full reference at https://devenv.sh/reference/options/
 }
