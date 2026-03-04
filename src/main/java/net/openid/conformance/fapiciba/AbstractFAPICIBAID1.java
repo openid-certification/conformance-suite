@@ -174,7 +174,6 @@ import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
-import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
