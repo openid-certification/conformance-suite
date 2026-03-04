@@ -235,9 +235,6 @@ import java.util.function.Supplier;
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
-	"resource.brazilOrganizationId",
-	"resource.brazilPaymentConsent",
-	"resource.brazilPixPayment",
 	"directory.keystore"
 })
 @VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
@@ -247,7 +244,6 @@ import java.util.function.Supplier;
 	"resource.consentUrl",
 	"resource.brazilCpf",
 	"resource.brazilCnpj",
-	"resource.brazilOrganizationId",
 	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
