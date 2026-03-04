@@ -715,7 +715,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureBackchannelRequestParametersDoNotAppearOutsideJwt.class, ConditionResult.FAILURE, "CIBA-7.1.1");
 		callAndContinueOnFailure(BackchannelRequestHasExactlyOneOfTheHintParameters.class, ConditionResult.FAILURE, "CIBA-7.1");
-		callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1", "CIBA-7.1.1");
+		if (isBrazil()) {
+			callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class, ConditionResult.FAILURE, "BrazilCIBA-6.2.6");
+		} else {
+			callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1", "CIBA-7.1.1");
+		}
 
 		skipIfElementMissing("backchannel_request_object", "claims.id_token_hint", ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
 		if(isBrazil()) {

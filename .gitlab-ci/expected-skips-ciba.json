@@ -2,20 +2,20 @@
     {
         "test-name": "fapi-ciba-id1-refresh-token",
         "variant": {
-                "client_auth_type": "private_key_jwt",
-                "fapi_profile": "plain_fapi",
-                "ciba_mode": "poll",
-                "client_registration": "static_client"
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "plain_fapi",
+            "ciba_mode": "poll",
+            "client_registration": "static_client"
         },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json"
     },
     {
         "test-name": "fapi-ciba-id1-refresh-token",
         "variant": {
-                "client_auth_type": "private_key_jwt",
-                "fapi_profile": "openbanking_uk",
-                "ciba_mode": "poll",
-                "client_registration": "static_client"
+            "client_auth_type": "private_key_jwt",
+            "fapi_profile": "openbanking_uk",
+            "ciba_mode": "poll",
+            "client_registration": "static_client"
         },
         "configuration-filename": "authlete-fapi-ciba-id1-privatekey-poll.json"
     }

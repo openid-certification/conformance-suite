@@ -26,6 +26,7 @@ import java.util.Map;
 		FAPICIBAID1EnsureAuthorizationRequestWithBindingMessageSucceeds.class,
 		FAPICIBAID1EnsureOtherScopeOrderSucceeds.class,
 		FAPICIBAID1EnsureRequestedExpiryAsStringSucceeds.class,
+		FAPICIBAID1EnsureRequestedExpiryIgnoredForBrazil.class,
 
 		// Possible failure case
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,
