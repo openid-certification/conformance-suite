@@ -15,10 +15,10 @@ import org.springframework.http.ResponseEntity;
 	"The client should perform OpenID discovery from the displayed " +
 	"discoveryUrl, call the backchannel endpoint and then retrieve an " +
 	"access token at the token endpoint and make a request to the " +
-	"payments endpoint displayed. This call will always return a 401 " +
+	"resources endpoint displayed. This call will always return a 401 " +
 	"error, the client must call the token endpoint again using " +
 	"refresh_token grant type twice (the first call will return a new " +
-	"refresh token) to obtain a new access token and call the payments " +
+	"refresh token) to obtain a new access token and call the resources " +
 	"endpoint again with the new access token obtained using the " +
 	"refresh_token.",
 	profile = "FAPI-CIBA-ID1",
@@ -51,17 +51,17 @@ public class FAPICIBAClientRefreshTokenTest extends AbstractFAPICIBAClientTest {
 	@Override
 	protected Object accountsEndpoint(String requestId) {
 		if(numberOfTimesRefreshTokenUsed < 2) {
-			return rejectAccessToken("Accounts endpoint (always rejected)");
+			return rejectAccessToken("Accounts endpoint (deliberately rejected)");
 		}
 		return super.accountsEndpoint(requestId);
 	}
 
 	@Override
-	protected Object brazilHandleNewPaymentInitiationRequest(String requestId) {
+	protected Object resourcesEndpoint(String requestId) {
 		if(numberOfTimesRefreshTokenUsed < 2) {
-			return rejectAccessToken("Payment initiation endpoint (always rejected)");
+			return rejectAccessToken("Resources endpoint (deliberately rejected)");
 		}
-		return super.brazilHandleNewPaymentInitiationRequest(requestId);
+		return super.resourcesEndpoint(requestId);
 	}
 
 	protected ResponseEntity<Object> rejectAccessToken(String blockLabel) {
