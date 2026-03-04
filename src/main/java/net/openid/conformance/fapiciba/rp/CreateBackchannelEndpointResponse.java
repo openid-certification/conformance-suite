@@ -7,8 +7,10 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.util.RFC6749AppendixASyntaxUtils;
 import net.openid.conformance.testmodule.Environment;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class CreateBackchannelEndpointResponse extends AbstractCondition {
 
@@ -31,13 +33,39 @@ public class CreateBackchannelEndpointResponse extends AbstractCondition {
 	}
 
 	protected void addExpiresIn(Environment env, JsonObject backchannelResponse) {
+		Integer expiresInFromConsent = getExpiresInFromConsentExpiration(env);
 		Integer requestedExpiry = env.getInteger("requested_expiry");
-		int expiresIn = requestedExpiry != null ? requestedExpiry : EXPIRES_IN;
+		int expiresIn = expiresInFromConsent != null ? expiresInFromConsent : (requestedExpiry != null ? requestedExpiry : EXPIRES_IN);
 		backchannelResponse.addProperty("expires_in", expiresIn);
 		log("Set expires_in", args("expires_in", expiresIn));
 
 		String authReqIdExpiration = DateTimeFormatter.ISO_INSTANT.format(Instant.now().plusSeconds(expiresIn));
 		env.putString("auth_req_id_expiration", authReqIdExpiration);
+	}
+
+	private Integer getExpiresInFromConsentExpiration(Environment env) {
+		String consentExpirationDateTime = env.getString("consent_response", "data.expirationDateTime");
+		if (consentExpirationDateTime == null) {
+			return null;
+		}
+
+		try {
+			Instant consentExpiration = Instant.parse(consentExpirationDateTime);
+			long seconds = Duration.between(Instant.now(), consentExpiration).toSeconds();
+			if (seconds <= 0) {
+				return 1;
+			}
+			if (seconds > Integer.MAX_VALUE) {
+				return Integer.MAX_VALUE;
+			}
+			return (int) seconds;
+		} catch (DateTimeParseException e) {
+			log("Ignoring invalid consent expirationDateTime while calculating CIBA expires_in", args(
+				"expirationDateTime", consentExpirationDateTime,
+				"error", e.getMessage()
+			));
+			return null;
+		}
 	}
 
 	protected void addAuthReqId(Environment env, JsonObject backchannelResponse) {
