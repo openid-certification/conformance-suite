@@ -275,14 +275,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
-		callAndStopOnFailure(AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported.class);
+		callAndStopOnFailure(AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported.class);
 		if(isBrazil()) {
 			callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
 			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
 		} else {
-			callAndStopOnFailure(AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported.class);
+			callAndStopOnFailure(AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported.class);
 			callAndStopOnFailure(ExtractServerSigningAlg.class);
 		}
 
