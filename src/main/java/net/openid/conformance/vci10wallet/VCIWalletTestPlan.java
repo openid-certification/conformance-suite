@@ -8,7 +8,7 @@ import java.util.List;
 
 @PublishTestPlan (
 	testPlanName = "oid4vci-1_0-wallet-test-plan",
-	displayName = "OpenID for Verifiable Credential Issuance 1.0 Final: Test a wallet - alpha tests (not currently part of certification program)",
+	displayName = "OpenID for Verifiable Credential Issuance 1.0 Final: Test a wallet",
 	profile = TestPlan.ProfileNames.vciwallet
 )
 public class VCIWalletTestPlan implements TestPlan {
