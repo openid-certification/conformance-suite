@@ -23,7 +23,7 @@ public class FAPIBrazilEnsureAuthorizationRequestScopesContainResources extends 
 				args("expected", "resources", "actual", scope));
 			return env;
 		} else {
-			throw error("'resources'  was not included included in authorization request scopes",
+			throw error("'resources' was not included in authorization request scopes",
 				args("expected", "resources", "actual", scope));
 		}
 	}
