@@ -10,6 +10,7 @@ in
   packages = [
     pkgs.git
     pkgs.ngrok
+    pkgs.mvnd
   ];
 
   scripts.hello.exec = "echo $GREET";
@@ -165,7 +166,7 @@ in
   pre-commit.hooks.mvn-check = {
       enable = true;
       name = "PMD and Checkstyle";
-      entry = "mvn pmd:check checkstyle:check";
+      entry = "mvnd checkstyle:check pmd:check";
       pass_filenames = false;
     };
   # See full reference at https://devenv.sh/reference/options/
