@@ -23,6 +23,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.UUID;
 
 public class CreateClientEncryptionKeyIfMissing extends AbstractCondition {
 
@@ -82,6 +83,7 @@ public class CreateClientEncryptionKeyIfMissing extends AbstractCondition {
 				.privateKey((RSAPrivateKey)keyPair.getPrivate())
 				.keyUse(KeyUse.ENCRYPTION)
 				.algorithm(jweAlgorithm)
+				.keyID(UUID.randomUUID().toString())
 				.build();
 		} else if (JWEAlgorithm.Family.ECDH_ES.contains(jweAlgorithm)) {
 			KeyPairGenerator gen = KeyPairGenerator.getInstance("EC");
@@ -92,6 +94,7 @@ public class CreateClientEncryptionKeyIfMissing extends AbstractCondition {
 				.privateKey((ECPrivateKey) keyPair.getPrivate())
 				 .keyUse(KeyUse.ENCRYPTION)
 				 .algorithm(jweAlgorithm)
+				 .keyID(UUID.randomUUID().toString())
 				.build();
 
 		} else {
