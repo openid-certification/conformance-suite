@@ -292,6 +292,19 @@ import java.util.function.Supplier;
 	"client.scope", // scope is always openid
 	"client2.scope"
 })
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
+	"vci.credential_issuer_url",
+	"vci.credential_configuration_id",
+	"vci.credential_proof_type_hint",
+	"vci.key_attestation_jwks",
+	"vci.authorization_server",
+})
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
+	"resource.resourceUrl", // credential endpoint comes from VCI metadata
+	"resource.resourceMethod",
+	"resource.resourceMediaType",
+	"resource.resourceRequestBody",
+})
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
 	"resource.richAuthorizationRequest",
 })
@@ -383,12 +396,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			exposeEnvString("redirect_uri");
 		}
 
-		// Make sure we're calling the right server configuration
-		if(isOpenId) {
-			callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		} else {
-			callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
-		}
+		// Fetch authorization server configuration (profile may override, e.g. VCI)
+		profileBehavior.fetchServerConfiguration(this);
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
@@ -414,6 +423,10 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (isRarRequest) {
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
+
+		// Profile-specific additional configuration (e.g., VCI credential metadata resolution)
+		profileBehavior.configureAdditional(this);
+
 		whichClient = 1;
 
 		// Set up the client configuration
@@ -432,6 +445,18 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	protected void setupResourceEndpoint() {
 		profileBehavior.setupResourceEndpoint(this);
+	}
+
+	/**
+	 * Default server configuration fetch: standard OIDC or OAuth discovery.
+	 * Called by profile behaviors that don't override server config fetching.
+	 */
+	public void defaultFetchServerConfiguration() {
+		if (isOpenId) {
+			callAndStopOnFailure(GetDynamicServerConfiguration.class);
+		} else {
+			callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
+		}
 	}
 
 	/**
@@ -1066,6 +1091,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected void requestProtectedResource() {
+		profileBehavior.requestProtectedResource(this);
+	}
+
+	/**
+	 * Default resource endpoint request flow: FAPI2 standard resource call.
+	 * Called by profile behaviors that don't override the resource endpoint flow.
+	 */
+	public void defaultRequestProtectedResource() {
 
 		// verify the access token against a protected resource
 		eventLog.startBlock(currentClientString() + "Resource server endpoint tests");
@@ -1247,6 +1280,51 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		return condition(conditionClass);
 	}
 
+	boolean doIsDpop() {
+		return isDpop();
+	}
+
+	boolean doIsMtlsRequired() {
+		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
+			profileRequiresMtlsEverywhere;
+	}
+
+	void doRequestProtectedResourceUsingDpop() {
+		requestProtectedResourceUsingDpop();
+	}
+
+	net.openid.conformance.testmodule.Command doExec() {
+		return exec();
+	}
+
+	void doCall(net.openid.conformance.testmodule.TestExecutionUnit executionUnit) {
+		call(executionUnit);
+	}
+
+	void doStartBlock(String blockName) {
+		eventLog.startBlock(blockName);
+	}
+
+	void doEndBlock() {
+		eventLog.endBlock();
+	}
+
+	void doLog(String msg) {
+		eventLog.log(getName(), msg);
+	}
+
+	String doCurrentClientString() {
+		return currentClientString();
+	}
+
+	void doCallSequence(Class<? extends ConditionSequence> sequenceClass) {
+		call(sequence(sequenceClass));
+	}
+
+	void doFireTestSkipped(String msg) {
+		fireTestSkipped(msg);
+	}
+
 	/**
 	 * Return which client is in use, for use in block identifiers
 	 */
@@ -1326,6 +1404,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "cbuae")
 	public void setupCbuaeFapi() {
 		profileBehavior = new CbuaeProfileBehavior();
+		configureFromProfileBehavior();
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
+	public void setupVci() {
+		profileBehavior = new VCIProfileBehavior();
 		configureFromProfileBehavior();
 	}
 

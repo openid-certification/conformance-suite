@@ -230,4 +230,32 @@ public class FAPI2ProfileBehavior {
 	public void requestProtectedResource(AbstractFAPI2SPFinalServerTestModule module) {
 		module.defaultRequestProtectedResource();
 	}
+
+	// --- Lifecycle hooks for profiles that need deeper control ---
+
+	/**
+	 * Fetch authorization server configuration.
+	 * Default: standard OIDC or OAuth discovery based on isOpenId.
+	 * VCI overrides this to fetch credential issuer metadata first, then derive the AS.
+	 */
+	public void fetchServerConfiguration(AbstractFAPI2SPFinalServerTestModule module) {
+		module.defaultFetchServerConfiguration();
+	}
+
+	/**
+	 * Perform additional configuration after server metadata is fetched but before client setup.
+	 * Default: no-op. VCI uses this to resolve credential configuration and transfer method.
+	 */
+	public void configureAdditional(AbstractFAPI2SPFinalServerTestModule module) {
+		// default: no-op
+	}
+
+	/**
+	 * Execute the protected resource request flow.
+	 * Default: standard FAPI2 resource endpoint call.
+	 * VCI overrides this to call the credential endpoint with nonce, proof, and credential request.
+	 */
+	public void requestProtectedResource(AbstractFAPI2SPFinalServerTestModule module) {
+		module.defaultRequestProtectedResource();
+	}
 }
