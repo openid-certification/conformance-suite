@@ -55,7 +55,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
 
 public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient {
 

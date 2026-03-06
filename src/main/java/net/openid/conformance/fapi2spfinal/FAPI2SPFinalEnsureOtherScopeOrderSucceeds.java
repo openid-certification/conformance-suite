@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 // ConnectID only requires the openid scope to be supported, but this test requires at least two scopes
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au", "vci" })
 // Plain oauth may not have the mulptiple scopes required for this test.
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = "plain_oauth")
 public class FAPI2SPFinalEnsureOtherScopeOrderSucceeds extends AbstractFAPI2SPFinalServerTestModule {

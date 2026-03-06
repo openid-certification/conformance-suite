@@ -26,7 +26,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = { "mtls" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
 public class FAPI2SPFinalEnsureTokenEndpointFailsWithMismatchedDpopProofJkt extends AbstractFAPI2SPFinalPerformTokenEndpoint {
 
 	@Override

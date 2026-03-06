@@ -5,7 +5,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIDecodeSignedCredentialIssuerMetadata;
@@ -23,7 +23,7 @@ import net.openid.conformance.vci10issuer.condition.VCIRequestSignedCredentialIs
 		""",
 	profile = "OID4VCI-1_0"
 )
-@VariantParameters({VCIClientAuthType.class, VCIProfile.class})
+@VariantParameters({ClientAuthType.class, VCIProfile.class})
 public class VCIIssuerMetadataSignedTest extends VCIIssuerMetadataTest {
 
 	@Override

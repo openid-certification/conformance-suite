@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalidateClientAttestationSignature;
 
 /**
@@ -36,7 +36,7 @@ public class VCIIssuerFailOnInvalidClientAttestationSignature extends AbstractVC
 	@Override
 	public void start() {
 		// Skip this test if client attestation is not used
-		if (clientAuthType != VCIClientAuthType.CLIENT_ATTESTATION) {
+		if (getVariant(ClientAuthType.class) != ClientAuthType.CLIENT_ATTESTATION) {
 			fireTestSkipped("This test requires client_auth_type=client_attestation variant. " +
 				"Skipping because a different client authentication method is used.");
 			return;

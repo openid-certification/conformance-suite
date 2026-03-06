@@ -31,7 +31,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls"
 })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
 public class FAPI2SPFinalPAREndpointAsArrayAudienceFails extends AbstractFAPI2SPFinalServerTestModule {
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {

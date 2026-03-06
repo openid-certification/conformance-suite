@@ -20,6 +20,7 @@ import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 import java.util.function.Supplier;
@@ -41,6 +42,7 @@ import java.util.function.Supplier;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values={"mtls"})
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTestModule {
 
 	void callResourceEndpointSteps(Supplier <? extends ConditionSequence> seq, boolean expectSuccess, boolean shouldFail, boolean forceBearer, String... requirements) {

@@ -25,6 +25,9 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
+
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-ensure-holder-of-key-required",
@@ -42,6 +45,7 @@ import net.openid.conformance.variant.VariantSetup;
 		"resource.resourceUrl"
 	}
 )
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalServerTestModule {
 
 	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;

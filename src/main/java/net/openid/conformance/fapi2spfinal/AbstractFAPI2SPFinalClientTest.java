@@ -240,8 +240,9 @@ import org.springframework.web.servlet.view.RedirectView;
 		AuthorizationRequestType.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt", "client_attestation"
 })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"directory.keystore"
 })

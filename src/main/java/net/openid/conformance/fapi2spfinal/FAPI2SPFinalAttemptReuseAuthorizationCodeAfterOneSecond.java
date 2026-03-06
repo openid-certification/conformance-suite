@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.HttpStatus;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
 
 public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends AbstractFAPI2SPFinalServerTestModule {
 

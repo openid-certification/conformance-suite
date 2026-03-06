@@ -46,6 +46,7 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -66,6 +67,7 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPIResponseMode.class,
 	FAPIOpenIDConnect.class
 })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFinalDiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;

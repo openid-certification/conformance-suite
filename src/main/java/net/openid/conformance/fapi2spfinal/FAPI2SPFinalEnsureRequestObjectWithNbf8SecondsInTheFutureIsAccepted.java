@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.CheckPAREndpointResponse201WithNo
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 
@@ -28,6 +29,7 @@ import org.springframework.http.HttpStatus;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalEnsureRequestObjectWithNbf8SecondsInTheFutureIsAccepted extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

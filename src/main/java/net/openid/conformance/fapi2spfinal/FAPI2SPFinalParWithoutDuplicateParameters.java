@@ -22,7 +22,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
 
 public class FAPI2SPFinalParWithoutDuplicateParameters extends AbstractFAPI2SPFinalServerTestModule {
 
