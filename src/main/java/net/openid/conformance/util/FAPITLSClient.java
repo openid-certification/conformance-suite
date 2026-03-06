@@ -82,8 +82,6 @@ public class FAPITLSClient extends DefaultTlsClient {
 		}
 
 		ArrayList<Integer> ciphers = new ArrayList<Integer>();
-		// Non-deprecated ciphers which must not be offered.
-		List<String> exclusions = Arrays.asList("TLS_NULL_WITH_NULL_NULL", "TLS_EMPTY_RENEGOTIATION_INFO_SCSV", "TLS_FALLBACK_SCSV");
 
 		InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("csv/tls-parameters-4.csv");
 
@@ -108,28 +106,15 @@ public class FAPITLSClient extends DefaultTlsClient {
 					// Remove the quoted value field.
 					line = line.replaceFirst("\".*?\",", "");
 
-					// Ignore entries with a "Description" field that doesn't
-					// start with "TLS_". This ignores "Reserved" and "Unassigned"
-					// entries.
-					if (! line.startsWith("TLS_")) {
-						continue;
-					}
-
 					String[] fields = line.split(",");
 
-					// Ignore entries that don't contain the required number
-					// of fields.
+					// Ignore entries that don't contain the required number of fields.
 					if (fields.length < 3) {
 						continue;
 					}
 
-					// Ignore deprecated entries.
-					if (fields[2].equals("D")) {
-						continue;
-					}
-
-					// Ignore ciphers in our exclusion list.
-					if (exclusions.contains(fields[0])) {
+					// Accept only recommended, non-deprecated fields
+					if (! fields[2].equals("Y")) {
 						continue;
 					}
 
