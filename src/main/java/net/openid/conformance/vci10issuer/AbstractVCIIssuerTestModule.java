@@ -108,6 +108,7 @@ import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicK
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
+import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
@@ -1484,6 +1485,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC) {
 			// SD-JWT VC format validation (default)
 			callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
+			callAndContinueOnFailure(ValidateCredentialJWTIssIsHttpsUri.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 			callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
 			callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-3.5");
 			callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.1");
