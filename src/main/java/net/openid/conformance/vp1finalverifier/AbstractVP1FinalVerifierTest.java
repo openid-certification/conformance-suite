@@ -32,6 +32,7 @@ import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
 import net.openid.conformance.condition.as.ExtractAndValidateX509HashClientId;
+import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
 import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
@@ -56,7 +57,9 @@ import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedi
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.client.WarnUnknownDCQLProperties;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -415,6 +418,10 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		extractAuthorizationEndpointRequestParameters();
 
 		validateAuthorizationEndpointRequestParameters();
+
+		callAndStopOnFailure(ExtractDCQLQueryFromAuthorizationRequest.class, "OID4VP-1FINAL-6");
+		callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6");
+		callAndContinueOnFailure(WarnUnknownDCQLProperties.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
 
 		// FIXME not sure why this might be missing? the unexpected claims stuff should be on the auth parameters, not the request object ones
 //		skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,

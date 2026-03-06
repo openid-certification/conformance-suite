@@ -1,0 +1,302 @@
+package net.openid.conformance.condition.client;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.vci10issuer.condition.AbstractVciUnitTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
+@ExtendWith(MockitoExtension.class)
+public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
+
+	private WarnUnknownDCQLProperties cond;
+
+	@Mock
+	private TestInstanceEventLog eventLog;
+
+	private Environment env;
+
+	@BeforeEach
+	public void setUp() throws Exception {
+		cond = new WarnUnknownDCQLProperties();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+		env = new Environment();
+	}
+
+	@Test
+	public void testEvaluate_noWarningWhenNoUnknownProperties() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      }
+			    }
+			  ]
+			}
+			""";
+		putDcql(json);
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInCredential() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      },
+			      "unexpected": "boom"
+			    }
+			  ]
+			}
+			""";
+		putDcql(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertContainsErrorWithMessageFragment(data, "$.credentials[0].unexpected", "additional properties");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyAtTopLevel() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      }
+			    }
+			  ],
+			  "unexpected_top": true
+			}
+			""";
+		putDcql(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertContainsErrorWithMessageFragment(data, "$.unexpected_top", "additional properties");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInMeta() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ],
+			        "unexpected_meta": true
+			      }
+			    }
+			  ]
+			}
+			""";
+		putDcql(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertContainsErrorWithMessageFragment(data, "$.credentials[0].meta.unexpected_meta", "additional properties");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInClaim() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      },
+			      "claims": [
+			        {
+			          "path": [
+			            "given_name"
+			          ],
+			          "unexpected_claim": "boom"
+			        }
+			      ]
+			    }
+			  ]
+			}
+			""";
+		putDcql(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertContainsErrorWithMessageFragment(data, "$.credentials[0].claims[0].unexpected_claim", "additional properties");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInTrustedAuthorities() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      },
+			      "trusted_authorities": [
+			        {
+			          "type": "aki",
+			          "values": [
+			            "thumbprint"
+			          ],
+			          "unexpected_auth": "boom"
+			        }
+			      ]
+			    }
+			  ]
+			}
+			""";
+		putDcql(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertContainsErrorWithMessageFragment(data, "$.credentials[0].trusted_authorities[0].unexpected_auth", "additional properties");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInCredentialSet() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      }
+			    }
+			  ],
+			  "credential_sets": [
+			    {
+			      "options": [
+			        [
+			          "credential_1"
+			        ]
+			      ],
+			      "unexpected_set": "boom"
+			    }
+			  ]
+			}
+			""";
+		putDcql(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertContainsErrorWithMessageFragment(data, "$.credential_sets[0].unexpected_set", "additional properties");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInCredentialSetsArray() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      }
+			    }
+			  ],
+			  "credential_sets": [
+			    {
+			      "options": [
+			        [
+			          "credential_1"
+			        ]
+			      ]
+			    }
+			  ],
+			  "credential_sets_unexpected": []
+			}
+			""";
+		putDcql(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertContainsErrorWithMessageFragment(data, "$.credential_sets_unexpected", "additional properties");
+	}
+
+	@Test
+	public void testEvaluate_structuralErrorsDoNotWarn() {
+		// Empty credentials array — this is a structural error (minItems), not an unknown
+		// property. Uses a top-level error to avoid the anyOf cascade at credential level
+		// which can produce additionalProperties from the non-matching branch.
+		String json = """
+			{
+			  "credentials": []
+			}
+			""";
+		putDcql(json);
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	private void putDcql(String json) {
+		JsonObject dcql = JsonParser.parseString(json).getAsJsonObject();
+		env.putObject("dcql_query", dcql);
+	}
+
+	private void assertContainsErrorWithMessageFragment(Map<String, Object> data, String property, String expectedErrorFragment) {
+		JsonObject entry = findErrorByPath(data, property);
+		org.junit.jupiter.api.Assertions.assertNotNull(entry, "No error found for path: " + property);
+		String propertyError = OIDFJSON.getString(entry.get("error"));
+		org.junit.jupiter.api.Assertions.assertTrue(propertyError.contains(expectedErrorFragment));
+	}
+
+	private JsonObject findErrorByPath(Map<String, Object> data, String property) {
+		Object invalidEntries = data.get("invalid_entries");
+		org.junit.jupiter.api.Assertions.assertTrue(invalidEntries instanceof java.util.List<?>);
+
+		for (Object entry : (java.util.List<?>) invalidEntries) {
+			if (!(entry instanceof JsonObject)) {
+				continue;
+			}
+			String propertyPath = OIDFJSON.getString(((JsonObject) entry).get("path"));
+			if (property.equals(propertyPath)) {
+				return (JsonObject) entry;
+			}
+		}
+
+		return null;
+	}
+}
