@@ -36,7 +36,7 @@ public class VP1FinalWalletInvalidRequestObjectSignature extends AbstractVP1Fina
 	@Override
 	protected void createPlaceholder() {
 		// FIXME use a better placeholder with a better message
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OID4VP-ID2-6.2");
+		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OID4VP-1FINAL-8.5");
 
 		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
 	}
