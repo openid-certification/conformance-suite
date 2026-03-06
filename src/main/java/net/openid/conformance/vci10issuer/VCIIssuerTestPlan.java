@@ -4,6 +4,7 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCICredentialEncryption;
 
 import java.util.List;
@@ -48,7 +49,8 @@ public class VCIIssuerTestPlan implements TestPlan {
 				),
 				List.of(
 					new Variant(FAPI2FinalOPProfile.class, "vci"),
-					new Variant(FAPIOpenIDConnect.class, "plain_oauth")
+					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
+					new Variant(FAPIResponseMode.class, "plain_response")
 				)
 			),
 			new ModuleListEntry(
@@ -62,6 +64,7 @@ public class VCIIssuerTestPlan implements TestPlan {
 				List.of(
 					new Variant(FAPI2FinalOPProfile.class, "vci"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
+					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(VCICredentialEncryption.class, "encrypted")
 				)
 			)

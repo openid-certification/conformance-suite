@@ -8,6 +8,7 @@ import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
@@ -58,6 +59,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				List.of(
 					new Variant(FAPI2FinalOPProfile.class, "vci"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
+					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
@@ -79,6 +81,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				List.of(
 					new Variant(FAPI2FinalOPProfile.class, "vci"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
+					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
