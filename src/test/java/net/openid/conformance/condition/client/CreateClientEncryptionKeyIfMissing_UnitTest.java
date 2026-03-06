@@ -89,6 +89,7 @@ public class CreateClientEncryptionKeyIfMissing_UnitTest {
 		JsonArray jwkArray = env.getElementFromObject("client", "jwks.keys").getAsJsonArray();
 		assertThat(jwkArray.size()).isEqualTo(2);
 		assertThat(OIDFJSON.getString(jwkArray.get(1).getAsJsonObject().get("kty"))).isEqualTo("EC");
+		assertThat(jwkArray.get(1).getAsJsonObject().has("kid")).isTrue();
 	}
 
 	@Test
@@ -97,10 +98,10 @@ public class CreateClientEncryptionKeyIfMissing_UnitTest {
 
 		cond.execute(env);
 
-		// should have two keys now
 		JsonArray jwkArray = env.getElementFromObject("client", "jwks.keys").getAsJsonArray();
 		assertThat(jwkArray.size()).isEqualTo(1);
 		assertThat(OIDFJSON.getString(jwkArray.get(0).getAsJsonObject().get("kty"))).isEqualTo("EC");
+		assertThat(jwkArray.get(0).getAsJsonObject().has("kid")).isTrue();
 	}
 
 	@Test
@@ -110,9 +111,9 @@ public class CreateClientEncryptionKeyIfMissing_UnitTest {
 
 		cond.execute(env);
 
-		// should have two keys now
 		JsonArray jwkArray = env.getElementFromObject("client", "jwks.keys").getAsJsonArray();
 		assertThat(jwkArray.size()).isEqualTo(1);
 		assertThat(OIDFJSON.getString(jwkArray.get(0).getAsJsonObject().get("kty"))).isEqualTo("RSA");
+		assertThat(jwkArray.get(0).getAsJsonObject().has("kid")).isTrue();
 	}
 }
