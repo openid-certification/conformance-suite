@@ -49,6 +49,17 @@
         "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
     },
     {
+        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "variant": {
+            "credential_format": "iso_mdl"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-negative.json",
+        "current-block": "Direct post endpoint",
+        "condition": "ParseCredentialAsMdoc",
+        "expected-result": "failure",
+        "comment": "Wallet receives credential with invalid session transcript from the verifier negative test"
+    },
+    {
         "test-name": "oid4vci-1_0-issuer-fail-replay-nonce",
         "variant": "*",
         "configuration-filename": "authlete-vci-haip.json",
