@@ -390,7 +390,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
 			}
 			if (browserApi && !browserUnsigned) {
-				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINAL-A.2");
+				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINALA-A.2");
 			}
 
 			callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
@@ -491,22 +491,22 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case DIRECT_POST_JWT:
 			case DC_API_JWT:
-				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-1FINAL-7.3");
+				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-1FINAL-8.3");
 				// currently only supports encrypted-not-signed as used by mdl
-				callAndStopOnFailure(DecryptResponse.class, "OID4VP-1FINAL-7.3");
+				callAndStopOnFailure(DecryptResponse.class, "OID4VP-1FINAL-8.3");
 				// FIXME: need to validate jwe header
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
-				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.3");
+				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
 				break;
 		}
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndStopOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
+		callAndStopOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.1");
 		callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8");
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
 
 		switch (credentialFormat) {
 			case ISO_MDL:
@@ -545,14 +545,14 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				switch (responseMode) {
 					case DIRECT_POST, DIRECT_POST_JWT -> {
-						callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+						callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINALA-B.3.6");
 					}
 					case DC_API, DC_API_JWT -> {
-						callAndContinueOnFailure(CheckAudInBindingJwtDcApi.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+						callAndContinueOnFailure(CheckAudInBindingJwtDcApi.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINALA-B.3.6");
 					}
 				}
 
-				callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+				callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINALA-B.3.6");
 				callAndContinueOnFailure(ValidateSdJwtKbSdHash.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				callAndContinueOnFailure(CheckForUnexpectedClaimsInBindingJwt.class, ConditionResult.WARNING, "SDJWT-4.3");
 
@@ -663,7 +663,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndContinueOnFailure(CheckCallbackHttpMethodIsGet.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckUrlQueryIsEmpty.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckUrlFragmentContainsCodeVerifier.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.2");
+		callAndContinueOnFailure(CheckUrlFragmentContainsCodeVerifier.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
 
 		fireTestFinished();
 
