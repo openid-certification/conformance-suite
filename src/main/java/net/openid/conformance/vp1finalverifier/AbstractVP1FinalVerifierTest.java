@@ -41,6 +41,7 @@ import net.openid.conformance.condition.as.OIDCCGenerateServerJWKs;
 import net.openid.conformance.condition.as.OIDCCGetStaticClientConfigurationForRPTests;
 import net.openid.conformance.condition.as.OIDCCValidateRequestObjectExp;
 import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrueInServerConfiguration;
+import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
@@ -362,6 +363,13 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// FIXME: validate client_metadata
 		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING);
 
+		switch (responseMode) {
+			case DIRECT_POST_JWT:
+				callAndContinueOnFailure(VP1FinalCheckForKeyIdInClientMetadataJWKs.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+				break;
+			case DIRECT_POST:
+				break;
+		}
 
 		endTestIfRequiredAuthorizationRequestParametersAreMissing();
 	}
