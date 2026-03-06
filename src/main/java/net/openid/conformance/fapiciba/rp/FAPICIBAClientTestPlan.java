@@ -68,51 +68,51 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 		String certProfile = null;
 
 		Map<String, String> v = variant.getVariant();
-		String profile = v.get("fapi_profile");
+		String profile = v.get("fapi_ciba_profile");
 		String clientAuth = v.get("client_auth_type");
 		String cibaMode = v.get("ciba_mode");
 		boolean privateKey = ClientAuthType.PRIVATE_KEY_JWT.toString().equals(clientAuth);
-		boolean ping = CIBAMode.PING.toString().equals(cibaMode);
 
 		switch (profile) {
 			case "plain_fapi":
-				certProfile = "FAPI";
-				break;
 			case "openbanking_uk":
-				certProfile = "UK-OB";
-				break;
-			case "consumerdataright_au":
-				certProfile = "AU-CDR";
-				if (!privateKey) {
-					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for AU-CDR".formatted(
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
+				certProfile = "FAPI-CIBA";
 				break;
 			case "openbanking_brazil":
-				certProfile = "BR-OF";
-				if (!privateKey || !ping) {
-					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be ping for Brazil Open Finance".formatted(
+				certProfile = "BR-OF-CIBA";
+				if (!privateKey || !CIBAMode.PING.toString().equals(cibaMode)) {
+					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be ping for Brazil Open Banking".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
-			case "openinsurance_brazil":
-				certProfile = "BR-OPIN";
-				if (!privateKey || !ping) {
-					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be ping for Brazil Open Finance".formatted(
+			case "connectid_au":
+				certProfile = "ConnectID-CIBA";
+				if (!privateKey || !CIBAMode.POLL.toString().equals(cibaMode)) {
+					throw new RuntimeException("Invalid configuration for %s: Client Authentication Type must be private_key_jwt and CIBA Mode must be poll for ConnectID".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				break;
-
+			default:
+				throw new RuntimeException("Unknown FAPI CIBA profile [%s]".formatted(profile));
 		}
 
-		certProfile += " CIBA RP " + cibaMode;
+		certProfile += " RP ";
+		switch (cibaMode) {
+			case "poll":
+				certProfile += "poll";
+				break;
+			case "ping":
+				certProfile += "ping";
+				break;
+		}
 
+		certProfile += " w/ ";
 		switch (clientAuth) {
 			case "private_key_jwt":
-				certProfile += " w/ Private Key";
+				certProfile += "Private Key";
 				break;
 			case "mtls":
-				certProfile += " w/ MTLS";
+				certProfile += "MTLS";
 				break;
 		}
 
