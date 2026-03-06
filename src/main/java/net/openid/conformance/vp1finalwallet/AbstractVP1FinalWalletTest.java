@@ -79,10 +79,15 @@ import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyR
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
+import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
+import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
+import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
+import net.openid.conformance.condition.client.ValidateJWEHeaderAlgMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
+import net.openid.conformance.condition.client.ValidateJWEHeaderEncMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.WarnUnknownDCQLProperties;
@@ -390,7 +395,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
 			}
 			if (browserApi && !browserUnsigned) {
-				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINAL-A.2");
+				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINALA-A.2");
 			}
 
 			callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
@@ -491,22 +496,23 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case DIRECT_POST_JWT:
 			case DC_API_JWT:
-				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-1FINAL-7.3");
+				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-1FINAL-8.3");
 				// currently only supports encrypted-not-signed as used by mdl
-				callAndStopOnFailure(DecryptResponse.class, "OID4VP-1FINAL-7.3");
-				// FIXME: need to validate jwe header
+				callAndStopOnFailure(DecryptResponse.class, "OID4VP-1FINAL-8.3");
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
-				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.3");
+				callAndContinueOnFailure(ValidateJWEHeaderAlgMatchesRequestedAlgorithm.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
+				callAndContinueOnFailure(ValidateJWEHeaderEncMatchesRequestedAlgorithm.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
+				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
 				break;
 		}
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndStopOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.1");
+		callAndStopOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.1");
 		callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8");
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
 
 		switch (credentialFormat) {
 			case ISO_MDL:
@@ -525,13 +531,14 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 				eventLog.startBlock(currentClientString() + "Verify credential JWT");
 				// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
-				// FIXME check iss is a valid uri
+				callAndContinueOnFailure(ValidateCredentialJWTIssIsHttpsUri.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 				callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
 				// FIXME nbf
 				// FIXME exp
 				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
 				// cnf is otherwise checked when holder binding is checked below
-				// FIXME type
+				callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.1");
+				callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 				// FIXME status
 
 				eventLog.startBlock(currentClientString() + "Verify key binding JWT");
@@ -545,14 +552,14 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndContinueOnFailure(CheckIatInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				switch (responseMode) {
 					case DIRECT_POST, DIRECT_POST_JWT -> {
-						callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+						callAndContinueOnFailure(CheckAudInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINALA-B.3.6");
 					}
 					case DC_API, DC_API_JWT -> {
-						callAndContinueOnFailure(CheckAudInBindingJwtDcApi.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+						callAndContinueOnFailure(CheckAudInBindingJwtDcApi.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINALA-B.3.6");
 					}
 				}
 
-				callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINAL-B.4.5");
+				callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINALA-B.3.6");
 				callAndContinueOnFailure(ValidateSdJwtKbSdHash.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				callAndContinueOnFailure(CheckForUnexpectedClaimsInBindingJwt.class, ConditionResult.WARNING, "SDJWT-4.3");
 
@@ -663,7 +670,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndContinueOnFailure(CheckCallbackHttpMethodIsGet.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckUrlQueryIsEmpty.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckUrlFragmentContainsCodeVerifier.class, ConditionResult.FAILURE, "OID4VP-1FINAL-7.2");
+		callAndContinueOnFailure(CheckUrlFragmentContainsCodeVerifier.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
 
 		fireTestFinished();
 

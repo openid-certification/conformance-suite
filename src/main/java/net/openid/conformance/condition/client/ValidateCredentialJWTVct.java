@@ -13,8 +13,8 @@ public class ValidateCredentialJWTVct extends AbstractCondition {
 		String vct = env.getString("sdjwt", "credential.claims.vct");
 
 		// As per https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-11.html#section-3.2.2.2-3.5.2.1
-		if (vct == null) {
-			throw error("required claim 'vct' is not present");
+		if (vct == null || vct.isEmpty()) {
+			throw error("required claim 'vct' is not present or is empty", args("vct", vct));
 		}
 
 		logSuccess("'vct' claim is present", args("vct", vct));

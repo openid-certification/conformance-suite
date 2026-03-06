@@ -37,7 +37,7 @@ public class VP1FinalWalletResponseUriNotClientId extends AbstractVP1FinalWallet
 
 	@Override
 	protected void createPlaceholder() {
-		callAndStopOnFailure(ExpectResponseUriErrorPage.class, "OID4VP-ID2-6.2");
+		callAndStopOnFailure(ExpectResponseUriErrorPage.class, "OID4VP-1FINAL-8.5");
 
 		env.putString("error_callback_placeholder", env.getString("response_uri_error"));
 	}
