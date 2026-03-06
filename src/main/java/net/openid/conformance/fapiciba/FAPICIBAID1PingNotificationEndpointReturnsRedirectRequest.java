@@ -1,6 +1,9 @@
 package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CreateInvalidCIBANotificationEndpointUri;
 import net.openid.conformance.condition.client.ServerCalledInvalidNotificationEndpoint;
@@ -12,9 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.net.URI;
 import java.net.URISyntaxException;
 
