@@ -81,6 +81,7 @@ import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicK
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
+import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
@@ -530,7 +531,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 				eventLog.startBlock(currentClientString() + "Verify credential JWT");
 				// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
-				// FIXME check iss is a valid uri
+				callAndContinueOnFailure(ValidateCredentialJWTIssIsHttpsUri.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 				callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
 				// FIXME nbf
 				// FIXME exp
