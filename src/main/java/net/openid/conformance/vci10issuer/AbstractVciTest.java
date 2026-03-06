@@ -2,15 +2,19 @@ package net.openid.conformance.vci10issuer;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
-import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
 
 @ConfigurationFields({"vci.credential_issuer_url"})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
 public abstract class AbstractVciTest extends AbstractTestModule {
 
-	protected VCIClientAuthType clientAuthType;
+	protected ClientAuthType clientAuthType;
 
 	protected VCIProfile vciProfile;
 
@@ -24,7 +28,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 		JsonObject vciConfig = new JsonObject();
 		env.putObject("vci", vciConfig);
 
-		clientAuthType = getVariant(VCIClientAuthType.class);
+		clientAuthType = getVariant(ClientAuthType.class);
 		vciProfile = getVariant(VCIProfile.class);
 
 		// Perform any custom configuration

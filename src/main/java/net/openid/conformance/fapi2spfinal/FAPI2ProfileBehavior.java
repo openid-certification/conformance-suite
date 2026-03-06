@@ -177,6 +177,32 @@ public class FAPI2ProfileBehavior {
 		return ConditionResult.INFO;
 	}
 
+	// --- Client configuration hooks ---
+
+	/**
+	 * Perform profile-specific client configuration before standard client validation.
+	 * Default: no-op. VCI uses this to generate client JWKs if missing and configure encryption.
+	 */
+	public void configureClient(AbstractFAPI2SPFinalServerTestModule module) {
+		// default: no-op
+	}
+
+	/**
+	 * Validate client JWKs private part.
+	 * Default: ValidateClientJWKsPrivatePart. VCI uses VCIValidateClientJWKsPrivatePart.
+	 */
+	public void validateClientJwks(AbstractFAPI2SPFinalServerTestModule module) {
+		module.defaultValidateClientJwks();
+	}
+
+	/**
+	 * Configure client attestation keys and JWT if applicable.
+	 * Default: no-op. VCI generates attestation keys when CLIENT_ATTESTATION auth type is selected.
+	 */
+	public void configureClientAttestation(AbstractFAPI2SPFinalServerTestModule module) {
+		// default: no-op
+	}
+
 	// --- Lifecycle hooks for profiles that need deeper control ---
 
 	/**

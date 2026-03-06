@@ -5,7 +5,10 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
-import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
@@ -29,7 +32,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				),
 				List.of(
 					new Variant(VCIProfile.class, "haip"),
-					new Variant(VCIClientAuthType.class, "client_attestation")
+					new Variant(ClientAuthType.class, "client_attestation")
 				)
 			),
 			new ModuleListEntry(
@@ -53,11 +56,14 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					VCIIssuerFailOnRequestWithAccessTokenInQuery.class
 				),
 				List.of(
+					new Variant(FAPI2FinalOPProfile.class, "vci"),
+					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
-					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCIGrantType.class, "authorization_code"),
+					new Variant(VCIAuthorizationCodeFlowVariant.class, "wallet_initiated"),
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(VCICredentialEncryption.class, "plain")
 				)
@@ -71,11 +77,14 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					VCIIssuerFailOnUnsupportedEncryptionAlgorithm.class
 				),
 				List.of(
+					new Variant(FAPI2FinalOPProfile.class, "vci"),
+					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
-					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCIGrantType.class, "authorization_code"),
+					new Variant(VCIAuthorizationCodeFlowVariant.class, "wallet_initiated"),
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(VCICredentialEncryption.class, "encrypted")
 				)

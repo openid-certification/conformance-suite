@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
 
 //PAR-2.3.3 : If the request did not use POST, the authorization server shall return 405 Method Not Allowed HTTP error response.
 public class FAPI2SPFinalPARRejectInvalidHttpVerb extends AbstractFAPI2SPFinalServerTestModule {

@@ -27,6 +27,10 @@ import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VCICredentialEncryption;
+import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
@@ -36,6 +40,8 @@ import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFrom
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateClientJwksIfMissing;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateCredentialEncryptionJwks;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
@@ -47,9 +53,12 @@ import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTyp
 import net.openid.conformance.vci10issuer.condition.VCIResolveNotificationEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
+import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
+import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 
 /**
  * VCI (OpenID for Verifiable Credential Issuance) profile behavior for FAPI2 tests.
@@ -61,6 +70,47 @@ import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleRe
  * - Validating credential responses (SD-JWT VC or mdoc format)
  */
 public class VCIProfileBehavior extends FAPI2ProfileBehavior {
+
+	@Override
+	public void configureClient(AbstractFAPI2SPFinalServerTestModule module) {
+		module.doCallAndStopOnFailure(VCIGenerateClientJwksIfMissing.class);
+
+		// Load credential encryption JWKS if encryption is enabled
+		VCICredentialEncryption encryption = module.getVariant(VCICredentialEncryption.class);
+		if (encryption == VCICredentialEncryption.ENCRYPTED) {
+			module.doCallAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
+		}
+
+		// HAIP forces DPoP signing alg to ES256
+		VCIProfile vciProfile = module.getVariant(VCIProfile.class);
+		if (vciProfile == VCIProfile.HAIP) {
+			module.getEnv().putString("client", "dpop_signing_alg", "ES256");
+			module.getEnv().putString("client2", "dpop_signing_alg", "ES256");
+		}
+	}
+
+	@Override
+	public void validateClientJwks(AbstractFAPI2SPFinalServerTestModule module) {
+		// Use VCI-specific validation that allows multiple signing keys for attestation proof type
+		module.doCallAndStopOnFailure(VCIValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+	}
+
+	@Override
+	public void configureClientAttestation(AbstractFAPI2SPFinalServerTestModule module) {
+		ClientAuthType clientAuthType = module.getVariant(ClientAuthType.class);
+		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
+			module.doStartBlock("Configure Client Attestation");
+
+			if (module.getEnv().getString("config", "vci.client_attestation_issuer") == null) {
+				throw new TestFailureException(module.getId(), "vci.client_attestation_issuer must be configured if client_attestation is configured as client authentication method.");
+			}
+
+			module.doCallAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, "OAuth2-ATCA07-1");
+			module.doCallAndStopOnFailure(CreateClientAttestationJwt.class, "OAuth2-ATCA07-1", "HAIP-4.3.1-2");
+
+			module.doEndBlock();
+		}
+	}
 
 	@Override
 	public void fetchServerConfiguration(AbstractFAPI2SPFinalServerTestModule module) {
@@ -81,6 +131,18 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
 	public void configureAdditional(AbstractFAPI2SPFinalServerTestModule module) {
+		// Check if encryption is supported before continuing
+		VCICredentialEncryption encryption = module.getVariant(VCICredentialEncryption.class);
+		if (encryption == VCICredentialEncryption.ENCRYPTED) {
+			JsonElement algValuesEl = module.getEnv().getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.alg_values_supported");
+			JsonElement encValuesEl = module.getEnv().getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.enc_values_supported");
+
+			if (algValuesEl == null || encValuesEl == null || !algValuesEl.isJsonArray() || !encValuesEl.isJsonArray()) {
+				module.doFireTestSkipped("Encryption is not supported by credential issuer - credential_response_encryption.alg_values_supported and/or credential_response_encryption.enc_values_supported missing or invalid in issuer metadata.");
+				return;
+			}
+		}
+
 		// Resolve credential configuration from VCI metadata
 		resolveCredentialConfiguration(module);
 	}

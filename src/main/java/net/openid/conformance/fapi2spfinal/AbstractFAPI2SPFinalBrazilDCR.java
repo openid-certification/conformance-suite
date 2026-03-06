@@ -48,7 +48,10 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinalServerTestModule {
 	protected void getSsa() {
 

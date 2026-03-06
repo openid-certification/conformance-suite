@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -26,6 +27,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = { "mtls" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalEnsureDpopProofWithIat10SecondsBeforeSucceeds extends AbstractFAPI2SPFinalServerTestModule {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
