@@ -46,6 +46,8 @@ import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrue
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
+import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -133,6 +135,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		env.putString("client_id_scheme", clientIdPrefix.toString());
 
 		clientRequestType = getVariant(VP1FinalVerifierRequestMethod.class);
+
+		env.putString("credential_format", getVariant(VP1FinalVerifierCredentialFormat.class).toString());
 
 		configureServerConfiguration();
 
@@ -366,10 +370,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// FIXME: validate rest of request
 		// FIXME: validate client_metadata
 		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(VP1FinalValidateVpFormatsSupportedInClientMetadata.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.10.3");
 
 		switch (responseMode) {
 			case DIRECT_POST_JWT:
 				callAndContinueOnFailure(VP1FinalCheckForKeyIdInClientMetadataJWKs.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+				callAndContinueOnFailure(VP1FinalValidateClientMetadataJwksForEncryptedResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10.3");
 				break;
 			case DIRECT_POST:
 				break;
@@ -456,14 +462,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
-				switch (responseMode) {
-					case DIRECT_POST:
-						callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted.class);
-						break;
-					case DIRECT_POST_JWT:
-						callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted.class);
-						break;
-				}
+				createIsoMdlSessionTranscript();
 				callAndStopOnFailure(CreateMdocCredential.class);
 			}
 		}
@@ -490,6 +489,17 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 
 		return viewToReturn;
+	}
+
+	protected void createIsoMdlSessionTranscript() {
+		switch (responseMode) {
+			case DIRECT_POST:
+				callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted.class);
+				break;
+			case DIRECT_POST_JWT:
+				callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted.class);
+				break;
+		}
 	}
 
 	protected void sendAuthorizationResponseToResponseUri() {
