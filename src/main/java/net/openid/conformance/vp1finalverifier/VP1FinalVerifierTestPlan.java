@@ -19,7 +19,9 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		// positive tests
-		VP1FinalVerifierHappyFlow.class
+		VP1FinalVerifierHappyFlow.class,
+		// negative tests
+		VP1FinalVerifierInvalidSessionTranscript.class
 	);
 
 	@Override
