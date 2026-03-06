@@ -25,7 +25,7 @@ public class DecryptResponse extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "original_authorization_endpoint_response")
-	@PostEnvironment(required = "authorization_endpoint_response")
+	@PostEnvironment(required = {"authorization_endpoint_response", "response_jwe"})
 	public Environment evaluate(Environment env) {
 
 		JsonObject formBody = env.getObject("original_authorization_endpoint_response");

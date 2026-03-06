@@ -82,7 +82,9 @@ import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase6
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
+import net.openid.conformance.condition.client.ValidateJWEHeaderAlgMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
+import net.openid.conformance.condition.client.ValidateJWEHeaderEncMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.WarnUnknownDCQLProperties;
@@ -494,8 +496,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-1FINAL-8.3");
 				// currently only supports encrypted-not-signed as used by mdl
 				callAndStopOnFailure(DecryptResponse.class, "OID4VP-1FINAL-8.3");
-				// FIXME: need to validate jwe header
 				callAndContinueOnFailure(ValidateJWEHeaderCtyJson.class, ConditionResult.FAILURE);
+				callAndContinueOnFailure(ValidateJWEHeaderAlgMatchesRequestedAlgorithm.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
+				callAndContinueOnFailure(ValidateJWEHeaderEncMatchesRequestedAlgorithm.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
 				callAndContinueOnFailure(ValidateJWEBodyDoesNotIncludeIssExpAud.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
 				break;
 		}
