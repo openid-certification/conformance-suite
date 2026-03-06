@@ -2,7 +2,9 @@ package net.openid.conformance.fapi2spfinal;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToPAREndpointRequest;
+import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AustraliaConnectIdValidateAccessTokenExpiresIn;
@@ -87,12 +89,14 @@ public class ConnectIdAuProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
 	public void addResourceEndpointProfileHeaders(AbstractFAPI2SPFinalServerTestModule module, boolean isSecondClient) {
+		if (!isSecondClient) {
+			// these are optional; only add them for the first client
+			module.doCallAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "CDR-http-headers");
+			module.doCallAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
+		}
 		// Mandatory for ConnectID for both clients
 		module.doCallAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		module.doCallAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "CID-SP-4.2-12", "CDR-http-headers");
-		if (!isSecondClient) {
-			module.defaultAddResourceEndpointProfileHeaders(isSecondClient);
-		}
 	}
 
 	@Override
