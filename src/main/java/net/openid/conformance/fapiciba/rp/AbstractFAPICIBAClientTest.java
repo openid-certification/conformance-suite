@@ -122,7 +122,7 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -135,26 +135,19 @@ import org.springframework.http.ResponseEntity;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPI1FinalOPProfile.class,
+	FAPICIBAProfile.class,
 	CIBAMode.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-	"openbanking_uk", "consumerdataright_au", "openbanking_ksa"
-})
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"
 })
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+@VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openfinance_brazil", configurationFields = {
 	"client.scope"
 })
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
-	"client.scope",
-	"directory.keystore"
-})
-@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+@VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openfinance_brazil", configurationFields = {
 	"directory.keystore"
 })
 @VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
@@ -164,7 +157,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
 
-	protected FAPI1FinalOPProfile profile;
+	protected FAPICIBAProfile profile;
 	protected ClientAuthType clientAuthType;
 	protected CIBAMode cibaMode;
 
@@ -190,27 +183,19 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		validateBackchannelClientAuthenticationSteps = BackchannelValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		profileSpecificSignIdToken = SignIdToken.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
-	public void setupOpenBankingBrazil() {
-		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
-		profileSpecificSignIdToken = SignIdTokenWithX5tS256.class;
-	}
-
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
-	public void setupOpenInsuranceBrazil() {
-		// we might want to generate an open insurance specific response at some point
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openfinance_brazil")
+	public void setupOpenFinanceBrazil() {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 		profileSpecificSignIdToken = SignIdTokenWithX5tS256.class;
 	}
 
 	protected boolean isBrazil() {
-		return profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL ||
-			profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
+		return profile == FAPICIBAProfile.OPENFINANCE_BRAZIL;
 	}
 
 	protected void addCustomValuesToIdToken() {	}
@@ -255,7 +240,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
 
-		profile = getVariant(FAPI1FinalOPProfile.class);
+		profile = getVariant(FAPICIBAProfile.class);
 		clientAuthType = getVariant(ClientAuthType.class);
 		cibaMode = getVariant(CIBAMode.class);
 		env.putString("ciba_mode", cibaMode.name());
@@ -833,7 +818,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(false);
 
-		if(profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+		if(profile == FAPICIBAProfile.OPENFINANCE_BRAZIL) {
 			callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
 			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
 			if(wasInitialConsentRequestToPaymentsEndpoint) {

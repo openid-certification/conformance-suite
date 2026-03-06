@@ -66,7 +66,7 @@ public class AddBrazilSpecificSettingsToServerConfiguration extends AbstractCond
 			scopes.add("payments");
 			server.add("scopes_supported", scopes);
 		}
-		log("Added open banking Brazil specific server settings", args("server", server));
+		log("Added Open Finance Brazil specific server settings", args("server", server));
 		return env;
 	}
 

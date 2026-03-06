@@ -4,7 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddRequestedExp13sToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckBackchannelExpiresInDoesNotMatchRequestedExpiry;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -29,7 +29,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openinsurance_brazil", "openbanking_ksa"})
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
 public class FAPICIBAID1EnsureRequestedExpiryIgnoredForBrazil extends AbstractFAPICIBAID1 {
 
 	@Override
