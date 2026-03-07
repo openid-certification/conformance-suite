@@ -31,7 +31,6 @@
 set -euo pipefail
 
 SUITE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-PRIVATE_DIR="${SUITE_DIR}/../conformance-suite-private"
 JAR="${SUITE_DIR}/target/fapi-test-suite.jar"
 SERVER_PORT=8080
 BASE_URL="https://localhost.emobix.co.uk:8443"
@@ -107,9 +106,6 @@ fi
 
 # --- 5. Run tests ---
 echo "==> Running tests: $TEST_SUITE"
-[ -d "$PRIVATE_DIR" ] || die "conformance-suite-private not found at $PRIVATE_DIR"
-
-cd "$PRIVATE_DIR"
 "${SUITE_DIR}/.gitlab-ci/run-tests.sh" "$@"
 TEST_EXIT=$?
 
