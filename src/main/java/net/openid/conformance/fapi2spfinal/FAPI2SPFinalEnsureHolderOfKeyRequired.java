@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointRespon
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidGrantOrRequestError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
@@ -176,7 +176,7 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		@Override
 		public void evaluate() {
 			// used always when DPoP is the holder of key mechanism
-			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2"); //TODO RFC6749?
+			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "RFC9449-5");
 		}
 	}
 
