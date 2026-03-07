@@ -721,7 +721,13 @@ elif [ -f "${SUITE_DIR}/../conformance-suite-private/node-client-setup.sh" ]; th
 fi
 
 TESTS="${TESTS} --verbose"
-if [ "$#" -eq 0 ]; then
+
+# Extract the suite selector and collect any extra args (e.g. --rerun)
+SUITE_ARG="${1:-}"
+shift || true
+EXTRA_ARGS="$*"
+
+if [ -z "$SUITE_ARG" ]; then
     echo "Run all tests"
     makeOidccTest
     makeFapiTest
@@ -732,8 +738,8 @@ if [ "$#" -eq 0 ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules all-except-logout"
-TESTS="${TESTS} --export-dir ${SUITE_DIR}"
-elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests" ]; then
+    TESTS="${TESTS} --export-dir ${SUITE_DIR}"
+elif [ "$SUITE_ARG" = "--client-tests" ]; then
     echo "Run client tests"
     makeClientTest
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-client.json"
@@ -741,8 +747,8 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
-TESTS="${TESTS} --export-dir ${SUITE_DIR}"
-elif [ "$#" -eq 1 ] && [ "$1" = "--oidcc-tests" ]; then
+    TESTS="${TESTS} --export-dir ${SUITE_DIR}"
+elif [ "$SUITE_ARG" = "--oidcc-tests" ]; then
     echo "Run OIDCC tests"
     makeOidccTest
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-oidcc.json"
@@ -752,7 +758,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--oidcc-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules oidcc"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
-elif [ "$#" -eq 1 ] && [ "$1" = "--fapi-tests" ]; then
+elif [ "$SUITE_ARG" = "--fapi-tests" ]; then
     echo "Run FAPI tests"
     makeFapiTest
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-fapi.json"
@@ -762,7 +768,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--fapi-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules fapi-authlete"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
-elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests" ]; then
+elif [ "$SUITE_ARG" = "--ciba-tests" ]; then
     echo "Run ciba tests"
     makeCIBATest
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-ciba.json"
@@ -772,7 +778,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules ciba"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
     TESTS="${TESTS} --no-parallel" # the authlete authentication device simulator doesn't seem to support parallel authorizations
-elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
+elif [ "$SUITE_ARG" = "--ekyc-tests" ]; then
     echo "Run eKYC tests"
     makeEkycTests
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-ekyc.json"
@@ -782,7 +788,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules ekyc"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
     TESTS="${TESTS} --no-parallel" # both alias queues hit the same authlete instance; serialize to reduce peak concurrent plans
-elif [ "$#" -eq 1 ] && [ "$1" = "--authzen-tests" ]; then
+elif [ "$SUITE_ARG" = "--authzen-tests" ]; then
     echo "Run Authzen tests"
     makeAuthzenTests
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-authzen.json"
@@ -790,8 +796,8 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--authzen-tests" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules authzen"
-TESTS="${TESTS} --export-dir ${SUITE_DIR}"
-elif [ "$#" -eq 1 ] && [ "$1" = "--federation-tests" ]; then
+    TESTS="${TESTS} --export-dir ${SUITE_DIR}"
+elif [ "$SUITE_ARG" = "--federation-tests" ]; then
     echo "Run federation tests"
     makeFederationTests
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-federation.json"
@@ -801,7 +807,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--federation-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules federation"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
     TESTS="${TESTS} --no-parallel" # federation tests are fast (~2m); serialize to reduce peak concurrent plans
-elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
+elif [ "$SUITE_ARG" = "--local-provider-tests" ]; then
     echo "Run local provider tests"
     makeLocalProviderTests
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-local.json"
@@ -810,7 +816,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
-elif [ "$#" -eq 1 ] && [ "$1" = "--ssf-tests" ]; then
+elif [ "$SUITE_ARG" = "--ssf-tests" ]; then
     echo "Run ssf tests"
     makeSsfTests
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-ssf.json"
@@ -818,8 +824,8 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ssf-tests" ]; then
     TESTS="${TESTS} --expected-failures-file ${EXPECTED_FAILURES_FILE}"
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # TESTS="${TESTS} --show-untested-test-modules ssf"
-TESTS="${TESTS} --export-dir ${SUITE_DIR}"
-elif [ "$#" -eq 1 ] && [ "$1" = "--vc-tests" ]; then
+    TESTS="${TESTS} --export-dir ${SUITE_DIR}"
+elif [ "$SUITE_ARG" = "--vc-tests" ]; then
     echo "Run VP+VCI tests"
     makeVcTests
     EXPECTED_FAILURES_FILE="${SUITE_DIR}/.gitlab-ci/expected-failures-vc.json"
@@ -828,16 +834,20 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--vc-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules vc"
     TESTS="${TESTS} --no-parallel" # The authlete tests and the OP-against-RP tests use the same aliases to reduce peak load when CI starts, so we run them in series
-TESTS="${TESTS} --export-dir ${SUITE_DIR}"
-elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests" ]; then
+    TESTS="${TESTS} --export-dir ${SUITE_DIR}"
+elif [ "$SUITE_ARG" = "--panva-tests" ]; then
     echo "Run panva tests"
     makePanvaTests
     TESTS="${TESTS} --show-untested-test-modules server-panva"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 else
-    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests]"
+    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests] [--rerun N|N:M|N,M,...]"
     exit 1
+fi
+
+if [ -n "$EXTRA_ARGS" ]; then
+    TESTS="${TESTS} ${EXTRA_ARGS}"
 fi
 
 echo ${TESTS} | xargs -s 100000 ${SUITE_DIR}/scripts/run-test-plan.py
