@@ -661,11 +661,16 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 				callAndStopOnFailure(BuildUnsignedPAREndpointRequest.class);
 			}
 
+			if (env.getObject("pushed_authorization_request_endpoint_request_headers") == null) {
+				env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
+			}
+			env.mapKey("request_headers", "pushed_authorization_request_endpoint_request_headers");
 			addClientAuthenticationToPAREndpointRequest();
 
 			profileBehavior.addParEndpointProfileHeaders(this);
 
 			performParAuthorizationRequestFlow();
+			env.unmapKey("request_headers");
 		} else {
 			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 			buildRedirect();
@@ -873,7 +878,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		if (env.getObject("token_endpoint_request_headers") == null) {
+			env.putObject("token_endpoint_request_headers", new JsonObject());
+		}
+		env.mapKey("request_headers", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
+		env.unmapKey("request_headers");
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
@@ -1501,7 +1511,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected boolean scopeContains(String requiredScope) {
 		String scope = env.getString("config", "client.scope");
 		if (Strings.isNullOrEmpty(scope)) {
-			throw new TestFailureException(getId(), "'scope' seems to be missing from client configuration");
+			return false;
 		}
 		List<String> scopes = Arrays.asList(scope.split(" "));
 		return scopes.contains(requiredScope);

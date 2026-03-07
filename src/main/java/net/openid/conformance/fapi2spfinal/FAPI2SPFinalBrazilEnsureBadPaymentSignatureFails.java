@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	"consumerdataright_au",
 	"connectid_au",
 	"cbuae",
-	"fapi_client_credentials_grant", "vci"
+	"fapi_client_credentials_grant"
 })
 public class FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2SPFinalServerTestModule {
 

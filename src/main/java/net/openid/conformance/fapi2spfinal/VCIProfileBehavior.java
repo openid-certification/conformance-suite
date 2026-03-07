@@ -71,18 +71,30 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateCl
  */
 public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
+	/**
+	 * Safely get an optional variant parameter. Returns null if the variant is not declared
+	 * on the test module (e.g., when FAPI2 SP tests run under the VCI profile).
+	 */
+	private <T extends Enum<T>> T getOptionalVariant(AbstractFAPI2SPFinalServerTestModule module, Class<T> parameter) {
+		try {
+			return module.getVariant(parameter);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+	}
+
 	@Override
 	public void configureClient(AbstractFAPI2SPFinalServerTestModule module) {
 		module.doCallAndStopOnFailure(VCIGenerateClientJwksIfMissing.class);
 
 		// Load credential encryption JWKS if encryption is enabled
-		VCICredentialEncryption encryption = module.getVariant(VCICredentialEncryption.class);
+		VCICredentialEncryption encryption = getOptionalVariant(module, VCICredentialEncryption.class);
 		if (encryption == VCICredentialEncryption.ENCRYPTED) {
 			module.doCallAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
 		}
 
 		// HAIP forces DPoP signing alg to ES256
-		VCIProfile vciProfile = module.getVariant(VCIProfile.class);
+		VCIProfile vciProfile = getOptionalVariant(module, VCIProfile.class);
 		if (vciProfile == VCIProfile.HAIP) {
 			module.getEnv().putString("client", "dpop_signing_alg", "ES256");
 			module.getEnv().putString("client2", "dpop_signing_alg", "ES256");
@@ -132,7 +144,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	@Override
 	public void configureAdditional(AbstractFAPI2SPFinalServerTestModule module) {
 		// Check if encryption is supported before continuing
-		VCICredentialEncryption encryption = module.getVariant(VCICredentialEncryption.class);
+		VCICredentialEncryption encryption = getOptionalVariant(module, VCICredentialEncryption.class);
 		if (encryption == VCICredentialEncryption.ENCRYPTED) {
 			JsonElement algValuesEl = module.getEnv().getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.alg_values_supported");
 			JsonElement encValuesEl = module.getEnv().getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.enc_values_supported");

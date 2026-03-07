@@ -5,7 +5,6 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -25,7 +24,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalEnsureRequestObjectWith64CharNonceSuccess extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

@@ -44,7 +44,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	protected Boolean jarm;
 	protected Boolean isOpenId;
 	private Class<? extends ConditionSequence> variantAuthChecks;
-	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+	protected Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	protected Boolean isDpop;
 	protected boolean clientCredentailsGrant = false;
@@ -173,6 +173,19 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+		}
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	public void setupClientAttestation() {
+		// Client attestation has no specific discovery checks
+		variantAuthChecks = NoOpChecks.class;
+	}
+
+	public static class NoOpChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// no additional checks
 		}
 	}
 }

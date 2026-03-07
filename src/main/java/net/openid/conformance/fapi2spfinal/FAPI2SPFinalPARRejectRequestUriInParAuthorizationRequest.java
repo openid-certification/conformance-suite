@@ -6,7 +6,6 @@ import net.openid.conformance.condition.client.EnsurePARInvalidRequestObjectErro
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 //PAR-2.1 : The request_uri authorization request parameter MUST NOT be provided in this case
@@ -29,7 +28,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 // there's a separate test that supplies request_uri outside the request object; this test is specific to when
 // a request object is in use and includes request_uri in the request object.
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalPARRejectRequestUriInParAuthorizationRequest extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

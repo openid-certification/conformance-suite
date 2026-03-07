@@ -10,7 +10,7 @@ public class AddClientAttestationHeaderToRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		if (!env.containsObject("request_headers")) {
-			throw error("Couldn't find request headers");
+			env.putObject("request_headers", new JsonObject());
 		}
 
 		JsonObject o = env.getObject("request_headers");

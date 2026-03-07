@@ -342,6 +342,17 @@ public class VariantService {
 			return parametersByName;
 		}
 
+		/**
+		 * @return the set of variant parameter names that are pinned by any ModuleListEntry
+		 */
+		public Set<String> getPinnedVariantNames() {
+			return modulesWithVariant.stream()
+				.map(TestPlanModuleWithVariant::variantAsStrings)
+				.filter(m -> m != null)
+				.flatMap(m -> m.keySet().stream())
+				.collect(java.util.stream.Collectors.toSet());
+		}
+
 		private List<TestPlanModuleWithVariant> convertModuleListEntry(String testPlanName, List<TestPlan.ModuleListEntry> list) {
 			return list.stream().flatMap(moduleListEntry -> {
 				Map<Class<? extends Enum<?>>, ? extends Enum<?>> variants = moduleListEntry.variant.stream()

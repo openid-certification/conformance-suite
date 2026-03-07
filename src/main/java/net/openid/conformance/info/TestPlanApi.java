@@ -98,11 +98,16 @@ public class TestPlanApi implements DataUtils {
 		}
 
 		// Resolve default values for any unset variant parameters so the stored
-		// plan records exactly what ran (needed for edit-plan UI restoration)
+		// plan records exactly what ran (needed for edit-plan UI restoration).
+		// Skip parameters that are pinned by any ModuleListEntry — those are
+		// plan-managed and must not be treated as user-selected values.
 		if (variant != null) {
+			Set<String> pinnedVariantNames = holder.getPinnedVariantNames();
 			Map<String, String> resolved = new HashMap<>(variant.getVariant());
 			for (var entry : holder.getParametersByName().entrySet()) {
-				if (!resolved.containsKey(entry.getKey()) && entry.getValue().hasDefault()) {
+				if (!resolved.containsKey(entry.getKey())
+					&& entry.getValue().hasDefault()
+					&& !pinnedVariantNames.contains(entry.getKey())) {
 					resolved.put(entry.getKey(), entry.getValue().defaultValue().toString());
 				}
 			}

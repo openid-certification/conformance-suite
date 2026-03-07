@@ -39,7 +39,9 @@ public class RefreshTokenRequestExpectingErrorSteps extends AbstractConditionSeq
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
 		}
 
+		call(exec().mapKey("request_headers", "token_endpoint_request_headers"));
 		call(sequence(addClientAuthenticationToTokenEndpointRequest));
+		call(exec().unmapKey("request_headers"));
 
 		if (isDpop) {
 			call(CreateDpopProofSteps.createTokenEndpointDpopSteps());

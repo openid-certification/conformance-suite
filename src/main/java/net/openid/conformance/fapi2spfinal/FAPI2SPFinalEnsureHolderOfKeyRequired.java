@@ -25,8 +25,6 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(
@@ -45,7 +43,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalServerTestModule {
 
 	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
@@ -61,6 +58,13 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	@Override
+	public void setupClientAttestation() {
+		super.setupClientAttestation();
 		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 

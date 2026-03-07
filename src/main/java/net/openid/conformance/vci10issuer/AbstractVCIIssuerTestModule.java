@@ -144,7 +144,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
 		env.putString("vci_credential_configuration_id", vciCredentialConfigurationId);
-		callAndStopOnFailure(VCIEnsureResolvedCredentialConfigurationMatchesSelection.class);
+		callAndStopOnFailure(new VCIEnsureResolvedCredentialConfigurationMatchesSelection(vciCredentialFormat));
 	}
 
 	// HAIP requires scope to be present for every credential configuration
