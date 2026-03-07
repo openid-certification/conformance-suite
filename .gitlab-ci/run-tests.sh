@@ -690,6 +690,17 @@ makePanvaTests() {
     #TESTS="${TESTS} fapi2-security-profile-final-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][openid=plain_oauth][sender_constrain=mtls] panva-fapi2-security-profile-id2-test-plan-privatejwt-plainoauth.json"
 }
 
+# Resolve conformance-suite-private directory.
+# Config files (e.g. authlete-config.json) are bare filenames resolved from CWD,
+# so we need to be in the private dir. Detect it automatically if we're not there.
+if [ -f "./node-client-setup.sh" ]; then
+    # Already in conformance-suite-private
+    :
+elif [ -f "${SUITE_DIR}/../conformance-suite-private/node-client-setup.sh" ]; then
+    cd "${SUITE_DIR}/../conformance-suite-private"
+    echo "Changed directory to $(pwd)"
+fi
+
 TESTS="${TESTS} --verbose"
 
 # Extract the suite selector and collect any extra args (e.g. --rerun)
