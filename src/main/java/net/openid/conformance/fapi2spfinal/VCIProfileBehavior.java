@@ -268,6 +268,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	private void generateProofAndCreateCredentialRequest(AbstractFAPI2SPFinalServerTestModule module) {
 		// Set up credential endpoint request as POST with JSON
 		module.getEnv().putString("resource", "resourceMethod", "POST");
+		module.getEnv().putString("resource", "resourceMediaType", "application/json");
 		module.getEnv().putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
 		Boolean requiresCryptographicBinding = module.getEnv().getBoolean("vci_requires_cryptographic_binding");
