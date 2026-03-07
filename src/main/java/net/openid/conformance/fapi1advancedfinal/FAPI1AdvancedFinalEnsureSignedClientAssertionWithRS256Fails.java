@@ -2,7 +2,7 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAssertionToRequest;
 import net.openid.conformance.condition.client.ChangeClientJwksAlgToRS256;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
@@ -55,6 +55,7 @@ public class FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails extends
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
@@ -62,8 +63,8 @@ public class FAPI1AdvancedFinalEnsureSignedClientAssertionWithRS256Fails extends
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
-
+		callAndStopOnFailure(AddClientAssertionToRequest.class);
+		unmapClientAuthKeys();
 	}
 
 	@Override

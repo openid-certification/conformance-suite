@@ -5,9 +5,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
-import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
+import net.openid.conformance.condition.client.AddBasicAuthClientSecretToRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
+import net.openid.conformance.condition.client.AddFormBasedClientSecretToRequest;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -222,12 +222,13 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 			callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class);
 
+			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			switch (getVariant(ClientAuthType.class)) {
 				case CLIENT_SECRET_BASIC:
-					callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
+					callAndStopOnFailure(AddBasicAuthClientSecretToRequest.class);
 					break;
 				case CLIENT_SECRET_POST:
-					callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+					callAndStopOnFailure(AddFormBasedClientSecretToRequest.class);
 					break;
 				case CLIENT_SECRET_JWT:
 					throw new UnsupportedOperationException("TODO implement me");
@@ -252,7 +253,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 					break;
 			}
 
-			callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+			callAndStopOnFailure(AddClientIdToRequest.class);
+			unmapClientAuthKeys();
 			callAndStopOnFailure(CallTokenEndpoint.class);
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 			callAndStopOnFailure(CheckForAccessTokenValue.class);

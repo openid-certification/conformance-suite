@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAssertionToRequest;
 import net.openid.conformance.condition.client.AddExpIs5MinutesInPastToClientAssertionClaims;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
@@ -37,13 +37,17 @@ public class FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails exten
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
+
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaimsWithIssAudience.class);
 
 		callAndStopOnFailure(AddExpIs5MinutesInPastToClientAssertionClaims.class);
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientAssertionToRequest.class);
+
+		unmapClientAuthKeys();
 	}
 
 	@Override

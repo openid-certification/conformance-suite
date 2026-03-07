@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidGrant;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
@@ -44,17 +44,19 @@ public class FAPI2SPID2EnsureClientIdInTokenEndpoint extends AbstractFAPI2SPID2P
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 
 		// Switch to client 2 client
 		eventLog.startBlock("Swapping to Client2");
 		env.mapKey("client", "client2");
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class, "RFC6749-5.2");
+		callAndStopOnFailure(AddClientIdToRequest.class, "RFC6749-5.2");
 
 		// For this test, we explicitly add the client ID - so don't do it twice
 		if (getVariant(ClientAuthType.class) != ClientAuthType.MTLS) {
 			super.addClientAuthenticationToTokenEndpointRequest();
 		}
+		unmapClientAuthKeys();
 	}
 
 	@Override

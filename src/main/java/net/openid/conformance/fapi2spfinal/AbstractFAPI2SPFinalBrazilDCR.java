@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthorizationCodeGrantTypeToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddClientCredentialsGrantTypeToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.AddJwksUriToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddMTLSEndpointAliasesToEnvironment;
 import net.openid.conformance.condition.client.AddRedirectUriToDynamicRegistrationRequest;
@@ -80,7 +80,9 @@ public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinal
 		callAndStopOnFailure(SetDirectorySoftwareScopeOnTokenEndpointRequest.class);
 
 		// MTLS client auth
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
+		callAndStopOnFailure(AddClientIdToRequest.class);
+		unmapClientAuthKeys();
 
 		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
 

@@ -529,6 +529,27 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		};
 	}
 
+	/**
+	 * Map generic client authentication keys to endpoint-specific keys.
+	 * Ensures the target objects exist before mapping, so conditions that
+	 * require them via @PreEnvironment don't fail on missing objects.
+	 */
+	protected void mapClientAuthKeys(String formParamsKey, String headersKey) {
+		if (env.getObject(headersKey) == null) {
+			env.putObject(headersKey, new JsonObject());
+		}
+		if (env.getObject(formParamsKey) == null) {
+			env.putObject(formParamsKey, new JsonObject());
+		}
+		env.mapKey("request_form_parameters", formParamsKey);
+		env.mapKey("request_headers", headersKey);
+	}
+
+	protected void unmapClientAuthKeys() {
+		env.unmapKey("request_form_parameters");
+		env.unmapKey("request_headers");
+	}
+
 	protected void call(ConditionSequenceCallBuilder builder) {
 		ConditionSequence sequence;
 

@@ -47,9 +47,11 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2SPID2PARTokenEndpointAsAudienceFails extends AbstractFAPI2SPID2ServerTestModule {
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
+		mapClientAuthKeys("pushed_authorization_request_form_parameters", "pushed_authorization_request_endpoint_request_headers");
 			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest().insertAfter(
 					CreateClientAuthenticationAssertionClaimsWithIssAudience.class,
 					condition(AddTokenEndpointAsAudToClientAuthenticationAssertionClaims.class).requirements("PAR-2")));
+		unmapClientAuthKeys();
 	}
 
 	@Override

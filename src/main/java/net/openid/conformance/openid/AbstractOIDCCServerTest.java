@@ -7,9 +7,9 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.client.AddBasicAuthClientSecretAuthenticationParameters;
-import net.openid.conformance.condition.client.AddFormBasedClientIdAuthenticationParameters;
-import net.openid.conformance.condition.client.AddFormBasedClientSecretAuthenticationParameters;
+import net.openid.conformance.condition.client.AddBasicAuthClientSecretToRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
+import net.openid.conformance.condition.client.AddFormBasedClientSecretToRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
@@ -284,21 +284,21 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	public static class AddAuthClientNoneAuthenticationToTokenRequest extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(AddFormBasedClientIdAuthenticationParameters.class);
+			callAndStopOnFailure(AddClientIdToRequest.class);
 		}
 	}
 
 	public static class AddBasicAuthClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(AddBasicAuthClientSecretAuthenticationParameters.class);
+			callAndStopOnFailure(AddBasicAuthClientSecretToRequest.class);
 		}
 	}
 
 	public static class AddFormBasedClientSecretAuthenticationToTokenRequest extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
-			callAndStopOnFailure(AddFormBasedClientSecretAuthenticationParameters.class);
+			callAndStopOnFailure(AddFormBasedClientSecretToRequest.class);
 		}
 	}
 
@@ -629,7 +629,9 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 		if (addTokenEndpointClientAuthentication != null) {
+			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(addTokenEndpointClientAuthentication));
+			unmapClientAuthKeys();
 		}
 	}
 

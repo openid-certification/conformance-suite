@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAssertionToRequest;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
@@ -42,13 +42,15 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI1AdvancedFinalEnsureClientAssertionWithNoSubFails extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 
 		callAndStopOnFailure(RemoveSubFromClientAssertionClaims.class, "RFC7523-3"); // this is the difference from 'super'
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientAssertionToRequest.class);
+		unmapClientAuthKeys();
 	}
 
 	@Override

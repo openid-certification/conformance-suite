@@ -1,7 +1,7 @@
 package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.AddRequestToBackchannelAuthenticationEndpointRequest;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus401;
@@ -60,7 +60,9 @@ public class FAPICIBAID1EnsureDifferentClientIdAndIssuerInBackchannelAuthorizati
 		eventLog.startBlock("Swapping to Client2");
 		env.mapKey("client", "client2");
 
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
+		mapClientAuthKeys("backchannel_authentication_endpoint_request_form_parameters", "backchannel_authentication_endpoint_request_headers");
+		callAndStopOnFailure(AddClientIdToRequest.class);
+		unmapClientAuthKeys();
 		callAndStopOnFailure(AddRequestToBackchannelAuthenticationEndpointRequest.class);
 
 		callAndStopOnFailure(CallBackchannelAuthenticationEndpoint.class);

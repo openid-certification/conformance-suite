@@ -2,7 +2,7 @@ package net.openid.conformance.fapi1advancedfinal;
 
 import com.google.common.base.Strings;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAssertionToRequest;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClient;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -44,10 +44,12 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI1AdvancedFinalEnsureClientAssertionWithIssAudSucceeds extends AbstractFAPI1AdvancedFinalPerformTokenEndpoint {
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		callAndStopOnFailure(CreateClientAuthenticationAssertionClaims.class);
 		callAndStopOnFailure(UpdateClientAuthenticationAssertionClaimsWithISSAud.class);
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientAssertionToRequest.class);
+		unmapClientAuthKeys();
 	}
 
 	@Override

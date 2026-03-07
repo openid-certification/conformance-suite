@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi2spid2;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAssertionToRequest;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
@@ -44,6 +44,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2SPID2EnsureClientAssertionWithNoSubFails extends AbstractFAPI2SPID2PerformTokenEndpoint {
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CBUAE){
 			callAndStopOnFailure(CreateClientAuthenticationAssertionClaimsWithIssAudience.class);
 		} else {
@@ -54,7 +55,8 @@ public class FAPI2SPID2EnsureClientAssertionWithNoSubFails extends AbstractFAPI2
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientAssertionToRequest.class);
+		unmapClientAuthKeys();
 	}
 
 	@Override

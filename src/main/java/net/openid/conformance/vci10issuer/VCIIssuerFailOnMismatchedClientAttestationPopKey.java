@@ -41,9 +41,12 @@ public class VCIIssuerFailOnMismatchedClientAttestationPopKey extends AbstractVC
 
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
+		mapClientAuthKeys("pushed_authorization_request_form_parameters",
+			"pushed_authorization_request_endpoint_request_headers");
 		ConditionSequence seq = new AddClientAttestationClientAuthToEndpointRequest();
 		seq.butFirst(condition(ReplaceClientInstanceKeyWithNewKey.class).requirement("OAuth2-ATCA07-5.2"));
 		call(seq);
+		unmapClientAuthKeys();
 	}
 
 	@Override

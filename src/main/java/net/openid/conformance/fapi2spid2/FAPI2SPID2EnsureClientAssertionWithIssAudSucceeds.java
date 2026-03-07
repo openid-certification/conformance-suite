@@ -44,11 +44,13 @@ public class FAPI2SPID2EnsureClientAssertionWithIssAudSucceeds extends AbstractF
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		if(getVariant(FAPI2ID2OPProfile.class) != FAPI2ID2OPProfile.CBUAE) {
 			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest());
 		} else {
 			call(new CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest());
 		}
+		unmapClientAuthKeys();
 	}
 
 	@Override

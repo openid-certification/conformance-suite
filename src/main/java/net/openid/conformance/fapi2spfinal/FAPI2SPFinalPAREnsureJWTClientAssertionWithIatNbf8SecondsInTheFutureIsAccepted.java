@@ -37,6 +37,8 @@ import org.springframework.http.HttpStatus;
 public class FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted extends AbstractFAPI2SPFinalServerTestModule {
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
+		mapClientAuthKeys("pushed_authorization_request_form_parameters", "pushed_authorization_request_endpoint_request_headers");
+
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.CBUAE){
 			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest().insertAfter(
 					CreateClientAuthenticationAssertionClaimsWithIssAudience.class,
@@ -46,6 +48,8 @@ public class FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutur
 					UpdateClientAuthenticationAssertionClaimsWithISSAud.class,
 					condition(AddIatNbf8SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6", "FAPI2-SP-FINAL-5.3.2.1")));
 		}
+
+		unmapClientAuthKeys();
 	}
 
 	@Override
