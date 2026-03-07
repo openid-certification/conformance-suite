@@ -35,7 +35,7 @@ public class CreateAuthorizationEndpointRequestFromClientInformation extends Abs
 		if (!Strings.isNullOrEmpty(scope)) {
 			authorizationEndpointRequest.addProperty("scope", scope);
 		} else {
-			log("Leaving off 'scope' parameter from authorization request");
+			log("No 'scope' parameter in client configuration - omitting scope from authorization request");
 		}
 
 		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
