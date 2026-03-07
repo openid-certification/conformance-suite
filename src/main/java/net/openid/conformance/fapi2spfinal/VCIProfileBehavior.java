@@ -31,6 +31,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.vci10issuer.AbstractVCIIssuerTestModule;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
@@ -119,6 +120,10 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 			module.doCallAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, "OAuth2-ATCA07-1");
 			module.doCallAndStopOnFailure(CreateClientAttestationJwt.class, "OAuth2-ATCA07-1", "HAIP-4.3.1-2");
+
+			if (module instanceof AbstractVCIIssuerTestModule vciModule) {
+				vciModule.afterClientAttestationGenerated();
+			}
 
 			module.doEndBlock();
 		}

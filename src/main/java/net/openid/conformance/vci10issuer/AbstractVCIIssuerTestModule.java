@@ -732,7 +732,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		// Default implementation does nothing
 	}
 
-	protected void afterClientAttestationGenerated() {
+	public void afterClientAttestationGenerated() {
 		// Default implementation does nothing
 	}
 
