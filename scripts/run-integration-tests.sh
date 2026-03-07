@@ -37,6 +37,11 @@ BASE_URL="https://localhost.emobix.co.uk:8443"
 MONGO_URI="mongodb://127.0.0.1:27017/test_suite"
 SERVER_LOG="${SUITE_DIR}/target/server.log"
 
+# Auto-capture all output to a log file
+TEST_LOG="/tmp/integration-test-$(date +%Y%m%d-%H%M%S).log"
+echo "==> Logging to: $TEST_LOG"
+exec > "$TEST_LOG" 2>&1
+
 # Default test suite if none specified
 if [ "$#" -eq 0 ]; then
     set -- --federation-tests

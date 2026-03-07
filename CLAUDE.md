@@ -56,7 +56,7 @@ The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTL
 
 ### Running integration tests
 
-Use `scripts/run-integration-tests.sh`, which handles building, server lifecycle, readiness checks, and test execution in one command:
+Use `scripts/run-integration-tests.sh`, which handles building, server lifecycle, readiness checks, and test execution in one command. Output is automatically captured to `/tmp/integration-test-<timestamp>.log` — the script prints the log path before redirecting, then use `Read` to inspect results.
 
 ```bash
 # Run federation tests (default if no argument given)
