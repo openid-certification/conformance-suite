@@ -424,32 +424,10 @@ makeVcTests() {
     SDJWTVC="credential_format=sd_jwt_vc"
     ISSUANCE_IMMEDIATE="vci_credential_issuance_mode=immediate"
     FAPI_VCI="fapi_profile=vci"
-    PLAIN_OAUTH="openid_connect=plain_oauth"
+    PLAIN_OAUTH="openid=plain_oauth"
     PLAIN_RESP="fapi_response_mode=plain_response"
 
-    # Authorization Code Flow
-         # client_auth=private_key, sender_constrain=mtls
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$PRIVATE_KEY][$UNSIGNED][$MTLSAT][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$PRIVATE_KEY][$UNSIGNED][$MTLSAT][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-         # client_auth=private_key, sender_constrain=dpop
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$PRIVATE_KEY][$UNSIGNED][$DPOP][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$PRIVATE_KEY][$UNSIGNED][$DPOP][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-no-mtls.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-        # client_auth=mtls, sender_constrain=mtls
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$MTLSAT][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$MTLSAUTH][$UNSIGNED][$MTLSAT][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-        # client_auth=mtls, sender_constrain=dpop
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-        # client_auth=client_attestation, sender_constrain=dpop
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-        # client_auth=client_attestation, sender_constrain=dpop key-attestation
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop-key-attestation.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-        # client_auth=client_attestation, sender_constrain=dpop - issuer initiated (credential offer by value)
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-        # client_auth=client_attestation, sender_constrain=dpop - issuer initiated (credential offer by reference)
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$AUTHCODE][$OFFERBYREF][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$AUTHCODE][$OFFERBYREF][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-    # Pre-Authorized Code Flow (not covered by HAIP)
-        # client_auth=mtls, sender_constrain=dpop, grant_type=pre_authorization_code - issuer initiated (credential offer by value), oid4vci-1_0-wallet-happy-path-with-scopes, because of authorization_request_type=simple requires a scope mapping in credential metadata
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][$PLAINVCI][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][$PLAINVCI][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-        # client_auth=mtls, sender_constrain=dpop, grant_type=pre_authorization_code - issuer initiated (credential offer by value)
-    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$RAR][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][$PLAINVCI][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$FAPI_VCI][$PLAIN_OAUTH][$PLAIN_RESP][$RAR][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][$PLAINVCI][$SDJWTVC][$CRED_RESP_ENCR_PLAIN]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}../conformance-suite/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ../conformance-suite/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
-
+    # TEMPORARILY: just run the HAIP plan to test the new FAPI2 modules
     # Authlete Issuer tests
     TESTS="${TESTS} oid4vci-1_0-issuer-haip-test-plan[$WALLETINIT][$SDJWTVC] authlete-vci-haip.json"
 }
@@ -710,7 +688,13 @@ makePanvaTests() {
 }
 
 TESTS="${TESTS} --verbose"
-if [ "$#" -eq 0 ]; then
+
+# Extract the suite selector and collect any extra args (e.g. --rerun)
+SUITE_ARG="${1:-}"
+shift || true
+EXTRA_ARGS="$*"
+
+if [ -z "$SUITE_ARG" ]; then
     echo "Run all tests"
     makeOidccTest
     makeFapiTest
@@ -722,7 +706,7 @@ if [ "$#" -eq 0 ]; then
     # ignore that logout tests are untested (Authlete doesn't support the RP initiated logout specs)
     TESTS="${TESTS} --show-untested-test-modules all-except-logout"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests" ]; then
+elif [ "$SUITE_ARG" = "--client-tests" ]; then
     echo "Run client tests"
     makeClientTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-client.json"
@@ -731,7 +715,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--client-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules client"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--oidcc-tests" ]; then
+elif [ "$SUITE_ARG" = "--oidcc-tests" ]; then
     echo "Run OIDCC tests"
     makeOidccTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-oidcc.json"
@@ -741,7 +725,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--oidcc-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules oidcc"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
-elif [ "$#" -eq 1 ] && [ "$1" = "--fapi-tests" ]; then
+elif [ "$SUITE_ARG" = "--fapi-tests" ]; then
     echo "Run FAPI tests"
     makeFapiTest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-fapi.json"
@@ -751,7 +735,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--fapi-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules fapi-authlete"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
-elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests" ]; then
+elif [ "$SUITE_ARG" = "--ciba-tests" ]; then
     echo "Run ciba tests"
     makeCIBATest
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ciba.json"
@@ -761,7 +745,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ciba-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules ciba"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel" # the authlete authentication device simulator doesn't seem to support parallel authorizations
-elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
+elif [ "$SUITE_ARG" = "--ekyc-tests" ]; then
     echo "Run eKYC tests"
     makeEkycTests
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ekyc.json"
@@ -771,7 +755,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ekyc-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules ekyc"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel" # both alias queues hit the same authlete instance; serialize to reduce peak concurrent plans
-elif [ "$#" -eq 1 ] && [ "$1" = "--authzen-tests" ]; then
+elif [ "$SUITE_ARG" = "--authzen-tests" ]; then
     echo "Run Authzen tests"
     makeAuthzenTests
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-authzen.json"
@@ -780,7 +764,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--authzen-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules authzen"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--federation-tests" ]; then
+elif [ "$SUITE_ARG" = "--federation-tests" ]; then
     echo "Run federation tests"
     makeFederationTests
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-federation.json"
@@ -790,7 +774,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--federation-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules federation"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel" # federation tests are fast (~2m); serialize to reduce peak concurrent plans
-elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
+elif [ "$SUITE_ARG" = "--local-provider-tests" ]; then
     echo "Run local provider tests"
     makeLocalProviderTests
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-local.json"
@@ -799,7 +783,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--local-provider-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     TESTS="${TESTS} --show-untested-test-modules server-oidc-provider"
     TESTS="${TESTS} --export-dir ."
-elif [ "$#" -eq 1 ] && [ "$1" = "--ssf-tests" ]; then
+elif [ "$SUITE_ARG" = "--ssf-tests" ]; then
     echo "Run ssf tests"
     makeSsfTests
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-ssf.json"
@@ -808,7 +792,7 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--ssf-tests" ]; then
     TESTS="${TESTS} --expected-skips-file ${EXPECTED_SKIPS_FILE}"
     # TESTS="${TESTS} --show-untested-test-modules ssf"
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--vc-tests" ]; then
+elif [ "$SUITE_ARG" = "--vc-tests" ]; then
     echo "Run VP+VCI tests"
     makeVcTests
     EXPECTED_FAILURES_FILE="../conformance-suite/.gitlab-ci/expected-failures-vc.json"
@@ -818,15 +802,19 @@ elif [ "$#" -eq 1 ] && [ "$1" = "--vc-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules vc"
     TESTS="${TESTS} --no-parallel" # The authlete tests and the OP-against-RP tests use the same aliases to reduce peak load when CI starts, so we run them in series
     TESTS="${TESTS} --export-dir ../conformance-suite"
-elif [ "$#" -eq 1 ] && [ "$1" = "--panva-tests" ]; then
+elif [ "$SUITE_ARG" = "--panva-tests" ]; then
     echo "Run panva tests"
     makePanvaTests
     TESTS="${TESTS} --show-untested-test-modules server-panva"
     TESTS="${TESTS} --export-dir ../conformance-suite"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
 else
-    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests]"
+    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests] [--rerun N|N:M|N,M,...]"
     exit 1
+fi
+
+if [ -n "$EXTRA_ARGS" ]; then
+    TESTS="${TESTS} ${EXTRA_ARGS}"
 fi
 
 echo ${TESTS} | xargs -s 100000 ../conformance-suite/scripts/run-test-plan.py

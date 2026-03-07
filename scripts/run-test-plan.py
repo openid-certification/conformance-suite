@@ -162,6 +162,24 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     if len(plan_modules) == 0:
         raise Exception("No modules to test in " + test_plan_name)
 
+    # Assign module numbers and print them
+    plan_number = test_plan_obj.get("plan_number", 0)
+    print("\nRunning plan [{}] {} ...".format(plan_number, test_plan))
+    for i, mod in enumerate(plan_modules, 1):
+        print("  [{}:{}] {}".format(plan_number, i, mod['testModule']))
+
+    # Filter modules if --rerun specifies module-level filtering for this plan
+    if plan_number in rerun_module_filters:
+        mod_filter = rerun_module_filters[plan_number]
+        max_mod = len(plan_modules)
+        for mn in mod_filter:
+            if mn < 1 or mn > max_mod:
+                print("Error: --rerun module number {}:{} is out of range (1-{})".format(plan_number, mn, max_mod))
+                sys.exit(1)
+        plan_modules = [mod for i, mod in enumerate(plan_modules, 1) if i in mod_filter]
+        print("  Filtered to {} module(s)".format(len(plan_modules)))
+    print("")
+
     test_info = {}  # key is module name
     test_time_taken = {}  # key is module_id
     overall_start_time = time.time()
@@ -924,6 +942,7 @@ def parser_args_cli():
     parser.add_argument('--verbose', help='Print out details of unexpected failures/warnings including a template for the expected failures file, and print details of expected failures/warnings that do not happen', action='store_true')
     parser.add_argument('--expected-failures-file', help='Json configuration file name which records a list of expected failures/warnings', default='')
     parser.add_argument('--expected-skips-file', help='Json configuration file name which records a list of expected skipped tests', default='')
+    parser.add_argument('--rerun', help='Rerun specific test plans/modules by ID, e.g. 2 or 2:6 or 1,3 (requires same suite option)', default=None)
     parser.add_argument('params', nargs='+', help='List parameters contains test-plan-name and configuration-file to run all test plan. Syntax: <test-plan-name> <configuration-file> ...')
 
     return parser.parse_args()
@@ -950,6 +969,32 @@ def end_section(name):
     print("\x1b[0Ksection_end:{}:{}\r\x1b[0K".format(secondssince1970(), name,), file=sys.__stdout__)
     sys.stdout.flush()
     sys.stderr.flush()
+
+def parse_rerun_arg(rerun_str):
+    """Parse --rerun argument into plan_numbers set and module_filters dict.
+
+    Returns (plan_numbers, module_filters) where:
+    - plan_numbers: set of plan numbers to run (e.g. {1, 3})
+    - module_filters: dict of plan_number -> set of module numbers (e.g. {2: {6}})
+    """
+    plan_numbers = set()
+    module_filters = {}
+    for item in rerun_str.split(','):
+        item = item.strip()
+        if ':' in item:
+            plan_str, mod_str = item.split(':', 1)
+            plan_num = int(plan_str)
+            mod_num = int(mod_str)
+            plan_numbers.add(plan_num)
+            if plan_num not in module_filters:
+                module_filters[plan_num] = set()
+            module_filters[plan_num].add(mod_num)
+        else:
+            plan_numbers.add(int(item))
+    return plan_numbers, module_filters
+
+# Global: module filters from --rerun, keyed by plan number
+rerun_module_filters = {}
 
 async def run_test_plan_wrapper(plan_name, config_json, export_dir, client_certs):
     test_plan_obj = plan_name
@@ -1045,6 +1090,26 @@ async def main():
         a_test = tokens[0]
         a_test["src"] = test
         to_run.append((a_test, a_test["test"]["config_file"]))
+
+    # Assign plan numbers and print the list
+    print("\nTest plans to run:")
+    for i, (plan_obj, config) in enumerate(to_run, 1):
+        plan_obj["plan_number"] = i
+        print("  [{}] {} {}".format(i, plan_obj["src"].strip(), config))
+    print("")
+
+    # Parse --rerun filter
+    global rerun_module_filters
+    rerun_plan_numbers = None
+    if args.rerun:
+        rerun_plan_numbers, rerun_module_filters = parse_rerun_arg(args.rerun)
+        max_plan = len(to_run)
+        for pn in rerun_plan_numbers:
+            if pn < 1 or pn > max_plan:
+                print("Error: --rerun plan number {} is out of range (1-{})".format(pn, max_plan))
+                sys.exit(1)
+        to_run = [(plan_obj, config) for plan_obj, config in to_run if plan_obj["plan_number"] in rerun_plan_numbers]
+        print("Rerunning {} plan(s): {}\n".format(len(to_run), args.rerun))
 
     verify_ssl = not dev_mode and not 'DISABLE_SSL_VERIFY' in os.environ
     conformance = Conformance(api_url_base, token, verify_ssl)
@@ -1352,6 +1417,12 @@ async def main():
         for m in untested_test_modules:
             print('{}: {}'.format(all_test_modules[m]['profile'], m))
         failed = True
+
+    if failed and not args.rerun:
+        print("\nTo rerun specific plans/modules, use --rerun with the plan number shown above:")
+        print("  --rerun 2        # rerun plan [2]")
+        print("  --rerun 2:6      # rerun module [2:6]")
+        print("  --rerun 1,3      # rerun plans [1] and [3]")
 
     if failed:
         sys.exit(1)
