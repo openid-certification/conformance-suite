@@ -42,7 +42,7 @@
             "fapi_profile": "connectid_au",
             "fapi_response_mode": "plain_response"
         },
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-au-connectid-rp-test-config-1.json",
+        "configuration-filename": "*fapi-au-connectid-rp-test-config-1.json",
         "current-block": "Authorization endpoint",
         "condition": "CheckRequestObjectClaimsParameterMemberValues",
         "expected-result": "failure",
@@ -58,7 +58,7 @@
             "fapi_profile": "connectid_au",
             "fapi_response_mode": "plain_response"
         },
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-au-connectid-rp-test-config.json",
+        "configuration-filename": "*fapi-au-connectid-rp-test-config.json",
         "current-block": "Authorization endpoint",
         "condition": "AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject",
         "expected-result": "failure",
@@ -83,7 +83,7 @@
             "fapi_profile": "connectid_au",
             "fapi_response_mode": "plain_response"
         },
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-au-connectid-rp-test-config-1.json",
+        "configuration-filename": "*fapi-au-connectid-rp-test-config-1.json",
         "current-block": "Authorization endpoint",
         "condition": "CheckRequestObjectClaimsParameterMemberValues",
         "expected-result": "failure",
@@ -99,7 +99,7 @@
             "fapi_profile": "connectid_au",
             "fapi_response_mode": "plain_response"
         },
-        "configuration-filename": "../conformance-suite/scripts/test-configs-rp-against-op/fapi-au-connectid-rp-test-config.json",
+        "configuration-filename": "*fapi-au-connectid-rp-test-config.json",
         "current-block": "Authorization endpoint",
         "condition": "AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject",
         "expected-result": "failure",
