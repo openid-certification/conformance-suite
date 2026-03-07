@@ -157,13 +157,13 @@ in
     };
   };
 
-  pre-commit.hooks.fix-whitespace = {
+  git-hooks.hooks.fix-whitespace = {
       enable = true;
       name = "Check Whitespace";
       entry = "python3 scripts/checkwhitespace.py --fix";
       pass_filenames = false;
     };
-  pre-commit.hooks.mvn-check = {
+  git-hooks.hooks.mvn-check = {
       enable = true;
       name = "PMD and Checkstyle";
       entry = "mvnd checkstyle:check pmd:check";
