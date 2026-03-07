@@ -39,7 +39,9 @@ public class FAPICIBAID1EnsureClientAssertionWithIssAudToTokenEndpointSucceeds e
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		call(sequenceOf(sequence(addTokenEndpointClientAuthentication)).insertAfter(CreateClientAuthenticationAssertionClaims.class, condition(UpdateClientAuthenticationAssertionClaimsWithISSAud.class)));
+		unmapClientAuthKeys();
 	}
 
 	@Override

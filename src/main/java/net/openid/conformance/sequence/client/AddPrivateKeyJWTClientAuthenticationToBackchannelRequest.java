@@ -1,6 +1,6 @@
 package net.openid.conformance.sequence.client;
 
-import net.openid.conformance.condition.client.AddClientAssertionToBackchannelAuthenticationEndpoint;
+import net.openid.conformance.condition.client.AddClientAssertionToRequest;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.SetClientAuthenticationAudIssuerIdentifierToBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.SetClientAuthenticationAudToBackchannelAuthenticationEndpoint;
@@ -39,7 +39,7 @@ public class AddPrivateKeyJWTClientAuthenticationToBackchannelRequest extends Ab
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(AddClientAssertionToBackchannelAuthenticationEndpoint.class);
+		callAndStopOnFailure(AddClientAssertionToRequest.class);
 
 	}
 

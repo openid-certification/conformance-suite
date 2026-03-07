@@ -662,11 +662,16 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
+		unmapClientAuthKeys();
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
+		mapClientAuthKeys("pushed_authorization_request_form_parameters",
+			"pushed_authorization_request_endpoint_request_headers");
 		call(sequence(addParEndpointClientAuthentication));
+		unmapClientAuthKeys();
 	}
 
 	/**

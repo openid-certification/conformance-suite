@@ -710,13 +710,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 				callAndStopOnFailure(BuildUnsignedPAREndpointRequest.class);
 			}
 
-			if (env.getObject("pushed_authorization_request_endpoint_request_headers") == null) {
-				env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
-			}
-			env.mapKey("request_headers", "pushed_authorization_request_endpoint_request_headers");
 			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
-			env.unmapKey("request_headers");
 		} else {
 			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
 			buildRedirect();
@@ -916,18 +911,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
-
-		if (env.getObject("token_endpoint_request_headers") == null) {
-			env.putObject("token_endpoint_request_headers", new JsonObject());
-		}
-
-		env.mapKey("request_headers", "token_endpoint_request_headers");
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
-		env.unmapKey("request_headers");
+		unmapClientAuthKeys();
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
+		mapClientAuthKeys("pushed_authorization_request_form_parameters",
+			"pushed_authorization_request_endpoint_request_headers");
 		call(sequence(addParEndpointClientAuthentication));
+		unmapClientAuthKeys();
 	}
 
 

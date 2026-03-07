@@ -23,8 +23,8 @@ public class VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant extends Abst
 
 		env.putObject("token_endpoint_request_form_parameters", o);
 
-		// Remove headers as well, so that we're truly starting a 'new' request
-		env.removeObject("token_endpoint_request_headers");
+		// Reset headers so that we're truly starting a 'new' request
+		env.putObject("token_endpoint_request_headers", new JsonObject());
 
 		logSuccess("Created token endpoint request with pre-authorized_code", o);
 

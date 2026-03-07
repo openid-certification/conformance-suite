@@ -44,7 +44,9 @@ public abstract class AbstractOIDCCAuthCodeReuse extends AbstractOIDCCServerTest
 		eventLog.startBlock("Attempting reuse of authorization code");
 
 		if (generateNewClientAssertionSteps != null) {
+			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(generateNewClientAssertionSteps));
+			unmapClientAuthKeys();
 		}
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE);

@@ -169,7 +169,9 @@ public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
 			switchToSecondClient();
 
 			if (generateNewClientAssertionSteps != null) {
+				mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 				call(sequence(generateNewClientAssertionSteps));
+				unmapClientAuthKeys();
 			}
 
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class,  "CIBA-11");

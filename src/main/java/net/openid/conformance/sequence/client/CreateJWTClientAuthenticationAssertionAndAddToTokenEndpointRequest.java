@@ -1,6 +1,6 @@
 package net.openid.conformance.sequence.client;
 
-import net.openid.conformance.condition.client.AddClientAssertionToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAssertionToRequest;
 import net.openid.conformance.condition.client.CreateClientAuthenticationAssertionClaims;
 import net.openid.conformance.condition.client.SignClientAuthenticationAssertion;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -13,7 +13,7 @@ public class CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest 
 
 		callAndStopOnFailure(SignClientAuthenticationAssertion.class);
 
-		callAndStopOnFailure(AddClientAssertionToTokenEndpointRequest.class);
+		callAndStopOnFailure(AddClientAssertionToRequest.class);
 	}
 
 }

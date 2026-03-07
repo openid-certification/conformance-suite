@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi1advancedfinal;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
@@ -40,7 +40,9 @@ public class FAPI1AdvancedFinalEnsureClientAssertionInTokenEndpoint extends Abst
 
 	@Override
 	protected void addClientAuthenticationToTokenEndpointRequest() {
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
+		callAndStopOnFailure(AddClientIdToRequest.class);
+		unmapClientAuthKeys();
 	}
 
 	@Override

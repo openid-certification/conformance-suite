@@ -152,7 +152,9 @@ public class FAPI2SPID2RefreshToken extends AbstractFAPI2SPID2MultipleClient {
 			callAndStopOnFailure(CreateRefreshTokenRequest.class);
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
 
+			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(addTokenEndpointClientAuthentication));
+			unmapClientAuthKeys();
 
 			if (isMTLS()) {
 				callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI2-SP-ID2-5.3.1.1-6");
