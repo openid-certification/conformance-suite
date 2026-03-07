@@ -338,6 +338,10 @@ public class VariantService {
 		final Class<? extends TestPlan> planClass;
 		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
 
+		public Map<String, ParameterHolder<? extends Enum<?>>> getParametersByName() {
+			return parametersByName;
+		}
+
 		private List<TestPlanModuleWithVariant> convertModuleListEntry(String testPlanName, List<TestPlan.ModuleListEntry> list) {
 			return list.stream().flatMap(moduleListEntry -> {
 				Map<Class<? extends Enum<?>>, ? extends Enum<?>> variants = moduleListEntry.variant.stream()

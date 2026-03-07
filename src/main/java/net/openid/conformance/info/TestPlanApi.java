@@ -97,6 +97,18 @@ public class TestPlanApi implements DataUtils {
 			publish = Strings.emptyToNull(OIDFJSON.getString(config.get("publish")));
 		}
 
+		// Resolve default values for any unset variant parameters so the stored
+		// plan records exactly what ran (needed for edit-plan UI restoration)
+		if (variant != null) {
+			Map<String, String> resolved = new HashMap<>(variant.getVariant());
+			for (var entry : holder.getParametersByName().entrySet()) {
+				if (!resolved.containsKey(entry.getKey()) && entry.getValue().hasDefault()) {
+					resolved.put(entry.getKey(), entry.getValue().defaultValue().toString());
+				}
+			}
+			variant = new VariantSelection(resolved);
+		}
+
 		// save the configuration for the test plan
 		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName, variant);
 
