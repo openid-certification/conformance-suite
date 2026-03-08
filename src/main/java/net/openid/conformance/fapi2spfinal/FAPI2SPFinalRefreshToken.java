@@ -55,7 +55,7 @@ import net.openid.conformance.variant.VariantSetup;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 
 public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient {
 
@@ -72,6 +72,13 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	@Override
+	public void setupClientAttestation() {
+		super.setupClientAttestation();
 		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
@@ -150,7 +157,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 			callAndStopOnFailure(CreateRefreshTokenRequest.class);
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
 
-			call(sequence(addTokenEndpointClientAuthentication));
+			addClientAuthenticationToTokenEndpointRequest();
 
 			if (isMTLS()) {
 				callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI2-SP-FINAL-5.3.2.1-6");

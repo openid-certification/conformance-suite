@@ -54,6 +54,10 @@ public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractC
 		if (credentialConfigurationScope != null) {
 			// force scope to be set to the scope from the credential_configuration
 			env.putString("config", "client.scope", credentialConfigurationScope);
+			// also set scope for client2 if present, so the second client uses the same scope
+			if (env.getElementFromObject("config", "client2") != null) {
+				env.putString("config", "client2.scope", credentialConfigurationScope);
+			}
 			logSuccess("Using credential scope value to reference credential_configuration_id", args("scope", credentialConfigurationScope, "credential_configuration_id", vciCredentialConfigurationId));
 		} else {
 			// if credential_configuration contains no scope -> use authorization_details to pass credential_configuration_id

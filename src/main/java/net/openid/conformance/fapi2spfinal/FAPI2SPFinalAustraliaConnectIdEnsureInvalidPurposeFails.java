@@ -29,7 +29,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "cbuae", "fapi_client_credentials_grant", "vci" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "cbuae", "fapi_client_credentials_grant" })
 public class FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

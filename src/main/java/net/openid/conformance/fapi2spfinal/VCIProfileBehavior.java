@@ -31,6 +31,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.vci10issuer.AbstractVCIIssuerTestModule;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
@@ -71,18 +72,30 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateCl
  */
 public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
+	/**
+	 * Safely get an optional variant parameter. Returns null if the variant is not declared
+	 * on the test module (e.g., when FAPI2 SP tests run under the VCI profile).
+	 */
+	private <T extends Enum<T>> T getOptionalVariant(AbstractFAPI2SPFinalServerTestModule module, Class<T> parameter) {
+		try {
+			return module.getVariant(parameter);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+	}
+
 	@Override
 	public void configureClient(AbstractFAPI2SPFinalServerTestModule module) {
 		module.doCallAndStopOnFailure(VCIGenerateClientJwksIfMissing.class);
 
 		// Load credential encryption JWKS if encryption is enabled
-		VCICredentialEncryption encryption = module.getVariant(VCICredentialEncryption.class);
+		VCICredentialEncryption encryption = getOptionalVariant(module, VCICredentialEncryption.class);
 		if (encryption == VCICredentialEncryption.ENCRYPTED) {
 			module.doCallAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
 		}
 
 		// HAIP forces DPoP signing alg to ES256
-		VCIProfile vciProfile = module.getVariant(VCIProfile.class);
+		VCIProfile vciProfile = getOptionalVariant(module, VCIProfile.class);
 		if (vciProfile == VCIProfile.HAIP) {
 			module.getEnv().putString("client", "dpop_signing_alg", "ES256");
 			module.getEnv().putString("client2", "dpop_signing_alg", "ES256");
@@ -108,6 +121,10 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			module.doCallAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, "OAuth2-ATCA07-1");
 			module.doCallAndStopOnFailure(CreateClientAttestationJwt.class, "OAuth2-ATCA07-1", "HAIP-4.3.1-2");
 
+			if (module instanceof AbstractVCIIssuerTestModule vciModule) {
+				vciModule.afterClientAttestationGenerated();
+			}
+
 			module.doEndBlock();
 		}
 	}
@@ -130,9 +147,14 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
+	public void configureRAR(AbstractFAPI2SPFinalServerTestModule module) {
+		// VCI generates RAR dynamically from credential metadata, not from test config
+	}
+
+	@Override
 	public void configureAdditional(AbstractFAPI2SPFinalServerTestModule module) {
 		// Check if encryption is supported before continuing
-		VCICredentialEncryption encryption = module.getVariant(VCICredentialEncryption.class);
+		VCICredentialEncryption encryption = getOptionalVariant(module, VCICredentialEncryption.class);
 		if (encryption == VCICredentialEncryption.ENCRYPTED) {
 			JsonElement algValuesEl = module.getEnv().getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.alg_values_supported");
 			JsonElement encValuesEl = module.getEnv().getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.enc_values_supported");
@@ -251,6 +273,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	private void generateProofAndCreateCredentialRequest(AbstractFAPI2SPFinalServerTestModule module) {
 		// Set up credential endpoint request as POST with JSON
 		module.getEnv().putString("resource", "resourceMethod", "POST");
+		module.getEnv().putString("resource", "resourceMediaType", "application/json");
 		module.getEnv().putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
 		Boolean requiresCryptographicBinding = module.getEnv().getBoolean("vci_requires_cryptographic_binding");

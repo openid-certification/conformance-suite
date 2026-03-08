@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.HttpStatus;
 	}
 )
 
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 
 public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends AbstractFAPI2SPFinalServerTestModule {
 
@@ -110,5 +110,14 @@ public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends Abs
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
 		generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	@Override
+	public void setupClientAttestation() {
+		super.setupClientAttestation();
+		// Client attestation PoP JWT is regenerated each time via addClientAuthenticationToTokenEndpointRequest,
+		// but we need to explicitly regenerate it here for the code reuse attempt
+		generateNewClientAssertionSteps = null;
 	}
 }

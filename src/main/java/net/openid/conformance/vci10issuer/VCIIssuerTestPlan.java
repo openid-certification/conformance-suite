@@ -4,7 +4,7 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
-import net.openid.conformance.variant.VCICredentialEncryption;
+import net.openid.conformance.variant.FAPIResponseMode;
 
 import java.util.List;
 
@@ -19,7 +19,6 @@ public class VCIIssuerTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					// positive tests
 					VCIIssuerMetadataTest.class,
 					VCIIssuerMetadataSignedTest.class
 				),
@@ -42,27 +41,15 @@ public class VCIIssuerTestPlan implements TestPlan {
 					VCIIssuerFailOnInvalidClientAttestationPopSignature.class,
 					VCIIssuerFailOnMismatchedClientAttestationPopKey.class,
 					VCIIssuerFailOnMissingProof.class,
+					VCIIssuerFailOnUnsupportedEncryptionAlgorithm.class,
 					VCIIssuerFailOnUnknownCredentialConfigurationId.class,
 					VCIIssuerFailOnUnknownCredentialIdentifier.class,
 					VCIIssuerFailOnRequestWithAccessTokenInQuery.class
 				),
 				List.of(
 					new Variant(FAPI2FinalOPProfile.class, "vci"),
-					new Variant(FAPIOpenIDConnect.class, "plain_oauth")
-				)
-			),
-			new ModuleListEntry(
-				List.of(
-					// positive tests
-					VCIIssuerHappyFlow.class,
-					// negative tests
-					VCIIssuerFailOnUnknownCredentialConfigurationId.class,
-					VCIIssuerFailOnUnsupportedEncryptionAlgorithm.class
-				),
-				List.of(
-					new Variant(FAPI2FinalOPProfile.class, "vci"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
-					new Variant(VCICredentialEncryption.class, "encrypted")
+					new Variant(FAPIResponseMode.class, "plain_response")
 				)
 			)
 		);

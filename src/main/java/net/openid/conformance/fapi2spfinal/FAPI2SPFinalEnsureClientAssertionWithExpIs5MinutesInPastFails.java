@@ -32,7 +32,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
+@VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls", "client_attestation" })
 public class FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails extends AbstractFAPI2SPFinalPerformTokenEndpoint {
 
 	@Override

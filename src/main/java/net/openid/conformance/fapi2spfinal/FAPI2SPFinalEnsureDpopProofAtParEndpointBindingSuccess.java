@@ -23,7 +23,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = { "mtls" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant", "vci" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalEnsureDpopProofAtParEndpointBindingSuccess extends AbstractFAPI2SPFinalServerTestModule {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

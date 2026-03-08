@@ -33,7 +33,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au", "vci" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })
 public class FAPI2SPFinalEnsureRequestObjectWithNbfOver60Fails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

@@ -56,5 +56,49 @@
         "condition": "EnsureHttpStatusCodeIs400",
         "expected-result": "failure",
         "comment": "awaiting resolution on https://gitlab.com/openid/conformance-suite/-/issues/1697"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-ensure-token-endpoint-fails-with-expired-auth-code",
+        "variant": {
+            "fapi_profile": "vci"
+        },
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "Verify token endpoint response",
+        "condition": "ServerAllowedExpiredAuthorizationCode",
+        "expected-result": "failure",
+        "comment": "Authlete server configuration needs to be updated to reject expired authorization codes"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": {
+            "fapi_profile": "vci"
+        },
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "warning",
+        "comment": "Known case where Authlete doesn't implement a 'should' - access token not revoked after authorization code reuse"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": {
+            "fapi_profile": "vci"
+        },
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "Attempting to use an DPOP sender constrained refresh_token without proof of possession",
+        "condition": "ValidateErrorFromTokenEndpointResponseError",
+        "expected-result": "failure",
+        "comment": "Authlete VCI doesn't enforce DPoP on refresh token requests"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-dpop-negative-tests",
+        "variant": {
+            "fapi_profile": "vci"
+        },
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "DPoP reuse, Second use of the same jti, this 'should' fail",
+        "condition": "EnsureHttpStatusCodeIs400or401",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support jti uniqueness"
     }
 ]

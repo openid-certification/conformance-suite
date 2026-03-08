@@ -46,9 +46,12 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
-import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-discovery-end-point-verification",
@@ -67,7 +70,6 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPIResponseMode.class,
 	FAPIOpenIDConnect.class
 })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFinalDiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> profileSpecificChecks;
@@ -76,6 +78,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	protected Boolean signedRequest;
 
 	protected boolean brazil = false;
+	protected boolean isVci = false;
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
@@ -119,11 +122,58 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		profileSpecificChecks = OpenBankingUAEDiscoveryEndpointChecks.class;
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
+	public void setupVci() {
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+		isVci = true;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
-		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
+
+		if (isVci) {
+			configureVci(config, baseUrl, externalUrlOverride, baseMtlsUrl);
+		} else {
+			super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
+		}
+	}
+
+	protected void configureVci(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+		env.putString("base_url", baseUrl);
+		env.putString("base_mtls_url", baseMtlsUrl);
+		env.putObject("config", config);
+
+		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
+
+		// For VCI, fetch credential issuer metadata to discover the authorization server
+		callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
+		callAndStopOnFailure(VCIParseCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
+
+		// Fetch and select OAuth authorization server metadata from VCI metadata
+		callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, "OID4VCI-1FINAL-12.2.3", "RFC8414-3.1");
+		callAndStopOnFailure(VCISelectOAuthorizationServer.class, "OID4VCI-1FINAL-12.2.3");
+
+		// Set discoveryUrl in config so the discovery endpoint checks can validate the issuer
+		String issuer = env.getString("server", "issuer");
+		if (issuer != null) {
+			JsonObject serverConfig = config.getAsJsonObject("server");
+			if (serverConfig == null) {
+				serverConfig = new JsonObject();
+				config.add("server", serverConfig);
+			}
+			serverConfig.addProperty("discoveryIssuer", issuer);
+			serverConfig.addProperty("discoveryUrl", issuer + "/.well-known/oauth-authorization-server");
+		}
+
+		if (supportMTLSEndpointAliases != null) {
+			call(sequence(supportMTLSEndpointAliases));
+		}
+
+		setStatus(Status.CONFIGURED);
+		fireSetupDone();
 	}
 
 	@Override

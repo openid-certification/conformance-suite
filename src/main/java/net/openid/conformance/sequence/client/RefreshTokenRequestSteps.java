@@ -76,7 +76,9 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		}
 
 		if (addClientAuthenticationToTokenEndpointRequest != null) {
+			call(exec().mapKey("request_headers", "token_endpoint_request_headers"));
 			call(sequence(addClientAuthenticationToTokenEndpointRequest));
+			call(exec().unmapKey("request_headers"));
 		}
 
 		//wait 1 second to make sure that iat values will be different

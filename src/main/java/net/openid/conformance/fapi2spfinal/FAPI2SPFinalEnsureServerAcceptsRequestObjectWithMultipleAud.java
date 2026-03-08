@@ -26,7 +26,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(
 		parameter = FAPI2FinalOPProfile.class,
-		values = { "cbuae", "fapi_client_credentials_grant", "vci" }
+		values = { "cbuae", "fapi_client_credentials_grant" }
 )
 public class FAPI2SPFinalEnsureServerAcceptsRequestObjectWithMultipleAud extends AbstractFAPI2SPFinalServerTestModule {
 

@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule.FAPIResourceConfiguration;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -212,60 +213,6 @@ public class FAPI2ProfileBehavior {
 	 */
 	public void configureRAR(AbstractFAPI2SPFinalServerTestModule module) {
 		module.doCallAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, ConditionResult.FAILURE);
-	}
-
-	/**
-	 * Perform additional configuration after server metadata is fetched but before client setup.
-	 * Default: no-op. VCI uses this to resolve credential configuration and transfer method.
-	 */
-	public void configureAdditional(AbstractFAPI2SPFinalServerTestModule module) {
-		// default: no-op
-	}
-
-	/**
-	 * Execute the protected resource request flow.
-	 * Default: standard FAPI2 resource endpoint call.
-	 * VCI overrides this to call the credential endpoint with nonce, proof, and credential request.
-	 */
-	public void requestProtectedResource(AbstractFAPI2SPFinalServerTestModule module) {
-		module.defaultRequestProtectedResource();
-	}
-
-	// --- Client configuration hooks ---
-
-	/**
-	 * Perform profile-specific client configuration before standard client validation.
-	 * Default: no-op. VCI uses this to generate client JWKs if missing and configure encryption.
-	 */
-	public void configureClient(AbstractFAPI2SPFinalServerTestModule module) {
-		// default: no-op
-	}
-
-	/**
-	 * Validate client JWKs private part.
-	 * Default: ValidateClientJWKsPrivatePart. VCI uses VCIValidateClientJWKsPrivatePart.
-	 */
-	public void validateClientJwks(AbstractFAPI2SPFinalServerTestModule module) {
-		module.defaultValidateClientJwks();
-	}
-
-	/**
-	 * Configure client attestation keys and JWT if applicable.
-	 * Default: no-op. VCI generates attestation keys when CLIENT_ATTESTATION auth type is selected.
-	 */
-	public void configureClientAttestation(AbstractFAPI2SPFinalServerTestModule module) {
-		// default: no-op
-	}
-
-	// --- Lifecycle hooks for profiles that need deeper control ---
-
-	/**
-	 * Fetch authorization server configuration.
-	 * Default: standard OIDC or OAuth discovery based on isOpenId.
-	 * VCI overrides this to fetch credential issuer metadata first, then derive the AS.
-	 */
-	public void fetchServerConfiguration(AbstractFAPI2SPFinalServerTestModule module) {
-		module.defaultFetchServerConfiguration();
 	}
 
 	/**

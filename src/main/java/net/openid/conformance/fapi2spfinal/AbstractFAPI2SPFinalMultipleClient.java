@@ -8,12 +8,10 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client2.org_jwks"
 })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public abstract class AbstractFAPI2SPFinalMultipleClient extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override
@@ -52,6 +50,9 @@ public abstract class AbstractFAPI2SPFinalMultipleClient extends AbstractFAPI2SP
 		eventLog.startBlock(currentClientString() + "Setup");
 
 		switchToSecondClient();
+
+		// Re-generate client attestation for the second client
+		profileBehavior.configureClientAttestation(this);
 
 		Integer redirectQueryDisabled = env.getInteger("config", "disableRedirectQueryTest");
 

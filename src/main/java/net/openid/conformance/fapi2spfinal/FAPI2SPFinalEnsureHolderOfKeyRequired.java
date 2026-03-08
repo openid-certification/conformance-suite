@@ -7,7 +7,7 @@ import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointRespon
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
-import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidGrantOrRequestError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromServerConfiguration;
@@ -25,8 +25,6 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 
 @PublishTestModule(
@@ -45,7 +43,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {"vci"})
 public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalServerTestModule {
 
 	private Class<? extends ConditionSequence> validateTokenEndpointResponseSteps;
@@ -61,6 +58,13 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 	@Override
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
+		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	@Override
+	public void setupClientAttestation() {
+		super.setupClientAttestation();
 		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
@@ -180,7 +184,7 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		@Override
 		public void evaluate() {
 			// used always when DPoP is the holder of key mechanism
-			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidGrantOrRequestError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2"); //TODO RFC6749?
+			callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError.class, Condition.ConditionResult.FAILURE, "RFC6749-5.2", "RFC9449-5"); //TODO RFC6749?
 		}
 	}
 

@@ -46,7 +46,7 @@ public class VCIIssuerFailOnInvalidClientAttestationSignature extends AbstractVC
 	}
 
 	@Override
-	protected void afterClientAttestationGenerated() {
+	public void afterClientAttestationGenerated() {
 		super.afterClientAttestationGenerated();
 
 		// Invalidate the client attestation signature
