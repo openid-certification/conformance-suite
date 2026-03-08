@@ -192,23 +192,57 @@ new_artifacts_zip = sys.argv[2]
 master_results = load_results(master_artifacts_zip, True)
 new_results = load_results(new_artifacts_zip, False)
 
+def find_fuzzy_variant_match(master_module_variants, new_variant):
+    """Find a master variant that is a subset or superset of the new variant.
+
+    This handles the case where a branch adds new variant parameters to a test
+    (e.g., VCI tests gaining FAPI2 variant keys) — the existing variant values
+    still match, there are just extra keys on one side.
+
+    Returns the matching master variant frozenset, or None.
+    """
+    for master_variant in master_module_variants:
+        if master_variant <= new_variant or new_variant <= master_variant:
+            return master_variant
+    return None
+
 differences=False
 for test_plan,modules in sorted(new_results.items()):
     for module,variants in sorted(modules.items()):
         for variant, log in sorted(variants.items()):
+            master_log = None
+            matched_variant = None
+            fuzzy = False
             try:
                 master_log = master_results[test_plan][module][variant]
-                del master_results[test_plan][module][variant]
+                matched_variant = variant
+            except KeyError:
+                # Exact variant match failed — try fuzzy matching where one
+                # variant set is a subset of the other (handles added/removed
+                # variant parameters across branches).
+                try:
+                    matched_variant = find_fuzzy_variant_match(
+                        master_results[test_plan][module], variant)
+                    if matched_variant is not None:
+                        master_log = master_results[test_plan][module][matched_variant]
+                        fuzzy = True
+                except KeyError:
+                    pass
+
+            if master_log is not None:
+                del master_results[test_plan][module][matched_variant]
                 output = compare(master_log, log)
                 if output != None:
                     differences=True
                     print("Plan: "+test_plan)
                     print("Module: "+module)
                     print("Variant: "+pretty_variant(variant))
+                    if fuzzy:
+                        print("(fuzzy variant match — reference had: "+pretty_variant(matched_variant)+")")
                     print("reference log: "+get_url(master_log))
                     print("new log: "+get_url(log))
                     print("Diff output:\n"+output)
-            except KeyError:
+            else:
                 differences=True
                 print("Plan: "+test_plan)
                 print("Module: "+module)
