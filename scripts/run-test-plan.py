@@ -4,7 +4,6 @@ import argparse
 import asyncio
 import datetime
 import fnmatch
-import hashlib
 import json
 import os
 import re
@@ -65,8 +64,9 @@ def maybe_add_scenario_suffix_to_description(parsed_config, test_plan_obj):
     test = test_plan_obj.get("test", {})
     op_test = test_plan_obj.get("op_test")
 
-    # Add a stable suffix only when module selection is used, which is where duplicate
-    # descriptions commonly occur (for example OP/RP paired federation runs).
+    # Add a stable suffix only when module selection is used, which is where
+    # duplicate descriptions commonly occur (OP/RP paired runs, or OP plans
+    # launched multiple times with different module subsets).
     has_selected_modules = bool(test.get("modules")) or bool((op_test or {}).get("modules"))
     if not has_selected_modules:
         return parsed_config
@@ -75,20 +75,25 @@ def maybe_add_scenario_suffix_to_description(parsed_config, test_plan_obj):
     if not description:
         return parsed_config
 
-    scenario_descriptor = {
-        "test_name": test.get("test_name"),
-        "test_variants": test.get("variants", {}),
-        "test_modules": sorted(test.get("modules") or []),
-        "op_test_name": (op_test or {}).get("test_name"),
-        "op_test_config_file": (op_test or {}).get("config_file"),
-        "op_test_variants": (op_test or {}).get("variants", {}),
-        "op_test_modules": sorted((op_test or {}).get("modules") or [])
-    }
-    fingerprint = hashlib.sha1(
-        json.dumps(scenario_descriptor, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    ).hexdigest()[:10]
+    # Build a human-readable suffix from the fields that disambiguate.
+    # Keeping these as plain text (instead of hashing) lets compare-results
+    # do fuzzy matching when modules or configs are renamed.
+    parts = []
+    test_modules = sorted(test.get("modules") or [])
+    if test_modules:
+        parts.append(",".join(test_modules))
+    if op_test:
+        config_file = op_test.get("config_file") or ""
+        config_base = os.path.splitext(os.path.basename(config_file))[0] if config_file else ""
+        if config_base:
+            parts.append(config_base)
+        op_modules = sorted(op_test.get("modules") or [])
+        if op_modules:
+            parts.append(",".join(op_modules))
 
-    parsed_config["description"] = "{} [{}]".format(description, fingerprint)
+    if parts:
+        parsed_config["description"] = "{} [{}]".format(description, ":".join(parts))
+
     return parsed_config
 
 
