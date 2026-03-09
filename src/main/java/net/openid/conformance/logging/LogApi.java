@@ -25,6 +25,8 @@ import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.security.KeyManager;
+import net.openid.conformance.sharing.SharedAsset;
+import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeToken;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -299,7 +301,7 @@ public class LogApi {
 
 		ZipArchiveEntry testLog = new ZipArchiveEntry(jsonFileName);
 
-		Signature signature = Signature.getInstance("SHA1withRSA");
+		Signature signature = Signature.getInstance("SHA256withRSA");
 		signature.initSign(keyManager.getSigningPrivateKey());
 
 		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
@@ -371,7 +373,19 @@ public class LogApi {
 		criteria.and("testId").is(id);
 
 		if (!isPublic && !authenticationFacade.isAdmin()) {
-			criteria.and("testOwner").is(authenticationFacade.getPrincipal());
+			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
+
+			if (authenticationFacade.isPrivateLinkUser()) {
+				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
+				SharedAsset sharedAsset = privateToken.getSharedAsset();
+				if (sharedAsset != null && planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(id)) {
+					criteria.and("testOwner").is(sharedAsset.getOwner());
+				} else {
+					criteria.and("testOwner").is(currentUser);
+				}
+			} else {
+				criteria.and("testOwner").is(currentUser);
+			}
 		}
 
 		if (since != null) {
@@ -424,6 +438,11 @@ public class LogApi {
 		@Parameter(description = "Client data in zip format. Only required for RP tests")
 			@RequestParam Optional<MultipartFile> clientSideData
 	) {
+		// This action is not valid for private link users.
+		if (authenticationFacade.isPrivateLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
 		JsonObject failedTests = getFailedOrIncompleteTests(id, false);
 		if(failedTests.isEmpty()) {
 			// Publish plan and make immutable only if there are no failed/incomplete tests
@@ -665,7 +684,7 @@ public class LogApi {
 		}
 		ZipArchiveEntry testLog = new ZipArchiveEntry(indexFilename);
 
-		Signature signature = Signature.getInstance("SHA1withRSA");
+		Signature signature = Signature.getInstance("SHA256withRSA");
 		signature.initSign(keyManager.getSigningPrivateKey());
 
 		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);
@@ -708,7 +727,7 @@ public class LogApi {
 
 		archiveOutputStream.putArchiveEntry(testJson);
 
-		Signature jsonSignature = Signature.getInstance("SHA1withRSA");
+		Signature jsonSignature = Signature.getInstance("SHA256withRSA");
 		jsonSignature.initSign(keyManager.getSigningPrivateKey());
 		SignatureOutputStream jsonSignatureOutputStream = new SignatureOutputStream(archiveOutputStream, jsonSignature);
 		jsonSignatureOutputStream.write(jsonBytes);
@@ -733,7 +752,7 @@ public class LogApi {
 
 		ZipArchiveEntry testLog = new ZipArchiveEntry(htmlFileName);
 
-		Signature signature = Signature.getInstance("SHA1withRSA");
+		Signature signature = Signature.getInstance("SHA256withRSA");
 		signature.initSign(keyManager.getSigningPrivateKey());
 
 		SignatureOutputStream signatureOutputStream = new SignatureOutputStream(archiveOutputStream, signature);

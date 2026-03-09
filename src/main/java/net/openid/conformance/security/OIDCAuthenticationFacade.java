@@ -1,6 +1,8 @@
 package net.openid.conformance.security;
 
 import com.google.common.collect.ImmutableMap;
+import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeToken;
+import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,6 +16,7 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	public static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
 	public static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
+	public static final SimpleGrantedAuthority ROLE_PRIVATE_LINK_USER = new SimpleGrantedAuthority("ROLE_PRIVATE_LINK_USER");
 
 	// this gets set by the test runners and used later on
 	@SuppressWarnings({"ThreadLocals", "ThreadLocalUsage"})
@@ -76,13 +79,34 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	}
 
 	@Override
+	public boolean isPrivateLinkUser() {
+		return hasAuthority(ROLE_PRIVATE_LINK_USER);
+	}
+
+	@Override
+	public PrivateLinkOneTimeToken getPrivateOneTimeToken() {
+		Authentication auth = getAuthentication();
+		if (auth instanceof OneTimeTokenAuthenticationToken ott) {
+			PrivateLinkOneTimeToken privateToken = (PrivateLinkOneTimeToken) ott.getDetails();
+			return privateToken;
+		}
+		return null;
+	}
+
+	@Override
 	public ImmutableMap<String, String> getPrincipal() {
-		OAuth2AuthenticationToken auth = getOAuth();
-		if (auth == null) {
+
+		var privateToken = getPrivateOneTimeToken();
+		if (privateToken != null) {
+			return ImmutableMap.copyOf(privateToken.getSharedAsset().getOwner());
+		}
+
+		OAuth2AuthenticationToken oauth = getOAuth();
+		if (oauth == null) {
 			return null;
 		}
 
-		OidcUser principal = (OidcUser) auth.getPrincipal();
+		OidcUser principal = (OidcUser) oauth.getPrincipal();
 		String issuer = principal.getIssuer().toString();
 		String subject = principal.getSubject();
 
@@ -96,16 +120,22 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 
 	@Override
 	public String getDisplayName() {
-		OAuth2AuthenticationToken auth = getOAuth();
-		if (auth != null && auth.getPrincipal() instanceof OidcUser oidcUser) {
+
+		var privateToken = getPrivateOneTimeToken();
+		if (privateToken != null) {
+			return privateToken.getUsername();
+		}
+
+		OAuth2AuthenticationToken oauth = getOAuth();
+		if (oauth != null && oauth.getPrincipal() instanceof OidcUser oidcUser) {
 
 			if (oidcUser.getEmail() != null) {
 				return oidcUser.getEmail();
 			}
 
 			return oidcUser.getName();
-		} else if (auth != null) {
-			return auth.getName();
+		} else if (oauth != null) {
+			return oauth.getName();
 		}
 		return "";
 	}

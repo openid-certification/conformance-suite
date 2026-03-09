@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -39,6 +40,9 @@ public class DummyUserFilter extends GenericFilterBean {
 	@Value("${fintechlabs.devmode:false}")
 	private boolean devmode;
 
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
+
 	@Value("${fintechlabs.makeDummyUserAdminInDevMode:true}")
 	private boolean makeDummyUserAdminInDevMode;
 
@@ -47,8 +51,15 @@ public class DummyUserFilter extends GenericFilterBean {
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		if (devmode) {
-
+		/*
+		 * In 'dev' mode we create a dummy user and automagically authenticate as that user.
+		 * We want to take this route when logging in to generate a private link.
+		 *
+		 * However when using the generated link this hides the user details extracted from the OTT meaning isPrivateLinkUser()
+		 * checks fail. So skip this step if authorising using a private link.
+		 *
+		 */
+		if (devmode && !authenticationFacade.isPrivateLinkUser()) {
 			Set<GrantedAuthority> authorities = makeDummyUserAdminInDevMode
 				? Set.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))
 				: Set.of(new SimpleGrantedAuthority("ROLE_USER"));
