@@ -59,9 +59,7 @@
     },
     {
         "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
-        "variant": {
-            "fapi_profile": "vci"
-        },
+        "variant": "*",
         "configuration-filename": "authlete-vci-haip.json",
         "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
         "condition": "EnsureHttpStatusCodeIs4xx",
@@ -70,9 +68,7 @@
     },
     {
         "test-name": "fapi2-security-profile-final-refresh-token",
-        "variant": {
-            "fapi_profile": "vci"
-        },
+        "variant": "*",
         "configuration-filename": "authlete-vci-haip.json",
         "current-block": "Attempting to use an DPOP sender constrained refresh_token without proof of possession",
         "condition": "ValidateErrorFromTokenEndpointResponseError",
@@ -81,9 +77,7 @@
     },
     {
         "test-name": "fapi2-security-profile-final-dpop-negative-tests",
-        "variant": {
-            "fapi_profile": "vci"
-        },
+        "variant": "*",
         "configuration-filename": "authlete-vci-haip.json",
         "current-block": "DPoP reuse, Second use of the same jti, this 'should' fail",
         "condition": "EnsureHttpStatusCodeIs400or401",
