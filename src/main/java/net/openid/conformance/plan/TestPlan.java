@@ -64,6 +64,14 @@ public interface TestPlan {
 
 	public static String certificationProfileName(VariantSelection variant) {
 
+	To exclude specific variant values from a test plan (hiding them from the UI and preventing
+	their use), implement:
+
+	public static List<Variant> variantNotApplicable()
+
+	This is useful when test modules support variant values (e.g. VCI profiles) that should not
+	be available in certain test plans (e.g. plain FAPI2 plans).
+
 	*/
 
 }

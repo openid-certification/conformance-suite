@@ -4,6 +4,7 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
@@ -18,6 +19,13 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI2SPFinalTestPlan implements TestPlan {
+
+	public static List<Variant> variantNotApplicable() {
+		return List.of(
+			new Variant(FAPI2FinalOPProfile.class, "vci"),
+			new Variant(FAPI2FinalOPProfile.class, "vci_haip")
+		);
+	}
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalTestPlan.testModules);

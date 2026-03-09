@@ -337,6 +337,8 @@ public class VariantService {
 
 		final Class<? extends TestPlan> planClass;
 		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
+		// Plan-level variant exclusions from variantNotApplicable()
+		final Map<Class<? extends Enum<?>>, Set<String>> planExclusions;
 
 		private List<TestPlanModuleWithVariant> convertModuleListEntry(String testPlanName, List<TestPlan.ModuleListEntry> list) {
 			return list.stream().flatMap(moduleListEntry -> {
@@ -403,6 +405,21 @@ public class VariantService {
 					.flatMap(m -> m.parameters.stream())
 					.map(p -> p.parameter)
 					.collect(groupingBy(p -> p.variantParameter.name(), toSingleParameter()));
+
+			// Discover plan-level variant exclusions via variantNotApplicable()
+			Map<Class<? extends Enum<?>>, Set<String>> exclusions = new HashMap<>();
+			try {
+				Method m = planClass.getDeclaredMethod("variantNotApplicable");
+				List<TestPlan.Variant> notApplicable = (List<TestPlan.Variant>) m.invoke(null);
+				for (TestPlan.Variant v : notApplicable) {
+					exclusions.computeIfAbsent(v.key, k -> new HashSet<>()).add(v.value);
+				}
+			} catch (NoSuchMethodException e) {
+				// class doesn't implement this; no plan-level exclusions
+			} catch (IllegalAccessException | InvocationTargetException e) {
+				throw new RuntimeException("Reflection issue calling variantNotApplicable() for " + planClass.getSimpleName(), e);
+			}
+			this.planExclusions = exclusions;
 		}
 
 		public List<Plan.Module> getTestModules() {
@@ -506,6 +523,18 @@ public class VariantService {
 							flatMapping(p -> p.allowedValues.stream(),
 									mapping(v -> v.toString(),
 											toSet()))));
+
+			// Apply plan-level variant exclusions from variantNotApplicable()
+			if (!planExclusions.isEmpty()) {
+				values.entrySet().removeIf(entry -> {
+					Set<String> excluded = planExclusions.get(entry.getKey().parameterClass);
+					if (excluded != null) {
+						entry.getValue().removeAll(excluded);
+						return entry.getValue().isEmpty();
+					}
+					return false;
+				});
+			}
 
 			// for each available variant, the names of configuration fields needed for each value
 			// e.g. ClientRegistration : { "static_client": [ "client_id" ] }

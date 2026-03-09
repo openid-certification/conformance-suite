@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
@@ -56,6 +57,13 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		//Brazil specific
 		FAPI2SPFinalClientRefreshTokenTest.class
 	);
+
+	public static List<Variant> variantNotApplicable() {
+		return List.of(
+			new Variant(FAPI2FinalOPProfile.class, "vci"),
+			new Variant(FAPI2FinalOPProfile.class, "vci_haip")
+		);
+	}
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		List<Variant> variant = List.of(

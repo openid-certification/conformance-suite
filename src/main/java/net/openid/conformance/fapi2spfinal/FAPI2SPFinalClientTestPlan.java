@@ -4,6 +4,7 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
@@ -78,6 +79,13 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 		}
 		profiles.add(certProfile);
 		return profiles;
+	}
+
+	public static List<Variant> variantNotApplicable() {
+		return List.of(
+			new Variant(FAPI2FinalOPProfile.class, "vci"),
+			new Variant(FAPI2FinalOPProfile.class, "vci_haip")
+		);
 	}
 
 	public static List<ModuleListEntry> testModulesWithVariants() {
