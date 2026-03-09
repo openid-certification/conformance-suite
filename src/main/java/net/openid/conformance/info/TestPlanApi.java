@@ -13,15 +13,20 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
+import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.sharing.AssetSharing;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -55,6 +60,16 @@ public class TestPlanApi implements DataUtils {
 
 	@Autowired
 	private VariantService variantService;
+
+	@Autowired
+	@SuppressWarnings("unused")
+	private AssetSharing assetSharing;
+
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
+
+	@Value("${fintechlabs.base_url}")
+	private String baseURL;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Create test plan")
@@ -137,6 +152,32 @@ public class TestPlanApi implements DataUtils {
 				: planService.getPaginatedPlansForCurrentUser(page);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@PostMapping("/plan/{id}/share")
+	@Operation(summary = "Get private link to share test plan")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+	})
+	public ResponseEntity<?> shareLink(
+		@Parameter(description = "Id of test plan") @PathVariable String id,
+		@Parameter(description = "Link expiry days") @RequestParam(name = "exp", required = true) String exp
+	) {
+
+		if (authenticationFacade.isMagicLinkUser()) {
+			throw new AccessDeniedException("Magic link users cannot share resources");
+		}
+
+		Plan testPlan = planService.getTestPlan(id);
+
+		if (testPlan == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		OneTimeToken oneTimeToken = assetSharing.generateSharingToken(id, testPlan.getOwner(), exp);
+
+		return ResponseEntity.ok().body(Map.of("link", baseURL + "/login.html?token=" + oneTimeToken.getTokenValue()));
 	}
 
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

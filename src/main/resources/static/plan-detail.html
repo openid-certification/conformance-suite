@@ -37,7 +37,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
     <div class="pageHeader container-fluid">
         <div class="row">
             <div class="col-md-7">
-                <a href="index.html"><img src="/images/openid.png"></a>
+                <a id="openIdImage" href="index.html"><img src="/images/openid.png"></a>
             </div>
             <div id="userInfoHolder" class="col-md-5"></div>
         </div>
@@ -233,6 +233,44 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         </div>
     </div>
 
+    <!-- Magic link expiration period entry -->
+    <div class="modal" id="magicLinkExpirationModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Generate Private Link</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="number" id="magicLinkExpirationDays" name="magicLinkExpirationDays" value="1" min="1" max="1000">
+                    <label for="magicLinkExpirationDays">Validity period (days)</label><br>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary" data-bs-dismiss="modal" id="magicLinkExpirationModalBtn">Generate Link</button>
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Magic link generation result -->
+    <div class="modal" id="magicLinkResultModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="magicLinkResultModalLabel"></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="magicLinkResultModalBody" class="text-break"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- resident DOM -->
     <div class="container-fluid">
         <div id="planDetail">
@@ -299,6 +337,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
                         modal.show();
                     };
+
+                    // Hide this button for guests
+                    if (FAPI_UI.currentUser.isGuest) {
+                        document.getElementById('certificationPackageBtn').style.display = 'none';
+                    }
                 }
 
                 if(document.querySelector('#deleteMutablePlanBtn')) {
@@ -307,6 +350,88 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
                         modal.show();
                     });
+
+                    // Hide this button for guests
+                    if (FAPI_UI.currentUser.isGuest) {
+                        document.querySelector('#deleteMutablePlanBtn').style.display = 'none';
+                    }
+                }
+
+                if (document.getElementById('btnShareLink') !== null) {
+                    document.getElementById('btnShareLink').onclick = function(evt) {
+                        evt.preventDefault();
+
+                        // Modal to allow the link validity period to be entered.
+                        var myModalEl = document.getElementById('magicLinkExpirationModal');
+                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+                        if (document.getElementById('magicLinkExpirationModalBtn') !== null) {
+                            document.getElementById('magicLinkExpirationModalBtn').onclick = function(evt) {
+                                // Generate the link
+                                evt.preventDefault();
+
+                                var expiresInDays = document.getElementById('magicLinkExpirationDays').value;
+
+                                let uri = '/api/plan/' + encodeURIComponent(planId) + '/share?exp=' + encodeURIComponent(expiresInDays);
+                                fetch(uri, {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    }}).then((response) => {
+                                    if (!response.ok) {
+                                        return Promise.reject(response);
+                                    }
+
+                                    response.json().then(shareLink => {
+                                        // console.log("Got share link: " + shareLink.link);
+                                        navigator.clipboard.writeText(decodeURIComponent(shareLink.link)).then(
+                                            () => {
+                                                /* clipboard write succeeded */
+                                                var myModalEl = document.getElementById('magicLinkResultModal');
+                                                var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+                                                myModalEl.addEventListener('show.bs.modal', function (event) {
+                                                    // Update the title to indicate link is in clipboard.
+                                                    document.getElementById('magicLinkResultModalLabel').textContent = 'Private Link (Copied To Clipboard)';
+
+                                                    // Insert link into modal body.
+                                                    document.getElementById('magicLinkResultModalBody').textContent = decodeURIComponent(shareLink.link);
+                                                })
+
+                                                modal.show();
+                                            },
+                                            () => {
+                                                /* clipboard write failed */
+                                                var myModalEl = document.getElementById('magicLinkResultModal');
+                                                var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+                                                myModalEl.addEventListener('show.bs.modal', function (event) {
+                                                    // Update the title to indicate link is not in clipboard.
+                                                    document.getElementById('magicLinkResultModalLabel').textContent = 'Private Link';
+
+                                                    // Insert link into modal body.
+                                                    document.getElementById('magicLinkResultModalBody').textContent = decodeURIComponent(shareLink.link);
+                                                })
+
+                                                modal.show();
+                                            },
+                                        );
+                                    })
+                                });
+                            };
+                        }
+
+                        modal.show();
+                    };
+
+                    // Hide this button for guests
+                    if (FAPI_UI.currentUser.isGuest) {
+                        document.getElementById('btnShareLink').style.display = 'none';
+                    }
+                }
+                // Prevent guests fom clicking on the openid icon as the destination is prohibited.
+                if (FAPI_UI.currentUser.isGuest) {
+                        document.getElementById('openIdImage').href = "javascript:void(0)";
                 }
 
                 document.querySelectorAll('[data-module]')?.forEach(function(element) {

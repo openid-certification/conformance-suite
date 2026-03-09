@@ -9,11 +9,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.sharing.AssetSharing;
+import net.openid.conformance.sharing.SharedAsset;
+import net.openid.conformance.sharing.magiclink.MagicLinkOneTimeToken;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +43,16 @@ public class TestInfoApi {
 
 	@Autowired
 	private TestInfoService testInfoService;
+
+	@Autowired
+	@SuppressWarnings("unused")
+	private AssetSharing assetSharing;
+
+ 	@Autowired
+	private TestPlanService planService;
+
+	@Value("${fintechlabs.base_url}")
+	private String baseURL;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get information of all test module instances", description = "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned. This API is currently disabled due to performance concerns. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL)
@@ -76,6 +91,16 @@ public class TestInfoApi {
 			testInfo = testInfos.findById(id);
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+
+			if (authenticationFacade.isMagicLinkUser()) {
+				// ensure this test is part of the test plan accessible to the magic link user.
+				MagicLinkOneTimeToken magicToken = authenticationFacade.getMagicOneTimeToken();
+				SharedAsset sharedAsset = magicToken.getSharedAsset();
+				if (! planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(id)) {
+					owner = null;
+				}
+			}
+
 			if (owner != null) {
 				testInfo = testInfos.findByIdAndOwner(id, owner);
 			}
@@ -86,6 +111,40 @@ public class TestInfoApi {
 			return new ResponseEntity<>(testInfo.get(), HttpStatus.OK);
 		}
 
+	}
+
+	@PostMapping("/info/{testId}/share")
+	@Operation(summary = "Get private link to share test information")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+	})
+	public ResponseEntity<?> shareLink(
+		@Parameter(description = "Id of test that you want to publish") @PathVariable String testId,
+		@Parameter(description = "Link expiry days") @RequestParam(name = "exp", required = true) String exp
+
+	) {
+
+		if (authenticationFacade.isMagicLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
+		Optional<TestInfo> maybeTestInfo;
+		if (authenticationFacade.isAdmin()) {
+			maybeTestInfo = testInfos.findById(testId);
+		} else {
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			maybeTestInfo = testInfos.findByIdAndOwner(testId, owner);
+		}
+
+		if (maybeTestInfo.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+
+		TestInfo testInfo = maybeTestInfo.get();
+		OneTimeToken oneTimeToken = assetSharing.generateSharingToken(testInfo.getPlanId(), testId, testInfo.getOwner(), exp);
+
+		return ResponseEntity.ok().body(Map.of("link", baseURL + "/login.html?token=" + oneTimeToken.getTokenValue()));
 	}
 
 	@PostMapping(value = "/info/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

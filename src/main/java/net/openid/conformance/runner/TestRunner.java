@@ -221,6 +221,11 @@ public class TestRunner implements DataUtils {
 		final VariantSelection testVariant;
 		Map<String, String> variantFromPlanDefinition = null;
 
+		// magic link users ar not permitted to run tests.
+		if (authenticationFacade.isMagicLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+
 		String id = RandomStringUtils.secure().nextAlphanumeric(15);
 
 		if (!Strings.isNullOrEmpty(planId)) {

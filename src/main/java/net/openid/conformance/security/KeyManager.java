@@ -22,6 +22,9 @@ public class KeyManager {
 	@Value("${fintechlabs.signingKey}")
 	private String signingKeyId;
 
+	@Value("${fintechlabs.magicLinkSigningKey}")
+	private String magicLinkSigningKeyId;
+
 	private JWKSet jwkSet;
 
 	@PostConstruct
@@ -37,6 +40,12 @@ public class KeyManager {
 				throw new IllegalStateException("Couldn't find the signing key " + signingKeyId);
 			}
 
+			// make sure the jwkSet has a key with the magicLinkSigningKey ID
+			jwk = jwkSet.getKeyByKeyId(magicLinkSigningKeyId);
+
+			if (jwk == null) {
+				throw new IllegalStateException("Couldn't find the magic link signing key " + magicLinkSigningKeyId);
+			}
 		} catch (ParseException e) {
 			throw new IllegalStateException("Error trying to build a JWK Set", e);
 		}
@@ -66,6 +75,10 @@ public class KeyManager {
 	 */
 	public JWKSet getPublicKeys() {
 		return jwkSet.toPublicJWKSet();
+	}
+
+	public JWK getMagicLinkKey() {
+		return jwkSet.getKeyByKeyId(magicLinkSigningKeyId);
 	}
 
 }

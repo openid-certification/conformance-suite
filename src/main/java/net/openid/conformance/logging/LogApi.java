@@ -25,6 +25,8 @@ import net.openid.conformance.pagination.PaginationRequest;
 import net.openid.conformance.pagination.PaginationResponse;
 import net.openid.conformance.security.AuthenticationFacade;
 import net.openid.conformance.security.KeyManager;
+import net.openid.conformance.sharing.SharedAsset;
+import net.openid.conformance.sharing.magiclink.MagicLinkOneTimeToken;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -371,7 +373,19 @@ public class LogApi {
 		criteria.and("testId").is(id);
 
 		if (!isPublic && !authenticationFacade.isAdmin()) {
-			criteria.and("testOwner").is(authenticationFacade.getPrincipal());
+			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
+
+			if (authenticationFacade.isMagicLinkUser()) {
+				MagicLinkOneTimeToken magicToken = authenticationFacade.getMagicOneTimeToken();
+				SharedAsset sharedAsset = magicToken.getSharedAsset();
+				if (sharedAsset != null && planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(id)) {
+					criteria.and("testOwner").is(sharedAsset.getOwner());
+				} else {
+					criteria.and("testOwner").is(currentUser);
+				}
+			} else {
+				criteria.and("testOwner").is(currentUser);
+			}
 		}
 
 		if (since != null) {
@@ -424,6 +438,11 @@ public class LogApi {
 		@Parameter(description = "Client data in zip format. Only required for RP tests")
 			@RequestParam Optional<MultipartFile> clientSideData
 	) {
+		// This action is not valid for magic link users.
+		if (authenticationFacade.isMagicLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
 		JsonObject failedTests = getFailedOrIncompleteTests(id, false);
 		if(failedTests.isEmpty()) {
 			// Publish plan and make immutable only if there are no failed/incomplete tests

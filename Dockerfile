@@ -11,6 +11,7 @@ ENTRYPOINT java \
   -D"spring.data.mongodb.uri=mongodb://${MONGODB_HOST}:27017/test_suite" \
   ${JWKS:+-D"fintechlabs.jwks=${JWKS}"} \
   ${SIGNING_KEY:+-D"fintechlabs.signingKey=${SIGNING_KEY}"} \
+  ${MAGIC_LINK_SIGNING_KEY:+-D"fintechlabs.magicLinkSigningKey=${MAGIC_LINK_SIGNING_KEY}"} \
   -D"oidc.google.clientid=${OIDC_GOOGLE_CLIENTID}" \
   -D"oidc.google.secret=${OIDC_GOOGLE_SECRET}" \
   -D"oidc.gitlab.clientid=${OIDC_GITLAB_CLIENTID}" \

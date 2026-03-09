@@ -48,7 +48,7 @@ public class TokenApi {
 	})
 	public ResponseEntity<Object> createToken(@Parameter(description = "For defining kind of token (permanent or temporary)") @RequestBody JsonObject request) {
 
-		if (authenticationFacade.isAdmin()) {
+		if (authenticationFacade.isAdmin() || authenticationFacade.isMagicLinkUser()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 
