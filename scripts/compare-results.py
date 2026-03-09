@@ -206,15 +206,61 @@ def find_fuzzy_variant_match(master_module_variants, new_variant):
             return master_variant
     return None
 
+def find_fuzzy_plan_match(master_results, new_test_plan):
+    """Find a master plan key that fuzzy-matches the new plan key.
+
+    Plan keys have the format 'plan-name-variant1-variant2-...:description'.
+    When variant values change (e.g., 'haip' becomes 'vci_haip') or variant
+    parameters are added/removed, the plan key changes even though it's
+    logically the same plan.
+
+    Match by: same description, and the plan name tokens (split by '-') have
+    high overlap (Jaccard similarity >= 0.5).
+
+    Returns the matching master plan key, or None.
+    """
+    if ":" not in new_test_plan:
+        return None
+    new_plan_part, new_desc = new_test_plan.rsplit(":", 1)
+    new_tokens = set(new_plan_part.split("-"))
+
+    best_match = None
+    best_score = 0.0
+    for master_plan in master_results:
+        if ":" not in master_plan:
+            continue
+        master_plan_part, master_desc = master_plan.rsplit(":", 1)
+        if master_desc != new_desc:
+            continue
+        master_tokens = set(master_plan_part.split("-"))
+        intersection = len(new_tokens & master_tokens)
+        union = len(new_tokens | master_tokens)
+        if union == 0:
+            continue
+        score = intersection / union
+        if score > best_score and score >= 0.5:
+            best_score = score
+            best_match = master_plan
+    return best_match
+
 differences=False
 for test_plan,modules in sorted(new_results.items()):
+    # If this plan key doesn't exist in master, try fuzzy plan matching
+    master_plan_key = test_plan
+    fuzzy_plan = False
+    if test_plan not in master_results:
+        matched_plan = find_fuzzy_plan_match(master_results, test_plan)
+        if matched_plan is not None:
+            master_plan_key = matched_plan
+            fuzzy_plan = True
+
     for module,variants in sorted(modules.items()):
         for variant, log in sorted(variants.items()):
             master_log = None
             matched_variant = None
             fuzzy = False
             try:
-                master_log = master_results[test_plan][module][variant]
+                master_log = master_results[master_plan_key][module][variant]
                 matched_variant = variant
             except KeyError:
                 # Exact variant match failed — try fuzzy matching where one
@@ -222,21 +268,23 @@ for test_plan,modules in sorted(new_results.items()):
                 # variant parameters across branches).
                 try:
                     matched_variant = find_fuzzy_variant_match(
-                        master_results[test_plan][module], variant)
+                        master_results[master_plan_key][module], variant)
                     if matched_variant is not None:
-                        master_log = master_results[test_plan][module][matched_variant]
+                        master_log = master_results[master_plan_key][module][matched_variant]
                         fuzzy = True
                 except KeyError:
                     pass
 
             if master_log is not None:
-                del master_results[test_plan][module][matched_variant]
+                del master_results[master_plan_key][module][matched_variant]
                 output = compare(master_log, log)
                 if output != None:
                     differences=True
                     print("Plan: "+test_plan)
                     print("Module: "+module)
                     print("Variant: "+pretty_variant(variant))
+                    if fuzzy_plan:
+                        print("(fuzzy plan match — reference plan: "+master_plan_key+")")
                     if fuzzy:
                         print("(fuzzy variant match — reference had: "+pretty_variant(matched_variant)+")")
                     print("reference log: "+get_url(master_log))
