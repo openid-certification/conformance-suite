@@ -167,6 +167,21 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     if len(plan_modules) == 0:
         raise Exception("No modules to test in " + test_plan_name)
 
+    plan_number = test_plan_obj.get("plan_number", 0)
+    print("\nRunning plan [{}] {} ...".format(plan_number, test_plan))
+
+    # Filter modules if --rerun specifies module-level filtering for this plan
+    if plan_number in rerun_module_filters:
+        mod_filter = rerun_module_filters[plan_number]
+        max_mod = len(plan_modules)
+        for mn in mod_filter:
+            if mn < 1 or mn > max_mod:
+                print("Error: --rerun module number {}:{} is out of range (1-{})".format(plan_number, mn, max_mod))
+                sys.exit(1)
+        plan_modules = [mod for i, mod in enumerate(plan_modules, 1) if i in mod_filter]
+        print("  Filtered to {} module(s)".format(len(plan_modules)))
+    print("")
+
     test_info = {}  # key is module name
     test_time_taken = {}  # key is module_id
     overall_start_time = time.time()
@@ -174,7 +189,7 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     test_info["test_plan_name"] = test_plan_name
     print('Created test plan, new id: {}'.format(plan_id))
     print('{}plan-detail.html?plan={}'.format(api_url_base, plan_id))
-    print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join(mod['testModule'] for mod in plan_modules)))
+    print('{:d} modules to test:\n{}\n'.format(len(plan_modules), '\n'.join('  [{}:{}] {}'.format(plan_number, i, mod['testModule']) for i, mod in enumerate(plan_modules, 1))))
     queue = asyncio.Queue()
     for moduledict in plan_modules:
         queue.put_nowait(run_test_module(moduledict, plan_id, test_info, test_time_taken, variant, op_plan, plan_results, output_dir, brazil_client_scope, parsed_config, client_certs))
@@ -193,7 +208,8 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
         'plan_modules': plan_modules,
         'test_info': test_info,
         'test_time_taken': test_time_taken,
-        'overall_time': overall_time
+        'overall_time': overall_time,
+        'plan_number': plan_number
     })
     return plan_results
 
@@ -394,6 +410,7 @@ def expected_failure(text):
 def show_plan_results(plan_result, analyzed_result):
     plan_id = plan_result['plan_id']
     plan_modules = plan_result['plan_modules']
+    plan_number = plan_result.get('plan_number', 0)
     test_info = plan_result['test_info']
     test_time_taken = plan_result['test_time_taken']
     overall_time = plan_result['overall_time']
@@ -408,12 +425,12 @@ def show_plan_results(plan_result, analyzed_result):
 
     counts_unexpected = detail_plan_result['counts_unexpected']
 
-    for moduledict in plan_modules:
+    for module_index, moduledict in enumerate(plan_modules, 1):
         module_name = get_string_name_for_module_with_variant(moduledict)
         if module_name not in test_info:
             if module_name in ignored_modules:
                 continue
-            print(failure('Test {} did not run'.format(module_name)))
+            print(failure('Test [{}:{}] {} did not run'.format(plan_number, module_index, module_name)))
             continue
         module_info = test_info[module_name]
         module_id = module_info['id']
@@ -443,8 +460,8 @@ def show_plan_results(plan_result, analyzed_result):
             result_coloured = failure(info['result'])
 
         counts = result['counts']
-        print('Test {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
-              format(module_name, module_id, status_coloured, result_coloured, len(logs),
+        print('Test [{}:{}] {} {} {} - result {}. {:d} log entries - {:d} SUCCESS {:d} FAILURE, {:d} WARNING, {:.1f} seconds'.
+              format(plan_number, module_index, module_name, module_id, status_coloured, result_coloured, len(logs),
                      counts['SUCCESS'], counts['FAILURE'], counts['WARNING'], test_time))
 
         summary_unexpected_failures_test_module(result, test_name, module_id)
@@ -929,6 +946,7 @@ def parser_args_cli():
     parser.add_argument('--verbose', help='Print out details of unexpected failures/warnings including a template for the expected failures file, and print details of expected failures/warnings that do not happen', action='store_true')
     parser.add_argument('--expected-failures-file', help='Json configuration file name which records a list of expected failures/warnings', default='')
     parser.add_argument('--expected-skips-file', help='Json configuration file name which records a list of expected skipped tests', default='')
+    parser.add_argument('--rerun', help='Rerun specific test plans/modules by ID, e.g. 2 or 2:6 or 1,3 (requires same suite option)', default=None)
     parser.add_argument('params', nargs='+', help='List parameters contains test-plan-name and configuration-file to run all test plan. Syntax: <test-plan-name> <configuration-file> ...')
 
     return parser.parse_args()
@@ -955,6 +973,32 @@ def end_section(name):
     print("\x1b[0Ksection_end:{}:{}\r\x1b[0K".format(secondssince1970(), name,), file=sys.__stdout__)
     sys.stdout.flush()
     sys.stderr.flush()
+
+def parse_rerun_arg(rerun_str):
+    """Parse --rerun argument into plan_numbers set and module_filters dict.
+
+    Returns (plan_numbers, module_filters) where:
+    - plan_numbers: set of plan numbers to run (e.g. {1, 3})
+    - module_filters: dict of plan_number -> set of module numbers (e.g. {2: {6}})
+    """
+    plan_numbers = set()
+    module_filters = {}
+    for item in rerun_str.split(','):
+        item = item.strip()
+        if ':' in item:
+            plan_str, mod_str = item.split(':', 1)
+            plan_num = int(plan_str)
+            mod_num = int(mod_str)
+            plan_numbers.add(plan_num)
+            if plan_num not in module_filters:
+                module_filters[plan_num] = set()
+            module_filters[plan_num].add(mod_num)
+        else:
+            plan_numbers.add(int(item))
+    return plan_numbers, module_filters
+
+# Global: module filters from --rerun, keyed by plan number
+rerun_module_filters = {}
 
 async def run_test_plan_wrapper(plan_name, config_json, export_dir, client_certs):
     test_plan_obj = plan_name
@@ -1051,6 +1095,23 @@ async def main():
         a_test["src"] = test
         to_run.append((a_test, a_test["test"]["config_file"]))
 
+    # Assign plan numbers
+    for i, (plan_obj, config) in enumerate(to_run, 1):
+        plan_obj["plan_number"] = i
+
+    # Parse --rerun filter
+    global rerun_module_filters
+    rerun_plan_numbers = None
+    if args.rerun:
+        rerun_plan_numbers, rerun_module_filters = parse_rerun_arg(args.rerun)
+        max_plan = len(to_run)
+        for pn in rerun_plan_numbers:
+            if pn < 1 or pn > max_plan:
+                print("Error: --rerun plan number {} is out of range (1-{})".format(pn, max_plan))
+                sys.exit(1)
+        to_run = [(plan_obj, config) for plan_obj, config in to_run if plan_obj["plan_number"] in rerun_plan_numbers]
+        print("Rerunning {} plan(s): {}\n".format(len(to_run), args.rerun))
+
     verify_ssl = not dev_mode and not 'DISABLE_SSL_VERIFY' in os.environ
     conformance = Conformance(api_url_base, token, verify_ssl)
 
@@ -1123,7 +1184,7 @@ async def main():
     incomplete_tests = []
     failed_plan_results = []
     for result in results:
-        print('\n\nResults for {} with configuration {}:'.format(result['test_plan'], result['config_file']))
+        print('\n\nResults for [{}] {} with configuration {}:'.format(result.get('plan_number', 0), result['test_plan'], result['config_file']))
         plan_result = analyze_plan_results(result, expected_failures_list, expected_skips_list)
         show_plan_results(result, plan_result)
         plan_did_not_complete = plan_result['plan_did_not_complete']
@@ -1163,7 +1224,7 @@ async def main():
         return not '__used' in obj
 
     unused_expected_failures = list(filter(is_unused, expected_failures_list))
-    if unused_expected_failures:
+    if unused_expected_failures and not args.rerun:
         print(failure("** Exiting with failure - some expected failures were not found in any test module of the system **"))
         if verbose:
             start_section("unused_expected_failures", "unused expected failures detail", True)
@@ -1183,7 +1244,7 @@ async def main():
         failed = True
 
     unused_expected_skips = list(filter(is_unused, expected_skips_list))
-    if unused_expected_skips:
+    if unused_expected_skips and not args.rerun:
         print(failure("** Exiting with failure - some expected skips were not found in any test module of the system **"))
         if verbose:
             start_section("unused_expected_skips", "unused expected skips detail", True)
@@ -1352,11 +1413,17 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
 
-    if show_untested and len(untested_test_modules) > 0:
+    if show_untested and len(untested_test_modules) > 0 and not args.rerun:
         print(failure("** Exiting with failure - not all available modules were tested:"))
         for m in untested_test_modules:
             print('{}: {}'.format(all_test_modules[m]['profile'], m))
         failed = True
+
+    if failed and not args.rerun:
+        print("\nTo rerun specific plans/modules, use --rerun with the plan number shown above:")
+        print("  --rerun 2        # rerun plan [2]")
+        print("  --rerun 2:6      # rerun module [2:6]")
+        print("  --rerun 1,3      # rerun plans [1] and [3]")
 
     if failed:
         sys.exit(1)
