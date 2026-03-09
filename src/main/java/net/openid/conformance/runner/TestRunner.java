@@ -207,6 +207,7 @@ public class TestRunner implements DataUtils {
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "Created test successfully"),
 		@ApiResponse(responseCode = "400", description = "You shouldn't supply a configuration when creating a test from a test plan / You should supply a configuration when creating individual test module"),
+		@ApiResponse(responseCode = "403", description = "Insufficient permissions to create test"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find configuration of plan Id you provided"),
 		@ApiResponse(responseCode = "409", description = "There was a failure in creating the test alias"),
 		@ApiResponse(responseCode = "500", description = "Created test failed"),
@@ -220,6 +221,11 @@ public class TestRunner implements DataUtils {
 		final JsonObject config;
 		final VariantSelection testVariant;
 		Map<String, String> variantFromPlanDefinition = null;
+
+		// private link users ar not permitted to run tests.
+		if (authenticationFacade.isPrivateLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
 
 		String id = RandomStringUtils.secure().nextAlphanumeric(15);
 

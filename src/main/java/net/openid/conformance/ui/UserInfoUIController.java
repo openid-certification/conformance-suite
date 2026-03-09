@@ -42,6 +42,7 @@ public class UserInfoUIController {
 		map.put("principal", principal.toString());
 		map.put("displayName", displayName);
 		map.put("isAdmin", authenticationFacade.isAdmin());
+		map.put("isGuest", authenticationFacade.isPrivateLinkUser());
 		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 }
