@@ -32,3 +32,5 @@ services:
     extra_hosts:
       # the special host-gateway value resolves to the internal IP address of the host.
       - "server:host-gateway"
+    environment:
+        - FINTECHLABS_SIGNINGKEY_ALDO=hello

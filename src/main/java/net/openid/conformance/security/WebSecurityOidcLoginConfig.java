@@ -2,6 +2,16 @@ package net.openid.conformance.security;
 
 import com.google.common.base.Strings;
 import jakarta.servlet.Filter;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import net.openid.conformance.info.TestPlanService;
+import net.openid.conformance.sharing.AssetSharing;
+import net.openid.conformance.sharing.SharedAsset;
+import net.openid.conformance.sharing.privatelink.CustomOneTimeTokenService;
+import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeToken;
+import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeTokenAuthenticationProvider;
+import net.openid.conformance.sharing.privatelink.PrivateLinkUserDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +24,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
+import org.springframework.security.authentication.ott.OneTimeTokenService;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -30,8 +43,11 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
@@ -44,6 +60,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -51,6 +68,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -85,6 +104,10 @@ class WebSecurityOidcLoginConfig {
 
 	@Autowired(required = false)
 	private CorsConfigurable additionalCorsConfiguration;
+	@Autowired
+	private AuthenticationFacade authenticationFacade;
+	@Autowired
+	private TestPlanService planService;
 
 	@Bean
 	public InMemoryClientRegistrationRepository clientRegistrationRepository(OAuth2ClientProperties properties) {
@@ -108,7 +131,7 @@ class WebSecurityOidcLoginConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
+	public SecurityFilterChain filterChainOidc(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository, OneTimeTokenService oneTimeTokenService, PrivateLinkUserDetailsService privateLinkUserDetailsService) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle NON-API requests with this filter chain
@@ -136,9 +159,65 @@ class WebSecurityOidcLoginConfig {
 					"/jwks**",  //
 					"/logout.html", //
 					"/robots.txt",  //
-					"/.well-known/**" //
+					"/.well-known/**", //
+					"/login/ott" // private link login
 				) //
 				.permitAll();
+
+			// Private Link access restriction - only allow access to resources explicitly shared via the Private Link
+			httpRequests.requestMatchers(new RequestMatcher() {
+
+				@SuppressWarnings("unused")
+				@Override
+				public boolean matches(HttpServletRequest request) {
+
+					// Not a private link. Continue as normal.
+					if (!authenticationFacade.isPrivateLinkUser()) {
+						return false;
+					}
+
+					// Deny all but the log-detail/plan-detail endpoints.
+					if (! request.getRequestURI().matches("/(log|plan)-detail.html$")) {
+						return true;
+					}
+
+					// Deny requests with no query string.
+					if (request.getQueryString() == null) {
+						return true;
+					}
+
+					PrivateLinkOneTimeToken privateOneTimeToken = authenticationFacade.getPrivateOneTimeToken();
+					SharedAsset sharedAsset = privateOneTimeToken.getSharedAsset();
+					if (sharedAsset != null) {
+						// Deny unless the shared asset is linked to this server.
+						if (!sharedAsset.getRedirectUri().startsWith(baseURL)) {
+							return true;
+						}
+
+						Pattern pattern = Pattern.compile("(log|plan)=([A-Za-z0-9]+)");
+						Matcher matcher = pattern.matcher(request.getQueryString());
+
+						if (matcher.find())
+						{
+							// Allow the request if the plan id matches that in the private link.
+							if (matcher.group(1).equals("plan")) {
+								if (matcher.group(2).equals(sharedAsset.getPlanId())) {
+									return false;
+								}
+							}
+							// Allow the request if the test id is part of the test plan run contained in the private link.
+							else if (matcher.group(1).equals("log")) {
+								List<String> planTestIds = planService.getTestPlanTestIds(sharedAsset.getPlanId());
+								if (planTestIds.contains(matcher.group(2))) {
+									return false;
+								}
+							}
+						}
+					}
+
+					return true;
+				}
+			}).denyAll();
 
 			httpRequests.requestMatchers( //
 					publicRequestMatcher( //
@@ -153,6 +232,29 @@ class WebSecurityOidcLoginConfig {
 			httpRequests.anyRequest() //
 				.authenticated();
 		}); //
+
+		http.oneTimeTokenLogin(ott -> {
+			ott.authenticationProvider(new PrivateLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, privateLinkUserDetailsService));
+			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
+			ott.authenticationSuccessHandler(new AuthenticationSuccessHandler() {
+				@Override
+				public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+					OneTimeTokenAuthenticationToken token = (OneTimeTokenAuthenticationToken) authentication;
+					PrivateLinkOneTimeToken privateLink = (PrivateLinkOneTimeToken)token.getDetails();
+
+					// Validate the format of the supplied redirect url.
+					Pattern pattern = Pattern.compile(baseURL + "/(log|plan)-detail.html\\?(log|plan)=[A-Za-z0-9]+");
+					Matcher matcher = pattern.matcher(privateLink.getSharedAsset().getRedirectUri());
+
+					if (! matcher.find()) {
+						response.sendRedirect("/access-denied");
+					}
+					else {
+						new DefaultRedirectStrategy().sendRedirect(request, response, privateLink.getSharedAsset().getRedirectUri());
+					}
+				}
+			});
+		});
 
 		// we use oauth2 client login support instead of openIdConnectAuthenticationFilter
 		http.oauth2Client(oauth2Client -> {
@@ -246,6 +348,11 @@ class WebSecurityOidcLoginConfig {
 		}
 
 		return http.build();
+	}
+
+	@Bean
+	public OneTimeTokenService oneTimeTokenService(AssetSharing assetSharing) {
+		return new CustomOneTimeTokenService(assetSharing);
 	}
 
 	@Bean

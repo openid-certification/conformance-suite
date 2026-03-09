@@ -47,7 +47,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
     <div class="pageHeader container-fluid">
         <div class="row">
             <div class="col-md-7">
-                <a href="index.html"><img src="/images/openid.png"></a>
+                <a id="openIdImage" href="index.html"><img src="/images/openid.png"></a>
             </div>
             <div id="userInfoHolder" class="col-md-5"></div>
         </div>
@@ -147,6 +147,45 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 <div class="modal-footer">
                     <button type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary" data-bs-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
                     <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Private link expiration period entry -->
+    <div class="modal" id="privateLinkExpirationModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Generate Private Link</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="number" id="privateLinkExpirationDays" name="privateLinkExpirationDays" value="1" min="1" max="1000">
+                    <label for="privateLinkExpirationDays">Validity period (1-1000 days)</label><br>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary" id="privateLinkExpirationModalBtn">Generate Link</button>
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Private link generation result -->
+    <div class="modal" id="privateLinkResultModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="privateLinkResultModalLabel"></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6><b id="privateLinkResultModalBodyMessage"></b></h6>
+                    <p id="privateLinkResultModalBody" class="text-break"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -400,7 +439,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
         function getHeader(testId, public) {
             // this is the page header, fill it in with log details
-            return fetch('/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''))
+            let infoUrl = '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : '');
+            return fetch(infoUrl)
             .then((response) => {
                 if (!response.ok) {
                     return Promise.reject(response);
@@ -440,7 +480,121 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             evt.preventDefault();
                             window.open('/upload.html?log=' + encodeURIComponent(testId));
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('uploadBtn').style.display = 'none';
+                        }
                     }
+
+                    if (document.getElementById('btnShareLink') !== null) {
+                        document.getElementById('btnShareLink').onclick = function(evt) {
+                            evt.preventDefault();
+
+                            // Modal to allow the link validity period to be entered.
+                            var myModalEl = document.getElementById('privateLinkExpirationModal');
+                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+                            if (document.getElementById('privateLinkExpirationModalBtn') !== null) {
+                                // Restrict the input to digits and navigation/deletion keys only.
+                                document.getElementById('privateLinkExpirationDays').onkeydown = function(evt) {
+                                    if (/^\d+$/.test(evt.key) || (evt.key === "Backspace" || evt.key === "Delete" || evt.key.startsWith("Arrow"))) {
+                                        return true;
+                                    }
+                                    return false;
+                                };
+
+                                // On focus clear any previous invalid value highlighting.
+                                document.getElementById('privateLinkExpirationDays').onfocus = function(evt) {
+                                    document.getElementById('privateLinkExpirationDays').classList.remove("bg-danger");
+                                };
+
+                                document.getElementById('privateLinkExpirationModalBtn').onclick = function(evt) {
+                                    // Generate the link
+                                    evt.preventDefault();
+
+                                    var expiresInDays = document.getElementById('privateLinkExpirationDays').value;
+
+                                    // Validate the entered value.
+                                    let intVal = parseInt(expiresInDays);
+
+                                    if (isNaN(intVal) || intVal<1 || intVal>1000)
+                                    {
+                                        // Highlight the entered value as being invalid (the modal remains visible).
+                                        document.getElementById('privateLinkExpirationDays').classList.add("bg-danger");
+                                        return;
+                                    }
+
+                                    // A valid expiresInDays value has been entered. Hide the modal.
+                                    modal.toggle();
+
+                                    let uri = '/api/info/' + encodeURIComponent(testId) + '/share?exp=' + encodeURIComponent(expiresInDays);
+                                    fetch(uri, {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                        }}).then((response) => {
+                                            if (!response.ok) {
+                                                return Promise.reject(response);
+                                            }
+
+                                            response.json().then(shareLink => {
+                                                navigator.clipboard.writeText(shareLink.link).then(
+                                                    () => {
+                                                        /* clipboard write succeeded */
+                                                        var myModalEl = document.getElementById('privateLinkResultModal');
+                                                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+                                                        myModalEl.addEventListener('show.bs.modal', function (event) {
+                                                            // Update the title to indicate link is in clipboard.
+                                                            document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link (Copied To Clipboard)';
+
+                                                            // Insert link into modal body.
+                                                            document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
+
+                                                            // Insert the supplemental message into modal body.
+                                                            document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
+                                                        })
+
+                                                        modal.show();
+                                                    },
+                                                    () => {
+                                                        /* clipboard write failed */
+                                                        var myModalEl = document.getElementById('privateLinkResultModal');
+                                                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+                                                        myModalEl.addEventListener('show.bs.modal', function (event) {
+                                                            // Update the title to indicate link is not in clipboard.
+                                                            document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link';
+
+                                                            // Insert link into modal body.
+                                                            document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
+
+                                                            // Insert the supplemental message into modal body.
+                                                            document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
+                                                        })
+
+                                                        modal.show();
+                                                    },
+                                                );
+                                            })
+                                    });
+                                };
+                            }
+
+                            // Initialise the expirations days input.
+                            document.getElementById('privateLinkExpirationDays').value = 1;
+                            document.getElementById('privateLinkExpirationDays').classList.remove("bg-danger");
+
+                            modal.show();
+                        };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('btnShareLink').style.display = 'none';
+                        }
+                    }
+
 
                     if (document.getElementById('reloadBtn') !== null) {
                         document.getElementById('reloadBtn').onclick = function(evt) {
@@ -453,6 +607,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 runTest(data.testName, data.variant, data.planId, data.config, testId);
                             }
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('reloadBtn').style.display = 'none';
+                            // Disable to ensure keyboard shortcut has no effect.
+                            document.getElementById('reloadBtn').disabled  = true;
+                        }
                     }
 
                     // wire up configuration button
@@ -480,6 +641,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             };
                             document.getElementById('editConfigBtn').style.display = '';
                         }
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('editConfigBtn').style.display = 'none';
+                        }
                     }
 
                     // wire up publish button
@@ -491,6 +657,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
                             modal.show();
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('publishBtn').style.display = 'none';
+                        }
                     }
 
                     if (document.getElementById('stopBtn') !== null) {
@@ -559,6 +730,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 FAPI_UI.hideBusy();
                             });
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('stopBtn').style.display = 'none';
+                        }
                     }
 
                     if (document.getElementById('startBtn') !== null) {
@@ -625,6 +801,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 FAPI_UI.hideBusy();
                             });
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('startBtn').style.display = 'none';
+                        }
                     }
 
                     if (data.planId) {
@@ -636,6 +817,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     }
 
                     if (!public && data.planId) {
+
                         fetch('/api/plan/' + encodeURIComponent(data.planId))
                         .then((response) => {
                             if (!response.ok) {
@@ -745,7 +927,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 }
 
                                 if (document.getElementById('nextPlanBtn') !== null) {
-                                    document.getElementById('nextPlanBtn').style.display = '';
+                                    // Hide this button for guests
+                                    if (FAPI_UI.currentUser.isGuest) {
+                                        document.getElementById('nextPlanBtn').style.display = 'none';
+                                        // Disable to ensure keyboard shortcut has no effect.
+                                        document.getElementById('nextPlanBtn').disabled  = true;
+                                    }
+                                    else {
+                                        document.getElementById('nextPlanBtn').style.display = '';
+                                    }
                                 }
                             }
 
@@ -870,6 +1060,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             evt.preventDefault();
                             runTest(data.testName, data.variant, data.planId, data.config, testId);
                         };
+                    }
+
+                    // Prevent guests fom clicking on the openid icon as the destination is prohibited.
+                    if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('openIdImage').href = "javascript:void(0)";
                     }
                 }
 
