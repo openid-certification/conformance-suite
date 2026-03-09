@@ -48,7 +48,6 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
-import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
@@ -125,11 +124,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
 
 		// HAIP-specific validations
-		VCIProfile vciProfile = getVariant(VCIProfile.class);
-		if (vciProfile == VCIProfile.HAIP && isRarRequest) {
+		boolean isHaip = getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP;
+		if (isHaip && isRarRequest) {
 			throw new TestFailureException(getId(), "The usage of authorization request type RAR is not supported with HAIP.");
 		}
-		if (vciProfile == VCIProfile.HAIP && vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+		if (isHaip && vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
 			throw new TestFailureException(getId(), "The usage of grant type Pre-Authorized Code Flow is not supported with HAIP.");
 		}
 
@@ -148,9 +147,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	// HAIP requires scope to be present for every credential configuration
-	protected void ensureHaipScopeIfRequired() {
-		VCIProfile vciProfile = getVariant(VCIProfile.class);
-		if (vciProfile == VCIProfile.HAIP) {
+	public void ensureHaipScopeIfRequired() {
+		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP) {
 			callAndContinueOnFailure(VCIEnsureScopePresentInCredentialConfigurationForHaip.class, ConditionResult.FAILURE, "HAIP-4.1", "HAIP-4.3");
 		}
 	}
@@ -607,7 +605,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected void verifyCredential() {
 		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
-		VCIProfile vciProfile = getVariant(VCIProfile.class);
+		boolean isHaip = getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP;
 
 		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
 			callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
@@ -622,7 +620,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
 				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
 			}
-			if (vciProfile == VCIProfile.HAIP) {
+			if (isHaip) {
 				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class, ConditionResult.WARNING, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCICheckExpClaimInCredential.class, ConditionResult.FAILURE, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class, ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");

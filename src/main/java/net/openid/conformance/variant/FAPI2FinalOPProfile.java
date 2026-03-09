@@ -21,7 +21,9 @@ public enum FAPI2FinalOPProfile {
 	// PLAIN_FAPI utilising client credentials grant only.
 	FAPI_CLIENT_CREDENTIALS_GRANT,
 	// OID4VCI (OpenID for Verifiable Credential Issuance) with FAPI2 security profile
-	VCI;
+	VCI,
+	// OID4VCI with HAIP (High Assurance Interoperability Profile)
+	VCI_HAIP;
 
 	@Override
 	public String toString() {

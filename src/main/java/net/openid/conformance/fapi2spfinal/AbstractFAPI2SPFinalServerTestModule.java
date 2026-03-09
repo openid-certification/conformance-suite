@@ -171,7 +171,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
-import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
@@ -192,7 +191,6 @@ import java.util.function.Supplier;
 	FAPIOpenIDConnect.class,
 	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
-	VCIProfile.class,
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
 	VCI1FinalCredentialFormat.class,
@@ -320,15 +318,26 @@ import java.util.function.Supplier;
 	"vci.key_attestation_jwks",
 	"vci.authorization_server",
 })
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {
+	"vci.credential_issuer_url",
+	"vci.credential_configuration_id",
+	"vci.credential_proof_type_hint",
+	"vci.key_attestation_jwks",
+	"vci.authorization_server",
+})
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
 	"resource.resourceUrl", // credential endpoint comes from VCI metadata
 	"resource.resourceMethod",
 	"resource.resourceMediaType",
 	"resource.resourceRequestBody",
 })
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {
+	"resource.resourceUrl", // credential endpoint comes from VCI metadata
+	"resource.resourceMethod",
+	"resource.resourceMediaType",
+	"resource.resourceRequestBody",
+})
 // Hide VCI variant parameters from non-VCI profiles
-@VariantNotApplicableWhen(parameter = VCIProfile.class, values = {"plain_vci", "haip"},
-	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"})
 @VariantNotApplicableWhen(parameter = VCIGrantType.class, values = {"authorization_code", "pre_authorization_code"},
 	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"})
 @VariantNotApplicableWhen(parameter = VCIAuthorizationCodeFlowVariant.class, values = {"wallet_initiated", "issuer_initiated"},
@@ -339,20 +348,20 @@ import java.util.function.Supplier;
 	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"})
 // Restrict JARM and OpenID Connect for VCI
 @VariantNotApplicableWhen(parameter = FAPIResponseMode.class, values = {"jarm"},
-	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"vci"})
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"vci", "vci_haip"})
 @VariantNotApplicableWhen(parameter = FAPIOpenIDConnect.class, values = {"openid_connect"},
-	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"vci"})
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"vci", "vci_haip"})
 // VCI-specific variant configuration
 @VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code", configurationFields = {"vci.static_tx_code"})
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value = "wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
 })
-@VariantHidesConfigurationFields(parameter = VCIProfile.class, value = "haip", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
-// Restrict RAR and pre-auth code for HAIP
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
+// Restrict RAR and pre-auth code for VCI HAIP
 @VariantNotApplicableWhen(parameter = AuthorizationRequestType.class, values = {"rar"},
-	whenParameter = VCIProfile.class, hasValues = {"haip"})
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"vci_haip"})
 @VariantNotApplicableWhen(parameter = VCIGrantType.class, values = {"pre_authorization_code"},
-	whenParameter = VCIProfile.class, hasValues = {"haip"})
+	whenParameter = FAPI2FinalOPProfile.class, hasValues = {"vci_haip"})
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
 	"resource.richAuthorizationRequest",
 })
@@ -1490,6 +1499,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
 	public void setupVci() {
+		profileBehavior = new VCIProfileBehavior();
+		configureFromProfileBehavior();
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci_haip")
+	public void setupVciHaip() {
 		profileBehavior = new VCIProfileBehavior();
 		configureFromProfileBehavior();
 	}

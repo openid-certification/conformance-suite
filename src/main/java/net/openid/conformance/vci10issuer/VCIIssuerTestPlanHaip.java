@@ -97,11 +97,10 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					VCIIssuerFailOnRequestWithAccessTokenInQuery.class
 				),
 				List.of(
-					new Variant(FAPI2FinalOPProfile.class, "vci"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
 					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
-					new Variant(VCIProfile.class, "haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCIGrantType.class, "authorization_code"),
@@ -118,11 +117,10 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					VCIIssuerFailOnUnsupportedEncryptionAlgorithm.class
 				),
 				List.of(
-					new Variant(FAPI2FinalOPProfile.class, "vci"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
 					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
-					new Variant(VCIProfile.class, "haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCIGrantType.class, "authorization_code"),
@@ -138,7 +136,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					FAPI2SPFinalDiscoveryEndpointVerification.class
 				),
 				List.of(
-					new Variant(FAPI2FinalOPProfile.class, "vci"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
 					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
@@ -212,14 +210,13 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					FAPI2SPFinalParWithoutDuplicateParameters.class
 				),
 				List.of(
-					new Variant(FAPI2FinalOPProfile.class, "vci"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
 					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(AuthorizationRequestType.class, "simple"),
-					new Variant(VCIProfile.class, "haip"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(VCICredentialEncryption.class, "plain")
 				)

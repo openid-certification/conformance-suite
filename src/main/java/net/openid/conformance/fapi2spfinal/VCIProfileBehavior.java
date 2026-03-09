@@ -29,8 +29,8 @@ import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoin
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VCICredentialEncryption;
-import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.vci10issuer.AbstractVCIIssuerTestModule;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
@@ -95,8 +95,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		}
 
 		// HAIP forces DPoP signing alg to ES256
-		VCIProfile vciProfile = getOptionalVariant(module, VCIProfile.class);
-		if (vciProfile == VCIProfile.HAIP) {
+		if (module.getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP) {
 			module.getEnv().putString("client", "dpop_signing_alg", "ES256");
 			module.getEnv().putString("client2", "dpop_signing_alg", "ES256");
 		}
@@ -167,6 +166,11 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 		// Resolve credential configuration from VCI metadata
 		resolveCredentialConfiguration(module);
+
+		// HAIP requires scope to be present for every credential configuration
+		if (module instanceof AbstractVCIIssuerTestModule vciModule) {
+			vciModule.ensureHaipScopeIfRequired();
+		}
 	}
 
 	@Override
