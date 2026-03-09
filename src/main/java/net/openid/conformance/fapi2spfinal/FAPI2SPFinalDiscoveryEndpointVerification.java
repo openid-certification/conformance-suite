@@ -128,6 +128,12 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		isVci = true;
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci_haip")
+	public void setupVciHaip() {
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+		isVci = true;
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
