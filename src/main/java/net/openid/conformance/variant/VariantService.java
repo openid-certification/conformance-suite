@@ -259,14 +259,19 @@ public class VariantService {
 		// the variants that are defined statically by the plan; i.e. those the user can't select
 		// null if no variants are pre-defined
 		private final Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
+		/** conditions on user-selected variants that must all be met for this entry to apply */
+		final List<TestPlan.VariantCondition> applicableWhen;
 		/** configuration fields for any test modules with fixed variants */
 		final List<String> fixedVariantConfigurationFields;
 		/** "hide" configuration fields for any test modules with fixed variants */
 		final List<String> fixedVariantHidesConfigurationFields;
 
-		TestPlanModuleWithVariant(Class<? extends TestPlan> planClass, TestModuleHolder module, Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant) {
+		TestPlanModuleWithVariant(Class<? extends TestPlan> planClass, TestModuleHolder module,
+								 Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant,
+								 List<TestPlan.VariantCondition> applicableWhen) {
 			this.planClass = planClass;
 			this.module = module;
+			this.applicableWhen = applicableWhen;
 			this.variant = variant;
 
 			List<String> configurationFields = new ArrayList<>();
@@ -356,7 +361,7 @@ public class VariantService {
 							testModuleClass.getName()));
 					}
 
-					return new TestPlanModuleWithVariant(planClass, testModuleHolder, variants);
+					return new TestPlanModuleWithVariant(planClass, testModuleHolder, variants, moduleListEntry.applicableWhen);
 				});
 
 			}).collect(toList());
@@ -394,7 +399,7 @@ public class VariantService {
 								planClass.getSimpleName(),
 								c.getName()));
 						}
-						return new TestPlanModuleWithVariant(planClass, m, null);
+						return new TestPlanModuleWithVariant(planClass, m, null, List.of());
 					})
 					.collect(toList());
 			}
@@ -471,6 +476,20 @@ public class VariantService {
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
 			List<Plan.Module> testModules = new ArrayList<>();
 			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
+				// check entry-level applicability conditions against user-selected variants
+				if (!testPlanModuleWithVariant.applicableWhen.isEmpty()) {
+					Map<String, String> userVariants = userSelectedVariant.getVariant();
+					boolean allConditionsMet = testPlanModuleWithVariant.applicableWhen.stream()
+						.allMatch(condition -> {
+							ParameterHolder<?> p = parameter(condition.parameter);
+							String userValue = userVariants.get(p.variantParameter.name());
+							return userValue != null && condition.values.contains(userValue);
+						});
+					if (!allConditionsMet) {
+						return;
+					}
+				}
+
 				// merge user's variant selection with pre-selected variants
 				Map<String, String> preselectedVariants = testPlanModuleWithVariant.variantAsStrings();
 				Map<String, String> selectedStringVariants = new HashMap<>(userSelectedVariant.getVariant());
