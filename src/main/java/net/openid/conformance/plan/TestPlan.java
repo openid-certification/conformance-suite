@@ -38,19 +38,46 @@ public interface TestPlan {
 	}
 
 	/**
+	 * A condition that must be met for a {@link ModuleListEntry} to be applicable.
+	 * The entry is only used when the user-selected variant for the given parameter
+	 * matches one of the specified values.
+	 */
+	class VariantCondition {
+		public final Class<? extends Enum<?>> parameter;
+		public final List<String> values;
+
+		public VariantCondition(Class<? extends Enum<?>> parameter, String... values) {
+			this.parameter = parameter;
+			this.values = List.of(values);
+		}
+	}
+
+	/**
 	 * A holder for one or more test modules and the variants they should be run with
 	 *
 	 * A list of these is returned by testModulesWithVariants(), as an alternative to listing the test modules in the
 	 * PublishTestPlan Annotation.
+	 *
+	 * Optionally, {@code applicableWhen} conditions can restrict this entry to only apply when
+	 * the user-selected variants match. All conditions must be satisfied (AND logic);
+	 * each condition matches if the user's value is any of the condition's values (OR logic).
 	 */
 	class ModuleListEntry {
 		public final List<Class<? extends TestModule>> testModules;
 		public final List<Variant> variant;
+		public final List<VariantCondition> applicableWhen;
 
 		public ModuleListEntry(List<Class<? extends TestModule>> testModules,
 							   List<Variant> variant) {
+			this(testModules, variant, List.of());
+		}
+
+		public ModuleListEntry(List<Class<? extends TestModule>> testModules,
+							   List<Variant> variant,
+							   List<VariantCondition> applicableWhen) {
 			this.testModules = testModules;
 			this.variant = variant;
+			this.applicableWhen = applicableWhen;
 		}
 	}
 
