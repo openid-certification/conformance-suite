@@ -5,7 +5,6 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,17 +20,46 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 		var testModules = new ArrayList<>(VP1FinalWalletTestPlan.testModules);
 		testModules.remove(VP1FinalWalletResponseUriNotClientId.class); // excluded due to @VariantNotApplicable with x509_hash
 
+		var unsignedTestModules = new ArrayList<>(testModules);
+		unsignedTestModules.remove(VP1FinalWalletInvalidRequestObjectSignature.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
+
 		return List.of(
+			// direct_post_jwt: signed request, x509_hash
 			new ModuleListEntry(
 				testModules,
 				List.of(
 					new Variant(VPProfile.class, "haip"),
-					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash")
-					// new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed"),
-				)
+					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash"),
+					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed")
+				),
+				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
+					"direct_post.jwt"))
+			),
+			// dc_api_jwt + unsigned: web_origin
+			new ModuleListEntry(
+				unsignedTestModules,
+				List.of(
+					new Variant(VPProfile.class, "haip"),
+					new Variant(VP1FinalWalletClientIdPrefix.class, "web-origin"),
+					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_unsigned")
+				),
+				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
+					"dc_api.jwt"))
+			),
+			// dc_api_jwt + signed: x509_san_dns
+			new ModuleListEntry(
+				testModules,
+				List.of(
+					new Variant(VPProfile.class, "haip"),
+					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_san_dns"),
+					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed")
+				),
+				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
+					"dc_api.jwt"))
 			)
 		);
 	}
+
 	public static String certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
@@ -42,22 +70,6 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 		String clientIDPrefix = v.get("client_id_prefix");
 
 		String certProfile = "OID4VP-1.0-FINAL Wallet";
-
-		if (responseMode.equals(VP1FinalWalletResponseMode.DC_API.toString()) ||
-			responseMode.equals(VP1FinalWalletResponseMode.DC_API_JWT.toString())) {
-			if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_UNSIGNED.toString())) {
-				if (!clientIDPrefix.equals(VP1FinalWalletClientIdPrefix.WEB_ORIGIN.toString())) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: When using unsigned DC API requests the Client ID Prefix must be 'web_origin'.",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-			} else if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_SIGNED.toString())) {
-				if (clientIDPrefix.equals(VP1FinalWalletClientIdPrefix.WEB_ORIGIN.toString())) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: When using signed DC API requests the Client ID Prefix must not be 'web_origin'.",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
-			}
-
-		}
 
 		certProfile += " " + vpProfile + " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
 
