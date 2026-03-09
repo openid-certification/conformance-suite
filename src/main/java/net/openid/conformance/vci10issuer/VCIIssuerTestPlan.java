@@ -15,6 +15,18 @@ import java.util.List;
 )
 public class VCIIssuerTestPlan implements TestPlan {
 
+	public static List<Variant> variantNotApplicable() {
+		return List.of(
+			new Variant(FAPI2FinalOPProfile.class, "plain_fapi"),
+			new Variant(FAPI2FinalOPProfile.class, "openbanking_uk"),
+			new Variant(FAPI2FinalOPProfile.class, "consumerdataright_au"),
+			new Variant(FAPI2FinalOPProfile.class, "openbanking_brazil"),
+			new Variant(FAPI2FinalOPProfile.class, "connectid_au"),
+			new Variant(FAPI2FinalOPProfile.class, "cbuae"),
+			new Variant(FAPI2FinalOPProfile.class, "fapi_client_credentials_grant")
+		);
+	}
+
 	public static List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
@@ -47,7 +59,6 @@ public class VCIIssuerTestPlan implements TestPlan {
 					VCIIssuerFailOnRequestWithAccessTokenInQuery.class
 				),
 				List.of(
-					new Variant(FAPI2FinalOPProfile.class, "vci"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
 					new Variant(FAPIResponseMode.class, "plain_response")
 				)
