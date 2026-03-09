@@ -437,7 +437,19 @@ public class VariantService {
 				// java doesn't allow interfaces to define static methods (unless they define the implementation too)
 				// we have to call this via reflection:
 				Method m = planClass.getDeclaredMethod("certificationProfileName", VariantSelection.class);
-				Object result = m.invoke(null, variantSelection);
+
+				// merge plan-fixed variants into the user-selected variants so that
+				// certificationProfileName receives the complete variant map
+				Map<String, String> mergedVariants = new HashMap<>(variantSelection.getVariant());
+				for (TestPlanModuleWithVariant moduleWithVariant : modulesWithVariant) {
+					Map<String, String> fixedVariants = moduleWithVariant.variantAsStrings();
+					if (fixedVariants != null) {
+						fixedVariants.forEach(mergedVariants::putIfAbsent);
+					}
+				}
+				VariantSelection mergedSelection = new VariantSelection(mergedVariants);
+
+				Object result = m.invoke(null, mergedSelection);
 				if (result instanceof List) {
 					return (List<String>) result;
 				}
