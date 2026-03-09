@@ -188,6 +188,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		profileSpecificSignIdToken = SignIdToken.class;
 	}
 
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "connectid_au")
+	public void setupConnectID() {
+		profileSpecificSignIdToken = SignIdToken.class;
+	}
+
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
