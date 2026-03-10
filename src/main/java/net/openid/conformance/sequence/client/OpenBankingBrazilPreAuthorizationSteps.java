@@ -10,7 +10,8 @@ import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
 import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObject;
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.CallConsentEndpointWithBearerToken;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -100,7 +101,8 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 
 		/* get access token */
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
