@@ -11,8 +11,8 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
+import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
-import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
@@ -34,9 +34,9 @@ import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -627,7 +627,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
 		callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1");
-		callAndContinueOnFailure(FAPIEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2.2.1", "FAPI2-SP-FINAL-5.4.1-2.3.1");
+		callAndContinueOnFailure(FAPI2FinalEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2.2.1", "FAPI2-SP-FINAL-5.4.1-2.3.1");
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
@@ -934,10 +934,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	/**
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
 	 *
-	 * @param fullResponse whether the full response should be returned
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
-	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(boolean fullResponse, String... requirements) {
+	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
 		final int MAX_RETRY = 2;
 
 		if (isDpop()) {
@@ -953,24 +952,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 			}
 		} else {
 			addClientAuthenticationToTokenEndpointRequest();
-			callAndStopOnFailure(fullResponse ? CallTokenEndpointAndReturnFullResponse.class : CallTokenEndpoint.class, requirements);
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
 		}
 	}
 
 	/**
-	 * Call sender constrained token endpoint returning full response
-	 *
-	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
-	 */
-	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
-		callSenderConstrainedTokenEndpointAndStopOnFailure(true, requirements);
-	}
-
-	/**
-	 * Default Call to sender constrained token endpoint with non-full response
+	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
 	 */
 	protected void callSenderConstrainedTokenEndpoint() {
-		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
+		callSenderConstrainedTokenEndpointAndStopOnFailure();
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 	}
 
 	protected void exchangeAuthorizationCode() {
