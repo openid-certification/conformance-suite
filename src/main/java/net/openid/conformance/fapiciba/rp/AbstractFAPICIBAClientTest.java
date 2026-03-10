@@ -288,6 +288,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		if(isBrazil()) {
 			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
 			exposeMtlsPath("resource_endpoint", FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH);
+		} else if (FAPICIBAProfile.CONNECTID_AU.equals(getVariant(FAPICIBAProfile.class))) {
+			exposeEnvString("userinfo_endpoint", "server", "userinfo_endpoint");
 		} else {
 			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
 		}
