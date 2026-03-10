@@ -336,13 +336,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		call(exec().unmapKey("client_request"));
 		setStatus(Status.WAITING);
 
-		if (startingShutdown) {
-			throw new TestFailureException(
-				getId(),
-				"Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path)
-			);
-		}
-
 		switch (path) {
 			case ".well-known/openid-configuration":
 				return discoveryEndpoint();
@@ -351,6 +344,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case "token/obtain":
 				return obtainIdToken();
 			case "backchannel":
+				if (startingShutdown) {
+					throw new TestFailureException(getId(), "Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path));
+				}
 				if (ClientAuthType.MTLS.equals(clientAuthType)) {
 					throw new TestFailureException(
 						getId(),
@@ -359,11 +355,17 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				}
 				return backchannelEndpoint(requestId);
 			case "token":
+				if (startingShutdown) {
+					throw new TestFailureException(getId(), "Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path));
+				}
 				throw new TestFailureException(
 					getId(),
 					"Token endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases."
 				);
 			case "userinfo":
+				if (startingShutdown) {
+					throw new TestFailureException(getId(), "Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path));
+				}
 				return userinfoEndpoint(requestId);
 			default:
 				throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
@@ -382,6 +384,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(exec().unmapKey("client_request"));
 		setStatus(Status.WAITING);
+
+		if (startingShutdown) {
+			throw new TestFailureException(getId(), "Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path));
+		}
 
 		switch (path) {
 			case "backchannel":
