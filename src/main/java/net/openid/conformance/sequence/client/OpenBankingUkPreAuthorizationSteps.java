@@ -4,7 +4,8 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallAccountRequestsEndpointWithBearerToken;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckIfAccountRequestsEndpointResponseError;
@@ -58,7 +59,8 @@ public class OpenBankingUkPreAuthorizationSteps extends AbstractConditionSequenc
 
 		/* get an openbanking intent id */
 
-		callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
