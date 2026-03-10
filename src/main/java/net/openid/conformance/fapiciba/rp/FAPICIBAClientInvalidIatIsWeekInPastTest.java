@@ -7,15 +7,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "fapi-ciba-id1-client-invalid-iat-is-week-in-past-test",
 	displayName = "FAPI-CIBA-ID1: Client test - iat value which is a week in the past in id_token; should be rejected",
 	summary = "This test should end with the client displaying an error message that the iat value in the id_token has expired",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.scope",
-		"client.backchannel_client_notification_endpoint",
-		"client.certificate",
-		"client.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAClientInvalidIatIsWeekInPastTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
 

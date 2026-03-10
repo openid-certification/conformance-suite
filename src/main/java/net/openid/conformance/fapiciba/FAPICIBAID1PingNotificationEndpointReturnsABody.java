@@ -13,23 +13,7 @@ import org.springframework.http.ResponseEntity;
 	testName = "fapi-ciba-id1-ping-backchannel-notification-endpoint-response-has-body",
 	displayName = "FAPI-CIBA-ID1: Ping mode - backchannel notification-endpoint returns HTTP 200 OK response with a body",
 	summary = "The client's backchannel_notification_endpoint returns a HTTP 200 OK response with a body, the token endpoint should then return successfully as normal. If the token endpoint does not return success, this test will fail with a warning.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "poll" })
 public class FAPICIBAID1PingNotificationEndpointReturnsABody extends AbstractFAPICIBAID1 {

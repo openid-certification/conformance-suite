@@ -17,23 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi-ciba-id1-ensure-wrong-client-id-in-token-endpoint-request",
 	displayName = "FAPI-CIBA-ID1: Ensure wrong client_id in token endpoint request",
 	summary = "This test should end with the token endpoint server returning an error message that the client is invalid.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" })
 public class FAPICIBAID1EnsureWrongClientIdInTokenEndpointRequest extends AbstractFAPICIBAID1 {

@@ -9,15 +9,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"call the backchannel endpoint and either poll the token endpoint or wait to get pinged " +
 		"and then use the access token from the token endpoint response in request to the resource endpoint " +
 		"(typically accounts or userinfo) displayed below",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.scope",
-		"client.backchannel_client_notification_endpoint",
-		"client.certificate",
-		"client.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAClientTest extends AbstractFAPICIBAClientTest {
 

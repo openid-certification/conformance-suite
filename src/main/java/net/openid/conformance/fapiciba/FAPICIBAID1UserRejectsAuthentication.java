@@ -14,23 +14,7 @@ import net.openid.conformance.variant.CIBAMode;
 	testName = "fapi-ciba-id1-user-rejects-authentication",
 	displayName = "FAPI-CIBA-ID1: user rejects authentication",
 	summary = "This test requires the user to reject the authentication on their device, for example by pressing the 'cancel' button on the login screen. It verifies that an access_denied error (as per section 11 of the CIBA spec) is correctly notified back to the relying party.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAID1UserRejectsAuthentication extends AbstractFAPICIBAID1 {
 

@@ -13,15 +13,7 @@ import org.springframework.http.HttpStatus;
 		"The client will start polling the token endpoint and receive a slow_down response on the " +
 		"second request. The client must then wait at least 10 seconds before polling again. " +
 		"Finally, the client uses the access token from the token endpoint response in a resource endpoint request.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.scope",
-		"client.backchannel_client_notification_endpoint",
-		"client.certificate",
-		"client.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "ping" })
 public class FAPICIBAClientSlowDownTest extends AbstractFAPICIBAClientTest {

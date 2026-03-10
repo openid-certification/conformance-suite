@@ -20,23 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi-ciba-id1-ensure-different-client-id-and-issuer-in-backchannel-authorization-request",
 	displayName = "FAPI-CIBA-ID1: Ensure different client_id and issuer in backchannel authorization request",
 	summary = "This test passes a different client_id and issuer in the backchannel authorization parameters to the one inside the signed request object. The backchannel authorization server returned an error message that the client is invalid.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" })
 public class FAPICIBAID1EnsureDifferentClientIdAndIssuerInBackchannelAuthorizationRequest extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {

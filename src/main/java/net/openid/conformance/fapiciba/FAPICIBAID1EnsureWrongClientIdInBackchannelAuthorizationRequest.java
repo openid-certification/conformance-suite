@@ -15,23 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi-ciba-id1-ensure-wrong-client-id-in-backchannel-authorization-request",
 	displayName = "FAPI-CIBA-ID1: Ensure wrong client_id in backchannel authorization request",
 	summary = "This test sends the wrong client_id for the MTLS key to the backchannel authorization endpoint, and should end with the server returning an access_denied or invalid_request or invalid_client error",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "private_key_jwt" })
 public class FAPICIBAID1EnsureWrongClientIdInBackchannelAuthorizationRequest extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {

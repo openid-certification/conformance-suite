@@ -13,23 +13,7 @@ import net.openid.conformance.variant.CIBAMode;
 	testName = "fapi-ciba-id1-auth-req-id-expired",
 	displayName = "FAPI-CIBA-ID1: user fails to authenticate",
 	summary = "This test should end with the token endpoint returning an expired_token error. The user MUST NOT authenticate. requested_expiry is used to request a 30 second expiration time for the authentication request.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 
