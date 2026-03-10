@@ -193,18 +193,44 @@ master_results = load_results(master_artifacts_zip, True)
 new_results = load_results(new_artifacts_zip, False)
 
 def find_fuzzy_variant_match(master_module_variants, new_variant):
-    """Find a master variant that is a subset or superset of the new variant.
+    """Find a master variant that fuzzy-matches the new variant.
 
-    This handles the case where a branch adds new variant parameters to a test
-    (e.g., VCI tests gaining FAPI2 variant keys) — the existing variant values
-    still match, there are just extra keys on one side.
+    Tries three strategies in order:
+    1. Subset/superset — handles added/removed variant keys
+    2. Key-value overlap — handles key renames (e.g., vci_profile:haip →
+       fapi_profile:vci_haip) by requiring that the majority of key-value
+       pairs match exactly and at most 2 pairs differ on each side.
 
     Returns the matching master variant frozenset, or None.
     """
+    # Strategy 1: subset/superset
     for master_variant in master_module_variants:
         if master_variant <= new_variant or new_variant <= master_variant:
             return master_variant
-    return None
+
+    # Strategy 2: key-value overlap with tolerance for renamed keys
+    new_dict = dict(new_variant)
+    best_match = None
+    best_matched_count = 0
+    for master_variant in master_module_variants:
+        master_dict = dict(master_variant)
+        # Count key-value pairs that match exactly (same key, same value)
+        matched = sum(1 for k, v in new_dict.items()
+                      if master_dict.get(k) == v)
+        new_only = len(new_dict) - matched
+        master_only = len(master_dict) - matched
+        # Allow at most 2 mismatched pairs on each side, and require that
+        # at least half of the larger variant's pairs matched
+        min_size = min(len(new_dict), len(master_dict))
+        if (matched > best_matched_count
+                and matched >= min_size - 2
+                and matched >= 2
+                and new_only <= 2
+                and master_only <= 2):
+            best_matched_count = matched
+            best_match = master_variant
+
+    return best_match
 
 def find_fuzzy_plan_match(master_results, new_test_plan):
     """Find a master plan key that fuzzy-matches the new plan key.
