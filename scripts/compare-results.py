@@ -208,7 +208,11 @@ def find_fuzzy_variant_match(master_module_variants, new_variant):
         if master_variant <= new_variant or new_variant <= master_variant:
             return master_variant
 
-    # Strategy 2: key-value overlap with tolerance for renamed keys
+    # Strategy 2: key-value overlap with tolerance for renamed keys and
+    # added variant parameters.  Require that almost all of the smaller
+    # variant's keys matched (at most 2 unmatched — covering key renames),
+    # while allowing the larger variant to have any number of extra keys
+    # (covering added variant parameters across branches).
     new_dict = dict(new_variant)
     best_match = None
     best_matched_count = 0
@@ -219,14 +223,10 @@ def find_fuzzy_variant_match(master_module_variants, new_variant):
                       if master_dict.get(k) == v)
         new_only = len(new_dict) - matched
         master_only = len(master_dict) - matched
-        # Allow at most 2 mismatched pairs on each side, and require that
-        # at least half of the larger variant's pairs matched
-        min_size = min(len(new_dict), len(master_dict))
+        smaller_unmatched = min(new_only, master_only)
         if (matched > best_matched_count
-                and matched >= min_size - 2
-                and matched >= 2
-                and new_only <= 2
-                and master_only <= 2):
+                and smaller_unmatched <= 2
+                and matched >= 2):
             best_matched_count = matched
             best_match = master_variant
 
