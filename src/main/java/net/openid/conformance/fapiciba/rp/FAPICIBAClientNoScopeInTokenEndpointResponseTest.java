@@ -17,15 +17,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Same as the happy path flow except the token endpoint response will not contain the granted scopes. " +
 		"The client must assume that they are the same as the requested scopes. " +
 		"This test also does not return the 'expires_in' parameter from the token endpoint, which is valid and the client must accept.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.scope",
-		"client.backchannel_client_notification_endpoint",
-		"client.certificate",
-		"client.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAClientNoScopeInTokenEndpointResponseTest extends AbstractFAPICIBAClientTest {
 

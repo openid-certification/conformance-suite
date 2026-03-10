@@ -11,15 +11,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "The client should perform OpenID discovery from the displayed discoveryUrl and then " +
 		"call the backchannel endpoint and finally await the ping request. The client must detect that the " +
 		"bearer token in the request is invalid",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.scope",
-		"client.backchannel_client_notification_endpoint",
-		"client.certificate",
-		"client.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "poll" })
 public class FAPICIBAClientPingWithInvalidBearerTokenTest extends AbstractFAPICIBAClientTest {

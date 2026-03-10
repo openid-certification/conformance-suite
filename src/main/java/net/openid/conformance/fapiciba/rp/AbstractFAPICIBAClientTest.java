@@ -122,6 +122,7 @@ import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -152,6 +153,14 @@ import org.springframework.http.ResponseEntity;
 })
 @VariantHidesConfigurationFields(parameter = CIBAMode.class, value = "poll", configurationFields = {
 	"client.backchannel_client_notification_endpoint"
+})
+@ConfigurationFields({
+	"server.jwks",
+	"client.client_id",
+	"client.scope",
+	"client.backchannel_client_notification_endpoint",
+	"client.certificate",
+	"client.jwks"
 })
 public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 

@@ -20,15 +20,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 		'If the ID Token contains multiple audiences, the Client SHOULD verify that an azp Claim is present.'\
 		""",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.scope",
-		"client.backchannel_client_notification_endpoint",
-		"client.certificate",
-		"client.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAClientInvalidSecondaryAudTest extends AbstractFAPI1CIBAClientExpectNothingAfterIdTokenIssued {
 
