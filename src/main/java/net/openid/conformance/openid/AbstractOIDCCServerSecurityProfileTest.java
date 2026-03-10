@@ -50,9 +50,9 @@ import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
@@ -653,10 +653,9 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 
 	/**
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
-	 * @param fullResponse whether the full response should be returned
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
-	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(boolean fullResponse, String... requirements) {
+	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
 		final int MAX_RETRY = 2;
 
 		if (isSenderConstrainDpop()) {
@@ -670,30 +669,24 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 				++i;
 			}
 		} else {
-			callAndStopOnFailure(fullResponse ? CallTokenEndpointAndReturnFullResponse.class : CallTokenEndpoint.class, requirements);
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
 		}
 	}
 
 	/**
-	 * Call sender constrained token endpoint returning full response
-	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
-	 */
-	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
-		callSenderConstrainedTokenEndpointAndStopOnFailure(true, requirements);
-	}
-
-	/**
-	 * Default Call to sender constrained token endpoint with non-full response
+	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
 	 */
 	protected void callSenderConstrainedTokenEndpoint() {
-		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
+		callSenderConstrainedTokenEndpointAndStopOnFailure();
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 	}
 
 
 	@Override
 	protected void callTokenEndpoint() {
 		if(getVariant(AccessTokenSenderConstrainMethod.class) == AccessTokenSenderConstrainMethod.NONE) {
-			callAndStopOnFailure(CallTokenEndpoint.class);
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+			callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		} else {
 			callSenderConstrainedTokenEndpoint();
 		}
