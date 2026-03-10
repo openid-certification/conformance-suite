@@ -9,9 +9,10 @@ import net.openid.conformance.condition.client.AddBasicAuthClientSecretToRequest
 import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.AddFormBasedClientSecretToRequest;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -255,7 +256,8 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 
 			callAndStopOnFailure(AddClientIdToRequest.class);
 			unmapClientAuthKeys();
-			callAndStopOnFailure(CallTokenEndpoint.class);
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+			callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 			callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 			callAndStopOnFailure(CheckForAccessTokenValue.class);
 			callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
