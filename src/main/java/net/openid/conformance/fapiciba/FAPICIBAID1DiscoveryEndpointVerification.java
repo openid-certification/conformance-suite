@@ -20,10 +20,7 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi-ciba-id1-discovery-end-point-verification",
 	displayName = "FAPI-CIBA-ID1: Discovery Endpoint Verification",
 	summary = "This test ensures that the server's discovery document (including token_delivery_modes, response_types, grant_types etc) contains correct values.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantParameters({
 	CIBAMode.class,

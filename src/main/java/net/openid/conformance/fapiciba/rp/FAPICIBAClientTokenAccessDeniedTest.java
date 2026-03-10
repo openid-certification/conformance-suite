@@ -11,15 +11,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"The client will start polling the token endpoint and receive an access_denied response on the " +
 		"third request, simulating a user that rejected the request. " +
 		"The client must detect this, and not make further requests to the token endpoint with that auth_req_id",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.scope",
-		"client.backchannel_client_notification_endpoint",
-		"client.certificate",
-		"client.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "ping" })
 public class FAPICIBAClientTokenAccessDeniedTest extends AbstractFAPICIBAClientTest {

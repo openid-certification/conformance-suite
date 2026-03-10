@@ -191,6 +191,7 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -210,6 +211,22 @@ import java.util.function.Supplier;
 	FAPICIBAProfile.class,
 	CIBAMode.class,
 	ClientRegistration.class
+})
+@ConfigurationFields({
+	"server.discoveryUrl",
+	"client.scope",
+	"client.jwks",
+	"client.hint_type",
+	"client.hint_value",
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"client2.scope",
+	"client2.jwks",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca",
+	"resource.resourceUrl"
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"

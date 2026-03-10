@@ -10,23 +10,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "fapi-ciba-id1-multiple-call-to-token-endpoint",
 	displayName = "FAPI-CIBA-ID1: Call token endpoint multiple times in a short space of time",
 	summary = "This test should end with the token endpoint server showing an error message: authorization_pending or slow_down or invalid_request or 503 Retry later",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAID1MultipleCallToTokenEndpoint extends AbstractFAPICIBAID1 {
 
