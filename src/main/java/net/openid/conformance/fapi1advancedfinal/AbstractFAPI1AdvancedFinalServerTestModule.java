@@ -34,7 +34,8 @@ import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirect
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -678,7 +679,8 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 	 * Default Call to token endpoint with non-full response
 	 */
 	protected void callTokenEndpoint() {
-		callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 	}
 
 	protected void requestAuthorizationCode() {
