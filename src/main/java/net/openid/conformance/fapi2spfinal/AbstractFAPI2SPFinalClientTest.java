@@ -223,6 +223,7 @@ import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -266,6 +267,24 @@ import org.springframework.web.servlet.view.RedirectView;
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
 		"resource.authorization_details_types_supported"
 })
+@VariantNotApplicableWhen(
+	parameter = FAPIClientType.class,
+	values = {"*"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"fapi_client_credentials_grant"}
+)
+@VariantNotApplicableWhen(
+	parameter = FAPI2AuthRequestMethod.class,
+	values = {"*"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"fapi_client_credentials_grant"}
+)
+@VariantNotApplicableWhen(
+	parameter = FAPIResponseMode.class,
+	values = {"*"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"fapi_client_credentials_grant"}
+)
 public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";

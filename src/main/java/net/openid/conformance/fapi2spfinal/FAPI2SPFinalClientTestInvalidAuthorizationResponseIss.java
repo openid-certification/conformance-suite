@@ -4,11 +4,13 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.AddInvalidIssToAuthorizationEndpointResponseParams;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = {
 	"jarm"
 })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-client-test-invalid-authorization-response-iss",
 	displayName = "FAPI2-Security-Profile-Final: client test - invalid iss from authorization response must be rejected",

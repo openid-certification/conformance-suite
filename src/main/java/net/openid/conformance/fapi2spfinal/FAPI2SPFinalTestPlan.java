@@ -86,13 +86,17 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 		String clientType = v.get("openid");
 		boolean openid = clientType.equals("openid_connect");
 
+		String certProfile = "FAPI2SP OP ";
+
 		if (openid) {
 			profiles.add("FAPI2SP OP OpenID Connect");
 		}
 
 		switch (profile) {
 			case "plain_fapi":
+				break;
 			case "fapi_client_credentials_grant":
+				certProfile += "Client Credentials Grant ";
 				break;
 			case "openbanking_uk":
 				return List.of("FAPI2SP OP UK-OB");
@@ -113,8 +117,6 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
-
-		String certProfile = "FAPI2SP OP ";
 
 		switch (clientAuth) {
 			case "private_key_jwt":

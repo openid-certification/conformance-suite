@@ -89,10 +89,10 @@ _makeFapiTestPart1() {
 
     # FAPI2 security profile
     # client credentials grant
-    TESTS="${TESTS} fapi2-security-profile-final-client-credentials-grant-test-plan[client_auth_type=mtls][sender_constrain=mtls] authlete-fapi2securityprofile-mtls-plainoauth.json"
+    TESTS="${TESTS} fapi2-security-profile-final-test-plan[openid=plain_oauth][client_auth_type=mtls][sender_constrain=mtls][fapi_profile=fapi_client_credentials_grant] authlete-fapi2securityprofile-mtls-plainoauth.json"
 
-    #TESTS="${TESTS} fapi2-security-profile-final-client-credentials-grant-test-plan[client_auth_type=private_key_jwt][sender_constrain=mtls] authlete-fapi2securityprofile-privatekey-plainoauth.json"
-    TESTS="${TESTS} fapi2-security-profile-final-client-credentials-grant-test-plan[client_auth_type=private_key_jwt][sender_constrain=dpop] authlete-fapi2securityprofile-client-credentials-privatekey-dpop.json"
+    #TESTS="${TESTS} fapi2-security-profile-final-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=fapi_client_credentials_grant] authlete-fapi2securityprofile-privatekey-plainoauth.json"
+    TESTS="${TESTS} fapi2-security-profile-final-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=dpop][fapi_profile=fapi_client_credentials_grant] authlete-fapi2securityprofile-client-credentials-privatekey-dpop.json"
 
     # FAPI2 security profile
     # plain oauth
@@ -280,12 +280,12 @@ _makeFapiTestPart2() {
     # FAPI2 Advanced OP against RP
       # fapi_client_credentials_grant, unsigned, plain_response
          # client_auth=private_key, sender_constrain=mtls
-    TESTS="${TESTS} fapi2-message-signing-final-client-credentials-grant-client-test-plan[client_auth_type=private_key_jwt][sender_constrain=mtls]:fapi2-security-profile-final-client-test-happy-path{fapi2-message-signing-final-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_profile=fapi_client_credentials_grant][fapi_response_mode=plain_response]:fapi2-security-profile-final-discovery-end-point-verification,fapi2-security-profile-final-access-token-type-header-case-sensitivity}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-op-test-config-no-openid.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-rp-test-config-no-openid.json"
+    TESTS="${TESTS} fapi2-message-signing-final-client-test-plan[client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=fapi_client_credentials_grant][fapi_response_mode=plain_response][fapi_request_method=unsigned][fapi_client_type=plain_oauth]:fapi2-security-profile-final-client-test-happy-path{fapi2-message-signing-final-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][fapi_request_method=unsigned][sender_constrain=mtls][fapi_profile=fapi_client_credentials_grant][fapi_response_mode=plain_response]:fapi2-security-profile-final-discovery-end-point-verification,fapi2-security-profile-final-access-token-type-header-case-sensitivity}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-op-test-config-no-openid.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-rp-test-config-no-openid.json"
 
     # FAPI2 Advanced OP against RP
       # fapi_client_credentials_grant, unsigned, plain_response
          # client_auth=mtls, sender_constrain=dpop
-    TESTS="${TESTS} fapi2-message-signing-final-client-credentials-grant-client-test-plan[client_auth_type=mtls][sender_constrain=dpop]:fapi2-security-profile-final-client-test-happy-path-no-dpop-nonce{fapi2-message-signing-final-test-plan[openid=plain_oauth][client_auth_type=mtls][fapi_request_method=unsigned][sender_constrain=dpop][fapi_profile=fapi_client_credentials_grant][fapi_response_mode=plain_response]:fapi2-security-profile-final-discovery-end-point-verification,fapi2-security-profile-final-access-token-type-header-case-sensitivity}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-op-test-config-dpop-no-openid.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-rp-test-config-no-openid.json"
+    TESTS="${TESTS} fapi2-message-signing-final-client-test-plan[client_auth_type=mtls][sender_constrain=dpop][fapi_profile=fapi_client_credentials_grant][fapi_response_mode=plain_response][fapi_request_method=unsigned][fapi_client_type=plain_oauth]:fapi2-security-profile-final-client-test-happy-path-no-dpop-nonce{fapi2-message-signing-final-test-plan[openid=plain_oauth][client_auth_type=mtls][fapi_request_method=unsigned][sender_constrain=dpop][fapi_profile=fapi_client_credentials_grant][fapi_response_mode=plain_response]:fapi2-security-profile-final-discovery-end-point-verification,fapi2-security-profile-final-access-token-type-header-case-sensitivity}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-op-test-config-dpop-no-openid.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-rp-test-config-no-openid.json"
 
     # FAPI2 Advanced OP against RP
       # plain_fapi, signed_non_repudiation, plain_response
