@@ -4,22 +4,21 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
-import net.openid.conformance.condition.client.CreateRandomStateValue;
+import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureInvalidRequestError;
 import net.openid.conformance.condition.client.EnsurePARInvalidRequestError;
-import net.openid.conformance.condition.client.ExpectRequestObjectWithLongStateErrorPage;
-import net.openid.conformance.condition.client.WarningAboutRejectingLongState;
+import net.openid.conformance.condition.client.ExpectRequestObjectWithLongNonceErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-final-ensure-request-object-with-long-state",
-	displayName = "FAPI2-Security-Profile-Final: ensure request object with long state",
-	summary = "This test passes a long state in request object. The authorization server must either return an invalid_request error back to the client, and must show an error page (saying the server rejects long state - upload a screenshot of the error page) or must successfully authenticate and return the state correctly.",
+	testName = "fapi2-security-profile-final-ensure-authorization-request-with-long-nonce",
+	displayName = "FAPI2-Security-Profile-Final: ensure authorization request with long nonce",
+	summary = "This test passes a 384 character nonce in the authorization request. The authorization server must either successfully authenticate and return the nonce correctly, or if it does not support nonces that long it may return an invalid_request error back to the client or show an error page (saying the server rejects long nonce - upload a screenshot of the error page). The server MUST NOT return the nonce corrupted or truncated.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -32,24 +31,23 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"resource.resourceUrl"
 	}
 )
-
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
-
-public class FAPI2SPFinalEnsureRequestObjectWithLongState extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
+@VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
+public class FAPI2SPFinalEnsureAuthorizationRequestWithLongNonce extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override
 	protected void createPlaceholder() {
-		callAndContinueOnFailure(ExpectRequestObjectWithLongStateErrorPage.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(ExpectRequestObjectWithLongNonceErrorPage.class, Condition.ConditionResult.WARNING);
 		env.putString("error_callback_placeholder", env.getString("request_object_unverifiable_error"));
 	}
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
-		// Add long state with 1000 bytes
+		// Add long nonce with 384 bytes
+		// see https://gitlab.com/openid/conformance-suite/-/issues/359 for background
 		Command cmd = new Command();
-		cmd.putInteger("requested_state_length", 1000);
+		cmd.putInteger("requested_nonce_length", 384);
 		return super.makeCreateAuthorizationRequestSteps()
-				.insertBefore(CreateRandomStateValue.class, cmd);
+				.insertBefore(CreateRandomNonceValue.class, cmd);
 	}
 
 	@Override
@@ -75,8 +73,6 @@ public class FAPI2SPFinalEnsureRequestObjectWithLongState extends AbstractFAPI2S
 			callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
 
 			callAndContinueOnFailure(EnsureInvalidRequestError.class, Condition.ConditionResult.WARNING, "OIDCC-3.3.2.6");
-
-			callAndContinueOnFailure(WarningAboutRejectingLongState.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.3.2.2");
 
 			fireTestFinished();
 		}
