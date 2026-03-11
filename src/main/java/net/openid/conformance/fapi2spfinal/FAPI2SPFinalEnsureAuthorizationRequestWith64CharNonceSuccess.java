@@ -8,9 +8,9 @@ import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "fapi2-security-profile-final-ensure-request-object-with-64-char-nonce-success",
-	displayName = "FAPI2-Security-Profile-Final: ensure request object with 64 char nonce",
-	summary = "This test passes a 64 character nonce in the request object. As per https://openid.net/specs/fapi-security-profile-2_0-final.html#section-5.3.2.2 item 14, the authorization server must successfully authenticate and return the nonce correctly.",
+	testName = "fapi2-security-profile-final-ensure-authorization-request-with-64-char-nonce-success",
+	displayName = "FAPI2-Security-Profile-Final: ensure authorization request with 64 char nonce",
+	summary = "This test passes a 64 character nonce in the authorization request. As per https://openid.net/specs/fapi-security-profile-2_0-final.html#section-5.3.2.2 item 14, the authorization server must successfully authenticate and return the nonce correctly.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
 		"server.discoveryUrl",
@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
-public class FAPI2SPFinalEnsureRequestObjectWith64CharNonceSuccess extends AbstractFAPI2SPFinalServerTestModule {
+public class FAPI2SPFinalEnsureAuthorizationRequestWith64CharNonceSuccess extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
