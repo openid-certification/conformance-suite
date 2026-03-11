@@ -23,6 +23,7 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalTestPlan.testModules);
 
 		// these require signing, so remove them (otherwise the VariantService gets upset on app start)
+		modules.remove(FAPI2SPFinalEnsureServerAcceptsRequestObjectWithMultipleAud.class);
 		modules.remove(FAPI2SPFinalEnsureRequestObjectWithoutExpFails.class);
 		modules.remove(FAPI2SPFinalEnsureRequestObjectWithoutNbfFails.class);
 		modules.remove(FAPI2SPFinalEnsureExpiredRequestObjectFails.class);
