@@ -2,6 +2,8 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.as.RemoveExpFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-client-test-invalid-missing-exp",
@@ -18,7 +20,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"waitTimeoutSeconds"
 	}
 )
-
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalClientTestInvalidMissingExp extends AbstractFAPI2SPFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override

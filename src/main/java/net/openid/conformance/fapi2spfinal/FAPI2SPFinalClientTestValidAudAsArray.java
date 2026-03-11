@@ -4,6 +4,7 @@ import net.openid.conformance.condition.as.AddAudValueAsArrayToIdToken;
 import net.openid.conformance.condition.as.SignIdTokenBypassingNimbusChecks;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIClientType;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
@@ -22,6 +23,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalClientTestValidAudAsArray extends AbstractFAPI2SPFinalClientTest {
 
 	@Override
