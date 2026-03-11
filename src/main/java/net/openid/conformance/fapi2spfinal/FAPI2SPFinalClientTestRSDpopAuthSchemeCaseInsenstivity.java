@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorAltSchemeCaseResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -26,7 +27,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values = {
 	"mtls"
 })
-
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalClientTestRSDpopAuthSchemeCaseInsenstivity extends AbstractFAPI2SPFinalClientTest {
 
 	@Override

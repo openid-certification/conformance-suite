@@ -6,9 +6,11 @@ import net.openid.conformance.condition.as.RemoveNonceFromIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.FAPIClientType;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @VariantNotApplicable(parameter = FAPIClientType.class, values = {"plain_oauth"})
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-client-test-invalid-missing-nonce",
 	displayName = "FAPI2-Security-Profile-Final: client test - missing nonce in id_token from token_endpoint, should be rejected",

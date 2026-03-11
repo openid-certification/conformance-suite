@@ -295,12 +295,12 @@ import java.util.function.Supplier;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"}
 )
-// Hide FAPI2-only params for VCI profiles
+// Hide FAPI2-only params for VCI and client_credentials_grant profiles
 @VariantNotApplicableWhen(
 	parameter = FAPIOpenIDConnect.class,
 	values = {"openid_connect", "plain_oauth"},
 	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = {"vci", "vci_haip"}
+	hasValues = {"vci", "vci_haip", "fapi_client_credentials_grant"}
 )
 @VariantNotApplicableWhen(
 	parameter = FAPIResponseMode.class,
