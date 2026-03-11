@@ -146,6 +146,7 @@ import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -272,6 +273,12 @@ import java.util.function.Supplier;
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
 	"resource.richAuthorizationRequest",
 })
+@VariantNotApplicableWhen(
+	parameter = FAPIOpenIDConnect.class,
+	values = {"*"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"fapi_client_credentials_grant"}
+)
 public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;

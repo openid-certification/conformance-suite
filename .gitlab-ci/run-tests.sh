@@ -89,10 +89,10 @@ _makeFapiTestPart1() {
 
     # FAPI2 security profile
     # client credentials grant
-    TESTS="${TESTS} fapi2-security-profile-final-client-credentials-grant-test-plan[client_auth_type=mtls][sender_constrain=mtls] authlete-fapi2securityprofile-mtls-plainoauth.json"
+    TESTS="${TESTS} fapi2-security-profile-final-test-plan[openid=plain_oauth][client_auth_type=mtls][sender_constrain=mtls][fapi_profile=fapi_client_credentials_grant] authlete-fapi2securityprofile-mtls-plainoauth.json"
 
-    #TESTS="${TESTS} fapi2-security-profile-final-client-credentials-grant-test-plan[client_auth_type=private_key_jwt][sender_constrain=mtls] authlete-fapi2securityprofile-privatekey-plainoauth.json"
-    TESTS="${TESTS} fapi2-security-profile-final-client-credentials-grant-test-plan[client_auth_type=private_key_jwt][sender_constrain=dpop] authlete-fapi2securityprofile-client-credentials-privatekey-dpop.json"
+    #TESTS="${TESTS} fapi2-security-profile-final-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=mtls][fapi_profile=fapi_client_credentials_grant] authlete-fapi2securityprofile-privatekey-plainoauth.json"
+    TESTS="${TESTS} fapi2-security-profile-final-test-plan[openid=plain_oauth][client_auth_type=private_key_jwt][sender_constrain=dpop][fapi_profile=fapi_client_credentials_grant] authlete-fapi2securityprofile-client-credentials-privatekey-dpop.json"
 
     # FAPI2 security profile
     # plain oauth
