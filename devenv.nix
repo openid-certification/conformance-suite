@@ -10,6 +10,7 @@ in
   packages = [
     pkgs.git
     pkgs.ngrok
+    pkgs.mvnd
   ];
 
   scripts.hello.exec = "echo $GREET";
@@ -19,7 +20,9 @@ in
 
     export EXTERNAL_URL=`curl -s localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"`
 
-    echo "In order to run CIBA ping, Federation, etc tests please make sure to setup a ngrok account"
+    if ! ${pkgs.ngrok}/bin/ngrok config check &>/dev/null; then
+      echo "In order to run CIBA ping, Federation, etc tests please make sure to setup a ngrok account"
+    fi
 
   '';
 
@@ -152,21 +155,21 @@ in
     enable = true;
     npm = {
       enable = true;
-      install.enable = true;
     };
   };
 
-  pre-commit.hooks.fix-whitespace = {
+  git-hooks.hooks.fix-whitespace = {
       enable = true;
       name = "Check Whitespace";
       entry = "python3 scripts/checkwhitespace.py --fix";
       pass_filenames = false;
     };
-  pre-commit.hooks.mvn-check = {
+  git-hooks.hooks.mvn-check = {
       enable = true;
       name = "PMD and Checkstyle";
-      entry = "mvn pmd:check checkstyle:check";
+      entry = "mvnd checkstyle:check pmd:check";
       pass_filenames = false;
+      types = [ "java" ];
     };
   # See full reference at https://devenv.sh/reference/options/
 }
