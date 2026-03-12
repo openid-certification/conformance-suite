@@ -53,8 +53,16 @@
 #       - at most 2 unmatched pairs in the smaller variant set
 #     Picks the candidate with the most exact matches.
 #
+# Module-level fuzzy matching (find_fuzzy_module_match)
+# -----------------------------------------------------
+# Module names are hyphen-separated identifiers. When a module is renamed
+# (e.g. "ensure-authorization-request-with-long-nonce" becomes
+# "ensure-request-object-with-long-nonce"), exact lookup fails. The fuzzy
+# matcher tokenises both names on "-" and picks the best Jaccard match
+# with similarity >= 0.5.
+#
 # When a fuzzy match is used, the output includes an annotation showing the
-# reference plan key or variant that was matched against.
+# reference plan key, module name, or variant that was matched against.
 
 import fnmatch
 import json
@@ -319,6 +327,32 @@ def find_fuzzy_plan_match(master_results, new_test_plan):
             best_match = master_plan
     return best_match
 
+def find_fuzzy_module_match(master_modules, new_module):
+    """Find a master module name that fuzzy-matches the new module name.
+
+    Module names are hyphen-separated identifiers. When a module is renamed
+    (e.g. 'ensure-authorization-request-with-long-nonce' becomes
+    'ensure-request-object-with-long-nonce'), exact lookup fails. This
+    matcher tokenises both names on '-' and picks the best Jaccard match
+    with similarity >= 0.5.
+
+    Returns the matching master module name, or None.
+    """
+    new_tokens = set(new_module.split("-"))
+    best_match = None
+    best_score = 0.0
+    for master_module in master_modules:
+        master_tokens = set(master_module.split("-"))
+        intersection = len(new_tokens & master_tokens)
+        union = len(new_tokens | master_tokens)
+        if union == 0:
+            continue
+        score = intersection / union
+        if score > best_score and score >= 0.5:
+            best_score = score
+            best_match = master_module
+    return best_match
+
 differences=False
 for test_plan,modules in sorted(new_results.items()):
     # If this plan key doesn't exist in master, try fuzzy plan matching
@@ -334,7 +368,9 @@ for test_plan,modules in sorted(new_results.items()):
         for variant, log in sorted(variants.items()):
             master_log = None
             matched_variant = None
+            matched_module = module
             fuzzy = False
+            fuzzy_module = False
             try:
                 master_log = master_results[master_plan_key][module][variant]
                 matched_variant = variant
@@ -351,8 +387,30 @@ for test_plan,modules in sorted(new_results.items()):
                 except KeyError:
                     pass
 
+            # If module name not found at all, try fuzzy module matching
+            if (master_log is None
+                    and master_plan_key in master_results
+                    and module not in master_results.get(master_plan_key, {})):
+                fuzzy_matched_module = find_fuzzy_module_match(
+                    master_results[master_plan_key], module)
+                if fuzzy_matched_module is not None:
+                    try:
+                        master_log = master_results[master_plan_key][fuzzy_matched_module][variant]
+                        matched_module = fuzzy_matched_module
+                        matched_variant = variant
+                        fuzzy_module = True
+                    except KeyError:
+                        # Exact variant failed on fuzzy module — try fuzzy variant too
+                        matched_variant = find_fuzzy_variant_match(
+                            master_results[master_plan_key][fuzzy_matched_module], variant)
+                        if matched_variant is not None:
+                            master_log = master_results[master_plan_key][fuzzy_matched_module][matched_variant]
+                            matched_module = fuzzy_matched_module
+                            fuzzy_module = True
+                            fuzzy = True
+
             if master_log is not None:
-                del master_results[master_plan_key][module][matched_variant]
+                del master_results[master_plan_key][matched_module][matched_variant]
                 output = compare(master_log, log)
                 if output != None:
                     differences=True
@@ -361,6 +419,8 @@ for test_plan,modules in sorted(new_results.items()):
                     print("Variant: "+pretty_variant(variant))
                     if fuzzy_plan:
                         print("(fuzzy plan match — reference plan: "+master_plan_key+")")
+                    if fuzzy_module:
+                        print("(fuzzy module match — reference had: "+matched_module+")")
                     if fuzzy:
                         print("(fuzzy variant match — reference had: "+pretty_variant(matched_variant)+")")
                     print("reference log: "+get_url(master_log))
