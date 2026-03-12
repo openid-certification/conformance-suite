@@ -92,7 +92,7 @@ public class Application {
 		}
 
 		private static void startRedir(ApplicationEnvironmentPreparedEvent applicationEvent) {
-			// This redirects port 8443 on localhost to the same port on the ingress (httpd).
+			// This redirects port 8443 on localhost to the same port on the ingress (nginx).
 			// This is so that selenium running on this machine can make submissions via the ingress
 			// when a developer is running the conformance suite locally, as otherwise accesses to
 			// https://localhost:8443/ will fail.
@@ -106,7 +106,7 @@ public class Application {
 				if (startRedir) {
 					try {
 						logger.info(key + ": true - launching redir process");
-						Process process = new ProcessBuilder("redir", ":8443", "httpd:8443").start();
+						Process process = new ProcessBuilder("redir", ":8443", "nginx:8443").start();
 						// redir immediately forks into a daemon so there's no need to read it's I/O streams
 						process.waitFor();
 					} catch (Exception err) {
