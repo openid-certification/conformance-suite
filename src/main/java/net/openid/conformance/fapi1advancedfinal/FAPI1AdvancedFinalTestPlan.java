@@ -5,6 +5,7 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan(
@@ -105,7 +106,8 @@ import java.util.Map;
 )
 public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		String certProfile = null;
 		String suffix = "";
@@ -195,6 +197,6 @@ public class FAPI1AdvancedFinalTestPlan implements TestPlan {
 		}
 
 
-		return certProfile + suffix;
+		return List.of(certProfile + suffix);
 	}
 }

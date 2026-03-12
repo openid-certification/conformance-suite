@@ -22,7 +22,8 @@ import java.util.List;
 )
 public class VCIWalletTestPlanHaip implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 
 		List<Class<? extends TestModule>> testModules = new ArrayList<>(VCIWalletTestPlan.testModules);
 

@@ -20,7 +20,8 @@ import java.util.Map;
 )
 public class FAPI2SPFinalClientTestPlan implements TestPlan {
 
-	public static List<String> certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
@@ -81,14 +82,16 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 		return profiles;
 	}
 
-	public static List<Variant> variantNotApplicable() {
+	@Override
+	public List<Variant> variantNotApplicable() {
 		return List.of(
 			new Variant(FAPI2FinalOPProfile.class, "vci"),
 			new Variant(FAPI2FinalOPProfile.class, "vci_haip")
 		);
 	}
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalClientTestPlan.testModules);
 
 		// Remove JARM tests which will cause VariantService errors on startup since this only tests response_mode=plain_response

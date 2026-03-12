@@ -1,7 +1,9 @@
 package net.openid.conformance.plan;
 
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.VariantSelection;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -54,24 +56,35 @@ public interface TestPlan {
 		}
 	}
 
-	/* Instead of defined test modules in the @PublishTestModule annotation, TestPlans can implement the
-	testModulesWithVariants() method, which allows them to define that test modules will be run with multiple
-	variants:
+	/**
+	 * Override to define test modules with specific variant combinations, as an alternative to
+	 * listing them in the {@link PublishTestPlan} annotation.
+	 *
+	 * @return list of module/variant entries, or null to use the annotation's testModules instead
+	 */
+	default List<ModuleListEntry> testModulesWithVariants() {
+		return null;
+	}
 
-	public static List<ModuleListEntry> testModulesWithVariants()
+	/**
+	 * Override to define a certification profile name (used in the certification submission)
+	 * for the given variant selection.
+	 *
+	 * @return list of certification profile names, or empty list if none
+	 */
+	default List<String> certificationProfileName(VariantSelection variant) {
+		return Collections.emptyList();
+	}
 
-	To define a certification profile name (used in the certification submission) implement:
-
-	public static String certificationProfileName(VariantSelection variant) {
-
-	To exclude specific variant values from a test plan (hiding them from the UI and preventing
-	their use), implement:
-
-	public static List<Variant> variantNotApplicable()
-
-	This is useful when test modules support variant values (e.g. VCI profiles) that should not
-	be available in certain test plans (e.g. plain FAPI2 plans).
-
-	*/
+	/**
+	 * Override to exclude specific variant values from this test plan (hiding them from the UI
+	 * and preventing their use). This is useful when test modules support variant values
+	 * (e.g. VCI profiles) that should not be available in certain test plans.
+	 *
+	 * @return list of variants to exclude, or empty list if none
+	 */
+	default List<Variant> variantNotApplicable() {
+		return Collections.emptyList();
+	}
 
 }

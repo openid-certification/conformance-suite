@@ -63,7 +63,8 @@ import java.util.List;
 )
 public class VCIIssuerTestPlanHaip implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(

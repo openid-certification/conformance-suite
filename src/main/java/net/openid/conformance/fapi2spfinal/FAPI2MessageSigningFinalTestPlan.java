@@ -131,14 +131,16 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 
 	);
 
-	public static List<Variant> variantNotApplicable() {
+	@Override
+	public List<Variant> variantNotApplicable() {
 		return List.of(
 			new Variant(FAPI2FinalOPProfile.class, "vci"),
 			new Variant(FAPI2FinalOPProfile.class, "vci_haip")
 		);
 	}
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		List<TestPlan.Variant> variant = List.of(
 		);
 
@@ -148,7 +150,8 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 
 	}
 
-	public static List<String> certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		List<String> profiles = new ArrayList<>();
 		Map<String, String> v = variant.getVariant();

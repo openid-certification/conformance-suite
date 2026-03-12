@@ -19,7 +19,8 @@ import java.util.Map;
 )
 public class FAPI2SPID2ClientTestPlan implements TestPlan {
 
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
@@ -49,7 +50,7 @@ public class FAPI2SPID2ClientTestPlan implements TestPlan {
 				}
 				break;
 			case "openbanking_brazil":
-				return "Not a conformance profile. Please use 'FAPI2-Security-Profile-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.";
+				return List.of("Not a conformance profile. Please use 'FAPI2-Security-Profile-ID2: Open Banking Brazil Relying Party (Client) Test Plan' for Brazil OB RP certification.");
 			case "connectid_au":
 				throw new RuntimeException("Invalid configuration for %s: Please use the FAPI2 Message Signing test plan for ConnectID".formatted(
 					MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -79,10 +80,11 @@ public class FAPI2SPID2ClientTestPlan implements TestPlan {
 				break;
 		}
 
-		return certProfile.replaceAll("  ", " ");
+		return List.of(certProfile.replaceAll("  ", " "));
 	}
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningID1ClientTestPlan.testModules);
 
 		// Remove JARM tests which will cause VariantService errors on startup since this only tests response_mode=plain_response

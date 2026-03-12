@@ -14,7 +14,8 @@ import java.util.List;
 	profile = TestPlan.ProfileNames.optest
 )
 public class OIDCCConfigTestPlan implements TestPlan {
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
@@ -50,7 +51,8 @@ public class OIDCCConfigTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Config OP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Config OP");
 	}
 }

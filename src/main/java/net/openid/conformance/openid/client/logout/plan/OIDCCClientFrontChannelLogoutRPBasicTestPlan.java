@@ -14,7 +14,8 @@ import java.util.List;
 	profile = TestPlan.ProfileNames.rplogouttest
 )
 public class OIDCCClientFrontChannelLogoutRPBasicTestPlan implements TestPlan {
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 
 		final List<Variant> variantResponseTypeCode = List.of(
 			new Variant(ResponseType.class, "code")
@@ -29,8 +30,9 @@ public class OIDCCClientFrontChannelLogoutRPBasicTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Front-Channel RP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Front-Channel RP");
 	}
 
 }

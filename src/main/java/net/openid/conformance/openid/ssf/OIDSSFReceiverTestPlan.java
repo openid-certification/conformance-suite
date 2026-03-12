@@ -4,6 +4,8 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.util.List;
+
 @PublishTestPlan(
 	testPlanName = "openid-ssf-receiver-test-plan",
 	displayName = "OpenID Shared Signals Framework: Receiver test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
@@ -20,8 +22,9 @@ import net.openid.conformance.variant.VariantSelection;
 )
 public class OIDSSFReceiverTestPlan implements TestPlan {
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "OpenID SSF Receiver 1.0";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("OpenID SSF Receiver 1.0");
 	}
 
 }

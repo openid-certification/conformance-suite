@@ -20,14 +20,16 @@ import java.util.Map;
 )
 public class FAPI2SPFinalTestPlan implements TestPlan {
 
-	public static List<Variant> variantNotApplicable() {
+	@Override
+	public List<Variant> variantNotApplicable() {
 		return List.of(
 			new Variant(FAPI2FinalOPProfile.class, "vci"),
 			new Variant(FAPI2FinalOPProfile.class, "vci_haip")
 		);
 	}
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalTestPlan.testModules);
 
 		// these require signing, so remove them (otherwise the VariantService gets upset on app start)
@@ -58,7 +60,8 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 
 	}
 
-	public static List<String> certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		List<String> profiles = new ArrayList<>();
 

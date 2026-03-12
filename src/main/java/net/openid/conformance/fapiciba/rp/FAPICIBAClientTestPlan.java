@@ -7,6 +7,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan (
@@ -61,7 +62,8 @@ import java.util.Map;
 )
 public class FAPICIBAClientTestPlan implements TestPlan {
 
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		String certProfile = null;
 
@@ -114,6 +116,6 @@ public class FAPICIBAClientTestPlan implements TestPlan {
 				break;
 		}
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 }

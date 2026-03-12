@@ -28,7 +28,8 @@ public class FAPI2MessageSigningFinalClientCredentialsGrantClientTestPlan implem
 		FAPI2SPFinalClientTestTokenTypeCaseInsenstivity.class
 	);
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		List<TestPlan.Variant> baselineVariants = List.of(
 			new TestPlan.Variant(AuthorizationRequestType.class, "simple"),
 			new TestPlan.Variant(FAPI2AuthRequestMethod.class, "unsigned"),
@@ -43,7 +44,8 @@ public class FAPI2MessageSigningFinalClientCredentialsGrantClientTestPlan implem
 
 	}
 
-	public static List<String> certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		List<String> profiles = new ArrayList<>();
 

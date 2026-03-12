@@ -17,7 +17,8 @@ import java.util.List;
 )
 public class OIDCCDynamicTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		// ResponseType.class is not specified so will be offered in the menu
 		// This plan attempts to match 'dynamic' as defined here:
 		// https://openid.net/wordpress-content/uploads/2018/06/OpenID-Connect-Conformance-Profiles.pdf
@@ -110,7 +111,8 @@ public class OIDCCDynamicTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Dynamic OP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Dynamic OP");
 	}
 }

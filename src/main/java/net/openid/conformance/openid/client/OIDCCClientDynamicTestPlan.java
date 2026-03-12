@@ -25,7 +25,8 @@ import java.util.List;
 )
 public class OIDCCClientDynamicTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		// This plan attempts to match dynamic relying party tests as defined here:
 		// https://openid.net/wordpress-content/uploads/2018/06/OpenID-Connect-Conformance-Profiles.pdf
 		// the tests are in the same order as https://rp.certification.openid.net:8080/list?profile=DYN
@@ -62,8 +63,9 @@ public class OIDCCClientDynamicTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Dynamic RP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Dynamic RP");
 	}
 
 }

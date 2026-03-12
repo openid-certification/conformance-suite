@@ -20,7 +20,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -336,6 +335,7 @@ public class VariantService {
 		final List<TestPlanModuleWithVariant> modulesWithVariant;
 
 		final Class<? extends TestPlan> planClass;
+		final TestPlan planInstance;
 		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
 		// Plan-level variant exclusions from variantNotApplicable()
 		final Map<Class<? extends Enum<?>>, Set<String>> planExclusions;
@@ -364,27 +364,19 @@ public class VariantService {
 			}).collect(toList());
 		}
 
-		@SuppressWarnings({ "unchecked" })
 		TestPlanHolder(Class<? extends TestPlan> planClass) {
 			this.planClass = planClass;
 			this.info = planClass.getDeclaredAnnotation(PublishTestPlan.class);
 
-			List<TestPlan.ModuleListEntry> list = null;
 			try {
-				// Test plans can implement a static method to list modules with variants to run them with; as
-				// java doesn't allow interfaces to define static methods (unless they define the implementation too)
-				// we have to call this via reflection:
-				Method m = planClass.getDeclaredMethod("testModulesWithVariants");
-				Object untypedList = m.invoke(null);
-				list = (List<TestPlan.ModuleListEntry>) untypedList;
-			} catch (NoSuchMethodException e) {
-				// class doesn't implement this; below we'll read the modules from the annotation instead
-			} catch (IllegalAccessException | InvocationTargetException e) {
-				throw new RuntimeException("Reflection issue calling testModulesWithVariants() for "+planClass.getSimpleName(), e);
+				this.planInstance = planClass.getDeclaredConstructor().newInstance();
+			} catch (ReflectiveOperationException e) {
+				throw new RuntimeException("Failed to instantiate test plan: " + planClass.getSimpleName(), e);
 			}
 
+			List<TestPlan.ModuleListEntry> list = planInstance.testModulesWithVariants();
 			if (list != null) {
-				// module list is defined by the result of the testModulesWithVariants() method
+				// module list is defined by the result of testModulesWithVariants()
 				this.modulesWithVariant = convertModuleListEntry(planClass.getSimpleName(), list);
 			} else {
 				// module list comes from annotation
@@ -406,18 +398,10 @@ public class VariantService {
 					.map(p -> p.parameter)
 					.collect(groupingBy(p -> p.variantParameter.name(), toSingleParameter()));
 
-			// Discover plan-level variant exclusions via variantNotApplicable()
+			// Discover plan-level variant exclusions
 			Map<Class<? extends Enum<?>>, Set<String>> exclusions = new HashMap<>();
-			try {
-				Method m = planClass.getDeclaredMethod("variantNotApplicable");
-				List<TestPlan.Variant> notApplicable = (List<TestPlan.Variant>) m.invoke(null);
-				for (TestPlan.Variant v : notApplicable) {
-					exclusions.computeIfAbsent(v.key, k -> new HashSet<>()).add(v.value);
-				}
-			} catch (NoSuchMethodException e) {
-				// class doesn't implement this; no plan-level exclusions
-			} catch (IllegalAccessException | InvocationTargetException e) {
-				throw new RuntimeException("Reflection issue calling variantNotApplicable() for " + planClass.getSimpleName(), e);
+			for (TestPlan.Variant v : planInstance.variantNotApplicable()) {
+				exclusions.computeIfAbsent(v.key, k -> new HashSet<>()).add(v.value);
 			}
 			this.planExclusions = exclusions;
 		}
@@ -445,32 +429,8 @@ public class VariantService {
 			return new ArrayList<>(fields);
 		}
 
-		@SuppressWarnings("unchecked")
 		public List<String> certificationProfileForVariant(VariantSelection variantSelection) {
-
-
-			try {
-				// Test plans can implement a static method to list modules with variants to run them with; as
-				// java doesn't allow interfaces to define static methods (unless they define the implementation too)
-				// we have to call this via reflection:
-				Method m = planClass.getDeclaredMethod("certificationProfileName", VariantSelection.class);
-				Object result = m.invoke(null, variantSelection);
-				if (result instanceof List) {
-					return (List<String>) result;
-				}
-				return List.of((String)result);
-			} catch (NoSuchMethodException e) {
-				// class doesn't implement this so doesn't have any certification profiles
-				return Collections.emptyList();
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
-			} catch (InvocationTargetException e) {
-				Throwable target = e.getTargetException();
-				if (target instanceof RuntimeException exception) {
-					throw exception;
-				}
-				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
-			}
+			return planInstance.certificationProfileName(variantSelection);
 		}
 
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {

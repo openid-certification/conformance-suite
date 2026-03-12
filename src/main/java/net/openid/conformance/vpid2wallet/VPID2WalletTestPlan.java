@@ -14,7 +14,8 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.wallettest
 )
 public class VPID2WalletTestPlan implements TestPlan {
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
@@ -36,7 +37,8 @@ public class VPID2WalletTestPlan implements TestPlan {
 			)
 		);
 	}
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String responseMode = v.get("response_mode");
@@ -62,7 +64,7 @@ public class VPID2WalletTestPlan implements TestPlan {
 			certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDScheme + " " + responseMode;
 		}
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 
 }

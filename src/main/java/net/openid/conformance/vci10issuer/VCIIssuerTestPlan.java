@@ -15,7 +15,8 @@ import java.util.List;
 )
 public class VCIIssuerTestPlan implements TestPlan {
 
-	public static List<Variant> variantNotApplicable() {
+	@Override
+	public List<Variant> variantNotApplicable() {
 		return List.of(
 			new Variant(FAPI2FinalOPProfile.class, "plain_fapi"),
 			new Variant(FAPI2FinalOPProfile.class, "openbanking_uk"),
@@ -27,7 +28,8 @@ public class VCIIssuerTestPlan implements TestPlan {
 		);
 	}
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(

@@ -4,6 +4,8 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.util.List;
+
 @PublishTestPlan(
 	testPlanName = "oidcc-client-test-3rd-party-init-login-test-plan",
 	displayName = "OpenID Connect Core Client Login Tests: Relying party 3rd party initiated login tests",
@@ -14,8 +16,9 @@ import net.openid.conformance.variant.VariantSelection;
 )
 public class OIDCCClient3rdPartyInitiatedLoginTestPlan implements TestPlan {
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "3rd Party-Init RP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("3rd Party-Init RP");
 	}
 
 }

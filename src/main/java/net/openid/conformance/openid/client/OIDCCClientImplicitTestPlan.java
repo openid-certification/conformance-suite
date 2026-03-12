@@ -17,7 +17,8 @@ import java.util.List;
 )
 public class OIDCCClientImplicitTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		// This plan attempts to match implicit relying party tests as defined here:
 		// https://openid.net/wordpress-content/uploads/2018/06/OpenID-Connect-Conformance-Profiles.pdf
 		// the tests are in the same order as the table
@@ -129,8 +130,9 @@ public class OIDCCClientImplicitTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Implicit RP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Implicit RP");
 	}
 
 }

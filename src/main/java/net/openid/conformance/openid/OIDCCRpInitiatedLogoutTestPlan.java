@@ -16,7 +16,8 @@ import java.util.List;
 )
 public class OIDCCRpInitiatedLogoutTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		// This plan attempts to match 'RP-Initiated Logout OP' as defined here:
 		// https://openid.net/certification/logout_op_testing/
 
@@ -51,8 +52,9 @@ public class OIDCCRpInitiatedLogoutTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "RP-Initiated OP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("RP-Initiated OP");
 	}
 
 }
