@@ -24,7 +24,7 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		FAPI2SPFinalEnsureServerAcceptsRequestObjectWithMultipleAud.class,
 		FAPI2SPFinalEnsureAuthorizationRequestWithoutStateSuccess.class,
 		FAPI2SPFinalEnsureAuthorizationRequestWithoutNonceSuccess.class,
-		FAPI2SPFinalEnsureRequestObjectWith64CharNonceSuccess.class,
+		FAPI2SPFinalEnsureAuthorizationRequestWith64CharNonceSuccess.class,
 		FAPI2SPFinalEnsureOtherScopeOrderSucceeds.class,
 		FAPI2SPFinalTestClaimsParameterIdentityClaims.class,
 		FAPI2SPFinalAccessTokenTypeHeaderCaseSensitivity.class,
@@ -45,8 +45,8 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		// Possible failure case
 		FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject.class,
 		FAPI2SPFinalEnsureDifferentStateInsideAndOutsideRequestObject.class,
-		FAPI2SPFinalEnsureRequestObjectWithLongNonce.class,
-		FAPI2SPFinalEnsureRequestObjectWithLongState.class,
+		FAPI2SPFinalEnsureAuthorizationRequestWithLongNonce.class,
+		FAPI2SPFinalEnsureAuthorizationRequestWithLongState.class,
 
 		// Negative tests for request objects
 		FAPI2SPFinalEnsureRequestObjectWithoutExpFails.class,

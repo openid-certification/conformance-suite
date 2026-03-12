@@ -43,8 +43,8 @@ public class FAPI2SPFinalClientCredentialsGrantTestPlan implements TestPlan {
 		modules.remove(FAPI2SPFinalEnsureAuthorizationRequestWithoutNonceSuccess.class);
 		modules.remove(FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject.class);
 		modules.remove(FAPI2SPFinalEnsureOtherScopeOrderSucceeds.class);
-		modules.remove(FAPI2SPFinalEnsureRequestObjectWith64CharNonceSuccess.class);
-		modules.remove(FAPI2SPFinalEnsureRequestObjectWithLongNonce.class);
+		modules.remove(FAPI2SPFinalEnsureAuthorizationRequestWith64CharNonceSuccess.class);
+		modules.remove(FAPI2SPFinalEnsureAuthorizationRequestWithLongNonce.class);
 		modules.remove(FAPI2SPFinalTestClaimsParameterIdentityClaims.class);
 
 		// these require a profile other than fapi_client_credentials_grant, so remove them (otherwise the VariantService gets upset on app start)
@@ -63,7 +63,7 @@ public class FAPI2SPFinalClientCredentialsGrantTestPlan implements TestPlan {
 		modules.remove(FAPI2SPFinalEnsureMismatchedDpopJktFails.class);
 		modules.remove(FAPI2SPFinalEnsureRedirectUriInAuthorizationRequest.class);
 		modules.remove(FAPI2SPFinalEnsureRegisteredRedirectUri.class);
-		modules.remove(FAPI2SPFinalEnsureRequestObjectWithLongState.class);
+		modules.remove(FAPI2SPFinalEnsureAuthorizationRequestWithLongState.class);
 		modules.remove(FAPI2SPFinalEnsureRequestObjectWithoutRedirectUriFails.class);
 		modules.remove(FAPI2SPFinalEnsureResponseTypeCodeIdTokenFails.class);
 		modules.remove(FAPI2SPFinalEnsureResponseTypeTokenFails.class);
