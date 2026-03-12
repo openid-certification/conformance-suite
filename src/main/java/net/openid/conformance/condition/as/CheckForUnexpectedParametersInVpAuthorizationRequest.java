@@ -20,6 +20,7 @@ public class CheckForUnexpectedParametersInVpAuthorizationRequest extends Abstra
 		"state",
 		"response_type",
 		"response_mode",
+		"verifier_info",
 		// these are legal, and we have separate conditions that deal with them:
 		"scope", // not valid when using dcql_query
 		"request_uri_method", // not supported by suite (but it is legal to ignore it)
