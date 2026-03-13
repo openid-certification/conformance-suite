@@ -282,7 +282,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected Boolean jarm;
 	protected boolean allowPlainErrorResponseForJarm = false;
 	protected Boolean isPar;
-	protected Boolean isBrazil;
 	protected Boolean isOpenId;
 	protected Boolean isSignedRequest;
 	protected Boolean profileRequiresMtlsEverywhere;
@@ -344,7 +343,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isPar = true;
-		isBrazil = profileBehavior instanceof OpenBankingBrazilProfileBehavior;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
