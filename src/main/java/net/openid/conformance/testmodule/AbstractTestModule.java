@@ -563,6 +563,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	protected void call(ConditionSequence sequence) {
+		if (sequence == null) {
+			return;
+		}
 		logger.info(getId() + ":   Starting sequence " + sequence.getClass().getSimpleName());
 
 		// execute the sequence

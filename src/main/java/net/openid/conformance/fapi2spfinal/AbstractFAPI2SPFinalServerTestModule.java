@@ -140,10 +140,6 @@ import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
-import net.openid.conformance.testmodule.Command;
-import net.openid.conformance.testmodule.ConditionCallBuilder;
-import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.TestExecutionUnit;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
@@ -328,57 +324,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS;
 	}
 
-	// Bridge methods for FAPI2ProfileBehavior (package-private)
-	void doCallAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
-		callAndStopOnFailure(conditionClass, requirements);
-	}
-
-	void doCallAndContinueOnFailure(Class<? extends Condition> conditionClass, ConditionResult result, String... requirements) {
-		callAndContinueOnFailure(conditionClass, result, requirements);
-	}
-
-	void doSkipIfMissing(String[] stringValues, String[] objValues, ConditionResult missingResult,
-						 Class<? extends Condition> conditionClass, ConditionResult failureResult, String... requirements) {
-		skipIfMissing(stringValues, objValues, missingResult, conditionClass, failureResult, requirements);
-	}
-
-	void doSkipIfElementMissing(String objId, String element, ConditionResult missingResult,
-								Class<? extends Condition> conditionClass, ConditionResult failureResult, String... requirements) {
-		skipIfElementMissing(objId, element, missingResult, conditionClass, failureResult, requirements);
-	}
-
-	void doCall(TestExecutionUnit unit) {
-		call(unit);
-	}
-
-	void doCallSequence(Class<? extends ConditionSequence> seqClass) {
-		call(sequence(seqClass));
-	}
-
-	ConditionSequence doSequenceOf(TestExecutionUnit... units) {
-		return sequenceOf(units);
-	}
-
-	ConditionCallBuilder doCondition(Class<? extends Condition> conditionClass) {
-		return condition(conditionClass);
-	}
-
-	Command doExec() {
-		return exec();
-	}
-
-	Environment doGetEnv() {
-		return env;
-	}
-
-	Class<? extends ConditionSequence> doGetAddTokenEndpointClientAuthentication() {
-		return addTokenEndpointClientAuthentication;
-	}
-
-	boolean doIsSecondClient() {
-		return isSecondClient();
-	}
-
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
@@ -464,7 +409,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected void setupResourceEndpoint() {
-		profileBehavior.setupResourceEndpoint();
+		call(profileBehavior.setupResourceEndpoint());
 	}
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
@@ -516,13 +461,13 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected void validateClientConfiguration() {
-		profileBehavior.configureClientScope();
+		call(profileBehavior.configureClientScope());
 		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
-		profileBehavior.validateKeyAlgorithms();
+		call(profileBehavior.validateKeyAlgorithms());
 		callAndContinueOnFailure(FAPI2FinalEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 
 		boolean mtlsRequired =
@@ -585,7 +530,10 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 			addClientAuthenticationToPAREndpointRequest();
 
-			profileBehavior.addParEndpointProfileHeaders();
+			if (env.getObject("pushed_authorization_request_endpoint_request_headers") == null) {
+				env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
+			}
+			call(profileBehavior.addParEndpointProfileHeaders());
 
 			performParAuthorizationRequestFlow();
 		} else {
@@ -787,7 +735,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		addPkceCodeVerifier();
 
-		profileBehavior.addTokenEndpointProfileHeaders();
+		call(profileBehavior.addTokenEndpointProfileHeaders());
 	}
 
 	protected void addPkceCodeVerifier() {
@@ -864,7 +812,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, ConditionResult.WARNING, "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-		profileBehavior.validateExpiresIn();
+		call(profileBehavior.validateExpiresIn());
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
@@ -898,8 +846,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 			performProfileIdTokenValidation();
 
-			profileBehavior.validateIdTokenSigningAlg();
-			profileBehavior.validateIdTokenEncryption();
+			call(profileBehavior.validateIdTokenSigningAlg());
+			call(profileBehavior.validateIdTokenEncryption());
 
 			// code flow - all hashes are optional.
 			callAndContinueOnFailure(ExtractCHash.class, ConditionResult.INFO, "OIDCC-3.3.2.11");
@@ -924,7 +872,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RAR-7");
 		}
 
-		profileBehavior.validateTokenEndpointResponseInteractionId();
+		call(profileBehavior.validateTokenEndpointResponseInteractionId());
 	}
 
 	protected void createDpopForTokenEndpoint() {
@@ -1087,9 +1035,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
-		profileBehavior.addResourceEndpointProfileHeaders(isSecondClient());
+		call(profileBehavior.addResourceEndpointProfileHeaders(isSecondClient()));
 
-		profileBehavior.setupResourceEndpointRequestBody(brazilPayments);
+		call(profileBehavior.setupResourceEndpointRequestBody(brazilPayments));
 
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
@@ -1115,7 +1063,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "RFC7231-7.1.1.2");
 
-		profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient());
+		call(profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient()));
 
 		if (brazilPayments) {
 			validateBrazilPaymentInitiationSignedResponse();
@@ -1340,7 +1288,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		callAndContinueOnFailure(EnsureMinimumRequestUriEntropy.class, ConditionResult.FAILURE, "PAR-2.2", "PAR-7.1", "JAR-10.2");
 
-		profileBehavior.validateParResponseProfileHeaders();
+		call(profileBehavior.validateParResponseProfileHeaders());
 
 		performPARRedirectWithRequestUri();
 	}

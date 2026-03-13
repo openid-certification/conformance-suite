@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 
@@ -29,25 +30,35 @@ public class ConsumerDataRightAuProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
-	public void validateIdTokenEncryption() {
-		module.doCallAndContinueOnFailure(ValidateIdTokenEncrypted.class,
-			ConditionResult.FAILURE, "CDR-tokens");
+	public ConditionSequence validateIdTokenEncryption() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(ValidateIdTokenEncrypted.class,
+					ConditionResult.FAILURE, "CDR-tokens");
+			}
+		};
 	}
 
 	@Override
-	public void addResourceEndpointProfileHeaders(boolean isSecondClient) {
-		// CDR requires auth date for all authenticated resource server endpoints
-		module.doCallAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "CDR-http-headers");
+	public ConditionSequence addResourceEndpointProfileHeaders(boolean isSecondClient) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				// CDR requires auth date for all authenticated resource server endpoints
+				callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "CDR-http-headers");
 
-		if (!isSecondClient) {
-			module.doCallAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
-			// CDR requires this header when the x-fapi-customer-ip-address header is present
-			module.doCallAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
-			module.doCallAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-			module.doCallAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class,
-				"CID-SP-4.2-12", "CDR-http-headers");
-		}
+				if (!isSecondClient) {
+					callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
+					// CDR requires this header when the x-fapi-customer-ip-address header is present
+					callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
+					callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+					callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class,
+						"CID-SP-4.2-12", "CDR-http-headers");
+				}
 
-		module.doCallAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
+				callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
+			}
+		};
 	}
 }

@@ -27,9 +27,9 @@ public class OpenBankingUkProfileBehavior extends FAPI2ProfileBehavior {
 	@Override
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
 		return () -> new OpenBankingUkPreAuthorizationSteps(
-			module.doIsSecondClient(),
+			module.isSecondClient(),
 			false,
-			module.doGetAddTokenEndpointClientAuthentication());
+			module.addTokenEndpointClientAuthentication);
 	}
 
 	@Override

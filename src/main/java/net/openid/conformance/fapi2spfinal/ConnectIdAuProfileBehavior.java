@@ -17,7 +17,9 @@ import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionIdPA
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionIdTokenEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToMtlsUserInfoEndpoint;
 import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOpenId;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.ConditionCallBuilder;
 
 /**
  * Profile behavior for ConnectID Australia.
@@ -33,92 +35,140 @@ public class ConnectIdAuProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
-	public void setupResourceEndpoint() {
+	public ConditionSequence setupResourceEndpoint() {
 		// ConnectID always uses the MTLS userinfo endpoint
-		module.doCallAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-4");
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(SetProtectedResourceUrlToMtlsUserInfoEndpoint.class, "CID-SP-4");
+			}
+		};
 	}
 
 	@Override
-	public void configureClientScope() {
-		module.doCallAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
+	public ConditionSequence configureClientScope() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(SetScopeInClientConfigurationToOpenId.class);
+			}
+		};
 	}
 
 	@Override
-	public void addParEndpointProfileHeaders() {
-		addFapiInteractionIdHeader(
-			"pushed_authorization_request_endpoint_request_headers",
+	public ConditionSequence addParEndpointProfileHeaders() {
+		return createFapiInteractionIdHeaderSequence(
 			AddFAPIInteractionIdToPAREndpointRequest.class,
 			"CID-SP-4.2-12", "CDR-http-headers");
 	}
 
 	@Override
 	public void customizeAuthorizationRequestSteps(ConditionSequence seq) {
-		seq.then(module.doCondition(ConnectIdAddPurposeToAuthorizationEndpointRequest.class)
+		seq.then(new ConditionCallBuilder(ConnectIdAddPurposeToAuthorizationEndpointRequest.class)
 			.requirements("CID-PURPOSE-4", "CID-IDA-5.2-10"));
 	}
 
 	@Override
-	public void addTokenEndpointProfileHeaders() {
-		addFapiInteractionIdHeader(
-			"token_endpoint_request_headers",
+	public ConditionSequence addTokenEndpointProfileHeaders() {
+		return createFapiInteractionIdHeaderSequence(
 			AddFAPIInteractionIdToTokenEndpointRequest.class,
 			"CID-SP-4.2-12", "CDR-http-headers");
 	}
 
 	@Override
-	public void validateExpiresIn() {
-		module.doSkipIfMissing(new String[]{"expires_in"}, null, ConditionResult.INFO,
-			AustraliaConnectIdValidateAccessTokenExpiresIn.class, ConditionResult.FAILURE,
-			"CID-SP-4.2-2");
+	public ConditionSequence validateExpiresIn() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(AustraliaConnectIdValidateAccessTokenExpiresIn.class)
+					.skipIfObjectMissing("expires_in")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirement("CID-SP-4.2-2")
+					.dontStopOnFailure());
+			}
+		};
 	}
 
 	@Override
-	public void validateTokenEndpointResponseInteractionId() {
-		module.doSkipIfElementMissing("token_endpoint_response_headers",
-			"x-fapi-interaction-id", ConditionResult.FAILURE,
-			CheckForFAPIInteractionIdInTokenResponse.class,
-			ConditionResult.FAILURE, "CID_SP-4.2-12", "FAPI2-IMP-2.1.1");
-		module.doSkipIfElementMissing("token_endpoint_response_headers",
-			"x-fapi-interaction-id", ConditionResult.FAILURE,
-			EnsureMatchingFAPIInteractionIdTokenEndpoint.class,
-			ConditionResult.FAILURE, "CID_SP-4.2-12", "FAPI2-IMP-2.1.1");
+	public ConditionSequence validateTokenEndpointResponseInteractionId() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(CheckForFAPIInteractionIdInTokenResponse.class)
+					.skipIfElementMissing("token_endpoint_response_headers", "x-fapi-interaction-id")
+					.onSkip(ConditionResult.FAILURE)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("CID_SP-4.2-12", "FAPI2-IMP-2.1.1")
+					.dontStopOnFailure());
+				call(condition(EnsureMatchingFAPIInteractionIdTokenEndpoint.class)
+					.skipIfElementMissing("token_endpoint_response_headers", "x-fapi-interaction-id")
+					.onSkip(ConditionResult.FAILURE)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("CID_SP-4.2-12", "FAPI2-IMP-2.1.1")
+					.dontStopOnFailure());
+			}
+		};
 	}
 
 	@Override
-	public void addResourceEndpointProfileHeaders(boolean isSecondClient) {
-		if (!isSecondClient) {
-			// Optional headers for first client
-			module.doCallAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "CDR-http-headers");
-			module.doCallAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
-		}
-		// Mandatory interaction ID for ConnectID on all requests
-		module.doCallAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-		module.doCallAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class,
-			"CID-SP-4.2-12", "CDR-http-headers");
+	public ConditionSequence addResourceEndpointProfileHeaders(boolean isSecondClient) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				if (!isSecondClient) {
+					// Optional headers for first client
+					callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "CDR-http-headers");
+					callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
+				}
+				// Mandatory interaction ID for ConnectID on all requests
+				callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+				callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class,
+					"CID-SP-4.2-12", "CDR-http-headers");
+			}
+		};
 	}
 
 	@Override
-	public void validateResourceEndpointResponseHeaders(boolean isSecondClient) {
+	public ConditionSequence validateResourceEndpointResponseHeaders(boolean isSecondClient) {
 		// Mandatory for ConnectID - use FAILURE skip result
-		module.doSkipIfElementMissing("resource_endpoint_response_headers",
-			"x-fapi-interaction-id", ConditionResult.FAILURE,
-			CheckForFAPIInteractionIdInResourceResponse.class,
-			ConditionResult.FAILURE, "CID-SP-4.2-12", "FAPI2-IMP-2.1.1");
-		module.doSkipIfElementMissing("resource_endpoint_response_headers",
-			"x-fapi-interaction-id", ConditionResult.FAILURE,
-			EnsureMatchingFAPIInteractionId.class,
-			ConditionResult.FAILURE, "CID-SP-4.2-12", "FAPI2-IMP-2.1.1");
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(CheckForFAPIInteractionIdInResourceResponse.class)
+					.skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id")
+					.onSkip(ConditionResult.FAILURE)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("CID-SP-4.2-12", "FAPI2-IMP-2.1.1")
+					.dontStopOnFailure());
+				call(condition(EnsureMatchingFAPIInteractionId.class)
+					.skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id")
+					.onSkip(ConditionResult.FAILURE)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("CID-SP-4.2-12", "FAPI2-IMP-2.1.1")
+					.dontStopOnFailure());
+			}
+		};
 	}
 
 	@Override
-	public void validateParResponseProfileHeaders() {
-		module.doSkipIfElementMissing("pushed_authorization_endpoint_response_headers",
-			"x-fapi-interaction-id", ConditionResult.FAILURE,
-			CheckForFAPIInteractionIdInPARResponse.class,
-			ConditionResult.FAILURE, "CID-SP-4.2-12", "FAPI2-IMP-2.1.1");
-		module.doSkipIfElementMissing("pushed_authorization_endpoint_response_headers",
-			"x-fapi-interaction-id", ConditionResult.FAILURE,
-			EnsureMatchingFAPIInteractionIdPAREndpoint.class,
-			ConditionResult.FAILURE, "CID-SP-4.2-12", "FAPI2-IMP-2.1.1");
+	public ConditionSequence validateParResponseProfileHeaders() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(CheckForFAPIInteractionIdInPARResponse.class)
+					.skipIfElementMissing("pushed_authorization_endpoint_response_headers", "x-fapi-interaction-id")
+					.onSkip(ConditionResult.FAILURE)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("CID-SP-4.2-12", "FAPI2-IMP-2.1.1")
+					.dontStopOnFailure());
+				call(condition(EnsureMatchingFAPIInteractionIdPAREndpoint.class)
+					.skipIfElementMissing("pushed_authorization_endpoint_response_headers", "x-fapi-interaction-id")
+					.onSkip(ConditionResult.FAILURE)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("CID-SP-4.2-12", "FAPI2-IMP-2.1.1")
+					.dontStopOnFailure());
+			}
+		};
 	}
 }
