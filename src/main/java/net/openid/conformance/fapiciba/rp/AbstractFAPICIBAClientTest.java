@@ -252,6 +252,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
+		env.putString("external_url_override", externalUrlOverride);
 		env.putObject("config", config);
 
 		profile = getVariant(FAPICIBAProfile.class);
