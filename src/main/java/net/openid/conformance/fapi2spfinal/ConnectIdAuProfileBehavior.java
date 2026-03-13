@@ -99,13 +99,13 @@ public class ConnectIdAuProfileBehavior extends FAPI2ProfileBehavior {
 					.skipIfElementMissing("token_endpoint_response_headers", "x-fapi-interaction-id")
 					.onSkip(ConditionResult.FAILURE)
 					.onFail(ConditionResult.FAILURE)
-					.requirements("CID_SP-4.2-12", "FAPI2-IMP-2.1.1")
+					.requirements("CID-SP-4.2-12", "FAPI2-IMP-2.1.1")
 					.dontStopOnFailure());
 				call(condition(EnsureMatchingFAPIInteractionIdTokenEndpoint.class)
 					.skipIfElementMissing("token_endpoint_response_headers", "x-fapi-interaction-id")
 					.onSkip(ConditionResult.FAILURE)
 					.onFail(ConditionResult.FAILURE)
-					.requirements("CID_SP-4.2-12", "FAPI2-IMP-2.1.1")
+					.requirements("CID-SP-4.2-12", "FAPI2-IMP-2.1.1")
 					.dontStopOnFailure());
 			}
 		};
