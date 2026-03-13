@@ -80,6 +80,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	}
 
+	public TestInstanceEventLog getEventLog() {
+		return eventLog;
+	}
+
 	@Override
 	public boolean autoStart() {
 		/* automatically start all tests by default */

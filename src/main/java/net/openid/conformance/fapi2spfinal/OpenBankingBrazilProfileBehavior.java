@@ -49,7 +49,7 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 	protected ConditionSequence createOBBPreauthSteps() {
 		boolean payments = module.scopeContains("payments");
 		if (payments) {
-			module.doWithEventLog(log -> log.log(module.getName(), "Payments scope present - protected resource assumed to be a payments endpoint"));
+			module.getEventLog().log(module.getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
 			module.updatePaymentConsent();
 		}
 		return createOpenBankingBrazilPreAuthorizationSteps(payments, false);

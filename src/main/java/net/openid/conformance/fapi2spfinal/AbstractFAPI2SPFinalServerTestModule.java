@@ -3,7 +3,6 @@ package net.openid.conformance.fapi2spfinal;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumClientKeyLength;
@@ -154,7 +153,6 @@ import net.openid.conformance.variant.VariantSetup;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -1168,10 +1166,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	protected void updatePaymentConsent() {
 		callAndStopOnFailure(FAPIBrazilSetPaymentDateToToday.class);
-	}
-
-	protected void doWithEventLog(Consumer<TestInstanceEventLog> action) {
-		action.accept(eventLog);
 	}
 
 	protected void performPARRedirectWithRequestUri() {
