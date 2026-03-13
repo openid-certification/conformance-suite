@@ -54,7 +54,15 @@ public class CheckVerifierInfoInVpAuthorizationRequest extends AbstractCondition
 
 			JsonArray credentialIdsArray = credentialIds.getAsJsonArray();
 			if (credentialIdsArray.isEmpty()) {
-				throw error("Optional 'credential_ids' attribute in verifier_info in authorization request parameters must be an empty array if present", args("credential_ids", credentialIds));
+				throw error("Optional 'credential_ids' attribute in verifier_info in authorization request parameters must not be empty if present", args("credential_ids", credentialIds));
+			}
+
+			for (int i = 0; i < credentialIdsArray.size(); i++) {
+				JsonElement element = credentialIdsArray.get(i);
+				if (!(element.isJsonPrimitive() && element.getAsJsonPrimitive().isString())) {
+					throw error("All elements in 'credential_ids' array in verifier_info must be strings",
+						args("credential_ids", credentialIds, "invalid_element_index", i, "invalid_element", element));
+				}
 			}
 
 			// for more advanced validation we could also cross-check the credential_ids with the credentials from the dcql_query

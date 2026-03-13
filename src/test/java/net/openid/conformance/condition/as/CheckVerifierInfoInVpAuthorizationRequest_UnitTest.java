@@ -149,4 +149,15 @@ public class CheckVerifierInfoInVpAuthorizationRequest_UnitTest {
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
+
+	@Test
+	public void testEvaluate_credentialIdsContainsNonString() {
+		JsonObject authParams = JsonParser.parseString(
+			"{\"verifier_info\": {\"format\": \"jwt\", \"data\": \"eyJ\", \"credential_ids\": [\"cred1\", 123]}}"
+		).getAsJsonObject();
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authParams);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
 }

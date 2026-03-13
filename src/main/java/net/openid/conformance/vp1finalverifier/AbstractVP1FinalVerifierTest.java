@@ -15,6 +15,7 @@ import net.openid.conformance.condition.as.CheckNoScopeParameter;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
 import net.openid.conformance.condition.as.CheckRequestUriMethodParameter;
+import net.openid.conformance.condition.as.CheckForUnexpectedPropertiesInVerifierInfo;
 import net.openid.conformance.condition.as.CheckVerifierInfoInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
@@ -343,10 +344,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureResponseTypeIsVpToken.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(ValidateResponseMode.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckNoClientIdSchemeParameter.class, ConditionResult.FAILURE);
-		callAndContinueOnFailure(CheckNoScopeParameter.class, ConditionResult.FAILURE, "OID4VPOID4VP-1FINAL-5.1");
-		callAndContinueOnFailure(CheckRequestUriMethodParameter.class, ConditionResult.WARNING, "OID4VPOID4VP-1FINAL-5.1");
+		callAndContinueOnFailure(CheckNoScopeParameter.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+		callAndContinueOnFailure(CheckRequestUriMethodParameter.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
-		callAndContinueOnFailure(CheckVerifierInfoInVpAuthorizationRequest.class, ConditionResult.WARNING, "OID4VPOID4VP-1FINAL-5.1");
+		callAndContinueOnFailure(CheckVerifierInfoInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+		callAndContinueOnFailure(CheckForUnexpectedPropertiesInVerifierInfo.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 
 		switch (clientIdPrefix) {
 			case X509_SAN_DNS -> {
