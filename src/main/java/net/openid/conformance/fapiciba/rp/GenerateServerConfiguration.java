@@ -6,6 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.BaseUrlUtil;
 
 public class GenerateServerConfiguration extends AbstractCondition {
 
@@ -14,7 +15,7 @@ public class GenerateServerConfiguration extends AbstractCondition {
 	@PostEnvironment(required = "server", strings = { "issuer", "discoveryUrl" })
 	public Environment evaluate(Environment env) {
 
-		String baseUrl = env.getString("base_url");
+		String baseUrl = BaseUrlUtil.resolveEffectiveBaseUrl(env);
 
 		if (baseUrl.isEmpty()) {
 			throw error("Base URL is empty");
