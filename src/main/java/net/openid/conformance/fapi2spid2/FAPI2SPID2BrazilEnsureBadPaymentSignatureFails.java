@@ -49,7 +49,7 @@ public class FAPI2SPID2BrazilEnsureBadPaymentSignatureFails extends AbstractFAPI
 		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(
 			isSecondClient(),
 			isDpop(),
-			addTokenEndpointClientAuthentication,
+			addClientAuthentication,
 			brazilPayments,
 			false, // open insurance not yet supported in fapi2
 			true,

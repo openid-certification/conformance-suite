@@ -106,7 +106,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
-		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop());
+		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop());
 		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
 				condition(ValidateRefreshTokenNotRotated.class).requirement("BrazilOB-5.2.2-15").dontStopOnFailure());
@@ -129,7 +129,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 				// Restore the previous refresh token.
 				env.putString("refresh_token", env.getString("refresh_token_prev"));
 
-				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.2.1-9").butFirst(condition(WaitFor30Seconds.class));
+				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.2.1-9").butFirst(condition(WaitFor30Seconds.class));
 				call(sequence1);
 			}
 		}
@@ -151,7 +151,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
 
 			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
-			call(sequence(addTokenEndpointClientAuthentication));
+			call(sequence(addClientAuthentication));
 			unmapClientAuthKeys();
 
 			if (isMTLS()) {
@@ -214,7 +214,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 
 			// try client 2's refresh_token with client 1
 			eventLog.startBlock("Attempting to use refresh_token issued to client 2 with client 1");
-			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addTokenEndpointClientAuthentication, isDpop()));
+			call(new RefreshTokenRequestExpectingErrorSteps(isSecondClient(), addClientAuthentication, isDpop()));
 			eventLog.endBlock();
 			fireTestFinished();
 		}

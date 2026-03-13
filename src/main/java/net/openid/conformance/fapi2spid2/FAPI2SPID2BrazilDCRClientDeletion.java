@@ -46,7 +46,7 @@ public class FAPI2SPID2BrazilDCRClientDeletion extends AbstractFAPI2SPID2BrazilD
 			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
 		}
 		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
-		call(sequence(addTokenEndpointClientAuthentication));
+		call(sequence(addClientAuthentication));
 		unmapClientAuthKeys();
 		callSenderConstrainedTokenEndpointAndStopOnFailure();
 	}

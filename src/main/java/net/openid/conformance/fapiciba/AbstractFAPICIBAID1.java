@@ -177,7 +177,7 @@ import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToBackchannelRequest;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
@@ -1304,7 +1304,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addBackchannelClientAuthentication = () -> new AddMTLSClientAuthenticationToBackchannelRequest();
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 		addTokenEndpointAuthToRegistrationRequest = MtlsRegistration.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
