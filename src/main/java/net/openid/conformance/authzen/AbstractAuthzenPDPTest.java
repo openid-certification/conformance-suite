@@ -26,7 +26,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.variant.PDPAuthType;
@@ -113,7 +113,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	@VariantSetup(parameter = PDPAuthType.class, value = "mtls")
 	public void setupMtls() {
 		profileCompleteClientConfiguration = ConfigureClientForMtls.class;
-		addPDPEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addPDPEndpointClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 

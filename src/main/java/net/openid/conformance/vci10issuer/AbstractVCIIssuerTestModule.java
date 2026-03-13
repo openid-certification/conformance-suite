@@ -128,10 +128,8 @@ import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
@@ -294,12 +292,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	// for variants to fill in by calling the setup... family of methods
 	private Class<? extends ConditionSequence> resourceConfiguration;
-	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	protected Class<? extends ConditionSequence> addClientAuthentication;
 	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
 	protected Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 	private Class<? extends ConditionSequence> profileIdTokenValidationSteps;
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
-	protected Class<? extends ConditionSequence> addParEndpointClientAuthentication;
 	protected Supplier<? extends ConditionSequence> createDpopForParEndpointSteps;
 	protected Supplier<? extends ConditionSequence> createDpopForTokenEndpointSteps;
 	protected Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps;
@@ -912,14 +909,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
-		call(sequence(addTokenEndpointClientAuthentication));
+		call(sequence(addClientAuthentication));
 		unmapClientAuthKeys();
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
 		mapClientAuthKeys("pushed_authorization_request_form_parameters",
 			"pushed_authorization_request_endpoint_request_headers");
-		call(sequence(addParEndpointClientAuthentication));
+		call(sequence(addClientAuthentication));
 		unmapClientAuthKeys();
 	}
 
@@ -1588,29 +1585,25 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	@VariantSetup(parameter = VCIClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
-		addParEndpointClientAuthentication = AddMTLSClientAuthenticationToPAREndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = VCIClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
-		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
+		addClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
 
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
-
-		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = VCIClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
-		addTokenEndpointClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
+		addClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
-		addParEndpointClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 	}
 
 	protected void generateClientAttestationKeys() {

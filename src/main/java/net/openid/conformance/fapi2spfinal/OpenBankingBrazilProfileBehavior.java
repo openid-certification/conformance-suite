@@ -59,7 +59,7 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 		return new OpenBankingBrazilPreAuthorizationSteps(
 			module.isSecondClient(),
 			module.isDpop(),
-			module.addTokenEndpointClientAuthentication,
+			module.addClientAuthentication,
 			payments,
 			false, // open insurance not yet supported in fapi2
 			stopAfterConsentEndpointCall,

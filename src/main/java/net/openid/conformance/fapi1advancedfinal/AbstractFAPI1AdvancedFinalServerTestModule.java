@@ -152,8 +152,7 @@ import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs
 import net.openid.conformance.condition.common.FAPICheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
@@ -999,9 +998,9 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
-		addParEndpointClientAuthentication = AddMTLSClientAuthenticationToPAREndpointRequest.class;
+		addParEndpointClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")

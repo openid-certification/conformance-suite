@@ -29,7 +29,7 @@ public class OpenBankingUkProfileBehavior extends FAPI2ProfileBehavior {
 		return () -> new OpenBankingUkPreAuthorizationSteps(
 			module.isSecondClient(),
 			false,
-			module.addTokenEndpointClientAuthentication);
+			module.addClientAuthentication);
 	}
 
 	@Override
