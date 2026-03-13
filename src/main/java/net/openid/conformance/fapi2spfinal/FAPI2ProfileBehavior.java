@@ -203,7 +203,7 @@ public class FAPI2ProfileBehavior {
 	 * Validate profile-specific signed response from the resource endpoint.
 	 * Default does nothing.
 	 */
-	public void validateResourceEndpointSignedResponse() {
+	public void validateResourceEndpointResponse() {
 		// plain FAPI: no signed response validation
 	}
 
@@ -219,7 +219,7 @@ public class FAPI2ProfileBehavior {
 	 * Perform profile-specific configuration validation (e.g. directory checks).
 	 * Default does nothing.
 	 */
-	public ConditionSequence validateDirectoryConfiguration() {
+	public ConditionSequence onConfigure() {
 		// plain FAPI: no directory validation
 		return null;
 	}

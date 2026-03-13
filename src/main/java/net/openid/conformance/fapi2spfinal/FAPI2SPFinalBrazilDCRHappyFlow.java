@@ -23,7 +23,7 @@ public class FAPI2SPFinalBrazilDCRHappyFlow extends AbstractFAPI2SPFinalBrazilDC
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		call(profileBehavior.validateDirectoryConfiguration());
+		call(profileBehavior.onConfigure());
 	}
 
 }

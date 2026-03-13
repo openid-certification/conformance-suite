@@ -45,7 +45,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		call(profileBehavior.validateDirectoryConfiguration());
+		call(profileBehavior.onConfigure());
 		call(profileBehavior.validateDiscoveryEndpointScopes());
 	}
 
@@ -129,7 +129,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		profileBehavior.validateResourceEndpointSignedResponse();
+		profileBehavior.validateResourceEndpointResponse();
 
 		updateResourceRequest();
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
@@ -141,7 +141,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		profileBehavior.validateResourceEndpointSignedResponse();
+		profileBehavior.validateResourceEndpointResponse();
 
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}

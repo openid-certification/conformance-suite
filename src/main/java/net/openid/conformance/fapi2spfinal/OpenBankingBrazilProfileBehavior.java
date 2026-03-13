@@ -150,7 +150,7 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
-	public void validateResourceEndpointSignedResponse() {
+	public void validateResourceEndpointResponse() {
 		if (module.scopeContains("payments")) {
 			module.validateBrazilPaymentInitiationSignedResponse();
 		}
@@ -171,7 +171,7 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
-	public ConditionSequence validateDirectoryConfiguration() {
+	public ConditionSequence onConfigure() {
 		if (module.scopeContains("payments")) {
 			return new AbstractConditionSequence() {
 				@Override

@@ -1030,7 +1030,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		call(profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient()));
 
-		profileBehavior.validateResourceEndpointSignedResponse();
+		profileBehavior.validateResourceEndpointResponse();
 
 		eventLog.endBlock();
 	}
