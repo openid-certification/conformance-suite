@@ -191,12 +191,71 @@ public class FAPI2ProfileBehavior {
 	}
 
 	/**
-	 * Set up the resource endpoint request body for payments APIs.
+	 * Set up the resource endpoint request body (e.g. for signed payment requests).
 	 * Default does nothing.
 	 */
-	public ConditionSequence setupResourceEndpointRequestBody(boolean brazilPayments) {
+	public ConditionSequence setupResourceEndpointRequestBody() {
 		// plain FAPI: no special request body
 		return null;
+	}
+
+	/**
+	 * Validate profile-specific signed response from the resource endpoint.
+	 * Default does nothing.
+	 */
+	public void validateResourceEndpointSignedResponse() {
+		// plain FAPI: no signed response validation
+	}
+
+	/**
+	 * Set alternate accept/content-type headers for resource endpoint requests.
+	 * Default sets UTF-8 JSON accept headers.
+	 */
+	public ConditionSequence setAlternateResourceEndpointContentHeaders() {
+		return null;
+	}
+
+	/**
+	 * Perform profile-specific configuration validation (e.g. directory checks).
+	 * Default does nothing.
+	 */
+	public ConditionSequence validateDirectoryConfiguration() {
+		// plain FAPI: no directory validation
+		return null;
+	}
+
+	/**
+	 * Validate that the discovery endpoint advertises required scopes.
+	 * Default does nothing.
+	 */
+	public ConditionSequence validateDiscoveryEndpointScopes() {
+		// plain FAPI: no scope validation
+		return null;
+	}
+
+	/**
+	 * Set the appropriate scope on a client credentials grant token request.
+	 * Default does nothing.
+	 */
+	public ConditionSequence setTokenEndpointScopeForClientCredentials() {
+		// plain FAPI: no special scope
+		return null;
+	}
+
+	/**
+	 * Create steps for updating a resource request (e.g. re-signing payment JWTs).
+	 * Default only handles DPoP steps.
+	 */
+	public ConditionSequence createUpdateResourceRequestSteps(
+			Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				if (createDpopForResourceEndpointSteps != null) {
+					call(sequence(createDpopForResourceEndpointSteps));
+				}
+			}
+		};
 	}
 
 	/**

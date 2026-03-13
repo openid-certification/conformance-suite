@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumClientKeyLength;
@@ -15,7 +16,6 @@ import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointReq
 import net.openid.conformance.condition.client.AddExpToRequestObject;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
@@ -80,7 +80,6 @@ import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
 import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceResponse;
 import net.openid.conformance.condition.client.FAPI2ValidateJarmSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FetchServerKeys;
@@ -135,7 +134,6 @@ import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToToken
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
@@ -156,6 +154,7 @@ import net.openid.conformance.variant.VariantSetup;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -286,7 +285,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected Boolean isBrazil;
 	protected Boolean isOpenId;
 	protected Boolean isSignedRequest;
-	protected Boolean brazilPayments; // whether using Brazil payments APIs
 	protected Boolean profileRequiresMtlsEverywhere;
 	protected Boolean useDpopAuthCodeBinding;
 	protected Boolean isRarRequest;
@@ -397,8 +395,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		// Set up the client configuration
 		configureClient();
 		setupResourceEndpoint();
-
-		brazilPayments = isBrazil && scopeContains("payments");
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -960,35 +956,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 	}
 
-	public static class UpdateResourceRequestSteps extends AbstractConditionSequence {
-
-		protected Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps;
-		protected boolean brazilPayments;
-
-		public UpdateResourceRequestSteps(Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps, boolean brazilPayments) {
-			this.createDpopForResourceEndpointSteps = createDpopForResourceEndpointSteps;
-			this.brazilPayments = brazilPayments;
-		}
-
-		@Override
-		public void evaluate() {
-			if (createDpopForResourceEndpointSteps != null) {
-				call(sequence(createDpopForResourceEndpointSteps));
-			}
-			if (brazilPayments) {
-				// we use the idempotency header to allow us to make a request more than once; however it is required
-				// that a new jwt is sent in each retry, so update jti/iat & resign
-				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
-				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
-				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-				call(exec().unmapKey("request_object_claims"));
-				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
-			}
-		}
-	}
-
 	protected ConditionSequence makeUpdateResourceRequestSteps() {
-		return new UpdateResourceRequestSteps(createDpopForResourceEndpointSteps, brazilPayments);
+		return profileBehavior.createUpdateResourceRequestSteps(createDpopForResourceEndpointSteps);
 	}
 
 	// Make any necessary updates to a resource request before we send it again
@@ -1037,7 +1006,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		call(profileBehavior.addResourceEndpointProfileHeaders(isSecondClient()));
 
-		call(profileBehavior.setupResourceEndpointRequestBody(brazilPayments));
+		call(profileBehavior.setupResourceEndpointRequestBody());
 
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS ||
@@ -1065,9 +1034,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		call(profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient()));
 
-		if (brazilPayments) {
-			validateBrazilPaymentInitiationSignedResponse();
-		}
+		profileBehavior.validateResourceEndpointSignedResponse();
 
 		eventLog.endBlock();
 	}
@@ -1144,7 +1111,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest.class;
 	}
 
-	private void initProfileBehavior(FAPI2ProfileBehavior behavior) {
+	protected void initProfileBehavior(FAPI2ProfileBehavior behavior) {
 		profileBehavior = behavior;
 		profileBehavior.setModule(this);
 		profileAuthorizationEndpointSetupSteps = profileBehavior.getProfileAuthorizationEndpointSetupSteps();
@@ -1205,20 +1172,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		callAndStopOnFailure(FAPIBrazilSetPaymentDateToToday.class);
 	}
 
-	protected ConditionSequence createOBBPreauthSteps() {
-		if (brazilPayments) {
-			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
-			updatePaymentConsent();
-		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(
-			isSecondClient(),
-			isDpop(),
-			addTokenEndpointClientAuthentication,
-			brazilPayments,
-			false, // open insurance not yet supported in fapi2
-			false,
-			false);
-		return steps;
+	protected void doWithEventLog(Consumer<TestInstanceEventLog> action) {
+		action.accept(eventLog);
 	}
 
 	protected void performPARRedirectWithRequestUri() {

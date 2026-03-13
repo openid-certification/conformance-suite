@@ -1,8 +1,6 @@
 package net.openid.conformance.fapi2spfinal;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -25,11 +23,7 @@ public class FAPI2SPFinalBrazilDCRHappyFlow extends AbstractFAPI2SPFinalBrazilDC
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		if (isBrazil) {
-			if (brazilPayments) {
-				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
-			}
-		}
+		call(profileBehavior.validateDirectoryConfiguration());
 	}
 
 }

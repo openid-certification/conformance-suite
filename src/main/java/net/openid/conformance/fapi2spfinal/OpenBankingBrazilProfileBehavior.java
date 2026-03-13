@@ -9,15 +9,23 @@ import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObj
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForPayments;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
+import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
+import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 
 import java.util.function.Supplier;
 
@@ -35,7 +43,27 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
-		return () -> module.createOBBPreauthSteps();
+		return this::createOBBPreauthSteps;
+	}
+
+	protected ConditionSequence createOBBPreauthSteps() {
+		boolean payments = module.scopeContains("payments");
+		if (payments) {
+			module.doWithEventLog(log -> log.log(module.getName(), "Payments scope present - protected resource assumed to be a payments endpoint"));
+			module.updatePaymentConsent();
+		}
+		return createOpenBankingBrazilPreAuthorizationSteps(payments, false);
+	}
+
+	protected OpenBankingBrazilPreAuthorizationSteps createOpenBankingBrazilPreAuthorizationSteps(boolean payments, boolean stopAfterConsentEndpointCall) {
+		return new OpenBankingBrazilPreAuthorizationSteps(
+			module.isSecondClient(),
+			module.isDpop(),
+			module.addTokenEndpointClientAuthentication,
+			payments,
+			false, // open insurance not yet supported in fapi2
+			stopAfterConsentEndpointCall,
+			false);
 	}
 
 	@Override
@@ -81,8 +109,8 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
-	public ConditionSequence setupResourceEndpointRequestBody(boolean brazilPayments) {
-		if (!brazilPayments) {
+	public ConditionSequence setupResourceEndpointRequestBody() {
+		if (!module.scopeContains("payments")) {
 			return null;
 		}
 
@@ -117,6 +145,102 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 				call(exec().unmapKey("request_object_claims"));
 
 				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
+			}
+		};
+	}
+
+	@Override
+	public void validateResourceEndpointSignedResponse() {
+		if (module.scopeContains("payments")) {
+			module.validateBrazilPaymentInitiationSignedResponse();
+		}
+	}
+
+	@Override
+	public ConditionSequence setAlternateResourceEndpointContentHeaders() {
+		if (module.scopeContains("payments")) {
+			return new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					callAndStopOnFailure(SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest.class);
+					callAndStopOnFailure(SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest.class);
+				}
+			};
+		}
+		return null;
+	}
+
+	@Override
+	public ConditionSequence validateDirectoryConfiguration() {
+		if (module.scopeContains("payments")) {
+			return new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class,
+						ConditionResult.FAILURE);
+				}
+			};
+		}
+		return null;
+	}
+
+	@Override
+	public ConditionSequence validateDiscoveryEndpointScopes() {
+		if (module.scopeContains("payments")) {
+			return new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForPayments.class,
+						ConditionResult.FAILURE);
+				}
+			};
+		}
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments.class,
+					ConditionResult.FAILURE);
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence setTokenEndpointScopeForClientCredentials() {
+		if (module.scopeContains("payments")) {
+			return new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					callAndStopOnFailure(SetPaymentsScopeOnTokenEndpointRequest.class);
+				}
+			};
+		}
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence createUpdateResourceRequestSteps(
+			Supplier<? extends ConditionSequence> createDpopForResourceEndpointSteps) {
+		boolean payments = module.scopeContains("payments");
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				if (createDpopForResourceEndpointSteps != null) {
+					call(sequence(createDpopForResourceEndpointSteps));
+				}
+				if (payments) {
+					// we use the idempotency header to allow us to make a request more than once; however it is required
+					// that a new jwt is sent in each retry, so update jti/iat & resign
+					call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
+					callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+					callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+					call(exec().unmapKey("request_object_claims"));
+					callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
+				}
 			}
 		};
 	}
