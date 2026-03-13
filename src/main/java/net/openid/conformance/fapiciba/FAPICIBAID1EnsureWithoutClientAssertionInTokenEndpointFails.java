@@ -3,7 +3,7 @@ package net.openid.conformance.fapiciba;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddAuthReqIdToTokenEndpointRequest;
-import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
@@ -43,7 +43,9 @@ public class FAPICIBAID1EnsureWithoutClientAssertionInTokenEndpointFails extends
 		callAndStopOnFailure(CreateTokenEndpointRequestForCIBAGrant.class);
 		callAndStopOnFailure(AddAuthReqIdToTokenEndpointRequest.class);
 
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
+		callAndStopOnFailure(AddClientIdToRequest.class);
+		unmapClientAuthKeys();
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");

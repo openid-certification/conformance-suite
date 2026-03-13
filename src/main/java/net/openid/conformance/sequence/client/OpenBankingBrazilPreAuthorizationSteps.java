@@ -88,7 +88,10 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
 		}
 
+		call(exec().mapKey("request_form_parameters", "token_endpoint_request_form_parameters")
+			.mapKey("request_headers", "token_endpoint_request_headers"));
 		call(sequence(addClientAuthenticationToTokenEndpointRequest));
+		call(exec().unmapKey("request_form_parameters").unmapKey("request_headers"));
 
 		if (dpop) {
 			callAndStopOnFailure(GenerateDpopKey.class);

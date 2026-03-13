@@ -421,7 +421,10 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
+		mapClientAuthKeys("pushed_authorization_request_form_parameters",
+			"pushed_authorization_request_endpoint_request_headers");
 		call(sequence(addParEndpointClientAuthentication));
+		unmapClientAuthKeys();
 	}
 
 	@Override

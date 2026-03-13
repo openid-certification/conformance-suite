@@ -42,7 +42,9 @@ public class FAPI2SPFinalBrazilDCRClientDeletion extends AbstractFAPI2SPFinalBra
 		} else {
 			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
 		}
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
+		unmapClientAuthKeys();
 		callSenderConstrainedTokenEndpointAndStopOnFailure();
 	}
 

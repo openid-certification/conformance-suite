@@ -30,7 +30,9 @@ public abstract class AbstractFAPI1AdvancedFinalAttemptReuseAuthorizationCode ex
 		// We're testing that reuse of the _code_ is refused. Reusing the client assertion
 		// (only present for private_key_jwt) is also an error, so generate a new one here.
 		if (generateNewClientAssertionSteps != null) {
+			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(generateNewClientAssertionSteps));
+			unmapClientAuthKeys();
 		}
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-5.2.2-13");

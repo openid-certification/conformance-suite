@@ -1,7 +1,7 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
@@ -12,7 +12,7 @@ public class AddMTLSClientAuthenticationToBackchannelRequest extends AbstractCon
 
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsMTLS.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6");
 
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
+		callAndStopOnFailure(AddClientIdToRequest.class);
 
 	}
 

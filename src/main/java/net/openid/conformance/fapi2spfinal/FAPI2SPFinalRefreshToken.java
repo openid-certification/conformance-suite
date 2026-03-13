@@ -150,7 +150,9 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 			callAndStopOnFailure(CreateRefreshTokenRequest.class);
 			callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
 
+			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(addTokenEndpointClientAuthentication));
+			unmapClientAuthKeys();
 
 			if (isMTLS()) {
 				callAndStopOnFailure(CallTokenEndpointAllowingTLSFailure.class, ConditionResult.FAILURE,  "FAPI2-SP-FINAL-5.3.2.1-6");

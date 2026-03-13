@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientIdToTokenEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
@@ -337,7 +337,10 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 			env.putObject("openid_provider_metadata", opMetadata);
 			env.mapKey("server", "openid_provider_metadata");
 			callAndStopOnFailure(BuildRequestObjectPostToPAREndpoint.class);
+			mapClientAuthKeys("pushed_authorization_request_form_parameters",
+				"pushed_authorization_request_endpoint_request_headers");
 			call(sequence(addParEndpointClientAuthentication));
+			unmapClientAuthKeys();
 		}
 
 		callAndContinueOnFailure(CallPAREndpoint.class, Condition.ConditionResult.FAILURE);
@@ -416,8 +419,10 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-		callAndStopOnFailure(AddClientIdToTokenEndpointRequest.class);
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
+		callAndStopOnFailure(AddClientIdToRequest.class);
 		call(sequence(addTokenEndpointClientAuthentication));
+		unmapClientAuthKeys();
 	}
 
 	//Originally called requestAuthorizationCode()

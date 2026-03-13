@@ -20,8 +20,8 @@ public class CreateTokenEndpointRequestForAuthorizationCodeGrant extends Abstrac
 
 		env.putObject("token_endpoint_request_form_parameters", o);
 
-		// Remove headers as well, so that we're truly starting a 'new' request
-		env.removeObject("token_endpoint_request_headers");
+		// Reset headers so that we're truly starting a 'new' request
+		env.putObject("token_endpoint_request_headers", new JsonObject());
 
 		logSuccess("Created token endpoint request", o);
 

@@ -10,11 +10,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-public class AddBasicAuthClientSecretAuthenticationParameters extends AbstractCondition {
+public class AddBasicAuthClientSecretToRequest extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "client")
-	@PostEnvironment(required = "token_endpoint_request_headers")
+	@PreEnvironment(required = { "request_headers", "client" })
+	@PostEnvironment(required = "request_headers")
 	public Environment evaluate(Environment env) {
 
 		String id = env.getString("client", "client_id");
@@ -29,12 +29,7 @@ public class AddBasicAuthClientSecretAuthenticationParameters extends AbstractCo
 			throw error("Client secret not found in configuration");
 		}
 
-		JsonObject headers = env.getObject("token_endpoint_request_headers");
-
-		if (headers == null) {
-			headers = new JsonObject();
-			env.putObject("token_endpoint_request_headers", headers);
-		}
+		JsonObject headers = env.getObject("request_headers");
 
 		String pw = Base64.getEncoder().encodeToString((
 			//application/x-www-form-urlencoded as per https://tools.ietf.org/html/rfc6749#section-2.3.1

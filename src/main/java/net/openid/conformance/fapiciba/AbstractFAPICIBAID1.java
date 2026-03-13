@@ -375,13 +375,16 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void addClientAuthenticationToBackchannelRequest() {
-		/* This function can be inlined once all CIBA test modules are using Variants */
+		mapClientAuthKeys("backchannel_authentication_endpoint_request_form_parameters",
+			"backchannel_authentication_endpoint_request_headers");
 		call(sequence(addBackchannelClientAuthentication));
+		unmapClientAuthKeys();
 	}
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
-		/* This function can be inlined once all CIBA test modules are using Variants */
+		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
+		unmapClientAuthKeys();
 	}
 
 	@Override

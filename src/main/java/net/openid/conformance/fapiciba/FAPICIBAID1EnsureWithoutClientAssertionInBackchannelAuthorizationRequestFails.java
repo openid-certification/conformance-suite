@@ -1,7 +1,7 @@
 package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.AddClientIdToBackchannelAuthenticationEndpointRequest;
+import net.openid.conformance.condition.client.AddClientIdToRequest;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointErrorHttpStatus;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromBackchannelAuthenticationEndpointContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromBackchannelAuthenticationEndpointError;
@@ -39,8 +39,9 @@ public class FAPICIBAID1EnsureWithoutClientAssertionInBackchannelAuthorizationRe
 
 	@Override
 	protected void addClientAuthenticationToBackchannelRequest() {
-
-		callAndStopOnFailure(AddClientIdToBackchannelAuthenticationEndpointRequest.class);
+		mapClientAuthKeys("backchannel_authentication_endpoint_request_form_parameters", "backchannel_authentication_endpoint_request_headers");
+		callAndStopOnFailure(AddClientIdToRequest.class);
+		unmapClientAuthKeys();
 	}
 
 	@Override

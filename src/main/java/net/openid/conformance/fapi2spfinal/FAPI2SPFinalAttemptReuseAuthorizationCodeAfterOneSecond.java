@@ -73,7 +73,9 @@ public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends Abs
 		// We're testing that reuse of the _code_ is refused. Reusing the client assertion
 		// (only present for private_key_jwt) is also an error, so generate a new one here.
 		if (generateNewClientAssertionSteps != null) {
+			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(generateNewClientAssertionSteps));
+			unmapClientAuthKeys();
 		}
 
 		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI2-SP-FINAL-5.3.2.2-9");

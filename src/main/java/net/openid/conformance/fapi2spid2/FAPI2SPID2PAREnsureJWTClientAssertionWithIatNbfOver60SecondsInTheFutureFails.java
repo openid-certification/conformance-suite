@@ -42,6 +42,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2SPID2PAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails extends AbstractFAPI2SPID2ServerTestModule {
 	@Override
 	protected void addClientAuthenticationToPAREndpointRequest() {
+		mapClientAuthKeys("pushed_authorization_request_form_parameters", "pushed_authorization_request_endpoint_request_headers");
 		if (getVariant(FAPI2ID2OPProfile.class) == FAPI2ID2OPProfile.CBUAE){
 			call(new CreateJWTClientAuthenticationAssertionWithIssAudAndAddToPAREndpointRequest().insertAfter(
 					CreateClientAuthenticationAssertionClaimsWithIssAudience.class,
@@ -51,6 +52,7 @@ public class FAPI2SPID2PAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFu
 					CreateClientAuthenticationAssertionClaims.class,
 					condition(AddIatNbfExpOver60SecondsInTheFutureToClientAuthenticationAssertionClaims.class).requirements("PAR-2", "RFC7519-4.1.5", "RFC7519-4.1.6")));
 		}
+		unmapClientAuthKeys();
 	}
 
 	@Override
