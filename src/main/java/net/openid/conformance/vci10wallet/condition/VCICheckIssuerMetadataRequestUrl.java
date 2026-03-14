@@ -16,10 +16,11 @@ public class VCICheckIssuerMetadataRequestUrl extends AbstractCondition {
 		URI serverIssuerUri = URI.create(serverIssuer);
 		String serverIssuerPath = serverIssuerUri.getPath();
 
-		String expectedRequestUrl = serverIssuerUri.getScheme() + "://" + serverIssuerUri.getAuthority() + "/.well-known/openid-credential-issuer" + serverIssuerPath;
+		String expectedPath = "/.well-known/openid-credential-issuer" + serverIssuerPath;
+		URI requestUri = URI.create(requestUrl);
 
-		if (!expectedRequestUrl.equals(requestUrl)) {
-			throw error("Issuer metadata request does not match expected URL", args("expected_url", expectedRequestUrl, "request_url", requestUrl));
+		if (!expectedPath.equals(requestUri.getPath())) {
+			throw error("Issuer metadata request does not match expected URL path", args("expected_path", expectedPath, "request_url", requestUrl));
 		}
 
 		logSuccess("Issuer metadata request is for correct URL", args("request_url", requestUrl));
