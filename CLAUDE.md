@@ -72,6 +72,12 @@ Available options (passed through to `.gitlab-ci/run-tests.sh`):
 ./scripts/run-integration-tests.sh --ekyc-tests --rerun 1,3
 ```
 
+The tests take a long time to run - always start by identifying a
+relevant happy flow test module and running it using the `--rerun`
+syntax. If that completes successfully then run a fuller set.
+
+Items tagged as "expected" errors, warnings or skips are not a problem.
+
 Prerequisites:
 - MongoDB running on `127.0.0.1:27017` (via `devenv up` or docker-compose)
 - Nginx HTTPS proxy running (ports 8443/8444 -> 8080)
