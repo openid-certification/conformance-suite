@@ -31,10 +31,9 @@
 set -euo pipefail
 
 SUITE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
 JAR="${SUITE_DIR}/target/fapi-test-suite.jar"
 SERVER_PORT=8080
-BASE_URL="https://localhost.emobix.co.uk:8443"
-MONGO_URI="mongodb://127.0.0.1:27017/test_suite"
 SERVER_LOG="${SUITE_DIR}/target/server.log"
 
 # Auto-capture all output to a log file
@@ -66,11 +65,8 @@ sleep 1
 # --- 3. Start server in background ---
 echo "==> Starting server (logging to ${SERVER_LOG})..."
 java -jar "$JAR" \
-  --spring.data.mongodb.uri="$MONGO_URI" \
+  --spring.profiles.active=dev \
   --server.port="$SERVER_PORT" \
-  --fintechlabs.devmode=true \
-  --fintechlabs.base_url="$BASE_URL" \
-  --fintechlabs.base_mtls_url="https://localhost.emobix.co.uk:8444" \
   > "$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 echo "    Server PID: $SERVER_PID"
