@@ -10,6 +10,7 @@ import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-brazil-ensure-bad-payment-signature-fails",
@@ -38,6 +39,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		initProfileBehavior(new BadPaymentSignatureBrazilProfileBehavior());
 	}
