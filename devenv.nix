@@ -70,7 +70,13 @@ in
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                     proxy_set_header X-Forwarded-Proto $scheme;
                     proxy_set_header X-Forwarded-Host $host;
-                    proxy_set_header X-Forwarded-Port 8443;
+                    # Default to 8443 for direct connections; when proxied (e.g. via ngrok),
+                    # use the forwarded port or default to 443 (standard HTTPS)
+                    set $fwd_port 8443;
+                    if ($host != "localhost.emobix.co.uk") {
+                        set $fwd_port 443;
+                    }
+                    proxy_set_header X-Forwarded-Port $fwd_port;
                     proxy_set_header X-Forwarded-Uri $request_uri;
                     proxy_set_header X-Ssl-Cipher $ssl_cipher;
                     proxy_set_header X-Ssl-Protocol $ssl_protocol;
