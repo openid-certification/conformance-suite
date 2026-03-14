@@ -32,6 +32,12 @@ set -euo pipefail
 
 SUITE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
+# Activate the devenv venv so python3 has all required dependencies (httpx, pyparsing, cryptography)
+VENV_DIR="${SUITE_DIR}/.devenv/state/venv"
+if [ -d "$VENV_DIR" ]; then
+    export PATH="${VENV_DIR}/bin:$PATH"
+fi
+
 JAR="${SUITE_DIR}/target/fapi-test-suite.jar"
 SERVER_PORT=8080
 SERVER_LOG="${SUITE_DIR}/target/server.log"
@@ -62,7 +68,24 @@ pkill -f "fapi-test-suite.jar" || true
 kill $(lsof -tiTCP:${SERVER_PORT} -sTCP:LISTEN 2>/dev/null) 2>/dev/null || true
 sleep 1
 
-# --- 3. Start server in background ---
+# --- 3. Detect ngrok tunnel ---
+NGROK_HOSTNAME=""
+NGROK_URL=$(curl -s http://localhost:4040/api/tunnels 2>/dev/null | python3 -c 'import sys,json; t=json.load(sys.stdin).get("tunnels",[]); print(t[0]["public_url"] if t else "")' 2>/dev/null || true)
+if [ -n "$NGROK_URL" ]; then
+    echo "==> Detected ngrok tunnel: $NGROK_URL"
+    export EXTERNAL_URL="$NGROK_URL"
+    NGROK_HOSTNAME=$(python3 -c "import urllib.parse; print(urllib.parse.urlsplit('$NGROK_URL').hostname)")
+    echo "==> Ngrok hostname: $NGROK_HOSTNAME"
+    # Generate VP test signing key+cert with ngrok hostname in SAN so x509_san_dns tests work
+    if [ "$TEST_SUITE" = "--vc-tests" ]; then
+        echo "==> Generating VP test cert with ngrok hostname in SAN..."
+        python3 "${SUITE_DIR}/scripts/generate-vp-test-cert.py" \
+            --hostname "$NGROK_HOSTNAME" \
+            --output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk.json"
+    fi
+fi
+
+# --- 4. Start server in background ---
 echo "==> Starting server (logging to ${SERVER_LOG})..."
 java -jar "$JAR" \
   --spring.profiles.active=dev \
@@ -77,11 +100,13 @@ cleanup() {
     echo "==> Stopping server (PID $SERVER_PID)..."
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
+    # Restore VP signing JWK overwritten by generate-vp-test-cert.py
+    git -C "$SUITE_DIR" checkout -- scripts/certs-keys/vp-signing-jwk.json 2>/dev/null || true
     echo "==> Done."
 }
 trap cleanup EXIT INT TERM
 
-# --- 4. Run tests ---
+# --- 5. Run tests ---
 echo "==> Running tests: $TEST_SUITE"
 "${SUITE_DIR}/.gitlab-ci/run-tests.sh" "$@" && TEST_EXIT=0 || TEST_EXIT=$?
 

@@ -1148,6 +1148,10 @@ async def main():
     for (plan_name, config_json) in to_run:
         with open(config_json) as f:
             json_config = f.read()
+        # Apply placeholder substitutions before parsing, so configs using
+        # {vp-signing-jwk.json} etc. produce valid JSON
+        for k, v in client_certs.items():
+            json_config = json_config.replace('{' + k + '}', v)
         parsed_config = json.loads(json_config)
         if args.no_parallel:
             # put all jobs into same queue
