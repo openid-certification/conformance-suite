@@ -1,0 +1,11 @@
+{
+  "enabledPlugins": {
+    "jdtls-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "gitlab@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true
+  }
+}
