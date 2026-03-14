@@ -7,7 +7,7 @@ description: Review code changes for correctness, spec compliance, and conforman
 
 Review the current branch's changes against a target branch. If an argument is provided, use it as the target branch; otherwise default to origin/master.
 
-Limit findings to changes in scope — do not flag pre-existing issues in unchanged code.
+Concentrate on findings related to changes made on the branch — flag pre-existing issues in unchanged code in a separate section.
 
 ## Process
 
@@ -23,10 +23,14 @@ Limit findings to changes in scope — do not flag pre-existing issues in unchan
 - Null/missing environment keys that would cause runtime failures
 - `@PreEnvironment` and `@PostEnvironment` annotations matching actual usage
 - Condition result severity (FAILURE vs WARNING) appropriate for the check
+- Every code path in a condition must either call `error()` (to fail) or `logSuccess()`/`log()` (to pass) before returning
+- Calls to conditions should include a `requirements` string array referencing the relevant specification section, e.g., `callAndStopOnFailure(Cond.class, "RFC6749-4.1.3")`
 
 ### Conformance Suite Conventions
-- Use `callAndStopOnFailure` vs `callAndContinueOnFailure` appropriately
+- Use `callAndStopOnFailure` vs `callAndContinueOnFailure` appropriately. 'StopOnFailure' is used when the problem would prevent later test steps executing correctly.
 - Environment paths navigated correctly (e.g., `env.getString("object", "nested.path")`)
+- Error messages for configuration issues should reference UI labels from `schedule-test.html`, not internal JSON key names, and include "in the test configuration"
+- Unit test files must follow the `*_UnitTest.java` naming convention
 
 ### Spec Compliance
 - RFC/spec references cited in conditions match the actual requirement
