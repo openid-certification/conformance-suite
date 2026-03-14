@@ -1,5 +1,10 @@
 # yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
 inputs:
+  git-hooks:
+    url: github:cachix/git-hooks.nix
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
   nixpkgs:
     url: github:cachix/devenv-nixpkgs/rolling
   # pinned nixpkgs revision that has mongodb 6.0.13, matching production
@@ -8,5 +13,4 @@ inputs:
   # pinned nixpkgs revision that has nginx mainline 1.27.3, matching production (nginx-ingress:4.0.0)
   nixpkgs-nginx:
     url: github:NixOS/nixpkgs/a716b6d484889ea78aec9289a7fcaed9cbe7727a
-
 allowUnfree: true
