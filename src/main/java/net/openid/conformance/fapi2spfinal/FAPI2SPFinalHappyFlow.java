@@ -12,11 +12,6 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments;
-import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForPayments;
-import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
 import net.openid.conformance.condition.common.CheckForBCP195InsecureFAPICiphers;
@@ -50,14 +45,8 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
-		if (isBrazil) {
-			if (brazilPayments) {
-				callAndContinueOnFailure(FAPIBrazilCheckDirectoryKeystore.class, Condition.ConditionResult.FAILURE);
-				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForPayments.class, Condition.ConditionResult.FAILURE);
-			} else {
-				callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments.class, Condition.ConditionResult.FAILURE);
-			}
-		}
+		call(profileBehavior.onConfigure());
+		call(profileBehavior.validateDiscoveryEndpointScopes());
 	}
 
 	@Override
@@ -124,9 +113,9 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 			callAndStopOnFailure(AddCdrXCdsClientHeadersToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 		// try different, valid accept headers to verify server accepts them
-		if (brazilPayments) {
-			callAndStopOnFailure(SetApplicationJwtCharsetUtf8ContentTypeHeaderForResourceEndpointRequest.class);
-			callAndStopOnFailure(SetApplicationJwtCharsetUtf8AcceptHeaderForResourceEndpointRequest.class);
+		ConditionSequence alternateHeaders = profileBehavior.setAlternateResourceEndpointContentHeaders();
+		if (alternateHeaders != null) {
+			call(alternateHeaders);
 		} else {
 			callAndStopOnFailure(SetUtf8JsonAcceptHeadersForResourceEndpointRequest.class);
 		}
@@ -140,9 +129,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		if (brazilPayments) {
-			validateBrazilPaymentInitiationSignedResponse();
-		}
+		profileBehavior.validateResourceEndpointResponse();
 
 		updateResourceRequest();
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
@@ -154,9 +141,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		if (brazilPayments) {
-			validateBrazilPaymentInitiationSignedResponse();
-		}
+		profileBehavior.validateResourceEndpointResponse();
 
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}

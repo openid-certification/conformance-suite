@@ -80,6 +80,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	}
 
+	public TestInstanceEventLog getEventLog() {
+		return eventLog;
+	}
+
 	@Override
 	public boolean autoStart() {
 		/* automatically start all tests by default */
@@ -563,6 +567,9 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	protected void call(ConditionSequence sequence) {
+		if (sequence == null) {
+			return;
+		}
 		logger.info(getId() + ":   Starting sequence " + sequence.getClass().getSimpleName());
 
 		// execute the sequence

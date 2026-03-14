@@ -6,9 +6,11 @@ import net.openid.conformance.condition.client.FAPIBrazilSignPaymentConsentReque
 import net.openid.conformance.condition.client.InvalidateConsentEndpointRequestSignature;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
+import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantSetup;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-brazil-ensure-bad-payment-signature-fails",
@@ -37,23 +39,9 @@ import net.openid.conformance.variant.VariantNotApplicable;
 public class FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override
-	protected ConditionSequence createOBBPreauthSteps() {
-		if (brazilPayments) {
-			eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
-		}
-		OpenBankingBrazilPreAuthorizationSteps steps = new OpenBankingBrazilPreAuthorizationSteps(
-			isSecondClient(),
-			isDpop(),
-			addTokenEndpointClientAuthentication,
-			brazilPayments,
-			false, // open insurance not yet supported in fapi2
-			true,
-			false);
-
-		steps.insertAfter(FAPIBrazilSignPaymentConsentRequest.class,
-			condition(InvalidateConsentEndpointRequestSignature.class));
-
-		return steps;
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil")
+	public void setupOpenBankingBrazil() {
+		initProfileBehavior(new BadPaymentSignatureBrazilProfileBehavior());
 	}
 
 	@Override
@@ -69,5 +57,27 @@ public class FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFA
 		call(exec().unmapKey("endpoint_response"));
 
 		fireTestFinished();
+	}
+
+	/**
+	 * Custom profile behavior that creates pre-auth steps with an invalidated payment signature.
+	 */
+	static class BadPaymentSignatureBrazilProfileBehavior extends OpenBankingBrazilProfileBehavior {
+
+		@Override
+		protected OpenBankingBrazilPreAuthorizationSteps createOpenBankingBrazilPreAuthorizationSteps(boolean payments, boolean stopAfterConsentEndpointCall) {
+			//  stopAfterConsentEndpointCall is true so that the consent endpoint is not called
+			return super.createOpenBankingBrazilPreAuthorizationSteps(payments, true);
+		}
+
+		@Override
+		protected ConditionSequence createOBBPreauthSteps() {
+			ConditionSequence steps = super.createOBBPreauthSteps();
+
+			steps.insertAfter(FAPIBrazilSignPaymentConsentRequest.class,
+				new ConditionCallBuilder(InvalidateConsentEndpointRequestSignature.class));
+
+			return steps;
+		}
 	}
 }

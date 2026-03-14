@@ -11,8 +11,6 @@ import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
-import net.openid.conformance.condition.client.SetConsentsScopeOnTokenEndpointRequest;
-import net.openid.conformance.condition.client.SetPaymentsScopeOnTokenEndpointRequest;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClient;
 import net.openid.conformance.condition.client.UnregisterDynamicallyRegisteredClientExpectingFailure;
 import net.openid.conformance.condition.client.ValidateErrorFromTokenEndpointResponseError;
@@ -37,11 +35,7 @@ public class FAPI2SPFinalBrazilDCRClientDeletion extends AbstractFAPI2SPFinalBra
 
 	protected void performClientCredentialsGrant() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		if (brazilPayments) {
-			callAndStopOnFailure(SetPaymentsScopeOnTokenEndpointRequest.class);
-		} else {
-			callAndStopOnFailure(SetConsentsScopeOnTokenEndpointRequest.class);
-		}
+		call(profileBehavior.setTokenEndpointScopeForClientCredentials());
 		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 		call(sequence(addTokenEndpointClientAuthentication));
 		unmapClientAuthKeys();
