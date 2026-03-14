@@ -1,5 +1,6 @@
 package net.openid.conformance.vpid3verifier;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -113,6 +114,9 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+		if (!Strings.isNullOrEmpty(externalUrlOverride)) {
+			baseUrl = externalUrlOverride;
+		}
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
