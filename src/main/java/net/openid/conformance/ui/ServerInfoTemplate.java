@@ -22,7 +22,7 @@ public class ServerInfoTemplate {
 	@Value("${fintechlabs.show_external_ip_address}")
 	private Boolean showExternalIpAddress;
 
-	@Autowired
+	@Autowired(required = false)
 	private GitProperties gitProperties;
 
 	private static final String URI = "https://api.ipify.org/";
@@ -35,10 +35,12 @@ public class ServerInfoTemplate {
 	public void initServerInfo() {
 		SERVER_INFO.put("version", version);
 		SERVER_INFO.put("external_ip", callServiceToGetExternalIpAddress());
-		SERVER_INFO.put("revision", gitProperties.getShortCommitId());
-		SERVER_INFO.put("tag", gitProperties.get("closest.tag.name"));
-		Instant buildTime = Instant.ofEpochMilli(Long.parseLong(gitProperties.get("build.time")));
-		SERVER_INFO.put("build_time", buildTime.toString());
+		if (gitProperties != null) {
+			SERVER_INFO.put("revision", gitProperties.getShortCommitId());
+			SERVER_INFO.put("tag", gitProperties.get("closest.tag.name"));
+			Instant buildTime = Instant.ofEpochMilli(Long.parseLong(gitProperties.get("build.time")));
+			SERVER_INFO.put("build_time", buildTime.toString());
+		}
 	}
 
 	/***
